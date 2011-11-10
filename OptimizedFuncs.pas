@@ -83,11 +83,20 @@ procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width,
 procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFunc); overload;
 procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefObjFunc); overload;
 
-procedure InitMathFunctions(UseSSEOptFuncs : boolean);
+procedure InitMathFunctions(UseSSEOptFuncs : boolean; useStrassenMult : boolean);
+procedure InitSSEOptFunctions(UseSSEOptFuncs : boolean);
+
+// note: there are cases where the strassen multiplication is slower than a block wise
+// multiplication - e.g. if the tidy up work is too often executed.
+// also the block wise multiplication has a lower additional memory consumption
+procedure InitMult(useStrassenMult : boolean);
 
 implementation
 
 uses BlockSizeSetup, SimpleMatrixOperations, ASMMatrixOperations, CPUFeatures;
+
+var actUseSSEoptions : boolean;
+    actUseStrassenMult : boolean;
 
 type
   TMatrixMultFunc = procedure(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
@@ -455,14 +464,27 @@ begin
      GenericMtxFunc(dest, destLineWidth, width, height, func);
 end;
 
+procedure InitSSEOptFunctions(UseSSEOptFuncs : boolean);
+begin
+     InitMathFunctions(UseSSEOptFuncs, actUseStrassenMult);
+end;
 
-procedure InitMathFunctions(UseSSEOptFuncs : boolean);
+procedure InitMult(useStrassenMult : boolean);
+begin
+     InitMathFunctions(actUseSSEoptions, useStrassenMult);
+end;
+
+procedure InitMathFunctions(UseSSEOptFuncs : boolean; useStrassenMult : boolean);
 var fpuCtrlWord : Word;
 begin
      // check features
      if IsSSE3Present and UseSSEOptFuncs then
      begin
-          multFunc := ASMMatrixMult;
+          if useStrassenMult
+          then
+              multFunc := ASMStrassenMatrixMultiplication
+          else
+              multFunc := ASMMatrixMult;
           addFunc := ASMMatrixAdd;
           subFunc := ASMMatrixSub;
           elemWiseFunc := ASMMatrixElemMult;
@@ -481,7 +503,11 @@ begin
      end
      else
      begin
-          multFunc := GenericMtxMult;
+          if useStrassenMult
+          then
+              multFunc := GenericStrassenMatrixMultiplication
+          else
+              multFunc := GenericMtxMult;
           addFunc := GenericMtxAdd;
           subFunc := GenericMtxSub;
           elemWiseFunc := GenericMtxElemMult;
@@ -499,16 +525,21 @@ begin
           matrixSumFunc := GenericMtxSum;
      end;
 
+     actUseSSEoptions := IsSSE3Present;
+     actUseStrassenMult := useStrassenMult;
+
      // set only double precission for compatibility
      fpuCtrlWord := Get8087CW;
-     // set bits 8 and 9 to "10"
+     // set bits 8 and 9 to "10" -> double precission calculation instead of extended!
      fpuCtrlWord := fpuCtrlWord or $0300;
      fpuCtrlWord := fpuCtrlWord and $FEFF;
      Set8087CW(fpuCtrlWord);
 end;
 
 initialization
+  actUseSSEoptions := IsSSE3Present;
+  actUseStrassenMult := True;
 
-  InitMathFunctions(IsSSE3Present);
+  InitMathFunctions(actUseSSEoptions, actUseSSEoptions);
 
 end.

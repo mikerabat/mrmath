@@ -83,6 +83,7 @@ type
     procedure TestThreadMatrixMult;
     procedure TestThreadMatrixAddSub;
     procedure TestThreadMatrixAddAndScale;
+    procedure TestStrassenMult;
   end;
 
   TASMatrixBlockSizeSetup = class(TBaseMatrixTestCase)
@@ -2142,6 +2143,51 @@ begin
           dest2 := nil;
      end;
 
+end;
+
+procedure TASMMatrixOperations.TestStrassenMult;
+var x, y : TDoubleDynArray;
+    dest1, dest2 : TDoubleDynArray;
+    i : Integer;
+    startTime1, endTime1 : Int64;
+    startTime2, endTime2 : Int64;
+    startTime3, endTime3 : Int64;
+const cStrassenWidth = 1024;
+      cStrassenHeight = 1024;
+      cStrassenSize = cStrassenWidth*cStrassenHeight;
+begin
+     //FillMatrix(cStrassenSize*cStrassenSize, x, y, p1, p2);
+     SetLength(x, cStrassenSize);
+     SetLength(y, cStrassenSize);
+     for i := 0 to cStrassenSize - 1 do
+     begin
+          x[i] := i;
+          y[i] := 1+i;
+     end;
+
+     SetLength(dest1, cStrassenHeight*cStrassenHeight);
+     SetLength(dest2, cStrassenHeight*cStrassenHeight);
+
+     TryClearCache;
+     QueryPerformanceCounter(startTime1);
+     BlockedMatrixMultiplication(@dest1[0], cStrassenHeight*sizeof(double), @x[0], @y[0], cStrassenWidth, cStrassenHeight, cStrassenHeight, cStrassenWidth, cStrassenWidth*sizeof(double), cStrassenHeight*sizeof(double), 256);
+     QueryPerformanceCounter(endTime1);
+
+     TryClearCache;
+     QueryPerformanceCounter(startTime2);
+     GenericStrassenMatrixMultiplication(@dest2[0], cStrassenHeight*sizeof(double), @x[0], @y[0], cStrassenWidth, cStrassenHeight, cStrassenHeight, cStrassenWidth, cStrassenWidth*sizeof(double), cStrassenHeight*sizeof(double));
+     QueryPerformanceCounter(endTime2);
+
+     Check(CheckMtx(dest1, dest2), 'Error strassen matrix mult failed');
+
+     TryClearCache;
+     QueryPerformanceCounter(startTime3);
+     ASMStrassenMatrixMultiplication(@dest2[0], cStrassenHeight*sizeof(double), @x[0], @y[0], cStrassenWidth, cStrassenHeight, cStrassenHeight, cStrassenWidth, cStrassenWidth*sizeof(double), cStrassenHeight*sizeof(double));
+     QueryPerformanceCounter(endTime3);
+
+     Check(CheckMtx(dest1, dest2), 'Error strassen matrix mult failed');
+
+     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000, (endTime3 - startTime3)/fPerfFreq*1000]));
 end;
 
 { TASMatrixBlockSizeSetup }
