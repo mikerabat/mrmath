@@ -63,6 +63,7 @@ contains
   ThreadedMatrixOperations in 'ThreadedMatrixOperations.pas',
   Utilities in 'Utilities.pas',
   BaseMathPersistence in 'BaseMathPersistence.pas',
-  BinaryReaderWriter in 'BinaryReaderWriter.pas';
+  BinaryReaderWriter in 'BinaryReaderWriter.pas',
+  PCA in 'PCA.pas';
 
 end.

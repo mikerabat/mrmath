@@ -72,7 +72,8 @@ uses
   Utilities in '..\Utilities.pas',
   BaseMathPersistence in '..\BaseMathPersistence.pas',
   BinaryReaderWriter in '..\BinaryReaderWriter.pas',
-  BufferedStream in '..\BufferedStream.pas';
+  BufferedStream in '..\BufferedStream.pas',
+  TestPCA in 'TestPCA.pas';
 
 {$R *.RES}
 
