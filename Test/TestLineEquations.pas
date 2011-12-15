@@ -31,6 +31,7 @@ type
   procedure TestLUBackSubst1;
   procedure TestLUBackSubst2;
   procedure TestInvert1;
+  procedure TestInvert2;
   procedure TestSVD1;
   procedure TestSVD2;
   procedure TestSVD3;
@@ -120,6 +121,15 @@ begin
      res := MatrixInverseInPlace(@Inv[0], 2*sizeof(double), 2);
      Check(res = leok, 'Singularity detected!');
      CheckEqualsMem(@AInv[0], @inv[0], sizeof(AInv), 'Error inverting Mtx: ' + WriteMtx(inv, 2));
+end;
+
+procedure TTestLinearEquations.TestInvert2;
+const A : Array[0..8] of double = (-0.0355, 0, 0.0355, -0.01, 0, 0, -3.96, 3.96, -2);
+var inv : Array[0..8] of double;
+begin
+     move(A, inv, sizeof(a));
+
+     Check(MatrixInverseInPlace(@inv[0], 3*sizeof(double), 3) = leSingular, 'Matrix inversion seems not to be singular');
 end;
 
 procedure TTestLinearEquations.TestLUBackSubst1;

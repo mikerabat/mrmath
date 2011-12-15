@@ -21,7 +21,7 @@ type
 
 implementation
 
-uses PCA, Dialogs, Graphics, JPeg, Math, IncrementalPCA, BinaryReaderWriter, BaseMathPersistence;
+uses PCA, Dialogs, Graphics, JPeg, Math, BinaryReaderWriter, BaseMathPersistence;
 
 { TTestEigensystems }
 
