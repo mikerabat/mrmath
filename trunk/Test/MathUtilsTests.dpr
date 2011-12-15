@@ -20,6 +20,7 @@ program MathUtilsTests;
 {$ENDIF}
 
 uses
+  madExcept,
   Forms,
   TestFramework,
   GUITestRunner,
@@ -73,7 +74,8 @@ uses
   BaseMathPersistence in '..\BaseMathPersistence.pas',
   BinaryReaderWriter in '..\BinaryReaderWriter.pas',
   BufferedStream in '..\BufferedStream.pas',
-  TestPCA in 'TestPCA.pas';
+  TestPCA in 'TestPCA.pas',
+  PCA in '..\PCA.pas';
 
 {$R *.RES}
 
