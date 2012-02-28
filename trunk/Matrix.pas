@@ -155,6 +155,8 @@ type
     procedure Assign(const Mtx : Array of double; W, H : integer); overload;
     procedure AssignSubMatrix(Value : TDoubleMatrix; X : integer = 0; Y : integer = 0); overload;
     procedure AssignSubMatrix(Value : IMatrix; X : integer = 0; Y : integer = 0); overload;
+
+    function Clone : IMatrix;
   end;
 
 // #################################################
@@ -316,8 +318,10 @@ type
     procedure AssignSubMatrix(Value : TDoubleMatrix; X : integer = 0; Y : integer = 0); overload;
     procedure AssignSubMatrix(Value : IMatrix; X : integer = 0; Y : integer = 0); overload;
 
+    function Clone : IMatrix;
+
     constructor Create; overload;
-    constructor Create(width, height : integer); overload;
+    constructor Create(width, height : integer; const initVal : double = 0); overload;
     constructor Create(data : PDouble; LineWidth : integer; width, height : integer); overload;
     constructor Create(const Data : TDoubleDynArray; width, height : integer); overload;
     destructor Destroy; override;
@@ -336,6 +340,8 @@ uses Math, contnrs, OptimizedFuncs, ASMMatrixOperations, LinearAlgebraicEquation
 type
   NativeUInt = Cardinal;
 {$ENDIF}
+
+
 { TDoubleMatrix }
 
 function TDoubleMatrix.Add(Value: IMatrix): TDoubleMatrix;
@@ -477,11 +483,28 @@ begin
      SetWidthHeight(1, 1);
 end;
 
-constructor TDoubleMatrix.Create(width, height: integer);
+constructor TDoubleMatrix.Create(width, height: integer; const initVal : double);
+var pData : PDouble;
+    x, y : integer;
 begin
      inherited Create;
 
      SetWidthHeight(width, height);
+
+     if initVal <> 0 then
+     begin
+          for y := 0 to height - 1 do
+          begin
+               pData := StartElement;
+               inc(PByte(pData), y*LineWidth);
+
+               for x := 0 to Width - 1 do
+               begin
+                    pData^ := initVal;
+                    inc(pData);
+               end;
+          end;
+     end;
 end;
 
 function TDoubleMatrix.Determinant: double;
@@ -1524,6 +1547,12 @@ begin
      fHeight := 0;
      fSubWidth := 0;
      fSubHeight := 0;
+end;
+
+function TDoubleMatrix.Clone: IMatrix;
+begin
+     Result := TDoubleMatrix.Create(Width, Height);
+     Result.Assign(Self);
 end;
 
 constructor TDoubleMatrix.Create(data: PDouble; LineWidth, width,

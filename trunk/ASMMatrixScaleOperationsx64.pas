@@ -483,7 +483,7 @@ asm
            movapd [rcx + rax - 112], xmm1;
 
            movapd xmm2, [rcx + rax - 96];
-           addpd xmm1, xmm6;
+           mulpd xmm2, xmm7;
            addpd xmm2, xmm6;
            movapd [rcx + rax - 96], xmm2;
 
@@ -578,7 +578,7 @@ asm
            movupd [rcx + rax - 112], xmm1;
 
            movupd xmm2, [rcx + rax - 96];
-           addpd xmm1, xmm6;
+           mulpd xmm2, xmm7;
            addpd xmm2, xmm6;
            movupd [rcx + rax - 96], xmm2;
 
@@ -677,7 +677,7 @@ asm
            movapd [rcx + rax - 112], xmm1;
 
            movapd xmm2, [rcx + rax - 96];
-           addpd xmm1, xmm6;
+           mulpd xmm2, xmm7;
            addpd xmm2, xmm6;
            movapd [rcx + rax - 96], xmm2;
 
@@ -778,7 +778,7 @@ asm
            movupd [rcx + rax - 112], xmm1;
 
            movupd xmm2, [rcx + rax - 96];
-           addpd xmm1, xmm6;
+           mulpd xmm2, xmm7;
            addpd xmm2, xmm6;
            movupd [rcx + rax - 96], xmm2;
 

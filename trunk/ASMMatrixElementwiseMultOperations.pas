@@ -36,7 +36,6 @@ implementation
 procedure ASMMatrixElemMultAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var iters : integer;
 begin
-     Assert(width > 16, 'Error width must be greater than 16');
      Assert((Cardinal(mt1) and $0000000F = 0) and (Cardinal(mt2) and $0000000F = 0) and (Cardinal(dest) and $0000000F = 0), 'Error non aligned data');
      Assert((width and 1) = 0, 'Error width must be even');
 

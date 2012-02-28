@@ -420,7 +420,6 @@ asm
 
    //iters := -width*sizeof(double);
    mov r10, width;
-   dec r10;
    shl r10, 3;
    imul r10, -1;
 
