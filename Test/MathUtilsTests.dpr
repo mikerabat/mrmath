@@ -75,7 +75,9 @@ uses
   BinaryReaderWriter in '..\BinaryReaderWriter.pas',
   BufferedStream in '..\BufferedStream.pas',
   TestPCA in 'TestPCA.pas',
-  PCA in '..\PCA.pas';
+  PCA in '..\PCA.pas',
+  TestNonLinFit in 'TestNonLinFit.pas',
+  NonLinearFit in '..\NonLinearFit.pas';
 
 {$R *.RES}
 

@@ -485,7 +485,7 @@ begin
                 movntdq [ecx + eax - 80], xmm3;
 
                 movapd xmm0, [ecx + eax - 64];
-                mulpd xmm3, xmm7;
+                mulpd xmm0, xmm7;
                 addpd xmm0, xmm6;
                 movntdq [ecx + eax - 64], xmm0;
 
