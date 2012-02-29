@@ -47,6 +47,7 @@ asm
    .pushnv rbx;                        {save affected registers}
    .pushnv rdi;
    MOV     RDI, Registers
+   MOV     EAX, Param;
    XOR     RBX, RBX                    {clear EBX register}
    XOR     RCX, RCX                    {clear ECX register}
    XOR     RDX, RDX                    {clear EDX register}
