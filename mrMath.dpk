@@ -64,6 +64,7 @@ contains
   Utilities in 'Utilities.pas',
   BaseMathPersistence in 'BaseMathPersistence.pas',
   BinaryReaderWriter in 'BinaryReaderWriter.pas',
-  PCA in 'PCA.pas';
+  PCA in 'PCA.pas',
+  NonLinearFit in 'NonLinearFit.pas';
 
 end.
