@@ -1,0 +1,97 @@
+= Matrix class =
+
+== Construction of objects ==
+
+To construct a matrix obj there are 4 different constructors available:
+
+{{{
+constructor Create; 
+}}}
+
+Creates an 1x1 matrix with width and height is 1 the value is initialized to zero.
+
+{{{
+constructor Create(width, height : integer; const initVal : double = 0);
+}}}
+
+Creates a new matrix with the given width and height and initializes each matrix element with
+the given value. Note that 0 width or zero height is not allowed.
+
+{{{
+constructor Create(data : PDouble; LineWidth : integer; width, height : integer);
+}}}
+
+This constructor initializes the internal datastructures with the given parameters.
+  * *data*: points to the first element of the matrix.
+  * *LineWidth*: Number of bytes between consecutive rows.
+  * *width, height*: Matrix size
+
+Note that this constructor takes ownership of the memory given with *data* and will release it when the 
+
+object is destroyed! Use one of the *Assign* methods to move the data instead.
+
+{{{
+constructor Create(const Data : TDoubleDynArray; width, height : integer); overload;
+}}}
+
+Reserves memory such that the matrix width and height can be accessed and then copies the content of 
+
+*data* to the resulting matrix. *Data* needs to be exactly as long as _width*height_ and is interpreted 
+
+row wise.
+
+== Examples ==
+
+{{{
+
+// create an empty matrix
+procedure foo;
+var mtx : IMatrix;
+begin
+     mtx := TDoubleMatrix.Create;
+
+     assert(mtx.width = 1, 'Error');
+end;
+
+// create a 3x3 matrix and initialize the matrix with 3
+procedure foo;
+var mtx : IMatrix;
+begin
+     mtx := TDoubleMatrix.Create(3, 3, 3);
+
+     assert(mtx.width = 3, 'Error');
+     assert(mtx[2, 2] = 3, 'Error');
+end;
+
+// create a 3x3 matrix and take ownership of the data
+procedure foo;
+var mtx : IMatrix;
+    data : PDouble; 
+begin
+     data := GetMemory(4*3*sizeof(double));  // create a 16 byte row wise aligned matrix 
+     FillChar(data^, 0, 4*3*sizeof(double)); // fill with zeros
+     mtx := TDoubleMatrix.Create(data, 4*sizeof(double), 3, 3);
+
+     mtx[0, 0] := 1;
+     assert(data^ = 1, 'Error');
+     assert(mtx.width = 3, 'Error');
+end;
+
+
+// create a 3x3 matrix and initialize with a dynamic array
+procedure foo;
+var mtx : IMatrix;
+    data : TDoubleDynArray; 
+begin
+     SetLength(data, 9); //3x3 matrix
+
+     for i := 0 to Length(data) - 1 do
+         data[i] := i;
+     
+     mtx := TDoubleMatrix.Create(data, 3, 3);
+
+     assert(mtx.width = 3, 'Error');
+     assert(mtx[2, 2] = 8, 'Error');
+end;
+
+}}}
