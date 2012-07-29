@@ -27,6 +27,7 @@ type
   TPCASaveData = (pcaEigVals, pcaMeanNormalizedData, pcaTransposedEigVec);
   TPCASaveDataSet = set of TPCASaveData;
   EPCAException = class(EBaseMatrixException);
+  TPCAProgress = procedure(Sender : TObject; progress : integer) of Object;
 
 type
   TPCAData = record
@@ -41,6 +42,9 @@ type
 type
   TMatrixPCA = class(TBaseMathPersistence)
   private
+    fProgress : TPCAProgress;
+
+    procedure OnLineEQProgress(Progress : integer);
     function GetEigVals: TDoubleMatrix;
     function GetEigVecs: TDoubleMatrix;
     function GetMeanElem: TDoubleMatrix;
@@ -48,6 +52,8 @@ type
     procedure DefineProps; override;
     class function ClassIdentifier : String; override;
     function OnLoadObject(const Name : String; obj : TBaseMathPersistence) : boolean; override;
+
+    procedure DoProgress(Progress : Integer);
   protected
     fKeepFlags : TPCASaveDataSet;
     fEigVecs : TDoubleMatrix;
@@ -83,6 +89,8 @@ type
     function ProjectToFeatureSpace(Example : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
     procedure ProjectToFeatureSpace(Example : TDoubleMatrix; ResMatrix : TDoubleMatrix; Column : integer); overload;
     function Reconstruct(Features : TDoubleMatrix) : TDoubleMatrix;
+
+    property OnProgress : TPCAProgress read fProgress write fProgress;
 
     constructor Create(KeepFlags : TPCASaveDataSet); overload;
     constructor Create(const pcaData : TPCAData); overload;
@@ -220,6 +228,12 @@ begin
      inherited;
 end;
 
+procedure TMatrixPCA.DoProgress(Progress: Integer);
+begin
+     if Assigned(fProgress) then
+        fProgress(self, Progress);
+end;
+
 function TMatrixPCA.EigVecT: TDoubleMatrix;
 begin
      if not Assigned(fEigVecsT) then
@@ -326,6 +340,8 @@ var i : integer;
     mv : TDoubleMatrix;
     weightSum : double;
 begin
+     DoProgress(0);
+
      weightSum := 0;
      for i := 0 to Length(weights) - 1 do
          weightSum := weightSum + weights[i];
@@ -337,6 +353,7 @@ begin
      try
         // subtract mean from each column
         fMeanNormExamples.Assign(Examples);
+        fMeanNormExamples.LineEQProgress := OnLineEQProgress;
 
         for i := 0 to fMeanNormExamples.Width - 1 do
         begin
@@ -449,6 +466,8 @@ begin
         // create transposed eigenvectors
         if pcaTransposedEigVec in fKeepFlags then
            EigVecT;
+
+        DoProgress(100);
      except
            Clear;
 
@@ -506,6 +525,8 @@ var i : integer;
     sumEigVals : double;
     scale : double;
 begin
+     DoProgress(0);
+
      // free previous pca calculations
      Clear;
 
@@ -516,6 +537,7 @@ begin
      try
         // subtract mean from each column
         fMeanNormExamples.Assign(Examples, True);
+        fMeanNormExamples.LineEQProgress := OnLineEQProgress;
 
         for i := 0 to fMeanNormExamples.Width - 1 do
         begin
@@ -615,6 +637,8 @@ begin
                   break;
              end;
         end;
+
+        DoProgress(100);
 
         // create transposed eigenvectors
         if pcaTransposedEigVec in fKeepFlags then
@@ -1389,6 +1413,12 @@ begin
         AddObject('meannormdata', fMeanNormExamples);
      if (pcaTransposedEigVec in fKeepFlags) and Assigned(fEigVecsT) then
         AddObject('pcavect', fEigVecsT);
+end;
+
+procedure TMatrixPCA.OnLineEQProgress(Progress: integer);
+begin
+     if Assigned(fProgress) then
+        fProgress(self, progress*99 div 100);
 end;
 
 function TMatrixPCA.OnLoadObject(const Name: String;

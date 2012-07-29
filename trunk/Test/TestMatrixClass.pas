@@ -38,6 +38,7 @@ type
    procedure SetUp; override;
    procedure TearDown; override;
   published
+   procedure TestConstructors;
    procedure TestPersistence;
    procedure TestAdd;
    procedure TestSub;
@@ -59,6 +60,7 @@ type
    procedure TestAdd;
    procedure TestSub;
    procedure TestMult;
+   procedure TestMult2;
    procedure TestTranspose;
    procedure TestCovariance;
   end;
@@ -149,6 +151,38 @@ begin
      finally
             mtx.Free;
      end;
+end;
+
+procedure TestTDoubleMatrix.TestConstructors;
+var mtx : IMatrix;
+    data : PDouble;
+    i : integer;
+    dynData : TDoubleDynArray;
+begin
+     mtx := TDoubleMatrix.Create;
+     assert(mtx.width = 1, 'Error');
+
+     mtx := TDoubleMatrix.Create(3, 3, 3);
+
+     assert(mtx.width = 3, 'Error');
+     assert(mtx[2, 2] = 3, 'Error');
+
+     data := GetMemory(4*3*sizeof(double));  // create a 16 byte row wise aligned matrix
+     FillChar(data^, 0, 4*3*sizeof(double)); // fill with zeros
+     mtx := TDoubleMatrix.Create(data, 4*sizeof(double), 3, 3);
+
+     mtx[0, 0] := 1;
+     assert(data^ = 1, 'Error');
+     assert(mtx.width = 3, 'Error');
+
+     SetLength(dynData, 9); //3x3 matrix
+     for i := 0 to Length(dynData) - 1 do
+         dynData[i] := i;
+
+     mtx := TDoubleMatrix.Create(dynData, 3, 3);
+
+     assert(mtx.width = 3, 'Error');
+     assert(mtx[2, 2] = 8, 'Error');
 end;
 
 procedure TestTDoubleMatrix.TestCovariance;
@@ -439,6 +473,23 @@ begin
      mtx1 := fRefMatrix2.Transpose;
      mtx := fRefMatrix1.Mult(mtx1);
      Check((mtx.width = mtx.height) and (mtx.width = 10), 'Mult Matrix dimension error');
+end;
+
+procedure TestIMatrix.TestMult2;
+const x : Array[0..8] of double = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+    y : Array[0..8] of double = (0, 1, 2, 3, 4, 5, 6, 7, 8);
+    res : Array[0..8] of double = (24, 30, 36, 51, 66, 81, 78, 102, 126);
+var m1, m2 : IMatrix;
+    m3 : IMatrix;
+begin
+     m1 := TDoubleMatrix.Create;
+     m1.Assign(x, 3, 3);
+     m2 := TDoubleMatrix.Create;
+     m2.Assign(y, 3, 3);
+
+     m3 := m1.Mult(m2);
+
+     Check(CheckMtx(res, m3.SubMatrix, 3, 3), 'Error multiplication failed');
 end;
 
 procedure TestIMatrix.TestSub;

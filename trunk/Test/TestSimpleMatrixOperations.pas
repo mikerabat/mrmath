@@ -37,6 +37,7 @@ type
    procedure TestMult;
    procedure TestTranspose;
    procedure TestCopy;
+   procedure TestRowExchange;
    procedure TestNormalize;
   end;
 
@@ -760,6 +761,42 @@ begin
      end;
 end;
 
+procedure TestMatrixOperations.TestRowExchange;
+const mt1 : Array[0..7] of double = (0, 1, 2, 3, 4, 5, 6, 7);
+      mt2 : Array[0..7] of double = (4, 5, 6, 7, 0, 1, 2, 3);
+var dest : Array[0..7] of double;
+    data, data1 : Pdouble;
+    mem : PDouble;
+begin
+     move(mt1, dest, sizeof(dest));
+
+     // test non aligned data
+     ASMRowSwap(@dest[0], @dest[4], 3);
+     CheckMtx(dest, mt2, 3, 2);
+
+     move(mt1, dest, sizeof(dest));
+     ASMRowSwap(@dest[0], @dest[4], 4);
+     CheckMtx(dest, mt2, 4, 2);
+
+     // test aligned data
+     mem := GetMemory(sizeof(mt1) + 32);
+     data := PDouble(NativeUInt(mem) + 16 - NativeUInt(mem) and $0F);
+     data1 := data;
+     inc(data1, 4);
+
+     move(mt1, data^, sizeof(mt1));
+     ASMRowSwap(data, data1, 3);
+     move(data^, dest, sizeof(dest));
+     CheckMtx(dest, mt2, 3, 2);
+
+     move(mt1, data^, sizeof(mt1));
+     ASMRowSwap(data, data1, 4);
+     move(data^, dest, sizeof(dest));
+     CheckMtx(dest, mt2, 4, 2);
+
+     FreeMem(mem);
+end;
+
 procedure TestMatrixOperations.TestSub;
 const mt1 : Array[0..5] of double = (0, 1, 2, 3, 4, 5);
       mt2 : Array[0..5] of double = (1, 1, 1, 1, 1, 1);
@@ -989,10 +1026,14 @@ const mt1 : Array[0..15] of double = (0, 1, 2, 4, 3, 4, 5, 5, 6, 7, 8, 6, 7, 8, 
       mt3 : Array[0..15] of double = (0, 3, 6, 7, 1, 4, 7, 8, 2, 5, 8, 9, 4, 5, 6, 10);
 var m1, m2, dest : PDouble;
     d1 : Array[0..15] of double;
+    mem : PDouble;
 begin
-     m1 := AllocMem(16*sizeof(double));
-     m2 := AllocMem(16*sizeof(double));
-     dest := AllocMem(16*sizeof(double));
+     mem := AllocMem(3*16*sizeof(double) + 16);
+     m1 := PDouble(TASMNativeUInt(mem) + 16 - TASMNativeUInt(mem) and $0F);
+     m2 := m1;
+     inc(m2, 16);
+     dest := m2;
+     inc(dest, 16);
 
      Move(mt1, m1^, sizeof(mt1));
      Move(mt2, m2^, sizeof(mt2));
@@ -1007,10 +1048,7 @@ begin
      move(dest^,d1, sizeof(d1));
      Check(CheckMtx(mt3, d1));
 
-
-     FreeMem(dest);
-     FreeMem(m2);
-     FreeMem(m1);
+     FreeMem(mem);
 end;
 
 
@@ -2161,8 +2199,8 @@ begin
      SetLength(y, cStrassenSize);
      for i := 0 to cStrassenSize - 1 do
      begin
-          x[i] := i;
-          y[i] := 1+i;
+          x[i] := random;
+          y[i] := random;
      end;
 
      SetLength(dest1, cStrassenHeight*cStrassenHeight);

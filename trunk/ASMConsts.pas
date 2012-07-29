@@ -30,6 +30,8 @@ type
   TASMNativeUInt = Cardinal;
 {$ENDIF}
 
+type
+  TMatrixMultDestOperation = (doNone, doAdd, doSub);
 implementation
 
 end.

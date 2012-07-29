@@ -26,12 +26,14 @@ type
  TTestLinearEquations = class(TBaseMatrixTestCase)
  published
   procedure TestDeterminant1;
+  procedure TestDeterminant2;
   procedure TestGaussJordan1;
   procedure TestLUDecomp1;
   procedure TestLUBackSubst1;
   procedure TestLUBackSubst2;
   procedure TestInvert1;
   procedure TestInvert2;
+  procedure TestInvert3;
   procedure TestSVD1;
   procedure TestSVD2;
   procedure TestSVD3;
@@ -39,13 +41,75 @@ type
   procedure TestQRDecomp;
   procedure TestPseudoInversion;
   procedure TestPseudoInversion2;
+  procedure TestBigLUDecomp;
+  procedure TestMatrixSolve;
  end;
 
 implementation
 
-uses Windows, LinearAlgebraicEquations, dialogs;
+uses Windows, LinearAlgebraicEquations, dialogs, ThreadedMatrixOperations,
+     MtxThreadPool, ThreadedLinAlg, math;
 
 { TestTDoubleMatrix }
+
+procedure TTestLinearEquations.TestBigLUDecomp;
+const cBlkWidth = 1024;
+      cBlkSize = cBlkWidth*cBlkWidth;
+
+var x, y : TDoubleDynArray;
+    i: Integer;
+    idx : Array[0..cBlkWidth-1] of integer;
+    start, stop : Int64;
+    freq : int64;
+    index : integer;
+begin
+     InitMtxThreadPool;
+
+     SetLength(x, cBlkSize);
+     SetLength(y, cBlkSize);
+
+     RandSeed := 15;
+     for i := 0 to cBlkSize - 1 do
+         x[i] := Random - 0.5;
+
+     x[0] := 0.4;
+     x[1] := 0.7;
+     x[2] := -0.2;
+     x[3] := 0.8;
+     x[4] := 0.1;
+     x[5] := -0.1;
+     x[6] := -0.7;
+     x[7] := 0.3;
+     x[8] := -0.2;
+     x[9] := 0.25;
+     x[10] := 0.15;
+     x[11] := -0.11;
+     x[12] := -0.79;
+     x[13] := 0.34;
+     x[14] := -0.25;
+     x[15] := 0.44;
+
+     index := 0;
+    // WriteMatlabData('D:\x.txt', x, cBlkWidth);
+     Move(x[0], y[0], sizeof(double)*length(x));
+
+     QueryPerformanceFrequency(freq);
+     QueryPerformanceCounter(start);
+     MatrixLUDecompInPlace(@x[0], cBlkWidth*sizeof(double), cBlkWidth, @idx[0], nil);
+     QueryPerformanceCounter(stop);
+     Status(Format('Blocked LU decomp: %.2fms', [(stop - start)/freq*1000]));
+
+    // WriteMatlabData('D:\xlu.txt', x, cBlkWidth);
+
+     QueryPerformanceCounter(start);
+     ThrMatrixLUDecomp(@y[0], cBlkWidth*sizeof(double), cBlkWidth, @idx[0], nil);
+     QueryPerformanceCounter(stop);
+     Status(Format('Threaded LU decomp: %.2fms', [(stop - start)/freq*1000]));
+
+     FinalizeMtxThreadPool;
+
+     Check(CheckMtxIdx(x, y, index), Format('error LU decomposition. Error at x[%d] = %.5f, y[%d] = %.5f', [index, x[index], index, y[index]]));
+end;
 
 procedure TTestLinearEquations.TestCholesky;
 const A : Array[0..8] of double = (1, 2, 2, -1, 4, -2, 2, 2, -1);
@@ -88,6 +152,44 @@ begin
      Check(det = -5, 'Error determinant differs: ' + Format('%.3f', [det]));
 end;
 
+procedure TTestLinearEquations.TestDeterminant2;
+const cBlkWidth = 512;
+      cBlkSize = cBlkWidth*cBlkWidth;
+var x : TDoubleDynArray;
+    i: Integer;
+    start, stop : Int64;
+    freq : int64;
+    det, detThr : double;
+begin
+     InitMtxThreadPool;
+     // big inversion
+     SetLength(x, cBlkSize);
+     RandSeed := 15;
+     for i := 0 to cBlkSize - 1 do
+         x[i] := Random/3.8 - 0.5/3.8;
+
+     //WriteMatlabData('d:\x1.txt', x, cBlkWidth);
+
+     QueryPerformanceFrequency(freq);
+
+     QueryPerformanceCounter(start);
+     det := MatrixDeterminant(@x[0], cBlkWidth*sizeof(double), cBlkWidth);
+     Check(det <> 0, 'Singular matrix');
+     QueryPerformanceCounter(stop);
+     Status(Format('Big determinant: %.2fms with value %.5f', [(stop - start)/freq*1000, det]));
+
+     QueryPerformanceCounter(start);
+     detThr := ThrMatrixDeterminant(@x[0], cBlkWidth*sizeof(double), cBlkWidth);
+     Check(detThr <> 0, 'Singular matrix');
+     QueryPerformanceCounter(stop);
+
+     Status(Format('Big threaded determinant: %.2fms with value %.5f', [(stop - start)/freq*1000, detThr]));
+
+     FinalizeMtxThreadPool;
+
+     Check(SameValue(det, detThr), 'Error Determinatnts differ too much');
+end;
+
 procedure TTestLinearEquations.TestGaussJordan1;
 const A : Array[0..3] of double = (1, 2, 2, -1);
       B : Array[0..1] of double = (1, 1);
@@ -124,12 +226,48 @@ begin
 end;
 
 procedure TTestLinearEquations.TestInvert2;
-const A : Array[0..8] of double = (-0.0355, 0, 0.0355, -0.01, 0, 0, -3.96, 3.96, -2);
+const A : Array[0..8] of double = (1, 2, 3, 2, 4, 6, 3, 3, -1);
 var inv : Array[0..8] of double;
 begin
      move(A, inv, sizeof(a));
 
      Check(MatrixInverseInPlace(@inv[0], 3*sizeof(double), 3) = leSingular, 'Matrix inversion seems not to be singular');
+end;
+
+procedure TTestLinearEquations.TestInvert3;
+const cBlkWidth = 512;
+      cBlkSize = cBlkWidth*cBlkWidth;
+var x, y : TDoubleDynArray;
+    i: Integer;
+    start, stop : Int64;
+    freq : int64;
+begin
+     InitMtxThreadPool;
+     // big inversion
+     SetLength(x, cBlkSize);
+     RandSeed := 15;
+     for i := 0 to cBlkSize - 1 do
+         x[i] := Random - 0.5;
+
+     WriteMatlabData('D:\x1.txt', x, cBlkWidth);
+
+     y := Copy(x, 0, Length(x));
+
+     QueryPerformanceFrequency(freq);
+
+     QueryPerformanceCounter(start);
+     Check(MatrixInverseInPlace(@x[0], cBlkWidth*sizeof(double), cBlkWidth) <> leSingular, 'Matrix inversion seems not to be singular');
+     QueryPerformanceCounter(stop);
+     Status(Format('Big Inversion: %.2fms', [(stop - start)/freq*1000]));
+
+     QueryPerformanceCounter(start);
+     Check(ThrMatrixInverse(@y[0], cBlkWidth*sizeof(double), cBlkWidth) <> leSingular, 'Matrix inversion seems not to be singular');
+     QueryPerformanceCounter(stop);
+     Status(Format('Big Inversion Threaded: %.2fms', [(stop - start)/freq*1000]));
+
+     //WriteMatlabData('D:\invx.txt', x, cBlkWidth);
+     FinalizeMtxThreadPool;
+     check(checkMtx(x, y), 'Error inversion of the threaded version is not the same as the single thread one');
 end;
 
 procedure TTestLinearEquations.TestLUBackSubst1;
@@ -205,6 +343,52 @@ begin
      res := MatrixLUDecomp(@A[0], 2*sizeof(double), @C[0], 2*sizeof(double), 2);
      Check(res = leOk, 'Singularity detected!');
      CheckEqualsMem(@B[0], @C[0], sizeof(B), 'LU decomp failed with: ' + WriteMtx(LUDecomp, 2));
+end;
+
+procedure TTestLinearEquations.TestMatrixSolve;
+const cBlkWidth = 48;
+      cBlkSize = cBlkWidth*cBlkWidth;
+var a, x1, x2, b : TDoubleDynArray;
+    i : integer;
+    freq, start, stop : int64;
+    index : integer;
+begin
+     InitMtxThreadPool;
+
+     SetLength(a, cBlkSize);
+     SetLength(b, 3*cBlkWidth);
+     SetLength(x1, 3*cBlkWidth);
+     SetLength(x2, 3*cBlkWidth);
+
+     RandSeed := 15;
+     for i := 0 to cBlkSize - 1 do
+         a[i] := Random - 0.5;
+
+     for i := 0 to 3*cBlkWidth - 1 do
+         b[i] := Random - 0.5;
+
+
+     QueryPerformanceFrequency(freq);
+     QueryPerformanceCounter(start);
+     MatrixLinEQSolve(@a[0], cBlkWidth*sizeof(double), cBlkWidth, @b[0], 3*sizeof(double), @x1[0], 3*sizeof(double), 3, 0);
+     QueryPerformanceCounter(stop);
+     Status(Format('Blocked LU decomp: %.2fms', [(stop - start)/freq*1000]));
+
+     //WriteMatlabData('D:\a.txt', a, cBlkWidth);
+     //WriteMatlabData('D:\b.txt', b, 3);
+     //WriteMatlabData('D:\x1.txt', x1, 3);
+
+     QueryPerformanceCounter(start);
+     ThrMatrixLinEQSolve(@a[0], cBlkWidth*sizeof(double), cBlkWidth, @b[0], 3*sizeof(double), @x2[0], 3*sizeof(double), 3);
+     QueryPerformanceCounter(stop);
+     Status(Format('Threaded LU decomp: %.2fms', [(stop - start)/freq*1000]));
+
+     //WriteMatlabData('D:\x2.txt', x2, 3);
+
+     FinalizeMtxThreadPool;
+
+     index := 0;
+     Check(CheckMtxIdx(x1, x2, index), Format('error Lin equation solve. Error at x[%d] = %.5f, y[%d] = %.5f', [index, x1[index], index, x2[index]]));
 end;
 
 procedure TTestLinearEquations.TestPseudoInversion;

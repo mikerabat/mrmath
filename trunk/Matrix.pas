@@ -25,8 +25,14 @@ uses SysUtils, Classes, Types, MatrixConst, BaseMathPersistence;
 
 type
   TDoubleMatrix = class;
-  IMatrix = interface
+  IMatrix = interface(IMathPersistence)
     ['{8B76CD12-4314-41EB-BD98-302A024AA0EC}']
+    function StartElement : PDouble; //{$if CompilerVersion > 18.5} inline; {$IFEND}
+    function LineWidth : integer; //{$if CompilerVersion > 18.5} inline; {$IFEND}
+
+    procedure SetLinEQProgress(value : TLinEquProgress);
+    function GetLinEQProgress : TLinEquProgress;
+
     function GetItems(x, y: integer): double; register;
     procedure SetItems(x, y: integer; const Value: double); register;
 
@@ -38,6 +44,8 @@ type
 
     property Width : integer read GetSubWidth write SetWidth;
     property Height : integer read GetSubHeight write SetHeight;
+
+    property LinEQProgress : TLinEquProgress read GetLinEQProgress write SetLinEQProgress;
 
     // general access
     property Items[x, y : integer] : double read GetItems write SetItems; default;
@@ -173,8 +181,12 @@ type
     procedure OnLoadIntProperty(const Name : String; Value : integer); overload; override;
     procedure OnLoadDoubleArr(const Name : String; const Value : TDoubleDynArray); override;
 
+    procedure SetLinEQProgress(value : TLinEquProgress);
+    function GetLinEQProgress : TLinEquProgress;
+
     procedure ReserveMem(width, height: integer);
   private
+    fLinEQProgress : TLinEquProgress;
     fMemory : Pointer;
     fData : PConstDoubleArr;       // 16 byte aligned pointer:
     fLineWidth : integer;
@@ -204,6 +216,8 @@ type
     property Height : integer read GetSubHeight write SetHeight;
 
     property Name : string read fName write fName;
+
+    property LineEQProgress : TLinEquProgress read GetLinEQProgress write SetLinEQProgress;
 
     // general access
     property Items[x, y : integer] : double read GetItems write SetItems; default;
@@ -455,7 +469,7 @@ begin
      try
         SetLength(p, fSubWidth);
 
-        Result := MatrixCholesky(chol.StartElement, chol.LineWidth, StartElement, LineWidth, fSubWidth, @p[0], sizeof(double));
+        Result := MatrixCholesky(chol.StartElement, chol.LineWidth, StartElement, LineWidth, fSubWidth, @p[0], sizeof(double), fLinEQProgress);
 
         if Result = crOk then
         begin
@@ -524,7 +538,7 @@ begin
      Result := TDoubleMatrix.Create(Value.fSubWidth, fSubHeight);
      try
         if MatrixLinEQSolve(StartElement, LineWidth, fSubWidth, Value.StartElement, Value.LineWidth, Result.StartElement,
-                            Result.LineWidth, Value.fSubWidth, numRefinements) = leSingular
+                            Result.LineWidth, Value.fSubWidth, numRefinements, fLinEQProgress) = leSingular
      then
          raise ELinEQSingularException.Create('Matrix is singular');
 
@@ -552,7 +566,7 @@ begin
      dt := TDoubleMatrix.Create(Value.fSubWidth, fSubHeight);
      try
         if MatrixLinEQSolve(StartElement, LineWidth, fSubWidth, Value.StartElement, Value.LineWidth, dt.StartElement,
-                            dt.LineWidth, Value.fSubWidth, numRefinements) = leSingular
+                            dt.LineWidth, Value.fSubWidth, numRefinements, fLinEQProgress) = leSingular
         then
             raise ELinEQSingularException.Create('Matrix is singular');
 
@@ -732,6 +746,11 @@ begin
      Result := pData[fOffsetX + x];
 end;
 
+function TDoubleMatrix.GetLinEQProgress: TLinEquProgress;
+begin
+     Result := fLinEQProgress;
+end;
+
 function TDoubleMatrix.GetObjRef: TDoubleMatrix;
 begin
      Result := self;
@@ -756,7 +775,7 @@ begin
      try
         Result.Assign(Self, True);
 
-        if MatrixInverseInPlace(Result.StartElement, Result.LineWidth, fSubWidth) = leSingular then
+        if MatrixInverseInPlace(Result.StartElement, Result.LineWidth, fSubWidth, fLinEQProgress) = leSingular then
            raise ELinEQSingularException.Create('Singular matrix');
      except
            Result.Free;
@@ -773,7 +792,7 @@ begin
      dt := TDoubleMatrix.Create(Width, Height);
      try
         dt.Assign(self, True);
-        Result := MatrixInverseInPlace(dt.StartElement, dt.LineWidth, fSubWidth);
+        Result := MatrixInverseInPlace(dt.StartElement, dt.LineWidth, fSubWidth, fLinEQProgress);
         if Result = leOk then
            Assign(dt);
 
@@ -941,7 +960,9 @@ begin
      mtx := TDoubleMatrix.Create;
      try
         mtx.Assign(self);
+        mtx.fLinEQProgress := fLinEQProgress;
         Result := mtx.PseudoInversionInPlace;
+        mtx.fLinEQProgress := nil;
      except
            FreeAndNil(mtx);
 
@@ -963,7 +984,7 @@ begin
 
      mtx := TDoubleMatrix.Create(height, width);
      try
-        Result := MatrixPseudoinverse(mtx.StartElement, mtx.LineWidth, StartElement, LineWidth, Width, Height);
+        Result := MatrixPseudoinverse(mtx.StartElement, mtx.LineWidth, StartElement, LineWidth, Width, Height, fLinEQProgress);
 
         if Result = srOk then
            Assign(mtx);
@@ -991,7 +1012,7 @@ begin
 
         SetLength(C, width);
         SetLength(D, width);
-        Result := MatrixQRDecompInPlace(R.StartElement, R.LineWidth, Width, @C[0], sizeof(double), @D[0], sizeof(double));
+        Result := MatrixQRDecompInPlace(R.StartElement, R.LineWidth, Width, @C[0], sizeof(double), @D[0], sizeof(double), fLinEQProgress);
 
         for x := 0 to R.Width - 1 do
         begin
@@ -1180,6 +1201,11 @@ begin
      pData^[fOffsetX + x] := Value;
 end;
 
+procedure TDoubleMatrix.SetLinEQProgress(value: TLinEquProgress);
+begin
+     fLinEQProgress := value;
+end;
+
 procedure TDoubleMatrix.SetRow(row : integer; Values: TDoubleMatrix; ValRow : integer);
 var pVal1 : PDouble;
     pVal2 : PDouble;
@@ -1343,7 +1369,7 @@ begin
             W := TDoubleMatrix.Create(fSubWidth, fSubWidth);
 
         // create three matrices -> Matrix W is a diagonal matrix with the singular values stored in the diagonal
-        Result := MatrixSVD(StartElement, LineWidth, fSubWidth, fSubHeight, U.StartElement, U.LineWidth, W.StartElement, W.LineWidth, V.StartElement, V.LineWidth);
+        Result := MatrixSVD(StartElement, LineWidth, fSubWidth, fSubHeight, U.StartElement, U.LineWidth, W.StartElement, W.LineWidth, V.StartElement, V.LineWidth, fLinEQProgress);
 
         if Result <> srOk then
         begin
