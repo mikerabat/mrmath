@@ -31,11 +31,269 @@ procedure ASMMatrixCopyUnAlignedEvenW(Dest : PDouble; const destLineWidth : TASM
 procedure ASMMatrixCopyAlignedOddW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
 procedure ASMMatrixCopyUnAlignedOddW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
 
+procedure ASMRowSwapAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
+procedure ASMRowSwapUnAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
+
+procedure ASMRowSwapAlignedOddW(A, B : PDouble; width : TASMNativeInt);
+procedure ASMRowSwapUnAlignedOddW(A, B : PDouble; width : TASMNativeInt);
+
 {$ENDIF}
 
 implementation
 
 {$IFDEF CPUX64}
+
+procedure ASMRowSwapAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
+asm
+   // note: RCX = a, RDX = b, R8 = width
+   mov r10, width;
+   shl r10, 3;
+   imul r10, -1;
+
+   sub A, r10;
+   sub B, r10;
+
+   @unrolloop:
+     add r10, 64;
+     jg @unrolloopend;
+
+     // prefetch data...
+     prefetchw [rcx + r10];
+     prefetchw [rdx + r10];
+
+     movdqa xmm0, [rcx + r10 - 64];
+     movdqa xmm1, [rdx + r10 - 64];
+
+     movdqa [rcx + r10 - 64], xmm1;
+     movdqa [rdx + r10 - 64], xmm0;
+
+     movdqa xmm2, [rcx + r10 - 48];
+     movdqa xmm3, [rdx + r10 - 48];
+
+     movdqa [rcx + r10 - 48], xmm3;
+     movdqa [rdx + r10 - 48], xmm2;
+
+     movdqa xmm4, [rcx + r10 - 32];
+     movdqa xmm5, [rdx + r10 - 32];
+
+     movdqa [rcx + r10 - 32], xmm5;
+     movdqa [rdx + r10 - 32], xmm4;
+
+     movdqa xmm6, [rcx + r10 - 16];
+     movdqa xmm7, [rdx + r10 - 16];
+
+     movdqa [rcx + r10 - 16], xmm7;
+     movdqa [rdx + r10 - 16], xmm6;
+   jmp @unrolloop;
+   @unrolloopend:
+
+   sub r10, 64;
+   jz @endfunc;
+
+
+   @loop:
+     movdqa xmm0, [rcx + r10];
+     movdqa xmm1, [rdx + r10];
+
+     movdqa [rcx + r10], xmm1;
+     movdqa [rdx + r10], xmm0;
+
+     add r10, 16;
+   jnz @loop;
+
+   @endfunc:
+end;
+
+procedure ASMRowSwapUnAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
+asm
+   // note: RCX = a, RDX = b, R8 = width
+   mov r10, width;
+   shl r10, 3;
+   imul r10, -1;
+
+   sub rcx, r10;
+   sub rdx, r10;
+
+   @unrolloop:
+     add r10, 64;
+     jg @unrolloopend;
+
+     movdqu xmm0, [rcx + r10 - 64];
+     movdqu xmm1, [rdx + r10 - 64];
+
+     movdqu [rcx + r10 - 64], xmm1;
+     movdqu [rdx + r10 - 64], xmm0;
+
+     movdqu xmm2, [rcx + r10 - 48];
+     movdqu xmm3, [rdx + r10 - 48];
+
+     movdqu [rcx + r10 - 48], xmm3;
+     movdqu [rdx + r10 - 48], xmm2;
+
+     movdqu xmm4, [rcx + r10 - 32];
+     movdqu xmm5, [rdx + r10 - 32];
+
+     movdqu [rcx + r10 - 32], xmm5;
+     movdqu [rdx + r10 - 32], xmm4;
+
+     movdqu xmm6, [rcx + r10 - 16];
+     movdqu xmm7, [rdx + r10 - 16];
+
+     movdqu [rcx + r10 - 16], xmm7;
+     movdqu [rdx + r10 - 16], xmm6;
+   jmp @unrolloop;
+   @unrolloopend:
+
+   sub r10, 64;
+   jz @endfunc;
+
+
+   @loop:
+     movdqu xmm0, [rcx + r10];
+     movdqu xmm1, [rdx + r10];
+
+     movdqu [rcx + r10], xmm1;
+     movdqu [rdx + r10], xmm0;
+
+     add r10, 16;
+   jnz @loop;
+
+   @endfunc:
+end;
+
+procedure ASMRowSwapAlignedOddW(A, B : PDouble; width : TASMNativeInt);
+asm
+   // note: RCX = a, RDX = b, R8 = width
+   mov r10, width;
+   dec r10;
+   shl r10, 3;
+   imul r10, -1;
+
+   sub rcx, r10;
+   sub rdx, r10;
+
+   @unrolloop:
+     add r10, 64;
+     jg @unrolloopend;
+
+     // prefetch data...
+     prefetchw [rcx + r10];
+     prefetchw [rdx + r10];
+
+     movdqa xmm0, [rcx + r10 - 64];
+     movdqa xmm1, [rdx + r10 - 64];
+
+     movdqa [rcx + r10 - 64], xmm1;
+     movdqa [rdx + r10 - 64], xmm0;
+
+     movdqa xmm2, [rcx + r10 - 48];
+     movdqa xmm3, [rdx + r10 - 48];
+
+     movdqa [rcx + r10 - 48], xmm3;
+     movdqa [rdx + r10 - 48], xmm2;
+
+     movdqa xmm4, [rcx + r10 - 32];
+     movdqa xmm5, [rdx + r10 - 32];
+
+     movdqa [rcx + r10 - 32], xmm5;
+     movdqa [rdx + r10 - 32], xmm4;
+
+     movdqa xmm6, [rcx + r10 - 16];
+     movdqa xmm7, [rdx + r10 - 16];
+
+     movdqa [rcx + r10 - 16], xmm7;
+     movdqa [rdx + r10 - 16], xmm6;
+   jmp @unrolloop;
+   @unrolloopend:
+
+   sub r10, 64;
+   jz @endfunc;
+
+
+   @loop:
+     movdqa xmm0, [rcx + r10];
+     movdqa xmm1, [rdx + r10];
+
+     movdqa [rcx + r10], xmm1;
+     movdqa [rdx + r10], xmm0;
+
+     add r10, 16;
+   jnz @loop;
+
+   @endfunc:
+
+   // last swap
+   movlpd xmm0, [rcx];
+   movlpd xmm1, [rdx];
+
+   movlpd [rcx], xmm1;
+   movlpd [rdx], xmm0;
+end;
+
+procedure ASMRowSwapUnAlignedOddW(A, B : PDouble; width : TASMNativeInt);
+asm
+   // note: RCX = a, RDX = b, R8 = width
+   mov r10, width;
+   dec r10;
+   shl r10, 3;
+   imul r10, -1;
+
+   sub rcx, r10;
+   sub rdx, r10;
+
+   @unrolloop:
+     add r10, 64;
+     jg @unrolloopend;
+
+     movdqu xmm0, [rcx + r10 - 64];
+     movdqu xmm1, [rdx + r10 - 64];
+
+     movdqu [rcx + r10 - 64], xmm1;
+     movdqu [rdx + r10 - 64], xmm0;
+
+     movdqu xmm2, [rcx + r10 - 48];
+     movdqu xmm3, [rdx + r10 - 48];
+
+     movdqu [rcx + r10 - 48], xmm3;
+     movdqu [rdx + r10 - 48], xmm2;
+
+     movdqu xmm4, [rcx + r10 - 32];
+     movdqu xmm5, [rdx + r10 - 32];
+
+     movdqu [rcx + r10 - 32], xmm5;
+     movdqu [rdx + r10 - 32], xmm4;
+
+     movdqu xmm6, [rcx + r10 - 16];
+     movdqu xmm7, [rdx + r10 - 16];
+
+     movdqu [rcx + r10 - 16], xmm7;
+     movdqu [rdx + r10 - 16], xmm6;
+   jmp @unrolloop;
+   @unrolloopend:
+
+   sub r10, 64;
+   jz @endfunc;
+
+
+   @loop:
+     movdqu xmm0, [rcx + r10];
+     movdqu xmm1, [rdx + r10];
+
+     movdqu [rcx + r10], xmm1;
+     movdqu [rdx + r10], xmm0;
+
+     add r10, 16;
+   jnz @loop;
+
+   @endfunc:
+
+   // last swap
+   movlpd xmm0, [rcx];
+   movlpd xmm1, [rdx];
+
+   movlpd [rcx], xmm1;
+   movlpd [rdx], xmm0;
+end;
 
 procedure ASMMatrixCopyAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
 asm
@@ -64,29 +322,29 @@ asm
            prefetchw [rcx + rax];
 
            // move:
-           movapd xmm0, [r8 + rax - 128];
-           movntdq [rcx + rax - 128], xmm0;
+           movdqa xmm0, [r8 + rax - 128];
+           movdqa [rcx + rax - 128], xmm0;
 
-           movapd xmm1, [r8 + rax - 112];
-           movntdq [rcx + rax - 112], xmm1;
+           movdqa xmm1, [r8 + rax - 112];
+           movdqa [rcx + rax - 112], xmm1;
 
-           movapd xmm2, [r8 + rax - 96];
-           movntdq [rcx + rax - 96], xmm2;
+           movdqa xmm2, [r8 + rax - 96];
+           movdqa [rcx + rax - 96], xmm2;
 
-           movapd xmm3, [r8 + rax - 80];
-           movntdq [rcx + rax - 80], xmm3;
+           movdqa xmm3, [r8 + rax - 80];
+           movdqa [rcx + rax - 80], xmm3;
 
-           movapd xmm0, [r8 + rax - 64];
-           movntdq [rcx + rax - 64], xmm0;
+           movdqa xmm0, [r8 + rax - 64];
+           movdqa [rcx + rax - 64], xmm0;
 
-           movapd xmm1, [r8 + rax - 48];
-           movntdq [rcx + rax - 48], xmm1;
+           movdqa xmm1, [r8 + rax - 48];
+           movdqa [rcx + rax - 48], xmm1;
 
-           movapd xmm2, [r8 + rax - 32];
-           movntdq [rcx + rax - 32], xmm2;
+           movdqa xmm2, [r8 + rax - 32];
+           movdqa [rcx + rax - 32], xmm2;
 
-           movapd xmm3, [r8 + rax - 16];
-           movntdq [rcx + rax - 16], xmm3;
+           movdqa xmm3, [r8 + rax - 16];
+           movdqa [rcx + rax - 16], xmm3;
        jmp @addforxloop
 
        @loopEnd:
@@ -96,8 +354,8 @@ asm
        jz @nextLine;
 
        @addforxloop2:
-           movapd xmm0, [r8 + rax];
-           movntdq [rcx + rax], xmm0;
+           movdqa xmm0, [r8 + rax];
+           movdqa [rcx + rax], xmm0;
        add rax, 16;
        jnz @addforxloop2;
 
@@ -135,29 +393,29 @@ asm
            jg @loopEnd;
 
            // move:
-           movupd xmm0, [r8 + rax - 128];
-           movupd [rcx + rax - 128], xmm0;
+           movdqu xmm0, [r8 + rax - 128];
+           movdqu [rcx + rax - 128], xmm0;
 
-           movupd xmm1, [r8 + rax - 112];
-           movupd [rcx + rax - 112], xmm1;
+           movdqu xmm1, [r8 + rax - 112];
+           movdqu [rcx + rax - 112], xmm1;
 
-           movupd xmm2, [r8 + rax - 96];
-           movupd [rcx + rax - 96], xmm2;
+           movdqu xmm2, [r8 + rax - 96];
+           movdqu [rcx + rax - 96], xmm2;
 
-           movupd xmm3, [r8 + rax - 80];
-           movupd [rcx + rax - 80], xmm3;
+           movdqu xmm3, [r8 + rax - 80];
+           movdqu [rcx + rax - 80], xmm3;
 
-           movupd xmm0, [r8 + rax - 64];
-           movupd [rcx + rax - 64], xmm0;
+           movdqu xmm0, [r8 + rax - 64];
+           movdqu [rcx + rax - 64], xmm0;
 
-           movupd xmm1, [r8 + rax - 48];
-           movupd [rcx + rax - 48], xmm1;
+           movdqu xmm1, [r8 + rax - 48];
+           movdqu [rcx + rax - 48], xmm1;
 
-           movupd xmm2, [r8 + rax - 32];
-           movupd [rcx + rax - 32], xmm2;
+           movdqu xmm2, [r8 + rax - 32];
+           movdqu [rcx + rax - 32], xmm2;
 
-           movupd xmm3, [r8 + rax - 16];
-           movupd [rcx + rax - 16], xmm3;
+           movdqu xmm3, [r8 + rax - 16];
+           movdqu [rcx + rax - 16], xmm3;
        jmp @addforxloop
 
        @loopEnd:
@@ -167,8 +425,8 @@ asm
        jz @nextLine;
 
        @addforxloop2:
-           movupd xmm0, [r8 + rax];
-           movupd [rcx + rax], xmm0;
+           movdqu xmm0, [r8 + rax];
+           movdqu [rcx + rax], xmm0;
        add rax, 16;
        jnz @addforxloop2;
 
@@ -211,29 +469,29 @@ asm
            prefetchw [rcx + rax];
 
            // move:
-           movapd xmm0, [r8 + rax - 128];
-           movntdq [rcx + rax - 128], xmm0;
+           movdqa xmm0, [r8 + rax - 128];
+           movdqa [rcx + rax - 128], xmm0;
 
-           movapd xmm1, [r8 + rax - 112];
-           movntdq [rcx + rax - 112], xmm1;
+           movdqa xmm1, [r8 + rax - 112];
+           movdqa [rcx + rax - 112], xmm1;
 
-           movapd xmm2, [r8 + rax - 96];
-           movntdq [rcx + rax - 96], xmm2;
+           movdqa xmm2, [r8 + rax - 96];
+           movdqa [rcx + rax - 96], xmm2;
 
-           movapd xmm3, [r8 + rax - 80];
-           movntdq [rcx + rax - 80], xmm3;
+           movdqa xmm3, [r8 + rax - 80];
+           movdqa [rcx + rax - 80], xmm3;
 
-           movapd xmm0, [r8 + rax - 64];
-           movntdq [rcx + rax - 64], xmm0;
+           movdqa xmm0, [r8 + rax - 64];
+           movdqa [rcx + rax - 64], xmm0;
 
-           movapd xmm1, [r8 + rax - 48];
-           movntdq [rcx + rax - 48], xmm1;
+           movdqa xmm1, [r8 + rax - 48];
+           movdqa [rcx + rax - 48], xmm1;
 
-           movapd xmm2, [r8 + rax - 32];
-           movntdq [rcx + rax - 32], xmm2;
+           movdqa xmm2, [r8 + rax - 32];
+           movdqa [rcx + rax - 32], xmm2;
 
-           movapd xmm3, [r8 + rax - 16];
-           movntdq [rcx + rax - 16], xmm3;
+           movdqa xmm3, [r8 + rax - 16];
+           movdqa [rcx + rax - 16], xmm3;
        jmp @addforxloop
 
        @loopEnd:
@@ -243,8 +501,8 @@ asm
        jz @nextLine;
 
        @addforxloop2:
-           movapd xmm0, [r8 + rax];
-           movntdq [rcx + rax], xmm0;
+           movdqa xmm0, [r8 + rax];
+           movdqa [rcx + rax], xmm0;
        add rax, 16;
        jnz @addforxloop2;
 
@@ -287,29 +545,29 @@ asm
            jg @loopEnd;
 
            // move:
-           movupd xmm0, [r8 + rax - 128];
-           movupd [rcx + rax - 128], xmm0;
+           movdqu xmm0, [r8 + rax - 128];
+           movdqu [rcx + rax - 128], xmm0;
 
-           movupd xmm1, [r8 + rax - 112];
-           movupd [rcx + rax - 112], xmm1;
+           movdqu xmm1, [r8 + rax - 112];
+           movdqu [rcx + rax - 112], xmm1;
 
-           movupd xmm2, [r8 + rax - 96];
-           movupd [rcx + rax - 96], xmm2;
+           movdqu xmm2, [r8 + rax - 96];
+           movdqu [rcx + rax - 96], xmm2;
 
-           movupd xmm3, [r8 + rax - 80];
-           movupd [rcx + rax - 80], xmm3;
+           movdqu xmm3, [r8 + rax - 80];
+           movdqu [rcx + rax - 80], xmm3;
 
-           movupd xmm0, [r8 + rax - 64];
-           movupd [rcx + rax - 64], xmm0;
+           movdqu xmm0, [r8 + rax - 64];
+           movdqu [rcx + rax - 64], xmm0;
 
-           movupd xmm1, [r8 + rax - 48];
-           movupd [rcx + rax - 48], xmm1;
+           movdqu xmm1, [r8 + rax - 48];
+           movdqu [rcx + rax - 48], xmm1;
 
-           movupd xmm2, [r8 + rax - 32];
-           movupd [rcx + rax - 32], xmm2;
+           movdqu xmm2, [r8 + rax - 32];
+           movdqu [rcx + rax - 32], xmm2;
 
-           movupd xmm3, [r8 + rax - 16];
-           movupd [rcx + rax - 16], xmm3;
+           movdqu xmm3, [r8 + rax - 16];
+           movdqu [rcx + rax - 16], xmm3;
        jmp @addforxloop
 
        @loopEnd:
@@ -319,8 +577,8 @@ asm
        jz @nextLine;
 
        @addforxloop2:
-           movupd xmm0, [r8 + rax];
-           movupd [rcx + rax], xmm0;
+           movdqu xmm0, [r8 + rax];
+           movdqu [rcx + rax], xmm0;
        add rax, 16;
        jnz @addforxloop2;
 

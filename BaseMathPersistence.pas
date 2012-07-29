@@ -27,7 +27,14 @@ uses SysUtils, Classes, Types;
 // #### Loading/saving data
 type
   TCustomMathPersistenceIO = class;
-  TBaseMathPersistence = class(TInterfacedObject)
+  TCustomMathPersistenceIOClass = class of TCustomMathPersistenceIO;
+  IMathPersistence = interface
+    ['{16A5F1D0-CA39-4BD0-BABE-E1E70B0045C3}']
+    procedure SaveToFile(const FileName : string; Writer : TCustomMathPersistenceIOClass);
+    procedure SaveToStream(stream : TStream; Writer : TCustomMathPersistenceIOClass);
+  end;
+
+  TBaseMathPersistence = class(TInterfacedObject, IMathPersistence)
   private
     fWriter : TCustomMathPersistenceIO;
     fInList : boolean;
@@ -64,6 +71,9 @@ type
     class function ClassIdentifier : String; virtual;
     procedure DefineProps; virtual; abstract;
     procedure CleanupWriter;
+  public
+    procedure SaveToFile(const FileName : string; WriterClass : TCustomMathPersistenceIOClass);
+    procedure SaveToStream(stream : TStream; WriterClass : TCustomMathPersistenceIOClass);
   end;
   TBaseMathPersistenceClass = class of TBaseMathPersistence;
 
@@ -103,7 +113,6 @@ type
     class procedure StaticSaveToFile(aMathObj : TBaseMathPersistence; const FileName : string);
     class procedure StaticSaveToStream(aMathObj : TBaseMathPersistence; Stream : TStream);
   end;
-  TCustomMathPersistenceIOClass = class of TCustomMathPersistenceIO;
 
 function CreateMathIOReader(const FileName : TFileName) : TCustomMathPersistenceIOClass; overload;
 function CreateMathIOReader(Stream : TStream) : TCustomMathPersistenceIOClass; overload;
@@ -448,6 +457,30 @@ end;
 procedure TBaseMathPersistence.OnLoadStringProperty(const Name, Value: String);
 begin
      // do nothing in the base class
+end;
+
+procedure TBaseMathPersistence.SaveToFile(const FileName: string;
+  WriterClass: TCustomMathPersistenceIOClass);
+var fs : TFileStream;
+begin
+     fs := TFileStream.Create(FileName, fmCreate or fmOpenWrite);
+     try
+        SaveToStream(fs, WriterClass);
+     finally
+            fs.Free;
+     end;
+end;
+
+procedure TBaseMathPersistence.SaveToStream(stream: TStream;
+  WriterClass : TCustomMathPersistenceIOClass);
+var obj : TCustomMathPersistenceIO;
+begin
+     obj := WriterClass.Create;
+     try
+        obj.SaveToStream(self, stream);
+     finally
+            obj.Free;
+     end;
 end;
 
 procedure TBaseMathPersistence.OnLoadIntProperty(const Name: String;

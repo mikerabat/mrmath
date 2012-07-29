@@ -27,6 +27,8 @@ procedure MatrixCopy(var dest : Array of double; const Src : Array of double; wi
 function MatrixCopy(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt) : TDoubleDynArray; overload;
 function MatrixCopy(const Src : Array of double; width, height : TASMNativeInt) : TDoubleDynArray; overload;
 
+procedure MatrixRowSwap(A, B : PDouble; width : TASMNativeInt);
+
 function MatrixAdd(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
 procedure MatrixAdd(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
 function MatrixAdd(const mt1, mt2 : array of double; width : TASMNativeInt) : TDoubleDynArray; overload;
@@ -100,7 +102,7 @@ var actUseSSEoptions : boolean;
 
 type
   TMatrixMultFunc = procedure(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-  TMatrixBlockedMultfunc = procedure (dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt);
+  TMatrixBlockedMultfunc = procedure (dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble);
   TMatrixAddFunc = procedure(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
   TMatrixSubFunc = TMatrixAddFunc;
   TMatrixElemWiseFunc = TMatrixAddFunc;
@@ -111,6 +113,7 @@ type
   TMatrixTransposeFunc = procedure(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
   TMatrixElemWiseNormFunc = function (dest : PDouble; LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
   TMatrixNormalizeFunc = procedure(dest : PDouble; destLineWidth : TASMNativeInt; src : PDouble; srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; RowWise : Boolean);
+  TMatrixRowSwapFunc = procedure (A, B : PDouble; width : TASMNativeInt);
 
 var multFunc : TMatrixMultFunc;
     blockedMultFunc : TMatrixBlockedMultfunc;
@@ -128,6 +131,7 @@ var multFunc : TMatrixMultFunc;
     matrixNormalizeFunc : TMatrixNormalizeFunc;
     matrixMeanFunc : TMatrixNormalizeFunc;
     matrixSumFunc : TMatrixNormalizeFunc;
+    rowSwapFunc : TMatrixRowSwapFunc;
 
 procedure MatrixCopy(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 begin
@@ -162,6 +166,13 @@ begin
 
      SetLength(Result, Width*Height);
      addFunc(@Result[0], sizeof(double)*Width, mt1, mt2, width, height, LineWidth1, LineWidth2);
+end;
+
+procedure MatrixRowSwap(A, B : PDouble; width : TASMNativeInt);
+begin
+     assert((width > 0), 'Dimension error');
+
+     rowSwapFunc(A, B, width);
 end;
 
 
@@ -217,7 +228,7 @@ begin
      assert(High(mt1) >= width + 1, 'Dimension Error');
      assert(High(mt2) = High(mt1), 'Dimension Error');
      assert(High(dest) = High(mt1), 'Dimension Error');
-     
+
      subFunc(@dest[0], width*sizeof(double), @mt1[0], @mt2[0], width, (High(mt1) + 1) div width, width*sizeof(double), width*sizeof(double));
 end;
 
@@ -256,7 +267,7 @@ begin
      if ((width1 >= BlockedMatrixMultSize) and (height1 >= BlockedMatrixMultSize) and (height2 >= BlockedMatrixMultSize)) or
         (width1*height1 >= multBlockSize) or (width2*Height2 >= multBlockSize)
      then
-         blockedMultFunc(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, BlockMatrixCacheSize)
+         blockedMultFunc(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, BlockMatrixCacheSize, doNone, nil)
      else
          multFunc(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2);
 end;
@@ -500,6 +511,7 @@ begin
           matrixNormalizeFunc := ASMMatrixNormalize;
           matrixMeanFunc := ASMMatrixMean;
           matrixSumFunc := ASMMatrixSum;
+          rowSwapFunc := ASMRowSwap;
      end
      else
      begin
@@ -523,6 +535,7 @@ begin
           matrixNormalizeFunc := GenericMtxNormalize;
           matrixMeanFunc := GenericMtxMean;
           matrixSumFunc := GenericMtxSum;
+          rowSwapFunc := GenericRowSwap;
      end;
 
      actUseSSEoptions := IsSSE3Present;

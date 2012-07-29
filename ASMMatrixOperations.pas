@@ -27,6 +27,7 @@ const cCacheMtxSize = 256;
       cCacheBlkSize = 16;
 
 procedure ASMMatrixCopy(Dest : PDouble; destLineWidth : TASMNativeInt; src : PDouble; srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+procedure ASMRowSwap(A, B : PDouble; width : TASMNativeInt);
 
 function ASMMatrixMult(mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
 procedure ASMMatrixMult(var dest : Array of Double; mt1, mt2 : Array of double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt); overload;
@@ -58,20 +59,21 @@ procedure ASMMatrixSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDou
 
 // this routine first performs a transposition on the second matrix before the multiplication is executed. This results
 // normaly in quite a boost.
-procedure BlockedMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
-procedure BlockedMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt); overload;
 
-procedure ASMStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure BlockedMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation = doNone); overload;
+procedure BlockedMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation = doNone; mem : PDouble = nil); overload;
+procedure GenericBlockedMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation = doNone; mem : PDouble = nil);
 
-procedure GenericBlockedMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt);
+// strassen algorithm for matrix multiplication
 procedure GenericStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 
 // this is a blockwise matrix multiplication routine which takes a limited cache into account.
 // The routine tries to tile the matrix into 256x256 blocks (which seems to be a good approximation
 // for a Core2 processor) which fits into the Level1 cache thus reduces
 // cache misses.
-procedure BlockedMatrixMultiplicationDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
-procedure BlockedMatrixMultiplicationDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt); overload;
+procedure BlockedMatrixMultiplicationDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation = doNone); overload;
+procedure BlockedMatrixMultiplicationDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation = doNone); overload;
 
 procedure BlockedMatrixVectorMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt); overload;
 procedure BlockedMatrixVectorMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt; blockSize : TASMNativeInt); overload;
@@ -740,12 +742,36 @@ begin
      end;
 end;
 
-procedure BlockedMatrixMultiplicationDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMRowSwap(A, B : PDouble; width : TASMNativeInt);
 begin
-     BlockedMatrixMultiplicationDirect(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, BlockMatrixCacheSize);
+     if (width = 0) then
+        exit;
+
+     if (Cardinal(A) and $0000000F = 0) and (Cardinal(B) and $0000000F = 0)
+     then
+     begin
+          if (width and 1) = 0
+          then
+              ASMRowSwapAlignedEvenW(A, B, Width)
+          else
+              ASMRowSwapAlignedOddW(A, B, Width)
+     end
+     else
+     begin
+          if (width and 1) = 0
+          then
+              ASMRowSwapUnAlignedEvenW(A, B, Width)
+          else
+              ASMRowSwapUnAlignedOddW(A, B, Width)
+     end;
 end;
 
-procedure BlockedMatrixMultiplicationDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt);
+procedure BlockedMatrixMultiplicationDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation);
+begin
+     BlockedMatrixMultiplicationDirect(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, BlockMatrixCacheSize, op);
+end;
+
+procedure BlockedMatrixMultiplicationDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation);
 var w, h : TASMNativeInt;
     blkIdxX : TASMNativeInt;
     actBlk : PDouble;
@@ -756,8 +782,6 @@ var w, h : TASMNativeInt;
     gamma : TASMNativeInt;
     pDest : PDouble;
     pMt2 : PDouble;
-    pActBlk : PDouble;
-    pHelp : PDouble;
     w1FitCacheSize : boolean;
     w2FitCacheSize : boolean;
     h1FitCacheSize : boolean;
@@ -835,13 +859,11 @@ begin
                     inc(PByte(pb), gammaWidth*LineWidth2);
                end;
 
-               pHelp := pDest;
-               pActBlk := actBlk;
-               for idx := 0 to blkHeight - 1 do
-               begin
-                    Move(pActBlk^, pHelp^, blkWidth*sizeof(double));
-                    inc(PByte(pHelp), destLineWidth);
-                    inc(pActBlk, blockSize);
+               // apply final operation such that we got the final result: Dest := Dest +- A*B ;
+               case op of
+                 doNone: ASMMatrixCopy(pDest, destLineWidth, actBlk, blockSize*sizeof(double), blkWidth, blkHeight);
+                 doAdd: ASMMatrixAdd(pDest, destLineWidth, pDest, actBlk, blkWidth, blkHeight, destLineWidth, blockSize*sizeof(double));
+                 doSub: ASMMatrixSub(pDest, destLineWidth, pDest, actBlk, blkWidth, blkHeight, destLineWidth, blockSize*sizeof(double));
                end;
 
                inc(pDest, blockSize);
@@ -1070,12 +1092,13 @@ begin
      ASMMatrixMult(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, nil);
 end;
 
-procedure BlockedMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure BlockedMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation);
 begin
-     BlockedMatrixMultiplication(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, BlockMatrixCacheSize);
+     BlockedMatrixMultiplication(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, BlockMatrixCacheSize, op, nil);
 end;
 
-procedure BlockedMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt);
+procedure BlockedMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
+  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
 var w, h : TASMNativeInt;
     blkIdxX : TASMNativeInt;
     actBlk : PDouble;
@@ -1116,7 +1139,9 @@ begin
 
      blockByteSize := blockSize*blockSize*sizeof(double);
 
-     GetMem(actBlk, 4*blockByteSize);
+     actBlk := mem;
+     if not Assigned(mem) then
+        GetMem(actBlk, 4*blockByteSize);
      multBlk := PDouble(PAnsiChar(actBlk) + blockByteSize);
      transBlk := PDouble(PAnsiChar(actBlk) + 2*blockByteSize);
      copyBlk := PDouble(PAnsiChar(actBlk) + 3*blockByteSize);
@@ -1175,7 +1200,12 @@ begin
                     inc(PByte(pb), gammaWidth*LineWidth2);
                end;
 
-               ASMMatrixCopy(pDest, destLineWidth, actBlk, blockLineSize, blkWidth, blkHeight);
+               // apply final operation such that we got the final result: Dest := Dest +- A*B ;
+               case op of
+                 doNone: ASMMatrixCopy(pDest, destLineWidth, actBlk, blockLineSize, blkWidth, blkHeight);
+                 doAdd: ASMMatrixAdd(pDest, destLineWidth, pDest, actBlk, blkWidth, blkHeight, destLineWidth, blockLineSize);
+                 doSub: ASMMatrixSub(pDest, destLineWidth, pDest, actBlk, blkWidth, blkHeight, destLineWidth, blockLineSize);
+               end;
 
                inc(pDest, blockSize);
                inc(pMt2, blockSize);
@@ -1184,7 +1214,8 @@ begin
           inc(PByte(mt1), blkHeight*LineWidth1);
      end;
 
-     FreeMem(actBlk);
+     if not Assigned(mem) then
+        FreeMem(actBlk);
 end;
 
 
@@ -1627,7 +1658,6 @@ begin
      end;
 end;
 
-
 procedure ASMStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var mem : PDouble;
     memSize : integer;
@@ -1660,7 +1690,7 @@ begin
 
           mem := GetMemory(memSize);
           try
-             InternalASMStrassenMult(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, mem);
+             InternalASMStrassenMult(Dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, mem);
           finally
                  FreeMem(mem);
           end;
@@ -1705,7 +1735,9 @@ begin
      end;
 end;
 
-procedure GenericBlockedMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt);
+procedure GenericBlockedMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble;
+  width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
+  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble);
 var w, h : TASMNativeInt;
     blkIdxX : TASMNativeInt;
     actBlk : PDouble;
@@ -1716,8 +1748,6 @@ var w, h : TASMNativeInt;
     gamma : TASMNativeInt;
     pDest : PDouble;
     pMt2 : PDouble;
-    pActBlk : PDouble;
-    pHelp : PDouble;
     w1FitCacheSize : boolean;
     w2FitCacheSize : boolean;
     h1FitCacheSize : boolean;
@@ -1750,8 +1780,17 @@ begin
      w := width2 div blockSize + TASMNativeInt(not w2FitCacheSize) - 1;
      gamma := width1 div blockSize + TASMNativeInt(not w1FitCacheSize) - 1;
 
-     GetMem(actBlk, blockSize*blockSize*sizeof(double));
-     GetMem(multBlk, blockSize*blockSize*sizeof(double));
+     if Assigned(mem) then
+     begin
+          actBlk := mem;
+          multBlk := actBlk;
+          inc(multBlk, blockSize*blockSize);
+     end
+     else
+     begin
+          GetMem(actBlk, blockSize*blockSize*sizeof(double));
+          GetMem(multBlk, blockSize*blockSize*sizeof(double));
+     end;
 
      blkHeight := blockSize;
 
@@ -1787,13 +1826,11 @@ begin
                     inc(PByte(pb), gammaWidth*LineWidth2);
                end;
 
-               pHelp := pDest;
-               pActBlk := actBlk;
-               for idx := 0 to blkHeight - 1 do
-               begin
-                    Move(pActBlk^, pHelp^, blkWidth*sizeof(double));
-                    inc(PByte(pHelp), destLineWidth);
-                    inc(pActBlk, blockSize);
+               // build the result: dest = A*B +- Dest (according to the operator)
+               case op of
+                 doNone: GenericMtxCopy(pDest, destLineWidth, ActBlk, blockSize*sizeof(double), blkWidth, blkHeight);
+                 doAdd:  GenericMtxAdd(pDest, destLineWidth, ActBlk, pDest, blkWidth, blkHeight, blockSize*sizeof(double), destLineWidth);
+                 doSub:  GenericMtxSub(pDest, destLineWidth, ActBlk, pDest, blkWidth, blkHeight, blockSize*sizeof(double), destLineWidth);
                end;
 
                inc(pDest, blockSize);
@@ -1803,8 +1840,11 @@ begin
           inc(PByte(mt1), blkHeight*LineWidth1);
      end;
 
-     FreeMem(actBlk);
-     FreeMem(multBlk);
+     if not Assigned(mem) then
+     begin
+          FreeMem(actBlk);
+          FreeMem(multBlk);
+     end;
 end;
 
 procedure ASMMatrixMultDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);

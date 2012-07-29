@@ -28,6 +28,8 @@ type
   TSVDResult = (srOk, srNoConvergence);
   TCholeskyResult = (crOk, crNoPositiveDefinite);
   TQRResult = (qrOK, qrSingular);
+  TLinEquProgress = procedure(Progress : Integer) of Object;
+  TLinEquProgressWOObj = procedure(Progress : Integer);
 
 const cDefEpsilon : double = 1e-20;
 
@@ -53,6 +55,17 @@ type
   TMatrixMtxRefFunc = procedure(var Value : double; const data : PDouble; LineWidth : integer; x, y : integer);
   TMatrixMtxRefObjFunc = procedure(var Value : double; const data : PDouble; LineWidth : integer; x, y : integer) of Object;
 
+function ConvEQUProgress(value : TLinEquProgressWOObj) : TLinEquProgress;
+
 implementation
+
+function ConvEQUProgress(value : TLinEquProgressWOObj) : TLinEquProgress;
+var meth : TMethod;
+begin
+     meth.Data := nil;
+     meth.Code := Pointer(@Value);
+
+     Result := TLinEquProgress(meth);
+end;
 
 end.

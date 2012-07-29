@@ -23,6 +23,8 @@ unit MtxThreadPool;
 // http://andy.jgknet.de/blog/bugfix-units/asynccalls-29-asynchronous-function-calls/
 interface
 
+uses ASMConsts;
+
 type
   TMtxProc = function(obj : TObject) : integer;
   TMtxDataProc = function(const data : Pointer) : integer;
@@ -42,9 +44,13 @@ type
 function MtxAsyncCall(proc : TMtxProc; obj : TObject) : IMtxAsyncCall;
 function MtxAsyncDataCall(proc : TMtxDataProc; const data : Pointer) : IMtxAsyncCall;
 
+var numCPUCores : TASMNativeInt = 0;
+
 implementation
 
 uses SysUtils, Classes, Windows, SyncObjs, Math;
+
+var sysInfo : TSystemInfo;
 
 type
   TMtxAsyncCall = class(TInterfacedObject, IMtxAsyncCall)
@@ -530,5 +536,10 @@ function TDataMtxAsyncCall.ExecuteAsyncCall: integer;
 begin
      Result := fProc(fData);
 end;
+
+initialization
+  GetSystemInfo(SysInfo);
+  numCPUCores := SysInfo.dwNumberOfProcessors;
+finalization
 
 end.

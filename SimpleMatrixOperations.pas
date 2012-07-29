@@ -28,6 +28,8 @@ procedure GenericMtxCopy(var dest : Array of double; const Src : Array of double
 function GenericMtxCopy(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt) : TDoubleDynArray; overload;
 function GenericMtxCopy(const Src : Array of double; width, height : TASMNativeInt) : TDoubleDynArray; overload;
 
+procedure GenericRowSwap(A, B : PDouble; width : TASMNativeInt);
+
 function GenericMtxAdd(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
 procedure GenericMtxAdd(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt); overload;
 function GenericMtxAdd(const mt1, mt2 : array of double; width : TASMNativeInt) : TDoubleDynArray; overload;
@@ -320,6 +322,21 @@ begin
      assert((width > 0) and (height > 0) and (length(src) = width*height), 'Dimension error');
      SetLength(Result, width*height);
      GenericMtxCopy(@Result[0], width*sizeof(double), @Src[0], width*sizeof(double), width, height);
+end;
+
+procedure GenericRowSwap(A, B : PDouble; width : TASMNativeInt);
+var i : integer;
+    tmp : double;
+begin
+     for i := 0 to width - 1 do
+     begin
+          tmp := A^;
+          A^ := B^;
+          B^ := tmp;
+
+          inc(A);
+          inc(B);
+     end;
 end;
 
 function GenericMtxMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;

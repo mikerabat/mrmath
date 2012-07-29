@@ -25,6 +25,7 @@ type
 
  TBaseMatrixTestCase = class(TTestCase)
  protected
+   procedure WriteMatlabData(const fileName : string; const data : Array of double; width : integer);
    procedure TryClearCache;
    function WriteMtx(const data : Array of Double; width : integer) : string; overload;
    function CheckMtx(const data1 : Array of Double; const data2 : Array of double; w : integer = -1; h : integer = -1; const epsilon : double = 1e-4) : boolean;
@@ -101,6 +102,36 @@ begin
      FreeMem(mem);
 end;
 
+procedure TBaseMatrixTestCase.WriteMatlabData(const fileName: string;
+  const data: array of double; width: integer);
+var i : integer;
+    s : string;
+begin
+     // write a file which can be read into matlab using the load command
+     // the procedure is usefull to verify the results against this program.
+     with TStringList.Create do
+     try
+        BeginUpdate;
+        s := '';
+        for i := 0 to Length(data) - 1 do
+        begin
+             s := s + Format('%.9f,', [data[i]]);
+
+             if i mod width = width - 1 then
+             begin
+                  s[length(s)] := ';';
+                  Add(s);
+                  s := '';
+             end;
+        end;
+        EndUpdate;
+
+        SaveToFile(FileName, TEncoding.ASCII);
+     finally
+            Free;
+     end;
+end;
+
 function TBaseMatrixTestCase.WriteMtx(const data: array of Double;
   width: integer): string;
 var x, y : integer;
@@ -130,5 +161,8 @@ begin
           Result := Result + #13#10;
      end;
 end;
+
+initialization
+  DecimalSeparator := '.';
 
 end.
