@@ -437,6 +437,7 @@ procedure TMtxAsyncCall.InternExecuteAsyncCall;
 var Value: Integer;
 begin
      Value := 0;
+     FFinished := False;
      try
         Value := ExecuteAsyncCall;
      except
@@ -487,13 +488,13 @@ begin
      end;
      Result := FReturnValue;
 
-    if FFatalException <> nil then
-    begin
-         E := FFatalException;
-         FFatalException := nil;
+     if FFatalException <> nil then
+     begin
+          E := FFatalException;
+          FFatalException := nil;
 
-         raise E at FFatalErrorAddr;
-    end;
+          raise E at FFatalErrorAddr;
+     end;
 end;
 
 function TMtxAsyncCall.SyncInThisThreadIfPossible: Boolean;
