@@ -281,6 +281,9 @@ begin
      thrWidth := width2;
      if cpud2 > 1 then
      begin
+          heightCores := cpud2;
+          cpud2 := numCPUCores div heightCores;
+
           widthFits := (width2 mod cpud2) = 0;
           thrWidth := (width2 div cpud2) + TASMNativeInt(not widthFits);
 
@@ -317,12 +320,22 @@ begin
                else
                    obj[numCalls].width2 := obj[numCalls].width2 - j*thrWidth;
 
+               // check if the number of cores exceeds the matrix dimension -> simply use not so many cores
+               if (obj[numCalls].height1 <= 0) or (obj[numCalls].width2 <= 0) then
+               begin
+                    SetLength(calls, numCalls);
+                    break;
+               end;
+
                inc(obj[numCalls].dest, j*thrWidth);
                inc(obj[numCalls].mt2, j*thrWidth);
 
                calls[numCalls] := MtxAsyncCall(MatrixMultDirectFunc, obj[numCalls]);
                inc(numCalls);
           end;
+
+          if numCalls = Length(calls) then
+             break;
      end;
 
      for i := 0 to numCalls - 1 do
@@ -350,6 +363,9 @@ begin
      thrWidth := width2;
      if cpud2 > 1 then
      begin
+          heightCores := cpud2;
+          cpud2 := numCPUCores div heightCores;
+
           widthFits := (width2 mod cpud2) = 0;
           // ensure that we can do aligned operations on matrices
           thrWidth := (width2 div cpud2) + 2*TASMNativeInt(not widthFits);
@@ -388,6 +404,12 @@ begin
                else
                    obj[numCalls].width2 := obj[numCalls].width2 - j*thrWidth;
 
+               // check if the number of cores exceeds the matrix dimension -> simply use not so many cores
+               if (obj[numCalls].height1 <= 0) or (obj[numCalls].width2 <= 0) then
+               begin
+                    SetLength(calls, numCalls);
+                    break;
+               end;
                inc(obj[numCalls].dest, j*thrWidth);
                inc(obj[numCalls].mt2, j*thrWidth);
 
@@ -401,6 +423,9 @@ begin
                calls[numCalls] := MtxAsyncCall(MatrixMultFunc, obj[numCalls]);
                inc(numCalls);
           end;
+
+          if numCalls = Length(calls) then
+             break;
      end;
 
      for i := 0 to numCalls - 1 do
