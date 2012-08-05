@@ -257,7 +257,7 @@ function TCustomMathPersistenceIO.LoadFromFile(
   const FileName: string): TBaseMathPersistence;
 var fs : TFileStream;
 begin
-     fs := TFileStream.Create(FileName, fmOpenRead);
+     fs := TFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
      try
         Result := LoadFromStream(fs);
      finally

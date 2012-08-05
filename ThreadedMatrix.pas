@@ -32,27 +32,34 @@ type
   protected
     class function ClassIdentifier : String; override;
   public
-    procedure MultInPlace(Value : TDoubleMatrix);
-    function Mult(Value : TDoubleMatrix) : TDoubleMatrix;
+    procedure MultInPlace(Value : TDoubleMatrix); override;
+    function Mult(Value : TDoubleMatrix) : TDoubleMatrix; override;
 
-    procedure AddAndScaleInPlace(const Offset, Scale : double);
-    function AddAndScale(const Offset, Scale : double) : TDoubleMatrix;
+    procedure AddAndScaleInPlace(const Offset, Scale : double); override;
+    function AddAndScale(const Offset, Scale : double) : TDoubleMatrix; override;
 
-    procedure ElementwiseFuncInPlace(func : TMatrixFunc); overload;
-    function ElementwiseFunc(func : TMatrixFunc) : TDoubleMatrix; overload;
-    procedure ElementwiseFuncInPlace(func : TMatrixObjFunc); overload;
-    function ElementwiseFunc(func : TMatrixObjFunc) : TDoubleMatrix; overload;
-    procedure ElementwiseFuncInPlace(func : TMatrixMtxRefFunc); overload;
-    function ElementwiseFunc(func : TMatrixMtxRefFunc) : TDoubleMatrix; overload;
-    procedure ElementwiseFuncInPlace(func : TMatrixMtxRefObjFunc); overload;
-    function ElementwiseFunc(func : TMatrixMtxRefObjFunc) : TDoubleMatrix; overload;
+    procedure ElementwiseFuncInPlace(func : TMatrixFunc); overload; override;
+    function ElementwiseFunc(func : TMatrixFunc) : TDoubleMatrix; overload; override;
+    procedure ElementwiseFuncInPlace(func : TMatrixObjFunc); overload; override;
+    function ElementwiseFunc(func : TMatrixObjFunc) : TDoubleMatrix; overload; override;
+    procedure ElementwiseFuncInPlace(func : TMatrixMtxRefFunc); overload; override;
+    function ElementwiseFunc(func : TMatrixMtxRefFunc) : TDoubleMatrix; overload; override;
+    procedure ElementwiseFuncInPlace(func : TMatrixMtxRefObjFunc); overload; override;
+    function ElementwiseFunc(func : TMatrixMtxRefObjFunc) : TDoubleMatrix; overload; override;
 
     // note: due to the multi threaded offset the add and sub functions seem to be
     // faster if implemented single threaded
-    procedure AddInplace(Value : TDoubleMatrix);
-    function Add(Value : TDoubleMatrix) : TDoubleMatrix;
-    procedure SubInPlace(Value : TDoubleMatrix);
-    function Sub(Value : TDoubleMatrix) : TDoubleMatrix;
+    procedure AddInplace(Value : TDoubleMatrix); override;
+    function Add(Value : TDoubleMatrix) : TDoubleMatrix; override;
+    procedure SubInPlace(Value : TDoubleMatrix); override;
+    function Sub(Value : TDoubleMatrix) : TDoubleMatrix; override;
+
+    // threaded lin alg functions
+    function InvertInPlace : TLinEquResult; override;
+    function Invert : TDoubleMatrix; override;
+    function SolveLinEQ(Value : TDoubleMatrix; numRefinements : integer = 0) : TDoubleMatrix; override;
+    procedure SolveLinEQInPlace(Value : TDoubleMatrix; numRefinements : integer = 0); override;
+    function Determinant: double; override;
 
     class procedure InitThreadPool;
     class procedure FinalizeThreadPool;
@@ -60,7 +67,7 @@ type
 
 implementation
 
-uses ThreadedMatrixOperations, Types, MtxThreadPool;
+uses SysUtils, ThreadedMatrixOperations, Types, MtxThreadPool, ThreadedLinAlg;
 
 // never realy understood why I can't access protected members from the base class if
 // I want to access a member in from a parameter. So I need this "hack" class definition.
@@ -183,6 +190,44 @@ begin
      MtxThreadPool.InitMtxThreadPool;
 end;
 
+function TThreadedMatrix.Invert: TDoubleMatrix;
+begin
+     assert((Width > 0) and (Height > 0), 'No data assigned');
+     assert(fSubWidth = fSubHeight, 'Operation only allowed on square matrices');
+
+     Result := TDoubleMatrix.Create;
+     try
+        Result.Assign(Self, True);
+
+        if ThrMatrixInverse(THackMtx(Result).StartElement, THackMtx(Result).LineWidth, fSubWidth, fLinEQProgress) = leSingular then
+           raise ELinEQSingularException.Create('Singular matrix');
+     except
+           Result.Free;
+           raise;
+     end;
+end;
+
+
+function TThreadedMatrix.InvertInPlace: TLinEquResult;
+var dt : TThreadedMatrix;
+begin
+     assert((Width > 0) and (Height > 0), 'No data assigned');
+     assert(fSubWidth = fSubHeight, 'Operation only allowed on square matrices');
+
+     dt := TThreadedMatrix.Create(Width, Height);
+     try
+        dt.Assign(self, True);
+        Result := ThrMatrixInverse(dt.StartElement, dt.LineWidth, fSubWidth, fLinEQProgress);
+        if Result = leOk then
+           Assign(dt);
+
+        FreeAndNil(dt);
+     except
+           dt.Free;
+           raise;
+     end;
+end;
+
 function TThreadedMatrix.Mult(Value: TDoubleMatrix): TDoubleMatrix;
 begin
      assert((Width > 0) and (Height > 0), 'No data assigned');
@@ -216,6 +261,59 @@ begin
            res.Free;
            raise;
      end;
+end;
+
+function TThreadedMatrix.SolveLinEQ(Value: TDoubleMatrix;
+  numRefinements: integer): TDoubleMatrix;
+begin
+     // solves the System: A * x = b
+     // whereas A is the matrix stored in self, and be is the matrix in Value
+     // The result is a matrix having the size of Value.
+     assert((Width > 0) and (Height > 0), 'No data assigned');
+     assert((fSubWidth = fSubHeight) and (THackMtx(Value).fSubHeight = fSubHeight), 'Dimension error');
+
+     Result := TDoubleMatrix.Create(THackMtx(Value).fSubWidth, fSubHeight);
+     try
+        if ThrMatrixLinEQSolve(StartElement, LineWidth, fSubWidth, THackMtx(Value).StartElement,
+                               THackMtx(Value).LineWidth, THackMtx(Result).StartElement,
+                               THackMtx(Result).LineWidth, THackMtx(Value).fSubWidth, numRefinements, fLinEQProgress) = leSingular
+     then
+         raise ELinEQSingularException.Create('Matrix is singular');
+
+     except
+           FreeAndNil(Result);
+           raise;
+     end;
+end;
+
+procedure TThreadedMatrix.SolveLinEQInPlace(Value: TDoubleMatrix;
+  numRefinements: integer);
+var dt : TDoubleMatrix;
+begin
+     // solves the System: A * x = b
+     // whereas A is the matrix stored in self, and be is the matrix in Value
+     // The result is a matrix having the size of Value.
+     assert((Width > 0) and (Height > 0), 'No data assigned');
+     assert((fSubWidth = fSubHeight) and (THackMtx(Value).fSubHeight = fSubHeight), 'Dimension error');
+
+     dt := TDoubleMatrix.Create(THackMtx(Value).fSubWidth, fSubHeight);
+     try
+        if ThrMatrixLinEQSolve(StartElement, LineWidth, fSubWidth, THackMtx(Value).StartElement, THackMtx(Value).LineWidth,
+                               THackMtx(dt).StartElement, THackMtx(dt).LineWidth, THackMtx(Value).fSubWidth,
+                               numRefinements, fLinEQProgress) = leSingular
+        then
+            raise ELinEQSingularException.Create('Matrix is singular');
+
+        Assign(dt, False);
+     finally
+            dt.Free;
+     end;
+end;
+
+function TThreadedMatrix.Determinant: double;
+begin
+     assert((Width > 0) and (Height = Width), 'Determinant only allowed on square matrices');
+     Result := ThrMatrixDeterminant(StartElement, LineWidth, fSubWidth);
 end;
 
 function TThreadedMatrix.Sub(Value: TDoubleMatrix): TDoubleMatrix;

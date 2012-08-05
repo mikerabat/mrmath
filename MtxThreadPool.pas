@@ -438,6 +438,7 @@ var Value: Integer;
 begin
      Value := 0;
      FFinished := False;
+     ResetEvent(FEvent);
      try
         Value := ExecuteAsyncCall;
      except
@@ -514,7 +515,7 @@ begin
           end;
      end
      else
-       Result := True;
+         Result := True;
 end;
 
 function TMtxAsyncCall.ExecuteAsync: TMtxAsyncCall;

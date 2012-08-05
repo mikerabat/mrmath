@@ -124,7 +124,8 @@ type
     // #### Linear System solver A*x = B -> use A.SolveLinEQ(B) -> x
     function SolveLinEQ(Value : TDoubleMatrix; numRefinements : integer = 0) : TDoubleMatrix; overload;
     function SolveLinEQ(Value : IMatrix; numRefinements : integer = 0) : TDoubleMatrix; overload;
-    procedure SolveLinEQInPlace(Value : TDoubleMatrix; numRefinements : integer = 0);
+    procedure SolveLinEQInPlace(Value : TDoubleMatrix; numRefinements : integer = 0); overload;
+    procedure SolveLinEQInPlace(Value : IMatrix; numRefinements : integer = 0); overload;
     function InvertInPlace : TLinEquResult;
     function Invert : TDoubleMatrix;
     function PseudoInversionInPlace : TSVDResult;
@@ -186,7 +187,6 @@ type
 
     procedure ReserveMem(width, height: integer);
   private
-    fLinEQProgress : TLinEquProgress;
     fMemory : Pointer;
     fData : PConstDoubleArr;       // 16 byte aligned pointer:
     fLineWidth : integer;
@@ -198,6 +198,8 @@ type
     fSubHeight : integer;
     fOffsetX : integer;
     fOffsetY : integer;
+
+    fLinEQProgress : TLinEquProgress;
 
     procedure SetData(data : PDouble; srcLineWidth, width, height : integer);
     procedure Clear;
@@ -248,14 +250,14 @@ type
     procedure TransposeInPlace;
     function Transpose : TDoubleMatrix;
 
-    procedure AddInplace(Value : TDoubleMatrix); overload;
-    function Add(Value : TDoubleMatrix) : TDoubleMatrix; overload;
-    procedure SubInPlace(Value : TDoubleMatrix); overload;
-    function Sub(Value : TDoubleMatrix) : TDoubleMatrix; overload;
-    procedure MultInPlace(Value : TDoubleMatrix); overload;
-    function Mult(Value : TDoubleMatrix) : TDoubleMatrix; overload;
-    procedure ElementWiseMultInPlace(Value : TDoubleMatrix); overload;
-    function ElementWiseMult(Value : TDoubleMatrix) : TDoubleMatrix; overload;
+    procedure AddInplace(Value : TDoubleMatrix); overload; virtual;
+    function Add(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
+    procedure SubInPlace(Value : TDoubleMatrix); overload; virtual;
+    function Sub(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
+    procedure MultInPlace(Value : TDoubleMatrix); overload; virtual;
+    function Mult(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
+    procedure ElementWiseMultInPlace(Value : TDoubleMatrix); overload; virtual;
+    function ElementWiseMult(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
     procedure AddInplace(Value : IMatrix); overload;
     function Add(Value : IMatrix) : TDoubleMatrix; overload;
     procedure SubInPlace(Value : IMatrix); overload;
@@ -264,8 +266,8 @@ type
     function Mult(Value : IMatrix) : TDoubleMatrix; overload;
     procedure ElementWiseMultInPlace(Value : IMatrix); overload;
     function ElementWiseMult(Value : IMatrix) : TDoubleMatrix; overload;
-    procedure AddAndScaleInPlace(const Offset, Scale : double);
-    function AddAndScale(const Offset, Scale : double) : TDoubleMatrix;
+    procedure AddAndScaleInPlace(const Offset, Scale : double); virtual;
+    function AddAndScale(const Offset, Scale : double) : TDoubleMatrix; virtual;
 
     function Mean(RowWise : boolean) : TDoubleMatrix; overload;
     procedure MeanInPlace(RowWise : boolean); overload;
@@ -279,27 +281,28 @@ type
     function SQRT(const Value : double) : TDoubleMatrix;
     procedure SQRTInPlace(const Value : double);
 
-    procedure ElementwiseFuncInPlace(func : TMatrixFunc); overload;
-    function ElementwiseFunc(func : TMatrixFunc) : TDoubleMatrix; overload;
-    procedure ElementwiseFuncInPlace(func : TMatrixObjFunc); overload;
-    function ElementwiseFunc(func : TMatrixObjFunc) : TDoubleMatrix; overload;
-    procedure ElementwiseFuncInPlace(func : TMatrixMtxRefFunc); overload;
-    function ElementwiseFunc(func : TMatrixMtxRefFunc) : TDoubleMatrix; overload;
-    procedure ElementwiseFuncInPlace(func : TMatrixMtxRefObjFunc); overload;
-    function ElementwiseFunc(func : TMatrixMtxRefObjFunc) : TDoubleMatrix; overload;
+    procedure ElementwiseFuncInPlace(func : TMatrixFunc); overload; virtual;
+    function ElementwiseFunc(func : TMatrixFunc) : TDoubleMatrix; overload; virtual;
+    procedure ElementwiseFuncInPlace(func : TMatrixObjFunc); overload; virtual;
+    function ElementwiseFunc(func : TMatrixObjFunc) : TDoubleMatrix; overload; virtual;
+    procedure ElementwiseFuncInPlace(func : TMatrixMtxRefFunc); overload; virtual;
+    function ElementwiseFunc(func : TMatrixMtxRefFunc) : TDoubleMatrix; overload; virtual;
+    procedure ElementwiseFuncInPlace(func : TMatrixMtxRefObjFunc); overload; virtual;
+    function ElementwiseFunc(func : TMatrixMtxRefObjFunc) : TDoubleMatrix; overload; virtual;
 
     // ###################################################
     // #### Linear System solver A*x = B -> use A.SolveLinEQ(B) -> x
-    function SolveLinEQ(Value : TDoubleMatrix; numRefinements : integer = 0) : TDoubleMatrix; overload;
+    function SolveLinEQ(Value : TDoubleMatrix; numRefinements : integer = 0) : TDoubleMatrix; overload; virtual;
     function SolveLinEQ(Value : IMatrix; numRefinements : integer = 0) : TDoubleMatrix; overload;
-    procedure SolveLinEQInPlace(Value : TDoubleMatrix; numRefinements : integer = 0);
-    function InvertInPlace : TLinEquResult;
-    function Invert : TDoubleMatrix;
+    procedure SolveLinEQInPlace(Value : TDoubleMatrix; numRefinements : integer = 0); overload; virtual;
+    procedure SolveLinEQInPlace(Value : IMatrix; numRefinements : integer = 0); overload;
+    function InvertInPlace : TLinEquResult; virtual;
+    function Invert : TDoubleMatrix; virtual;
     function PseudoInversionInPlace : TSVDResult;
     function PseudoInversion(out Mtx : TDoubleMatrix) : TSVDResult; overload;
     function PseudoInversion(out Mtx : IMatrix) : TSVDResult; overload;
 
-    function Determinant : double;
+    function Determinant : double; virtual;
 
     // ###################################################
     // #### Special functions
@@ -554,6 +557,11 @@ begin
      Result := SolveLinEQ(Value.GetObjRef, numRefinements);
 end;
 
+procedure TDoubleMatrix.SolveLinEQInPlace(Value: IMatrix;
+  numRefinements: integer);
+begin
+     SolveLinEQInPlace(Value.GetObjRef, numRefinements);
+end;
 procedure TDoubleMatrix.SolveLinEQInPlace(Value: TDoubleMatrix; numRefinements : integer);
 var dt : TDoubleMatrix;
 begin
