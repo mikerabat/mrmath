@@ -20,11 +20,7 @@ interface
 // #### Nonlinear optimization using Levenberg Marquard
 // #################################################
 
-uses BaseMathPersistence, Matrix;
-
-// Levenberg Marquard least square fit for functions in th form f(x, a)
-// -> iteratively tries to optimze params a such that
-// the merit function chi^2 = sum_1_N(((y_i - f(xi,a))/sigma_i)^2) is minimized
+uses BaseMathPersistence, Matrix, Types;
 
 type
   TNonLinOptIteratorObj = procedure (Sender : TObject; a, x : IMatrix; y : IMatrix) of Object;
@@ -49,9 +45,27 @@ type
     property OnIterateObj : TNonLinOptIteratorObj read fOnIterate1 write fOnIterate1;
     property OnIterate : TNonLinOptIterator read fOnIterate2 write fOnIterate2;
 
+    // Levenberg Marquard least square fit for functions in th form f(x, a)
+    // -> iteratively tries to optimze params a such that
+    // the merit function chi^2 = sum_1_N(((y_i - f(xi,a))/sigma_i)^2) is minimized
+
+
     // Returns the fitted params. The params must be in organized in columns!
     function Optimize(x, y, weights, a0 : IMatrix) : IMatrix; overload; //
     function Optimize(x, y, a0 : IMatrix) : IMatrix; overload; // fits with sigma = 1
+
+    // tries to find the coefficients of a polynomial P(x) of degree N the fits the data Y best in a
+    // least-squares sense. P is a row vector of length N + 1 in descending powser P(1)*x^n + P(2)*x^(n-1) + ... + P(N+1)
+    //
+    // the regression problem is formulated in format as y = V*p or
+    // y = [x^3 x^2 x 1] [ p3
+    //                     p2
+    //                     p1
+    //                     p0]
+    // the data is assumed to be order column wise, the result will then be width=x.width, height=n + 1
+
+    function PolynomFit(x, y : TDoubleDynArray; N : integer) : IMatrix; overload;
+    function PolynomFit(x, y : IMatrix; N : integer) : IMatrix; overload;
 
     constructor Create;
   end;
@@ -225,6 +239,53 @@ begin
      weights.ScaleAndAddInPlace(1, 0);
 
      Result := Optimize(x, y, weights, a0);
+end;
+
+function TNonLinFitOptimizer.PolynomFit(x, y: TDoubleDynArray;
+  N: integer): IMatrix;
+var xVals, yVals : IMatrix;
+begin
+     assert(Length(x) = Length(y), 'Error length of xvals is different to length of y');
+     assert(Length(x) > n, 'error cannot calculate polynomfit on data less then N');
+     assert(n > 0, 'Error polynomdegree must be at least 1');
+
+     xVals := TDoubleMatrix.Create(x, 1, Length(x));
+     yVals := TDoubleMatrix.Create(y, 1, Length(y));
+
+     Result := PolynomFit(xVals, yVals, N);
+end;
+
+function TNonLinFitOptimizer.PolynomFit(x, y: IMatrix; N: integer): IMatrix;
+var V : IMatrix;
+    j, i : integer;
+    dim : integer;
+    p : IMatrix;
+begin
+     assert(x.Height = y.Height, 'Error length of xvals is different to length of y');
+     assert((x.Width >= 1) and (y.Width >= 1), 'Dimension error');
+     assert(n > 0, 'Error polynomdegree must be at least 1');
+
+     Result := TDoubleMatrix.Create(x.Width, N + 1);
+     for dim := 0 to x.Width - 1 do
+     begin
+          // construct Vandermonde matrix
+          V := TDoubleMatrix.Create(n + 1, x.Height, 1);
+          for j := n - 1 downto 0 do
+          begin
+               for i := 0 to V.Height - 1 do
+                   V[j, i] := V[j + 1, i]*x[dim, i];
+          end;
+
+          // Create result p = V\y
+          if V.PseudoInversionInPlace <> srOk then
+             raise Exception.Create('Error cannot create pseudoinverse of the Vandermonde matrix');
+
+          y.SetSubMatrix(dim, 0, 1, y.Height);
+          p := V.Mult(y);
+
+          // assign result
+          Result.SetColumn(dim, p);
+     end;
 end;
 
 procedure TNonLinFitOptimizer.WeightedNonLinIterator(weights, a, x,
