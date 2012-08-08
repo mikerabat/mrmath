@@ -68,8 +68,8 @@ type
 type
   TestTThreadedMatrix = class(TBaseMatrixTestCase)
   private
-    fRefMatrix2 : TThreadedMatrix;
-    fRefMatrix1 : TThreadedMatrix;
+    fRefMatrix2 : TDoubleMatrix;
+    fRefMatrix1 : TDoubleMatrix;
     fPerfFreq : Int64;
 
     procedure ElemWiseSqr(var elem : double);
@@ -79,11 +79,15 @@ type
   published
     procedure TestThreadMult;
     procedure TestApplyFunc;
+    procedure TestInvert;
+    procedure TestDeterminant;
+    procedure TestMatrixSolve;
   end;
 
 implementation
 
-uses Windows, Dialogs, BaseMathPersistence, binaryReaderWriter;//, OldMatrix, MatrixEncoder;
+uses Windows, Dialogs, BaseMathPersistence, binaryReaderWriter,
+     math, MatrixConst;
 
 { TestTDoubleMatrix }
 
@@ -332,11 +336,10 @@ const cMtxWidth = 3453;
 var x, y : integer;
 begin
      TThreadedMatrix.InitThreadPool;
-
      QueryPerformanceFrequency(fPerfFreq);
 
-     fRefMatrix1 := TThreadedMatrix.Create(cMtxWidth, cMtxHeight);
-     fRefMatrix2 := TThreadedMatrix.Create(cMtxHeight, cMtxWidth);
+     fRefMatrix1 := TDoubleMatrix.Create(cMtxWidth, cMtxHeight);
+     fRefMatrix2 := TDoubleMatrix.Create(cMtxHeight, cMtxWidth);
 
      // fill in random values:
      for y := 0 to fRefMatrix1.Height - 1 do
@@ -356,7 +359,8 @@ begin
 end;
 
 procedure TestTThreadedMatrix.TestApplyFunc;
-var dest1, dest2 : TDoubleMatrix;
+var dest1, dest2 : IMatrix;
+    m1 : IMatrix;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : Int64;
 begin
@@ -364,20 +368,136 @@ begin
      dest1 := fRefMatrix1.ElementwiseFunc(ElemWiseSqr);
      QueryPerformanceCounter(endTime1);
 
+     m1 := TThreadedMatrix.Create;
+     m1.Assign(fRefMatrix1);
      QueryPerformanceCounter(startTime2);
-     dest2 := TDoubleMatrix(fRefMatrix1).ElementwiseFunc(ElemWiseSqr);
+     dest2 := m1.ElementwiseFunc(ElemWiseSqr);
      QueryPerformanceCounter(endTime2);
 
-     Status(Format('%.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000]));
+     status(Format('%.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000]));
 
      Check(CheckMtx(dest1.SubMatrix, dest2.SubMatrix));
+end;
 
-     dest1.Free;
-     dest2.Free;
+procedure TestTThreadedMatrix.TestDeterminant;
+const cBlkWidth = 1024;
+      cBlkSize = cBlkWidth*cBlkWidth;
+var x : TDoubleDynArray;
+    i: Integer;
+    start, stop : Int64;
+    freq : int64;
+    det, detThr : double;
+    m1, m2 : IMatrix;
+begin
+     // big inversion
+     SetLength(x, cBlkSize);
+     RandSeed := 15;
+     for i := 0 to cBlkSize - 1 do
+         x[i] := Random/3.8 - 0.5/3.8;
+
+     m1 := TDoubleMatrix.Create(x, cBlkWidth, cBlkWidth);
+     m2 := TThreadedMatrix.Create(x, cBlkWidth, cBlkWidth);
+
+     QueryPerformanceFrequency(freq);
+
+     QueryPerformanceCounter(start);
+     det := m1.Determinant;
+     Check(det <> 0, 'Singular matrix');
+     QueryPerformanceCounter(stop);
+     Status(Format('Big determinant: %.2fms with value %.5f', [(stop - start)/freq*1000, det]));
+
+     QueryPerformanceCounter(start);
+     detThr := m2.Determinant;
+     Check(detThr <> 0, 'Singular matrix');
+     QueryPerformanceCounter(stop);
+
+     Status(Format('Big threaded determinant: %.2fms with value %.5f', [(stop - start)/freq*1000, detThr]));
+
+     if not SameValue(det, detThr) then
+        ShowMessage(Format('%f' + #13#10 + '%f', [det, detThr]));
+
+     Check(SameValue(det, detThr), 'Error Determinatnts differ too much');
+end;
+
+
+procedure TestTThreadedMatrix.TestInvert;
+const cBlkWidth = 1024;
+      cBlkSize = cBlkWidth*cBlkWidth;
+var x : TDoubleDynArray;
+    i: Integer;
+    start, stop : Int64;
+    freq : int64;
+    m1, m2 : IMatrix;
+begin
+     // big inversion
+     SetLength(x, cBlkSize);
+     RandSeed := 15;
+     for i := 0 to cBlkSize - 1 do
+         x[i] := Random/3.8 - 0.5/3.8;
+
+     m1 := TDoubleMatrix.Create(x, cBlkWidth, cBlkWidth);
+     m2 := TThreadedMatrix.Create(x, cBlkWidth, cBlkWidth);
+
+     QueryPerformanceFrequency(freq);
+
+     QueryPerformanceCounter(start);
+     check(m1.InvertInplace = leOk, 'Error inverting single threaded version');
+     QueryPerformanceCounter(stop);
+     Status(Format('Big single inversion: %.2fms', [(stop - start)/freq*1000]));
+
+     QueryPerformanceCounter(start);
+     check(m2.InvertInplace = leOk, 'Error inverting multi threaded version');
+     QueryPerformanceCounter(stop);
+
+     Status(Format('Big threaded inversion: %.2fms', [(stop - start)/freq*1000]));
+
+     Check(CheckMtx(m1.SubMatrix, m2.SubMatrix), 'Error threaded inverion differs from original one');
+end;
+
+procedure TestTThreadedMatrix.TestMatrixSolve;
+const cBlkWidth = 512;
+      cBlkSize = cBlkWidth*cBlkWidth;
+var a, x1, x2, b : TDoubleDynArray;
+    i : integer;
+    freq, start, stop : int64;
+    index : integer;
+    m1, m2 : IMatrix;
+    mb : IMatrix;
+begin
+     SetLength(a, cBlkSize);
+     SetLength(b, 3*cBlkWidth);
+     SetLength(x1, 3*cBlkWidth);
+     SetLength(x2, 3*cBlkWidth);
+
+     RandSeed := 15;
+     for i := 0 to cBlkSize - 1 do
+         a[i] := Random - 0.5;
+
+     for i := 0 to 3*cBlkWidth - 1 do
+         b[i] := Random - 0.5;
+
+     mb := TDoubleMatrix.Create(b, 3, cBlkWidth);
+     m1 := TDoubleMatrix.Create(a, cBlkWidth, cBlkWidth);
+     m2 := TThreadedMatrix.Create(a, cBlkWidth, cBlkWidth);
+
+     QueryPerformanceFrequency(freq);
+     QueryPerformanceCounter(start);
+     m1.SolveLinEQInPlace(mb);
+     QueryPerformanceCounter(stop);
+     Status(Format('Blocked LU decomp: %.2fms', [(stop - start)/freq*1000]));
+
+     QueryPerformanceCounter(start);
+     m2.SolveLinEQInPlace(mb);
+     QueryPerformanceCounter(stop);
+     Status(Format('Threaded LU decomp: %.2fms', [(stop - start)/freq*1000]));
+
+     index := 0;
+     Check(CheckMtxIdx(m1.SubMatrix, m2.SubMatrix, index), Format('error Lin equation solve. Error at x[%d] = %.5f, y[%d] = %.5f', [index, x1[index], index, x2[index]]));
 end;
 
 procedure TestTThreadedMatrix.TestThreadMult;
-var dest1, dest2 : TDoubleMatrix;
+var dest1, dest2 : IMatrix;
+    m1 : IMatrix;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : Int64;
 begin
@@ -385,16 +505,15 @@ begin
      dest1 := fRefMatrix1.Mult(fRefMatrix2);
      QueryPerformanceCounter(endTime1);
 
+     m1 := TThreadedMatrix.Create;
+     m1.Assign(fRefmatrix1);
      QueryPerformanceCounter(startTime2);
-     dest2 := TDoubleMatrix(fRefMatrix1).Mult(fRefMatrix2);
+     dest2 := m1.Mult(fRefMatrix2);
      QueryPerformanceCounter(endTime2);
 
-     Status(Format('%.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000]));
+     status(Format('%.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000]));
 
      Check(CheckMtx(dest1.SubMatrix, dest2.SubMatrix));
-
-     dest1.Free;
-     dest2.Free;
 end;
 
 { TestIMatrix }
@@ -407,7 +526,8 @@ end;
 
 procedure TestIMatrix.TearDown;
 begin
-
+     fRefMatrix2 := nil;
+     fRefMatrix1 := Nil;
 end;
 
 procedure TestIMatrix.TestAdd;
@@ -567,9 +687,10 @@ begin
 end;
 
 initialization
+  // Alle Testfälle beim Test-Runner registrieren
   RegisterTest(TestTDoubleMatrix.Suite);
-  RegisterTest(TestTThreadedMatrix.Suite);
-  RegisterTest(TestIMatrix.Suite);
   RegisterTest(TestTDoubleMatrixPersistence.Suite);
+  RegisterTest(TestIMatrix.Suite);
+  RegisterTest(TestTThreadedMatrix.Suite);
 
 end.

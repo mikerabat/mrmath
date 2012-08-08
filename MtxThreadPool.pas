@@ -437,8 +437,8 @@ procedure TMtxAsyncCall.InternExecuteAsyncCall;
 var Value: Integer;
 begin
      Value := 0;
-     FFinished := False;
-     ResetEvent(FEvent);
+     assert(FFinished = False, 'Error finished may not be true');
+     assert(WaitforSingleObject(FEvent, 0) = WAIT_TIMEOUT, 'Error event already set');
      try
         Value := ExecuteAsyncCall;
      except

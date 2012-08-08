@@ -302,7 +302,7 @@ begin
                     begin
                          if ipiv[k] = 0 then
                          begin
-                              pVal1 := PDouble(PByte(A) + j*LineWidthA);
+                              pVal1 := PDouble(PAnsiChar(A) + j*LineWidthA);
                               inc(pVal1, k);
 
                               if abs(pVal1^) >= big then
@@ -328,8 +328,8 @@ begin
 
           if irow <> icol then
           begin
-               pVal1 := PDouble(PByte(A) + irow*LineWidthA);
-               pVal2 := PDouble(PByte(A) + icol*LineWidthA);
+               pVal1 := PDouble(PAnsiChar(A) + irow*LineWidthA);
+               pVal2 := PDouble(PAnsiChar(A) + icol*LineWidthA);
                for l := 0 to width - 1 do
                begin
                     DoubleSwap(pVal1^, pVal2^);
@@ -337,8 +337,8 @@ begin
                     inc(pVal2);
                end;
 
-               pVal1 := PDouble(PByte(B) + irow*LineWidthB);
-               pVal2 := PDouble(PByte(B) + icol*LineWidthB);
+               pVal1 := PDouble(PAnsiChar(B) + irow*LineWidthB);
+               pVal2 := PDouble(PAnsiChar(B) + icol*LineWidthB);
                for l := 0 to m - 1 do
                begin
                     DoubleSwap(pVal1^, pVal2^);
@@ -351,7 +351,7 @@ begin
           indxr[i] := irow;
           indxc[i] := icol;
 
-          pVal1 := PDouble(PByte(A) + icol*LineWidthA);
+          pVal1 := PDouble(PAnsiChar(A) + icol*LineWidthA);
           inc(pVal1, icol);
 
           if abs(pVal1^) < epsilon then
@@ -363,14 +363,14 @@ begin
           pivinv := 1/pVal1^;
 
           pVal1^ := 1;
-          pVal1 := PDouble(PByte(A) + icol*LineWidthA);
+          pVal1 := PDouble(PAnsiChar(A) + icol*LineWidthA);
           for l := 0 to width - 1 do
           begin
                pVal1^ := pVal1^*pivinv;
                inc(pVal1);
           end;
 
-          pVal1 := PDouble(PByte(B) + icol*LineWidthB);
+          pVal1 := PDouble(PAnsiChar(B) + icol*LineWidthB);
           for l := 0 to m - 1 do
           begin
                pVal1^ := Pivinv*pVal1^;
@@ -381,13 +381,13 @@ begin
           begin
                if ll <> icol then
                begin
-                    pVal1 := PDouble(PByte(A) + ll*LineWidthA);
+                    pVal1 := PDouble(PAnsiChar(A) + ll*LineWidthA);
                     inc(pVal1, icol);
                     dum := pVal1^;
                     pVal1^ := 0;
 
-                    pVal1 := PDouble(PByte(A) + ll*LineWidthA);
-                    pVal2 := PDouble(PByte(A) + icol*LineWidthA);
+                    pVal1 := PDouble(PAnsiChar(A) + ll*LineWidthA);
+                    pVal2 := PDouble(PAnsiChar(A) + icol*LineWidthA);
                     for l := 0 to width - 1 do
                     begin
                          pVal1^ := pVal1^ - pVal2^*dum;
@@ -395,8 +395,8 @@ begin
                          inc(pVal2);
                     end;
 
-                    pVal1 := PDouble(PByte(B) + ll*LineWidthB);
-                    pVal2 := PDouble(PByte(B) + icol*LineWidthB);
+                    pVal1 := PDouble(PAnsiChar(B) + ll*LineWidthB);
+                    pVal2 := PDouble(PAnsiChar(B) + icol*LineWidthB);
                     for l := 0 to m - 1 do
                     begin
                          pVal1^ := pVal1^ - pVal2^*dum;
@@ -416,7 +416,7 @@ begin
           begin
                for k := 0 to width - 1 do
                begin
-                    pVal1 := PDouble(PByte(A) + k*LineWidthA);
+                    pVal1 := PDouble(PAnsiChar(A) + k*LineWidthA);
                     pVal2 := pVal1;
                     inc(pval1, indxr[l]);
                     inc(pval2, indxc[l]);
@@ -822,7 +822,7 @@ begin
 
           if ii >= 0 then
           begin
-               pVal := PDouble(PByte(LUDecomp) + i*LineWidthLU);
+               pVal := PDouble(PAnsiChar(LUDecomp) + i*LineWidthLU);
                inc(pVal, ii);
                pB := B;
                inc(PByte(pB), LineWidthB*ii);
@@ -846,7 +846,7 @@ begin
 
      pB := B;
      inc(PByte(pB), LineWidthB*(width - 1));
-     pVal := PDouble(PByte(LUDecomp) + (width - 1)*LineWidthLU);
+     pVal := PDouble(PAnsiChar(LUDecomp) + (width - 1)*LineWidthLU);
      inc(pVal, width - 1);
      for i := width - 1 downto 0 do
      begin
@@ -1484,7 +1484,7 @@ begin
                          break;
                     end;
 
-                    if abs(PDouble(PByte(W) + nm*LineWidthW)^) + anorm = anorm then
+                    if abs(PDouble(PAnsiChar(W) + nm*LineWidthW)^) + anorm = anorm then
                        break;
                end;
 
@@ -1499,9 +1499,9 @@ begin
                          rv1[i] := c*rv1[i];
                          if abs(f) + anorm <> anorm then    // check if the value is lower than the precission in contrast to anorm
                          begin
-                              g := PDouble(PByte(W) + i*LineWidthW)^;
+                              g := PDouble(PAnsiChar(W) + i*LineWidthW)^;
                               h := pythag(f, g);
-                              PDouble(PByte(W) + i*LineWidthW)^ := h;
+                              PDouble(PAnsiChar(W) + i*LineWidthW)^ := h;
                               h := 1/h;
                               c := g*h;
                               s := -f*h;
@@ -1524,13 +1524,13 @@ begin
                     end;
                end;
 
-               z := PDouble(PByte(W) + k*LineWidthW)^;
+               z := PDouble(PAnsiChar(W) + k*LineWidthW)^;
                // convergence
                if l = k then
                begin
                     if z < 0 then
                     begin
-                         PDouble(PByte(W) + k*LineWidthW)^ := -z;
+                         PDouble(PAnsiChar(W) + k*LineWidthW)^ := -z;
 
                          pV := V;
                          inc(pV, k);
@@ -1548,9 +1548,9 @@ begin
                if its = cMaxNumSVDIter - 1 then
                   exit;
 
-               x := PDouble(PByte(W) + l*LineWidthW)^;
+               x := PDouble(PAnsiChar(W) + l*LineWidthW)^;
                nm := k - 1;
-               y := PDouble(PByte(W) + nm*LineWidthW)^;
+               y := PDouble(PAnsiChar(W) + nm*LineWidthW)^;
                g := rv1[nm];
                h := rv1[k];
                f := ((y - z)*(y + z) + (g - h)*(g + h))/(2*h*y);
@@ -1567,7 +1567,7 @@ begin
                begin
                     i := j + 1;
                     g := rv1[i];
-                    y := PDouble(PByte(W) + i*LineWidthW)^;
+                    y := PDouble(PAnsiChar(W) + i*LineWidthW)^;
                     h := s*g;
                     g := c*g;
                     z := pythag(f, h);
@@ -1595,7 +1595,7 @@ begin
                     end;
 
                     z := pythag(f, h);
-                    PDouble(PByte(W) + j*LineWidthW)^ := z;
+                    PDouble(PAnsiChar(W) + j*LineWidthW)^ := z;
                     // rotation can be arbitrary if z = 0
                     if z <> 0 then
                     begin
@@ -1624,7 +1624,7 @@ begin
 
                rv1[l] := 0;
                rv1[k] := f;
-               PDouble(PByte(W) + k*LineWidthW)^ := x;
+               PDouble(PAnsiChar(W) + k*LineWidthW)^ := x;
           end;
      end;
 
@@ -1682,7 +1682,7 @@ begin
           
           for j := i to width - 1 do
           begin
-               sum := PDouble(PByte(pA) + j*sizeof(double))^;
+               sum := PDouble(PAnsiChar(pA) + j*sizeof(double))^;
 
                pAj1 := pAj;
                pA1 := pA;
@@ -1705,13 +1705,13 @@ begin
                     if sum <= 0 then
                        exit;
 
-                    PDouble(PByte(P) + i*LineWidthP)^ := sqrt(sum);
+                    PDouble(PAnsiChar(P) + i*LineWidthP)^ := sqrt(sum);
                end
                else
                begin
                     pAj1 := pAj;
                     inc(pAj1, i);
-                    pAj1^ := sum/PDouble(PByte(P) + i*LineWidthP)^;
+                    pAj1^ := sum/PDouble(PAnsiChar(P) + i*LineWidthP)^;
                end;
 
                inc(PByte(pAj), LineWidthA);

@@ -923,6 +923,7 @@ const //cMtxWidth = 10*cCacheMtxSize;
       cMtxLinewidth = cMtxWidth*8;
       cMtxLineWidth2 = cMtxHeight*8;
 begin
+     SetThreadAffinityMask(GetCurrentThread, 1);
      randomize;
      FillMatrix(cMtxSize, x, y, xa, ya);
      SetLength(dest1, cMtxHeight*cMtxHeight);
@@ -1542,14 +1543,14 @@ begin
      FreeMem(blk);
 
      // big row test
-     blk := AllocMem((cMtxSize + 16)*sizeof(double) + 16);
+     blk := AllocMem((cMtxSize*2)*sizeof(double) + 48);
      m := blk;
-     inc(PByte(m), 16 - TASMNativeInt(blk) and $F);
+     inc(PByte(m), 16 - TASMNativeInt(m) and $F);
      dest := m;
      inc(dest, cMtxSize + cMtxSize mod 2);
 
-     SetLength(DestDyn, cMtxWidth);
-     SetLength(DestGen, cMtxWidth);
+     SetLength(DestDyn, cMtxSize);
+     SetLength(DestGen, cMtxSize);
 
      pM := m;
      for i := 0 to cMtxSize - 1 do
@@ -1567,7 +1568,7 @@ begin
      QueryPerformanceCounter(endTime2);
 
      pDest := dest;
-     for i := 0 to cMtxWidth - 1 do
+     for i := 0 to cMtxSize - 1 do
      begin
           destDyn[i] := pdest^;
           inc(pdest);
@@ -1580,7 +1581,7 @@ begin
      QueryPerformanceCounter(endTime3);
 
      pDest := dest;
-     for i := 0 to cMtxWidth - 1 do
+     for i := 0 to cMtxSize - 1 do
      begin
           destDyn[i] := pdest^;
           inc(pdest);
@@ -1624,37 +1625,37 @@ begin
      ASMMatrixSumRowUnAlignedEvenW(@dest2[0], sizeof(double), @mt1[0], 4*sizeof(double), 4, 4);
      ASMMatrixSumRowAlignedEvenW(dest, 2*sizeof(double), m, 4*sizeof(double), 4, 4);
 
-     Check(checkMtx(dest1, dest2), 'Error row wise Matrix normalize');
+     Check(checkMtx(dest1, dest2), 'Error row wise Matrix sum');
      pDest := dest;
      for i := 0 to High(dest1) - 1 do
      begin
           dest2[i] := pDest^;
           inc(pDest, 2);
      end;
-     Check(checkMtx(dest1, dest2), 'Error row wise aligned Matrix normalize');
+     Check(checkMtx(dest1, dest2), 'Error row wise aligned Matrix sum');
 
      GenericMtxSum(@dest1[0], sizeof(double), @mt1[0], 4*sizeof(double), 3, 4, True);
      ASMMatrixSumRowUnAlignedOddW(@dest2[0], sizeof(double), @mt1[0], 4*sizeof(double), 3, 4);
      ASMMatrixSumRowAlignedOddW(dest, 2*sizeof(double), m, 4*sizeof(double), 3, 4);
 
-     Check(checkMtx(dest1, dest2), 'Error row wise Matrix normalize');
+     Check(checkMtx(dest1, dest2), 'Error row wise Matrix sum');
      for i := 0 to High(dest1) - 1 do
      begin
           dest2[i] := PConstDoubleArr(dest)^[2*i];
      end;
-     Check(checkMtx(dest1, dest2), 'Error row wise aligned Matrix normalize');
+     Check(checkMtx(dest1, dest2), 'Error row wise aligned Matrix sum');
 
      FreeMem(blk);
 
      // big row test
-     blk := AllocMem((cMtxSize + 16)*sizeof(double) + 16);
+     blk := AllocMem((cMtxSize + 2*cMtxHeight)*sizeof(double) + 48);
      m := blk;
      inc(PByte(m), 16 - TASMNativeInt(blk) and $F);
      dest := m;
      inc(dest, cMtxSize + cMtxSize mod 2);
 
-     SetLength(DestDyn, cMtxHeight);
-     SetLength(DestGen, cMtxHeight);
+     SetLength(DestDyn, cMtxWidth);
+     SetLength(DestGen, cMtxWidth);
 
      pM := m;
      for i := 0 to cMtxSize - 1 do
@@ -1743,14 +1744,14 @@ begin
      FreeMem(blk);
 
      // big row test
-     blk := AllocMem((cMtxSize + 16)*sizeof(double) + 16);
+     blk := AllocMem((cMtxSize+ cMtxHeight*2)*sizeof(double) + 48);
      m := blk;
      inc(PByte(m), 16 - TASMNativeInt(blk) and $F);
      dest := m;
      inc(dest, cMtxSize + cMtxSize mod 2);
 
-     SetLength(DestDyn, cMtxWidth);
-     SetLength(DestGen, cMtxWidth);
+     SetLength(DestDyn, cMtxSize);
+     SetLength(DestGen, cMtxSize);
 
      pM := m;
      for i := 0 to cMtxSize - 1 do
