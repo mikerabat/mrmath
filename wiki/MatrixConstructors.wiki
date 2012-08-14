@@ -124,7 +124,7 @@ and revert that selection by:
 procedure UseFullMatrix;
 }}}
 
-Note that the ''SetSubMatrix'' function is especially handy for right hand side operations and it`'s params are always in terms of the full matrix meaning that subsequent selections by this function are always selections on the full matrix meaning that ''UseFullMatrix'' is implicitly called by each ''SetSubMatrix'' call e.g.:
+Note that the _SetSubMatrix_ function is especially handy for right hand side operations and it`'`s params are always in terms of the full matrix meaning that subsequent selections by this function are always selections on the full matrix meaning that _UseFullMatrix_ is implicitly called by each _SetSubMatrix_ call e.g.:
 
 {{{
 procedure Select;
