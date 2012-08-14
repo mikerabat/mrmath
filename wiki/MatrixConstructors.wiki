@@ -149,3 +149,95 @@ In place function not affecting the current state of the matrix and are only app
   * ScaleInPlace
   * SQRTInPlace
   * ElementwiseFuncInPlace
+
+== Assigning data ==
+
+There are basically three methods avail to assign data to a matrix:
+
+  * Within the constructor
+  * Using on of the assign operators
+  * Assign data column or row wise
+
+The constructor allows to initalize a matrix with the given data. This data is not owned by the matrix but rather copied.
+
+One can use one of the following assign operators:
+
+{{{
+procedure Assign(Value : TDoubleMatrix); 
+procedure Assign(Value : IMatrix); 
+procedure Assign(Value : TDoubleMatrix; OnlySubElements : boolean);     procedure Assign(Value : IMatrix; OnlySubElements : boolean); 
+procedure Assign(const Mtx : Array of double; W, H : integer);    procedure AssignSubMatrix(Value : TDoubleMatrix; X : integer = 0; Y : integer = 0); 
+procedure AssignSubMatrix(Value : IMatrix; X : integer = 0; Y : integer = 0); 
+}}}
+ 
+These functions create a copy of the given operand. There are though a few special considerations regarding the parameters:
+  * OnlySubElements: If not set the complete matrix is copied not only the selected sub matrix. 
+  * AssignSubMatrix with the params x, y: x and y are meant here as column row offsets of the destination matrix meaning if your destinationi matrix is 5x5 and you assign the submatrix by `mt1.AssignSubMatrix(mt0, 2, 2)` your destination matrix memory from mt1[2,2] to mt1[4,4] is overwritten by mt0. Note that mt0 here needs to be a 2x2 matrix and the indices start with 0.
+
+Row and coumn wise operations are quite similar to the _AssignSubMatrix_ calls but affect only rows and columns of the destination matrix. 
+
+{{{
+procedure SetRow(row : integer; const Values : Array of Double);
+procedure SetRow(row : integer; Values : TDoubleMatrix; ValRow : integer = 0); 
+procedure SetRow(row : integer; Values : IMatrix; ValRow : integer = 0); 
+procedure SetColumn(col : integer; const Values : Array of Double);     procedure SetColumn(col : integer; Values : TDoubleMatrix; ValCols : integer = 0); 
+procedure SetColumn(col : integer; Values : IMatrix; ValCols : integer = 0); 
+}}}
+
+_SetRow_ and _SetColumn_ here can also be applied on matrices. Here the first column/row is used in the copying process. With the parameter _ValCols/ValRow_ one can offset the origin matrix - basically use it as column/row offset to not always copy the first column/row.
+
+=== Examples ===
+
+Assign a full and constant matrix:
+
+{{{
+const mtx : Array[0..5] of double = (1, 2, 3, 4, 5, 6);
+      mty : Array[0..3] of double = (0, -1, -2, -3);
+      mtDest : Array[0..5] of double = (1, 0, -1, 4, -2, -3);
+var mt1 : IMatrix;
+    mt2 : IMatrix;
+begin
+     mt1 := TDoubleMatrix.Create;
+     // creates a 3x2 matrix and assigns the above values
+     mt1.Assign(mtx, 3, 2);
+
+
+     // assign only a submatrix
+     mt2 := TDoubleMatrix.Create;
+     mt2.Assign(mty, 2, 2);
+
+     // overwrite the elements of mt1
+     mt1.AssignSubMatrix(mt2, 1, 0);
+
+     // mt1 now should look like: (1, 0, -2,
+     //                            4, -2, -3);
+     Check(CheckMtx(mt1.SubMatrix, mtDest));
+end;
+}}}
+
+Loading images and store them as rows:
+
+{{{
+procedure TestRow;
+var mtx : IMatrix;
+    mtImg : IMatrix;
+const imgW, imgH : Integer = 480;
+begin
+     // reserve memory to store 10 "virtual" images
+     mtx := TDoubleMatrix.Create(10, imgW*imgH);
+
+     for i := 0 to 9 do
+     begin
+          // load image and convert to matrix
+          ...
+          // 
+          mtImg := TDoubleMatrix.Create(imgW, imgH);
+          // convert the image to a single row so we can use it for PCA
+          mtImg.ReshapeInPlace(1, imgW*imgH);
+          // set the row
+          mtx.SetRow(i, mtImg);
+     end;
+
+     // now do whatever you want with the converted images e.g. PCA
+end;
+}}}
