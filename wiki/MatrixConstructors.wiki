@@ -158,7 +158,7 @@ There are basically three methods avail to assign data to a matrix:
   * Using on of the assign operators
   * Assign data column or row wise
 
-The constructor allows to initalize a matrix with the given data. This data is not owned by the matrix but rather copied.
+The constructor allows to initialize a matrix with the given data. This data is not owned by the matrix but rather copied.
 
 One can use one of the following assign operators:
 
@@ -172,9 +172,9 @@ procedure AssignSubMatrix(Value : IMatrix; X : integer = 0; Y : integer = 0);
  
 These functions create a copy of the given operand. There are though a few special considerations regarding the parameters:
   * OnlySubElements: If not set the complete matrix is copied not only the selected sub matrix. 
-  * AssignSubMatrix with the params x, y: x and y are meant here as column row offsets of the destination matrix meaning if your destinationi matrix is 5x5 and you assign the submatrix by `mt1.AssignSubMatrix(mt0, 2, 2)` your destination matrix memory from mt1[2,2] to mt1[4,4] is overwritten by mt0. Note that mt0 here needs to be a 2x2 matrix and the indices start with 0.
+  * AssignSubMatrix with the params x, y: x and y are meant here as column row offsets of the destination matrix meaning if your destination matrix is 5x5 and you assign the submatrix by `mt1.AssignSubMatrix(mt0, 2, 2)` your destination matrix memory from mt1[2,2] to mt1[4,4] is overwritten by mt0. Note that mt0 here needs to be a 2x2 matrix and the indices start with 0.
 
-Row and coumn wise operations are quite similar to the _AssignSubMatrix_ calls but affect only rows and columns of the destination matrix. 
+Row and column wise operations are quite similar to the _AssignSubMatrix_ calls but affect only rows and columns of the destination matrix. 
 
 {{{
 procedure SetRow(row : integer; const Values : Array of Double);
