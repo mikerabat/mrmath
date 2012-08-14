@@ -26,19 +26,13 @@ This constructor initializes the internal datastructures with the given paramete
   * *LineWidth*: Number of bytes between consecutive rows.
   * *width, height*: Matrix size
 
-Note that this constructor takes ownership of the memory given with *data* and will release it when the 
-
-object is destroyed! Use one of the *Assign* methods to move the data instead.
+Note that this constructor takes ownership of the memory given with *data* and will release it when the object is destroyed! Use one of the *Assign* methods to move the data instead.
 
 {{{
 constructor Create(const Data : TDoubleDynArray; width, height : integer); overload;
 }}}
 
-Reserves memory such that the matrix width and height can be accessed and then copies the content of 
-
-*data* to the resulting matrix. *Data* needs to be exactly as long as _width*height_ and is interpreted 
-
-row wise.
+Reserves memory such that the matrix width and height can be accessed and then copies the content of *data* to the resulting matrix. *Data* needs to be exactly as long as _width*height_ and is interpreted row wise.
 
 === Examples ===
 
