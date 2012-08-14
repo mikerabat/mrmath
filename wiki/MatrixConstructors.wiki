@@ -98,13 +98,13 @@ end;
 
 == Memory Management ==
 
-The matrix class basically handles the mememory management and allocating alligned memory on it's own. To optimize the mememory management most of the simple matrix functions are built in two favors - one in memory and the other one returns the destination matrix e.g.: addition of two matrices can be executed either in place or using a third destination matrix:
+The matrix class basically handles the memory management and allocating aligned memory on it's own. To optimize the memory management most of the simple matrix functions are built in two favors - one in memory and the other one returns the destination matrix e.g.: addition of two matrices can be executed either in place or using a third destination matrix:
 
 {{{
 procedure add;
 var mt1, mt2 : IMatrix;
 begin
-     // creation and assigining...
+     // creation and assigning...
 
      // addition
      mt1 := mt1.Add(mt2);
@@ -116,7 +116,7 @@ end;
 
 both methods here are perfectly valid. The difference is the memory allocation scheme. In the first function a third matrix is allocated and the result is then stored there. In the second - in place - function the second allocation is not necessary.
 
-Note that not all in place functions can preserver that optimal memory management e.g. matrix multiplication cannot be executed in place due to the dependencies. There internaly a temporary matrix is allocated which overwrites the original one.
+Note that not all in place functions can preserver that optimal memory management e.g. matrix multiplication cannot be executed in place due to the dependencies. There internally a temporary matrix is allocated which overwrites the original one.
 
 To optimize memory management one can also only select a certain sub block of a matrix using
 
@@ -132,7 +132,7 @@ procedure UseFullMatrix;
 
 Note that the ''SetSubMatrix'' function is especially handy for right hand side operations and it`'s params are always in terms of the full matrix meaning that subsequent selections by this function are always selections on the full matrix meaning that ''UseFullMatrix'' is implicitly called by each ''SetSubMatrix'' call e.g.:
 
-{{
+{{{
 procedure Select;
 var mt : IMatrix;
 begin
@@ -147,11 +147,11 @@ end;
 }}}
 
 In place function not affecting the current state of the matrix and are only applied to the current submatrix without changing the rest:
-* AddInPlace
-* SubInPlace
-* ElementWiseMultInPlace
-* AddAndScaleInPlace
-* ScaleAndAddInPlace
-* ScaleInPlace
-* SQRTInPlace
-* ElementwiseFuncInPlace
+  * AddInPlace
+  * SubInPlace
+  * ElementWiseMultInPlace
+  * AddAndScaleInPlace
+  * ScaleAndAddInPlace
+  * ScaleInPlace
+  * SQRTInPlace
+  * ElementwiseFuncInPlace
