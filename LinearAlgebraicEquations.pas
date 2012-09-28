@@ -894,7 +894,10 @@ begin
      Result := MatrixLUDecompInPlace(Y, w*sizeof(double), width, @indx[0], progress);
 
      if Result = leSingular then
-        exit;
+     begin
+          FreeMem(Y);
+          exit;
+     end;
 
      for j := 0 to width - 1 do
      begin
@@ -912,6 +915,8 @@ begin
                inc(PByte(pVal), LineWidthA);
           end;
      end;
+
+     FreeMem(Y);
 end;
 
 function MatrixDeterminant(A : PDouble; const LineWidthA : integer; width : integer; progress : TLinEquProgress) : double;
