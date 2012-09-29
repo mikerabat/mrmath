@@ -956,7 +956,7 @@ begin
      begin
           Result := Result * pVal^;
           inc(pVal);
-          inc(PByte(pVal), width*sizeof(double));
+          inc(PByte(pVal), w*sizeof(double));
      end;
 
      FreeMem(LUDecomp);
@@ -1639,25 +1639,11 @@ end;
 function MatrixSVD(A : PDouble; const LineWidthA : integer; width : integer; Height : integer;
                    U : PDouble; const LineWidthU : integer; W : PDouble; const LineWidthW : integer;
                    V : PDouble; const LineWidthV : integer; progress : TLinEquProgress) : TSVDResult;
-var pU : PDouble;
-    pA : PDouble;
-    y : integer;
 begin
      assert(LineWidthA >= width*sizeof(double), 'Dimension error');
      assert(LineWidthV >= width*sizeof(double), 'Dimension error');
 
-     // copy values to U
-     pU := U;
-     pA := A;
-
-     for y := 0 to Height - 1 do
-     begin
-          Move(pA^, pU^, width*sizeof(double));
-
-          inc(PByte(pA), LineWidthA);
-          inc(PByte(pU), LineWidthU);
-     end;
-
+     MatrixCopy(U, LineWidthU, A, LineWidthA, width, Height);
      Result := MatrixSVDInPlace(U, LineWidthU, width, Height, W, LineWidthW, V, LineWidthV, progress);
 end;
 
