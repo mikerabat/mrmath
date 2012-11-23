@@ -344,7 +344,7 @@ begin
 
             // special care of the last column:
             movlpd xmm0, [esi];
-            addsd xmm0, [edi];
+            mulpd xmm0, [edi];
 
             movlpd [ecx], xmm0;
 
@@ -461,7 +461,8 @@ begin
 
             // special care of the last column:
             movlpd xmm0, [esi];
-            addsd xmm0, [edi];
+            movlpd xmm1, [edi];
+            mulpd xmm0, xmm1;
 
             movlpd [ecx], xmm0;
 

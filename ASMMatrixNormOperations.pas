@@ -512,8 +512,6 @@ begin
             // build result
             movhlps xmm1, xmm7;
             addsd xmm7, xmm1;
-            // unfortunately there is no (reziprocal square root defined for doubles...)
-            //rsqrtsd xmm7, xmm7;
             sqrtsd xmm7, xmm7;
             movsd xmm0, cOne;
             divsd xmm0, xmm7;
@@ -676,8 +674,6 @@ begin
             // build result
             movhlps xmm1, xmm7;
             addsd xmm7, xmm1;
-            // unfortunately there is no (reziprocal square root defined for doubles...)
-            //rsqrtsd xmm7, xmm7;
             sqrtsd xmm7, xmm7;
             movsd xmm0, cOne;
             divsd xmm0, xmm7;
@@ -846,8 +842,6 @@ begin
             // build result
             movhlps xmm1, xmm7;
             addsd xmm7, xmm1;
-            // unfortunately there is no (reziprocal square root defined for doubles...)
-            //rsqrtsd xmm7, xmm7;
             sqrtsd xmm7, xmm7;
             movsd xmm0, cOne;
             divsd xmm0, xmm7;
@@ -1020,8 +1014,6 @@ begin
             // build result
             movhlps xmm1, xmm7;
             addsd xmm7, xmm1;
-            // unfortunately there is no (reziprocal square root defined for doubles...)
-            //rsqrtsd xmm7, xmm7;
             sqrtsd xmm7, xmm7;
             movsd xmm0, cOne;
             divsd xmm0, xmm7;
