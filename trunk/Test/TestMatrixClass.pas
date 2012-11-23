@@ -57,12 +57,14 @@ type
     procedure SetUp; override;
     procedure TearDown; override;
   published
+   procedure TestAssign;
    procedure TestAdd;
    procedure TestSub;
    procedure TestMult;
    procedure TestMult2;
    procedure TestTranspose;
    procedure TestCovariance;
+   procedure TestElementWiseMult;
   end;
 
 type
@@ -552,6 +554,30 @@ begin
      Check(CheckMtx(mtx.SubMatrix, dx), 'Add2 was wrong ' + WriteMtxDyn(mtx.SubMatrix, mtx.width));
 end;
 
+procedure TestIMatrix.TestAssign;
+const mtx : Array[0..5] of double = (1, 2, 3, 4, 5, 6);
+      mty : Array[0..3] of double = (0, -1, -2, -3);
+      mtDest : Array[0..5] of double = (1, 0, -1, 4, -2, -3);
+var mt1 : IMatrix;
+    mt2 : IMatrix;
+begin
+     mt1 := TDoubleMatrix.Create;
+     // creates a 3x2 matrix and assigns the above values
+     mt1.Assign(mtx, 3, 2);
+
+
+     // assign only a submatrix
+     mt2 := TDoubleMatrix.Create;
+     mt2.Assign(mty, 2, 2);
+
+     // overwrite the elements of mt1
+     mt1.AssignSubMatrix(mt2, 1, 0);
+
+     // mt1 now should look like: (1, 0, -2,
+     //                            4, -2, -3);
+     Check(CheckMtx(mt1.SubMatrix, mtDest), 'Error assign didn''t work');
+end;
+
 procedure TestIMatrix.TestCovariance;
 var meanMtx : IMatrix;
     cov : IMatrix;
@@ -583,6 +609,44 @@ begin
          data[i] := 2;
 
      Check(CheckMtx(data, cov.SubMatrix), 'Error wrong covariance');
+end;
+
+
+procedure TestIMatrix.TestElementWiseMult;
+var mtx : IMatrix;
+    x, y : integer;
+begin
+     mtx := TDoubleMatrix.Create(1, 1, -2);
+     mtx.ElementWiseMultInPlace(mtx);
+
+     Check(SameValue(mtx[0, 0], 4), 'Error 1x1 elementwise mult failed');
+
+     mtx := TDoubleMatrix.Create(1, 2, -2);
+     mtx.ElementWiseMultInPlace(mtx);
+     Check(SameValue(mtx[0, 0], 4) and SameValue(mtx[0, 1], 4), 'Error 1x2 elementwise mult failed');
+
+     mtx := TDoubleMatrix.Create(2, 2, -2);
+     mtx.ElementWiseMultInPlace(mtx);
+     Check(SameValue(mtx[0, 0], 4) and SameValue(mtx[0, 1], 4), 'Error 2x2 elementwise mult failed');
+     Check(SameValue(mtx[1, 0], 4) and SameValue(mtx[1, 1], 4), 'Error 2x2 elementwise mult failed');
+
+     mtx := TDoubleMatrix.Create(2, 3, -2);
+     mtx.ElementWiseMultInPlace(mtx);
+     Check(SameValue(mtx[0, 0], 4) and SameValue(mtx[0, 1], 4) and SameValue(mtx[0, 2], 4), 'Error 2x3 elementwise mult failed');
+     Check(SameValue(mtx[1, 0], 4) and SameValue(mtx[1, 1], 4) and SameValue(mtx[1, 2], 4), 'Error 2x3 elementwise mult failed');
+
+     mtx := TDoubleMatrix.Create(3, 2, -2);
+     mtx.ElementWiseMultInPlace(mtx);
+     Check(SameValue(mtx[0, 0], 4) and SameValue(mtx[0, 1], 4), 'Error 3x2 elementwise mult failed');
+     Check(SameValue(mtx[1, 0], 4) and SameValue(mtx[1, 1], 4), 'Error 3x2 elementwise mult failed');
+     Check(SameValue(mtx[2, 0], 4) and SameValue(mtx[2, 1], 4), 'Error 3x2 elementwise mult failed');
+
+
+     mtx := TDoubleMatrix.Create(123, 124, -2);
+     mtx.ElementWiseMultInPlace(mtx);
+     for x := 0 to mtx.Width - 1 do
+         for y := 0 to mtx.Height - 1 do
+             Check(SameValue(mtx[x, y], 4), 'Error big elementwise mult failed @' + IntToStr(x) + ',' + IntToStr(y));
 end;
 
 

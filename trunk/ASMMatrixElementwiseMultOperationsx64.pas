@@ -337,7 +337,8 @@ asm
 
        // special care of the last column:
        movlpd xmm0, [r8];
-       addsd xmm0, [r9];
+       movlpd xmm1, [r9];
+       mulpd xmm0, xmm1;
 
        movlpd [rcx], xmm0;
 
@@ -451,7 +452,7 @@ asm
 
        // special care of the last column:
        movlpd xmm0, [r8];
-       addsd xmm0, [r9];
+       mulpd xmm0, [r9];
 
        movlpd [rcx], xmm0;
 
