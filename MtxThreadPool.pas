@@ -291,6 +291,7 @@ end;
 
 constructor TMtxThreadPool.Create;
 var sysInfo : TSystemInfo;
+    i: Integer;
 begin
      inherited Create;
 
@@ -298,8 +299,11 @@ begin
      GetSystemInfo(sysInfo);
      fThreadList := TThreadList.Create;
      fAsyncCalls := TThreadList.Create;
-     fMaxThreads := sysInfo.dwNumberOfProcessors*4 - 2;
+     fMaxThreads := sysInfo.dwNumberOfProcessors;
      fNumCPU := sysInfo.dwNumberOfProcessors;
+
+     for i := 0 to fNumCPU - 1 do
+         AllocThread.SuspendThread;
 end;
 
 destructor TMtxThreadPool.Destroy;

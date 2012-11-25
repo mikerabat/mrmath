@@ -775,11 +775,33 @@ var x, y : TDoubleDynArray;
     startTime3: Int64;
     endTime3: Int64;
     norm1, norm2, norm3 : double;
+    m1 : Array[0..1] of double;
 const cMtxWidth = 5010;
       cMtxHeight = 4983;
       cMtxSize = (cMtxWidth)*cMtxHeight;
       cMtxLinewidth = (cMtxWidth)*sizeof(double);
 begin
+     m1[0] := -2;
+     m1[1] := -2;
+
+     norm1 := GenericMtxElementwiseNorm2(PDouble(@m1[0]), sizeof(double), 1, 1);
+     assert(SameValue(norm1, 2), 'Error elementwise norm failed for w=h=1');
+
+     norm1 := ASMMatrixElementwiseNorm2(PDouble(@m1[0]), sizeof(double), 1, 1);
+     assert(SameValue(norm1, 2), 'Error elementwise norm failed for w=h=1');
+
+     norm1 := GenericMtxElementwiseNorm2(PDouble(@m1[0]), 2*sizeof(double), 2, 1);
+     assert(SameValue(norm1, sqrt(8)), 'Error elementwise norm failed for w=2, h=1');
+
+     norm1 := GenericMtxElementwiseNorm2(PDouble(@m1[0]), sizeof(double), 1, 2);
+     assert(SameValue(norm1, sqrt(8)), 'Error elementwise norm failed for w=2, h=1');
+
+     norm1 := ASMMatrixElementwiseNorm2(PDouble(@m1[0]), 2*sizeof(double), 2, 1);
+     assert(SameValue(norm1, sqrt(8)), 'Error elementwise norm failed for w=2, h=1');
+
+     norm1 := ASMMatrixElementwiseNorm2(PDouble(@m1[0]), sizeof(double), 1, 2);
+     assert(SameValue(norm1, sqrt(8)), 'Error elementwise norm failed for w=2, h=1');
+
      randomize;
      FillMatrix(cMtxSize, x, y, xa, ya);
 
@@ -982,8 +1004,8 @@ var x, y, dest1, dest2 : TDoubleDynArray;
     startTime3: Int64;
     endTime3: Int64;
     res : boolean;
-const cMtxWidth = 5010;
-      cMtxHeight = 4983;
+const cMtxWidth = 1000;
+      cMtxHeight = 2047;
       cMtxSize = (cMtxWidth)*cMtxHeight;
       cMtxLinewidth = (cMtxWidth)*sizeof(double);
 begin
@@ -1039,13 +1061,12 @@ var x, y, dest1, dest2 : TDoubleDynArray;
     vecStartTime3, vecEndTime3 : int64;
 const //cMtxWidth = 10*cCacheMtxSize;
       //cMtxHeight = cCacheMtxSize*10;
-      cMtxWidth = 3543;
-      cMtxHeight = 2560;
+      cMtxWidth = 2543;
+      cMtxHeight = 1560;
       cMtxSize = cMtxWidth*cMtxHeight;
       cMtxLinewidth = cMtxWidth*8;
       cMtxLineWidth2 = cMtxHeight*8;
 begin
-     SetThreadAffinityMask(GetCurrentThread, 1);
      randomize;
      FillMatrix(cMtxSize, x, y, xa, ya);
      SetLength(dest1, cMtxHeight*cMtxHeight);
