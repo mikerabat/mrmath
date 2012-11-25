@@ -27,11 +27,9 @@ const cDefCacheBlkSize = 256;
 var BlockMatrixCacheSize : integer = cDefCacheBlkSize;
     BlockMatrixVectorCacheSize : integer = cDefCacheBlkSize*cDefCacheBlkSize;
 
-var BlockedMatrixMultSize : integer = 2048;
+var BlockedMatrixMultSize : integer = 512;
     BlockedVectorMatrixMultSize : integer = cDefCacheBlkSize*cDefCacheBlkSize;
     TransposeMatrixMultSize : integer = 32;
-
-    ThreadMatrixMultSize : integer = 2*cDefCacheBlkSize;
 
 // checks when first applying a transpose operation is better for the multiplication
 procedure SetupOptTransposeMultMatrixSize;
@@ -39,7 +37,6 @@ procedure SetupOptBlockMatrixSize;
 procedure SetupOptBlockMatrixVectorSize;
 procedure SetupBlockedMatrixMultSize;
 procedure SetupBlockedVectorMatrixMultSize;
-//procedure SetupThreadMatrixMultSize;
 
 implementation
 
@@ -259,7 +256,7 @@ begin
      // Calculate the break even point where the blocked operation is faster than
      // the simple one
 
-     actSize := 32;
+     actSize := 64;
 
      iterList := TList.Create;
 
@@ -331,7 +328,7 @@ begin
      // Calculate the break even point where the blocked operation is faster than
      // the simple one
 
-     actSize := 32;
+     actSize := 64;
 
      iterList := TList.Create;
 
