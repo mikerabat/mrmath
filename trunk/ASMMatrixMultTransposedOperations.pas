@@ -82,8 +82,8 @@ begin
 
             // for x := 0 to width2 - 1:
             mov ebx, iters1;
-            test ebx, 0;
-            jz @@fory2labelexit;
+            cmp ebx, 0;
+            je @@fory2labelexit;
             @@fory2label:
                 mov eax, edi;
                 add eax, Linewidth2;
@@ -215,8 +215,8 @@ begin
 
             // for x := 0 to width2 - 1:
             mov ebx, iters1;
-            test ebx, 0;
-            jz @@fory2labelexit;
+            cmp ebx, 0;
+            je @@fory2labelexit;
             @@fory2label:
                 mov eax, edi;
                 add eax, Linewidth2;
@@ -1004,8 +1004,8 @@ begin
 
             // for x := 0 to height2 - 1:
             mov ebx, iters1;
-            test ebx, 0;
-            jz @@fory2labelexit;
+            cmp ebx, 0;
+            je @@fory2labelexit;
             @@fory2label:
                 mov eax, edi;
                 add eax, Linewidth2;
@@ -1153,8 +1153,8 @@ begin
 
             // for x := 0 to width2 - 1:
             mov ebx, iters1;
-            test ebx, 0;
-            jz @@fory2labelexit;
+            cmp ebx, 0;
+            je @@fory2labelexit;
             @@fory2label:
                 mov eax, edi;
                 add eax, Linewidth2;

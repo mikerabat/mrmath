@@ -95,8 +95,8 @@ asm
 
        // for x := 0 to width2 - 1:
        mov rbx, r15;
-       test rbx, 0;
-       jz @@fory2labelexit;
+       cmp rbx, 0;
+       je @@fory2labelexit;
 
        @@fory2label:
            xorpd xmm0, xmm0;   // dest^ := 0
@@ -228,8 +228,8 @@ asm
 
        // for x := 0 to width2 - 1:
        mov rbx, r15;
-       test rbx, 0;
-       jz @@fory2labelexit;
+       cmp rbx, 0;
+       je @@fory2labelexit;
 
        @@fory2label:
            xorpd xmm0, xmm0;   // dest^ := 0
@@ -1028,8 +1028,8 @@ asm
 
        // for x := 0 to width2 - 1:
        mov rbx, r15;
-       test rbx, 0;
-       jz @@fory2labelexit;
+       cmp rbx, 0;
+       je @@fory2labelexit;
 
        @@fory2label:
            xorpd xmm0, xmm0;   // dest^ := 0
@@ -1181,8 +1181,8 @@ asm
 
        // for x := 0 to width2 - 1:
        mov rbx, r15;
-       test rbx, 0;
-       jz @@fory2labelexit;
+       cmp rbx, 0;
+       je @@fory2labelexit;
 
        @@fory2label:
            xorpd xmm0, xmm0;   // dest^ := 0
