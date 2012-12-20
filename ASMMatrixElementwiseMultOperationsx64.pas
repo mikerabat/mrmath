@@ -277,7 +277,7 @@ asm
            prefetch [r8 + rax];
            prefetch [r9 + rax];
 
-           // addition:
+           // mult:
            movapd xmm0, [r8 + rax - 128];
            mulpd xmm0, [r9 + rax - 128];
 
@@ -452,7 +452,8 @@ asm
 
        // special care of the last column:
        movlpd xmm0, [r8];
-       mulpd xmm0, [r9];
+       movlpd xmm1, [r9];
+       mulpd xmm0, xmm1;
 
        movlpd [rcx], xmm0;
 
