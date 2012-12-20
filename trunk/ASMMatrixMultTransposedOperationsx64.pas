@@ -66,7 +66,7 @@ asm
    mov r15, height2;
    shr r15, 1;
 
-	  // iters2 := -width1*sizeof(double);
+   // iters2 := -width1*sizeof(double);
    mov r14, width1;
    shl r14, 3;
    imul r14, -1;
@@ -77,7 +77,7 @@ asm
    mov r12, r13;
    shl r12, 1;
 
-			// prepare matrix pointers - remove constant offset here instead each time in the loop:
+   // prepare matrix pointers - remove constant offset here instead each time in the loop:
    sub r8, r14;
    sub r9, r14;
    mov r10, r9;
@@ -95,6 +95,9 @@ asm
 
        // for x := 0 to width2 - 1:
        mov rbx, r15;
+       test rbx, 0;
+       jz @@fory2labelexit;
+
        @@fory2label:
            xorpd xmm0, xmm0;   // dest^ := 0
            xorpd xmm7, xmm7;   // dest + 1 := 0;
@@ -138,6 +141,8 @@ asm
        // end for x := 0 to width2 - 1
        dec rbx;
        jnz @@fory2label;
+
+       @@fory2labelexit:
 
        // take care of the last line separatly
        xorpd xmm0, xmm0;   // dest^ := 0
@@ -223,6 +228,9 @@ asm
 
        // for x := 0 to width2 - 1:
        mov rbx, r15;
+       test rbx, 0;
+       jz @@fory2labelexit;
+
        @@fory2label:
            xorpd xmm0, xmm0;   // dest^ := 0
            xorpd xmm7, xmm7;   // dest + 1 := 0;
@@ -266,6 +274,8 @@ asm
        // end for x := 0 to width2 - 1
        dec rbx;
        jnz @@fory2label;
+
+       @@fory2labelexit:
 
        // take care of the last line separatly
        xorpd xmm0, xmm0;   // dest^ := 0
@@ -1018,6 +1028,9 @@ asm
 
        // for x := 0 to width2 - 1:
        mov rbx, r15;
+       test rbx, 0;
+       jz @@fory2labelexit;
+
        @@fory2label:
            xorpd xmm0, xmm0;   // dest^ := 0
            xorpd xmm7, xmm7;   // dest + 1 := 0;
@@ -1074,6 +1087,8 @@ asm
        // end for x := 0 to width2 - 1
        dec rbx;
        jnz @@fory2label;
+
+       @@fory2labelexit:
 
        // take care of the last line separatly
        xorpd xmm0, xmm0;   // dest^ := 0
@@ -1166,6 +1181,9 @@ asm
 
        // for x := 0 to width2 - 1:
        mov rbx, r15;
+       test rbx, 0;
+       jz @@fory2labelexit;
+
        @@fory2label:
            xorpd xmm0, xmm0;   // dest^ := 0
            xorpd xmm7, xmm7;   // dest + 1 := 0;
@@ -1222,6 +1240,8 @@ asm
        // end for x := 0 to width2 - 1
        dec rbx;
        jnz @@fory2label;
+       
+       @@fory2labelexit:
 
        // take care of the last line separatly
        xorpd xmm0, xmm0;   // dest^ := 0
