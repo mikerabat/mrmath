@@ -43,6 +43,7 @@ type
    procedure TestAdd;
    procedure TestSub;
    procedure TestMult;
+   procedure TestMult2;
    procedure TestTranspose;
    procedure TestCovariance;
    procedure TestApplyFunc;
@@ -240,6 +241,50 @@ begin
             mtx.Free;
             mtx1.Free;
      end;
+end;
+
+procedure TestTDoubleMatrix.TestMult2;
+     // test to show if the bug reported from sutetemp is fixed:
+var a, b, c: IMatrix;
+    aa, bb, cc : TDoubleDynArray;
+    counter: Integer;
+begin
+     // test different odd and even values
+     a := TDoubleMatrix.Create(610, 62, 1);
+     aa := a.SubMatrix;
+     b := TDoubleMatrix.Create(1, 610, 2);
+     bb := b.SubMatrix;
+     c := a.Mult(b);
+
+     Check((c.Width = 1) and (c.Height = 62), 'Error matrix dimension wrong');
+     cc := c.SubMatrix;
+
+     for counter := 0 to Length(cc) - 1 do
+         Check(SameValue(cc[counter], 1220, 1e-12), 'Error multiplying line matrices');
+
+     a := TDoubleMatrix.Create(611, 62, 1);
+     aa := a.SubMatrix;
+     b := TDoubleMatrix.Create(1, 611, 2);
+     bb := b.SubMatrix;
+     c := a.Mult(b);
+
+     Check((c.Width = 1) and (c.Height = 62), 'Error matrix dimension wrong');
+     cc := c.SubMatrix;
+
+     for counter := 0 to Length(cc) - 1 do
+         Check(SameValue(cc[counter], 1222, 1e-12), 'Error multiplying line matrices');
+
+     a := TDoubleMatrix.Create(611, 63, 1);
+     aa := a.SubMatrix;
+     b := TDoubleMatrix.Create(1, 611, 2);
+     bb := b.SubMatrix;
+     c := a.Mult(b);
+
+     Check((c.Width = 1) and (c.Height = 63), 'Error matrix dimension wrong');
+     cc := c.SubMatrix;
+
+     for counter := 0 to Length(cc) - 1 do
+         Check(SameValue(cc[counter], 1222, 1e-12), 'Error multiplying line matrices');
 end;
 
 procedure TestTDoubleMatrix.TestPersistence;

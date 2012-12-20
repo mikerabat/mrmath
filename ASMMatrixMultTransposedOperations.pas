@@ -82,6 +82,8 @@ begin
 
             // for x := 0 to width2 - 1:
             mov ebx, iters1;
+            test ebx, 0;
+            jz @@fory2labelexit;
             @@fory2label:
                 mov eax, edi;
                 add eax, Linewidth2;
@@ -127,6 +129,8 @@ begin
             // end for x := 0 to width2 - 1
             dec ebx;
             jnz @@fory2label;
+
+            @@fory2labelexit:
 
             // take care of the last line separatly
             xorpd xmm0, xmm0;   // dest^ := 0
@@ -211,6 +215,8 @@ begin
 
             // for x := 0 to width2 - 1:
             mov ebx, iters1;
+            test ebx, 0;
+            jz @@fory2labelexit;
             @@fory2label:
                 mov eax, edi;
                 add eax, Linewidth2;
@@ -256,6 +262,8 @@ begin
             // end for x := 0 to width2 - 1
             dec ebx;
             jnz @@fory2label;
+
+            @@fory2labelexit:
 
             // take care of the last line separatly
             xorpd xmm0, xmm0;   // dest^ := 0
@@ -996,6 +1004,8 @@ begin
 
             // for x := 0 to height2 - 1:
             mov ebx, iters1;
+            test ebx, 0;
+            jz @@fory2labelexit;
             @@fory2label:
                 mov eax, edi;
                 add eax, Linewidth2;
@@ -1054,6 +1064,8 @@ begin
             // end for x := 0 to width2 - 1
             dec ebx;
             jnz @@fory2label;
+
+            @@fory2labelexit:
 
             // take care of the last line separatly
             xorpd xmm0, xmm0;   // dest^ := 0
@@ -1141,6 +1153,8 @@ begin
 
             // for x := 0 to width2 - 1:
             mov ebx, iters1;
+            test ebx, 0;
+            jz @@fory2labelexit;
             @@fory2label:
                 mov eax, edi;
                 add eax, Linewidth2;
@@ -1199,6 +1213,8 @@ begin
             // end for x := 0 to width2 - 1
             dec ebx;
             jnz @@fory2label;
+
+            @@fory2labelexit:
 
             // take care of the last line separatly
             xorpd xmm0, xmm0;   // dest^ := 0
