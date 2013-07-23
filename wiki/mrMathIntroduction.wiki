@@ -17,7 +17,7 @@ To be more flexible in the calculations and to exihibit the advantages of proper
 The matrix class provides an interface for base matrix manipulation and matrix memory management. It is basically a wrapper around the standard procedural functions and cares about the nasty details regarding memory management, data access and data initialization.
 
   * [MatrixConstructors Construction of objects and assigning data - memory management]
-  * Data access functionality
+  * [Persistence Loading and storing data from and to a stream/file]
   * Simple matrix manipulation function
   * Per matrix element functions
   * Linear algebraic functionality
