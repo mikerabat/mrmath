@@ -1,0 +1,40 @@
+= Simple Matrix Operations =
+
+This section describes the usage of the simple simple matrix operations
+* Add/sub
+* Mul
+* Functions applied to each element
+* Mean and sum
+
+Most of the functions have two forms. One returns a complete new matrix object the other one operates on the calling object and replaces it's memory by the result. The functions also come in two flavors one with interfaces and one without. Do not mix them in code!
+
+== Add/Sub ==
+
+The matrix addition and matrix subtraction is simply a value by 
+value operation on each element so an addition is defined as 
+`c[x, y] = a[x, y] + b[x, y]`
+
+{{{
+    procedure AddInplace(Value : TDoubleMatrix); overload;
+    function Add(Value : TDoubleMatrix) : TDoubleMatrix; overload;
+    procedure SubInPlace(Value : TDoubleMatrix); overload;
+    function Sub(Value : TDoubleMatrix) : TDoubleMatrix; overload;
+    
+    procedure AddInplace(Value : IMatrix); overload;
+    function Add(Value : IMatrix) : TDoubleMatrix; overload;
+    procedure SubInPlace(Value : IMatrix); overload;
+    function Sub(Value : IMatrix) : TDoubleMatrix; overload;
+}}}
+
+== Multiplication ==
+
+The base matrix multiplication algorithm is implemented as a recursive version of the Strassen multiplication until a certain matrix size is reached. Then the algorithm changes from the general matrix multiplication algorithm to a blocked version which internally still uses the Strassen algorithm. Use the global variable `BlockedMatrixMultSize` to change the default settings.
+
+
+
+= Details =
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
