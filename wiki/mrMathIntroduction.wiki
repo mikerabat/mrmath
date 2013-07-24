@@ -18,7 +18,6 @@ The matrix class provides an interface for base matrix manipulation and matrix m
 
   * [MatrixConstructors Construction of objects and assigning data - memory management]
   * [Persistence Loading and storing data from and to a stream/file]
-  * Simple matrix manipulation function
-  * Per matrix element functions
+  * [SimpleMatrixFct Simple matrix manipulation function]
   * Linear algebraic functionality
   * Eigenvalue calculation
