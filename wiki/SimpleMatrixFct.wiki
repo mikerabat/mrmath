@@ -8,11 +8,12 @@ This section describes the usage of the simple simple matrix operations
 
 Most of the functions have two forms. One returns a complete new matrix object the other one operates on the calling object and replaces it's memory by the result. The functions also come in two flavors one with interfaces and one without. Do not mix them in code!
 
-== Add/Sub ==
+== Add/Sub/Element wise multiplication ==
 
 The matrix addition and matrix subtraction is simply a value by 
 value operation on each element so an addition is defined as 
-`c[x, y] = a[x, y] + b[x, y]`
+`c[x, y] = a[x, y] + b[x, y]` and the element wise multiplication as
+`c[x, y] = a[x, y] * b[x, y]`
 
 {{{
     procedure AddInplace(Value : TDoubleMatrix); overload;
@@ -24,17 +25,57 @@ value operation on each element so an addition is defined as
     function Add(Value : IMatrix) : TDoubleMatrix; overload;
     procedure SubInPlace(Value : IMatrix); overload;
     function Sub(Value : IMatrix) : TDoubleMatrix; overload;
+
+    procedure ElementWiseMultInPlace(Value : TDoubleMatrix); overload;
+    function ElementWiseMult(Value : TDoubleMatrix) : TDoubleMatrix; overload;
+     
+    procedure ElementWiseMultInPlace(Value : IMatrix); overload;
+    function ElementWiseMult(Value : IMatrix) : TDoubleMatrix; overload;
 }}}
 
 == Multiplication ==
 
 The base matrix multiplication algorithm is implemented as a recursive version of the Strassen multiplication until a certain matrix size is reached. Then the algorithm changes from the general matrix multiplication algorithm to a blocked version which internally still uses the Strassen algorithm. Use the global variable `BlockedMatrixMultSize` to change the default settings.
 
+Note: One can switch the libs default behaviour by using the `InitMathFunctions` in `OptimizedFuncs.pas` to setup the multiplication mode as well as turning SSE optimizations completely off.
 
+One element is calculated as c[i, j] = sum_n(a[n,j]*b[i,n])
 
-= Details =
+{{{
+    procedure MultInPlace(Value : IMatrix); overload;
+    function Mult(Value : IMatrix) : TDoubleMatrix; overload;
+    procedure MultInPlace(Value : TDoubleMatrix); overload;
+    function Mult(Value : TDoubleMatrix) : TDoubleMatrix; overload;
+}}}
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+== Element wise functions ==
+
+Element wise functions are simply functions applied to each element of the matrix. 
+
+{{{
+    procedure AddAndScaleInPlace(const Offset, Scale : double);
+    function AddAndScale(const Offset, Scale : double) : TDoubleMatrix;
+
+    function Scale(const Value : double) : TDoubleMatrix;
+    procedure ScaleInPlace(const Value : Double);
+    function ScaleAndAdd(const Offset, Scale : double) : TDoubleMatrix;
+    procedure ScaleAndAddInPlace(const Offset, Scale : double);
+    function SQRT : TDoubleMatrix;
+    procedure SQRTInPlace;
+
+    procedure ElementwiseFuncInPlace(func : TMatrixFunc); overload;
+    function ElementwiseFunc(func : TMatrixFunc) : TDoubleMatrix; overload;
+    procedure ElementwiseFuncInPlace(func : TMatrixObjFunc); overload;
+    function ElementwiseFunc(func : TMatrixObjFunc) : TDoubleMatrix; overload;
+    procedure ElementwiseFuncInPlace(func : TMatrixMtxRefFunc); overload;
+    function ElementwiseFunc(func : TMatrixMtxRefFunc) : TDoubleMatrix; overload;
+    procedure ElementwiseFuncInPlace(func : TMatrixMtxRefObjFunc); overload;
+    function ElementwiseFunc(func : TMatrixMtxRefObjFunc) : TDoubleMatrix; overload;
+
+    procedure MaskedSetValue(const Mask : Array of boolean; const newVal : double);
+}}}
+
+Notes: 
+  * The difference of AddAndScale and ScaleAndAdd is the order of execution. The AddAndScale routine first adds a value and then scales it (and vice versa)
+  * The routine SQRT applies the root function on each element separately don't confuse it with the root of a matrix.
+  * The MaskedSetValue treats the matrix as a vector! So the first row of the matrix is reflected in the first n elements of the mask.
