@@ -1,0 +1,17 @@
+= Linear Algebra =
+
+Most of the linear algebra functionality are a direct conversion from the numerical recipies in C book (second edition) - so their basics are quite simple and can be looked up there. The routins translated from there 
+are:
+
+  * Singular Value decomposition
+  * QR Decomposition
+  * Cholesky Decomposition
+  * Gauss Jordan elimination (though not exposed in the matrix class)
+
+Since these original algorithms are not cache oblivious the performance may not be as good as in the simple matrix operations.
+
+An exception here is the LU decomposition which is based on the recursive implementation of the standard LU decomp. 
+
+In the library itself the matrix inversion and matrix determinant calculation are based on the LU decomposition.
+
+more tbd
