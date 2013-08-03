@@ -10,7 +10,7 @@ are:
 
 Since these original algorithms are not cache oblivious the performance may not be as good as in the simple matrix operations.
 
-An exception here is the LU decomposition which is based on the recursive implementation of the standard LU decomp. The algrithm splits the matrix into two rectangles ([m x n/s]) until the left part ends up being only a single column.  After that operation the matrix contains 4 parts - L, A12, A21, A22 (blocks of the matrix). We then apply transformations on the right part (solve A112 = L^-1*A12 and A22=A22 - A21*A12) and apply the LU Algorithm on the right part. The most work in the algrithm is done within the matrix multiplication which can profit from multiple cores.
+An exception here is the LU decomposition which is based on the recursive implementation of the standard LU decomp. The algrithm splits the matrix into two rectangles (m x n/2) until the left part ends up being only a single column.  After that operation the matrix contains 4 parts - L, A12, A21, A22 (blocks of the matrix). We then apply transformations on the right part (solve A112 = L^-1*A12 and A22=A22 - A21*A12) and apply the LU Algorithm on the right part. The most work in the algrithm is done within the matrix multiplication which can profit from multiple cores.
 
 In the library itself the matrix inversion and matrix determinant calculation are based on the LU decomposition.
 
