@@ -19,7 +19,7 @@ interface
 
 {$IFDEF CPUX64}
 
-uses ASMConsts;
+uses MatrixConst;
 
 procedure ASMMatrixSumRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 procedure ASMMatrixSumRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);

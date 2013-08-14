@@ -19,7 +19,7 @@ interface
 
 {$IFNDEF CPUX64}
 
-uses ASMConsts;
+uses MatrixConst;
 
 function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 function ASMMatrixMaxUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;

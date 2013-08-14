@@ -23,7 +23,7 @@ interface
 
 {$IFNDEF CPUX64}
 
-uses ASMConsts;
+uses MatrixConst;
 
 procedure ASMMatrixAddAlignedEvenW(dest : PDouble; const destLinewidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, Linewidth2 : TASMNativeInt);
 procedure ASMMatrixAddUnAlignedEvenW(dest : PDouble; const destLinewidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, Linewidth2 : TASMNativeInt);

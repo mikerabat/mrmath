@@ -15,11 +15,13 @@
 
 package mrMath;
 
+{$R *.res}
+
+
 requires
   rtl;
 
 contains
-  ASMConsts in 'ASMConsts.pas',
   ASMMatrixAddSubOperations in 'ASMMatrixAddSubOperations.pas',
   ASMMatrixAddSubOperationsx64 in 'ASMMatrixAddSubOperationsx64.pas',
   ASMMatrixElementwiseMultOperations in 'ASMMatrixElementwiseMultOperations.pas',
@@ -65,6 +67,7 @@ contains
   BaseMathPersistence in 'BaseMathPersistence.pas',
   BinaryReaderWriter in 'BinaryReaderWriter.pas',
   PCA in 'PCA.pas',
-  NonLinearFit in 'NonLinearFit.pas';
+  NonLinearFit in 'NonLinearFit.pas',
+  ThreadedLinAlg in 'ThreadedLinAlg.pas';
 
 end.

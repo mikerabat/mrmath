@@ -57,6 +57,26 @@ type
 
 function ConvEQUProgress(value : TLinEquProgressWOObj) : TLinEquProgress;
 
+
+// ###########################################
+// #### Matrix multiplication constants
+const cStrassenMinSize = 32;
+      cCacheMtxSize = 256;
+      cCacheBlkSize = 16;
+
+{$IFDEF CPUX64}
+type
+  TASMNativeInt = NativeInt;
+  TASMNativeUInt = NativeUInt;
+{$ELSE}
+type
+  TASMNativeInt = integer;
+  TASMNativeUInt = Cardinal;
+{$ENDIF}
+
+type
+  TMatrixMultDestOperation = (doNone, doAdd, doSub);
+
 implementation
 
 function ConvEQUProgress(value : TLinEquProgressWOObj) : TLinEquProgress;

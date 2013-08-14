@@ -19,7 +19,7 @@ interface
 
 {$IFNDEF CPUX64}
 
-uses ASMConsts;
+uses MatrixConst;
 
 function ASMMatrixElementwiseNorm2AlignedEvenW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
 function ASMMatrixElementwiseNorm2UnAlignedEvenW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;

@@ -19,7 +19,7 @@ interface
 
 {$IFNDEF CPUX64}
 
-uses ASMConsts;
+uses MatrixConst;
 
 procedure ASMMatrixMeanRowAlignedEvenW(dest : PDouble; const destLineWidth : integer; Src : PDouble; const srcLineWidth : integer; width, height : integer);
 procedure ASMMatrixMeanRowUnAlignedEvenW(dest : PDouble; const destLineWidth : integer; Src : PDouble; const srcLineWidth : integer; width, height : integer);
