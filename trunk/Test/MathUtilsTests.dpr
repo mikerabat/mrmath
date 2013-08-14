@@ -76,7 +76,8 @@ uses
   TestPCA in 'TestPCA.pas',
   PCA in '..\PCA.pas',
   TestNonLinFit in 'TestNonLinFit.pas',
-  NonLinearFit in '..\NonLinearFit.pas';
+  NonLinearFit in '..\NonLinearFit.pas',
+  IncrementalPCA in '..\IncrementalPCA.pas';
 
 {$R *.RES}
 

@@ -68,6 +68,7 @@ contains
   BinaryReaderWriter in 'BinaryReaderWriter.pas',
   PCA in 'PCA.pas',
   NonLinearFit in 'NonLinearFit.pas',
-  ThreadedLinAlg in 'ThreadedLinAlg.pas';
+  ThreadedLinAlg in 'ThreadedLinAlg.pas',
+  IncrementalPCA in 'IncrementalPCA.pas';
 
 end.

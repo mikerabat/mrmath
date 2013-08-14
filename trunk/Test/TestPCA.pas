@@ -15,13 +15,16 @@ type
  published
    procedure TestPCASimple;
    procedure TestPCAImages;
+   procedure TestPCAIncremental;
+   procedure TestPCAWeightedIncremental;
    procedure TestPCAWeighted;
    procedure TestFastRobustPCA;
+   procedure TestFastRubustIncrementalPCA;
  end;
 
 implementation
 
-uses PCA, Dialogs, Graphics, JPeg, Math, BinaryReaderWriter, BaseMathPersistence;
+uses PCA, Dialogs, Graphics, JPeg, Math, BinaryReaderWriter, BaseMathPersistence, IncrementalPCA;
 
 { TTestEigensystems }
 
@@ -197,6 +200,90 @@ begin
      FreeAndNil(examples);
 end;
 
+procedure TTestPCA.TestFastRubustIncrementalPCA;
+var Examples : TDoubleMatrix;
+    img : TDoubleMatrix;
+    feature : TDoubleMatrix;
+    w, h : integer;
+    i : integer;
+    //start : Cardinal;
+    //stop : Cardinal;
+    x : integer;
+    props : TFastRobustPCAProps;
+begin
+     Examples := LoadImages(w, h);
+
+     // ############################################
+     // #### Calculate PCA on images
+     props.NumSubSubSpaces := 100;
+     props.SubSpaceSizes := 0.003;
+     props.Start := 50;
+     props.stop := 20;
+     props.ReductionFactor := 0.75;
+     props.SubSpaceCutEPS := 0;
+
+     with TFastRobustIncrementalPCA.Create([pcaEigVals]) do
+     try
+        NumEigenvectorsToKeep := 6;
+
+        SetProperties(props);
+
+        for i := 0 to Examples.Width - 1 do
+        begin
+             Examples.SetSubMatrix(i, 0, 1, Examples.Height);
+             Check(UpdateEigenspace(Examples), 'Error updating eigenspace');
+        end;
+
+        Examples.UseFullMatrix;
+
+        // create 50% random occlusion
+        for i := 0 to 5 do
+        begin
+             for x := 0 to Round(0.5*Examples.Height) do
+                 Examples[i, random(Examples.Height - 1)] := 255;
+        end;
+
+        // create a few examples along the first mode
+        //start := GetTickCount;
+        for i := 0 to 5 do
+        begin
+             Examples.SetSubMatrix(i, 0, 1, Examples.Height);
+             feature := ProjectToFeatureSpace(Examples);
+             try
+                img := Reconstruct(feature);
+                try
+                   ImageFromMatrix(img, w, h, Format('%s\bmpr_%d.bmp', [ExtractFilePath(ParamStr(0)), i - 2]));
+                finally
+                       img.Free;
+                end;
+             finally
+                    feature.Free;
+             end;
+
+             // ############################################
+             // #### For comparison -> project to feature space in a non robust way
+             feature := ProjectToFeatureSpaceNonRobust(Examples);
+             try
+                img := Reconstruct(feature);
+                try
+                   ImageFromMatrix(img, w, h, Format('%s\bmpnr_%d.bmp', [ExtractFilePath(ParamStr(0)), i - 2]));
+                finally
+                       img.Free;
+                end;
+             finally
+                    feature.Free;
+             end;
+        end;
+        //stop := GetTickCount;
+
+        //ShowMessage(IntToStr(stop - start));
+     finally
+            Free;
+     end;
+
+     FreeAndNil(examples);
+end;
+
 procedure TTestPCA.TestPCAImages;
 var Examples : TDoubleMatrix;
     img : TDoubleMatrix;
@@ -221,6 +308,50 @@ begin
                 img := Reconstruct(feature);
                 try
                    ImageFromMatrix(img, w, h, Format('%s\bmp1_%d.bmp', [ExtractFilePath(ParamStr(0)), i - 2]));
+                finally
+                       img.Free;
+                end;
+           end;
+        finally
+               feature.Free;
+        end;
+     finally
+            Free;
+     end;
+
+     FreeAndNil(examples);
+end;
+
+procedure TTestPCA.TestPCAIncremental;
+var Examples : TDoubleMatrix;
+    img : TDoubleMatrix;
+    feature : TDoubleMatrix;
+    w, h : integer;
+    i : integer;
+begin
+     Examples := LoadImages(w, h);
+
+     // ############################################
+     // #### Calculate PCA on images
+     with TIncrementalPCA.Create([pcaEigVals]) do
+     try
+        NumEigenvectorsToKeep := 20;
+
+        for i := 0 to Examples.Width - 1 do
+        begin
+             Examples.SetSubMatrix(i, 0, 1, Examples.Height);
+             Check(UpdateEigenspace(Examples), 'Error updating eigenspace');
+        end;
+
+        // create a few examples along the first mode
+        feature := TDoubleMatrix.Create(1, NumModes);
+        try
+           for i in [0, 1, 2, 3, 4 ] do
+           begin
+                feature[0, 0] := (i - 2)*sqrt(EigVals[0,0])/3;
+                img := Reconstruct(feature);
+                try
+                   ImageFromMatrix(img, w, h, Format('%s\bmp_inc_%d.bmp', [ExtractFilePath(ParamStr(0)), i - 2]));
                 finally
                        img.Free;
                 end;
@@ -297,6 +428,52 @@ begin
                 img := Reconstruct(feature);
                 try
                    ImageFromMatrix(img, w, h, Format('%s\bmp2_%d.bmp', [ExtractFilePath(ParamStr(0)), i - 2]));
+                finally
+                       img.Free;
+                end;
+           end;
+        finally
+               feature.Free;
+        end;
+     finally
+            Free;
+     end;
+
+     FreeAndNil(examples);
+end;
+
+procedure TTestPCA.TestPCAWeightedIncremental;
+var Examples : TDoubleMatrix;
+    img : TDoubleMatrix;
+    feature : TDoubleMatrix;
+    w, h : integer;
+    i : integer;
+    numExamples : integer;
+begin
+     Examples := LoadImages(w, h);
+     numExamples := Examples.Width;
+
+     // ############################################
+     // #### Calculate PCA on images
+     with TIncrementalPCA.Create([pcaEigVals]) do
+     try
+        NumEigenvectorsToKeep := 6;
+
+        for i := 0 to Examples.Width - 1 do
+        begin
+             Examples.SetSubMatrix(i, 0, 1, Examples.Height);
+             Check(UpdateEigenspaceWeighted(Examples, 1/numExamples), 'Error updating eigenspace');
+        end;
+
+        // create a few examples along the first mode
+        feature := TDoubleMatrix.Create(1, NumModes);
+        try
+           for i in [0, 1, 2, 3, 4 ] do
+           begin
+                feature[0, 0] := (i - 2)*sqrt(EigVals[0,0]);
+                img := Reconstruct(feature);
+                try
+                   ImageFromMatrix(img, w, h, Format('%s\bmp_incw_%d.bmp', [ExtractFilePath(ParamStr(0)), i - 2]));
                 finally
                        img.Free;
                 end;
