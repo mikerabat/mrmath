@@ -39,6 +39,7 @@ type
    procedure TestCopy;
    procedure TestRowExchange;
    procedure TestNormalize;
+   procedure TestApplyfunc;
   end;
 
   TASMMatrixOperations = class(TBaseMatrixTestCase)
@@ -842,6 +843,27 @@ begin
 
      FreeMem(xa);
      FreeMem(ya);
+end;
+
+
+procedure sinxDivX(var x : double);
+begin
+     if SameValue(x, 0, 1e-7)
+     then 
+         x := 1
+     else
+         x := sin(x)/x;
+end;
+
+procedure TestMatrixOperations.TestApplyfunc;
+var m1 : IMatrix;
+    m2 : IMatrix;
+    i : integer;
+begin
+     m1 := TDoubleMatrix.Create(100, 1); 
+     for i := 0 to 99 do
+         m1[i, 0] := -pi + pi/100;
+     m2 := m1.ElementwiseFunc(sinxDivX);
 end;
 
 procedure TestMatrixOperations.TestCopy;

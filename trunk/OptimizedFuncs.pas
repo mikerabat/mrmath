@@ -20,7 +20,7 @@ unit OptimizedFuncs;
 
 interface
 
-uses ASMConsts, Types, MatrixConst;
+uses MatrixConst, Types;
 
 procedure MatrixCopy(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); overload;
 procedure MatrixCopy(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt); overload;

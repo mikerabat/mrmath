@@ -122,7 +122,7 @@ type
 implementation
 
 uses Math, MathUtilFunc, OptimizedFuncs, BlockSizeSetup, ASMMatrixOperations,
-     ASMConsts, SimpleMatrixOperations;
+     SimpleMatrixOperations;
 
 function MatrixPseudoinverse(dest : PDouble; const LineWidthDest : integer; X : PDouble; const LineWidthX : integer;
   width, height : integer; progress : TLinEquProgress) : TSVDResult;

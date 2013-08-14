@@ -23,7 +23,7 @@ interface
 
 {$IFNDEF CPUX64}
 
-uses ASMConsts;
+uses MatrixConst;
 
 procedure ASMMatrixVectorMultAlignedEvenW1(dest : PDouble; const destLineWidth : TaSMNativeInt; mt1, mt2 : PDouble; width1 : TaSMNativeInt; height1 : TaSMNativeInt; height2 : TaSMNativeInt; const LineWidth1 : TaSMNativeInt);
 procedure ASMMatrixVectorMultUnAlignedEvenW1(dest : PDouble; const destLineWidth : TaSMNativeInt; mt1, mt2 : PDouble; width1 : TaSMNativeInt; height1 : TaSMNativeInt; height2 : TaSMNativeInt; const LineWidth1 : TaSMNativeInt);

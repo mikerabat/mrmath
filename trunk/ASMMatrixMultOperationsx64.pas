@@ -19,7 +19,7 @@ interface
 
 {$IFDEF CPUX64}
 
-uses ASMConsts;
+uses MatrixConst;
 
 // full matrix operations -> there are no zero columns nor zero lines attached
 procedure ASMMatrixMultAlignedEvenW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);

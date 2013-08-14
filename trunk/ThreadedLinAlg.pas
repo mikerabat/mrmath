@@ -20,7 +20,7 @@ unit ThreadedLinAlg;
 
 interface
 
-uses ASMConsts, MatrixConst;
+uses MatrixConst;
 
 // threaded function for linear equations
 function ThrMatrixLUDecomp(A : PDouble; const LineWidthA : Integer; width : integer; indx : PIntegerArray; progress : TLinEquProgress = nil) : TLinEquResult;
@@ -126,7 +126,7 @@ begin
      if mn > 1 then
      begin
           // the lu backsubstitution function likes it best if the width is bigger than the height!)
-          nleft := Max(1, mn div (2*numCPUCores));
+          nleft := mn div 2;
           nright := width - nleft;
 
           Result := InternalThrMatrixLUDecomp(A, nLeft, height, indx, parity, data);
@@ -471,7 +471,7 @@ begin
           calls[i] := MtxAsyncCall(MatrixLUBacksupCall, obj[i]);
      end;
 
-     for i := 0 to numCpuCores - 1 do
+     for i := 0 to Min(thrSize, numCPUCores) - 1 do
      begin
           calls[i].sync;
           obj[i].Free;

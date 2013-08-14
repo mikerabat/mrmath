@@ -23,7 +23,7 @@ unit MtxThreadPool;
 // http://andy.jgknet.de/blog/bugfix-units/asynccalls-29-asynchronous-function-calls/
 interface
 
-uses ASMConsts;
+uses MatrixConst;
 
 type
   TMtxProc = function(obj : TObject) : integer;

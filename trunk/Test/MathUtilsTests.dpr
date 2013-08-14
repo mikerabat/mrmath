@@ -29,7 +29,6 @@ uses
   TestEigensystems in 'TestEigensystems.pas',
   BaseMatrixTestCase in 'BaseMatrixTestCase.pas',
   TestMatrixClass in 'TestMatrixClass.pas',
-  ASMConsts in '..\ASMConsts.pas',
   ASMMatrixAddSubOperations in '..\ASMMatrixAddSubOperations.pas',
   ASMMatrixAddSubOperationsx64 in '..\ASMMatrixAddSubOperationsx64.pas',
   ASMMatrixElementwiseMultOperations in '..\ASMMatrixElementwiseMultOperations.pas',

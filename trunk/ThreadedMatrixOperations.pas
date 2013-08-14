@@ -16,7 +16,7 @@ unit ThreadedMatrixOperations;
 
 interface
 
-uses ASMConsts, MatrixConst;
+uses MatrixConst;
 
 procedure ThrMatrixMultDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 procedure ThrMatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation = doNone);
@@ -370,9 +370,8 @@ begin
           // ensure that we can do aligned operations on matrices
           thrWidth := (width2 div cpud2) + 2*TASMNativeInt(not widthFits);
 
-          heightFits := (height1 mod cpud2) = 0;
-          thrHeight := height1 div cpud2 + TASMNativeInt(not heightFits);
-          heightCores := cpud2;
+          heightFits := (height1 mod heightCores) = 0;
+          thrHeight := height1 div heightCores + TASMNativeInt(not heightFits);
      end
      else
      begin
@@ -448,10 +447,12 @@ var obj : Array of TAsyncMatrixVectorMultObj;
     thrHeight : TASMNativeInt;
     calls : array of IMtxAsyncCall;
     heightFits : boolean;
+    numCalls : integer;
 begin
      SetLength(obj, numCPUCores);
      SetLength(calls, numCPUCores);
 
+     numCalls := 0;
      heightFits := (height1 mod numCPUCores) = 0;                                  
      thrHeight := height1 div numCPUCores + TASMNativeInt(not heightFits);
      for i := 0 to numCPUCores - 1 do
@@ -467,9 +468,14 @@ begin
               obj[i].height1 := obj[i].height1 - i*thrHeight;
 
           calls[i] := MtxAsyncCall(MatrixVectorMultFunc, obj[i]);
+
+          inc(numCalls);
+
+          if height1 <= (i + 1)*thrHeight then
+             break;
      end;
 
-     for i := 0 to numCpuCores - 1 do
+     for i := 0 to numCalls - 1 do
      begin
           calls[i].sync;
           obj[i].Free;

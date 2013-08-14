@@ -21,10 +21,7 @@ unit ASMMatrixOperations;
 
 interface
 
-uses ASMConsts, Types;
-
-const cCacheMtxSize = 256;
-      cCacheBlkSize = 16;
+uses MatrixConst, Types;
 
 procedure ASMMatrixCopy(Dest : PDouble; destLineWidth : TASMNativeInt; src : PDouble; srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
 procedure ASMRowSwap(A, B : PDouble; width : TASMNativeInt);
@@ -62,10 +59,8 @@ procedure ASMMatrixSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDou
 
 procedure BlockedMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation = doNone); overload;
 procedure BlockedMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation = doNone; mem : PDouble = nil); overload;
-procedure GenericBlockedMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation = doNone; mem : PDouble = nil);
 
 // strassen algorithm for matrix multiplication
-procedure GenericStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 procedure ASMStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 
 // this is a blockwise matrix multiplication routine which takes a limited cache into account.
@@ -80,7 +75,7 @@ procedure BlockedMatrixVectorMultiplication(dest : PDouble; const destLineWidth 
 
 implementation
 
-uses Math, SimpleMatrixOperations, BlockSizeSetup,
+uses Math, BlockSizeSetup, SimpleMatrixOperations,
      {$IFDEF CPUX64}
      ASMMatrixMultOperationsx64, ASMMatrixVectorMultOperationsx64,
      ASMMatrixMultTransposedOperationsx64, ASMMatrixAddSubOperationsx64,
@@ -1218,32 +1213,6 @@ begin
         FreeMem(actBlk);
 end;
 
-
-procedure GenericMtxDeltaUpdate(dest : PDouble; destLineWidth : TASMNativeInt; A11, B11 : PDouble;
-  width, height, LineWidth1 : TASMNativeInt);
-var x, y : integer;
-    pDest : PDouble;
-    pB11 : PDouble;
-begin
-     for y := 0 to height - 1 do
-     begin
-          pDest := dest;
-          pB11 := B11;
-
-          for x := 0 to width - 1 do
-          begin
-               pDest^ := pDest^ + a11^*pB11^;
-               inc(pB11);
-               inc(pDest);
-          end;
-
-          inc(PByte(A11), LineWidth1);
-          inc(PByte(dest), destLineWidth);
-     end;
-end;
-
-const cStrassenMinSize = 32;
-
 procedure InternalASMStrassenMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt;
   width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; mem : PDouble);
 var a11, a12, a21, a22 : PDouble;
@@ -1453,211 +1422,6 @@ begin
      end;
 end;
 
-procedure InternalGenericStrassenMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt;
-  width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; mem : PDouble);
-var a11, a12, a21, a22 : PDouble;
-    b11, b12, b21, b22 : PDouble;
-    s1, s2, s3, s4 : PDouble;
-    t1, t2, t3, t4 : PDouble;
-    P1, P2, P3, P4, P5, P6, P7 : PDouble;
-    U1, U2, U3, U4, U5, U6, U7 : PDouble;
-    c11, c12, c21, c22 : PDouble;
-    k, m, n : integer;
-    lineK : integer;
-    lineN : integer;
-    x, y : PDouble;
-begin
-     if (width1 <= cStrassenMinSize) or (height1 <= cStrassenMinSize) or (width2 <= cStrassenMinSize)
-     then
-         GenericMtxMult(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2)
-     else
-     begin
-          k := width1 div 2;
-          m := height1 div 2;
-          n := width2 div 2;
-          
-          lineK := k*sizeof(double);
-          lineN := n*sizeof(double);
-
-          a11 := mt1;
-          a12 := a11;
-          inc(a12, k);
-          a21 := mt1;
-          inc(PByte(a21), m*LineWidth1);
-          a22 := a21;
-          inc(a22, k);
-
-          b11 := mt2;
-          b12 := b11;
-          inc(b12, n);
-          b21 := mt2;
-          inc(PByte(b21), k*LineWidth2);
-          b22 := b21;
-          inc(b22, n);
-
-          c11 := dest;
-          c12 := c11;
-          inc(c12, n);
-          c21 := dest;
-          inc(PByte(c21), m*destLineWidth);
-          c22 := c21;
-          inc(c22, n);
-
-          x := mem;
-          y := x;
-          inc(Y, m*Max(k, n));
-
-          S3 := X;
-          T3 := Y;
-          P7 := C21;
-          S1 := X;
-          T1 := Y;
-          P5 := C22;
-          S2 := X;
-          T2 := Y;
-          P6 := C12;
-          S4 := X;
-          P3 := C11;
-          P1 := X;
-          U2 := C12;
-          U3 := C21;
-          U4 := C12;
-          U7 := C22;
-          U5 := C12;
-          T4 := Y;
-          P4 := C11;
-          U6 := C21;
-          P2 := C11;
-          U1 := C11;
-
-          mem := Y;
-          inc(mem, k*n);
-
-          // memory efficient mult:
-
-          // s3 = A11 - A21
-          GenericMtxSub(s3, lineK, a11, a21, k, m, LineWidth1, LineWidth1);
-          // t3 = B22 - B12
-          GenericMtxSub(t3, lineN, B22, B12, n, k, LineWidth2, LineWidth2);
-          // p7 = s3*t3
-          InternalGenericStrassenMult(p7, destLineWidth, s3, t3, k, m, n, k, lineK, lineN, mem);
-          // s1 = a21 + a22
-          GenericMtxAdd(s1, lineK, a21, a22, k, m, LineWidth1, LineWidth1);
-          // t1 = b12 - b11
-          GenericMtxSub(t1, lineN, B12, B11, n, k, LineWidth2, LineWidth2);
-          // p5 = s1*t1
-          InternalGenericStrassenMult(p5, destLineWidth, s1, t1, k, m, n, k, lineK, lineN, mem);
-          // s2 = S1 - A11
-          GenericMtxSub(s2, lineK, S1, A11, k, m, lineK, LineWidth1);
-          // t2 = b22 - t1
-          GenericMtxSub(t2, lineN, B22, t1, n, k, LineWidth2, lineN);
-          // p6 = s2*t2
-          InternalGenericStrassenMult(p6, destLineWidth, s2, t2, k, m, n, k, lineK, lineN, mem);
-          // s4 = A12 - S2
-          GenericMtxSub(s4, lineK, A12, S2, k, m, LineWidth1, lineK);
-          // p3 = s4*b22
-          InternalGenericStrassenMult(p3, destLineWidth, s4, b22, k, m, n, k, lineK, LineWidth2, mem);
-          // p1 = A11*B11
-          InternalGenericStrassenMult(p1, lineN, A11, B11, k, m, n, k, LineWidth1, LineWidth2, mem);
-          // U2 = P1 + P6
-          GenericMtxAdd(U2, destLineWidth, P1, P6, n, m, LineN, destLineWidth);
-          // U3 = U2 + P7
-          GenericMtxAdd(U3, destLineWidth, U2, P7, n, m, destLineWidth, destLineWidth);
-          // U4 = U2 + P5
-          GenericMtxAdd(U4, destLineWidth, U2, P5, n, m, destLineWidth, destLineWidth);
-          // U7 = U3 + P5
-          GenericMtxAdd(U7, destLineWidth, U3, P5, n, m, destLineWidth, destLineWidth);
-          // U5 = U4 + P3
-          GenericMtxAdd(U5, destLineWidth, U4, P3, n, m, destLineWidth, destLineWidth);
-          // t4 = T2 - B21
-          GenericMtxSub(t4, lineN, T2, B21, n, k, LineN, LineWidth2);
-          // p4 = A22*t4
-          InternalGenericStrassenMult(p4, destLineWidth, A22, t4, k, m, n, k, LineWidth1, lineN, mem);
-          // U6 = U3 - P4
-          GenericMtxSub(U6, destLineWidth, U3, P4, n, m, destLineWidth, destLineWidth);
-          // p2 = A12*B21
-          InternalGenericStrassenMult(p2, destLineWidth, A12, B21, k, m, n, k, LineWidth1, LineWidth2, mem);
-          // U1 = P1 + P2
-          GenericMtxAdd(U1, destLineWidth, P1, P2, n, m, lineN, destLineWidth);
-
-          // tidy up work for uneven columns, rows....
-          if ((width1 and $01) > 0) or ((height1 and $01) > 0) or ((width2 and $01) > 0) then
-          begin
-               // following the algorithm if all items are odd...:
-               //
-               //  A*B = [A1   ac    ][B1  bc  ] = [A1*B1   0]  +  Delta
-               //        [ar'  alpha ][br' beta]   [  0     0]
-               //
-               // Delta = [ac   ]*[br' beta]   +   [  0     A1*bc]
-               //         [alpha]                  [ar'*B1  ar'*bc]
-
-               // we already have computed A1*B1...
-
-               if ((width1 and $01) = 0) and ((width2 and $01) = 0) then
-               begin
-                    inc(PByte(dest), destLineWidth*(height1 - 1));
-                    inc(PByte(A11), LineWidth1*(height1 - 1));
-                    GenericMtxMult(dest, destLineWidth, A11, B11, width1, 1, width2, height2, LineWidth1, LineWidth2);
-               end
-               else if ((width1 and $01) = 0) and ((height1 and $01) = 0) then
-               begin
-                    inc(dest, (width2 - 1));
-                    inc(B11, (width2 - 1));
-                    GenericMtxMult(dest, destLineWidth, A11, B11, width1, height1, 1, height2, LineWidth1, LineWidth2);
-               end
-               else if ((height1 and $01) = 0) and ((width2 and $01) = 0) then
-               begin
-                    inc(A11, width1 - 1);
-                    inc(PByte(B11), LineWidth2*(height2 - 1));
-                    GenericMtxDeltaUpdate(dest, destLineWidth, A11, B11, width2, height1, LineWidth1);
-               end
-               else if ((width1 and $01) = 0) and ((height1 and $01) > 0) and ((width2 and $01) > 0) then
-               begin
-                    // last column [A]*bc
-                    inc(dest, (width2 - 1));
-                    inc(B11, (width2 - 1));
-                    GenericMtxMult(dest, destLineWidth, A11, B11, width1, height1 - 1, 1, height2, LineWidth1, LineWidth2);
-                    dec(B11, (width2 - 1));
-                    dec(dest, (width2 - 1));
-
-                    // [ar alpha]*[B bc]  (last line)
-                    inc(PByte(dest), destLineWidth*(height1 - 1));
-                    inc(PByte(A11), LineWidth1*(height1 - 1));
-                    GenericMtxMult(dest, destLineWidth, A11, B11, width1, 1, width2, height2, LineWidth1, LineWidth2);
-               end
-               else
-               begin
-                    // all dimensions are odd!
-                    // calc A1*bc
-                    inc(dest, (width2 - 1));
-                    inc(B11, (width2 - 1));
-                    GenericMtxMult(dest, destLineWidth, A11, B11, width1 - 1, height1 - 1, 1, height2 - 1, LineWidth1, LineWidth2);
-                    dec(B11, (width2 - 1));
-                    dec(dest, (width2 - 1));
-
-                    // calc ar'*B1 and ar'*bc
-                    inc(PByte(dest), destLineWidth*(height1 - 1));
-                    inc(PByte(A11), LineWidth1*(height1 - 1));
-                    GenericMtxMult(dest, destLineWidth, A11, B11, width1 - 1, 1, width2, height2 - 1, LineWidth1, LineWidth2);
-
-                    inc(dest, width2 - 1);
-                    inc(B11, width2 - 1);
-                    GenericMtxMult(dest, destLineWidth, A11, B11, width1 - 1, 1, 1, height2 - 1, LineWidth1, LineWidth2);
-
-                    dec(dest, width2 - 1);
-                    dec(PByte(dest), destLineWidth*(height1 - 1));
-                    dec(PByte(A11), LineWidth1*(height1 - 1));
-                    dec(B11, width2 - 1);
-
-                    // last step is to add the vector product matrix to the existing sum...
-                    inc(A11, width1 - 1);
-                    inc(PByte(B11), LineWidth2*(height2 - 1));
-                    GenericMtxDeltaUpdate(dest, destLineWidth, A11, B11, width2, height1, LineWidth1);
-               end;
-          end;
-     end;
-end;
-
 procedure ASMStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var mem : PDouble;
     memSize : integer;
@@ -1694,156 +1458,6 @@ begin
           finally
                  FreeMem(mem);
           end;
-     end;
-end;
-
-procedure GenericStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var mem : PDouble;
-    memSize : integer;
-    m, k, n : integer;
-    lev : integer;
-begin
-     // check the cutoff criterion:
-     if (width1 <= cStrassenMinSize) or (height1 <= cStrassenMinSize) or (height2 <= cStrassenMinSize)
-     then
-         GenericMtxMult(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2)
-     else
-     begin
-          // calc the complete used additionaly memory
-          // calc the complete used additionaly memory
-          memSize := 0;
-          m := height1;
-          k := width1;
-          n := width2;
-          lev := Min(m, Min(k, n));
-
-          while lev > cStrassenMinSize do
-          begin
-               memSize := memSize + sizeof(double)*(m*max(k, n) + k*n);
-               k := k shr 1;
-               m := m shr 1;
-               n := n shr 1;
-               lev := lev shr 1;
-          end;
-
-          mem := GetMemory(memSize);
-          try
-             InternalGenericStrassenMult(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, mem);
-          finally
-                 FreeMem(mem);
-          end;
-     end;
-end;
-
-procedure GenericBlockedMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble;
-  width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble);
-var w, h : TASMNativeInt;
-    blkIdxX : TASMNativeInt;
-    actBlk : PDouble;
-    multBlk : PDouble;
-    pA, pB : PDouble;
-    blkIdxY : TASMNativeInt;
-    idx : TASMNativeInt;
-    gamma : TASMNativeInt;
-    pDest : PDouble;
-    pMt2 : PDouble;
-    w1FitCacheSize : boolean;
-    w2FitCacheSize : boolean;
-    h1FitCacheSize : boolean;
-    blkHeight : TASMNativeInt;
-    blkWidth : TASMNativeInt;
-    gammaWidth : TASMNativeInt;
-    sizeVal : TASMNativeInt;
-begin
-     if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
-     	  exit;
-     assert((width1 = height2), 'Dimension error');
-     assert((destLineWidth - Width2*sizeof(double) >= 0) and (LineWidth1 >= width1*sizeof(double)) and (LineWidth2 >= width2*sizeof(double)), 'Line widths do not match');
-
-     // estimate a good blocksize - one with a small number of zero columns (but as near as possible to cCacheMtxSize
-     if blockSize <= 0 then
-     begin
-          sizeVal := Max(width1, width2);
-
-          while sizeVal > cCacheMtxSize do
-                sizeVal := sizeVal shr 1;
-
-          blockSize := Min(Max(width1, width2), Max(64, sizeVal));
-     end;
-
-     h1FitCacheSize := (height1 mod blockSize) = 0;
-     w2FitCacheSize := (width2 mod blockSize) = 0;
-     w1FitCacheSize := (width1 mod blockSize) = 0;
-
-     h := height1 div blockSize + TASMNativeInt(not h1FitCacheSize) - 1;
-     w := width2 div blockSize + TASMNativeInt(not w2FitCacheSize) - 1;
-     gamma := width1 div blockSize + TASMNativeInt(not w1FitCacheSize) - 1;
-
-     if Assigned(mem) then
-     begin
-          actBlk := mem;
-          multBlk := actBlk;
-          inc(multBlk, blockSize*blockSize);
-     end
-     else
-     begin
-          GetMem(actBlk, blockSize*blockSize*sizeof(double));
-          GetMem(multBlk, blockSize*blockSize*sizeof(double));
-     end;
-
-     blkHeight := blockSize;
-
-     for blkIdxY := 0 to h do
-     begin
-          if (blkIdxY = h) and not h1FitCacheSize then
-             blkHeight := (height1 mod blockSize);
-
-          pDest := dest;
-          inc(PByte(pDest), blkIdxY*blockSize*destLineWidth);
-          pMt2 := mt2;
-          blkWidth := blockSize;
-
-          for blkIdxX := 0 to w do
-          begin
-               if (blkIdxX = w) and not w2FitCacheSize then
-                  blkWidth := (width2 mod blockSize);
-
-               FillChar(actBlk^, blockSize*blockSize*sizeof(double), 0);
-               pa := mt1;
-               pb := pMt2;
-
-               gammaWidth := blockSize;
-               for idx := 0 to gamma do
-               begin
-                    if (idx = gamma) and not w1FitCacheSize then
-                       gammaWidth := width1 mod blockSize;
-
-                    GenericMtxMult(multBlk, blockSize*sizeof(double), pa, pb, gammaWidth, blkHeight, blkWidth, gammaWidth, LineWidth1, LineWidth2);
-                    GenericMtxAdd(actBlk, blockSize*sizeof(double), actBlk, multBlk, blkWidth, blkHeight, blockSize*sizeof(double), blockSize*sizeof(double));
-
-                    inc(pa, gammaWidth);
-                    inc(PByte(pb), gammaWidth*LineWidth2);
-               end;
-
-               // build the result: dest = A*B +- Dest (according to the operator)
-               case op of
-                 doNone: GenericMtxCopy(pDest, destLineWidth, ActBlk, blockSize*sizeof(double), blkWidth, blkHeight);
-                 doAdd:  GenericMtxAdd(pDest, destLineWidth, ActBlk, pDest, blkWidth, blkHeight, blockSize*sizeof(double), destLineWidth);
-                 doSub:  GenericMtxSub(pDest, destLineWidth, ActBlk, pDest, blkWidth, blkHeight, blockSize*sizeof(double), destLineWidth);
-               end;
-
-               inc(pDest, blockSize);
-               inc(pMt2, blockSize);
-          end;
-
-          inc(PByte(mt1), blkHeight*LineWidth1);
-     end;
-
-     if not Assigned(mem) then
-     begin
-          FreeMem(actBlk);
-          FreeMem(multBlk);
      end;
 end;
 
