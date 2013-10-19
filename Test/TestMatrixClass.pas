@@ -73,7 +73,6 @@ type
   private
     fRefMatrix2 : TDoubleMatrix;
     fRefMatrix1 : TDoubleMatrix;
-    fPerfFreq : Int64;
 
     procedure ElemWiseSqr(var elem : double);
   public
@@ -89,8 +88,8 @@ type
 
 implementation
 
-uses Windows, Dialogs, BaseMathPersistence, binaryReaderWriter,
-     math, MatrixConst;
+uses BaseMathPersistence, binaryReaderWriter,
+     math, MatrixConst, mtxTimer;
 
 { TestTDoubleMatrix }
 
@@ -383,7 +382,6 @@ const cMtxWidth = 3453;
 var x, y : integer;
 begin
      TThreadedMatrix.InitThreadPool;
-     QueryPerformanceFrequency(fPerfFreq);
 
      fRefMatrix1 := TDoubleMatrix.Create(cMtxWidth, cMtxHeight);
      fRefMatrix2 := TDoubleMatrix.Create(cMtxHeight, cMtxWidth);
@@ -411,17 +409,17 @@ var dest1, dest2 : IMatrix;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : Int64;
 begin
-     QueryPerformanceCounter(startTime1);
+     startTime1 := MtxGetTime;
      dest1 := fRefMatrix1.ElementwiseFunc(ElemWiseSqr);
-     QueryPerformanceCounter(endTime1);
+     endTime1 := MtxGetTime;
 
      m1 := TThreadedMatrix.Create;
      m1.Assign(fRefMatrix1);
-     QueryPerformanceCounter(startTime2);
+     startTime2 := MtxGetTime;
      dest2 := m1.ElementwiseFunc(ElemWiseSqr);
-     QueryPerformanceCounter(endTime2);
+     endTime2 := MtxGetTime;
 
-     status(Format('%.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000]));
+     status(Format('%.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000]));
 
      Check(CheckMtx(dest1.SubMatrix, dest2.SubMatrix));
 end;
@@ -432,7 +430,6 @@ const cBlkWidth = 1024;
 var x : TDoubleDynArray;
     i: Integer;
     start, stop : Int64;
-    freq : int64;
     det, detThr : double;
     m1, m2 : IMatrix;
 begin
@@ -445,23 +442,18 @@ begin
      m1 := TDoubleMatrix.Create(x, cBlkWidth, cBlkWidth);
      m2 := TThreadedMatrix.Create(x, cBlkWidth, cBlkWidth);
 
-     QueryPerformanceFrequency(freq);
-
-     QueryPerformanceCounter(start);
+     start := MtxGetTime;
      det := m1.Determinant;
      Check(det <> 0, 'Singular matrix');
-     QueryPerformanceCounter(stop);
-     Status(Format('Big determinant: %.2fms with value %.5f', [(stop - start)/freq*1000, det]));
+     stop := MtxGetTime;
+     Status(Format('Big determinant: %.2fms with value %.5f', [(stop - start)/mtxfreq*1000, det]));
 
-     QueryPerformanceCounter(start);
+     start := MtxGetTime;
      detThr := m2.Determinant;
      Check(detThr <> 0, 'Singular matrix');
-     QueryPerformanceCounter(stop);
+     stop := MtxGetTime;
 
-     Status(Format('Big threaded determinant: %.2fms with value %.5f', [(stop - start)/freq*1000, detThr]));
-
-     if not SameValue(det, detThr) then
-        ShowMessage(Format('%f' + #13#10 + '%f', [det, detThr]));
+     Status(Format('Big threaded determinant: %.2fms with value %.5f', [(stop - start)/mtxfreq*1000, detThr]));
 
      Check(SameValue(det, detThr), 'Error Determinatnts differ too much');
 end;
@@ -473,7 +465,6 @@ const cBlkWidth = 1024;
 var x : TDoubleDynArray;
     i: Integer;
     start, stop : Int64;
-    freq : int64;
     m1, m2 : IMatrix;
 begin
      // big inversion
@@ -485,18 +476,16 @@ begin
      m1 := TDoubleMatrix.Create(x, cBlkWidth, cBlkWidth);
      m2 := TThreadedMatrix.Create(x, cBlkWidth, cBlkWidth);
 
-     QueryPerformanceFrequency(freq);
-
-     QueryPerformanceCounter(start);
+     start := MtxGetTime;
      check(m1.InvertInplace = leOk, 'Error inverting single threaded version');
-     QueryPerformanceCounter(stop);
-     Status(Format('Big single inversion: %.2fms', [(stop - start)/freq*1000]));
+     stop := MtxGetTime;
+     Status(Format('Big single inversion: %.2fms', [(stop - start)/mtxfreq*1000]));
 
-     QueryPerformanceCounter(start);
+     start := MtxGetTime;
      check(m2.InvertInplace = leOk, 'Error inverting multi threaded version');
-     QueryPerformanceCounter(stop);
+     stop := MtxGetTime;
 
-     Status(Format('Big threaded inversion: %.2fms', [(stop - start)/freq*1000]));
+     Status(Format('Big threaded inversion: %.2fms', [(stop - start)/mtxfreq*1000]));
 
      Check(CheckMtx(m1.SubMatrix, m2.SubMatrix), 'Error threaded inverion differs from original one');
 end;
@@ -506,7 +495,7 @@ const cBlkWidth = 512;
       cBlkSize = cBlkWidth*cBlkWidth;
 var a, x1, x2, b : TDoubleDynArray;
     i : integer;
-    freq, start, stop : int64;
+    start, stop : int64;
     index : integer;
     m1, m2 : IMatrix;
     mb : IMatrix;
@@ -527,16 +516,15 @@ begin
      m1 := TDoubleMatrix.Create(a, cBlkWidth, cBlkWidth);
      m2 := TThreadedMatrix.Create(a, cBlkWidth, cBlkWidth);
 
-     QueryPerformanceFrequency(freq);
-     QueryPerformanceCounter(start);
+     start := MtxGetTime;
      m1.SolveLinEQInPlace(mb);
-     QueryPerformanceCounter(stop);
-     Status(Format('Blocked LU decomp: %.2fms', [(stop - start)/freq*1000]));
+     stop := MtxGetTime;
+     Status(Format('Blocked LU decomp: %.2fms', [(stop - start)/mtxfreq*1000]));
 
-     QueryPerformanceCounter(start);
+     start := MtxGetTime;
      m2.SolveLinEQInPlace(mb);
-     QueryPerformanceCounter(stop);
-     Status(Format('Threaded LU decomp: %.2fms', [(stop - start)/freq*1000]));
+     stop := MtxGetTime;
+     Status(Format('Threaded LU decomp: %.2fms', [(stop - start)/mtxfreq*1000]));
 
      index := 0;
      Check(CheckMtxIdx(m1.SubMatrix, m2.SubMatrix, index), Format('error Lin equation solve. Error at x[%d] = %.5f, y[%d] = %.5f', [index, x1[index], index, x2[index]]));
@@ -548,17 +536,17 @@ var dest1, dest2 : IMatrix;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : Int64;
 begin
-     QueryPerformanceCounter(startTime1);
+     startTime1 := MtxGetTime;
      dest1 := fRefMatrix1.Mult(fRefMatrix2);
-     QueryPerformanceCounter(endTime1);
+     endTime1 := MtxGetTime;
 
      m1 := TThreadedMatrix.Create;
      m1.Assign(fRefmatrix1);
-     QueryPerformanceCounter(startTime2);
+     startTime2 := MtxGetTime;
      dest2 := m1.Mult(fRefMatrix2);
-     QueryPerformanceCounter(endTime2);
+     endTime2 := MtxGetTime;
 
-     status(Format('%.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000]));
+     status(Format('%.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000]));
 
      Check(CheckMtx(dest1.SubMatrix, dest2.SubMatrix));
 end;

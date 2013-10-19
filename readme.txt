@@ -5,6 +5,9 @@
 // ####
 // #### Copyright:(c) 2011, Michael R. . All rights reserved.
 // ###################################################################
+// ###################################################################
+// #### certain MACOS contributions and testing William Cantrall
+// ###################################################################
 
 Installation:
 
@@ -27,6 +30,15 @@ is compatible to at least Delphi 7. For older Delphi versions one would
 have to exchange the assembler codes with "db" instructions which represent
 the compiled code parts.
 
+The library has been extendend to be compatible with MacOS. There is a new
+unit test project - MathUtilsTestsMac.dpr - which can be used on this
+operating system.
+
+
+Developer:
+
+Rabatscher Michael - main windows and core development - contact via www.mrsoft.com
+William Cantrall - special thanks for making the library MacOs compatible. - contact address tbd
 
 // ###################################################################
 changelog:

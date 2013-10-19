@@ -92,7 +92,7 @@ procedure GenericMtxFunc(dest : PDouble; const destLineWidth : TASMNativeInt; wi
 
 implementation
 
-uses Math, MathUtilFunc, BlockSizeSetup;
+uses Math, BlockSizeSetup;
 
 function GenericMtxNormalize(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray;
 begin
@@ -333,7 +333,7 @@ begin
 end;
 
 procedure GenericRowSwap(A, B : PDouble; width : TASMNativeInt);
-var i : integer;
+var i : TASMNativeInt;
     tmp : double;
 begin
      for i := 0 to width - 1 do
@@ -784,7 +784,7 @@ end;
 
 procedure GenericMtxDeltaUpdate(dest : PDouble; destLineWidth : TASMNativeInt; A11, B11 : PDouble;
   width, height, LineWidth1 : TASMNativeInt);
-var x, y : integer;
+var x, y : TASMNativeInt;
     pDest : PDouble;
     pB11 : PDouble;
 begin

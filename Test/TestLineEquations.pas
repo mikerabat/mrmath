@@ -47,8 +47,8 @@ type
 
 implementation
 
-uses Windows, LinearAlgebraicEquations, dialogs, ThreadedMatrixOperations,
-     MtxThreadPool, ThreadedLinAlg, math;
+uses LinearAlgebraicEquations, ThreadedMatrixOperations,
+     MtxThreadPool, ThreadedLinAlg, math, MtxTimer;
 
 { TestTDoubleMatrix }
 
@@ -60,7 +60,6 @@ var x, y : TDoubleDynArray;
     i: Integer;
     idx : Array[0..cBlkWidth-1] of integer;
     start, stop : Int64;
-    freq : int64;
     index : integer;
 begin
      InitMtxThreadPool;
@@ -93,18 +92,17 @@ begin
     // WriteMatlabData('D:\x.txt', x, cBlkWidth);
      Move(x[0], y[0], sizeof(double)*length(x));
 
-     QueryPerformanceFrequency(freq);
-     QueryPerformanceCounter(start);
+     start := MtxGetTime;
      MatrixLUDecompInPlace(@x[0], cBlkWidth*sizeof(double), cBlkWidth, @idx[0], nil);
-     QueryPerformanceCounter(stop);
-     Status(Format('Blocked LU decomp: %.2fms', [(stop - start)/freq*1000]));
+     stop := MtxGetTime;
+     Status(Format('Blocked LU decomp: %.2fms', [(stop - start)/mtxFreq*1000]));
 
     // WriteMatlabData('D:\xlu.txt', x, cBlkWidth);
 
-     QueryPerformanceCounter(start);
+     start := MtxGetTime;
      ThrMatrixLUDecomp(@y[0], cBlkWidth*sizeof(double), cBlkWidth, @idx[0], nil);
-     QueryPerformanceCounter(stop);
-     Status(Format('Threaded LU decomp: %.2fms', [(stop - start)/freq*1000]));
+     stop := MtxGetTime;
+     Status(Format('Threaded LU decomp: %.2fms', [(stop - start)/mtxfreq*1000]));
 
      FinalizeMtxThreadPool;
 
@@ -125,12 +123,12 @@ begin
      AL := MatrixTranspose(@A[0], 3*sizeof(double), 3, 3);
      X := MatrixMult(@A[0], @AL[0], 3, 3, 3, 3, 3*sizeof(double), 3*sizeof(double));
 
-     ZeroMemory(@P[0], sizeof(P));
+     FillChar(P[0], sizeof(P), 0);
      res := MatrixCholeskyInPlace(@X[0], 3*sizeof(double), 3, @P[0], 4*sizeof(double));
      Check(res = crOk, WriteMtx(X, 3));
 
      Move(A, X[0], sizeof(A));
-     ZeroMemory(@P[0], sizeof(P));
+     FillChar(P[0], sizeof(P), 0);
      res := MatrixCholeskyInPlace(@X[0], 3*sizeof(double), 3, @P[0], 4*sizeof(double));
 
      Check(res = crNoPositiveDefinite, WriteMtx(X, 3));
@@ -158,7 +156,6 @@ const cBlkWidth = 512;
 var x : TDoubleDynArray;
     i: Integer;
     start, stop : Int64;
-    freq : int64;
     det, detThr : double;
 begin
      InitMtxThreadPool;
@@ -170,20 +167,18 @@ begin
 
      //WriteMatlabData('d:\x1.txt', x, cBlkWidth);
 
-     QueryPerformanceFrequency(freq);
-
-     QueryPerformanceCounter(start);
+     start := MtxGetTime;
      det := MatrixDeterminant(@x[0], cBlkWidth*sizeof(double), cBlkWidth);
      Check(det <> 0, 'Singular matrix');
-     QueryPerformanceCounter(stop);
-     Status(Format('Big determinant: %.2fms with value %.5f', [(stop - start)/freq*1000, det]));
+     stop := MtxGetTime;
+     Status(Format('Big determinant: %.2fms with value %.5f', [(stop - start)/mtxfreq*1000, det]));
 
-     QueryPerformanceCounter(start);
+     start := MtxGetTime;
      detThr := ThrMatrixDeterminant(@x[0], cBlkWidth*sizeof(double), cBlkWidth);
      Check(detThr <> 0, 'Singular matrix');
-     QueryPerformanceCounter(stop);
+     stop := MtxGetTime;
 
-     Status(Format('Big threaded determinant: %.2fms with value %.5f', [(stop - start)/freq*1000, detThr]));
+     Status(Format('Big threaded determinant: %.2fms with value %.5f', [(stop - start)/mtxfreq*1000, detThr]));
 
      FinalizeMtxThreadPool;
 
@@ -240,7 +235,6 @@ const cBlkWidth = 512;
 var x, y : TDoubleDynArray;
     i: Integer;
     start, stop : Int64;
-    freq : int64;
 begin
      InitMtxThreadPool;
      // big inversion
@@ -249,21 +243,19 @@ begin
      for i := 0 to cBlkSize - 1 do
          x[i] := Random - 0.5;
 
-     WriteMatlabData('D:\x1.txt', x, cBlkWidth);
+     //WriteMatlabData('D:\x1.txt', x, cBlkWidth);
 
      y := Copy(x, 0, Length(x));
 
-     QueryPerformanceFrequency(freq);
-
-     QueryPerformanceCounter(start);
+     start := MtxGetTime;
      Check(MatrixInverseInPlace(@x[0], cBlkWidth*sizeof(double), cBlkWidth) <> leSingular, 'Matrix inversion seems not to be singular');
-     QueryPerformanceCounter(stop);
-     Status(Format('Big Inversion: %.2fms', [(stop - start)/freq*1000]));
+     stop := MtxGetTime;
+     Status(Format('Big Inversion: %.2fms', [(stop - start)/mtxfreq*1000]));
 
-     QueryPerformanceCounter(start);
+     start := MtxGetTime;
      Check(ThrMatrixInverse(@y[0], cBlkWidth*sizeof(double), cBlkWidth) <> leSingular, 'Matrix inversion seems not to be singular');
-     QueryPerformanceCounter(stop);
-     Status(Format('Big Inversion Threaded: %.2fms', [(stop - start)/freq*1000]));
+     stop := MtxGetTime;
+     Status(Format('Big Inversion Threaded: %.2fms', [(stop - start)/mtxfreq*1000]));
 
      //WriteMatlabData('D:\invx.txt', x, cBlkWidth);
      FinalizeMtxThreadPool;
@@ -350,7 +342,7 @@ const cBlkWidth = 48;
       cBlkSize = cBlkWidth*cBlkWidth;
 var a, x1, x2, b : TDoubleDynArray;
     i : integer;
-    freq, start, stop : int64;
+    start, stop : int64;
     index : integer;
 begin
      InitMtxThreadPool;
@@ -368,20 +360,19 @@ begin
          b[i] := Random - 0.5;
 
 
-     QueryPerformanceFrequency(freq);
-     QueryPerformanceCounter(start);
+     start := MtxGetTime;
      MatrixLinEQSolve(@a[0], cBlkWidth*sizeof(double), cBlkWidth, @b[0], 3*sizeof(double), @x1[0], 3*sizeof(double), 3, 0);
-     QueryPerformanceCounter(stop);
-     Status(Format('Blocked LU decomp: %.2fms', [(stop - start)/freq*1000]));
+     stop := MtxGetTime;
+     Status(Format('Blocked LU decomp: %.2fms', [(stop - start)/mtxfreq*1000]));
 
      //WriteMatlabData('D:\a.txt', a, cBlkWidth);
      //WriteMatlabData('D:\b.txt', b, 3);
      //WriteMatlabData('D:\x1.txt', x1, 3);
 
-     QueryPerformanceCounter(start);
+     start := MtxGetTime;
      ThrMatrixLinEQSolve(@a[0], cBlkWidth*sizeof(double), cBlkWidth, @b[0], 3*sizeof(double), @x2[0], 3*sizeof(double), 3);
-     QueryPerformanceCounter(stop);
-     Status(Format('Threaded LU decomp: %.2fms', [(stop - start)/freq*1000]));
+     stop := MtxGetTime;
+     Status(Format('Threaded LU decomp: %.2fms', [(stop - start)/mtxfreq*1000]));
 
      //WriteMatlabData('D:\x2.txt', x2, 3);
 
@@ -463,8 +454,8 @@ var res : TSVDResult;
     X : TDoubleDynArray;
     Dest : Array[0..3] of double;
 begin
-     ZeroMemory(@w[0], sizeof(w));
-     ZeroMemory(@V[0], sizeof(V));
+     FillChar(w[0], sizeof(w), 0);
+     FillChar(V[0], sizeof(V), 0);
      Move(A, S, sizeof(A));
 
      res := MatrixSVDInPlace(@S[0], 2*sizeof(double), 2, 2, @W[0], 3*sizeof(double), @V[0], 2*sizeof(double));
@@ -488,8 +479,8 @@ var res : TSVDResult;
     V1 : TDoubleDynArray;
     Dest : Array[0..7] of double;
 begin
-     ZeroMemory(@w[0], sizeof(w));
-     ZeroMemory(@V[0], sizeof(V));
+     FillChar(w[0], sizeof(w), 0);
+     FillChar(V[0], sizeof(V), 0);
 
      res := MatrixSVD(@A[0], 2*sizeof(Double), 2, 4, @S[0], 2*sizeof(double), @W[0], 3*sizeof(double), @V[0], 2*sizeof(double));
 
@@ -515,8 +506,8 @@ var res : TSVDResult;
     Dest : Array[0..19] of double;
 begin
      // test accuracy of linear dependent matrices:
-     ZeroMemory(@w[0], sizeof(w));
-     ZeroMemory(@V[0], sizeof(V));
+     FillChar(w[0], sizeof(w), 0);
+     FillChar(V[0], sizeof(V), 0);
 
      res := MatrixSVD(@A[0], 2*sizeof(Double), 2, 10, @S[0], 2*sizeof(double), @W[0], 3*sizeof(double), @V[0], 2*sizeof(double));
 

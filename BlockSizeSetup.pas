@@ -40,8 +40,7 @@ procedure SetupBlockedVectorMatrixMultSize;
 
 implementation
 
-uses Classes, ASMMatrixOperations, Types, Windows, Math, SimpleMatrixOperations,
-     ASMMatrixVectorMultOperations, OptimizedFuncs;
+uses Classes, ASMMatrixOperations, Types, MtxTimer, Math, OptimizedFuncs;
 
 const cMatrixMaxTestSize = 2048;
       cVectorMatrixTestSize = cMatrixMaxTestSize*24;
@@ -87,10 +86,10 @@ function CheckMatrixMult(dest, a, b : PDouble; size : integer; iter : integer = 
 var startTime, endTime : Int64;
     i : integer;
 begin
-     QueryPerformanceCounter(startTime);
+     startTime := MtxGetTime;
      for i := 0 to iter - 1 do
          ASMMatrixMult(dest, destLineWidth, a, b, size, size, size, size, LineWidth1, LineWidth2);
-     QueryPerformanceCounter(endTime);
+     endTime := MtxGetTime;
 
      Result := endTime - startTime;
 end;
@@ -100,7 +99,7 @@ var startTime, endTime : Int64;
     i : integer;
     transMtx : PDouble;
 begin
-     QueryPerformanceCounter(startTime);
+     startTime := MtxGetTime;
      for i := 0 to iter - 1 do
      begin
           GetMem(transMtx, size*size*sizeof(double));
@@ -108,7 +107,7 @@ begin
           ASMMatrixMultTransposed(dest, destLineWidth, a, transMtx, size, size, size, size, LineWidth1, size*SizeOf(double));
           FreeMem(transMtx);
      end;
-     QueryPerformanceCounter(endTime);
+     endTime := MtxGetTime;
 
      Result := endTime - startTime;
 end;
@@ -118,10 +117,10 @@ function CheckBlockedMatrixMult(dest, a, b : PDouble; size : integer; blockSize 
 var startTime, endTime : Int64;
     i : integer;
 begin
-     QueryPerformanceCounter(startTime);
+     startTime := MtxGetTime;
      for i := 0 to cNumIter - 1 do
          BlockedMatrixMultiplication(dest, size*sizeof(double), a, b, size, size, size, size, size*sizeof(double), size*sizeof(double), blockSize);
-     QueryPerformanceCounter(endTime);
+     endTime := MtxGetTime;
 
      Result := endTime - startTime;
 end;
@@ -130,10 +129,10 @@ function CheckBlockedMatrixVectorMult(dest, a, b : PDouble; aWidth, aHeight : in
 var startTime, endTime : Int64;
     i : integer;
 begin
-     QueryPerformanceCounter(startTime);
+     startTime := MtxGetTime;
      for i := 0 to cNumIter - 1 do
          BlockedMatrixVectorMultiplication(dest, sizeof(double), a, b, aWidth, aHeight, aWidth, LineWidth1, blockSize);
-     QueryPerformanceCounter(endTime);
+     endTime := MtxGetTime;
 
      Result := endTime - startTime;
 end;
@@ -142,10 +141,10 @@ function CheckMatrixVectorMult(dest, a, b : PDouble; aWidth, aHeight  : integer;
 var startTime, endTime : Int64;
     i : integer;
 begin
-     QueryPerformanceCounter(startTime);
+     startTime := MtxGetTime;
      for i := 0 to cNumIter - 1 do
          ASMMatrixMult(dest, sizeof(double), a, b, aWidth, aHeight, 1, aWidth, LineWidth1, sizeof(double));
-     QueryPerformanceCounter(endTime);
+     endTime := MtxGetTime;
 
      Result := endTime - startTime;
 end;

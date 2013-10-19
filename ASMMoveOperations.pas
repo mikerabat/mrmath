@@ -23,17 +23,19 @@ interface
 
 {$IFNDEF CPUX64}
 
-procedure ASMMatrixCopyAlignedEvenW(Dest : PDouble; const destLineWidth : integer; src : PDouble; const srcLineWidth : integer; Width, Height : integer);
-procedure ASMMatrixCopyUnAlignedEvenW(Dest : PDouble; const destLineWidth : integer; src : PDouble; const srcLineWidth : integer; Width, Height : integer);
+uses MatrixConst;
 
-procedure ASMMatrixCopyAlignedOddW(Dest : PDouble; const destLineWidth : integer; src : PDouble; const srcLineWidth : integer; Width, Height : integer);
-procedure ASMMatrixCopyUnAlignedOddW(Dest : PDouble; const destLineWidth : integer; src : PDouble; const srcLineWidth : integer; Width, Height : integer);
+procedure ASMMatrixCopyAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+procedure ASMMatrixCopyUnAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
 
-procedure ASMRowSwapAlignedEvenW(A, B : PDouble; width : integer);
-procedure ASMRowSwapUnAlignedEvenW(A, B : PDouble; width : integer);
+procedure ASMMatrixCopyAlignedOddW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+procedure ASMMatrixCopyUnAlignedOddW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
 
-procedure ASMRowSwapAlignedOddW(A, B : PDouble; width : integer);
-procedure ASMRowSwapUnAlignedOddW(A, B : PDouble; width : integer);
+procedure ASMRowSwapAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
+procedure ASMRowSwapUnAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
+
+procedure ASMRowSwapAlignedOddW(A, B : PDouble; width : TASMNativeInt);
+procedure ASMRowSwapUnAlignedOddW(A, B : PDouble; width : TASMNativeInt);
 
 {$ENDIF}
 
@@ -41,8 +43,8 @@ implementation
 
 {$IFNDEF CPUX64}
 
-procedure ASMRowSwapAlignedEvenW(A, B : PDouble; width : integer);
-var iters : integer;
+procedure ASMRowSwapAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
+var iters : TASMNativeInt;
 begin
      iters := -width*sizeof(double);
 
@@ -107,8 +109,8 @@ begin
      end;
 end;
 
-procedure ASMRowSwapUnAlignedEvenW(A, B : PDouble; width : integer);
-var iters : integer;
+procedure ASMRowSwapUnAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
+var iters : TASMNativeInt;
 begin
      iters := -width*sizeof(double);
 
@@ -168,8 +170,8 @@ begin
      end;
 end;
 
-procedure ASMRowSwapAlignedOddW(A, B : PDouble; width : integer);
-var iters : integer;
+procedure ASMRowSwapAlignedOddW(A, B : PDouble; width : TASMNativeInt);
+var iters : TASMNativeInt;
 begin
      iters := -(width - 1)*sizeof(double);
 
@@ -243,8 +245,8 @@ begin
      end;
 end;
 
-procedure ASMRowSwapUnAlignedOddW(A, B : PDouble; width : integer);
-var iters : integer;
+procedure ASMRowSwapUnAlignedOddW(A, B : PDouble; width : TASMNativeInt);
+var iters : TASMNativeInt;
 begin
      iters := -(width - 1)*sizeof(double);
 
@@ -312,8 +314,8 @@ begin
      end;
 end;
 
-procedure ASMMatrixCopyAlignedEvenW(Dest : PDouble; const destLineWidth : integer; src : PDouble; const srcLineWidth : integer; Width, Height : integer);
-var iters : integer;
+procedure ASMMatrixCopyAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+var iters : TASMNativeInt;
 begin
      assert((width > 0) and (height > 0) and (destLineWidth >= width*sizeof(double)) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
 
@@ -394,8 +396,8 @@ begin
      end;
 end;
 
-procedure ASMMatrixCopyUnAlignedEvenW(Dest : PDouble; const destLineWidth : integer; src : PDouble; const srcLineWidth : integer; Width, Height : integer);
-var iters : integer;
+procedure ASMMatrixCopyUnAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+var iters : TASMNativeInt;
 begin
      assert((width > 0) and (height > 0) and (destLineWidth >= width*sizeof(double)) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
 
@@ -472,8 +474,8 @@ begin
      end;
 end;
 
-procedure ASMMatrixCopyAlignedOddW(Dest : PDouble; const destLineWidth : integer; src : PDouble; const srcLineWidth : integer; Width, Height : integer);
-var iters : integer;
+procedure ASMMatrixCopyAlignedOddW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+var iters : TASMNativeInt;
 begin
      assert((width > 0) and (height > 0) and (destLineWidth >= width*sizeof(double)) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
 
@@ -558,8 +560,8 @@ begin
      end;
 end;
 
-procedure ASMMatrixCopyUnAlignedOddW(Dest : PDouble; const destLineWidth : integer; src : PDouble; const srcLineWidth : integer; Width, Height : integer);
-var iters : integer;
+procedure ASMMatrixCopyUnAlignedOddW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+var iters : TASMNativeInt;
 begin
      assert((width > 0) and (height > 0) and (destLineWidth >= width*sizeof(double)) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
 

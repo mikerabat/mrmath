@@ -35,8 +35,8 @@ procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; wid
 
 implementation
 
-uses Windows, MtxThreadPool, Math, ASMMatrixOperations, ASMMatrixVectorMultOperations,
-     OptimizedFuncs, BlockSizeSetup, LinearAlgebraicEquations;
+uses  MtxThreadPool, Math, ASMMatrixOperations, OptimizedFuncs, BlockSizeSetup, 
+      LinearAlgebraicEquations;       
 
 type
   TMatrixAddSubFunc = procedure(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
@@ -265,18 +265,15 @@ begin
 end;
 
 procedure ThrMatrixMultDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var obj : Array of TAsyncMultObj;
+var obj : TAsyncMultObj;
     i, j : TASMNativeInt;
     thrHeight, thrWidth : TASMNativeInt;
     cpud2 : TASMNativeInt;
-    calls : array of IMtxAsyncCall;
+    calls : IMtxAsyncCallGroup;
     widthFits, heightFits : boolean;
     heightCores : TASMNativeInt;
-    numCalls : TASMNativeInt;
+    doBreak : boolean;
 begin
-     SetLength(obj, numCPUCores);
-     SetLength(calls, numCPUCores);
-
      cpud2 := numCPUCores div 2;
      thrWidth := width2;
      if cpud2 > 1 then
@@ -299,66 +296,60 @@ begin
           heightCores := numCPUCores;
      end;
 
-     numCalls := 0;
+     calls := MtxInitTaskGroup;
+     doBreak := False;
+     
      for j := 0 to cpud2 - 1 do
      begin
           for i := 0 to heightCores - 1 do
           begin
-               obj[numCalls] := TAsyncMultObj.Create(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, doNone);
-               obj[numCalls].thrIdx := (j*heightCores) + i;
-               inc(PByte(obj[numCalls].dest), i*thrHeight*destLineWidth);
-               inc(PByte(obj[numCalls].mt1), i*thrHeight*LineWidth1);
+               obj := TAsyncMultObj.Create(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, doNone);
+               obj.thrIdx := (j*heightCores) + i;
+               inc(PByte(obj.dest), i*thrHeight*destLineWidth);
+               inc(PByte(obj.mt1), i*thrHeight*LineWidth1);
                if height1 > (i + 1)*thrHeight
                then
-                   obj[numCalls].height1 := thrHeight
+                   obj.height1 := thrHeight
                else
-                   obj[numCalls].height1 := obj[numCalls].height1 - i*thrHeight;
+                   obj.height1 := obj.height1 - i*thrHeight;
 
                if width2 > (j + 1)*thrWidth
                then
-                   obj[numCalls].width2 := thrWidth
+                   obj.width2 := thrWidth
                else
-                   obj[numCalls].width2 := obj[numCalls].width2 - j*thrWidth;
+                   obj.width2 := obj.width2 - j*thrWidth;
 
                // check if the number of cores exceeds the matrix dimension -> simply use not so many cores
-               if (obj[numCalls].height1 <= 0) or (obj[numCalls].width2 <= 0) then
+               if (obj.height1 <= 0) or (obj.width2 <= 0) then
                begin
-                    SetLength(calls, numCalls);
+                    doBreak := True;
                     break;
                end;
 
-               inc(obj[numCalls].dest, j*thrWidth);
-               inc(obj[numCalls].mt2, j*thrWidth);
+               inc(obj.dest, j*thrWidth);
+               inc(obj.mt2, j*thrWidth);
 
-               calls[numCalls] := MtxAsyncCall(MatrixMultDirectFunc, obj[numCalls]);
-               inc(numCalls);
+               calls.AddTask(MatrixMultDirectFunc, obj);
           end;
 
-          if numCalls = Length(calls) then
+          if doBreak then
              break;
      end;
 
-     for i := 0 to numCalls - 1 do
-     begin
-          calls[i].sync;
-          obj[i].Free;
-     end;
+     calls.SyncAll;
 end;
 
 procedure ThrMatrixMultEx(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
                           const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble; blockSize : integer);
-var obj : Array of TAsyncMultObj;
+var obj : TAsyncMultObj;
     i, j : TASMNativeInt;
     thrHeight, thrWidth : TASMNativeInt;
     cpud2 : TASMNativeInt;
-    calls : array of IMtxAsyncCall;
+    calls : IMtxAsyncCallGroup;
     widthFits, heightFits : boolean;
     heightCores : TASMNativeInt;
-    numCalls : TASMNativeInt;
+    doBreak : boolean;
 begin
-     SetLength(obj, numCPUCores);
-     SetLength(calls, numCPUCores);
-
      cpud2 := numCPUCores div 2;
      thrWidth := width2;
      if cpud2 > 1 then
@@ -381,57 +372,54 @@ begin
           heightCores := numCPUCores;
      end;
 
-     numCalls := 0;
+     calls := MtxInitTaskGroup;
+     doBreak := False;
+     
      for j := 0 to cpud2 - 1 do
      begin
           for i := 0 to heightCores - 1 do
           begin
-               obj[numCalls] := TAsyncMultObj.Create(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2,
+               obj := TAsyncMultObj.Create(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2,
                                                      LineWidth1, LineWidth2, op);
-               obj[numCalls].thrIdx := (j*heightCores) + i;
-               inc(PByte(obj[numCalls].dest), i*thrHeight*destLineWidth);
-               inc(PByte(obj[numCalls].mt1), i*thrHeight*LineWidth1);
+               obj.thrIdx := (j*heightCores) + i;
+               inc(PByte(obj.dest), i*thrHeight*destLineWidth);
+               inc(PByte(obj.mt1), i*thrHeight*LineWidth1);
                if height1 > (i + 1)*thrHeight
                then
-                   obj[numCalls].height1 := thrHeight
+                   obj.height1 := thrHeight
                else
-                   obj[numCalls].height1 := obj[numCalls].height1 - i*thrHeight;
+                   obj.height1 := obj.height1 - i*thrHeight;
 
                if width2 > (j + 1)*thrWidth
                then
-                   obj[numCalls].width2 := thrWidth
+                   obj.width2 := thrWidth
                else
-                   obj[numCalls].width2 := obj[numCalls].width2 - j*thrWidth;
+                   obj.width2 := obj.width2 - j*thrWidth;
 
                // check if the number of cores exceeds the matrix dimension -> simply use not so many cores
-               if (obj[numCalls].height1 <= 0) or (obj[numCalls].width2 <= 0) then
+               if (obj.height1 <= 0) or (obj.width2 <= 0) then
                begin
-                    SetLength(calls, numCalls);
+                    doBreak := True;
                     break;
                end;
-               inc(obj[numCalls].dest, j*thrWidth);
-               inc(obj[numCalls].mt2, j*thrWidth);
+               inc(obj.dest, j*thrWidth);
+               inc(obj.mt2, j*thrWidth);
 
                if Assigned(mem) then
                begin
-                    obj[numCalls].mem := mem;
+                    obj.mem := mem;
                     inc(mem, 4*blockSize*blockSize + 2);
                end;
-               obj[numCalls].BlockSize := blockSize;
+               obj.BlockSize := blockSize;
 
-               calls[numCalls] := MtxAsyncCall(MatrixMultFunc, obj[numCalls]);
-               inc(numCalls);
+               calls.AddTask(MatrixMultFunc, obj);
           end;
 
-          if numCalls = Length(calls) then
+          if doBreak then
              break;
      end;
 
-     for i := 0 to numCalls - 1 do
-     begin
-          calls[i].sync;
-          obj[i].Free;
-     end;
+     calls.SyncAll;
 end;
 
 procedure ThrMatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt;
@@ -442,50 +430,41 @@ begin
 end;
 
 procedure ThrMatrixVecMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt);
-var obj : Array of TAsyncMatrixVectorMultObj;
+var obj : TAsyncMatrixVectorMultObj;
     i : TASMNativeInt;
     thrHeight : TASMNativeInt;
-    calls : array of IMtxAsyncCall;
+    calls : IMtxAsyncCallGroup;
     heightFits : boolean;
-    numCalls : integer;
 begin
-     SetLength(obj, numCPUCores);
-     SetLength(calls, numCPUCores);
-
-     numCalls := 0;
+     calls := MtxInitTaskGroup;
+     
      heightFits := (height1 mod numCPUCores) = 0;                                  
      thrHeight := height1 div numCPUCores + TASMNativeInt(not heightFits);
      for i := 0 to numCPUCores - 1 do
      begin
-          obj[i] := TAsyncMatrixVectorMultObj.Create(dest, destLineWidth, mt1, mt2, width1, height1, height2, LineWidth1);
-          obj[i].thrIdx := i;
-          inc(PByte(obj[i].dest), i*thrHeight*destLineWidth);
-          inc(PByte(obj[i].mt1), i*thrHeight*LineWidth1);
+          obj := TAsyncMatrixVectorMultObj.Create(dest, destLineWidth, mt1, mt2, width1, height1, height2, LineWidth1);
+          obj.thrIdx := i;
+          inc(PByte(obj.dest), i*thrHeight*destLineWidth);
+          inc(PByte(obj.mt1), i*thrHeight*LineWidth1);
           if height1 > (i + 1)*thrHeight
           then
-              obj[i].height1 := thrHeight
+              obj.height1 := thrHeight
           else
-              obj[i].height1 := obj[i].height1 - i*thrHeight;
+              obj.height1 := obj.height1 - i*thrHeight;
 
-          calls[i] := MtxAsyncCall(MatrixVectorMultFunc, obj[i]);
-
-          inc(numCalls);
+          calls.AddTask(MatrixVectorMultFunc, obj);
 
           if height1 <= (i + 1)*thrHeight then
              break;
      end;
 
-     for i := 0 to numCalls - 1 do
-     begin
-          calls[i].sync;
-          obj[i].Free;
-     end;
+     calls.SyncAll;
 end;
 
 procedure ThrMatrixAddAndScale(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
 var i: TASMNativeInt;
-    obj : Array of TAsyncMatrixAddAndSclaObj;
-    calls : Array of IMtxAsyncCall;
+    obj : TAsyncMatrixAddAndSclaObj;
+    calls : IMtxAsyncCallGroup;
     sizeFits : boolean;
     thrSize : TASMNativeInt;
 begin
@@ -496,8 +475,7 @@ begin
           exit;
      end;
 
-     SetLength(obj, numCPUCores);
-     SetLength(calls, numCPUCores);
+     calls := MtxInitTaskGroup;
 
      if width > height then
      begin
@@ -506,13 +484,13 @@ begin
 
           for i := 0 to numCPUCores - 1 do
           begin
-               obj[i] := TAsyncMatrixAddAndSclaObj.Create(dest, LineWidth, thrSize, height, Offset, Scale);
+               obj := TAsyncMatrixAddAndSclaObj.Create(dest, LineWidth, thrSize, height, Offset, Scale);
 
-               inc(obj[i].dest, i*thrSize);
+               inc(obj.dest, i*thrSize);
                if width < (i + 1)*thrSize then
-                  obj[i].Width := width - i*thrSize;
+                  obj.Width := width - i*thrSize;
 
-               calls[i] := MtxAsyncCall(MatrixAddAndScaleFunc, obj[i]);
+               calls.AddTask(MatrixAddAndScaleFunc, obj);
           end;
      end
      else
@@ -522,27 +500,23 @@ begin
 
           for i := 0 to numCPUCores - 1 do
           begin
-               obj[i] := TAsyncMatrixAddAndSclaObj.Create(dest, LineWidth, width, thrSize, Offset, Scale);
+               obj := TAsyncMatrixAddAndSclaObj.Create(dest, LineWidth, width, thrSize, Offset, Scale);
 
-               inc(PByte(obj[i].dest), i*thrSize*LineWidth);
+               inc(PByte(obj.dest), i*thrSize*LineWidth);
                if height < (i + 1)*thrSize then
-                  obj[i].Height := height - i*thrSize;
+                  obj.Height := height - i*thrSize;
 
-               calls[i] := MtxAsyncCall(MatrixAddAndScaleFunc, obj[i]);
+               calls.AddTask(MatrixAddAndScaleFunc, obj);
           end;
      end;
 
-     for i := 0 to numCpuCores - 1 do
-     begin
-          calls[i].sync;
-          obj[i].Free;
-     end;
+     calls.SyncAll;
 end;
 
 procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixFunc);
 var i: TASMNativeInt;
-    obj : Array of TAsyncMatrixFuncObj;
-    calls : Array of IMtxAsyncCall;
+    obj : TAsyncMatrixFuncObj;
+    calls : IMtxAsyncCallGroup;
     sizeFits : boolean;
     thrSize : TASMNativeInt;
 begin
@@ -553,8 +527,7 @@ begin
           exit;
      end;
 
-     SetLength(obj, numCPUCores);
-     SetLength(calls, numCPUCores);
+     calls := MtxInitTaskGroup;
 
      if width > height then
      begin
@@ -563,18 +536,18 @@ begin
 
           for i := 0 to numCPUCores - 1 do
           begin
-               obj[i] := TAsyncMatrixFuncObj.Create;
-               obj[i].dest := dest;
-               obj[i].destLineWidth := destLineWidth;
-               obj[i].width := thrSize;
-               obj[i].height := height;
-               obj[i].func := func;
+               obj := TAsyncMatrixFuncObj.Create;
+               obj.dest := dest;
+               obj.destLineWidth := destLineWidth;
+               obj.width := thrSize;
+               obj.height := height;
+               obj.func := func;
 
-               inc(obj[i].dest, i*thrSize);
+               inc(obj.dest, i*thrSize);
                if width < (i + 1)*thrSize then
-                  obj[i].Width := width - i*thrSize;
+                  obj.Width := width - i*thrSize;
 
-               calls[i] := MtxAsyncCall(MatrixFuncFunc, obj[i]);
+               calls.AddTask(MatrixFuncFunc, obj);
           end;
      end
      else
@@ -584,32 +557,28 @@ begin
 
           for i := 0 to numCPUCores - 1 do
           begin
-               obj[i] := TAsyncMatrixFuncObj.Create;
-               obj[i].dest := dest;
-               obj[i].destLineWidth := destLineWidth;
-               obj[i].width := width;
-               obj[i].height := thrSize;
-               obj[i].func := func;
+               obj := TAsyncMatrixFuncObj.Create;
+               obj.dest := dest;
+               obj.destLineWidth := destLineWidth;
+               obj.width := width;
+               obj.height := thrSize;
+               obj.func := func;
 
-               inc(PByte(obj[i].dest), i*thrSize*destLineWidth);
+               inc(PByte(obj.dest), i*thrSize*destLineWidth);
                if height < (i + 1)*thrSize then
-                  obj[i].Height := height - i*thrSize;
+                  obj.Height := height - i*thrSize;
 
-               calls[i] := MtxAsyncCall(MatrixAddAndScaleFunc, obj[i]);
+               calls.AddTask(MatrixAddAndScaleFunc, obj);
           end;
      end;
 
-     for i := 0 to numCpuCores - 1 do
-     begin
-          calls[i].sync;
-          obj[i].Free;
-     end;
+     calls.SyncAll;
 end;
 
 procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixObjFunc);
 var i: TASMNativeInt;
-    obj : Array of TAsyncMatrixFuncObjObj;
-    calls : Array of IMtxAsyncCall;
+    obj : TAsyncMatrixFuncObjObj;
+    calls : IMtxAsyncCallGroup;
     sizeFits : boolean;
     thrSize : TASMNativeInt;
 begin
@@ -620,8 +589,7 @@ begin
           exit;
      end;
 
-     SetLength(obj, numCPUCores);
-     SetLength(calls, numCPUCores);
+     calls := MtxInitTaskGroup;
 
      if width > height then
      begin
@@ -630,18 +598,18 @@ begin
 
           for i := 0 to numCPUCores - 1 do
           begin
-               obj[i] := TAsyncMatrixFuncObjObj.Create;
-               obj[i].dest := dest;
-               obj[i].destLineWidth := destLineWidth;
-               obj[i].width := thrSize;
-               obj[i].height := height;
-               obj[i].func := func;
+               obj := TAsyncMatrixFuncObjObj.Create;
+               obj.dest := dest;
+               obj.destLineWidth := destLineWidth;
+               obj.width := thrSize;
+               obj.height := height;
+               obj.func := func;
 
-               inc(obj[i].dest, i*thrSize);
+               inc(obj.dest, i*thrSize);
                if width < (i + 1)*thrSize then
-                  obj[i].Width := width - i*thrSize;
+                  obj.Width := width - i*thrSize;
 
-               calls[i] := MtxAsyncCall(MatrixFuncObjFunc, obj[i]);
+               calls.AddTask(MatrixFuncObjFunc, obj);
           end;
      end
      else
@@ -651,32 +619,28 @@ begin
 
           for i := 0 to numCPUCores - 1 do
           begin
-               obj[i] := TAsyncMatrixFuncObjObj.Create;
-               obj[i].dest := dest;
-               obj[i].destLineWidth := destLineWidth;
-               obj[i].width := width;
-               obj[i].height := thrSize;
-               obj[i].func := func;
+               obj := TAsyncMatrixFuncObjObj.Create;
+               obj.dest := dest;
+               obj.destLineWidth := destLineWidth;
+               obj.width := width;
+               obj.height := thrSize;
+               obj.func := func;
 
-               inc(PByte(obj[i].dest), i*thrSize*destLineWidth);
+               inc(PByte(obj.dest), i*thrSize*destLineWidth);
                if height < (i + 1)*thrSize then
-                  obj[i].Height := height - i*thrSize;
+                  obj.Height := height - i*thrSize;
 
-               calls[i] := MtxAsyncCall(MatrixFuncObjFunc, obj[i]);
+               calls.AddTask(MatrixFuncObjFunc, obj);
           end;
      end;
 
-     for i := 0 to numCpuCores - 1 do
-     begin
-          calls[i].sync;
-          obj[i].Free;
-     end;
+     calls.SyncAll;
 end;
 
 procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFunc);
 var i: TASMNativeInt;
-    obj : Array of TAsyncMatrixFuncRefObj;
-    calls : Array of IMtxAsyncCall;
+    obj : TAsyncMatrixFuncRefObj;
+    calls : IMtxAsyncCallGroup;
     sizeFits : boolean;
     thrSize : TASMNativeInt;
 begin
@@ -687,8 +651,7 @@ begin
           exit;
      end;
 
-     SetLength(obj, numCPUCores);
-     SetLength(calls, numCPUCores);
+     calls := MtxInitTaskGroup;
 
      if width > height then
      begin
@@ -697,18 +660,18 @@ begin
 
           for i := 0 to numCPUCores - 1 do
           begin
-               obj[i] := TAsyncMatrixFuncRefObj.Create;
-               obj[i].dest := dest;
-               obj[i].destLineWidth := destLineWidth;
-               obj[i].width := thrSize;
-               obj[i].height := height;
-               obj[i].func := func;
+               obj := TAsyncMatrixFuncRefObj.Create;
+               obj.dest := dest;
+               obj.destLineWidth := destLineWidth;
+               obj.width := thrSize;
+               obj.height := height;
+               obj.func := func;
 
-               inc(obj[i].dest, i*thrSize);
+               inc(obj.dest, i*thrSize);
                if width < (i + 1)*thrSize then
-                  obj[i].Width := width - i*thrSize;
+                  obj.Width := width - i*thrSize;
 
-               calls[i] := MtxAsyncCall(MatrixFuncRefFunc, obj[i]);
+               calls.AddTask(MatrixFuncRefFunc, obj);
           end;
      end
      else
@@ -718,32 +681,28 @@ begin
 
           for i := 0 to numCPUCores - 1 do
           begin
-               obj[i] := TAsyncMatrixFuncRefObj.Create;
-               obj[i].dest := dest;
-               obj[i].destLineWidth := destLineWidth;
-               obj[i].width := width;
-               obj[i].height := thrSize;
-               obj[i].func := func;
+               obj := TAsyncMatrixFuncRefObj.Create;
+               obj.dest := dest;
+               obj.destLineWidth := destLineWidth;
+               obj.width := width;
+               obj.height := thrSize;
+               obj.func := func;
 
-               inc(PByte(obj[i].dest), i*thrSize*destLineWidth);
+               inc(PByte(obj.dest), i*thrSize*destLineWidth);
                if height < (i + 1)*thrSize then
-                  obj[i].Height := height - i*thrSize;
+                  obj.Height := height - i*thrSize;
 
-               calls[i] := MtxAsyncCall(MatrixFuncRefFunc, obj[i]);
+               calls.AddTask(MatrixFuncRefFunc, obj);
           end;
      end;
 
-     for i := 0 to numCpuCores - 1 do
-     begin
-          calls[i].sync;
-          obj[i].Free;
-     end;
+     calls.SyncAll;
 end;
 
 procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefObjFunc);
 var i: TASMNativeInt;
-    obj : Array of TAsyncMatrixFuncRefObjObj;
-    calls : Array of IMtxAsyncCall;
+    obj : TAsyncMatrixFuncRefObjObj;
+    calls : IMtxAsyncCallGroup;
     sizeFits : boolean;
     thrSize : TASMNativeInt;
 begin
@@ -754,8 +713,7 @@ begin
           exit;
      end;
 
-     SetLength(obj, numCPUCores);
-     SetLength(calls, numCPUCores);
+     calls := MtxInitTaskGroup;
 
      if width > height then
      begin
@@ -764,18 +722,18 @@ begin
 
           for i := 0 to numCPUCores - 1 do
           begin
-               obj[i] := TAsyncMatrixFuncRefObjObj.Create;
-               obj[i].dest := dest;
-               obj[i].destLineWidth := destLineWidth;
-               obj[i].width := thrSize;
-               obj[i].height := height;
-               obj[i].func := func;
+               obj := TAsyncMatrixFuncRefObjObj.Create;
+               obj.dest := dest;
+               obj.destLineWidth := destLineWidth;
+               obj.width := thrSize;
+               obj.height := height;
+               obj.func := func;
 
-               inc(obj[i].dest, i*thrSize);
+               inc(obj.dest, i*thrSize);
                if width < (i + 1)*thrSize then
-                  obj[i].Width := width - i*thrSize;
+                  obj.Width := width - i*thrSize;
 
-               calls[i] := MtxAsyncCall(MatrixFuncRefObjFunc, obj[i]);
+               calls.AddTask(MatrixFuncRefObjFunc, obj);
           end;
      end
      else
@@ -785,32 +743,28 @@ begin
 
           for i := 0 to numCPUCores - 1 do
           begin
-               obj[i] := TAsyncMatrixFuncRefObjObj.Create;
-               obj[i].dest := dest;
-               obj[i].destLineWidth := destLineWidth;
-               obj[i].width := width;
-               obj[i].height := thrSize;
-               obj[i].func := func;
+               obj := TAsyncMatrixFuncRefObjObj.Create;
+               obj.dest := dest;
+               obj.destLineWidth := destLineWidth;
+               obj.width := width;
+               obj.height := thrSize;
+               obj.func := func;
 
-               inc(PByte(obj[i].dest), i*thrSize*destLineWidth);
+               inc(PByte(obj.dest), i*thrSize*destLineWidth);
                if height < (i + 1)*thrSize then
-                  obj[i].Height := height - i*thrSize;
+                  obj.Height := height - i*thrSize;
 
-               calls[i] := MtxAsyncCall(MatrixFuncRefObjFunc, obj[i]);
+               calls.AddTask(MatrixFuncRefObjFunc, obj);
           end;
      end;
 
-     for i := 0 to numCpuCores - 1 do
-     begin
-          calls[i].sync;
-          obj[i].Free;
-     end;
+     calls.SyncAll;
 end;
 
 procedure ThrMatrixAddSub(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; func : TMatrixAddSubFunc);
 var i: TASMNativeInt;
-    obj : Array of TAsyncMatrixAddSubObj;
-    calls : Array of IMtxAsyncCall;
+    obj : TAsyncMatrixAddSubObj;
+    calls : IMtxAsyncCallGroup;
     sizeFits : boolean;
     thrSize : TASMNativeInt;
 begin
@@ -821,8 +775,7 @@ begin
           exit;
      end;
 
-     SetLength(obj, numCPUCores);
-     SetLength(calls, numCPUCores);
+     calls := MtxInitTaskGroup;
 
      if width > height then
      begin
@@ -831,16 +784,16 @@ begin
 
           for i := 0 to numCPUCores - 1 do
           begin
-               obj[i] := TAsyncMatrixAddSubObj.Create(dest, destLineWidth, Mt1, Mt2, thrSize, height, LineWidth1, LineWidth2);
-               obj[i].func := func;
+               obj := TAsyncMatrixAddSubObj.Create(dest, destLineWidth, Mt1, Mt2, thrSize, height, LineWidth1, LineWidth2);
+               obj.func := func;
 
-               inc(obj[i].dest, i*thrSize);
-               inc(obj[i].mt1, i*thrSize);
-               inc(obj[i].mt2, i*thrSize);
+               inc(obj.dest, i*thrSize);
+               inc(obj.mt1, i*thrSize);
+               inc(obj.mt2, i*thrSize);
                if width < (i + 1)*thrSize then
-                  obj[i].Width := width - i*thrSize;
+                  obj.Width := width - i*thrSize;
 
-               calls[i] := MtxAsyncCall(MatrixAddSubFunc, obj[i]);
+               calls.AddTask(MatrixAddSubFunc, obj);
           end;
      end
      else
@@ -850,24 +803,20 @@ begin
 
           for i := 0 to numCPUCores - 1 do
           begin
-               obj[i] := TAsyncMatrixAddSubObj.Create(dest, destLineWidth, Mt1, Mt2, width, thrSize, LineWidth1, LineWidth2);
-               obj[i].func := func;
+               obj := TAsyncMatrixAddSubObj.Create(dest, destLineWidth, Mt1, Mt2, width, thrSize, LineWidth1, LineWidth2);
+               obj.func := func;
 
-               inc(PByte(obj[i].dest), i*thrSize*destLineWidth);
-               inc(PByte(obj[i].mt1), i*thrSize*LineWidth1);
-               inc(PByte(obj[i].mt2), i*thrSize*LineWidth2);
+               inc(PByte(obj.dest), i*thrSize*destLineWidth);
+               inc(PByte(obj.mt1), i*thrSize*LineWidth1);
+               inc(PByte(obj.mt2), i*thrSize*LineWidth2);
                if height < (i + 1)*thrSize then
-                  obj[i].Height := height - i*thrSize;
+                  obj.Height := height - i*thrSize;
 
-               calls[i] := MtxAsyncCall(MatrixAddSubFunc, obj[i]);
+               calls.AddTask(MatrixAddSubFunc, obj);
           end;
      end;
 
-     for i := 0 to numCpuCores - 1 do
-     begin
-          calls[i].sync;
-          obj[i].Free;
-     end;
+     calls.SyncAll;
 end;
 
 procedure ThrMatrixSub(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);

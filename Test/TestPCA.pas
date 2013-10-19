@@ -2,8 +2,7 @@ unit TestPCA;
 
 interface
 
-uses
-  Windows, TestFramework, Classes, SysUtils, BaseMatrixTestCase, Matrix;
+uses TestFramework, Classes, SysUtils, BaseMatrixTestCase, Matrix;
 
 type
  // Testmethoden für Klasse TDoubleMatrix
@@ -24,7 +23,9 @@ type
 
 implementation
 
-uses PCA, Dialogs, Graphics, JPeg, Math, BinaryReaderWriter, BaseMathPersistence, IncrementalPCA;
+uses PCA, 
+     {$IFDEF MSWINDOWS}Windows, {$ENDIF} {$IFDEF MACOS} FMX.Types, {$ENDIF}
+     Graphics, JPeg, Math, BinaryReaderWriter, BaseMathPersistence, IncrementalPCA;
 
 { TTestEigensystems }
 
@@ -122,7 +123,7 @@ begin
                 end;
           until FindNext(sr) <> 0;
      end;
-     FindClose(sr);
+     SysUtils.FindClose(sr);
 end;
 
 procedure TTestPCA.TestFastRobustPCA;

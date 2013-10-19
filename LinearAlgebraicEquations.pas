@@ -121,7 +121,7 @@ type
 
 implementation
 
-uses Math, MathUtilFunc, OptimizedFuncs, BlockSizeSetup, ASMMatrixOperations,
+uses Math, MathUtilFunc, OptimizedFuncs, ASMMatrixOperations,
      SimpleMatrixOperations;
 
 function MatrixPseudoinverse(dest : PDouble; const LineWidthDest : integer; X : PDouble; const LineWidthX : integer;

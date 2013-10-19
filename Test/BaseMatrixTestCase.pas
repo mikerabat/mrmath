@@ -17,8 +17,7 @@ unit BaseMatrixTestCase;
 
 interface
 
-uses
-  Windows, TestFramework, Classes, SysUtils, Types;
+uses TestFramework, Classes, SysUtils, Types;
 
 type
  // Testmethoden für Klasse TDoubleMatrix
@@ -163,6 +162,10 @@ begin
 end;
 
 initialization
+  {$IF CompilerVersion > 21}
+  FormatSettings.DecimalSeparator := '.';
+  {$ELSE}
   DecimalSeparator := '.';
+  {$IFEND}
 
 end.

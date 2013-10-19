@@ -17,8 +17,7 @@ unit TestEigensystems;
 
 interface
 
-uses
-  Windows, TestFramework, Classes, SysUtils, Types, SimpleMatrixOperations, BaseMatrixTestCase;
+uses TestFramework, Classes, SysUtils, Types, SimpleMatrixOperations, BaseMatrixTestCase;
 
 type
  TTestEigensystems = class(TBaseMatrixTestCase)
@@ -35,7 +34,7 @@ type
 
 implementation
 
-uses Eigensystems, Dialogs, MatrixConst;
+uses Eigensystems, MatrixConst;
 
 { TTestEigensystems }
 
@@ -50,7 +49,8 @@ var dest : Array[0..8] of double;
     perm : Array[0..2] of integer;
     scale : Array[0..2] of double;
 begin
-     ZeroMemory(@Eivec[0], sizeof(Eivec));
+     FillChar(Eivec[0], sizeof(Eivec), 0);
+     
      Move(B, dest, sizeof(B));
      MatrixBalanceInPlace(@dest[0], 3*sizeof(double), 3, @scale[0], sizeof(double));
      MatrixHessenbergPermInPlace(@dest[0], 3*sizeof(double), 3, @perm[0], sizeof(integer));
@@ -74,7 +74,7 @@ var dest : Array[0..8] of double;
     Wi : Array[0..2] of double;
     perm : Array[0..2] of integer;
 begin
-     ZeroMemory(@Eivec[0], sizeof(Eivec));
+     FillChar(Eivec[0], sizeof(Eivec), 0);
      MatrixHessenbergPerm(@dest[0], 3*sizeof(double), @B[0], 3*sizeof(double), 3, @perm[0], sizeof(integer));
      MatrixCopyHessenberg(@dest[0], 3*sizeof(double), 3, @Eivec[0], 3*sizeof(double), @perm[0], sizeof(integer));
      Check(qlOk = MatrixEigVecHessenbergInPlace(@Dest[0], 3*sizeof(double), 3, @Wr[0], sizeof(double), @Wi[0], sizeof(double), @Eivec[0], 3*sizeof(double)), 'Error no convergence');
@@ -181,8 +181,8 @@ var dest : Array[0..8] of double;
     checkEig : boolean;
     i, j : Integer;
 begin
-     ZeroMemory(@D[0], sizeof(D));
-     ZeroMemory(@E[0], sizeof(E));
+     FillChar(D[0], sizeof(D), 0);
+     FillChar(E[0], sizeof(E), 0);
      MatrixTridiagonalHouse(@dest[0], 3*sizeof(double), @A[0], 3*sizeof(double), 3, @d[0], sizeof(double), @e[0], sizeof(double));
      res := MatrixTridiagonalQLImplicitInPlace(@dest[0], 3*sizeof(double), 3, @d[0], sizeof(double), @E[0], sizeof(Double));
 
@@ -205,8 +205,8 @@ var dest : Array[0..8] of double;
     D : Array[0..2] of double;
     E : Array[0..2] of double;
 begin
-     ZeroMemory(@D[0], sizeof(D));
-     ZeroMemory(@E[0], sizeof(E));
+     FillChar(D[0], sizeof(D), 0);
+     FillChar(E[0], sizeof(E), 0);
      MatrixTridiagonalHouse(@dest[0], 3*sizeof(double), @A[0], 3*sizeof(double), 3, @d[0], sizeof(double), @e[0], sizeof(double));
 
      // Check on trigonitality

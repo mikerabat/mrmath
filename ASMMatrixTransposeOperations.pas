@@ -19,17 +19,19 @@ interface
 
 {$IFNDEF CPUX64}
 
-procedure ASMMatrixTransposeAlignedEvenWEvenH(dest : PDouble; const destLineWidth : integer; mt : PDouble; const LineWidth : integer; width : integer; height : integer);
-procedure ASMMatrixTransposeUnAlignedEvenWEvenH(dest : PDouble; const destLineWidth : integer; mt : PDouble; const LineWidth : integer; width : integer; height : integer);
+uses MatrixConst;
 
-procedure ASMMatrixTransposeAlignedEvenWOddH(dest : PDouble; const destLineWidth : integer; mt : PDouble; const LineWidth : integer; width : integer; height : integer);
-procedure ASMMatrixTransposeUnAlignedEvenWOddH(dest : PDouble; const destLineWidth : integer; mt : PDouble; const LineWidth : integer; width : integer; height : integer);
+procedure ASMMatrixTransposeAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : integer; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeUnAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : integer; width : TASMNativeInt; height : TASMNativeInt);
 
-procedure ASMMatrixTransposeAlignedOddWEvenH(dest : PDouble; const destLineWidth : integer; mt : PDouble; const LineWidth : integer; width : integer; height : integer);
-procedure ASMMatrixTransposeUnAlignedOddWEvenH(dest : PDouble; const destLineWidth : integer; mt : PDouble; const LineWidth : integer; width : integer; height : integer);
+procedure ASMMatrixTransposeAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : integer; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeUnAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : integer; width : TASMNativeInt; height : TASMNativeInt);
 
-procedure ASMMatrixTransposeAlignedOddWOddH(dest : PDouble; const destLineWidth : integer; mt : PDouble; const LineWidth : integer; width : integer; height : integer);
-procedure ASMMatrixTransposeUnAlignedOddWOddH(dest : PDouble; const destLineWidth : integer; mt : PDouble; const LineWidth : integer; width : integer; height : integer);
+procedure ASMMatrixTransposeAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : integer; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeUnAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : integer; width : TASMNativeInt; height : TASMNativeInt);
+
+procedure ASMMatrixTransposeAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : integer; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeUnAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : integer; width : TASMNativeInt; height : TASMNativeInt);
 
 {$ENDIF}
 
@@ -37,7 +39,7 @@ implementation
 
 {$IFNDEF CPUX64}
 
-procedure ASMMatrixTransposeAlignedEvenWEvenH(dest : PDouble; const destLineWidth : integer; mt : PDouble; const LineWidth : integer; width : integer; height : integer);
+procedure ASMMatrixTransposeAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iters : integer;
     destLineWidth2 : integer;
     y : integer;
@@ -215,7 +217,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixTransposeUnAlignedEvenWEvenH(dest : PDouble; const destLineWidth : integer; mt : PDouble; const LineWidth : integer; width : integer; height : integer);
+procedure ASMMatrixTransposeUnAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iters : integer;
     destLineWidth2 : integer;
     y : integer;
@@ -389,7 +391,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixTransposeAlignedOddWEvenH(dest : PDouble; const destLineWidth : integer; mt : PDouble; const LineWidth : integer; width : integer; height : integer);
+procedure ASMMatrixTransposeAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iters : integer;
     destLineWidth2 : integer;
     y : integer;
@@ -574,7 +576,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixTransposeUnAlignedOddWEvenH(dest : PDouble; const destLineWidth : integer; mt : PDouble; const LineWidth : integer; width : integer; height : integer);
+procedure ASMMatrixTransposeUnAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iters : integer;
     destLineWidth2 : integer;
     y : integer;
@@ -755,7 +757,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixTransposeAlignedEvenWOddH(dest : PDouble; const destLineWidth : integer; mt : PDouble; const LineWidth : integer; width : integer; height : integer);
+procedure ASMMatrixTransposeAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iters : integer;
     destLineWidth2 : integer;
     y : integer;
@@ -951,7 +953,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixTransposeUnAlignedEvenWOddH(dest : PDouble; const destLineWidth : integer; mt : PDouble; const LineWidth : integer; width : integer; height : integer);
+procedure ASMMatrixTransposeUnAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iters : integer;
     destLineWidth2 : integer;
     y : integer;
@@ -1143,7 +1145,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixTransposeAlignedOddWOddH(dest : PDouble; const destLineWidth : integer; mt : PDouble; const LineWidth : integer; width : integer; height : integer);
+procedure ASMMatrixTransposeAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iters : integer;
     destLineWidth2 : integer;
     y : integer;
@@ -1350,7 +1352,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixTransposeUnAlignedOddWOddH(dest : PDouble; const destLineWidth : integer; mt : PDouble; const LineWidth : integer; width : integer; height : integer);
+procedure ASMMatrixTransposeUnAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iters : integer;
     destLineWidth2 : integer;
     y : integer;

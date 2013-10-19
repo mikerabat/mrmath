@@ -1152,7 +1152,7 @@ begin
      end;
 end;
 
-procedure Cdiv(const Ar, Ai, Br, Bi : double; var Cr, Ci : double); inline;
+procedure Cdiv(const Ar, Ai, Br, Bi : double; var Cr, Ci : double); {$IF CompilerVersion >= 17.0} inline; {$IFEND}
 { Complex division, (Cr,Ci) = (Ar,Ai)/(Br,Bi) }
 var tmp : double;
     brt : double;
@@ -1174,7 +1174,7 @@ begin
     end;
 end;
 
-function CAbs(ar, ai : double) : double; inline;
+function CAbs(ar, ai : double) : double; {$IF CompilerVersion >= 17.0} inline; {$IFEND}
 var tmp : double;
 begin
      if (ar = 0) and (ai = 0) then
