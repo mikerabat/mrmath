@@ -142,7 +142,7 @@ type
 
 implementation
 
-uses Math, LinearAlgebraicEquations, Utilities, MatrixConst;
+uses Math, Utilities, MatrixConst;
 
 // ####################################################################
 // #### Local functions - used to update the eigenspaces

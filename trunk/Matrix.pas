@@ -27,8 +27,8 @@ type
   TDoubleMatrix = class;
   IMatrix = interface(IMathPersistence)
     ['{8B76CD12-4314-41EB-BD98-302A024AA0EC}']
-    function StartElement : PDouble; //{$if CompilerVersion > 18.5} inline; {$IFEND}
-    function LineWidth : integer; //{$if CompilerVersion > 18.5} inline; {$IFEND}
+    function StartElement : PDouble; 
+    function LineWidth : integer; 
 
     procedure SetLinEQProgress(value : TLinEquProgress);
     function GetLinEQProgress : TLinEquProgress;
@@ -211,8 +211,8 @@ type
     function GetObjRef : TDoubleMatrix;
 
     // direct access functionality (use only when you know what you are doing!)
-    function StartElement : PDouble; inline;
-    function LineWidth : integer; inline;
+    function StartElement : PDouble; {$IF CompilerVersion >= 17.0} inline; {$IFEND}
+    function LineWidth : integer; {$IF CompilerVersion >= 17.0} inline; {$IFEND}
   public
     property Width : integer read GetSubWidth write SetWidth;
     property Height : integer read GetSubHeight write SetHeight;
@@ -349,7 +349,7 @@ type
 
 implementation
 
-uses Math, contnrs, OptimizedFuncs, ASMMatrixOperations, LinearAlgebraicEquations,
+uses Math, contnrs, OptimizedFuncs, LinearAlgebraicEquations,
      Eigensystems;
 
 

@@ -182,7 +182,7 @@ type
 
 implementation
 
-uses Math, LinearAlgebraicEquations, Utilities, contnrs;
+uses Math, Utilities, contnrs;
 
 // ######################################################################
 // #### local definitions

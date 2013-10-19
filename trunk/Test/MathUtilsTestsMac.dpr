@@ -11,28 +11,29 @@
 // #### See the License for the specific language governing permissions and
 // #### limitations under the License.
 // ###################################################################
+// ###################################################################
+// #### certain MACOS contributions and testing William Cantrall
+// ###################################################################
 
+program MathUtilsTestsMac;
 
-program MathUtilsTests;
-
-{$IFNDEF MSWINDOWS}
-{$MESSAGE ERROR 'This unit test program is only compilable for Windows.'}
+{$IFNDEF MACOS}
+{$Message ERROR 'This console unit test framework is only usable for MocOS'}
 {$ENDIF}
 
-{$IFDEF CONSOLE_TESTRUNNER}
-{$APPTYPE CONSOLE}
-{$ENDIF}
+{$CODEALIGN 16}
+
 
 uses
-  Forms,
+  FMX.Forms,
   TestFramework,
-  GUITestRunner,
   TextTestRunner,
   TestSimpleMatrixOperations in 'TestSimpleMatrixOperations.pas',
   TestLineEquations in 'TestLineEquations.pas',
   TestEigensystems in 'TestEigensystems.pas',
   BaseMatrixTestCase in 'BaseMatrixTestCase.pas',
   TestMatrixClass in 'TestMatrixClass.pas',
+  ASMConsts in '..\ASMConsts.pas',
   ASMMatrixAddSubOperations in '..\ASMMatrixAddSubOperations.pas',
   ASMMatrixAddSubOperationsx64 in '..\ASMMatrixAddSubOperationsx64.pas',
   ASMMatrixElementwiseMultOperations in '..\ASMMatrixElementwiseMultOperations.pas',
@@ -41,6 +42,8 @@ uses
   ASMMatrixMeanOperationsx64 in '..\ASMMatrixMeanOperationsx64.pas',
   ASMMatrixMinMaxOperations in '..\ASMMatrixMinMaxOperations.pas',
   ASMMatrixMinMaxOperationsx64 in '..\ASMMatrixMinMaxOperationsx64.pas',
+  ASMMatrixMultAddTransposedOperations in '..\ASMMatrixMultAddTransposedOperations.pas',
+  ASMMatrixMultAddTransposedOperationsx64 in '..\ASMMatrixMultAddTransposedOperationsx64.pas',
   ASMMatrixMultOperations in '..\ASMMatrixMultOperations.pas',
   ASMMatrixMultOperationsx64 in '..\ASMMatrixMultOperationsx64.pas',
   ASMMatrixMultTransposedOperations in '..\ASMMatrixMultTransposedOperations.pas',
@@ -60,41 +63,38 @@ uses
   ASMMatrixVectorMultOperationsx64 in '..\ASMMatrixVectorMultOperationsx64.pas',
   ASMMoveOperations in '..\ASMMoveOperations.pas',
   ASMMoveOperationsx64 in '..\ASMMoveOperationsx64.pas',
+  BaseMathPersistence in '..\BaseMathPersistence.pas',
+  BinaryReaderWriter in '..\BinaryReaderWriter.pas',
   BlockSizeSetup in '..\BlockSizeSetup.pas',
+  BufferedStream in '..\BufferedStream.pas',
   CPUFeatures in '..\CPUFeatures.pas',
   Eigensystems in '..\Eigensystems.pas',
+  IncrementalPCA in '..\IncrementalPCA.pas',
   LinearAlgebraicEquations in '..\LinearAlgebraicEquations.pas',
   MathUtilFunc in '..\MathUtilFunc.pas',
   Matrix in '..\Matrix.pas',
   MatrixConst in '..\MatrixConst.pas',
   MtxThreadPool in '..\MtxThreadPool.pas',
+  MtxTimer in '..\MtxTimer.pas',
+  NonLinearFit in '..\NonLinearFit.pas',
   OptimizedFuncs in '..\OptimizedFuncs.pas',
+  PCA in '..\PCA.pas',
   SimpleMatrixOperations in '..\SimpleMatrixOperations.pas',
+  ThreadedLinAlg in '..\ThreadedLinAlg.pas',
   ThreadedMatrix in '..\ThreadedMatrix.pas',
   ThreadedMatrixOperations in '..\ThreadedMatrixOperations.pas',
   Utilities in '..\Utilities.pas',
-  BaseMathPersistence in '..\BaseMathPersistence.pas',
-  BinaryReaderWriter in '..\BinaryReaderWriter.pas',
-  BufferedStream in '..\BufferedStream.pas',
-  ThreadedLinAlg in '..\ThreadedLinAlg.pas',
-  TestPCA in 'TestPCA.pas',
-  PCA in '..\PCA.pas',
-  TestNonLinFit in 'TestNonLinFit.pas',
-  NonLinearFit in '..\NonLinearFit.pas',
-  IncrementalPCA in '..\IncrementalPCA.pas',
+  GCDDispatch in '..\mac\GCDDispatch.pas',
   MacOsThreadPool in '..\mac\MacOsThreadPool.pas',
   SimpleWinThreadPool in '..\win\SimpleWinThreadPool.pas',
-  WinThreadPool in '..\win\WinThreadPool.pas',
-  GCDDispatch in '..\mac\GCDDispatch.pas',
-  MtxTimer in '..\MtxTimer.pas';
+  WinThreadPool in '..\win\WinThreadPool.pas';
 
-{$R *.RES}
+{$R *.res}
 
 begin
   Application.Initialize;
-  if IsConsole then
-    TextTestRunner.RunRegisteredTests
-  else
-    GUITestRunner.RunRegisteredTests;
+  //if IsConsole then
+    TextTestRunner.RunRegisteredTests;
+  //else
+    //GUITestRunner.RunRegisteredTests;
 end.
-

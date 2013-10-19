@@ -69,14 +69,13 @@ end;
 
 procedure ThrMatrixUSubst(A : PDouble; width, height : integer; B : PDouble; const LineWidth : TASMNativeInt);
 var i: TASMNativeInt;
-    obj : Array of TAsyncMatrixUSubst;
-    calls : Array of IMtxAsyncCall;
+    obj : TAsyncMatrixUSubst;
+    calls : IMtxAsyncCallGroup;
     wSize : integer;
     thrSize : Integer;
 begin
-     SetLength(obj, numCPUCores);
-     SetLength(calls, numCPUCores);
-
+     calls := MtxInitTaskGroup;
+     
      thrSize := width div numCPUCores + Integer((width mod numCPUCores) <> 0);
 
      for i := 0 to numCPUCores - 1 do
@@ -85,17 +84,13 @@ begin
           if i = numCPUCores - 1 then
              wSize := width - i*thrSize;
 
-          obj[i] := TAsyncMatrixUSubst.Create(A, wSize, height, B, LineWidth);
-          calls[i] := MtxAsyncCall(MatrixLUBacksupFunc, obj[i]);
+          obj := TAsyncMatrixUSubst.Create(A, wSize, height, B, LineWidth);
+          calls.AddTask(MatrixLUBacksupFunc, obj);
 
           inc(B, thrSize);
      end;
 
-     for i := 0 to numCpuCores - 1 do
-     begin
-          calls[i].sync;
-          obj[i].Free;
-     end;
+     calls.SyncAll;
 end;
 
 const cBlkMultSize = 48;
@@ -298,8 +293,8 @@ var Y : PDouble;
     w : integer;
     thrSize : integer;
     wSize : integer;
-    obj : Array of TAsyncMatrixLUBacksup;
-    calls : Array of IMtxAsyncCall;
+    obj : TAsyncMatrixLUBacksup;
+    calls : IMtxAsyncCallGroup;
 begin
      Assert(lineWidthA >= width*sizeof(double), 'Dimension Error');
      Assert(width > 0, 'Dimension error');
@@ -318,8 +313,7 @@ begin
           exit;
      end;
 
-     SetLength(obj, numCPUCores);
-     SetLength(calls, numCPUCores);
+     calls := MtxInitTaskGroup;
 
      thrSize := width div numCPUCores + Integer((width mod numCPUCores) <> 0);
 
@@ -329,24 +323,20 @@ begin
           if i = numCPUCores - 1 then
              wSize := width - i*thrSize;
 
-          obj[i] := TAsyncMatrixLUBacksup.Create;
-          obj[i].A := Y;
-          obj[i].lineWidthA := w*sizeof(double);
-          obj[i].width := wSize;
-          obj[i].height := width;
-          obj[i].offset := i*thrSize;
-          obj[i].B := A;
-          obj[i].LineWidthB := LineWidthA;
-          obj[i].indx := @indx[0];
+          obj := TAsyncMatrixLUBacksup.Create;
+          obj.A := Y;
+          obj.lineWidthA := w*sizeof(double);
+          obj.width := wSize;
+          obj.height := width;
+          obj.offset := i*thrSize;
+          obj.B := A;
+          obj.LineWidthB := LineWidthA;
+          obj.indx := @indx[0];
 
-          calls[i] := MtxAsyncCall(MatrixLUInvertCall, obj[i]);
+          calls.AddTask(MatrixLUInvertCall, obj);
      end;
 
-     for i := 0 to numCpuCores - 1 do
-     begin
-          calls[i].sync;
-          obj[i].Free;
-     end;
+     calls.SyncAll;
 
      FreeMem(Y);
 end;
@@ -415,8 +405,8 @@ var indx : Array of Integer;
     w : TASMNativeInt;
     thrSize : integer;
     wSize : integer;
-    obj : Array of TAsyncMatrixLUBacksup;
-    calls : Array of IMtxAsyncCall;
+    obj : TAsyncMatrixLUBacksup;
+    calls : IMtxAsyncCallGroup;
 begin
      progRef := nil;
      progObj := nil;
@@ -443,40 +433,36 @@ begin
           exit;
      end;
 
-     SetLength(obj, numCPUCores);
-     SetLength(calls, numCPUCores);
-
      thrSize := Max(1, width2 div numCPUCores + Integer((width2 mod numCPUCores) <> 0));
 
      // first copy the B matrix to X -> the result is overwritten
      MatrixCopy(X, LineWidthX, B, LineWidthB, width2, width);
 
      // now distribute the computaions accross all cpu's
+     calls := MtxInitTaskGroup;
+     
      for i := 0 to Min(thrSize, numCPUCores) - 1 do
      begin
           wSize := thrSize;
           if i = Min(thrSize, numCPUCores) - 1 then
              wSize := width2 - i*thrSize;
 
-          obj[i] := TAsyncMatrixLUBacksup.Create;
-          obj[i].A := LUDecomp;
-          obj[i].lineWidthA := w*sizeof(double);
-          obj[i].width := wSize;
-          obj[i].height := width;
-          obj[i].offset := i*thrSize;
-          obj[i].B := X;
-          obj[i].LineWidthB := LineWidthX;
-          obj[i].indx := @indx[0];
+          obj := TAsyncMatrixLUBacksup.Create;
+          obj.A := LUDecomp;
+          obj.lineWidthA := w*sizeof(double);
+          obj.width := wSize;
+          obj.height := width;
+          obj.offset := i*thrSize;
+          obj.B := X;
+          obj.LineWidthB := LineWidthX;
+          obj.indx := @indx[0];
 
-          calls[i] := MtxAsyncCall(MatrixLUBacksupCall, obj[i]);
+          calls.AddTask(MatrixLUBacksupCall, obj);
      end;
 
-     for i := 0 to Min(thrSize, numCPUCores) - 1 do
-     begin
-          calls[i].sync;
-          obj[i].Free;
-     end;
-
+     calls.SyncAll;
+     calls := nil;
+     
      // todo: thread this part too?
      if NumRefinments > 0 then
      begin

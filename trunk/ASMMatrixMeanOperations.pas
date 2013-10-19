@@ -21,15 +21,15 @@ interface
 
 uses MatrixConst;
 
-procedure ASMMatrixMeanRowAlignedEvenW(dest : PDouble; const destLineWidth : integer; Src : PDouble; const srcLineWidth : integer; width, height : integer);
-procedure ASMMatrixMeanRowUnAlignedEvenW(dest : PDouble; const destLineWidth : integer; Src : PDouble; const srcLineWidth : integer; width, height : integer);
-procedure ASMMatrixMeanRowAlignedOddW(dest : PDouble; const destLineWidth : integer; Src : PDouble; const srcLineWidth : integer; width, height : integer);
-procedure ASMMatrixMeanRowUnAlignedOddW(dest : PDouble; const destLineWidth : integer; Src : PDouble; const srcLineWidth : integer; width, height : integer);
+procedure ASMMatrixMeanRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixMeanRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixMeanRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixMeanRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 
-procedure ASMMatrixMeanColumnAlignedEvenW(dest : PDouble; const destLineWidth : integer; Src : PDouble; const srcLineWidth : integer; width, height : integer);
-procedure ASMMatrixMeanColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : integer; Src : PDouble; const srcLineWidth : integer; width, height : integer);
-procedure ASMMatrixMeanColumnAlignedOddW(dest : PDouble; const destLineWidth : integer; Src : PDouble; const srcLineWidth : integer; width, height : integer);
-procedure ASMMatrixMeanColumnUnAlignedOddW(dest : PDouble; const destLineWidth : integer; Src : PDouble; const srcLineWidth : integer; width, height : integer);
+procedure ASMMatrixMeanColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixMeanColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixMeanColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixMeanColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 
 {$ENDIF}
 
@@ -37,7 +37,7 @@ implementation
 
 {$IFNDEF CPUX64}
 
-procedure ASMMatrixMeanRowAlignedEvenW(dest : PDouble; const destLineWidth : integer; Src : PDouble; const srcLineWidth : integer; width, height : integer);
+procedure ASMMatrixMeanRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iters : integer;
 begin
      Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
@@ -124,7 +124,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixMeanRowUnAlignedEvenW(dest : PDouble; const destLineWidth : integer; Src : PDouble; const srcLineWidth : integer; width, height : integer);
+procedure ASMMatrixMeanRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iters : integer;
 begin
      Assert((width and 1) = 0, 'Error width must be even');
@@ -213,7 +213,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixMeanRowAlignedOddW(dest : PDouble; const destLineWidth : integer; Src : PDouble; const srcLineWidth : integer; width, height : integer);
+procedure ASMMatrixMeanRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iters : integer;
 begin
      Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
@@ -304,7 +304,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixMeanRowUnAlignedOddW(dest : PDouble; const destLineWidth : integer; Src : PDouble; const srcLineWidth : integer; width, height : integer);
+procedure ASMMatrixMeanRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iters : integer;
 const cOne : double = 1;
 begin
@@ -400,7 +400,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixMeanColumnAlignedEvenW(dest : PDouble; const destLineWidth : integer; Src : PDouble; const srcLineWidth : integer; width, height : integer);
+procedure ASMMatrixMeanColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iters : integer;
 begin
      Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
@@ -452,7 +452,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixMeanColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : integer; Src : PDouble; const srcLineWidth : integer; width, height : integer);
+procedure ASMMatrixMeanColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iters : integer;
 begin
      Assert((width and 1) = 0, 'Error width must be even');
@@ -503,7 +503,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixMeanColumnAlignedOddW(dest : PDouble; const destLineWidth : integer; Src : PDouble; const srcLineWidth : integer; width, height : integer);
+procedure ASMMatrixMeanColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iters : integer;
 begin
      Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
@@ -574,7 +574,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixMeanColumnUnAlignedOddW(dest : PDouble; const destLineWidth : integer; Src : PDouble; const srcLineWidth : integer; width, height : integer);
+procedure ASMMatrixMeanColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iters : integer;
 begin
      Assert((width and 1) = 1, 'Error width must be even');

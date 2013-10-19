@@ -25,8 +25,7 @@ unit TestSimpleMatrixOperations;
 
 interface
 
-uses
-  TestFramework, Classes, SysUtils, Types, SimpleMatrixOperations, Matrix, BaseMatrixTestCase;
+uses TestFramework, Classes, SysUtils, Types, SimpleMatrixOperations, Matrix, BaseMatrixTestCase;
 
 type
   // testmethoden für die matrix funktionen
@@ -43,8 +42,6 @@ type
   end;
 
   TASMMatrixOperations = class(TBaseMatrixTestCase)
-  private
-    fPerfFreq : Int64;
   public
     procedure SetUp; override;
     procedure TearDown; override;
@@ -101,7 +98,7 @@ type
 
 implementation
 
-uses Windows, Dialogs, ASMMatrixOperations, ThreadedMatrixOperations, MtxThreadPool,
+uses ASMMatrixOperations, ThreadedMatrixOperations, MtxThreadPool, mtxTimer,
      BlockSizeSetup, math,
      {$IFDEF CPUX64}
      ASMMatrixMultOperationsx64, ASMMatrixVectorMultOperationsx64, ASMMatrixMultTransposedOperationsx64,
@@ -166,8 +163,7 @@ end;
 
 procedure TASMMatrixOperations.SetUp;
 begin
-     QueryPerformanceFrequency(fPerfFreq);
-     InitMtxThreadPool;
+     MtxThreadPool.InitMtxThreadPool;
 end;
 
 procedure TASMMatrixOperations.TearDown;
@@ -236,20 +232,20 @@ begin
      Move(x[0], xa^, sizeof(double)*cMtxSize);
      Move(y[0], ya^, sizeof(double)*cMtxSize);
 
-     QueryPerformanceCounter(startTime1);
+     startTime1 := MtxGetTime;
      GenericMtxAdd(@dest1[0], cMtxLineWidth, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxLinewidth, cMtxLinewidth);
-     QueryPerformanceCounter(endTime1);
+     endTime1 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime2);
+     startTime2 := MtxGetTime;
      ASMMatrixAdd(@dest2[0], cMtxLineWidth, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxLinewidth, cMtxLinewidth);
-     QueryPerformanceCounter(endTime2);
+     endTime2 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime3);
+     startTime3 := MtxGetTime;
      ASMMatrixAdd(dest2a, cMtxLineWidth, xa, ya, cMtxWidth, cMtxheight, cMtxLinewidth, cMtxLinewidth);
-     QueryPerformanceCounter(endTime3);
+     endTime3 := MtxGetTime;
 
-     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000,
-                 (endTime3 - startTime3)/fPerfFreq*1000]));
+     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+                 (endTime3 - startTime3)/mtxFreq*1000]));
 
      res := CheckMtxIdx(dest1, dest2, idx, cMtxWidth, cMtxHeight);
      if not res then
@@ -302,25 +298,25 @@ begin
      za := dest3a;
      inc(za, cMtxDestSize + cMtxDestSize mod 2);
 
-     QueryPerformanceCounter(startTime1);
+     startTime1 := MtxGetTime;
      GenericMtxMult(@dest1[0], cMtxLineWidth, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2);
-     QueryPerformanceCounter(endTime1);
+     endTime1 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime2);
+     startTime2 := MtxGetTime;
      ASMMatrixMult(@dest2[0], cMtxLineWidth, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2);
-     QueryPerformanceCounter(endTime2);
+     endTime2 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime3);
+     startTime3 := MtxGetTime;
      ASMMatrixMult(dest2a, cMtxLineWidth, xa, ya, cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2);
-     QueryPerformanceCounter(endTime3);
+     endTime3 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime4);
+     startTime4 := MtxGetTime;
      GenericMtxTranspose(za, cMtxLineWidth, ya, cMtxLineWidth2, cMtxHeight, cMtxWidth);
      ASMMatrixMultAlignedEvenW1EvenH2Transposed(dest3a, cMtxLineWidth, xa, za, cMtxWidth, cMtxheight, cMtxWidth, cMtxheight, cMtxLinewidth, cMtxLinewidth);
-     QueryPerformanceCounter(endTime4);
+     endTime4 := MtxGetTime;
 
-     Status(Format('%.2f, %.2f, %.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000,
-                 (endTime3 - startTime3)/fPerfFreq*1000, (endTime4 - startTime4)/fPerfFreq*1000]));
+     Status(Format('%.2f, %.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+                 (endTime3 - startTime3)/mtxFreq*1000, (endTime4 - startTime4)/mtxFreq*1000]));
 
      res := CheckMtxIdx(dest1, dest2, idx);
      if not res then
@@ -364,7 +360,7 @@ const cMtxWidth = 5*cCacheMtxSize;
       cMtxLinewidth = cMtxWidth*8;
       cMtxLineWidth2 = cMtxHeight*8;
 begin
-     SetThreadAffinityMask(GetCurrentThread, 1);
+     //SetThreadAffinityMask(GetCurrentThread, 1);
      randomize;
      FillMatrix(cMtxSize, x, y, xa, ya);
 
@@ -373,17 +369,17 @@ begin
      dest2a := AllocMem(cMtxHeight*cMtxHeight*sizeof(double));
      dest3a := AllocMem(cMtxHeight*cMtxHeight*sizeof(double));
 
-     QueryPerformanceCounter(startTime5);
+     startTime5 := MtxGetTime;
      BlockedMatrixMultiplication(@dest2[0], cMtxLineWidth2, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, 352);
-     QueryPerformanceCounter(endTime5);
+     endTime5 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime1);
+     startTime1 := MtxGetTime;
      GenericMtxMult(@dest1[0], cMtxLineWidth2, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2);
-     QueryPerformanceCounter(endTime1);
+     endTime1 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime2);
+     startTime2 := MtxGetTime;
      GenericBlockedMatrixMultiplication(@dest2[0], cMtxLineWidth2, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, 352);
-     QueryPerformanceCounter(endTime2);
+     endTime2 := MtxGetTime;
 
      res := CheckMtxIdx(dest1, dest2, idx);
      if not res then
@@ -395,18 +391,18 @@ begin
         Status(IntToStr(idx));
      check(res);
 
-     QueryPerformanceCounter(startTime4);
+     startTime4 := MtxGetTime;
      BlockedMatrixMultiplication(dest3a, cMtxLineWidth2, xa, ya, cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, 352);
-     QueryPerformanceCounter(endTime4);
+     endTime4 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime3);
+     startTime3 := MtxGetTime;
      BlockedMatrixMultiplicationDirect(dest2a, cMtxLineWidth2, xa, ya, cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, 352);
-     QueryPerformanceCounter(endTime3);
+     endTime3 := MtxGetTime;
 
 
-     Status(Format('%.2f, %.2f, %.2f, %.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000,
-                (endTime3 - startTime3)/fPerfFreq*1000, (endTime4 - startTime4)/fPerfFreq*1000,
-                (endTime5 - startTime5)/fPerfFreq*1000]));
+     Status(Format('%.2f, %.2f, %.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+                (endTime3 - startTime3)/mtxFreq*1000, (endTime4 - startTime4)/mtxFreq*1000,
+                (endTime5 - startTime5)/mtxFreq*1000]));
 
      exit;
      Move(dest2a^, dest2[0], length(dest2)*sizeof(double));
@@ -424,30 +420,30 @@ begin
      FreeMem(dest3a);
 
      // matrix vector operations:
-     QueryPerformanceCounter(vecstartTime1);
+     vecstartTime1 := MtxGetTime;
      GenericMtxMult(@dest1[0], sizeof(double), @x[0], @y[0], cMtxWidth, cMtxheight, 1, cMtxWidth, cMtxLinewidth, sizeof(double));
-     QueryPerformanceCounter(vecendTime1);
+     vecendTime1 := MtxGetTime;
 
-     QueryPerformanceCounter(vecstartTime2);
+     vecstartTime2 := MtxGetTime;
      BlockedMatrixVectorMultiplication(@dest2[0], sizeof(double), @x[0], @y[0], cMtxWidth, cMtxheight, cMtxWidth, cMtxLinewidth);
-     QueryPerformanceCounter(vecendTime2);
+     vecendTime2 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime2);
+     startTime2 := MtxGetTime;
      ASMMatrixMult(@dest2[0], sizeof(double), @x[0], @y[0], cMtxWidth, cMtxheight, 1, cMtxWidth, cMtxLinewidth, sizeof(double));
-     QueryPerformanceCounter(endTime2);
+     endTime2 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime3);
+     startTime3 := MtxGetTime;
      ASMMatrixMult(dest2a, sizeof(double), xa, ya, cMtxWidth, cMtxheight, 1, cMtxWidth, cMtxLinewidth, sizeof(double));
-     QueryPerformanceCounter(endtime3);
+     endTime3 := MtxGetTime;
 
-     QueryPerformanceCounter(vecstartTime3);
+     vecstartTime3 := MtxGetTime;
      BlockedMatrixVectorMultiplication(dest2a, sizeof(double), xa, ya, cMtxWidth, cMtxheight, cMtxWidth, cMtxLinewidth);
-     QueryPerformanceCounter(vecendTime3);
+     vecendTime3 := MtxGetTime;
 
      Status(Format('%.2f, %.2f, %.2f, %.2f, %.2f',
-         [(vecendTime1 - vecstartTime1)/fPerfFreq*1000, (vecendTime2 - vecstartTime2)/fPerfFreq*1000,
-          (vecendTime3 - vecstartTime3)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000,
-          (endTime3 - startTime3)/fPerfFreq*1000]));
+         [(vecendTime1 - vecstartTime1)/mtxFreq*1000, (vecendTime2 - vecstartTime2)/mtxFreq*1000,
+          (vecendTime3 - vecstartTime3)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+          (endTime3 - startTime3)/mtxFreq*1000]));
 
      res := CheckMtxIdx(dest1, dest2, idx, 1, cMtxHeight);
      if not res then
@@ -495,29 +491,29 @@ begin
      dest2a := AllocMem(cMtxHeight*cMtxHeight*sizeof(double));
      dest3a := AllocMem(cMtxHeight*cMtxHeight*sizeof(double));
 
-     QueryPerformanceCounter(startTime1);
+     startTime1 := MtxGetTime;
      GenericMtxMult(@dest1[0], cMtxLineWidth2, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2);
-     QueryPerformanceCounter(endTime1);
+     endTime1 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime2);
+     startTime2 := MtxGetTime;
      BlockedMatrixMultiplicationDirect(@dest2[0], cMtxLineWidth2, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2);
-     QueryPerformanceCounter(endTime2);
+     endTime2 := MtxGetTime;
 
      res := CheckMtxIdx(dest1, dest2, idx);
      if not res then
         Status(IntToStr(idx));
      check(res);
 
-     QueryPerformanceCounter(startTime3);
+     startTime3 := MtxGetTime;
      BlockedMatrixMultiplicationDirect(dest2a, cMtxLineWidth2, xa, ya, cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, 256);
-     QueryPerformanceCounter(endTime3);
+     endTime3 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime4);
+     startTime4 := MtxGetTime; 
      BlockedMatrixMultiplication(dest3a, cMtxLineWidth2, xa, ya, cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, 256);
-     QueryPerformanceCounter(endTime4);
+     endTime4 := MtxGetTime;
 
-     Status(Format('%.2f, %.2f, %.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000,
-       (endTime2 - startTime2)/fPerfFreq*1000, (endTime3 - startTime3)/fPerfFreq*1000, (endTime4 - startTime4)/fPerfFreq*1000]));
+     Status(Format('%.2f, %.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000,
+       (endTime2 - startTime2)/mtxFreq*1000, (endTime3 - startTime3)/mtxFreq*1000, (endTime4 - startTime4)/mtxFreq*1000]));
 
      res := CheckMtxIdx(dest1, dest2, idx);
      if not res then
@@ -539,30 +535,30 @@ begin
      FreeMem(dest3a);
 
      // matrix vector operations:
-     QueryPerformanceCounter(vecstartTime1);
+     vecstartTime1 := MtxGetTime;
      GenericMtxMult(@dest1[0], sizeof(double), @x[0], @y[0], cMtxWidth, cMtxheight, 1, cMtxWidth, cMtxLinewidth, sizeof(double));
-     QueryPerformanceCounter(vecendTime1);
+     vecendTime1 := MtxGetTime;
 
-     QueryPerformanceCounter(vecstartTime2);
+     vecstartTime2 := MtxGetTime;
      BlockedMatrixVectorMultiplication(@dest2[0], sizeof(double), @x[0], @y[0], cMtxWidth, cMtxheight, cMtxWidth, cMtxLinewidth);
-     QueryPerformanceCounter(vecendTime2);
+     vecendTime2 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime2);
+     startTime2 := MtxGetTime;
      ASMMatrixMult(@dest2[0], sizeof(double), @x[0], @y[0], cMtxWidth, cMtxheight, 1, cMtxWidth, cMtxLinewidth, sizeof(double));
-     QueryPerformanceCounter(endTime2);
+     endTime2 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime3);
+     startTime3 := MtxGetTime;
      ASMMatrixMult(dest2a, sizeof(double), xa, ya, cMtxWidth, cMtxheight, 1, cMtxWidth, cMtxLinewidth, sizeof(double));
-     QueryPerformanceCounter(endtime3);
+     endTime3 := MtxGetTime;
 
-     QueryPerformanceCounter(vecstartTime3);
+     vecstartTime3 := MtxGetTime;;
      BlockedMatrixVectorMultiplication(dest2a, sizeof(double), xa, ya, cMtxWidth, cMtxheight, cMtxWidth, cMtxLinewidth);
-     QueryPerformanceCounter(vecendTime3);
+     vecendTime3 := MtxGetTime;
 
      Status(Format('%.2f, %.2f, %.2f, %.2f, %.2f',
-         [(vecendTime1 - vecstartTime1)/fPerfFreq*1000, (vecendTime2 - vecstartTime2)/fPerfFreq*1000,
-          (vecendTime3 - vecstartTime3)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000,
-          (endTime3 - startTime3)/fPerfFreq*1000]));
+         [(vecendTime1 - vecstartTime1)/mtxFreq*1000, (vecendTime2 - vecstartTime2)/mtxFreq*1000,
+          (vecendTime3 - vecstartTime3)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+          (endTime3 - startTime3)/mtxFreq*1000]));
 
      res := CheckMtxIdx(dest1, dest2, idx, 1, cMtxHeight);
      if not res then
@@ -606,8 +602,8 @@ begin
      GetMem(dest1a, cMtxWidth*cMtxWidth*sizeof(double));
      GetMem(dest2a, cMtxWidth*cMtxWidth*sizeof(double));
 
-     ZeroMemory(dest1a, cMtxWidth*cMtxWidth*sizeof(double));
-     ZeroMemory(dest2a, cMtxWidth*cMtxWidth*sizeof(double));
+     FillChar(dest1a^, cMtxWidth*cMtxWidth*sizeof(double), 0);
+     FillChar(dest2a^, cMtxWidth*cMtxWidth*sizeof(double), 0);
 
      // fill randomly:
      px := @x[0];
@@ -624,15 +620,15 @@ begin
           inc(px);
      end;
 
-     QueryPerformanceCounter(startTime1);
+     startTime1 := MtxGetTime;
      GenericMtxTranspose(@dest1[0], cMtxLineWidth2, @x[0], cMtxLinewidth, cMtxWidth, cMtxheight);
-     QueryPerformanceCounter(endTime1);
+     endTime1 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime2);
+     startTime2 := MtxGetTime;
      ASMMatrixTransposeAlignedEvenWEvenH(dest1a, cMtxLineWidth2, xa, cMtxLinewidth, cMtxWidth, cMtxheight);
-     QueryPerformanceCounter(endTime2);
+     endTime2 := MtxGetTime;
 
-     Status(Format('%.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000]));
+     Status(Format('%.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000]));
 
      Move(dest1a^, dest2[0], length(dest2)*sizeof(double));
      res := CheckMtxIdx(dest1, dest2, idx);
@@ -806,20 +802,20 @@ begin
      randomize;
      FillMatrix(cMtxSize, x, y, xa, ya);
 
-     QueryPerformanceCounter(startTime1);
+     startTime1 := MtxGetTime;
      norm1 := GenericMtxElementwiseNorm2(@x[0], cMtxLineWidth, cMtxWidth, cMtxheight);
-     QueryPerformanceCounter(endTime1);
+     endTime1 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime2);
+     startTime2 := MtxGetTime;
      norm2 := ASMMatrixElementwiseNorm2(@x[0], cMtxLineWidth, cMtxWidth, cMtxheight);
-     QueryPerformanceCounter(endTime2);
+     endTime2 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime3);
+     startTime3 := MtxGetTime;
      norm3 := ASMMatrixElementwiseNorm2(xa, cMtxLineWidth, cMtxWidth, cMtxheight);
-     QueryPerformanceCounter(endTime3);
+     endTime3 := MtxGetTime;
 
-     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000,
-                                             (endTime3 - startTime3)/fPerfFreq*1000]));
+     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+                                             (endTime3 - startTime3)/mtxFreq*1000]));
 
      check(CompareValue(norm1, norm2, 1e-5) = 0, 'Norm with even width failed');
      check(CompareValue(norm1, norm3, 1e-5) = 0, 'Norm with even width (aligned) failed');
@@ -829,15 +825,15 @@ begin
 
      FillMatrix((cmtxWidth + 1)*cMtxHeight, x, y, xa, ya);
 
-     QueryPerformanceCounter(startTime1);
+     startTime1 := MtxGetTime;
      norm1 := GenericMtxElementwiseNorm2(@x[0], cMtxLineWidth + sizeof(double), cMtxWidth + 1, cMtxheight);
-     QueryPerformanceCounter(endTime1);
+     endTime1 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime2);
+     startTime2 := MtxGetTime;
      norm2 := ASMMatrixElementwiseNorm2(@x[0], cMtxLineWidth  + sizeof(double), cMtxWidth + 1, cMtxheight);
-     QueryPerformanceCounter(endTime2);
+     endTime2 := MtxGetTime;
 
-     Status(Format('%.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000]));
+     Status(Format('%.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000]));
 
      check(CompareValue(norm1, norm2, 1e-5) = 0, 'Norm with odd width failed');
 
@@ -996,15 +992,15 @@ begin
      FillMatrix(cMtxSize, x, y, xa, ya);
      dest1 := Copy(x, 0, Length(x));
 
-     QueryPerformanceCounter(startTime1);
+     startTime1 := MtxGetTime;
      GenericMtxAddAndScale(@dest1[0], cMtxLineWidth, cMtxWidth, cMtxheight, 5, 0.3);
-     QueryPerformanceCounter(endTime1);
+     endTime1 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime2);
+     startTime2 := MtxGetTime;
      ThrMatrixAddAndScale(@x[0], cMtxLineWidth, cMtxWidth, cMtxheight, 5, 0.3);
-     QueryPerformanceCounter(endTime2);
+     endTime2 := MtxGetTime;
 
-     Status(Format('%.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000]));
+     Status(Format('%.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000]));
 
      res := CheckMtxIdx(x, dest1, idx, cMtxWidth, cMtxHeight);
      if not res then
@@ -1037,20 +1033,20 @@ begin
      SetLength(dest2, cMtxSize);
      dest2a := AllocMem(cMtxSize*sizeof(double));
 
-     QueryPerformanceCounter(startTime1);
+     startTime1 := MtxGetTime;
      ASMMatrixAdd(@dest1[0], cMtxLineWidth, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxLinewidth, cMtxLinewidth);
-     QueryPerformanceCounter(endTime1);
+     endTime1 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime2);
+     startTime2 := MtxGetTime;
      ThrMatrixAdd(@dest2[0], cMtxLineWidth, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxLinewidth, cMtxLinewidth);
-     QueryPerformanceCounter(endTime2);
+     endTime2 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime3);
+     startTime3 := MtxGetTime;
      ThrMatrixAdd(dest2a, cMtxLineWidth, xa, ya, cMtxWidth, cMtxheight, cMtxLinewidth, cMtxLinewidth);
-     QueryPerformanceCounter(endTime3);
+     endTime3 := MtxGetTime;
 
-     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000,
-                 (endTime3 - startTime3)/fPerfFreq*1000]));
+     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+                 (endTime3 - startTime3)/mtxFreq*1000]));
 
      res := CheckMtxIdx(dest1, dest2, idx, cMtxWidth, cMtxHeight);
      if not res then
@@ -1096,19 +1092,19 @@ begin
      dest2a := AllocMem(cMtxHeight*cMtxHeight*sizeof(double));
      dest1a := AllocMem(cMtxHeight*cMtxHeight*sizeof(double));
 
-     QueryPerformanceCounter(startTime1);
+     startTime1 := MtxGetTime;
      BlockedMatrixMultiplication(@dest1[0], cMtxLineWidth2, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2);
-     QueryPerformanceCounter(endTime1);
+     endTime1 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime2);
+     startTime2 := MtxGetTime;
      ThrMatrixMult(dest1a, cMtxLineWidth2, xa, ya, cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2);
-     QueryPerformanceCounter(endTime2);
+     endTime2 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime3);
+     startTime3 := MtxGetTime;
      ThrMatrixMultDirect(dest2a, cMtxLineWidth2, xa, ya, cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2);
-     QueryPerformanceCounter(endTime3);
+     endTime3 := MtxGetTime;
 
-     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000, (endTime3 - startTime3)/fPerfFreq*1000]));
+     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000, (endTime3 - startTime3)/mtxFreq*1000]));
 
      Move(dest1a^, dest2[0], length(dest2)*sizeof(double));
      res := CheckMtxIdx(dest1, dest2, idx);
@@ -1128,21 +1124,21 @@ begin
      FillMatrix(1024*1024*20, x, y, xa, ya);
 
      // matrix vector operations:
-     QueryPerformanceCounter(vecstartTime3);
+     vecstartTime3 := MtxGetTime;
      ASMMatrixMult(@dest1[0], sizeof(double), @x[0], @y[0], 1024*1024, 20, 1, 1024*1024, 1024*1024*sizeof(double), sizeof(double));
-     QueryPerformanceCounter(vecendTime3);
+     vecendTime3 := MtxGetTime;
      
-     QueryPerformanceCounter(vecstartTime1);
+     vecstartTime1 := MtxGetTime;
      ThrMatrixVecMult(dest2a, sizeof(double), xa, ya, 1024*1024, 20, 1024*1024, 1024*1024*sizeof(double));
-     QueryPerformanceCounter(vecendTime1);
+     vecendTime1 := MtxGetTime;
 
-     QueryPerformanceCounter(vecstartTime2);
+     vecstartTime2 := MtxGetTime;
      ThrMatrixVecMult(@dest2[0], sizeof(double), @x[0], @y[0], 1024*1024, 20, 1024*1024, 1024*1024*sizeof(double));
-     QueryPerformanceCounter(vecendTime2);
+     vecendTime2 := MtxGetTime;
 
      Status(Format('%.2f, %.2f, %.2f',
-         [(vecendTime1 - vecstartTime1)/fPerfFreq*1000, (vecendTime2 - vecstartTime2)/fPerfFreq*1000,
-          (vecendTime3 - vecstartTime3)/fPerfFreq*1000]));
+         [(vecendTime1 - vecstartTime1)/mtxFreq*1000, (vecendTime2 - vecstartTime2)/mtxFreq*1000,
+          (vecendTime3 - vecstartTime3)/mtxFreq*1000]));
 
      res := CheckMtxIdx(dest1, dest2, idx, 1, cMtxHeight);
      if not res then
@@ -1257,7 +1253,7 @@ const cMtxWidth = 2000;
       cMtxSize = cMtxWidth*cMtxHeight;
       cMtxLinewidth = cMtxWidth*sizeof(double);
 begin
-     SetThreadAffinityMask(GetCurrentThread, 1);
+     //SetThreadAffinityMask(GetCurrentThread, 1);
      randomize;
      SetLength(x, cMtxSize);
      SetLength(dest1, cMtxSize);
@@ -1284,13 +1280,13 @@ begin
      // clear most of the cache!
      SetLength(dest2, cMtxSize);
 
-     QueryPerformanceCounter(startTime1);
+     startTime1 := MtxGetTime;
      GenericMtxCopy(dest1a, cMtxLineWidth, xa, cMtxLineWidth, cMtxWidth, cMtxheight);
-     QueryPerformanceCounter(endTime1);
+     endTime1 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime2);
+     startTime2 := MtxGetTime;
      ASMMatrixCopy(dest2a, cMtxLineWidth, xa, cMtxLinewidth, cMtxWidth, cMtxheight);
-     QueryPerformanceCounter(endTime2);
+     endTime2 := MtxGetTime;
 
      Move(dest1a^, dest1[0], length(dest2)*sizeof(double));
      Move(dest2a^, dest2[0], length(dest2)*sizeof(double));
@@ -1299,12 +1295,12 @@ begin
         Status(IntToStr(idx));
      check(res);
 
-     QueryPerformanceCounter(startTime3);
+     startTime3 := MtxGetTime;
      ASMMatrixCopy(@dest2[0], cMtxLineWidth, @x[0], cMtxLinewidth, cMtxWidth, cMtxheight);
-     QueryPerformanceCounter(endTime3);
+     endTime3 := MtxGetTime;
 
-     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000,
-                        (endTime3 - startTime3)/fPerfFreq*1000]));
+     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+                        (endTime3 - startTime3)/mtxFreq*1000]));
 
      Move(dest1a^, dest1[0], length(dest2)*sizeof(double));
      Move(dest2a^, dest2[0], length(dest2)*sizeof(double));
@@ -1335,7 +1331,7 @@ const cMtxWidth = 2000;
       cMtxSize = cMtxWidth*cMtxHeight;
       cMtxLinewidth = cMtxWidth*sizeof(double);
 begin
-     SetThreadAffinityMask(GetCurrentThread, 1);
+     //SetThreadAffinityMask(GetCurrentThread, 1);
      randomize;
      SetLength(x, cMtxSize);
      GetMem(xa, cMtxSize*sizeof(double));
@@ -1355,29 +1351,29 @@ begin
           inc(px);
      end;
 
-     QueryPerformanceCounter(startTime1);
+     startTime1 := MtxGetTime;
      dest1 := GenericMtxMax(@x[0], cMtxWidth, cMtxheight, cMtxLineWidth);
      dest2 := GenericMtxMin(@x[0], cMtxWidth, cMtxheight, cMtxLineWidth);
-     QueryPerformanceCounter(endTime1);
+     endTime1 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime2);
+     startTime2 := MtxGetTime;
      dest3 := ASMMatrixMax(@x[0], cMtxWidth, cMtxheight, cMtxLineWidth);
      dest4 := ASMMatrixMin(@x[0], cMtxWidth, cMtxheight, cMtxLineWidth);
-     QueryPerformanceCounter(endTime2);
+     endTime2 := MtxGetTime;
 
      check(dest1 = dest3, 'Max error');
      check(dest2 = dest4, 'Min error');
 
-     QueryPerformanceCounter(startTime3);
+     startTime3 := MtxGetTime;
      dest3 := ASMMatrixMax(xa, cMtxWidth, cMtxheight, cMtxLineWidth);
      dest4 := ASMMatrixMin(xa, cMtxWidth, cMtxheight, cMtxLineWidth);
-     QueryPerformanceCounter(endTime3);
+     endTime3 := MtxGetTime;
 
      check(dest1 = dest3, 'Max error');
      check(dest2 = dest4, 'Min error');
 
-     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000,
-                        (endTime3 - startTime3)/fPerfFreq*1000]));
+     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+                        (endTime3 - startTime3)/mtxFreq*1000]));
 
      freeMem(xa);
 end;
@@ -1422,7 +1418,7 @@ const cMtxWidth = 2000;
       cMtxSize = cMtxWidth*cMtxHeight;
       cMtxLinewidth = cMtxWidth*sizeof(double);
 begin
-     SetThreadAffinityMask(GetCurrentThread, 1);
+     //SetThreadAffinityMask(GetCurrentThread, 1);
      randomize;
      SetLength(x, cMtxSize);
      GetMem(xa, cMtxSize*sizeof(double));
@@ -1445,40 +1441,40 @@ begin
           inc(px);
      end;
 
-     QueryPerformanceCounter(startTime1);
+     startTime1 := MtxGetTime;
      GenericMtxNormalize(dest1, x, cMtxWidth, cMtxheight, True);
-     QueryPerformanceCounter(endTime1);
+     endTime1 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime2);
+     startTime2 := MtxGetTime;
      ASMMatrixNormalize(@dest2[0], cMtxLinewidth, @x[0], cMtxLinewidth, cMtxWidth, cMtxheight, True);
-     QueryPerformanceCounter(endTime2);
+     endTime2 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime3);
+     startTime3 := MtxGetTime;
      ASMMatrixNormalize(dest1a, cMtxLinewidth, xa, cMtxLinewidth, cMtxWidth, cMtxheight, True);
-     QueryPerformanceCounter(endTime3);
+     endTime3 := MtxGetTime;
 
-     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000,
-                        (endTime3 - startTime3)/fPerfFreq*1000]));
+     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+                        (endTime3 - startTime3)/mtxFreq*1000]));
 
      Check(checkMtx(dest1, dest2), 'Error row wise Matrix normalize');
      Move(dest1a^, dest2[0], cMtxSize*sizeof(double));
      Check(checkMtx(dest1, dest2), 'Error row wise aligned Matrix normalize');
 
-     QueryPerformanceCounter(startTime1);
+     startTime1 := MtxGetTime;
      GenericMtxNormalize(dest1, x, cMtxWidth, cMtxheight, False);
-     QueryPerformanceCounter(endTime1);
+     endTime1 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime2);
+     startTime2 := MtxGetTime;
      ASMMatrixNormalize(@dest2[0], cMtxLinewidth, @x[0], cMtxLinewidth, cMtxWidth, cMtxheight, False);
-     QueryPerformanceCounter(endTime2);
+     endTime2 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime3);
+     startTime3 := MtxGetTime;
      ASMMatrixNormalize(dest1a, cMtxLinewidth, xa, cMtxLinewidth, cMtxWidth, cMtxheight, False);
-     QueryPerformanceCounter(endTime3);
+     endTime3 := MtxGetTime;
 
 
-     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000,
-                        (endTime3 - startTime3)/fPerfFreq*1000]));
+     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+                        (endTime3 - startTime3)/mtxFreq*1000]));
 
      Check(checkMtx(dest1, dest2), 'Error row wise Matrix normalize');
      Move(dest1a^, dest2[0], cMtxSize*sizeof(double));
@@ -1622,13 +1618,13 @@ begin
           inc(pM);
      end;
 
-					QueryPerformanceCounter(startTime1);
+					startTime1 := MtxGetTime;
      GenericMtxMean(@destGen[0], sizeof(double), m, cMtxLineWidth, cMtxWidth, cMtxheight, True);
-     QueryPerformanceCounter(endTime1);
+     endTime1 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime2);
+     startTime2 := MtxGetTime;
      ASMMatrixMeanRowUnAlignedEvenW(dest, 2*sizeof(double), m, cMtxLineWidth, cMtxWidth, cMtxheight);
-     QueryPerformanceCounter(endTime2);
+     endTime2 := MtxGetTime;
 
      pDest := dest;
      for i := 0 to cMtxHeight - 1 do
@@ -1639,9 +1635,9 @@ begin
 
      Check(CheckMtx(destGen, DestDyn), 'Error Unaligned Mean row operation');
 
-     QueryPerformanceCounter(startTime3);
+     startTime3 := MtxGetTime;
      ASMMatrixMeanRowAlignedEvenW(dest, 2*sizeof(double), m, cMtxLineWidth, cMtxWidth, cMtxheight);
-     QueryPerformanceCounter(endTime3);
+     endTime3 := MtxGetTime;
 
      pDest := dest;
      for i := 0 to cMtxHeight - 1 do
@@ -1652,8 +1648,8 @@ begin
 
      Check(CheckMtx(destGen, DestDyn), 'Error aligned Mean row operation');
 
-     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000,
-                        (endTime3 - startTime3)/fPerfFreq*1000]));
+     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+                        (endTime3 - startTime3)/mtxFreq*1000]));
 
      FreeMem(blk);
 end;
@@ -1724,13 +1720,13 @@ begin
           inc(pM);
      end;
 
-					QueryPerformanceCounter(startTime1);
+					startTime1 := MtxGetTime;
      GenericMtxMean(@destGen[0], cMtxWidth*sizeof(double), m, cMtxLineWidth, cMtxWidth, cMtxheight, False);
-     QueryPerformanceCounter(endTime1);
+     endTime1 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime2);
+     startTime2 := MtxGetTime;
      ASMMatrixMeanColumnUnAlignedEvenW(dest, cMtxWidth*sizeof(double), m, cMtxLineWidth, cMtxWidth, cMtxheight);
-     QueryPerformanceCounter(endTime2);
+     endTime2 := MtxGetTime;
 
      pDest := dest;
      for i := 0 to cMtxSize - 1 do
@@ -1741,9 +1737,9 @@ begin
 
      Check(CheckMtx(destGen, DestDyn), 'Error Unaligned sum operation');
 
-     QueryPerformanceCounter(startTime3);
+     startTime3 := MtxGetTime;
      ASMMatrixMeanColumnAlignedEvenW(dest, cMtxWidth*sizeof(double), m, cMtxLineWidth, cMtxWidth, cMtxheight);
-     QueryPerformanceCounter(endTime3);
+     endTime3 := MtxGetTime;
 
      pDest := dest;
      for i := 0 to cMtxSize - 1 do
@@ -1754,8 +1750,8 @@ begin
 
      Check(CheckMtx(destGen, DestDyn), 'Error Aligned sum operation');
 
-     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000,
-                        (endTime3 - startTime3)/fPerfFreq*1000]));
+     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+                        (endTime3 - startTime3)/mtxFreq*1000]));
 
      FreeMem(blk);
 end;
@@ -1776,7 +1772,7 @@ const cMtxWidth = 2000;
       cMtxSize = cMtxWidth*cMtxHeight;
       cMtxLinewidth = cMtxWidth*sizeof(double);
 begin
-     SetThreadAffinityMask(GetCurrentThread, 1);
+     //SetThreadAffinityMask(GetCurrentThread, 1);
 
      blk := AllocMem((16 + 8)*sizeof(double) + 16);
      m := blk;
@@ -1829,13 +1825,13 @@ begin
           inc(pM);
      end;
 
-					QueryPerformanceCounter(startTime1);
+					startTime1 := MtxGetTime;
      GenericMtxSum(@destGen[0], sizeof(double), m, cMtxLineWidth, cMtxWidth, cMtxheight, True);
-     QueryPerformanceCounter(endTime1);
+     endTime1 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime2);
+     startTime2 := MtxGetTime;
      ASMMatrixSumRowUnAlignedEvenW(dest, 2*sizeof(double), m, cMtxLineWidth, cMtxWidth, cMtxheight);
-     QueryPerformanceCounter(endTime2);
+     endTime2 := MtxGetTime;
 
      pDest := dest;
      for i := 0 to cMtxHeight - 1 do
@@ -1846,9 +1842,9 @@ begin
 
      Check(CheckMtx(destGen, DestDyn), 'Error Unaligned sum operation');
 
-     QueryPerformanceCounter(startTime3);
+     startTime3 := MtxGetTime;
      ASMMatrixSumRowAlignedEvenW(dest, 2*sizeof(double), m, cMtxLineWidth, cMtxWidth, cMtxheight);
-     QueryPerformanceCounter(endTime3);
+     endTime3 := MtxGetTime;
 
      pDest := dest;
      for i := 0 to cMtxHeight - 1 do
@@ -1859,8 +1855,8 @@ begin
 
      Check(CheckMtx(destGen, DestDyn), 'Error Aligned sum operation');
 
-     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000,
-                        (endTime3 - startTime3)/fPerfFreq*1000]));
+     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+                        (endTime3 - startTime3)/mtxFreq*1000]));
 
      FreeMem(blk);
 end;
@@ -1925,13 +1921,13 @@ begin
           inc(pM);
      end;
 
-					QueryPerformanceCounter(startTime1);
+					startTime1 := MtxGetTime;
      GenericMtxSum(@destGen[0], cMtxWidth*sizeof(double), m, cMtxLineWidth, cMtxWidth, cMtxheight, False);
-     QueryPerformanceCounter(endTime1);
+     endTime1 := MtxGetTime;
 
-     QueryPerformanceCounter(startTime2);
+     startTime2 := MtxGetTime;
      ASMMatrixSumColumnUnAlignedEvenW(dest, cMtxWidth*sizeof(double), m, cMtxLineWidth, cMtxWidth, cMtxheight);
-     QueryPerformanceCounter(endTime2);
+     endTime2 := MtxGetTime;
 
      pDest := dest;
      for i := 0 to cMtxWidth - 1 do
@@ -1942,9 +1938,9 @@ begin
 
      Check(CheckMtx(destGen, DestDyn), 'Error Unaligned sum operation');
 
-     QueryPerformanceCounter(startTime3);
+     startTime3 := MtxGetTime;
      ASMMatrixSumColumnAlignedEvenW(dest, cMtxWidth*sizeof(double), m, cMtxLineWidth, cMtxWidth, cMtxheight);
-     QueryPerformanceCounter(endTime3);
+     endTime3 := MtxGetTime;
 
      pDest := dest;
      for i := 0 to cMtxWidth - 1 do
@@ -1955,8 +1951,8 @@ begin
 
      Check(CheckMtx(destGen, DestDyn), 'Error Aligned sum operation');
 
-     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000,
-                        (endTime3 - startTime3)/fPerfFreq*1000]));
+     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+                        (endTime3 - startTime3)/mtxFreq*1000]));
 
      FreeMem(blk);
 end;
@@ -2373,25 +2369,25 @@ begin
      SetLength(dest2, cStrassenHeight*cStrassenHeight);
 
      TryClearCache;
-     QueryPerformanceCounter(startTime1);
+     startTime1 := MtxGetTime;
      BlockedMatrixMultiplication(@dest1[0], cStrassenHeight*sizeof(double), @x[0], @y[0], cStrassenWidth, cStrassenHeight, cStrassenHeight, cStrassenWidth, cStrassenWidth*sizeof(double), cStrassenHeight*sizeof(double), 256);
-     QueryPerformanceCounter(endTime1);
+     endTime1 := MtxGetTime;
 
      TryClearCache;
-     QueryPerformanceCounter(startTime2);
+     startTime2 := MtxGetTime;
      GenericStrassenMatrixMultiplication(@dest2[0], cStrassenHeight*sizeof(double), @x[0], @y[0], cStrassenWidth, cStrassenHeight, cStrassenHeight, cStrassenWidth, cStrassenWidth*sizeof(double), cStrassenHeight*sizeof(double));
-     QueryPerformanceCounter(endTime2);
+     endTime2 := MtxGetTime;
 
      Check(CheckMtx(dest1, dest2), 'Error strassen matrix mult failed');
 
      TryClearCache;
-     QueryPerformanceCounter(startTime3);
+     startTime3 := MtxGetTime;
      ASMStrassenMatrixMultiplication(@dest2[0], cStrassenHeight*sizeof(double), @x[0], @y[0], cStrassenWidth, cStrassenHeight, cStrassenHeight, cStrassenWidth, cStrassenWidth*sizeof(double), cStrassenHeight*sizeof(double));
-     QueryPerformanceCounter(endTime3);
+     endTime3 := MtxGetTime;
 
      Check(CheckMtx(dest1, dest2), 'Error strassen matrix mult failed');
 
-     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/fPerfFreq*1000, (endTime2 - startTime2)/fPerfFreq*1000, (endTime3 - startTime3)/fPerfFreq*1000]));
+     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000, (endTime3 - startTime3)/mtxFreq*1000]));
 end;
 
 { TASMatrixBlockSizeSetup }

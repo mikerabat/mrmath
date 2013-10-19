@@ -11,7 +11,9 @@
 // #### See the License for the specific language governing permissions and
 // #### limitations under the License.
 // ###################################################################
-
+// ###################################################################
+// #### certain MACOS contributions and testing William Cantrall
+// ###################################################################
 
 package mrMath;
 
@@ -69,6 +71,10 @@ contains
   PCA in 'PCA.pas',
   NonLinearFit in 'NonLinearFit.pas',
   ThreadedLinAlg in 'ThreadedLinAlg.pas',
-  IncrementalPCA in 'IncrementalPCA.pas';
+  IncrementalPCA in 'IncrementalPCA.pas',
+  MacOsThreadPool in 'mac\MacOsThreadPool.pas',
+  WinThreadPool in 'win\WinThreadPool.pas',
+  GCDDispatch in 'mac\GCDDispatch.pas',
+  MtxTimer in 'MtxTimer.pas';
 
 end.
