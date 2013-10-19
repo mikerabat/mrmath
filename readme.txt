@@ -38,10 +38,15 @@ operating system.
 Developer:
 
 Rabatscher Michael - main windows and core development - contact via www.mrsoft.com
-William Cantrall - special thanks for making the library MacOs compatible. - contact address tbd
+William Cantrall - special thanks for making the library MacOs compatible. 
 
 // ###################################################################
 changelog:
+
+Date: Samstag, 19. Oktober 2013	11:45:37
+Many thanks to W. Cantrall who implemented the MAC OS support (Thread pooling and Unit tests).
+Rewrote all the Thread pooling for windows as well.
+Some minor changes on the asm interfaces: some integer params have been ported to nativeint for better large matrix support.
 
 Date: Mittwoch, 14. August 2013 11:27:35
 Added a new incremental PCA class.
