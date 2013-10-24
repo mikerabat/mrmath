@@ -1,0 +1,206 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Import Condition="Exists('$(BDS)\bin\CodeGear.Deployment.targets')" Project="$(BDS)\bin\CodeGear.Deployment.targets"/>
+    <ProjectExtensions>
+        <ProjectFileVersion>12</ProjectFileVersion>
+    </ProjectExtensions>
+    <ItemGroup Condition="'$(Platform)'=='iOSDevice'"/>
+    <ItemGroup Condition="'$(Platform)'=='Win32'">
+        <DeployFile Include="matrixData1.dat">
+            <RemoteDir>MathUtilsTestsMac\</RemoteDir>
+            <RemoteName>matrixData1.dat</RemoteName>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+        <DeployFile Include="matrixData2.dat">
+            <RemoteDir>MathUtilsTestsMac\</RemoteDir>
+            <RemoteName>matrixData2.dat</RemoteName>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+        <DeployFile Include="pca.dat">
+            <RemoteDir>MathUtilsTestsMac\</RemoteDir>
+            <RemoteName>pca.dat</RemoteName>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+        <DeployFile Include="MatrixData2.txt">
+            <RemoteDir>MathUtilsTestsMac\</RemoteDir>
+            <RemoteName>MatrixData2.txt</RemoteName>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+        <DeployFile Include="MatrixData1.txt">
+            <RemoteDir>MathUtilsTestsMac\</RemoteDir>
+            <RemoteName>MatrixData1.txt</RemoteName>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+    </ItemGroup>
+    <ItemGroup Condition="'$(Platform)'=='Win64'">
+        <DeployFile Include="matrixData1.dat">
+            <RemoteDir>MathUtilsTestsMac\</RemoteDir>
+            <RemoteName>matrixData1.dat</RemoteName>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+        <DeployFile Include="matrixData2.dat">
+            <RemoteDir>MathUtilsTestsMac\</RemoteDir>
+            <RemoteName>matrixData2.dat</RemoteName>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+        <DeployFile Include="pca.dat">
+            <RemoteDir>MathUtilsTestsMac\</RemoteDir>
+            <RemoteName>pca.dat</RemoteName>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+        <DeployFile Include="MatrixData2.txt">
+            <RemoteDir>MathUtilsTestsMac\</RemoteDir>
+            <RemoteName>MatrixData2.txt</RemoteName>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+        <DeployFile Include="MatrixData1.txt">
+            <RemoteDir>MathUtilsTestsMac\</RemoteDir>
+            <RemoteName>MatrixData1.txt</RemoteName>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+    </ItemGroup>
+    <ItemGroup Condition="'$(Platform)'=='OSX32'">
+        <DeployFile Include="OSX32\Debug\MathUtilsTestsMac.rsm" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>MathUtilsTestsMac.app\Contents\MacOS\</RemoteDir>
+            <RemoteName>MathUtilsTestsMac.rsm</RemoteName>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+        <DeployFile Include="OSX32\Debug\MathUtilsTestsMac" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>MathUtilsTestsMac.app\Contents\MacOS\</RemoteDir>
+            <RemoteName>MathUtilsTestsMac</RemoteName>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Required>True</Required>
+        </DeployFile>
+        <DeployFile Include="OSX32\Debug\MathUtilsTestsMac.entitlements" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>MathUtilsTestsMac.app\Contents\</RemoteDir>
+            <RemoteName>Entitlements.plist</RemoteName>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+        <DeployFile Include="OSX32\Release\MathUtilsTestsMac" Condition="'$(Config)'=='Release'">
+            <RemoteDir>MathUtilsTestsMac.app\Contents\MacOS\</RemoteDir>
+            <RemoteName>MathUtilsTestsMac</RemoteName>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+            <Required>True</Required>
+        </DeployFile>
+        <DeployFile Include="$(BDS)\bin\delphi_PROJECTICNS.icns" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>MathUtilsTestsMac.app\Contents\Resources\</RemoteDir>
+            <RemoteName>MathUtilsTestsMac.icns</RemoteName>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+        <DeployFile Include="matrixData1.dat">
+            <RemoteDir>MathUtilsTestsMac.app\Contents\MacOS\</RemoteDir>
+            <RemoteName>matrixData1.dat</RemoteName>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+        <DeployFile Include="OSX32\Release\MathUtilsTestsMac.entitlements" Condition="'$(Config)'=='Release'">
+            <RemoteDir>MathUtilsTestsMac.app\Contents\</RemoteDir>
+            <RemoteName>Entitlements.plist</RemoteName>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+        <DeployFile Include="matrixData2.dat">
+            <RemoteDir>MathUtilsTestsMac.app\Contents\MacOS\</RemoteDir>
+            <RemoteName>matrixData2.dat</RemoteName>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+        <DeployFile Include="OSX32\Release\MathUtilsTestsMac.rsm" Condition="'$(Config)'=='Release'">
+            <RemoteDir>MathUtilsTestsMac.app\Contents\MacOS\</RemoteDir>
+            <RemoteName>MathUtilsTestsMac.rsm</RemoteName>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+        <DeployFile Include="$(BDS)\Redist\osx32\libcgunwind.1.0.dylib">
+            <RemoteDir>MathUtilsTestsMac.app\Contents\MacOS\</RemoteDir>
+            <RemoteName>libcgunwind.1.0.dylib</RemoteName>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+        <DeployFile Include="OSX32\Release\MathUtilsTestsMac.info.plist" Condition="'$(Config)'=='Release'">
+            <RemoteDir>MathUtilsTestsMac.app\Contents\</RemoteDir>
+            <RemoteName>Info.plist</RemoteName>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+        <DeployFile Include="pca.dat">
+            <RemoteDir>MathUtilsTestsMac.app\Contents\MacOS\</RemoteDir>
+            <RemoteName>pca.dat</RemoteName>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+        <DeployFile Include="MatrixData2.txt">
+            <RemoteDir>MathUtilsTestsMac.app\Contents\MacOS\</RemoteDir>
+            <RemoteName>MatrixData2.txt</RemoteName>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+        <DeployFile Include="MatrixData1.txt">
+            <RemoteDir>MathUtilsTestsMac.app\Contents\MacOS\</RemoteDir>
+            <RemoteName>MatrixData1.txt</RemoteName>
+            <Operation>0</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+        <DeployFile Include="OSX32\Debug\MathUtilsTestsMac.info.plist" Condition="'$(Config)'=='Debug'">
+            <RemoteDir>MathUtilsTestsMac.app\Contents\</RemoteDir>
+            <RemoteName>Info.plist</RemoteName>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+        <DeployFile Include="$(BDS)\bin\delphi_PROJECTICNS.icns" Condition="'$(Config)'=='Release'">
+            <RemoteDir>MathUtilsTestsMac.app\Contents\Resources\</RemoteDir>
+            <RemoteName>MathUtilsTestsMac.icns</RemoteName>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+    </ItemGroup>
+    <ItemGroup Condition="'$(Platform)'=='iOSSimulator'">
+        <DeployFile Include="$(BDS)\Redist\osx32\libcgunwind.1.0.dylib">
+            <RemoteDir>MathUtilsTestsMac.app\</RemoteDir>
+            <RemoteName>libcgunwind.1.0.dylib</RemoteName>
+            <Operation>1</Operation>
+            <LocalCommand/>
+            <RemoteCommand/>
+        </DeployFile>
+    </ItemGroup>
+</Project>

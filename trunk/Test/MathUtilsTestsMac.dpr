@@ -18,7 +18,7 @@
 program MathUtilsTestsMac;
 
 {$IFNDEF MACOS}
-{$Message ERROR 'This console unit test framework is only usable for MocOS'}
+{$Message ERROR 'This console unit test framework is only usable for MacOS'}
 {$ENDIF}
 
 {$CODEALIGN 16}
