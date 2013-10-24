@@ -54,7 +54,6 @@ initialization
   mtxFreq := SW.Frequency;
 finalization
   sw.Stop;
-  sw.Free;
   {$ENDIF}
 
 end.
