@@ -44,6 +44,7 @@ type
    procedure TestSub;
    procedure TestMult;
    procedure TestMult2;
+   procedure TestMult3;
    procedure TestTranspose;
    procedure TestCovariance;
    procedure TestApplyFunc;
@@ -284,6 +285,20 @@ begin
 
      for counter := 0 to Length(cc) - 1 do
          Check(SameValue(cc[counter], 1222, 1e-12), 'Error multiplying line matrices');
+end;
+
+procedure TestTDoubleMatrix.TestMult3;
+var r,x,y: TDoubleMatrix;
+begin
+     // test case from G. Kaiser which led to a memory corruption problem
+     x := TDoubleMatrix.Create(401,  60, 1.0);
+     y := TDoubleMatrix.Create(  1, 401, 2.0);
+
+     r := x.Mult(y);
+
+     r.free;
+     x.Free;
+     y.Free;
 end;
 
 procedure TestTDoubleMatrix.TestPersistence;

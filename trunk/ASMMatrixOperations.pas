@@ -1450,7 +1450,7 @@ begin
                lev := lev shr 1;
           end;
           // additional memory used for the transposition
-          memSize := memSize + 2*Max(cStrassenMinSize*cStrassenMinSize, n*k);
+          memSize := memSize + Max(cStrassenMinSize*cStrassenMinSize, n*k)*sizeof(double);
 
           mem := GetMemory(memSize);
           try
