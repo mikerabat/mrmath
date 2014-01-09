@@ -43,6 +43,9 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: Donnerstag 09. Jänner 2014 17:06
+Fix: The implementation of the SVD in the matrix class didn't work for the case width > height.
+
 Date: Samstag, 19. Oktober 2013	11:45:37
 Many thanks to W. Cantrall who implemented the MAC OS support (Thread pooling and Unit tests).
 Rewrote all the Thread pooling for windows as well.

@@ -1359,33 +1359,28 @@ begin
 end;
 
 function TDoubleMatrix.SVD(out U, V, W: TDoubleMatrix; onlyDiagElements : boolean): TSVDResult;
-var dim : integer;
 begin
      Assert((Width > 0) and (Height > 0), 'Dimension error');
 
-     dim := Math.Min(fSubWidth, fSubHeight);
      U := nil;
      V := nil;
      W := Nil;
      try
-        U := TDoubleMatrix.Create(Dim, fSubHeight);
+        U := TDoubleMatrix.Create(fSubWidth, fSubHeight);
         V := TDoubleMatrix.Create(fSubWidth, fSubWidth);
-        if onlyDiagElements
-        then
-            W := TDoubleMatrix.Create(1, fSubWidth)
-        else
-            W := TDoubleMatrix.Create(fSubWidth, fSubWidth);
+        W := TDoubleMatrix.Create(ifthen(onlyDiagElements, 1, fSubWidth), fSubWidth);
 
         // create three matrices -> Matrix W is a diagonal matrix with the singular values stored in the diagonal
-        Result := MatrixSVD(StartElement, LineWidth, fSubWidth, fSubHeight, U.StartElement, U.LineWidth, W.StartElement, W.LineWidth, V.StartElement, V.LineWidth, fLinEQProgress);
-
+        Result := MatrixSVD(StartElement, LineWidth, fSubWidth, fSubHeight, U.StartElement, U.LineWidth, 
+                            W.StartElement, W.LineWidth + ifthen(onlyDiagElements, 0, sizeof(double)), 
+                            V.StartElement, V.LineWidth, fLinEQProgress);
+     
         if Result <> srOk then
         begin
              FreeAndNil(u);
              FreeAndNil(V);
              FreeAndNil(W);
         end;
-
      except
            FreeAndNil(u);
            FreeAndNil(V);

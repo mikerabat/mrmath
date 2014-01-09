@@ -45,6 +45,7 @@ type
    procedure TestMult;
    procedure TestMult2;
    procedure TestMult3;
+   procedure TestSVD;
    procedure TestTranspose;
    procedure TestCovariance;
    procedure TestApplyFunc;
@@ -90,7 +91,7 @@ type
 implementation
 
 uses BaseMathPersistence, binaryReaderWriter,
-     math, MatrixConst, mtxTimer;
+     math, MatrixConst, mtxTimer, Dialogs;
 
 { TestTDoubleMatrix }
 
@@ -363,6 +364,33 @@ begin
      finally
             mtx.Free;
      end;
+end;
+
+procedure TestTDoubleMatrix.TestSVD;
+const cA : Array[0..11] of double = (1, 2, 3, 4, 5, 4, 3, 1, 1, 2, 1, 2);
+var a : TDoubleMatrix;
+    u, w, v : TDoubleMatrix;
+begin
+     a := TDoubleMatrix.Create(4, 3);
+     a.Assign(cA, 4, 3);
+
+     a.SVD(u, v, w, False);
+
+     Check((u.Width = 4) and (u.Height = 3), 'Error U has the wrong dimension');
+     Check((w.Width = 4) and (w.Height = 4), 'Error W has the wrong dimension');
+     Check((v.Width = 4) and (v.Height = 4), 'Error V has the wrong dimension');
+
+     // check if U*W*V' = A
+     v.TransposeInPlace;
+     w.MultInPlace(v);
+     u.MultInPlace(w);
+
+     Check( CheckMtx(a.SubMatrix, u.SubMatrix), 'Error U*W*V'' is not A');
+
+     a.Free;
+     U.Free;
+     V.Free;
+     w.Free;
 end;
 
 procedure TestTDoubleMatrix.TestTranspose;
