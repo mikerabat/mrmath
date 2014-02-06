@@ -43,6 +43,10 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: Donnerstag 6.2.2014
+The prefetch instructions raised an external exception in Pentium 4 processors. I removed (commented them out) 
+them since the performance gain was marginal anyway.
+
 Date: Donnerstag 09. Jänner 2014 17:06
 Fix: The implementation of the SVD in the matrix class didn't work for the case width > height.
 

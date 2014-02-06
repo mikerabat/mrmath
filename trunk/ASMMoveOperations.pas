@@ -341,8 +341,8 @@ begin
                 jg @loopEnd;
 
                 // prefetch data...
-                prefetch [esi + eax];
-                prefetchw [ecx + eax];
+//                // prefetch [esi + eax];
+//                prefetchw [ecx + eax];
 
                 // move:
                 movdqa xmm0, [esi + eax - 128];
@@ -501,7 +501,7 @@ begin
                 jg @loopEnd;
 
                 // prefetch data...
-                prefetch [esi + eax];
+                // prefetch [esi + eax];
                 prefetchw [ecx + eax];
 
                 // addition:

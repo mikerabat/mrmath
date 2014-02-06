@@ -64,8 +64,8 @@ begin
                 jg @loopEnd;
 
                 // prefetch data...
-                prefetch [esi + eax];
-                prefetch [edi + eax];
+                // prefetch [esi + eax];
+                // prefetch [edi + eax];
 
                 // addition:
                 movapd xmm0, [esi + eax - 128];
@@ -281,8 +281,8 @@ begin
                 jg @loopEnd;
 
                 // prefetch data...
-                prefetch [esi + eax];
-                prefetch [edi + eax];
+                // prefetch [esi + eax];
+                // prefetch [edi + eax];
 
                 // mult:
                 movapd xmm0, [esi + eax - 128];

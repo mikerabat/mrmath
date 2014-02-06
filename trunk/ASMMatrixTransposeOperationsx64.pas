@@ -72,8 +72,8 @@ asm
            add rax, 128;
            jg @loopend;
 
-           prefetch [r12 + rax];
-           prefetch [r13 + rax];
+           // prefetch [r12 + rax];
+           // prefetch [r13 + rax];
 
            movapd xmm0, [r12 + rax - 128];
            movapd xmm1, [r13 + rax - 128];
@@ -406,8 +406,8 @@ asm
            add rax, 128;
            jg @loopend;
 
-           prefetch [r12 + rax];
-           prefetch [r13 + rax];
+           // prefetch [r12 + rax];
+           // prefetch [r13 + rax];
 
            movapd xmm0, [r12 + rax - 128];
            movapd xmm1, [r13 + rax - 128];
@@ -771,8 +771,8 @@ asm
            add rax, 128;
            jg @loopend;
 
-           prefetch [r12 + rax];
-           prefetch [r13 + rax];
+           // prefetch [r12 + rax];
+           // prefetch [r13 + rax];
 
            movapd xmm0, [r12 + rax - 128];
            movapd xmm1, [r13 + rax - 128];
@@ -1121,8 +1121,8 @@ asm
            add rax, 128;
            jg @loopend;
 
-           prefetch [r12 + rax];
-           prefetch [r13 + rax];
+           // prefetch [r12 + rax];
+           // prefetch [r13 + rax];
 
            movapd xmm0, [r12 + rax - 128];
            movapd xmm1, [r13 + rax - 128];

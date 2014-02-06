@@ -74,8 +74,8 @@ begin
                 add eax, 128;
                 jg @loopend;
 
-                prefetch [esi + eax];
-                prefetch [edi + eax];
+                // prefetch [esi + eax];
+                // prefetch [edi + eax];
 
                 movapd xmm0, [esi + eax - 128];
                 movapd xmm1, [edi + eax - 128];
@@ -426,8 +426,8 @@ begin
                 add eax, 128;
                 jg @loopend;
 
-                prefetch [esi + eax];
-                prefetch [edi + eax];
+                // prefetch [esi + eax];
+                // prefetch [edi + eax];
 
                 movapd xmm0, [esi + eax - 128];
                 movapd xmm1, [edi + eax - 128];
@@ -792,8 +792,8 @@ begin
                 add eax, 128;
                 jg @loopend;
 
-                prefetch [esi + eax];
-                prefetch [edi + eax];
+                // prefetch [esi + eax];
+                // prefetch [edi + eax];
 
                 movapd xmm0, [esi + eax - 128];
                 movapd xmm1, [edi + eax - 128];
@@ -1180,8 +1180,8 @@ begin
                 add eax, 128;
                 jg @loopend;
 
-                prefetch [esi + eax];
-                prefetch [edi + eax];
+                // prefetch [esi + eax];
+                // prefetch [edi + eax];
 
                 movapd xmm0, [esi + eax - 128];
                 movapd xmm1, [edi + eax - 128];

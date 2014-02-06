@@ -64,8 +64,8 @@ asm
            jg @loopEnd;
 
            // prefetch data...
-           prefetch [r8 + rax];
-           prefetch [r9 + rax];
+           // prefetch [r8 + rax];
+           // prefetch [r9 + rax];
 
            // mult:
            movapd xmm0, [r8 + rax - 128];
@@ -274,8 +274,8 @@ asm
            jg @loopEnd;
 
            // prefetch data...
-           prefetch [r8 + rax];
-           prefetch [r9 + rax];
+           // prefetch [r8 + rax];
+           // prefetch [r9 + rax];
 
            // mult:
            movapd xmm0, [r8 + rax - 128];

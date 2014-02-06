@@ -318,7 +318,7 @@ asm
            jg @loopEnd;
 
            // prefetch data...
-           prefetch [r8 + rax];
+           // prefetch [r8 + rax];
            prefetchw [rcx + rax];
 
            // move:
@@ -465,7 +465,7 @@ asm
            jg @loopEnd;
 
            // prefetch data...
-           prefetch [r8 + rax];
+           // prefetch [r8 + rax];
            prefetchw [rcx + rax];
 
            // move:
