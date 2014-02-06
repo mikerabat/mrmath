@@ -70,8 +70,8 @@ asm
            jg @loopEnd;
 
            // prefetch data...
-           prefetch [r11 + rax];
-           prefetch [r12 + rax];
+           // prefetch [r11 + rax];
+           // prefetch [r12 + rax];
 
            // addition:
            movapd xmm1, [r11 + rax - 128];
@@ -268,8 +268,8 @@ asm
            jg @loopEnd;
 
            // prefetch data...
-           prefetch [r11 + rax];
-           prefetch [r12 + rax];
+           // prefetch [r11 + rax];
+           // prefetch [r12 + rax];
 
            // addition:
            movapd xmm1, [r11 + rax - 128];

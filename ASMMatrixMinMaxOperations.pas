@@ -75,7 +75,7 @@ begin
                 jg @loopEnd;
 
                 // prefetch data...
-                prefetch [ecx + eax];
+                // prefetch [ecx + eax];
 
                 // max:
                 maxpd xmm0, [ecx + eax - 128];
@@ -223,7 +223,7 @@ begin
                 jg @loopEnd;
 
                 // prefetch data...
-                prefetch [ecx + eax];
+                // prefetch [ecx + eax];
 
                 // max:
                 maxpd xmm0, [ecx + eax - 128];
@@ -379,7 +379,7 @@ begin
                 jg @loopEnd;
 
                 // prefetch data...
-                prefetch [ecx + eax];
+                // prefetch [ecx + eax];
 
                 // min:
                 minpd xmm0, [ecx + eax - 128];
@@ -527,7 +527,7 @@ begin
                 jg @loopEnd;
 
                 // prefetch data...
-                prefetch [ecx + eax];
+                // prefetch [ecx + eax];
 
                 // min:
                 minpd xmm0, [ecx + eax - 128];

@@ -72,7 +72,7 @@ begin
                 jg @loopEnd;
 
                 // prefetch data...
-                prefetch [ecx + eax];
+                // prefetch [ecx + eax];
 
                 // mul add:
                 movapd xmm0, [ecx + eax - 128];
@@ -258,7 +258,7 @@ begin
                 jg @loopEnd;
 
                 // prefetch data...
-                prefetch [ecx + eax];
+                // prefetch [ecx + eax];
 
                 // mul add:
                 movapd xmm0, [ecx + eax - 128];
@@ -458,7 +458,7 @@ begin
                 jg @loopEnd;
 
                 // prefetch data...
-                prefetch [ecx + eax];
+                // prefetch [ecx + eax];
 
                 // mul add:
                 movapd xmm0, [ecx + eax - 128];
@@ -527,7 +527,7 @@ begin
                 jg @loopEnd2;
 
                 // prefetch data...
-                prefetch [ecx + eax];
+                // prefetch [ecx + eax];
                 prefetchw [ebx + eax];
 
                 // mul add:
@@ -783,7 +783,7 @@ begin
                 jg @loopEnd;
 
                 // prefetch data...
-                prefetch [ecx + eax];
+                // prefetch [ecx + eax];
 
                 // addition:
                 movapd xmm0, [ecx + eax - 128];
@@ -857,7 +857,7 @@ begin
                 jg @loopEnd2;
 
                 // prefetch data...
-                prefetch [ecx + eax];
+                // prefetch [ecx + eax];
                 prefetchw [ebx + eax];
 
                 // addition:

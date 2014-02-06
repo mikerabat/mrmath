@@ -72,7 +72,7 @@ asm
            jg @loopEnd;
 
            // prefetch data...
-           prefetch [rcx + rax];
+           // prefetch [rcx + rax];
 
            // mul add:
            movapd xmm7, [rcx + rax - 128];
@@ -250,7 +250,7 @@ asm
            add rax, 128;
            jg @loopEnd;
            // prefetch data...
-           prefetch [rcx + rax];
+           // prefetch [rcx + rax];
 
            // mul add:
            movapd xmm7, [rcx + rax - 128];
@@ -439,7 +439,7 @@ asm
            jg @loopEnd;
 
            // prefetch data...
-           prefetch [r8 + rax];
+           // prefetch [r8 + rax];
 
            // mul add:
            movapd xmm7, [r8 + rax - 128];
@@ -507,7 +507,7 @@ asm
            jg @loopEnd2;
 
            // prefetch data...
-           prefetch [r8 + rax];
+           // prefetch [r8 + rax];
            prefetchw [rcx + rax];
 
            // mult:
@@ -745,7 +745,7 @@ asm
            jg @loopEnd;
 
            // prefetch data...
-           prefetch [r8 + rax];
+           // prefetch [r8 + rax];
 
            // mult add:
            movapd xmm7, [r8 + rax - 128];
@@ -818,7 +818,7 @@ asm
            jg @loopEnd2;
 
            // prefetch data...
-           prefetch [r8 + rax];
+           // prefetch [r8 + rax];
            prefetchw [rcx + rax];
 
            // mult:

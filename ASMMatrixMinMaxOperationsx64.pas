@@ -71,7 +71,7 @@ asm
            jg @loopEnd;
 
            // prefetch data...
-           prefetch [rcx + rax];
+           // prefetch [rcx + rax];
 
            // max:
            maxpd xmm0, [rcx + rax - 128];
@@ -211,7 +211,7 @@ asm
            jg @loopEnd;
 
            // prefetch data...
-           prefetch [rcx + rax];
+           // prefetch [rcx + rax];
 
            // max:
            maxpd xmm0, [rcx + rax - 128];
@@ -359,7 +359,7 @@ asm
            jg @loopEnd;
 
            // prefetch data...
-           prefetch [rcx + rax];
+           // prefetch [rcx + rax];
 
            // min:
            minpd xmm0, [rcx + rax - 128];
@@ -499,7 +499,7 @@ asm
            jg @loopEnd;
 
            // prefetch data...
-           prefetch [rcx + rax];
+           // prefetch [rcx + rax];
 
            // min:
            minpd xmm0, [rcx + rax - 128];

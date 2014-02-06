@@ -68,7 +68,7 @@ asm
            add rax, 128;
            jg @loopEnd;
            // prefetch data...
-           prefetch [r8 + rax];
+           // prefetch [r8 + rax];
 
            // addition:
            addpd xmm0, [r8 + rax - 128];
@@ -233,7 +233,7 @@ asm
            add rax, 128;
            jg @loopEnd;
             // prefetch data...
-           prefetch [r8 + rax];
+           // prefetch [r8 + rax];
 
            // addition:
            addpd xmm0, [r8 + rax - 128];

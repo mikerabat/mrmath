@@ -368,9 +368,9 @@ asm
            mov rax, r14;
 
            @@InnerLoop:
-               prefetch [ecx + edx + 128];
-               prefetch [edi + edx + 128];
-               prefetch [eax + edx + 128];
+               // prefetch [ecx + edx + 128];
+               // prefetch [edi + edx + 128];
+               // prefetch [eax + edx + 128];
 
                movapd xmm1, [r8 + rax];
                movapd xmm5, xmm1;
