@@ -67,7 +67,7 @@ asm
            jg @loopEnd;
 
            // prefetchw data...
-           prefetchw [rcx + rax];
+           // prefetchw [rcx + rax];
 
            // add mul
            movapd xmm0, [rcx + rax - 128];
@@ -262,7 +262,7 @@ asm
            jg @loopEnd;
 
            // prefetchw data...
-           prefetchw [rcx + rax];
+           // prefetchw [rcx + rax];
 
            // add mul:
            movapd xmm0, [rcx + rax - 128];
@@ -469,7 +469,7 @@ asm
            jg @loopEnd;
 
            // prefetchw data...
-           prefetchw [rcx + rax];
+           // prefetchw [rcx + rax];
 
            // addition:
            movapd xmm0, [rcx + rax - 128];
@@ -664,7 +664,7 @@ asm
            jg @loopEnd;
 
            // prefetchw data...
-           prefetchw [rcx + rax];
+           // prefetchw [rcx + rax];
 
            // addition:
            movapd xmm0, [rcx + rax - 128];

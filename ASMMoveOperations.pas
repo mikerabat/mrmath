@@ -61,9 +61,8 @@ begin
           add edx, 64;
           jg @unrolloopend;
 
-          // prefetch data...
-          prefetchw [eax + edx];
-          prefetchw [ecx + edx];
+          // prefetchw [eax + edx];
+          // prefetchw [ecx + edx];
 
           movdqa xmm0, [eax + edx - 64];
           movdqa xmm1, [ecx + edx - 64];
@@ -190,8 +189,8 @@ begin
           add edx, 64;
           jg @unrolloopend;
 
-          prefetchw [eax + edx];
-          prefetchw [ecx + edx];
+          // prefetchw [eax + edx];
+          // prefetchw [ecx + edx];
 
           movdqa xmm0, [eax + edx - 64];
           movdqa xmm1, [ecx + edx - 64];
@@ -340,9 +339,8 @@ begin
                 add eax, 128;
                 jg @loopEnd;
 
-                // prefetch data...
 //                // prefetch [esi + eax];
-//                prefetchw [ecx + eax];
+//                // prefetchw [ecx + eax];
 
                 // move:
                 movdqa xmm0, [esi + eax - 128];
@@ -502,7 +500,7 @@ begin
 
                 // prefetch data...
                 // prefetch [esi + eax];
-                prefetchw [ecx + eax];
+                // prefetchw [ecx + eax];
 
                 // addition:
                 movdqa xmm0, [esi + eax - 128];

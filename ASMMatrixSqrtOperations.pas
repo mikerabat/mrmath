@@ -61,7 +61,7 @@ begin
                 jg @loopEnd;
 
                 // prefetch data...
-                prefetchw [ecx + eax];
+                // prefetchw [ecx + eax];
 
                 // sqrt:
                 sqrtpd xmm0, [ecx + eax - 128];
@@ -221,7 +221,7 @@ begin
                 jg @loopEnd;
 
                 // prefetch data...
-                prefetchw [ecx + eax];
+                // prefetchw [ecx + eax];
 
                 // addition:
                 sqrtpd xmm0, [ecx + eax - 128];

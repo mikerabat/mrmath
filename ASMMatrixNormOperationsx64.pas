@@ -508,7 +508,7 @@ asm
 
            // prefetch data...
            // prefetch [r8 + rax];
-           prefetchw [rcx + rax];
+           // prefetchw [rcx + rax];
 
            // mult:
            movapd xmm7, [r8 + rax - 128];
@@ -819,7 +819,7 @@ asm
 
            // prefetch data...
            // prefetch [r8 + rax];
-           prefetchw [rcx + rax];
+           // prefetchw [rcx + rax];
 
            // mult:
            movapd xmm7, [r8 + rax - 128];

@@ -59,7 +59,7 @@ asm
            jg @loopEnd;
 
            // prefetch data...
-           prefetchw [rcx + rax];
+           // prefetchw [rcx + rax];
 
            // elementwise sqrt
            sqrtpd xmm0, [rcx + rax - 128];
@@ -212,7 +212,7 @@ asm
            jg @loopEnd;
 
            // prefetch data...
-           prefetchw [rcx + rax];
+           // prefetchw [rcx + rax];
 
            // elementwise sqrt
            sqrtpd xmm0, [rcx + rax - 128];
