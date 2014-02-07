@@ -114,7 +114,7 @@ begin
 
             jz @nextLine;
 
-            prefetchw [ecx + eax + 128];
+            // prefetchw [ecx + eax + 128];
 
             @addforxloop2:
                 movapd xmm0, [ecx + eax];
@@ -528,7 +528,7 @@ begin
 
                 // prefetch data...
                 // prefetch [ecx + eax];
-                prefetchw [ebx + eax];
+                // prefetchw [ebx + eax];
 
                 // mul add:
                 movapd xmm0, [ecx + eax - 128];
@@ -858,7 +858,7 @@ begin
 
                 // prefetch data...
                 // prefetch [ecx + eax];
-                prefetchw [ebx + eax];
+                // prefetchw [ebx + eax];
 
                 // addition:
                 movapd xmm0, [ecx + eax - 128];

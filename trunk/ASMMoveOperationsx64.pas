@@ -58,8 +58,8 @@ asm
      jg @unrolloopend;
 
      // prefetch data...
-     prefetchw [rcx + r10];
-     prefetchw [rdx + r10];
+     // prefetchw [rcx + r10];
+     // prefetchw [rdx + r10];
 
      movdqa xmm0, [rcx + r10 - 64];
      movdqa xmm1, [rdx + r10 - 64];
@@ -177,8 +177,8 @@ asm
      jg @unrolloopend;
 
      // prefetch data...
-     prefetchw [rcx + r10];
-     prefetchw [rdx + r10];
+     // prefetchw [rcx + r10];
+     // prefetchw [rdx + r10];
 
      movdqa xmm0, [rcx + r10 - 64];
      movdqa xmm1, [rdx + r10 - 64];
@@ -319,7 +319,7 @@ asm
 
            // prefetch data...
            // prefetch [r8 + rax];
-           prefetchw [rcx + rax];
+           // prefetchw [rcx + rax];
 
            // move:
            movdqa xmm0, [r8 + rax - 128];
@@ -466,7 +466,7 @@ asm
 
            // prefetch data...
            // prefetch [r8 + rax];
-           prefetchw [rcx + rax];
+           // prefetchw [rcx + rax];
 
            // move:
            movdqa xmm0, [r8 + rax - 128];
