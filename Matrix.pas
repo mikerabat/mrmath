@@ -108,8 +108,8 @@ type
     procedure ScaleInPlace(const Value : Double);
     function ScaleAndAdd(const Offset, Scale : double) : TDoubleMatrix;
     procedure ScaleAndAddInPlace(const Offset, Scale : double);
-    function SQRT(const Value : double) : TDoubleMatrix;
-    procedure SQRTInPlace(const Value : double);
+    function SQRT : TDoubleMatrix;
+    procedure SQRTInPlace;
 
     procedure ElementwiseFuncInPlace(func : TMatrixFunc); overload;
     function ElementwiseFunc(func : TMatrixFunc) : TDoubleMatrix; overload;
@@ -278,8 +278,8 @@ type
     procedure ScaleInPlace(const Value : Double);
     function ScaleAndAdd(const Offset, Scale : double) : TDoubleMatrix;
     procedure ScaleAndAddInPlace(const Offset, Scale : double);
-    function SQRT(const Value : double) : TDoubleMatrix;
-    procedure SQRTInPlace(const Value : double);
+    function SQRT : TDoubleMatrix;
+    procedure SQRTInPlace;
 
     procedure ElementwiseFuncInPlace(func : TMatrixFunc); overload; virtual;
     function ElementwiseFunc(func : TMatrixFunc) : TDoubleMatrix; overload; virtual;
@@ -339,6 +339,7 @@ type
 
     constructor Create; overload;
     constructor Create(width, height : integer; const initVal : double = 0); overload;
+    constructor CreateEye(width : integer);
     constructor Create(data : PDouble; LineWidth : integer; width, height : integer); overload;
     constructor Create(const Data : TDoubleDynArray; width, height : integer); overload;
     destructor Destroy; override;
@@ -562,6 +563,7 @@ procedure TDoubleMatrix.SolveLinEQInPlace(Value: IMatrix;
 begin
      SolveLinEQInPlace(Value.GetObjRef, numRefinements);
 end;
+
 procedure TDoubleMatrix.SolveLinEQInPlace(Value: TDoubleMatrix; numRefinements : integer);
 var dt : TDoubleMatrix;
 begin
@@ -584,7 +586,7 @@ begin
      end;
 end;
 
-function TDoubleMatrix.SQRT(const Value: double): TDoubleMatrix;
+function TDoubleMatrix.SQRT: TDoubleMatrix;
 begin
      assert((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
      Result := TDoubleMatrix.Create;
@@ -593,7 +595,7 @@ begin
      MatrixSQRT(Result.StartElement, Result.LineWidth, Result.Width, Result.Height);
 end;
 
-procedure TDoubleMatrix.SQRTInPlace(const Value: double);
+procedure TDoubleMatrix.SQRTInPlace;
 begin
      assert((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
      MatrixSQRT(StartElement, LineWidth, fSubWidth, fSubHeight);
@@ -1673,6 +1675,17 @@ begin
      inherited Create;
 
      Assign(Data, Width, height);
+end;
+
+constructor TDoubleMatrix.CreateEye(width: integer);
+var i : integer;
+begin
+     inherited Create;
+
+     SetWidthHeight(width, width, True);
+
+     for i := 0 to width - 1 do
+         Items[i, i] := 1;
 end;
 
 initialization
