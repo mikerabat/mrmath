@@ -75,6 +75,7 @@ procedure MatrixSum(var dest : Array of double; const Src : Array of double; wid
 
 procedure MatrixAddAndScale(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
 procedure MatrixScaleAndAdd(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
+procedure MatrixAbs(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
 procedure MatrixSQRT(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
 
 // element wise eukledian norm
@@ -108,6 +109,7 @@ type
   TMatrixElemWiseFunc = TMatrixAddFunc;
   TMatrixAddScaleFunc = procedure(dest : PDouble; LineWidth, width, height : TASMNativeInt; const dOffset, Scale : double);
   TMatrixSQRTFunc = procedure(dest : PDouble; LineWidth : TASMNativeInt; width, height : TASMNativeInt);
+  TMatrixAbsFunc = procedure(dest : PDouble; LineWidth : TASMNativeInt; width, height : TASMNativeInt);
   TMatrixCopyFunc = procedure(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
   TMatrixMinMaxFunc = function(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
   TMatrixTransposeFunc = procedure(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
@@ -123,6 +125,7 @@ var multFunc : TMatrixMultFunc;
     addScaleFunc : TMatrixAddScaleFunc;
     scaleAddFunc : TMatrixAddScaleFunc;
     sqrtFunc : TMatrixSQRTFunc;
+    absFunc : TMatrixAbsFunc;
     copyFunc : TMatrixCopyFunc;
     maxFunc : TMatrixMinMaxFunc;
     minFunc : TMatrixMinMaxFunc;
@@ -447,6 +450,14 @@ begin
      sqrtFunc(Dest, LineWidth, Width, Height);
 end;
 
+procedure MatrixAbs(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
+begin
+     assert((width > 0) and (height > 0), 'Dimension error');
+     assert(LineWidth >= width*sizeof(double), 'Line width error');
+
+     absFunc(Dest, LineWidth, Width, Height);
+end;
+
 // element wise eukledian norm
 function MatrixElementwiseNorm2(Src : PDouble; const srcLineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
 begin
@@ -512,6 +523,7 @@ begin
           matrixMeanFunc := ASMMatrixMean;
           matrixSumFunc := ASMMatrixSum;
           rowSwapFunc := ASMRowSwap;
+          absFunc := ASMMatrixAbs;
      end
      else
      begin
@@ -536,6 +548,7 @@ begin
           matrixMeanFunc := GenericMtxMean;
           matrixSumFunc := GenericMtxSum;
           rowSwapFunc := GenericRowSwap;
+          absFunc := GenericMtxAbs;
      end;
 
      actUseSSEoptions := IsSSE3Present;

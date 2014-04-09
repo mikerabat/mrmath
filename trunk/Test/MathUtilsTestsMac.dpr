@@ -87,7 +87,9 @@ uses
   GCDDispatch in '..\mac\GCDDispatch.pas',
   MacOsThreadPool in '..\mac\MacOsThreadPool.pas',
   SimpleWinThreadPool in '..\win\SimpleWinThreadPool.pas',
-  WinThreadPool in '..\win\WinThreadPool.pas';
+  WinThreadPool in '..\win\WinThreadPool.pas',
+  CCA in '..\CCA.pas',
+  TestCCA in 'TestCCA.pas';
 
 {$R *.res}
 

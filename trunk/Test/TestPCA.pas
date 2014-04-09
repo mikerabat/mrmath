@@ -1,3 +1,17 @@
+// ###################################################################
+// #### This file is part of the mathematics library project, and is
+// #### offered under the licence agreement described on
+// #### http://www.mrsoft.org/
+// ####
+// #### Copyright:(c) 2014, Michael R. . All rights reserved.
+// ####
+// #### Unless required by applicable law or agreed to in writing, software
+// #### distributed under the License is distributed on an "AS IS" BASIS,
+// #### WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// #### See the License for the specific language governing permissions and
+// #### limitations under the License.
+// ###################################################################
+
 unit TestPCA;
 
 interface
@@ -5,12 +19,7 @@ interface
 uses TestFramework, Classes, SysUtils, BaseMatrixTestCase, Matrix;
 
 type
- // Testmethoden für Klasse TDoubleMatrix
-
- TTestPCA = class(TBaseMatrixTestCase)
- private
-   procedure ImageFromMatrix(img : TDoubleMatrix; w, h : integer; const FileName : string);
-   function LoadImages(var w, h : integer) : TDoubleMatrix;
+ TTestPCA = class(TBaseImgTestCase)
  published
    procedure TestPCASimple;
    procedure TestPCAImages;
@@ -28,103 +37,6 @@ uses PCA,
      Graphics, JPeg, Math, BinaryReaderWriter, BaseMathPersistence, IncrementalPCA;
 
 { TTestEigensystems }
-
-procedure TTestPCA.ImageFromMatrix(img: TDoubleMatrix; w, h : integer;
-  const FileName: string);
-var bmp : TBitmap;
-    x, y : integer;
-    idx : integer;
-    pScanLine : PRGBTriple;
-begin
-     // create an image from the reconstructed matrix
-     bmp := TBitmap.Create;
-     try
-        bmp.Width := W;
-        bmp.Height := H;
-        bmp.PixelFormat := pf24bit;
-
-        idx := 0;
-        for y := 0 to bmp.Height - 1 do
-        begin
-             pScanLine := bmp.ScanLine[y];
-
-             for x := 0 to bmp.Width - 1 do
-             begin
-                  pScanline^.rgbtBlue := Max(0, Min(255, Round(img[0, idx])));
-                  pScanline^.rgbtRed := pScanline^.rgbtBlue;
-                  pScanline^.rgbtGreen := pScanline^.rgbtBlue;
-
-                  inc(pScanLine);
-                  inc(idx);
-             end;
-        end;
-
-        bmp.SaveToFile(FileName);
-     finally
-            bmp.Free;
-     end;
-end;
-
-function TTestPCA.LoadImages(var w, h : integer): TDoubleMatrix;
-var path : string;
-    imgNum : integer;
-    jpg : TJPEGImage;
-    bmp : TBitmap;
-    sr : TSearchRec;
-    pScanLine : PRGBTriple;
-    idx : integer;
-    x, y : integer;
-begin
-     // load a bunch of images and calculate a PCA. Note the images
-     Result := nil;
-     imgNum := 0;
-     w := 0;
-     h := 0;
-     path := ExtractFilePath(ParamStr(0)) + '\Images\';
-     if FindFirst(Path + '*.jpg', 0, sr) = 0 then
-     begin
-          repeat
-                jpg := TJPEGImage.Create;
-                try
-                   jpg.LoadFromFile(path + sr.name);
-
-                   bmp := TBitmap.Create;
-                   try
-                      bmp.Assign(jpg);
-                      assert(bmp.PixelFormat = pf24bit);
-
-                      if not Assigned(Result) then
-                      begin
-                           w := bmp.Width;
-                           h := bmp.Height;
-                           Result := TDoubleMatrix.Create(20, bmp.Width*bmp.Height);
-                      end;
-
-                      // create matrix from image
-                      idx := 0;
-                      for y := 0 to bmp.Height - 1 do
-                      begin
-                           pScanLine := bmp.ScanLine[y];
-
-                           for x := 0 to bmp.Width - 1 do
-                           begin
-                                Result[imgNum, idx] := Round(pScanline^.rgbtBlue*0.1140 + pScanline^.rgbtRed*0.2989 + pScanline^.rgbtGreen*0.5870);
-                                inc(pScanLine);
-                                inc(idx);
-                           end;
-                      end;
-
-                      inc(imgNum);
-                   finally
-                          bmp.Free;
-                   end;
-                finally
-                       jpg.Free;
-                end;
-          until FindNext(sr) <> 0;
-     end;
-     SysUtils.FindClose(sr);
-end;
 
 procedure TTestPCA.TestFastRobustPCA;
 var Examples : TDoubleMatrix;

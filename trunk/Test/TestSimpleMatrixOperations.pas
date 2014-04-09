@@ -39,6 +39,7 @@ type
    procedure TestRowExchange;
    procedure TestNormalize;
    procedure TestApplyfunc;
+   procedure TestAbs;
   end;
 
   TASMMatrixOperations = class(TBaseMatrixTestCase)
@@ -84,6 +85,7 @@ type
     procedure TestThreadMatrixAddSub;
     procedure TestThreadMatrixAddAndScale;
     procedure TestStrassenMult;
+    procedure TestAbs;
   end;
 
   TASMatrixBlockSizeSetup = class(TBaseMatrixTestCase)
@@ -110,6 +112,22 @@ uses ASMMatrixOperations, ThreadedMatrixOperations, MtxThreadPool, mtxTimer,
      ASMMatrixMeanOperations, ASMMatrixSumOperations,
      {$ENDIF}
      MatrixConst, ASMConsts;
+
+procedure TestMatrixOperations.TestAbs;
+const mt1 : Array[0..5] of double = (-1, 2, 2, -2, 3, -3);
+      mtdest : Array[0..5] of double = (1, 2, 2, 2, 3, 3);
+var mtx : TDoubleDynArray;
+begin
+     SetLength(mtx, Length(mt1));
+     Move(mt1[0], mtx[0], sizeof(mt1));
+
+     GenericMtxAbs(@mtx[0], 3*sizeof(double), 3, 2);
+     CheckEqualsMem(@mtx[0], @mtdest[0], sizeof(mtdest), 'Error Matrix abs: ' + #13#10 + WriteMtxDyn(mtx, 3));
+
+     Move(mt1[0], mtx[0], sizeof(mt1));
+     GenericMtxAbs(@mtx[0], 2*sizeof(double), 2, 3);
+     CheckEqualsMem(@mtx[0], @mtdest[0], sizeof(mtdest), 'Error Matrix abs: ' + #13#10 + WriteMtxDyn(mtx, 3));
+end;
 
 procedure TestMatrixOperations.TestAdd;
 const mt1 : Array[0..5] of double = (0, 1, 2, 3, 4, 5);
@@ -169,6 +187,65 @@ end;
 procedure TASMMatrixOperations.TearDown;
 begin
      FinalizeMtxThreadPool;
+end;
+
+procedure TASMMatrixOperations.TestAbs;
+const mt1 : Array[0..5] of double = (-1, 2, 2, -2, 3, -3);
+      mtdest : Array[0..5] of double = (1, 2, 2, 2, 3, 3);
+      sign : Array[0..1] of double = (-1, 1);
+var mt2 : TDoubleDynArray;
+    mtx : TDoubleDynArray;
+    cnt: Integer;
+    mta1 : PConstDoubleArr;
+begin
+     SetLength(mtx, Length(mt1));
+     Move(mt1[0], mtx[0], sizeof(mt1));
+     ASMMatrixAbs(@mtx[0], 3*sizeof(double), 3, 2);
+     CheckEqualsMem(@mtx[0], @mtdest[0], sizeof(mtdest), 'Error Matrix abs: ' + #13#10 + WriteMtxDyn(mtx, 3));
+
+     Move(mt1[0], mtx[0], sizeof(mt1));
+     
+     SetLength(mt2, 1022);
+     for cnt := 0 to Length(mt2) - 1 do
+         mt2[cnt] := Random(10)*sign[random(2)];
+
+     ASMMatrixAbs(@mt2[0], (length(mt2) div 14)*sizeof(double), (length(mt2) div 14), 14);
+     for cnt := 0 to Length(mt2) - 1 do
+         Check(mt2[cnt] >= 0, 'Error matrix abs - negative value found'); 
+
+     SetLength(mt2, 1022);
+     for cnt := 0 to Length(mt2) - 1 do
+     begin
+          mt2[cnt] := Random(10)*sign[random(2)];
+          if ((cnt + 1) mod 73) = 0 then
+             mt2[cnt] := 0;
+     end;
+
+     ASMMatrixAbs(@mt2[0], (length(mt2) div 14)*sizeof(double), (length(mt2) div 14) - 1, 14);
+     for cnt := 0 to Length(mt2) - 1 do
+         Check(mt2[cnt] >= 0, 'Error matrix abs - negative value found'); 
+
+     // aligned checks
+     mta1 := GetMemory(1024*sizeof(double));
+     for cnt := 0 to 1024 - 1 do
+         mta1[cnt] := Random(10)*sign[random(2)];
+     
+     ASMMatrixAbs(PDouble(mta1), 128*sizeof(double), 128, 8);
+     for cnt := 0 to Length(mt2) - 1 do
+         Check(mta1^[cnt] >= 0, 'Error matrix abs - negative value found'); 
+
+     for cnt := 0 to 1024 - 1 do
+     begin
+          mta1[cnt] := Random(10)*sign[random(2)];
+          if ((cnt + 1) mod 128) = 0 then
+             mta1[cnt] := 0;
+     end;
+     
+     ASMMatrixAbs(PDouble(mta1), 128*sizeof(double), 127, 8);
+     for cnt := 0 to Length(mt2) - 1 do
+         Check(mta1^[cnt] >= 0, 'Error matrix abs - negative value found'); 
+     
+     FreeMem(mta1);
 end;
 
 procedure TASMMatrixOperations.TestASMAdd;

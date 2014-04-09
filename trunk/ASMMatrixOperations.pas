@@ -44,6 +44,7 @@ procedure ASMMatrixElemMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, 
 procedure ASMMatrixAddAndScale(Dest : PDouble;  LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
 procedure ASMMatrixScaleAndAdd(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
 procedure ASMMatrixSQRT(Dest : PDouble; LineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+procedure ASMMatrixAbs(Dest : PDouble; LineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
 
 function ASMMatrixMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 function ASMMatrixMin(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
@@ -77,13 +78,13 @@ implementation
 
 uses Math, BlockSizeSetup, SimpleMatrixOperations,
      {$IFDEF CPUX64}
-     ASMMatrixMultOperationsx64, ASMMatrixVectorMultOperationsx64,
+     ASMMatrixMultOperationsx64, ASMMatrixVectorMultOperationsx64, ASMMatrixAbsOperationsx64,
      ASMMatrixMultTransposedOperationsx64, ASMMatrixAddSubOperationsx64,
      ASMMatrixElementwiseMultOperationsx64, ASMMatrixScaleOperationsx64, ASMMatrixSQRTOperationsx64,
      ASMMoveOperationsx64, ASMMatrixMinMaxOperationsx64, ASMMatrixTransposeOperationsx64,
      ASMMatrixNormOperationsx64, ASMMatrixMeanOperationsx64, ASMMatrixSumOperationsx64
      {$ELSE}
-     ASMMatrixMultOperations, ASMMatrixVectorMultOperations,
+     ASMMatrixMultOperations, ASMMatrixVectorMultOperations, ASMMatrixAbsOperations,
      ASMMatrixMultTransposedOperations, ASMMatrixAddSubOperations,
      ASMMatrixElementwiseMultOperations, ASMMatrixScaleOperations, ASMMatrixSQRTOperations,
      ASMMoveOperations, ASMMatrixMinMaxOperations, ASMMatrixTransposeOperations,
@@ -216,7 +217,7 @@ end;
 
 procedure ASMMatrixAddAndScale(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
 begin
-					if (width = 0) or (height = 0) then
+     if (width = 0) or (height = 0) then
         exit;
 
      if (width = 1) and (LineWidth = sizeof(double)) then
@@ -301,6 +302,36 @@ begin
               ASMMatrixSQRTUnAlignedEvenW(dest, LineWidth, width, height)
           else
               ASMMatrixSQRTUnAlignedOddW(dest, LineWidth, width, height);
+     end;
+end;
+
+procedure ASMMatrixAbs(Dest : PDouble; LineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+begin
+     if (width = 0) or (height = 0) then
+        exit;
+
+     if (width = 1) and (LineWidth = sizeof(double)) then
+     begin
+          width := height;
+          height := 1;
+          LineWidth := width*sizeof(double) + (width and 1)*sizeof(double);
+     end;
+
+     if (Cardinal(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
+     begin
+          if (width and 1) = 0
+          then
+              ASMMatrixAbsAlignedEvenW(dest, LineWidth, width, height)
+          else
+              ASMMatrixAbsAlignedOddW(dest, LineWidth, width, height);
+     end
+     else
+     begin
+          if (width and 1) = 0
+          then
+              ASMMatrixAbsUnAlignedEvenW(dest, LineWidth, width, height)
+          else
+              ASMMatrixAbsUnAlignedOddW(dest, LineWidth, width, height);
      end;
 end;
 

@@ -24,6 +24,7 @@ program MathUtilsTests;
 {$ENDIF}
 
 uses
+  madExcept,
   Forms,
   TestFramework,
   GUITestRunner,
@@ -78,15 +79,19 @@ uses
   BufferedStream in '..\BufferedStream.pas',
   ThreadedLinAlg in '..\ThreadedLinAlg.pas',
   TestPCA in 'TestPCA.pas',
+  CCA in '..\CCA.pas',
   PCA in '..\PCA.pas',
   TestNonLinFit in 'TestNonLinFit.pas',
+  ASMMatrixAbsOperations in '..\ASMMatrixAbsOperations.pas',
+  ASMMatrixAbsOperationsx64 in '..\ASMMatrixAbsOperationsx64.pas',
   NonLinearFit in '..\NonLinearFit.pas',
   IncrementalPCA in '..\IncrementalPCA.pas',
   MacOsThreadPool in '..\mac\MacOsThreadPool.pas',
   SimpleWinThreadPool in '..\win\SimpleWinThreadPool.pas',
   WinThreadPool in '..\win\WinThreadPool.pas',
   GCDDispatch in '..\mac\GCDDispatch.pas',
-  MtxTimer in '..\MtxTimer.pas';
+  MtxTimer in '..\MtxTimer.pas',
+  TestCCA in 'TestCCA.pas';
 
 {$R *.RES}
 
