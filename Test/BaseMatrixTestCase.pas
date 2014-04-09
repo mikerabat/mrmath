@@ -17,11 +17,10 @@ unit BaseMatrixTestCase;
 
 interface
 
-uses TestFramework, Classes, SysUtils, Types;
+uses
+  Windows, TestFramework, Classes, SysUtils, Types, Matrix;
 
 type
- // Testmethoden für Klasse TDoubleMatrix
-
  TBaseMatrixTestCase = class(TTestCase)
  protected
    procedure WriteMatlabData(const fileName : string; const data : Array of double; width : integer);
@@ -32,9 +31,17 @@ type
    function WriteMtxDyn(const data : TDoubleDynArray; width : integer) : string; overload;
  end;
 
+ TBaseImgTestCase = class(TBaseMatrixTestCase)
+ protected
+   procedure ImageFromMatrix(img : TDoubleMatrix; w, h : integer; const FileName : string);
+   function LoadImages(var w, h : integer; path : string = 'Images'; ext : string = '*.jpg') : TDoubleMatrix;
+ end;
+
 
 
 implementation
+
+uses Graphics, JPEG, Math;
 
 { TBaseMatrixTestCase }
 
@@ -159,6 +166,116 @@ begin
 
           Result := Result + #13#10;
      end;
+end;
+
+
+procedure TBaseImgTestCase.ImageFromMatrix(img: TDoubleMatrix; w, h : integer;
+  const FileName: string);
+var bmp : TBitmap;
+    x, y : integer;
+    idx : integer;
+    pScanLine : PRGBTriple;
+begin
+     // create an image from the reconstructed matrix
+     bmp := TBitmap.Create;
+     try
+        bmp.Width := W;
+        bmp.Height := H;
+        bmp.PixelFormat := pf24bit;
+
+        idx := 0;
+        for y := 0 to bmp.Height - 1 do
+        begin
+             pScanLine := bmp.ScanLine[y];
+
+             for x := 0 to bmp.Width - 1 do
+             begin
+                  pScanline^.rgbtBlue := Max(0, Min(255, Round(img[0, idx])));
+                  pScanline^.rgbtRed := pScanline^.rgbtBlue;
+                  pScanline^.rgbtGreen := pScanline^.rgbtBlue;
+
+                  inc(pScanLine);
+                  inc(idx);
+             end;
+        end;
+
+        bmp.SaveToFile(FileName);
+     finally
+            bmp.Free;
+     end;
+end;
+
+function TBaseImgTestCase.LoadImages(var w, h : integer; path : string = 'Images'; ext : string = '*.jpg' ): TDoubleMatrix;
+var imgNum : integer;
+    img : TPicture;
+    bmp : TBitmap;
+    sr : TSearchRec;
+    pScanLine : PRGBTriple;
+    idx : integer;
+    x, y : integer;
+    numImg : integer;
+begin
+     // load a bunch of images and calculate a PCA. Note the images
+     Result := nil;
+     imgNum := 0;
+     w := 0;
+     h := 0;
+     path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)) + '\' + path);
+
+     numImg := 0;
+     if FindFirst(Path + ext, 0, sr) = 0 then
+     begin
+          repeat
+                inc(numImg);
+          until FindNext(sr) <> 0;
+     end;
+
+     FindClose(sr);
+
+     if FindFirst(Path + ext, 0, sr) = 0 then
+     begin
+          repeat
+                img := TPicture.Create;
+                try
+                   img.LoadFromFile(path + sr.name);
+
+                   bmp := TBitmap.Create;
+                   try
+                      bmp.SetSize(img.Width, img.Height);
+                      bmp.PixelFormat := pf24bit;
+                      bmp.Canvas.Draw(0, 0, img.Graphic);
+
+                      if not Assigned(Result) then
+                      begin
+                           w := bmp.Width;
+                           h := bmp.Height;
+                           Result := TDoubleMatrix.Create(numImg, bmp.Width*bmp.Height);
+                      end;
+
+                      // create matrix from image
+                      idx := 0;
+                      for y := 0 to bmp.Height - 1 do
+                      begin
+                           pScanLine := bmp.ScanLine[y];
+
+                           for x := 0 to bmp.Width - 1 do
+                           begin
+                                Result[imgNum, idx] := Round(pScanline^.rgbtBlue*0.1140 + pScanline^.rgbtRed*0.2989 + pScanline^.rgbtGreen*0.5870);
+                                inc(pScanLine);
+                                inc(idx);
+                           end;
+                      end;
+
+                      inc(imgNum);
+                   finally
+                          bmp.Free;
+                   end;
+                finally
+                       img.Free;
+                end;
+          until FindNext(sr) <> 0;
+     end;
+     FindClose(sr);
 end;
 
 initialization

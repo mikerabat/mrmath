@@ -73,7 +73,8 @@ procedure GenericMtxScaleAndAdd(Dest : PDouble; LineWidth, Width, Height : TASMN
 // element wise eukledian norm
 function GenericMtxElementwiseNorm2(Src : PDouble; srcLineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
 
-// element wise sqrt
+
+procedure GenericMtxAbs(dest : PDouble; destLineWidth, width, height : TASMNativeInt);
 procedure GenericMtxSqrt(dest : PDouble; destLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 
 // blocked matrix mult + strassen multiplication functions
@@ -707,6 +708,22 @@ begin
           pLine := PConstDoubleArr(dest);
           for x := 0 to width - 1 do
               pLine[x] := sqrt(pLine[x]);
+          inc(PByte(dest), destLineWidth);
+     end;
+end;
+
+procedure GenericMtxAbs(dest : PDouble; destLineWidth, width, height : TASMNativeInt);
+var x, y : TASMNativeInt;
+    pLine : PConstDoubleArr;
+begin
+     assert((width > 0) and (height > 0), 'Dimension Error');
+     assert(width*sizeof(double) <= destLineWidth, 'Dimension Error');
+
+     for y := 0 to Height - 1 do
+     begin
+          pLine := PConstDoubleArr(dest);
+          for x := 0 to width - 1 do
+              pLine[x] := abs(pLine[x]);
           inc(PByte(dest), destLineWidth);
      end;
 end;
