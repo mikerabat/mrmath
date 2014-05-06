@@ -69,6 +69,7 @@ type
    procedure TestTranspose;
    procedure TestCovariance;
    procedure TestElementWiseMult;
+   procedure TestElementWiseDiv;
   end;
 
 type
@@ -711,6 +712,43 @@ begin
      Check(CheckMtx(data, cov.SubMatrix), 'Error wrong covariance');
 end;
 
+
+procedure TestIMatrix.TestElementWiseDiv;
+var mtx : IMatrix;
+    x, y : integer;
+begin
+     mtx := TDoubleMatrix.Create(1, 1, -2);
+     mtx.ElementWiseDivInPlace(mtx);
+
+     Check(SameValue(mtx[0, 0], 1), 'Error 1x1 elementwise Div failed');
+
+     mtx := TDoubleMatrix.Create(1, 2, -2);
+     mtx.ElementWiseDivInPlace(mtx);
+     Check(SameValue(mtx[0, 0], 1) and SameValue(mtx[0, 1], 1), 'Error 1x2 elementwise Div failed');
+
+     mtx := TDoubleMatrix.Create(2, 2, -2);
+     mtx.ElementWiseDivInPlace(mtx);
+     Check(SameValue(mtx[0, 0], 1) and SameValue(mtx[0, 1], 1), 'Error 2x2 elementwise Div failed');
+     Check(SameValue(mtx[1, 0], 1) and SameValue(mtx[1, 1], 1), 'Error 2x2 elementwise Div failed');
+
+     mtx := TDoubleMatrix.Create(2, 3, -2);
+     mtx.ElementWiseDivInPlace(mtx);
+     Check(SameValue(mtx[0, 0], 1) and SameValue(mtx[0, 1], 1) and SameValue(mtx[0, 2], 1), 'Error 2x3 elementwise Div failed');
+     Check(SameValue(mtx[1, 0], 1) and SameValue(mtx[1, 1], 1) and SameValue(mtx[1, 2], 1), 'Error 2x3 elementwise Div failed');
+
+     mtx := TDoubleMatrix.Create(3, 2, -2);
+     mtx.ElementWiseDivInPlace(mtx);
+     Check(SameValue(mtx[0, 0], 1) and SameValue(mtx[0, 1], 1), 'Error 3x2 elementwise Div failed');
+     Check(SameValue(mtx[1, 0], 1) and SameValue(mtx[1, 1], 1), 'Error 3x2 elementwise Div failed');
+     Check(SameValue(mtx[2, 0], 1) and SameValue(mtx[2, 1], 1), 'Error 3x2 elementwise Div failed');
+
+
+     mtx := TDoubleMatrix.Create(123, 124, -2);
+     mtx.ElementWiseDivInPlace(mtx);
+     for x := 0 to mtx.Width - 1 do
+         for y := 0 to mtx.Height - 1 do
+             Check(SameValue(mtx[x, y], 1), 'Error big elementwise mult failed @' + IntToStr(x) + ',' + IntToStr(y));
+end;
 
 procedure TestIMatrix.TestElementWiseMult;
 var mtx : IMatrix;
