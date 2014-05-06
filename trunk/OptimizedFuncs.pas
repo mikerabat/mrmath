@@ -416,7 +416,7 @@ end;
 
 procedure MatrixSum(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean); overload;
 begin
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= width*sizeof(double)), 'Dimension error');
+     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= height*sizeof(double)), 'Dimension error');
      matrixSumFunc(dest, destLineWidth, Src, srcLineWidth, width, height, RowWise);
 end;
 
