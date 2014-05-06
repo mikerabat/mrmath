@@ -49,6 +49,7 @@ type
    procedure TestTranspose;
    procedure TestCovariance;
    procedure TestApplyFunc;
+   procedure TestSumInPlace;
   end;
 
 type
@@ -364,6 +365,29 @@ begin
      finally
             mtx.Free;
      end;
+end;
+
+procedure TestTDoubleMatrix.TestSumInPlace;
+var a : TDoubleMatrix;
+    i : Integer;
+begin
+     a := TDoubleMatrix.Create(4, 1);
+     for i := 0 to 3 do
+         a[i,0] := i + 1;
+     a.SumInPlace(False);
+
+     Check((a.Width = 4) and (a.Height = 1), 'Sum in place wrong size');
+     Check((a[0, 0] = 1) and (a[1, 0] = 2) and (a[2, 0] = 3) and (a[3, 0] = 4), 'Wrong sum');
+     a.Free;
+
+     a := TDoubleMatrix.Create(4, 1);
+     for i := 0 to 3 do
+         a[i,0] := i + 1;
+     a.SumInPlace(True);
+
+     Check((a.Width = 1) and (a.Height = 1), 'Sum in place wrong size');
+     Check(a[0, 0] = 10, 'Wrong Sum');
+     a.Free;
 end;
 
 procedure TestTDoubleMatrix.TestSVD;
