@@ -50,6 +50,11 @@ function GenericMtxElemMult(mt1, mt2 : PDouble; width : TASMNativeInt; height : 
 procedure GenericMtxElemMult(var dest : Array of Double; const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt); overload;
 function GenericMtxElemMult(const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
 
+procedure GenericMtxElemDiv(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt); overload;
+function GenericMtxElemDiv(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
+procedure GenericMtxElemDiv(var dest : Array of Double; const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt); overload;
+function GenericMtxElemDiv(const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
+
 // GenericMtx transposition functions. Note the there is no inplace GenericMtx transpose - this will result in an unspecified end GenericMtx.
 function GenericMtxTranspose(mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
 procedure GenericMtxTranspose(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt); overload;
@@ -637,6 +642,64 @@ begin
 end;
 
 function GenericMtxElemMult(const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray;
+begin
+     assert((width > 0) and (height > 0), 'Dimension Error');
+     assert(High(mt1) >= width + 1, 'Dimension Error');
+     assert(High(mt1) = High(mt2), 'Dimension Error');
+
+     Result := GenericMtxElemMult(@mt1[0], @mt2[0], width, height, width*sizeof(double), width*sizeof(double));
+end;
+
+procedure GenericMtxElemDiv(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt); overload;
+var incDest : TASMNativeInt;
+    incMt1 : TASMNativeInt;
+    incMt2 : TASMNativeInt;
+    x, y : TASMNativeInt;
+begin
+     assert((width > 0) and (height > 0), 'Dimension error');
+     assert((width*sizeof(double) <= LineWidth1) and (width*sizeof(double) <= LineWidth2), 'Dimension error');
+     assert((width*sizeof(double) <= destLineWidth), 'Dimension error');
+
+     incDest := destLineWidth - width*sizeof(double);
+     incMt1 := LineWidth1 - width*sizeof(double);
+     incMt2 := LineWidth2 - width*sizeof(double);
+
+     for y := 0 to Height - 1 do
+     begin
+          for x := 0 to Width - 1 do
+          begin
+               dest^ := mt1^/mt2^;
+               inc(mt1);
+               inc(mt2);
+               inc(dest);
+          end;
+
+          inc(PByte(dest), incDest);
+          inc(PByte(mt1), incMt1);
+          inc(PByte(mt2), incMt2);
+     end;
+end;
+
+function GenericMtxElemDiv(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
+begin
+     assert((width > 0) and (height > 0), 'Dimension error');
+     assert((width*sizeof(double) <= LineWidth1) and (width*sizeof(double) <= LineWidth2), 'Dimension error');
+
+     SetLength(Result, width*Height);
+     GenericMtxElemMult(@Result[0], width*sizeof(double), mt1, mt2, width, height, LineWidth1, LineWidth2);
+end;
+
+procedure GenericMtxElemDiv(var dest : Array of Double; const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt);
+begin
+     assert((width > 0) and (height > 0), 'Dimension Error');
+     assert(High(mt1) >= width + 1, 'Dimension Error');
+     assert(High(mt1) = High(mt2), 'Dimension Error');
+     assert(High(dest) = High(mt1), 'Dimension Error');
+
+     GenericMtxElemMult(@dest[0], width*sizeof(double), @mt1[0], @mt2[0], width, height, width*sizeof(double), width*sizeof(double));
+end;
+
+function GenericMtxElemDiv(const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray;
 begin
      assert((width > 0) and (height > 0), 'Dimension Error');
      assert(High(mt1) >= width + 1, 'Dimension Error');

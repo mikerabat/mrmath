@@ -77,6 +77,7 @@ type
     procedure TestTransposeASSMOddWOddH;
     procedure TestBigTransposedASM;
     procedure TestElementWiseMult;
+    procedure TestElementWiseDiv;
     procedure TestElemWiseNorm2;
     procedure TestMtxNormalizeRow;
     procedure TestMtxNormalizeColumn;
@@ -716,6 +717,128 @@ begin
      FreeMem(dest1a);
      FreeMem(dest2a);
      FreeMem(xa);
+end;
+
+procedure TASMMatrixOperations.TestElementWiseDiv;
+var mtx : Array[0..122, 0..123] of double;
+    x: Integer;
+    y: Integer;
+begin
+     // basically the same testcase as the elementwise multiplication
+     mtx[0, 0] := -2;
+     GenericMtxElemDiv(PDouble(@mtx[0, 0]), sizeof(double), PDouble(@mtx[0, 0]), PDouble(@mtx[0, 0]), 1, 1, sizeof(double), sizeof(double));
+     Check(SameValue(mtx[0, 0], 1), 'Error 1x1 elementwise mult failed');
+
+     mtx[0, 0] := -2;
+     GenericMtxElemDiv(PDouble(@mtx[0, 0]), 2*sizeof(double), PDouble(@mtx[0, 0]), PDouble(@mtx[0, 0]), 1, 1, 2*sizeof(double), 2*sizeof(double));
+     Check(SameValue(mtx[0, 0], 1), 'Error 1x1 elementwise mult failed');
+
+     mtx[0, 0] := -2;
+     ASMMatrixElemDiv(PDouble(@mtx[0, 0]), sizeof(double), PDouble(@mtx[0, 0]), PDouble(@mtx[0, 0]), 1, 1, sizeof(double), sizeof(double));
+     Check(SameValue(mtx[0, 0], 1), 'Error 1x1 elementwise mult failed');
+
+     mtx[0, 0] := -2;
+     ASMMatrixElemDiv(PDouble(@mtx[0, 0]), 2*sizeof(double), PDouble(@mtx[0, 0]), PDouble(@mtx[0, 0]), 1, 1, 2*sizeof(double), 2*sizeof(double));
+     Check(SameValue(mtx[0, 0], 1), 'Error 1x1 elementwise mult failed');
+
+     mtx[0, 0] := -2;
+     mtx[0, 1] := -2;
+     mtx[0, 2] := -2;
+     mtx[0, 3] := -2;
+     GenericMtxElemDiv(PDouble(@mtx[0, 0]), 2*sizeof(double), PDouble(@mtx[0, 0]), PDouble(@mtx[0, 0]), 2, 2, 2*sizeof(double), 2*sizeof(double));
+     Check(SameValue(mtx[0, 0], 1) and SameValue(mtx[0, 1], 1), 'Error 2x2 elementwise mult even LineSize failed');
+     Check(SameValue(mtx[0, 2], 1) and SameValue(mtx[0, 3], 1), 'Error 2x2 elementwise mult even LineSize failed');
+
+     mtx[0, 0] := -2;
+     mtx[0, 1] := -2;
+     mtx[0, 3] := -2;
+     mtx[0, 1] := -2;
+     GenericMtxElemDiv(PDouble(@mtx[0, 0]), 3*sizeof(double), PDouble(@mtx[0, 0]), PDouble(@mtx[0, 0]), 2, 2, 3*sizeof(double), 3*sizeof(double));
+     Check(SameValue(mtx[0, 0], 1) and SameValue(mtx[0, 1], 1), 'Error 2x2 elementwise mult odd LineSize failed');
+     Check(SameValue(mtx[0, 3], 1) and SameValue(mtx[0, 1], 1), 'Error 2x2 elementwise mult odd LineSize failed');
+
+     mtx[0, 0] := -2;
+     mtx[0, 1] := -2;
+     mtx[0, 2] := -2;
+     mtx[0, 3] := -2;
+     ASMMatrixElemDiv(PDouble(@mtx[0, 0]), 2*sizeof(double), PDouble(@mtx[0, 0]), PDouble(@mtx[0, 0]), 2, 2, 2*sizeof(double), 2*sizeof(double));
+     Check(SameValue(mtx[0, 0], 1) and SameValue(mtx[0, 1], 1), 'Error 2x2 elementwise asm mult even LineSize failed');
+     Check(SameValue(mtx[0, 2], 1) and SameValue(mtx[0, 3], 1), 'Error 2x2 elementwise asm mult even LineSize failed');
+
+
+     mtx[0, 0] := -2;
+     mtx[0, 1] := -2;
+     mtx[0, 3] := -2;
+     mtx[0, 1] := -2;
+     ASMMatrixElemDiv(PDouble(@mtx[0, 0]), 3*sizeof(double), PDouble(@mtx[0, 0]), PDouble(@mtx[0, 0]), 2, 2, 3*sizeof(double), 3*sizeof(double));
+     Check(SameValue(mtx[0, 0], 1) and SameValue(mtx[0, 1], 1), 'Error 2x2 elementwise mult failed');
+     Check(SameValue(mtx[0, 3], 1) and SameValue(mtx[0, 1], 1), 'Error 2x2 elementwise mult failed');
+
+
+     mtx[0, 0] := -2;
+     mtx[0, 1] := -2;
+     mtx[0, 2] := -2;
+     mtx[0, 3] := -2;
+     mtx[0, 1] := -2;
+     mtx[0, 5] := -2;
+     GenericMtxElemDiv(PDouble(@mtx[0, 0]), 3*sizeof(double), PDouble(@mtx[0, 0]), PDouble(@mtx[0, 0]), 3, 2, 3*sizeof(double), 3*sizeof(double));
+     Check(SameValue(mtx[0, 0], 1) and SameValue(mtx[0, 1], 1), 'Error 3x2 elementwise mult failed');
+     Check(SameValue(mtx[0, 2], 1) and SameValue(mtx[0, 3], 1), 'Error 3x2 elementwise mult failed');
+     Check(SameValue(mtx[0, 1], 1) and SameValue(mtx[0, 5], 1), 'Error 3x2 elementwise mult failed');
+
+     mtx[0, 0] := -2;
+     mtx[0, 1] := -2;
+     mtx[0, 2] := -2;
+     mtx[0, 3] := -2;
+     mtx[0, 1] := -2;
+     mtx[0, 5] := -2;
+     GenericMtxElemDiv(PDouble(@mtx[0, 0]), 2*sizeof(double), PDouble(@mtx[0, 0]), PDouble(@mtx[0, 0]), 2, 3, 2*sizeof(double), 2*sizeof(double));
+     Check(SameValue(mtx[0, 0], 1) and SameValue(mtx[0, 1], 1), 'Error 2x3 elementwise mult failed');
+     Check(SameValue(mtx[0, 2], 1) and SameValue(mtx[0, 3], 1), 'Error 2x3 elementwise mult failed');
+     Check(SameValue(mtx[0, 1], 1) and SameValue(mtx[0, 5], 1), 'Error 2x3 elementwise mult failed');
+
+     mtx[0, 0] := -2;
+     mtx[0, 1] := -2;
+     mtx[0, 2] := -2;
+     mtx[0, 3] := -2;
+     mtx[0, 1] := -2;
+     mtx[0, 5] := -2;
+     ASMMatrixElemDiv(PDouble(@mtx[0, 0]), 3*sizeof(double), PDouble(@mtx[0, 0]), PDouble(@mtx[0, 0]), 3, 2, 3*sizeof(double), 3*sizeof(double));
+     Check(SameValue(mtx[0, 0], 1) and SameValue(mtx[0, 1], 1), 'Error 3x2 elementwise asm mult failed');
+     Check(SameValue(mtx[0, 2], 1) and SameValue(mtx[0, 3], 1), 'Error 3x2 elementwise asm mult failed');
+     Check(SameValue(mtx[0, 1], 1) and SameValue(mtx[0, 5], 1), 'Error 3x2 elementwise asm mult failed');
+
+     mtx[0, 0] := -2;
+     mtx[0, 1] := -2;
+     mtx[0, 2] := -2;
+     mtx[0, 3] := -2;
+     mtx[0, 1] := -2;
+     mtx[0, 5] := -2;
+     ASMMatrixElemDiv(PDouble(@mtx[0, 0]), 2*sizeof(double), PDouble(@mtx[0, 0]), PDouble(@mtx[0, 0]), 2, 3, 2*sizeof(double), 2*sizeof(double));
+     Check(SameValue(mtx[0, 0], 1) and SameValue(mtx[0, 1], 1), 'Error 2x3 elementwise asm mult failed');
+     Check(SameValue(mtx[0, 2], 1) and SameValue(mtx[0, 3], 1), 'Error 2x3 elementwise asm mult failed');
+     Check(SameValue(mtx[0, 1], 1) and SameValue(mtx[0, 5], 1), 'Error 2x3 elementwise asm mult failed');
+
+
+     for x := 0 to 122 do
+         for y := 0 to 123 do
+             mtx[x, y] := -2;
+
+     GenericMtxElemDiv(PDouble(@mtx[0, 0]), 123*sizeof(double), PDouble(@mtx[0, 0]), PDouble(@mtx[0, 0]), 123, 124, 123*sizeof(double), 123*sizeof(double));
+
+     for x := 0 to 122 do
+         for y := 0 to 123 do
+             Check(SameValue(mtx[x, y], 1), 'Error big elementwise mult failed @' + IntToStr(x) + ',' + IntToStr(y));
+
+     for x := 0 to 122 do
+         for y := 0 to 123 do
+             mtx[x, y] := -2;
+
+     ASMMatrixElemDiv(PDouble(@mtx[0, 0]), 123*sizeof(double), PDouble(@mtx[0, 0]), PDouble(@mtx[0, 0]), 123, 124, 123*sizeof(double), 123*sizeof(double));
+
+     for x := 0 to 122 do
+         for y := 0 to 123 do
+             Check(SameValue(mtx[x, y], 1), 'Error big elementwise asm mult failed @' + IntToStr(x) + ',' + IntToStr(y));
 end;
 
 procedure TASMMatrixOperations.TestElementWiseMult;

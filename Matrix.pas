@@ -89,16 +89,22 @@ type
     function Sub(Value : TDoubleMatrix) : TDoubleMatrix; overload;
     procedure MultInPlace(Value : TDoubleMatrix); overload;
     function Mult(Value : TDoubleMatrix) : TDoubleMatrix; overload;
-    procedure ElementWiseMultInPlace(Value : TDoubleMatrix); overload;
-    function ElementWiseMult(Value : TDoubleMatrix) : TDoubleMatrix; overload;
     procedure AddInplace(Value : IMatrix); overload;
     function Add(Value : IMatrix) : TDoubleMatrix; overload;
     procedure SubInPlace(Value : IMatrix); overload;
     function Sub(Value : IMatrix) : TDoubleMatrix; overload;
     procedure MultInPlace(Value : IMatrix); overload;
     function Mult(Value : IMatrix) : TDoubleMatrix; overload;
+    procedure ElementWiseMultInPlace(Value : TDoubleMatrix); overload;
+    function ElementWiseMult(Value : TDoubleMatrix) : TDoubleMatrix; overload;
     procedure ElementWiseMultInPlace(Value : IMatrix); overload;
     function ElementWiseMult(Value : IMatrix) : TDoubleMatrix; overload;
+    procedure ElementWiseDivInPlace(Value : TDoubleMatrix); overload;
+    function ElementWiseDiv(Value : TDoubleMatrix) : TDoubleMatrix; overload;
+    procedure ElementWiseDivInPlace(Value : IMatrix); overload;
+    function ElementWiseDiv(Value : IMatrix) : TDoubleMatrix; overload;
+
+
     procedure AddAndScaleInPlace(const Offset, Scale : double);
     function AddAndScale(const Offset, Scale : double) : TDoubleMatrix;
 
@@ -266,8 +272,6 @@ type
     function Sub(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
     procedure MultInPlace(Value : TDoubleMatrix); overload; virtual;
     function Mult(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
-    procedure ElementWiseMultInPlace(Value : TDoubleMatrix); overload; virtual;
-    function ElementWiseMult(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
     procedure AddInplace(Value : IMatrix); overload;
     function Add(Value : IMatrix) : TDoubleMatrix; overload;
     procedure SubInPlace(Value : IMatrix); overload;
@@ -276,6 +280,14 @@ type
     function Mult(Value : IMatrix) : TDoubleMatrix; overload;
     procedure ElementWiseMultInPlace(Value : IMatrix); overload;
     function ElementWiseMult(Value : IMatrix) : TDoubleMatrix; overload;
+    procedure ElementWiseMultInPlace(Value : TDoubleMatrix); overload; virtual;
+    function ElementWiseMult(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
+
+    procedure ElementWiseDivInPlace(Value : TDoubleMatrix); overload; virtual;
+    function ElementWiseDiv(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
+    procedure ElementWiseDivInPlace(Value : IMatrix); overload; virtual;
+    function ElementWiseDiv(Value : IMatrix) : TDoubleMatrix; overload; virtual;
+
     procedure AddAndScaleInPlace(const Offset, Scale : double); virtual;
     function AddAndScale(const Offset, Scale : double) : TDoubleMatrix; virtual;
 
@@ -780,6 +792,32 @@ begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
      CheckAndRaiseError((fSubWidth = Value.fSubWidth) and (fSubHeight = Value.fSubHeight), 'Dimension error');
      MatrixElemMult(StartElement, LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight, LineWidth, Value.LineWidth);
+end;
+
+function TDoubleMatrix.ElementWiseDiv(Value: TDoubleMatrix): TDoubleMatrix;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+     CheckAndRaiseError((fSubWidth = Value.fSubWidth) and (fSubHeight = Value.fSubHeight), 'Dimension error');
+     Result := TDoubleMatrix.Create;
+     Result.Assign(self);
+     MatrixElemDiv(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight, LineWidth, Value.LineWidth);
+end;
+
+procedure TDoubleMatrix.ElementWiseDivInPlace(Value: TDoubleMatrix);
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+     CheckAndRaiseError((fSubWidth = Value.fSubWidth) and (fSubHeight = Value.fSubHeight), 'Dimension error');
+     MatrixElemDiv(StartElement, LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight, LineWidth, Value.LineWidth);
+end;
+
+procedure TDoubleMatrix.ElementWiseDivInPlace(Value : IMatrix);
+begin
+     ElementWiseDivInPlace(Value.GetObjRef);
+end;
+
+function TDoubleMatrix.ElementWiseDiv(Value : IMatrix) : TDoubleMatrix;
+begin
+     Result := ElementWiseDiv(Value.GetObjRef);
 end;
 
 function TDoubleMatrix.ElementwiseNorm2: double;

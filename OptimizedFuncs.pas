@@ -49,6 +49,12 @@ function MatrixElemMult(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASM
 procedure MatrixElemMult(var dest : Array of Double; const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt); overload;
 function MatrixElemMult(const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
 
+procedure MatrixElemDiv(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
+function MatrixElemDiv(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
+procedure MatrixElemDiv(var dest : Array of Double; const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt); overload;
+function MatrixElemDiv(const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
+
+
 // GenericMtx transposition functions. Note the there is no inplace GenericMtx transpose - this will result in an unspecified end GenericMtx.
 function MatrixTranspose(mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
 procedure MatrixTranspose(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt); overload;
@@ -122,6 +128,7 @@ var multFunc : TMatrixMultFunc;
     addFunc : TMatrixAddFunc;
     subFunc : TMatrixSubFunc;
     elemWiseFunc : TMatrixElemWiseFunc;
+    elemWiseDivFunc : TMatrixElemWiseFunc;
     addScaleFunc : TMatrixAddScaleFunc;
     scaleAddFunc : TMatrixAddScaleFunc;
     sqrtFunc : TMatrixSQRTFunc;
@@ -303,6 +310,36 @@ begin
      Result := MatrixElemMult(@mt1[0], @mt2[0], width, height, width*sizeof(double), width*sizeof(double));
 end;
 
+procedure MatrixElemDiv(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
+begin
+     elemWiseDivFunc(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2);
+end;
+
+function MatrixElemDiv(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
+begin
+     assert((width > 0) and (height > 0), 'Dimension error');
+
+     SetLength(Result, Width*Height);
+     elemWiseDivFunc(@Result[0], sizeof(double)*Width, mt1, mt2, width, height, LineWidth1, LineWidth2);
+end;
+
+procedure MatrixElemDiv(var dest : Array of Double; const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt); overload;
+begin
+     assert((width > 0), 'Dimension Error');
+     assert(High(mt1) >= width + 1, 'Dimension Error');
+     assert(High(mt2) = High(mt1), 'Dimension Error');
+     assert(High(dest) = High(mt1), 'Dimension Error');
+
+     elemWiseDivFunc(@dest[0], width*sizeof(double), @mt1[0], @mt2[0], width, (High(mt1) + 1) div width, width*sizeof(double), width*sizeof(double));
+end;
+
+function MatrixElemDiv(const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
+begin
+     Result := MatrixElemDiv(@mt1[0], @mt2[0], width, height, width*sizeof(double), width*sizeof(double));
+end;
+
+
+
 function MatrixTranspose(mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
 begin
      assert((width > 0) and (height > 0) and (LineWidth >= width*sizeof(double)), 'Dimension Error');
@@ -416,13 +453,18 @@ end;
 
 procedure MatrixSum(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean); overload;
 begin
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= height*sizeof(double)), 'Dimension error');
+     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and
+            ( ((not rowWise) and (destLineWidth >= width*sizeof(double))) or
+              ((rowWise) and (destLineWidth >= sizeof(double)) )) , 'Dimension error');
      matrixSumFunc(dest, destLineWidth, Src, srcLineWidth, width, height, RowWise);
 end;
 
 procedure MatrixSum(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean); overload;
 begin
-     assert((width > 0) and (height > 0) and (Length(dest) >= width*height) and (Length(src) >= width*height), 'Dimension error');
+     assert((width > 0) and (height > 0) and
+             ( ((not rowWise) and (Length(dest) >= width)) or
+               ((rowWise) and (Length(dest) >= height) )) and
+                (Length(src) >= width*height), 'Dimension error');
      MatrixSum(@dest[0], width*sizeof(double), @src[0], width*sizeof(double), width, height, RowWise);
 end;
 
@@ -524,6 +566,7 @@ begin
           matrixSumFunc := ASMMatrixSum;
           rowSwapFunc := ASMRowSwap;
           absFunc := ASMMatrixAbs;
+          elemWiseDivFunc := ASMMatrixElemDiv;
      end
      else
      begin
@@ -549,6 +592,7 @@ begin
           matrixSumFunc := GenericMtxSum;
           rowSwapFunc := GenericRowSwap;
           absFunc := GenericMtxAbs;
+          elemWiseDivFunc := GenericMtxElemDiv;
      end;
 
      actUseSSEoptions := IsSSE3Present;

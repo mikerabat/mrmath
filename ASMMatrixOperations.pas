@@ -41,6 +41,7 @@ procedure ASMMatrixMultDirect(dest : PDouble; const destLineWidth : TASMNativeIn
 procedure ASMMatrixAdd(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
 procedure ASMMatrixSub(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
 procedure ASMMatrixElemMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixElemDiv(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
 procedure ASMMatrixAddAndScale(Dest : PDouble;  LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
 procedure ASMMatrixScaleAndAdd(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
 procedure ASMMatrixSQRT(Dest : PDouble; LineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
@@ -366,6 +367,40 @@ begin
               ASMMatrixElemMultUnAlignedEvenW(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2)
           else
               ASMMatrixElemMultUnAlignedOddW(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2);
+     end;
+end;
+
+procedure ASMMatrixElemDiv(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
+begin
+     if (width = 0) or (height = 0) then
+        exit;
+
+     if (width = 1) and (LineWidth1 = sizeof(double)) and (LineWidth2 = sizeof(double)) and (destLineWidth = sizeof(double)) then
+     begin
+          width := Height;
+          height := 1;
+          LineWidth1 := width*sizeof(double) + (width and 1)*sizeof(double);
+          LineWidth2 := LineWidth1;
+          destLineWidth := LineWidth1;
+     end;
+
+     if (Cardinal(mt1) and $0000000F = 0) and (Cardinal(mt2) and $0000000F = 0) and (Cardinal(dest) and $0000000F = 0) and
+        (destLineWidth and $0000000F = 0) and (LineWidth1 and $0000000F = 0) and (LineWidth2 and $0000000F = 0)
+     then
+     begin
+          if (width and 1) = 0
+          then
+              ASMMatrixElemDivAlignedEvenW(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2)
+          else
+              ASMMatrixElemDivAlignedOddW(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2);
+     end
+     else
+     begin
+          if (width and 1) = 0
+          then
+              ASMMatrixElemDivUnAlignedEvenW(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2)
+          else
+              ASMMatrixElemDivUnAlignedOddW(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2);
      end;
 end;
 
