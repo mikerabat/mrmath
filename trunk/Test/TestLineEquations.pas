@@ -152,7 +152,7 @@ begin
 end;
 
 procedure TTestLinearEquations.TestDeterminant2;
-const cBlkWidth = 512;
+const cBlkWidth = 256;
       cBlkSize = cBlkWidth*cBlkWidth;
 var x : TDoubleDynArray;
     i: Integer;
@@ -183,7 +183,7 @@ begin
 
      FinalizeMtxThreadPool;
 
-     Check(SameValue(det, detThr), 'Error Determinatnts differ too much');
+     Check(SameValue(det, detThr), 'Error Determinants differ too much');
 end;
 
 procedure TTestLinearEquations.TestGaussJordan1;
