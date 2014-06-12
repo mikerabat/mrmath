@@ -34,6 +34,9 @@ The library has been extendend to be compatible with MacOS. There is a new
 unit test project - MathUtilsTestsMac.dpr - which can be used on this
 operating system.
 
+FreePascal support has been added but is only available for 32 bit binaries.
+You find a unit test project in the "Test" folder called MathUtilsTestsFPC.lpr
+
 
 Developer:
 
