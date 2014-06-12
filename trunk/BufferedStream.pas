@@ -39,7 +39,7 @@ type
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
 
     property BlockSize : integer read fBlockSize;
-    constructor Create(Stream : TStream; BlockSize : integer);
+    constructor Create(Stream : TStream; aBlockSize : integer);
     destructor Destroy; override;
   end;
 
@@ -49,15 +49,15 @@ uses Math;
 
 { TBufferedStream }
 
-constructor TBufferedStream.Create(Stream: TStream; BlockSize: integer);
+constructor TBufferedStream.Create(Stream: TStream; aBlockSize: integer);
 begin
      inherited Create;
 
      assert(Assigned(stream), 'Stream may not be nil');
      assert(BlockSize > 0, 'Error Blocksize must be larger than 0');
 
-     fBlockSize := BlockSize;
-     SetLength(fBuffer, BlockSize);
+     fBlockSize := aBlockSize;
+     SetLength(fBuffer, aBlockSize);
      fStream := Stream;
 
      fActPos  := @fBuffer[0];

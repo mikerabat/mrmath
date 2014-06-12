@@ -39,6 +39,8 @@ implementation
 
 {$IFNDEF CPUX64}
 
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
+
 procedure ASMMatrixTransposeAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iters : integer;
     destLineWidth2 : integer;

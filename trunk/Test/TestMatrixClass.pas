@@ -17,11 +17,12 @@ unit TestMatrixClass;
 interface
 
 uses
-  TestFramework, Classes, SysUtils, Types, SimpleMatrixOperations, Matrix, BaseMatrixTestCase,
+  {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF} ,
+  Classes, SysUtils, Types, SimpleMatrixOperations, Matrix, BaseMatrixTestCase,
   ThreadedMatrix;
 
 type
-  TestTDoubleMatrixPersistence = class(TTestCase)
+  TestTDoubleMatrixPersistence = class(TBaseMatrixTestCase)
   published
     procedure TestWrite;
     procedure TestRead;
@@ -154,8 +155,8 @@ begin
      mtx := TDoubleMatrix.Create;
      try
         mtx.Assign(fRefMatrix1);
-        mtx.ElementwiseFuncInPlace(ElemWiseSqrt);
-        mtx.ElementwiseFuncInPlace(ElemWiseSqr);
+        mtx.ElementwiseFuncInPlace(@ElemWiseSqrt);
+        mtx.ElementwiseFuncInPlace(@ElemWiseSqr);
 
         Check(CheckMtx(mtx.SubMatrix, fRefMatrix1.SubMatrix));
      finally
@@ -445,8 +446,8 @@ begin
 end;
 
 procedure TestTThreadedMatrix.SetUp;
-const cMtxWidth = 3453;
-      cMtxHeight = 2450;
+const cMtxWidth = 1024;
+      cMtxHeight = 1024;
 var x, y : integer;
 begin
      TThreadedMatrix.InitThreadPool;
@@ -478,13 +479,13 @@ var dest1, dest2 : IMatrix;
     startTime2, endTime2 : Int64;
 begin
      startTime1 := MtxGetTime;
-     dest1 := fRefMatrix1.ElementwiseFunc(ElemWiseSqr);
+     dest1 := fRefMatrix1.ElementwiseFunc(@ElemWiseSqr);
      endTime1 := MtxGetTime;
 
      m1 := TThreadedMatrix.Create;
      m1.Assign(fRefMatrix1);
      startTime2 := MtxGetTime;
-     dest2 := m1.ElementwiseFunc(ElemWiseSqr);
+     dest2 := m1.ElementwiseFunc(@ElemWiseSqr);
      endTime2 := MtxGetTime;
 
      status(Format('%.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000]));
@@ -890,9 +891,9 @@ end;
 
 initialization
   // Alle Testfälle beim Test-Runner registrieren
-  RegisterTest(TestTDoubleMatrix.Suite);
-  RegisterTest(TestTDoubleMatrixPersistence.Suite);
-  RegisterTest(TestIMatrix.Suite);
-  RegisterTest(TestTThreadedMatrix.Suite);
+  RegisterTest(TestTDoubleMatrix{$IFNDEF FPC}.Suite{$ENDIF});
+  RegisterTest(TestTDoubleMatrixPersistence{$IFNDEF FPC}.Suite{$ENDIF});
+  RegisterTest(TestIMatrix{$IFNDEF FPC}.Suite{$ENDIF});
+  RegisterTest(TestTThreadedMatrix{$IFNDEF FPC}.Suite{$ENDIF});
 
 end.

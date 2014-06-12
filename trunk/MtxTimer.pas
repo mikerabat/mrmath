@@ -39,6 +39,7 @@ begin
    {$ENDIF}
 
    {$IFDEF MSWINDOWS}
+   Result := 0;
    QueryPerformanceCounter(Result);
    {$ENDIF}
 end;

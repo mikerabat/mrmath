@@ -1,39 +1,15 @@
-// ###################################################################
-// #### This file is part of the mathematics library project, and is
-// #### offered under the licence agreement described on
-// #### http://www.mrsoft.org/
-// ####
-// #### Copyright:(c) 2011, Michael R. . All rights reserved.
-// ####
-// #### Unless required by applicable law or agreed to in writing, software
-// #### distributed under the License is distributed on an "AS IS" BASIS,
-// #### WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// #### See the License for the specific language governing permissions and
-// #### limitations under the License.
-// ###################################################################
+program MathUtilsTestsFPC;
 
-
-program MathUtilsTests;
-
-{$IFNDEF MSWINDOWS}
-{$MESSAGE ERROR 'This unit test program is only compilable for Windows.'}
-{$ENDIF}
-
-{$IFDEF CONSOLE_TESTRUNNER}
-{$APPTYPE CONSOLE}
-{$ENDIF}
+{$mode objfpc}{$H+}
 
 uses
-  madExcept,
-  Forms,
-  TestFramework,
-  GUITestRunner,
-  TextTestRunner,
+  Interfaces, Forms, GuiTestRunner,
   TestSimpleMatrixOperations in 'TestSimpleMatrixOperations.pas',
   TestLineEquations in 'TestLineEquations.pas',
   TestEigensystems in 'TestEigensystems.pas',
   BaseMatrixTestCase in 'BaseMatrixTestCase.pas',
   TestMatrixClass in 'TestMatrixClass.pas',
+  ASMConsts in '..\ASMConsts.pas',
   ASMMatrixAddSubOperations in '..\ASMMatrixAddSubOperations.pas',
   ASMMatrixAddSubOperationsx64 in '..\ASMMatrixAddSubOperationsx64.pas',
   ASMMatrixElementwiseMultOperations in '..\ASMMatrixElementwiseMultOperations.pas',
@@ -42,6 +18,8 @@ uses
   ASMMatrixMeanOperationsx64 in '..\ASMMatrixMeanOperationsx64.pas',
   ASMMatrixMinMaxOperations in '..\ASMMatrixMinMaxOperations.pas',
   ASMMatrixMinMaxOperationsx64 in '..\ASMMatrixMinMaxOperationsx64.pas',
+  ASMMatrixMultAddTransposedOperations in '..\ASMMatrixMultAddTransposedOperations.pas',
+  ASMMatrixMultAddTransposedOperationsx64 in '..\ASMMatrixMultAddTransposedOperationsx64.pas',
   ASMMatrixMultOperations in '..\ASMMatrixMultOperations.pas',
   ASMMatrixMultOperationsx64 in '..\ASMMatrixMultOperationsx64.pas',
   ASMMatrixMultTransposedOperations in '..\ASMMatrixMultTransposedOperations.pas',
@@ -61,46 +39,41 @@ uses
   ASMMatrixVectorMultOperationsx64 in '..\ASMMatrixVectorMultOperationsx64.pas',
   ASMMoveOperations in '..\ASMMoveOperations.pas',
   ASMMoveOperationsx64 in '..\ASMMoveOperationsx64.pas',
+  ASMMatrixAbsOperations in '..\ASMMatrixAbsOperations.pas',
+  ASMMatrixAbsOperationsx64 in '..\ASMMatrixAbsOperationsx64.pas',
+  BaseMathPersistence in '..\BaseMathPersistence.pas',
+  BinaryReaderWriter in '..\BinaryReaderWriter.pas',
   BlockSizeSetup in '..\BlockSizeSetup.pas',
+  BufferedStream in '..\BufferedStream.pas',
   CPUFeatures in '..\CPUFeatures.pas',
   Eigensystems in '..\Eigensystems.pas',
+  IncrementalPCA in '..\IncrementalPCA.pas',
   LinearAlgebraicEquations in '..\LinearAlgebraicEquations.pas',
   MathUtilFunc in '..\MathUtilFunc.pas',
   Matrix in '..\Matrix.pas',
   MatrixConst in '..\MatrixConst.pas',
   MtxThreadPool in '..\MtxThreadPool.pas',
+  MtxTimer in '..\MtxTimer.pas',
+  NonLinearFit in '..\NonLinearFit.pas',
   OptimizedFuncs in '..\OptimizedFuncs.pas',
+  PCA in '..\PCA.pas',
   SimpleMatrixOperations in '..\SimpleMatrixOperations.pas',
+  ThreadedLinAlg in '..\ThreadedLinAlg.pas',
   ThreadedMatrix in '..\ThreadedMatrix.pas',
   ThreadedMatrixOperations in '..\ThreadedMatrixOperations.pas',
   Utilities in '..\Utilities.pas',
-  BaseMathPersistence in '..\BaseMathPersistence.pas',
-  BinaryReaderWriter in '..\BinaryReaderWriter.pas',
-  BufferedStream in '..\BufferedStream.pas',
-  ThreadedLinAlg in '..\ThreadedLinAlg.pas',
-  TestPCA in 'TestPCA.pas',
-  CCA in '..\CCA.pas',
-  PCA in '..\PCA.pas',
-  TestNonLinFit in 'TestNonLinFit.pas',
-  ASMMatrixAbsOperations in '..\ASMMatrixAbsOperations.pas',
-  ASMMatrixAbsOperationsx64 in '..\ASMMatrixAbsOperationsx64.pas',
-  NonLinearFit in '..\NonLinearFit.pas',
-  IncrementalPCA in '..\IncrementalPCA.pas',
+  GCDDispatch in '..\mac\GCDDispatch.pas',
   MacOsThreadPool in '..\mac\MacOsThreadPool.pas',
   SimpleWinThreadPool in '..\win\SimpleWinThreadPool.pas',
   WinThreadPool in '..\win\WinThreadPool.pas',
-  GCDDispatch in '..\mac\GCDDispatch.pas',
-  MtxTimer in '..\MtxTimer.pas',
+  CCA in '..\CCA.pas',
   TestCCA in 'TestCCA.pas';
 
-{$R *.RES}
+{$R *.res}
 
 begin
-  ReportMemoryLeaksOnShutdown := True;
   Application.Initialize;
-  if IsConsole then
-    TextTestRunner.RunRegisteredTests
-  else
-    GUITestRunner.RunRegisteredTests;
+  Application.CreateForm(TGuiTestRunner, TestRunner);
+  Application.Run;
 end.
 

@@ -39,6 +39,8 @@ implementation
 
 {$IFNDEF CPUX64}
 
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
+
 uses Math;
 
 const cNegMaxDouble : double = -MaxDouble;

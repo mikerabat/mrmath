@@ -43,6 +43,13 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: 12.06.2014
+Made a Lazarus compatible project - mrMath is now compatible with Freepascal for windows 32 bit!
+
+Date: 12.06.2014
+Removed some unnecessary block size setup variables and unit tests. Made the SetWidthHeight proceure public in the
+matrix class.
+
 Date: Donnerstag 6.2.2014
 The prefetch instructions raised an external exception in Pentium 4 processors. I removed (commented them out) 
 them since the performance gain was marginal anyway.

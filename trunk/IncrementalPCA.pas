@@ -1046,7 +1046,7 @@ begin
      SetLength(sortWeights, Length(Weights));
      if Length(Weights) > 0 then
         Move(Weights[0], sortWeights[0], Length(Weights)*sizeof(double));
-     QuickSort(sortWeights[0], sizeof(double), Length(Weights), DoubleSortFunc);
+     QuickSort(sortWeights[0], sizeof(double), Length(Weights), @DoubleSortFunc);
      
      for i := 0 to Length(fNumWeights) - 1 do
      begin

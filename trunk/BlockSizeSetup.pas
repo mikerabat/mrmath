@@ -230,7 +230,7 @@ begin
           inc(actSize, cCoarseIter);
      end;
 
-     iterList.Sort(t12Compare);
+     iterList.Sort(@t12Compare);
 
      tmin := Min( Min(PMultBlockIter(iterList[0])^.size, PMultBlockIter(iterList[1])^.size), PMultBlockIter(iterList[2])^.size);
      tmax := Max( Max(PMultBlockIter(iterList[0])^.size, PMultBlockIter(iterList[1])^.size), PMultBlockIter(iterList[2])^.size);
@@ -254,7 +254,7 @@ begin
           inc(actSize, cFineIter);
      end;
 
-     iterList.Sort(t12Compare);
+     iterList.Sort(@t12Compare);
      BlockMatrixCacheSize := PMultBlockIter(iterList[0])^.size;
      BlockMatrixCacheSize := BlockMatrixCacheSize  - BlockMatrixCacheSize mod 16;
 

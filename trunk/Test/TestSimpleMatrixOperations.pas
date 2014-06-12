@@ -25,7 +25,8 @@ unit TestSimpleMatrixOperations;
 
 interface
 
-uses TestFramework, Classes, SysUtils, Types, SimpleMatrixOperations, Matrix, BaseMatrixTestCase;
+uses {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF}
+     , Classes, SysUtils, Types, SimpleMatrixOperations, Matrix, BaseMatrixTestCase;
 
 type
   // testmethoden für die matrix funktionen
@@ -225,7 +226,7 @@ begin
      // aligned checks
      mta1 := GetMemory(1024*sizeof(double));
      for cnt := 0 to 1024 - 1 do
-         mta1[cnt] := Random(10)*sign[random(2)];
+         mta1^[cnt] := Random(10)*sign[random(2)];
      
      ASMMatrixAbs(PDouble(mta1), 128*sizeof(double), 128, 8);
      for cnt := 0 to Length(mt2) - 1 do
@@ -233,9 +234,9 @@ begin
 
      for cnt := 0 to 1024 - 1 do
      begin
-          mta1[cnt] := Random(10)*sign[random(2)];
+          mta1^[cnt] := Random(10)*sign[random(2)];
           if ((cnt + 1) mod 128) = 0 then
-             mta1[cnt] := 0;
+             mta1^[cnt] := 0;
      end;
      
      ASMMatrixAbs(PDouble(mta1), 128*sizeof(double), 127, 8);
@@ -1055,14 +1056,16 @@ begin
      m1 := TDoubleMatrix.Create(100, 1); 
      for i := 0 to 99 do
          m1[i, 0] := -pi + pi/100;
-     m2 := m1.ElementwiseFunc(sinxDivX);
+     m2 := m1.ElementwiseFunc(@sinxDivX);
 end;
 
 procedure TestMatrixOperations.TestCopy;
 const mt1 : Array[0..5] of double = (0, 1, 2, 3, 4, 5);
 var res : TDoubleDynArray;
 begin
+     {$IFNDEF FPC}
      FailsOnMemoryLeak := True;
+     {$ENDIF}
      res := GenericMtxCopy(mt1, 3, 2);
 
      CheckEqualsMem(@mt1, @res[0], sizeof(mt1), 'Error matrix copy: ' + #13#10 + WriteMtxDyn(res, 3));
@@ -2604,8 +2607,8 @@ end;
 
 initialization
   // Alle Testfälle beim Test-Runner registrieren
-  RegisterTest(TestMatrixOperations.Suite);
-  RegisterTest(TASMMatrixOperations.Suite);
-  RegisterTest(TASMatrixBlockSizeSetup.Suite);
+  RegisterTest(TestMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});
+  RegisterTest(TASMMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});
+  RegisterTest(TASMatrixBlockSizeSetup{$IFNDEF FPC}.Suite{$ENDIF});
 end.
 

@@ -42,6 +42,7 @@ procedure ASMMatrixMultUnAlignedOddW1OddW2(dest : PDouble; const destLineWidth :
 implementation
 
 {$IFNDEF CPUX64}
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 procedure ASMMatrixMultAlignedEvenW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var destOffset : integer;
     iters1, iters2 : integer;

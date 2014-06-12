@@ -85,7 +85,7 @@ begin
              wSize := width - i*thrSize;
 
           obj := TAsyncMatrixUSubst.Create(A, wSize, height, B, LineWidth);
-          calls.AddTask(MatrixLUBacksupFunc, obj);
+          calls.AddTask(@MatrixLUBacksupFunc, obj);
 
           inc(B, thrSize);
      end;
@@ -164,12 +164,12 @@ begin
           end;
 
           // apply recursive LU to A(nleft + 1, nleft + 1);
-          Result := InternalThrMatrixLUDecomp(pB, nright, height - nleft, @indx[nleft], parity, data);
+          Result := InternalThrMatrixLUDecomp(pB, nright, height - nleft, @(indx^[nleft]), parity, data);
           if Result <> leok then
              exit;
 
           for i := nLeft to width - 1 do
-              indx[i] := indx[i] + nLeft;
+              indx^[i] := indx^[i] + nLeft;
 
           // dlswap
           LUSwap(A, data.LineWidth, nleft, nleft, mn - 1, indx, parity);
@@ -194,7 +194,7 @@ begin
           end;
 
           // now it's time to apply the gauss elimination
-          indx[0] := idx;
+          indx^[0] := idx;
 
           if Abs(maxVal) > MinDouble then
           begin
@@ -222,7 +222,8 @@ var parity : integer;
     rc : TRecMtxLUDecompData;
     mem : Pointer;
 begin
-     mem := GetMemory(4*numCPUCores*(cBlkMultSize + numCPUCores + 2)*cBlkMultSize*sizeof(double) + 32);
+     mem := AllocMem(4*numCPUCores*(cBlkMultSize + numCPUCores + 2)*cBlkMultSize*sizeof(double) + 32);
+     FillChar(indx^, width*sizeof(integer), 0);
 
      rc.progress := progress;
      rc.numCols := width;
@@ -301,10 +302,10 @@ begin
 
      w := width + width and $01;
      Y := GetMemory(w*w*sizeof(double));
-     SetLength(indx, width);
+     SetLength(indx, 2*width);
 
      MatrixCopy(Y, sizeof(double)*w, A, LineWidthA, width, width);
-     Result := ThrMatrixLUDecomp(Y, w*sizeof(double), width, @indx[0], progress);
+     Result := ThrMatrixLUDecomp(Y, w*sizeof(double), width, @(indx[0]), progress);
 
      if Result = leSingular then
      begin
@@ -333,7 +334,7 @@ begin
           obj.LineWidthB := LineWidthA;
           obj.indx := @indx[0];
 
-          calls.AddTask(MatrixLUInvertCall, obj);
+          calls.AddTask(@MatrixLUInvertCall, obj);
      end;
 
      calls.SyncAll;
@@ -415,7 +416,7 @@ begin
           progObj := TLinearEQProgress.Create;
           progObj.refProgress := progress;
           progObj.numRefinenmentSteps := NumRefinments;
-          progRef := progObj.LUDecompSolveProgress;
+          progRef := @(progObj.LUDecompSolveProgress);
      end;
 
      w := width + width and $01;
@@ -457,7 +458,7 @@ begin
           obj.LineWidthB := LineWidthX;
           obj.indx := @indx[0];
 
-          calls.AddTask(MatrixLUBacksupCall, obj);
+          calls.AddTask(@MatrixLUBacksupCall, obj);
      end;
 
      calls.SyncAll;

@@ -182,7 +182,7 @@ type
 
 implementation
 
-uses Math, Utilities, contnrs;
+uses Math, Utilities;
 
 // ######################################################################
 // #### local definitions
@@ -353,7 +353,7 @@ begin
      try
         // subtract mean from each column
         fMeanNormExamples.Assign(Examples);
-        fMeanNormExamples.LineEQProgress := OnLineEQProgress;
+        fMeanNormExamples.LineEQProgress := @OnLineEQProgress;
 
         for i := 0 to fMeanNormExamples.Width - 1 do
         begin
@@ -537,7 +537,7 @@ begin
      try
         // subtract mean from each column
         fMeanNormExamples.Assign(Examples, True);
-        fMeanNormExamples.LineEQProgress := OnLineEQProgress;
+        fMeanNormExamples.LineEQProgress := @OnLineEQProgress;
 
         for i := 0 to fMeanNormExamples.Width - 1 do
         begin
@@ -1151,7 +1151,7 @@ begin
            end;
 
            // sort the list according to the error distribution
-           errdist.Sort(ErrorSort);
+           errdist.Sort(@ErrorSort);
 
            // create the point set
            SetLength(Elements, Min(Round(fProps.Start*fEigVecs.Width), errdist.Count));
@@ -1256,7 +1256,7 @@ begin
 
               // reduce the number of points according to the error distribution
               data := X.SubMatrix;
-              QuickSort(data[0], sizeof(double), Length(data), DoubleSortFunc);
+              QuickSort(data[0], sizeof(double), Length(data), @DoubleSortFunc);
 
               numNewElements := Max(fEigVecs.Width, Min(numElements - 1, Round(numElements*fProps.ReductionFactor)));
               if numNewElements <= 0 then

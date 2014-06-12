@@ -17,7 +17,8 @@ unit TestEigensystems;
 
 interface
 
-uses TestFramework, Classes, SysUtils, Types, SimpleMatrixOperations, BaseMatrixTestCase;
+uses {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF} ,
+     Classes, SysUtils, Types, SimpleMatrixOperations, BaseMatrixTestCase;
 
 type
  TTestEigensystems = class(TBaseMatrixTestCase)
@@ -215,6 +216,6 @@ end;
 
 initialization
   // Alle Testfälle beim Test-Runner registrieren
-  RegisterTest(TTestEigensystems.Suite);
+  RegisterTest(TTestEigensystems{$IFNDEF FPC}.Suite{$ENDIF});
 
 end.

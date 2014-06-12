@@ -45,6 +45,8 @@ implementation
 
 {$IFNDEF CPUX64}
 
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
+
 procedure ASMMatrixMultUnAlignedEvenW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var iters1, iters2 : TASMNativeInt;
     y : TASMNativeInt;

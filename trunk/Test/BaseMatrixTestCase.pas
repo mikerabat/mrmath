@@ -18,11 +18,21 @@ unit BaseMatrixTestCase;
 interface
 
 uses
-  Windows, TestFramework, Classes, SysUtils, Types, Matrix;
+  Windows,
+  {$IFDEF FPC} fpcunit, testutils, testregistry, {$ELSE} TestFramework, {$ENDIF}
+  Classes, SysUtils, Types, Matrix;
 
 type
+
+ { TBaseMatrixTestCase }
+
  TBaseMatrixTestCase = class(TTestCase)
  protected
+   {$IFDEF FPC}
+   procedure CheckEqualsMem(p1, p2 : PByte; memSize : integer; const msg : string);
+   procedure Status(const msg : string);
+   {$ENDIF}
+
    procedure WriteMatlabData(const fileName : string; const data : Array of double; width : integer);
    procedure TryClearCache;
    function WriteMtx(const data : Array of Double; width : integer) : string; overload;
@@ -41,19 +51,43 @@ type
 
 implementation
 
-uses Graphics, JPEG, Math;
+uses Graphics, {$IFNDEF FPC} JPEG, {$ENDIF} Math;
 
 { TBaseMatrixTestCase }
 
-function TBaseMatrixTestCase.CheckMtx(const data1, data2: array of double; w, h : integer;
-  const epsilon: double): boolean;
+{$IFDEF FPC}
+procedure TBaseMatrixTestCase.CheckEqualsMem(p1, p2: PByte; memSize: integer;
+  const msg: string);
+var cnt : integer;
+begin
+     for cnt := 0 to memSize - 1 do
+     begin
+          if p1^ <> p2^ then
+             raise Exception.Create(msg);
+
+          inc(p1);
+          inc(p2);
+     end;
+end;
+
+procedure TBaseMatrixTestCase.Status(const msg: string);
+begin
+     WriteLn(msg);
+end;
+
+{$ENDIF}
+
+function TBaseMatrixTestCase.CheckMtx(const data1: array of Double;
+  const data2: array of double; w: integer; h: integer; const epsilon: double
+  ): boolean;
 var i : integer;
 begin
      Result := CheckMtxIdx(data1, data2, i, w, h, epsilon);
 end;
 
-function TBaseMatrixTestCase.CheckMtxIdx(const data1, data2: array of double;
-  var idx: integer; w, h : integer; const epsilon: double): boolean;
+function TBaseMatrixTestCase.CheckMtxIdx(const data1: array of Double;
+  const data2: array of double; var idx: integer; w: integer; h: integer;
+  const epsilon: double): boolean;
 var i : integer;
     miss : integer;
     x, y : integer;
@@ -132,7 +166,7 @@ begin
         end;
         EndUpdate;
 
-        SaveToFile(FileName, TEncoding.ASCII);
+        SaveToFile(FileName {$IFNDEF FPC} , TEncoding.ASCII {$ENDIF});
      finally
             Free;
      end;
@@ -279,10 +313,14 @@ begin
 end;
 
 initialization
+  {$IFDEF FPC}
+  DecimalSeparator := '.';
+  {$ELSE}
   {$IF CompilerVersion > 21}
   FormatSettings.DecimalSeparator := '.';
   {$ELSE}
   DecimalSeparator := '.';
   {$IFEND}
+  {$ENDIF}
 
 end.

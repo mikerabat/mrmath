@@ -22,6 +22,8 @@ implementation
 
 {$IFNDEF CPUX64}
 
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
+
 const cSignBits : Array[0..1] of int64 = ($7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF);
 
 procedure ASMMatrixAbsAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
@@ -106,8 +108,6 @@ begin
         // loop y end
         dec edx;
         jnz @@addforyloop;
-
-        pop esi;
      end;
 end;
 
@@ -191,8 +191,6 @@ begin
         // loop y end
         dec edx;
         jnz @@addforyloop;
-
-        pop esi;
      end;
 end;
 

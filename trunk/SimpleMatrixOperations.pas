@@ -770,7 +770,7 @@ begin
      begin
           pLine := PConstDoubleArr(dest);
           for x := 0 to width - 1 do
-              pLine[x] := sqrt(pLine[x]);
+              pLine^[x] := sqrt(pLine^[x]);
           inc(PByte(dest), destLineWidth);
      end;
 end;
@@ -786,7 +786,7 @@ begin
      begin
           pLine := PConstDoubleArr(dest);
           for x := 0 to width - 1 do
-              pLine[x] := abs(pLine[x]);
+              pLine^[x] := abs(pLine^[x]);
           inc(PByte(dest), destLineWidth);
      end;
 end;
@@ -802,7 +802,7 @@ begin
      begin
           pLine := PConstDoubleArr(dest);
           for x := 0 to width - 1 do
-              func(pLine[x]);
+              func(pLine^[x]);
           inc(PByte(dest), destLineWidth);
      end;
 end;
@@ -818,7 +818,7 @@ begin
      begin
           pLine := PConstDoubleArr(dest);
           for x := 0 to width - 1 do
-              func(pLine[x]);
+              func(pLine^[x]);
           inc(PByte(dest), destLineWidth);
      end;
 end;
@@ -836,7 +836,7 @@ begin
      begin
           pLine := PConstDoubleArr(pdest);
           for x := 0 to width - 1 do
-              func(pLine[x], dest, destLineWidth, x, y);
+              func(pLine^[x], dest, destLineWidth, x, y);
           inc(PByte(pdest), destLineWidth);
      end;
 end;
@@ -854,7 +854,7 @@ begin
      begin
           pLine := PConstDoubleArr(pdest);
           for x := 0 to width - 1 do
-              func(pLine[x], dest, destLineWidth, x, y);
+              func(pLine^[x], dest, destLineWidth, x, y);
           inc(PByte(pdest), destLineWidth);
      end;
 end;
