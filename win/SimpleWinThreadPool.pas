@@ -31,6 +31,16 @@ implementation
 {$IFDEF MSWINDOWS}
 uses Windows, Classes;
 
+{$IFDEF FPC}
+type
+  TThreadStartRoutine = function(lpThreadParameter: Pointer): Integer stdcall;
+
+const WT_EXECUTEDEFAULT       = ULONG($00000000);
+
+function QueueUserWorkItem(func: TThreadStartRoutine; Context: Pointer; Flags: ULONG): BOOL; stdcall; external 'kernel32.dll' name 'QueueUserWorkItem';
+
+{$ENDIF}
+
 type
   TSimpleWinMtxAsyncCall = class(TInterfacedObject, IMtxAsyncCall)
   private
@@ -47,6 +57,7 @@ type
   
     constructor Create(proc : TMtxProc; obj : TObject); virtual; 
     destructor Destroy; override;
+
   end;
 
 type
@@ -105,7 +116,7 @@ var i: Integer;
 begin
      // queue empty procedures -> initialize the pool
      for i := 0 to numCPUCores - 1 do
-         QueueUserWorkItem(EmptyThreadProc, nil, WT_EXECUTEDEFAULT);        
+         QueueUserWorkItem(@EmptyThreadProc, nil, WT_EXECUTEDEFAULT);        
 end;
 
 procedure FinalizeWinMtxThreadPool;
@@ -145,7 +156,7 @@ end;
 
 procedure TSimpleWinMtxAsyncCall.ExecuteAsync;
 begin
-     QueueUserWorkItem(LocThreadProc, self, WT_EXECUTEDEFAULT);
+     QueueUserWorkItem(@LocThreadProc, self, WT_EXECUTEDEFAULT);
 end;
 
 procedure TSimpleWinMtxAsyncCall.ExecuteProc;

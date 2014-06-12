@@ -39,6 +39,8 @@ implementation
 
 {$IFNDEF CPUX64}
 
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
+
 procedure ASMMatrixAddScaleAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
 var iters : TASMNativeInt;
 begin

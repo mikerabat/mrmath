@@ -16,7 +16,8 @@ unit TestCCA;
 
 interface
 
-uses TestFramework, Classes, SysUtils, BaseMatrixTestCase;
+uses {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF} ,
+     Classes, SysUtils, BaseMatrixTestCase;
 
 type
  TTestCCA = class(TBaseImgTestCase)
@@ -60,6 +61,6 @@ begin
 end;
 
 initialization
-  RegisterTest(TTestCCA.Suite);
+  RegisterTest(TTestCCA{$IFNDEF FPC}.Suite{$ENDIF});
 
 end.

@@ -329,7 +329,7 @@ begin
                inc(obj.dest, j*thrWidth);
                inc(obj.mt2, j*thrWidth);
 
-               calls.AddTask(MatrixMultDirectFunc, obj);
+               calls.AddTask(@MatrixMultDirectFunc, obj);
           end;
 
           if doBreak then
@@ -413,7 +413,7 @@ begin
                end;
                obj.BlockSize := blockSize;
 
-               calls.AddTask(MatrixMultFunc, obj);
+               calls.AddTask(@MatrixMultFunc, obj);
           end;
 
           if doBreak then
@@ -453,7 +453,7 @@ begin
           else
               obj.height1 := obj.height1 - i*thrHeight;
 
-          calls.AddTask(MatrixVectorMultFunc, obj);
+          calls.AddTask(@MatrixVectorMultFunc, obj);
 
           if height1 <= (i + 1)*thrHeight then
              break;
@@ -491,7 +491,7 @@ begin
                if width < (i + 1)*thrSize then
                   obj.Width := width - i*thrSize;
 
-               calls.AddTask(MatrixAddAndScaleFunc, obj);
+               calls.AddTask(@MatrixAddAndScaleFunc, obj);
           end;
      end
      else
@@ -507,7 +507,7 @@ begin
                if height < (i + 1)*thrSize then
                   obj.Height := height - i*thrSize;
 
-               calls.AddTask(MatrixAddAndScaleFunc, obj);
+               calls.AddTask(@MatrixAddAndScaleFunc, obj);
           end;
      end;
 
@@ -548,7 +548,7 @@ begin
                if width < (i + 1)*thrSize then
                   obj.Width := width - i*thrSize;
 
-               calls.AddTask(MatrixFuncFunc, obj);
+               calls.AddTask(@MatrixFuncFunc, obj);
           end;
      end
      else
@@ -569,7 +569,7 @@ begin
                if height < (i + 1)*thrSize then
                   obj.Height := height - i*thrSize;
 
-               calls.AddTask(MatrixAddAndScaleFunc, obj);
+               calls.AddTask(@MatrixAddAndScaleFunc, obj);
           end;
      end;
 
@@ -610,7 +610,7 @@ begin
                if width < (i + 1)*thrSize then
                   obj.Width := width - i*thrSize;
 
-               calls.AddTask(MatrixFuncObjFunc, obj);
+               calls.AddTask(@MatrixFuncObjFunc, obj);
           end;
      end
      else
@@ -631,7 +631,7 @@ begin
                if height < (i + 1)*thrSize then
                   obj.Height := height - i*thrSize;
 
-               calls.AddTask(MatrixFuncObjFunc, obj);
+               calls.AddTask(@MatrixFuncObjFunc, obj);
           end;
      end;
 
@@ -672,7 +672,7 @@ begin
                if width < (i + 1)*thrSize then
                   obj.Width := width - i*thrSize;
 
-               calls.AddTask(MatrixFuncRefFunc, obj);
+               calls.AddTask(@MatrixFuncRefFunc, obj);
           end;
      end
      else
@@ -693,7 +693,7 @@ begin
                if height < (i + 1)*thrSize then
                   obj.Height := height - i*thrSize;
 
-               calls.AddTask(MatrixFuncRefFunc, obj);
+               calls.AddTask(@MatrixFuncRefFunc, obj);
           end;
      end;
 
@@ -734,7 +734,7 @@ begin
                if width < (i + 1)*thrSize then
                   obj.Width := width - i*thrSize;
 
-               calls.AddTask(MatrixFuncRefObjFunc, obj);
+               calls.AddTask(@MatrixFuncRefObjFunc, obj);
           end;
      end
      else
@@ -755,7 +755,7 @@ begin
                if height < (i + 1)*thrSize then
                   obj.Height := height - i*thrSize;
 
-               calls.AddTask(MatrixFuncRefObjFunc, obj);
+               calls.AddTask(@MatrixFuncRefObjFunc, obj);
           end;
      end;
 
@@ -794,7 +794,7 @@ begin
                if width < (i + 1)*thrSize then
                   obj.Width := width - i*thrSize;
 
-               calls.AddTask(MatrixAddSubFunc, obj);
+               calls.AddTask(@MatrixAddSubFunc, obj);
           end;
      end
      else
@@ -813,7 +813,7 @@ begin
                if height < (i + 1)*thrSize then
                   obj.Height := height - i*thrSize;
 
-               calls.AddTask(MatrixAddSubFunc, obj);
+               calls.AddTask(@MatrixAddSubFunc, obj);
           end;
      end;
 
@@ -822,12 +822,12 @@ end;
 
 procedure ThrMatrixSub(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 begin
-     ThrMatrixAddSub(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2, MatrixSub);
+     ThrMatrixAddSub(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2, @MatrixSub);
 end;
 
 procedure ThrMatrixAdd(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 begin
-     ThrMatrixAddSub(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2, MatrixAdd);
+     ThrMatrixAddSub(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2, @MatrixAdd);
 end;
 
 { TAsyncMultObj }

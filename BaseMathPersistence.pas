@@ -85,7 +85,7 @@ type
   protected
     property Stream : TStream read fStream;
 
-    class function CanReadStream(Stream : TStream) : boolean; virtual; abstract;
+    class function CanReadStream(aStream : TStream) : boolean; virtual; abstract;
 
     procedure WriteStreamHeader; virtual; abstract;
     procedure FinalizeStream; virtual; abstract;
@@ -105,13 +105,13 @@ type
     procedure WriteObject(const Name : String; Obj : TBaseMathPersistence); overload; virtual; abstract;
   public
     function LoadFromFile(const FileName : string) : TBaseMathPersistence;
-    function LoadFromStream(Stream : TStream) : TBaseMathPersistence; virtual; abstract;
+    function LoadFromStream(aStream : TStream) : TBaseMathPersistence; virtual; abstract;
 
     procedure SaveToFile(aMathObj : TBaseMathPersistence; const FileName : string);
     procedure SaveToStream(aMathObj : TBaseMathPersistence; aStream : TStream); virtual;
 
     class procedure StaticSaveToFile(aMathObj : TBaseMathPersistence; const FileName : string);
-    class procedure StaticSaveToStream(aMathObj : TBaseMathPersistence; Stream : TStream);
+    class procedure StaticSaveToStream(aMathObj : TBaseMathPersistence; aStream : TStream);
   end;
 
 function CreateMathIOReader(const FileName : TFileName) : TCustomMathPersistenceIOClass; overload;
@@ -303,11 +303,11 @@ begin
 end;
 
 class procedure TCustomMathPersistenceIO.StaticSaveToStream(
-  aMathObj: TBaseMathPersistence; Stream: TStream);
+  aMathObj: TBaseMathPersistence; aStream: TStream);
 begin
      with self.Create do
      try
-        SaveToStream(aMathObj, Stream);
+        SaveToStream(aMathObj, aStream);
      finally
             Free;
      end;

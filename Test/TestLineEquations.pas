@@ -17,7 +17,8 @@ unit TestLineEquations;
 interface
 
 uses
-  TestFramework, Classes, SysUtils, Types, OptimizedFuncs, BaseMatrixTestCase,
+  {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF} ,
+  Classes, SysUtils, Types, OptimizedFuncs, BaseMatrixTestCase,
   MatrixConst;
 
 type
@@ -326,6 +327,7 @@ var LUDecomp : Array[0..3] of double;
 begin
      Move(A, LUDecomp, sizeof(A));
 
+
      res := MatrixLUDecompInPlace(@LUDecomp[0], 2*sizeof(double), 2, @idx[0]);
 
      Check(res = leOk, 'Singularity detected!');
@@ -522,6 +524,6 @@ end;
 
 initialization
   // Alle Testfälle beim Test-Runner registrieren
-  RegisterTest(TTestLinearEquations.Suite);
+  RegisterTest(TTestLinearEquations{$IFNDEF FPC}.Suite{$ENDIF});
 
 end.

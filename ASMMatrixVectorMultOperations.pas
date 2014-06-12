@@ -37,6 +37,7 @@ implementation
 
 {$IFNDEF CPUX64}
 
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 procedure ASMMatrixVectorMultAlignedOddW1(dest : PDouble; const destLineWidth : TaSMNativeInt; mt1, mt2 : PDouble; width1 : TaSMNativeInt; height1 : TaSMNativeInt; height2 : TaSMNativeInt; const LineWidth1 : TaSMNativeInt);
 var iter : TaSMNativeInt;
 begin

@@ -178,11 +178,14 @@ end;
 
 procedure TWinMtxAsyncCallThread.Execute;
 var asyncCall : TWinMtxAsyncCall;
-{$IF CompilerVersion > 22}
+{$IFDEF FPC}
+    mask, procMask, sysmask : DWord;
+{$ELSE} {$IF CompilerVersion > 22}
     mask, procMask, sysmask : NativeUInt;
 {$ELSE}
     mask, procMask, sysmask : DWord;
 {$IFEND}
+{$ENDIF}
     idx : integer;
 begin
      if FCPUNum >= 0 then
@@ -338,7 +341,7 @@ begin
         if List.Count > 0 then
         begin
              { Get the "oldest" async call }
-             Result := List[0];
+             Result := TWinMtxAsyncCall(List[0]);
              List.Delete(0);
         end
         else
@@ -391,7 +394,7 @@ begin
      inherited Destroy;
 end;
 
-function TWinMtxAsyncCall._Release: Integer;
+function TWinMtxAsyncCall._Release: Integer; stdcall;
 begin
      Result := InterlockedDecrement(FRefCount);
      if Result = 0 then
@@ -422,7 +425,7 @@ begin
         Value := ExecuteAsyncCall;
      except
            FFatalErrorAddr := ErrorAddr;
-           FFatalException := AcquireExceptionObject;
+           FFatalException := Exception(AcquireExceptionObject);
      end;
      Quit(Value);
 end;

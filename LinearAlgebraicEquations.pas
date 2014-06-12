@@ -571,13 +571,13 @@ var i : integer;
 begin
      for i := k1 to k2 do
      begin
-          if indx[i] <> i then
+          if indx^[i] <> i then
           begin
                // interchange rows
                pA1 := A;
                inc(PByte(pA1), i*LineWidthA);
                pA2 := A;
-               inc(PByte(pA2), indx[i]*LineWidthA);
+               inc(PByte(pA2), indx^[i]*LineWidthA);
 
                // swap a complete row at once
                MatrixRowSwap(pA1, pA2, width);
@@ -708,12 +708,12 @@ begin
           end;
 
           // apply recursive LU to A(nleft + 1, nleft + 1);
-          Result := InternalRecursiveMatrixLUDecompInPlace(pB, nright, height - nleft, @indx[nleft], parity, data);
+          Result := InternalRecursiveMatrixLUDecompInPlace(pB, nright, height - nleft, @(indx^[nleft]), parity, data);
           if Result <> leok then
              exit;
 
           for i := nLeft to width - 1 do
-              indx[i] := indx[i] + nLeft;
+              indx^[i] := indx^[i] + nLeft;
 
           // dlswap
           LUSwap(A, data.LineWidth, nleft, nleft, mn - 1, indx, parity);
@@ -738,7 +738,7 @@ begin
           end;
 
           // now it's time to apply the gauss elimination
-          indx[0] := idx;
+          indx^[0] := idx;
 
           if Abs(maxVal) > MinDouble then
           begin
@@ -766,6 +766,7 @@ var parity : integer;
     mem : Array[0..(4+4*cBlkMultSize*cBlkMultSize)] of double;
     rc : TRecMtxLUDecompData;
 begin
+     FillChar(indx^, width*sizeof(integer), 0);
      parity := 1;
      rc.progress := progress;
      rc.numCols := width;
@@ -814,7 +815,7 @@ begin
      pB2 := B;
      for i := 0 to width - 1 do
      begin
-          ip := indx[i];
+          ip := indx^[i];
           pB := B;
           inc(PByte(pB), ip*LineWidthB);
           sum := pB^;
@@ -1002,7 +1003,7 @@ begin
           progObj := TLinearEQProgress.Create;
           progObj.refProgress := progress;
           progObj.numRefinenmentSteps := NumRefinments;
-          progRef := progObj.LUDecompSolveProgress;
+          progRef := @(progObj.LUDecompSolveProgress);
      end;
 
      SetLength(LUDecomp, width*width);

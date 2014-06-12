@@ -16,7 +16,7 @@ unit CCA;
 
 interface
 
-uses SysUtils, Classes, Matrix, Types, MatrixConst, BaseMathPersistence;
+uses SysUtils, Classes, Matrix, MatrixConst, BaseMathPersistence;
 
 // ########################################################
 // #### Implementation of the Cononical Correlation Analysis based on
@@ -96,7 +96,8 @@ procedure TMatrixCCA.CCA(X, Y: TDoubleMatrix; doRegularization: Boolean;
 var meanX, meanY : IMatrix;
     meanNormX : IMatrix;
     meanNormY : IMatrix;
-    Cxx, Cyy, Cxy, Cyx : IMatrix;
+    Cxx, Cyy, Cxy : IMatrix;
+    //Cyx : IMatrix;
     invCxx, invCyy : IMatrix;
     U, V, W : IMatrix;
     tmp : IMatrix;
@@ -149,7 +150,7 @@ begin
      Cxy := meanNormX.Mult(tmp);
      Cxy.ScaleInPlace(1/(N-1));
 
-     Cyx := Cxy.Transpose;
+  //   Cyx := Cxy.Transpose;
 
      // ##################################################
      // ##### Regularization:

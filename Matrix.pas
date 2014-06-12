@@ -117,8 +117,8 @@ type
     procedure AddInPlace(const Value : double); overload;
     function Scale(const Value : double) : TDoubleMatrix;
     procedure ScaleInPlace(const Value : Double);
-    function ScaleAndAdd(const Offset, Scale : double) : TDoubleMatrix;
-    procedure ScaleAndAddInPlace(const Offset, Scale : double);
+    function ScaleAndAdd(const aOffset, aScale : double) : TDoubleMatrix;
+    procedure ScaleAndAddInPlace(const aOffset, aScale : double);
     function SQRT : TDoubleMatrix;
     procedure SQRTInPlace;
 
@@ -196,7 +196,7 @@ type
     procedure SetLinEQProgress(value : TLinEquProgress);
     function GetLinEQProgress : TLinEquProgress;
 
-    procedure InternalSetWidthHeight(const Width, Height : integer; AssignMem : boolean = True);
+    procedure InternalSetWidthHeight(const aWidth, aHeight : integer; AssignMem : boolean = True);
     procedure ReserveMem(width, height: integer);
   private
     fMemory : Pointer;
@@ -224,12 +224,12 @@ type
     function GetObjRef : TDoubleMatrix;
 
     // direct access functionality (use only when you know what you are doing!)
-    function StartElement : PDouble; {$IF CompilerVersion >= 17.0} inline; {$IFEND}
-    function LineWidth : integer; {$IF CompilerVersion >= 17.0} inline; {$IFEND}
+    function StartElement : PDouble; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+    function LineWidth : integer; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
   public
     property Width : integer read GetSubWidth write SetWidth;
     property Height : integer read GetSubHeight write SetHeight;
-    procedure SetWidthHeight(const Width, Height : integer);
+    procedure SetWidthHeight(const aWidth, aHeight : integer);
 
     property Name : string read fName write fName;
 
@@ -301,8 +301,8 @@ type
     procedure AddInPlace(const Value : double); overload;
     function Scale(const Value : double) : TDoubleMatrix;
     procedure ScaleInPlace(const Value : Double);
-    function ScaleAndAdd(const Offset, Scale : double) : TDoubleMatrix;
-    procedure ScaleAndAddInPlace(const Offset, Scale : double);
+    function ScaleAndAdd(const aOffset, aScale : double) : TDoubleMatrix;
+    procedure ScaleAndAddInPlace(const aOffset, aScale : double);
     function SQRT : TDoubleMatrix;
     procedure SQRTInPlace;
 
@@ -363,10 +363,10 @@ type
     function Clone : TDoubleMatrix;
 
     constructor Create; overload;
-    constructor Create(width, height : integer; const initVal : double = 0); overload;
-    constructor CreateEye(width : integer);
-    constructor Create(data : PDouble; LineWidth : integer; width, height : integer); overload;
-    constructor Create(const Data : TDoubleDynArray; width, height : integer); overload;
+    constructor Create(aWidth, aHeight : integer; const initVal : double = 0); overload;
+    constructor CreateEye(aWidth : integer);
+    constructor Create(data : PDouble; aLineWidth : integer; aWidth, aHeight : integer); overload;
+    constructor Create(const Data : TDoubleDynArray; aWidth, aHeight : integer); overload;
     destructor Destroy; override;
   end;
 
@@ -375,7 +375,7 @@ type
 
 implementation
 
-uses Math, contnrs, OptimizedFuncs, LinearAlgebraicEquations,
+uses Math, OptimizedFuncs, LinearAlgebraicEquations,
      Eigensystems;
 
 
@@ -558,13 +558,13 @@ begin
      SetWidthHeight(1, 1);
 end;
 
-constructor TDoubleMatrix.Create(width, height: integer; const initVal : double);
+constructor TDoubleMatrix.Create(aWidth, aHeight: integer; const initVal : double);
 var pData : PDouble;
     x, y : integer;
 begin
      inherited Create;
 
-     SetWidthHeight(width, height);
+     SetWidthHeight(aWidth, aHeight);
 
      if initVal <> 0 then
      begin
@@ -836,7 +836,7 @@ begin
      pData := fData;
      inc(PByte(pData), (fOffsetY + y)*fLineWidth);
 
-     Result := pData[fOffsetX + x];
+     Result := pData^[fOffsetX + x];
 end;
 
 function TDoubleMatrix.GetLinEQProgress: TLinEquProgress;
@@ -1006,20 +1006,20 @@ begin
      MatrixAddAndScale(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, 0, Value);
 end;
 
-function TDoubleMatrix.ScaleAndAdd(const Offset, Scale: double): TDoubleMatrix;
+function TDoubleMatrix.ScaleAndAdd(const aOffset, aScale: double): TDoubleMatrix;
 begin
      CheckAndRaiseError((width > 0) and (Height > 0), 'No data assigned');
      Result := TDoubleMatrix.Create;
      Result.Assign(self, True);
 
-     Result.ScaleAndAddInPlace(Offset, Scale);
+     Result.ScaleAndAddInPlace(aOffset, aScale);
 end;
 
-procedure TDoubleMatrix.ScaleAndAddInPlace(const Offset, Scale: double);
+procedure TDoubleMatrix.ScaleAndAddInPlace(const aOffset, aScale: double);
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
      
-     MatrixScaleAndAdd(StartElement, LineWidth, fSubWidth, fSubHeight, Offset, Scale);
+     MatrixScaleAndAdd(StartElement, LineWidth, fSubWidth, fSubHeight, aOffset, aScale);
 end;
 
 procedure TDoubleMatrix.ScaleInPlace(const Value: Double);
@@ -1343,25 +1343,25 @@ begin
      SetWidthHeight(Value, fHeight);
 end;
 
-procedure TDoubleMatrix.SetWidthHeight(const Width, Height: integer);
+procedure TDoubleMatrix.SetWidthHeight(const aWidth, aHeight: integer);
 begin
-     InternalSetWidthHeight(Width, Height, True);
+     InternalSetWidthHeight(aWidth, aHeight, True);
 end;
 
-procedure TDoubleMatrix.InternalSetWidthHeight(const Width, Height: integer; AssignMem : boolean);
+procedure TDoubleMatrix.InternalSetWidthHeight(const aWidth, aHeight: integer; AssignMem : boolean);
 begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'Dimension error');
+     CheckAndRaiseError((aWidth > 0) and (aHeight > 0), 'Dimension error');
 
      if AssignMem
      then
-         ReserveMem(Width, Height)
+         ReserveMem(aWidth, aHeight)
      else
          ReserveMem(0, 0);
 
-     fWidth := Width;
-     fHeight := Height;
-     fSubWidth := Width;
-     fSubHeight := Height;
+     fWidth := aWidth;
+     fHeight := aHeight;
+     fSubWidth := aWidth;
+     fSubHeight := aHeight;
 end;
 
 function TDoubleMatrix.StartElement: PDouble;
@@ -1680,16 +1680,16 @@ begin
      Result.Assign(Self);
 end;
 
-constructor TDoubleMatrix.Create(data: PDouble; LineWidth, width,
-  height: integer);
+constructor TDoubleMatrix.Create(data: PDouble; aLineWidth, aWidth,
+  aHeight: integer);
 begin
      inherited Create;
 
-     fWidth := width;
-     fHeight := Height;
+     fWidth := aWidth;
+     fHeight := aHeight;
      fMemory := data;
      fData := PConstDoubleArr(data);
-     fLineWidth := LineWidth;
+     fLineWidth := aLineWidth;
 
      fOffsetX := 0;
      fOffsetY := 0;
@@ -1763,20 +1763,20 @@ begin
      EigVals := outEigVals;
 end;
 
-constructor TDoubleMatrix.Create(const Data: TDoubleDynArray; width,
-  height: integer);
+constructor TDoubleMatrix.Create(const Data: TDoubleDynArray; aWidth,
+  aHeight: integer);
 begin
      inherited Create;
 
-     Assign(Data, Width, height);
+     Assign(Data, aWidth, aHeight);
 end;
 
-constructor TDoubleMatrix.CreateEye(width: integer);
+constructor TDoubleMatrix.CreateEye(aWidth: integer);
 var i : integer;
 begin
      inherited Create;
 
-     SetWidthHeight(width, width);
+     SetWidthHeight(aWidth, aWidth);
 
      for i := 0 to width - 1 do
          Items[i, i] := 1;

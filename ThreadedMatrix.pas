@@ -35,8 +35,8 @@ type
     procedure MultInPlace(Value : TDoubleMatrix); override;
     function Mult(Value : TDoubleMatrix) : TDoubleMatrix; override;
 
-    procedure AddAndScaleInPlace(const Offset, Scale : double); override;
-    function AddAndScale(const Offset, Scale : double) : TDoubleMatrix; override;
+    procedure AddAndScaleInPlace(const aOffset, aScale : double); override;
+    function AddAndScale(const aOffset, aScale : double) : TDoubleMatrix; override;
 
     procedure ElementwiseFuncInPlace(func : TMatrixFunc); overload; override;
     function ElementwiseFunc(func : TMatrixFunc) : TDoubleMatrix; overload; override;
@@ -86,21 +86,21 @@ begin
      ThrMatrixAdd(THackMtx(Result).StartElement, THackMtx(Result).LineWidth, StartElement, THackMtx(Value).StartElement, fSubWidth, fSubHeight, LineWidth, THackMtx(Value).LineWidth);
 end;
 
-function TThreadedMatrix.AddAndScale(const Offset,
-  Scale: double): TDoubleMatrix;
+function TThreadedMatrix.AddAndScale(const aOffset,
+  aScale: double): TDoubleMatrix;
 begin
      assert((width > 0) and (Height > 0), 'No data assigned');
      Result := TThreadedMatrix.Create;
      Result.Assign(self, True);
 
-     Result.AddAndScaleInPlace(Offset, Scale);
+     Result.AddAndScaleInPlace(aOffset, aScale);
 end;
 
-procedure TThreadedMatrix.AddAndScaleInPlace(const Offset, Scale: double);
+procedure TThreadedMatrix.AddAndScaleInPlace(const aOffset, aScale: double);
 begin
      assert((Width > 0) and (Height > 0), 'No data assigned');
 
-     ThrMatrixAddAndScale(StartElement, LineWidth, fSubWidth, fSubHeight, Offset, Scale);
+     ThrMatrixAddAndScale(StartElement, LineWidth, fSubWidth, fSubHeight, aOffset, aScale);
 end;
 
 procedure TThreadedMatrix.AddInplace(Value: TDoubleMatrix);

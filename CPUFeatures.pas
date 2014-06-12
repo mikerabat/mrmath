@@ -61,8 +61,10 @@ end;
 
 {$ELSE}
 
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 function IsCPUID_Available: Boolean; register;
+{$IFDEF FPC} begin {$ENDIF}
 asm
    PUSHFD                 {save EFLAGS to stack}
    POP     EAX            {store EFLAGS in EAX}
@@ -77,9 +79,10 @@ asm
    MOV     EAX, True      {yes, CPUID is available}
 @exit:
 end;
-
+{$IFDEF FPC} end; {$ENDIF}
 
 procedure GetCPUID(Param: Cardinal; var Registers: TRegisters);
+{$IFDEF FPC} begin {$ENDIF}
 asm
    PUSH    EBX                         {save affected registers}
    PUSH    EDI
@@ -95,6 +98,8 @@ asm
    POP     EDI                         {restore registers}
    POP     EBX
 end;
+{$IFDEF FPC} end; {$ENDIF}
+
 {$ENDIF}
 
 function IsSSE3Present : boolean;

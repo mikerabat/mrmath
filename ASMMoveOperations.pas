@@ -43,6 +43,8 @@ implementation
 
 {$IFNDEF CPUX64}
 
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
+
 procedure ASMRowSwapAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
 var iters : TASMNativeInt;
 begin

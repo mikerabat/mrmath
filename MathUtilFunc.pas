@@ -21,9 +21,9 @@ unit MathUtilFunc;
 
 interface
 
-function pythag(const A, B : double) : double; {$IF CompilerVersion >= 17.0} inline; {$IFEND}
-function sign(a : double; b : double) : double; {$IF CompilerVersion >= 17.0} inline; {$IFEND}
-procedure DoubleSwap(var a, b : Double); {$IF CompilerVersion >= 17.0} inline; {$IFEND}
+function pythag(const A, B : double) : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+function sign(a : double; b : double) : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+procedure DoubleSwap(var a, b : Double); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function binom(n, k : integer) : int64;
 
 function eps(const val : double) : double;
@@ -65,7 +65,7 @@ begin
      end;
 end;
 
-procedure DoubleSwap(var a, b : Double); {$IF CompilerVersion >= 17.0} inline; {$IFEND}
+procedure DoubleSwap(var a, b : Double); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 var temp : double;
 begin
      temp := a;
@@ -74,7 +74,7 @@ begin
 end;
 
 // computes the eukledian distance without the destructive underflow or overflow
-function pythag(const A, B : double) : double; {$IF CompilerVersion >= 17.0} inline; {$IFEND}
+function pythag(const A, B : double) : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 var absA, absB : double;
 begin
      absA := abs(A);
@@ -90,7 +90,7 @@ begin
          Result := 0;
 end;
 
-function sign(a : double; b : double) : double; {$IF CompilerVersion >= 17.0} inline; {$IFEND}
+function sign(a : double; b : double) : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 begin
      if b > 0
      then

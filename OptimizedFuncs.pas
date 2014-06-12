@@ -29,15 +29,15 @@ function MatrixCopy(const Src : Array of double; width, height : TASMNativeInt) 
 
 procedure MatrixRowSwap(A, B : PDouble; width : TASMNativeInt);
 
-function MatrixAdd(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
 procedure MatrixAdd(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
 function MatrixAdd(const mt1, mt2 : array of double; width : TASMNativeInt) : TDoubleDynArray; overload;
 procedure MatrixAdd(var dest : Array of double; const mt1, mt2 : Array of double; width : TASMNativeInt); overload;
+function MatrixAdd(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
 
-function MatrixSub(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
 procedure MatrixSub(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
 function MatrixSub(const mt1, mt2 : array of double; width : TASMNativeInt) : TDoubleDynArray; overload;
 procedure MatrixSub(var dest : Array of double; const mt1, mt2 : Array of double; width : TASMNativeInt); overload;
+function MatrixSub(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
 
 function MatrixMult(mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
 procedure MatrixMult(var dest : Array of Double; mt1, mt2 : Array of double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt); overload;
@@ -546,53 +546,53 @@ begin
      begin
           if useStrassenMult
           then
-              multFunc := ASMStrassenMatrixMultiplication
+              multFunc := @ASMStrassenMatrixMultiplication
           else
-              multFunc := ASMMatrixMult;
-          addFunc := ASMMatrixAdd;
-          subFunc := ASMMatrixSub;
-          elemWiseFunc := ASMMatrixElemMult;
-          addScaleFunc := ASMMatrixAddAndScale;
-          scaleAddFunc := ASMMAtrixScaleAndAdd;
-          sqrtFunc := ASMMatrixSQRT;
-          blockedMultFunc := BlockedMatrixMultiplication;
-          copyFunc := ASMMatrixCopy;
-          minFunc := ASMMatrixMin;
-          maxFunc := ASMMatrixMax;
-          transposeFunc := ASMMatrixTranspose;
-          elemNormFunc := ASMMatrixElementwiseNorm2;
-          matrixNormalizeFunc := ASMMatrixNormalize;
-          matrixMeanFunc := ASMMatrixMean;
-          matrixSumFunc := ASMMatrixSum;
-          rowSwapFunc := ASMRowSwap;
-          absFunc := ASMMatrixAbs;
-          elemWiseDivFunc := ASMMatrixElemDiv;
+              multFunc := @ASMMatrixMult;
+          addFunc := @ASMMatrixAdd;
+          subFunc := @ASMMatrixSub;
+          elemWiseFunc := @ASMMatrixElemMult;
+          addScaleFunc := @ASMMatrixAddAndScale;
+          scaleAddFunc := @ASMMAtrixScaleAndAdd;
+          sqrtFunc := @ASMMatrixSQRT;
+          blockedMultFunc := @BlockedMatrixMultiplication;
+          copyFunc := @ASMMatrixCopy;
+          minFunc := @ASMMatrixMin;
+          maxFunc := @ASMMatrixMax;
+          transposeFunc := @ASMMatrixTranspose;
+          elemNormFunc := @ASMMatrixElementwiseNorm2;
+          matrixNormalizeFunc := @ASMMatrixNormalize;
+          matrixMeanFunc := @ASMMatrixMean;
+          matrixSumFunc := @ASMMatrixSum;
+          rowSwapFunc := @ASMRowSwap;
+          absFunc := @ASMMatrixAbs;
+          elemWiseDivFunc := @ASMMatrixElemDiv;
      end
      else
      begin
           if useStrassenMult
           then
-              multFunc := GenericStrassenMatrixMultiplication
+              multFunc := @GenericStrassenMatrixMultiplication
           else
-              multFunc := GenericMtxMult;
-          addFunc := GenericMtxAdd;
-          subFunc := GenericMtxSub;
-          elemWiseFunc := GenericMtxElemMult;
-          addScaleFunc := GenericMtxAddAndScale;
-          scaleAddFunc := GenericMtxScaleAndAdd;
-          sqrtFunc := GenericMtxSqrt;
-          blockedMultFunc := GenericBlockedMatrixMultiplication;
-          copyFunc := GenericMtxCopy;
-          minFunc := GenericMtxMin;
-          maxFunc := GenericMtxMax;
-          transposeFunc := GenericMtxTranspose;
-          elemNormFunc := GenericMtxElementwiseNorm2;
-          matrixNormalizeFunc := GenericMtxNormalize;
-          matrixMeanFunc := GenericMtxMean;
-          matrixSumFunc := GenericMtxSum;
-          rowSwapFunc := GenericRowSwap;
-          absFunc := GenericMtxAbs;
-          elemWiseDivFunc := GenericMtxElemDiv;
+              multFunc := @GenericMtxMult;
+          addFunc := @GenericMtxAdd;
+          subFunc := @GenericMtxSub;
+          elemWiseFunc := @GenericMtxElemMult;
+          addScaleFunc := @GenericMtxAddAndScale;
+          scaleAddFunc := @GenericMtxScaleAndAdd;
+          sqrtFunc := @GenericMtxSqrt;
+          blockedMultFunc := @GenericBlockedMatrixMultiplication;
+          copyFunc := @GenericMtxCopy;
+          minFunc := @GenericMtxMin;
+          maxFunc := @GenericMtxMax;
+          transposeFunc := @GenericMtxTranspose;
+          elemNormFunc := @GenericMtxElementwiseNorm2;
+          matrixNormalizeFunc := @GenericMtxNormalize;
+          matrixMeanFunc := @GenericMtxMean;
+          matrixSumFunc := @GenericMtxSum;
+          rowSwapFunc := @GenericRowSwap;
+          absFunc := @GenericMtxAbs;
+          elemWiseDivFunc := @GenericMtxElemDiv;
      end;
 
      actUseSSEoptions := IsSSE3Present;
