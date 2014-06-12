@@ -411,6 +411,9 @@ begin
      check(res);
 
      FreeMem(blk);
+
+     FreeMem(xa);
+     FreeMem(ya);
 end;
 
 procedure TASMMatrixOperations.TestBigTiledMult;
@@ -479,7 +482,6 @@ begin
                 (endTime3 - startTime3)/mtxFreq*1000, (endTime4 - startTime4)/mtxFreq*1000,
                 (endTime5 - startTime5)/mtxFreq*1000]));
 
-     exit;
      Move(dest2a^, dest2[0], length(dest2)*sizeof(double));
      res := CheckMtxIdx(dest1, dest2, idx);
      if not res then
@@ -1056,7 +1058,7 @@ begin
      m1 := TDoubleMatrix.Create(100, 1); 
      for i := 0 to 99 do
          m1[i, 0] := -pi + pi/100;
-     m2 := m1.ElementwiseFunc(@sinxDivX);
+     m2 := m1.ElementwiseFunc({$IFDEF FPC}@{$ENDIF}sinxDivX);
 end;
 
 procedure TestMatrixOperations.TestCopy;

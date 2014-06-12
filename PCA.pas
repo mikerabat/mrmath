@@ -353,7 +353,7 @@ begin
      try
         // subtract mean from each column
         fMeanNormExamples.Assign(Examples);
-        fMeanNormExamples.LineEQProgress := @OnLineEQProgress;
+        fMeanNormExamples.LineEQProgress := {$IFDEF FPC}@{$ENDIF}OnLineEQProgress;
 
         for i := 0 to fMeanNormExamples.Width - 1 do
         begin
@@ -537,7 +537,7 @@ begin
      try
         // subtract mean from each column
         fMeanNormExamples.Assign(Examples, True);
-        fMeanNormExamples.LineEQProgress := @OnLineEQProgress;
+        fMeanNormExamples.LineEQProgress := {$IFDEF FPC}@{$ENDIF}OnLineEQProgress;
 
         for i := 0 to fMeanNormExamples.Width - 1 do
         begin
