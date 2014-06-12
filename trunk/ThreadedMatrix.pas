@@ -82,7 +82,7 @@ begin
      assert((THackMtx(Value).fSubWidth = fSubWidth) and (THackMtx(Value).fSubHeight = fSubHeight), 'Dimension error');
 
      Result := TThreadedMatrix.Create;
-     THackMtx(Result).SetWidthHeight(fSubWidth, fSubHeight, True);
+     THackMtx(Result).SetWidthHeight(fSubWidth, fSubHeight);
      ThrMatrixAdd(THackMtx(Result).StartElement, THackMtx(Result).LineWidth, StartElement, THackMtx(Value).StartElement, fSubWidth, fSubHeight, LineWidth, THackMtx(Value).LineWidth);
 end;
 

@@ -400,6 +400,7 @@ begin
                if (obj.height1 <= 0) or (obj.width2 <= 0) then
                begin
                     doBreak := True;
+                    obj.Free;
                     break;
                end;
                inc(obj.dest, j*thrWidth);
