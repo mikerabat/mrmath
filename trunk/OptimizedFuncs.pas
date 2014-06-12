@@ -546,53 +546,53 @@ begin
      begin
           if useStrassenMult
           then
-              multFunc := @ASMStrassenMatrixMultiplication
+              multFunc := {$IFDEF FPC}@{$ENDIF}ASMStrassenMatrixMultiplication
           else
-              multFunc := @ASMMatrixMult;
-          addFunc := @ASMMatrixAdd;
-          subFunc := @ASMMatrixSub;
-          elemWiseFunc := @ASMMatrixElemMult;
-          addScaleFunc := @ASMMatrixAddAndScale;
-          scaleAddFunc := @ASMMAtrixScaleAndAdd;
-          sqrtFunc := @ASMMatrixSQRT;
-          blockedMultFunc := @BlockedMatrixMultiplication;
-          copyFunc := @ASMMatrixCopy;
-          minFunc := @ASMMatrixMin;
-          maxFunc := @ASMMatrixMax;
-          transposeFunc := @ASMMatrixTranspose;
-          elemNormFunc := @ASMMatrixElementwiseNorm2;
-          matrixNormalizeFunc := @ASMMatrixNormalize;
-          matrixMeanFunc := @ASMMatrixMean;
-          matrixSumFunc := @ASMMatrixSum;
-          rowSwapFunc := @ASMRowSwap;
-          absFunc := @ASMMatrixAbs;
-          elemWiseDivFunc := @ASMMatrixElemDiv;
+              multFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixMult;
+          addFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixAdd;
+          subFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixSub;
+          elemWiseFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixElemMult;
+          addScaleFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixAddAndScale;
+          scaleAddFunc := {$IFDEF FPC}@{$ENDIF}ASMMAtrixScaleAndAdd;
+          sqrtFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixSQRT;
+          blockedMultFunc := {$IFDEF FPC}@{$ENDIF}BlockedMatrixMultiplication;
+          copyFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixCopy;
+          minFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixMin;
+          maxFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixMax;
+          transposeFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixTranspose;
+          elemNormFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixElementwiseNorm2;
+          matrixNormalizeFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixNormalize;
+          matrixMeanFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixMean;
+          matrixSumFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixSum;
+          rowSwapFunc := {$IFDEF FPC}@{$ENDIF}ASMRowSwap;
+          absFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixAbs;
+          elemWiseDivFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixElemDiv;
      end
      else
      begin
           if useStrassenMult
           then
-              multFunc := @GenericStrassenMatrixMultiplication
+              multFunc := {$IFDEF FPC}@{$ENDIF}GenericStrassenMatrixMultiplication
           else
-              multFunc := @GenericMtxMult;
-          addFunc := @GenericMtxAdd;
-          subFunc := @GenericMtxSub;
-          elemWiseFunc := @GenericMtxElemMult;
-          addScaleFunc := @GenericMtxAddAndScale;
-          scaleAddFunc := @GenericMtxScaleAndAdd;
-          sqrtFunc := @GenericMtxSqrt;
-          blockedMultFunc := @GenericBlockedMatrixMultiplication;
-          copyFunc := @GenericMtxCopy;
-          minFunc := @GenericMtxMin;
-          maxFunc := @GenericMtxMax;
-          transposeFunc := @GenericMtxTranspose;
-          elemNormFunc := @GenericMtxElementwiseNorm2;
-          matrixNormalizeFunc := @GenericMtxNormalize;
-          matrixMeanFunc := @GenericMtxMean;
-          matrixSumFunc := @GenericMtxSum;
-          rowSwapFunc := @GenericRowSwap;
-          absFunc := @GenericMtxAbs;
-          elemWiseDivFunc := @GenericMtxElemDiv;
+              multFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMult;
+          addFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxAdd;
+          subFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxSub;
+          elemWiseFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxElemMult;
+          addScaleFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxAddAndScale;
+          scaleAddFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxScaleAndAdd;
+          sqrtFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxSqrt;
+          blockedMultFunc := {$IFDEF FPC}@{$ENDIF}GenericBlockedMatrixMultiplication;
+          copyFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxCopy;
+          minFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMin;
+          maxFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMax;
+          transposeFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxTranspose;
+          elemNormFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxElementwiseNorm2;
+          matrixNormalizeFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxNormalize;
+          matrixMeanFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMean;
+          matrixSumFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxSum;
+          rowSwapFunc := {$IFDEF FPC}@{$ENDIF}GenericRowSwap;
+          absFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxAbs;
+          elemWiseDivFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxElemDiv;
      end;
 
      actUseSSEoptions := IsSSE3Present;

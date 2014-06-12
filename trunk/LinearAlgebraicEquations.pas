@@ -1003,7 +1003,7 @@ begin
           progObj := TLinearEQProgress.Create;
           progObj.refProgress := progress;
           progObj.numRefinenmentSteps := NumRefinments;
-          progRef := @(progObj.LUDecompSolveProgress);
+          progRef := {$IFDEF FPC}@{$ENDIF}progObj.LUDecompSolveProgress;
      end;
 
      SetLength(LUDecomp, width*width);

@@ -155,8 +155,8 @@ begin
      mtx := TDoubleMatrix.Create;
      try
         mtx.Assign(fRefMatrix1);
-        mtx.ElementwiseFuncInPlace(@ElemWiseSqrt);
-        mtx.ElementwiseFuncInPlace(@ElemWiseSqr);
+        mtx.ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}ElemWiseSqrt);
+        mtx.ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}ElemWiseSqr);
 
         Check(CheckMtx(mtx.SubMatrix, fRefMatrix1.SubMatrix));
      finally
@@ -479,13 +479,13 @@ var dest1, dest2 : IMatrix;
     startTime2, endTime2 : Int64;
 begin
      startTime1 := MtxGetTime;
-     dest1 := fRefMatrix1.ElementwiseFunc(@ElemWiseSqr);
+     dest1 := fRefMatrix1.ElementwiseFunc({$IFDEF FPC}@{$ENDIF}ElemWiseSqr);
      endTime1 := MtxGetTime;
 
      m1 := TThreadedMatrix.Create;
      m1.Assign(fRefMatrix1);
      startTime2 := MtxGetTime;
-     dest2 := m1.ElementwiseFunc(@ElemWiseSqr);
+     dest2 := m1.ElementwiseFunc({$IFDEF FPC}@{$ENDIF}ElemWiseSqr);
      endTime2 := MtxGetTime;
 
      status(Format('%.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000]));
