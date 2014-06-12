@@ -44,7 +44,6 @@ procedure TestNonLinFitOptimization.TestArctanOpt;
 var x, y, a0, a1, a : IMatrix;
     i : integer;
 begin
-     InitMathFunctions(True, True);
      x := TDoubleMatrix.Create(1, 100);
      for i := 0 to x.height - 1 do
          x[0, i] := -10 + 20*(i/x.height);
