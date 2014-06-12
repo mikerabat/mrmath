@@ -40,7 +40,7 @@ type
     function GetSubHeight : integer;
     procedure SetWidth(const Value : integer);
     procedure SetHeight(const Value : integer);
-    procedure SetWidthHeight(const Width, Height : integer; AssignMem : boolean = True);
+    procedure SetWidthHeight(const Width, Height : integer);
 
     property Width : integer read GetSubWidth write SetWidth;
     property Height : integer read GetSubHeight write SetHeight;
@@ -176,7 +176,7 @@ type
     procedure AssignSubMatrix(Value : TDoubleMatrix; X : integer = 0; Y : integer = 0); overload;
     procedure AssignSubMatrix(Value : IMatrix; X : integer = 0; Y : integer = 0); overload;
 
-    function Clone : IMatrix;
+    function Clone : TDoubleMatrix;
   end;
 
 // #################################################
@@ -196,6 +196,7 @@ type
     procedure SetLinEQProgress(value : TLinEquProgress);
     function GetLinEQProgress : TLinEquProgress;
 
+    procedure InternalSetWidthHeight(const Width, Height : integer; AssignMem : boolean = True);
     procedure ReserveMem(width, height: integer);
   private
     fMemory : Pointer;
@@ -220,7 +221,6 @@ type
     procedure SetHeight(const Value : integer);
     function GetSubWidth : integer;
     function GetSubHeight : integer;
-    procedure SetWidthHeight(const Width, Height : integer; AssignMem : boolean = True);
     function GetObjRef : TDoubleMatrix;
 
     // direct access functionality (use only when you know what you are doing!)
@@ -229,6 +229,7 @@ type
   public
     property Width : integer read GetSubWidth write SetWidth;
     property Height : integer read GetSubHeight write SetHeight;
+    procedure SetWidthHeight(const Width, Height : integer);
 
     property Name : string read fName write fName;
 
@@ -359,7 +360,7 @@ type
     procedure AssignSubMatrix(Value : TDoubleMatrix; X : integer = 0; Y : integer = 0); overload;
     procedure AssignSubMatrix(Value : IMatrix; X : integer = 0; Y : integer = 0); overload;
 
-    function Clone : IMatrix;
+    function Clone : TDoubleMatrix;
 
     constructor Create; overload;
     constructor Create(width, height : integer; const initVal : double = 0); overload;
@@ -1342,7 +1343,12 @@ begin
      SetWidthHeight(Value, fHeight);
 end;
 
-procedure TDoubleMatrix.SetWidthHeight(const Width, Height: integer; AssignMem : boolean);
+procedure TDoubleMatrix.SetWidthHeight(const Width, Height: integer);
+begin
+     InternalSetWidthHeight(Width, Height, True);
+end;
+
+procedure TDoubleMatrix.InternalSetWidthHeight(const Width, Height: integer; AssignMem : boolean);
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'Dimension error');
 
@@ -1668,7 +1674,7 @@ begin
      fSubHeight := 0;
 end;
 
-function TDoubleMatrix.Clone: IMatrix;
+function TDoubleMatrix.Clone: TDoubleMatrix;
 begin
      Result := TDoubleMatrix.Create(Width, Height);
      Result.Assign(Self);
@@ -1770,7 +1776,7 @@ var i : integer;
 begin
      inherited Create;
 
-     SetWidthHeight(width, width, True);
+     SetWidthHeight(width, width);
 
      for i := 0 to width - 1 do
          Items[i, i] := 1;

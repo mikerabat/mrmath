@@ -91,12 +91,8 @@ type
 
   TASMatrixBlockSizeSetup = class(TBaseMatrixTestCase)
   published
-    procedure TestSetupTransposedOptSize;
     procedure TestSetupBestBlockSize;
-    procedure TestSetupBestBlockVectorSize;
     procedure TestSetupBlock;
-    procedure TestSetupBlockedVectorMatrixMultSize;
-
   end;
 
 implementation
@@ -219,12 +215,12 @@ begin
      begin
           mt2[cnt] := Random(10)*sign[random(2)];
           if ((cnt + 1) mod 73) = 0 then
-             mt2[cnt] := 0;
+             mt2[cnt] := -1000;
      end;
 
      ASMMatrixAbs(@mt2[0], (length(mt2) div 14)*sizeof(double), (length(mt2) div 14) - 1, 14);
      for cnt := 0 to Length(mt2) - 1 do
-         Check(mt2[cnt] >= 0, 'Error matrix abs - negative value found'); 
+         Check((mt2[cnt] = -1000) or (mt2[cnt] >= 0), 'Error matrix abs - negative value found'); 
 
      // aligned checks
      mta1 := GetMemory(1024*sizeof(double));
@@ -2599,32 +2595,11 @@ begin
      Status('BlockMatrixCacheSize: ' + IntToStr(BlockMatrixCacheSize));
 end;
 
-procedure TASMatrixBlockSizeSetup.TestSetupBestBlockVectorSize;
-begin
-     SetupOptBlockMatrixVectorSize;
-
-     Status('BlockMatrixVectorCachSize: ' + intToStr(BlockMatrixVectorCacheSize));
-end;
-
 procedure TASMatrixBlockSizeSetup.TestSetupBlock;
 begin
      SetupBlockedMatrixMultSize;
 
      Status(intToStr(BlockedMatrixMultSize));
-end;
-
-procedure TASMatrixBlockSizeSetup.TestSetupBlockedVectorMatrixMultSize;
-begin
-     SetupBlockedVectorMatrixMultSize;
-
-     Status('blockedVectorMatrixmultSize: ' + IntToStr(BlockedVectorMatrixMultSize));
-end;
-
-procedure TASMatrixBlockSizeSetup.TestSetupTransposedOptSize;
-begin
-     SetupOptTransposeMultMatrixSize;
-
-     Status('TransposeMatrixMultSize: ' + IntToStr(TransposeMatrixMultSize));
 end;
 
 initialization

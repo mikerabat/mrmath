@@ -130,7 +130,7 @@ constructor TSimpleWinMtxAsyncCall.Create(proc: TMtxProc; obj: TObject);
 begin
      inherited Create;
      
-     fEvt := TSimpleEvent.Create(nil, True, False, '');
+     fEvt := TSimpleEvent.Create;
      fProc := proc;
      fData := obj;
 end;

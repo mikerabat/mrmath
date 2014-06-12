@@ -395,14 +395,7 @@ function TWinMtxAsyncCall._Release: Integer;
 begin
      Result := InterlockedDecrement(FRefCount);
      if Result = 0 then
-     begin
-          try
-             if FEvent <> 0 then
-                Sync;
-          finally
-                 Destroy;
-          end;
-     end;
+        Destroy;
 end;
 
 function TWinMtxAsyncCall.Finished: Boolean;
