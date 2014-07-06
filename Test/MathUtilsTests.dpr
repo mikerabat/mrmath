@@ -72,7 +72,6 @@ uses
   SimpleMatrixOperations in '..\SimpleMatrixOperations.pas',
   ThreadedMatrix in '..\ThreadedMatrix.pas',
   ThreadedMatrixOperations in '..\ThreadedMatrixOperations.pas',
-  Utilities in '..\Utilities.pas',
   BaseMathPersistence in '..\BaseMathPersistence.pas',
   BinaryReaderWriter in '..\BinaryReaderWriter.pas',
   BufferedStream in '..\BufferedStream.pas',

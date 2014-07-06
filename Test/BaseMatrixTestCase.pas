@@ -44,7 +44,7 @@ type
  TBaseImgTestCase = class(TBaseMatrixTestCase)
  protected
    procedure ImageFromMatrix(img : TDoubleMatrix; w, h : integer; const FileName : string);
-   function LoadImages(var w, h : integer; path : string = 'Images'; ext : string = '*.jpg') : TDoubleMatrix;
+   function LoadImages(out w, h : integer; path : string = 'Images'; ext : string = '*.jpg') : TDoubleMatrix;
  end;
 
 
@@ -92,6 +92,7 @@ var i : integer;
     miss : integer;
     x, y : integer;
 begin
+     idx := -1;
      if (w < 0) and (h < 0) then
      begin
           w := Length(data1);
@@ -239,7 +240,7 @@ begin
      end;
 end;
 
-function TBaseImgTestCase.LoadImages(var w, h : integer; path : string = 'Images'; ext : string = '*.jpg' ): TDoubleMatrix;
+function TBaseImgTestCase.LoadImages(out w, h : integer; path : string = 'Images'; ext : string = '*.jpg' ): TDoubleMatrix;
 var imgNum : integer;
     img : TPicture;
     bmp : TBitmap;

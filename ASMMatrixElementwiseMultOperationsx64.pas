@@ -18,6 +18,12 @@ unit ASMMatrixElementwiseMultOperationsx64;
 interface
 
 {$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF x64}
 
 uses MatrixConst;
 
@@ -38,14 +44,26 @@ procedure ASMMatrixElemDivUnAlignedOddW(dest : PDouble; const destLineWidth : TA
 
 implementation
 
-{$IFDEF CPUX64}
+{$IFDEF x64}
+
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 procedure ASMMatrixElemMultAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var iRBX, iR11, iR12 : NativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iR11, r11;
+   mov iR12, r12;
+   {
    .pushnv rbx;
    .pushnv r11;
    .pushnv r12;
+   }
 
    //iters := -width*sizeof(double);
    mov r10, width;
@@ -56,9 +74,9 @@ asm
    mov r12, LineWidth2;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub mt1, r10;
-   sub mt2, r10;
-   sub dest, r10;
+   sub r8, r10;
+   sub r9, r10;
+   sub rcx, r10;
 
    // for y := 0 to height - 1:
    mov rbx, Height;
@@ -140,14 +158,32 @@ asm
    // loop y end
    dec rbx;
    jnz @@addforyloop;
+
+   // epilog
+   mov rbx, iRBX;
+   mov r11, iR11;
+   mov r12, iR12;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixElemMultUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var iRBX, iR11, iR12 : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iR11, r11;
+   mov iR12, r12;
+   {
    .pushnv rbx;
    .pushnv r11;
    .pushnv r12;
+   }
 
    mov r11, LineWidth1;
    mov r12, LineWidth2;
@@ -247,14 +283,32 @@ asm
    // loop y end
    dec rbx;
    jnz @@addforyloop;
+
+   // epilog
+   mov rbx, iRBX;
+   mov r11, iR11;
+   mov r12, iR12;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixElemMultAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var iRBX, iR11, iR12 : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iR11, r11;
+   mov iR12, r12;
+   {
    .pushnv rbx;
    .pushnv r11;
    .pushnv r12;
+   }
 
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
@@ -266,9 +320,9 @@ asm
    mov r12, LineWidth2;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub mt1, r10;
-   sub mt2, r10;
-   sub dest, r10;
+   sub r8, r10;
+   sub r9, r10;
+   sub rcx, r10;
 
    // for y := 0 to height - 1:
    mov rbx, Height;
@@ -357,14 +411,32 @@ asm
    // loop y end
    dec rbx;
    jnz @@addforyloop;
+
+   // epilog
+   mov rbx, iRBX;
+   mov r11, iR11;
+   mov r12, iR12;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixElemMultUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var iRBX, iR11, iR12 : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iR11, r11;
+   mov iR12, r12;
+   {
    .pushnv rbx;
    .pushnv r11;
    .pushnv r12;
+   }
 
    mov r11, LineWidth1;
    mov r12, LineWidth2;
@@ -472,6 +544,14 @@ asm
    // loop y end
    dec rbx;
    jnz @@addforyloop;
+
+   // epilog
+   mov rbx, iRBX;
+   mov r11, iR11;
+   mov r12, iR12;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 // ##############################################################
@@ -479,11 +559,21 @@ end;
 // ##############################################################
 
 procedure ASMMatrixElemDivAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var iRBX, iR11, iR12 : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iR11, r11;
+   mov iR12, r12;
+   {
    .pushnv rbx;
    .pushnv r11;
    .pushnv r12;
+   }
 
    //iters := -width*sizeof(double);
    mov r10, width;
@@ -494,9 +584,9 @@ asm
    mov r12, LineWidth2;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub mt1, r10;
-   sub mt2, r10;
-   sub dest, r10;
+   sub r8, r10;
+   sub r9, r10;
+   sub rcx, r10;
 
    // for y := 0 to height - 1:
    mov rbx, Height;
@@ -514,42 +604,42 @@ asm
 
            // Div:
            movapd xmm0, [r8 + rax - 128];
-           divdp xmm0, [r9 + rax - 128];
+           divpd xmm0, [r9 + rax - 128];
 
            movapd [rcx + rax - 128], xmm0;
 
            movapd xmm1, [r8 + rax - 112];
-           divdp xmm1, [r9 + rax - 112];
+           divpd xmm1, [r9 + rax - 112];
 
            movapd [rcx + rax - 112], xmm1;
 
            movapd xmm2, [r8 + rax - 96];
-           divdp xmm2, [r9 + rax - 96];
+           divpd xmm2, [r9 + rax - 96];
 
            movapd [rcx + rax - 96], xmm2;
 
            movapd xmm3, [r8 + rax - 80];
-           divdp xmm3, [r9 + rax - 80];
+           divpd xmm3, [r9 + rax - 80];
 
            movapd [rcx + rax - 80], xmm3;
 
            movapd xmm0, [r8 + rax - 64];
-           divdp xmm0, [r9 + rax - 64];
+           divpd xmm0, [r9 + rax - 64];
 
            movapd [rcx + rax - 64], xmm0;
 
            movapd xmm1, [r8 + rax - 48];
-           divdp xmm1, [r9 + rax - 48];
+           divpd xmm1, [r9 + rax - 48];
 
            movapd [rcx + rax - 48], xmm1;
 
            movapd xmm2, [r8 + rax - 32];
-           divdp xmm2, [r9 + rax - 32];
+           divpd xmm2, [r9 + rax - 32];
 
            movapd [rcx + rax - 32], xmm2;
 
            movapd xmm3, [r8 + rax - 16];
-           divdp xmm3, [r9 + rax - 16];
+           divpd xmm3, [r9 + rax - 16];
 
            movapd [rcx + rax - 16], xmm3;
        jmp @addforxloop
@@ -562,7 +652,7 @@ asm
 
        @addforxloop2:
            movapd xmm0, [r8 + rax];
-           divdp xmm0, [r9 + rax];
+           divpd xmm0, [r9 + rax];
 
            movapd [rcx + rax], xmm0;
        add rax, 16;
@@ -578,14 +668,32 @@ asm
    // loop y end
    dec rbx;
    jnz @@addforyloop;
+
+   // epilog
+   mov rbx, iRBX;
+   mov r11, iR11;
+   mov r12, iR12;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixElemDivUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var iRBX, iR11, iR12 : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iR11, r11;
+   mov iR12, r12;
+   {
    .pushnv rbx;
    .pushnv r11;
    .pushnv r12;
+   }
 
    mov r11, LineWidth1;
    mov r12, LineWidth2;
@@ -613,49 +721,49 @@ asm
            // Div:
            movupd xmm0, [r8 + rax - 128];
            movupd xmm1, [r9 + rax - 128];
-           divdp xmm0, xmm1;
+           divpd xmm0, xmm1;
 
            movupd [rcx + rax - 128], xmm0;
 
            movupd xmm0, [r8 + rax - 112];
            movupd xmm1, [r9 + rax - 112];
-           divdp xmm0, xmm1;
+           divpd xmm0, xmm1;
 
            movupd [rcx + rax - 112], xmm0;
 
            movupd xmm0, [r8 + rax - 96];
            movupd xmm1, [r9 + rax - 96];
-           divdp xmm0, xmm1;
+           divpd xmm0, xmm1;
 
            movupd [rcx + rax - 96], xmm0;
 
            movupd xmm0, [r8 + rax - 80];
            movupd xmm1, [r9 + rax - 80];
-           divdp xmm0, xmm1;
+           divpd xmm0, xmm1;
 
            movupd [rcx + rax - 80], xmm0;
 
            movupd xmm0, [r8 + rax - 64];
            movupd xmm1, [r9 + rax - 64];
-           divdp xmm0, xmm1;
+           divpd xmm0, xmm1;
 
            movupd [rcx + rax - 64], xmm0;
 
            movupd xmm0, [r8 + rax - 48];
            movupd xmm1, [r9 + rax - 48];
-           divdp xmm0, xmm1;
+           divpd xmm0, xmm1;
 
            movupd [rcx + rax - 48], xmm0;
 
            movupd xmm0, [r8 + rax - 32];
            movupd xmm1, [r9 + rax - 32];
-           divdp xmm0, xmm1;
+           divpd xmm0, xmm1;
 
            movupd [rcx + rax - 32], xmm0;
 
            movupd xmm0, [r8 + rax - 16];
            movupd xmm1, [r9 + rax - 16];
-           divdp xmm0, xmm1;
+           divpd xmm0, xmm1;
 
            movupd [rcx + rax - 16], xmm0;
        jmp @addforxloop
@@ -669,7 +777,7 @@ asm
        @addforxloop2:
            movupd xmm0, [r8 + rax];
            movupd xmm1, [r9 + rax];
-           divdp xmm0, xmm1;
+           divpd xmm0, xmm1;
 
            movupd [rcx + rax], xmm0;
        add rax, 16;
@@ -685,14 +793,32 @@ asm
    // loop y end
    dec rbx;
    jnz @@addforyloop;
+
+   // epilog
+   mov rbx, iRBX;
+   mov r11, iR11;
+   mov r12, iR12;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixElemDivAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var iRBX, iR11, iR12 : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iR11, r11;
+   mov iR12, r12;
+   {
    .pushnv rbx;
    .pushnv r11;
    .pushnv r12;
+   }
 
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
@@ -704,9 +830,9 @@ asm
    mov r12, LineWidth2;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub mt1, r10;
-   sub mt2, r10;
-   sub dest, r10;
+   sub r8, r10;
+   sub r9, r10;
+   sub rcx, r10;
 
    // for y := 0 to height - 1:
    mov rbx, Height;
@@ -724,42 +850,42 @@ asm
 
            // Div:
            movapd xmm0, [r8 + rax - 128];
-           divdp xmm0, [r9 + rax - 128];
+           divpd xmm0, [r9 + rax - 128];
 
            movapd [rcx + rax - 128], xmm0;
 
            movapd xmm1, [r8 + rax - 112];
-           divdp xmm1, [r9 + rax - 112];
+           divpd xmm1, [r9 + rax - 112];
 
            movapd [rcx + rax - 112], xmm1;
 
            movapd xmm2, [r8 + rax - 96];
-           divdp xmm2, [r9 + rax - 96];
+           divpd xmm2, [r9 + rax - 96];
 
            movapd [rcx + rax - 96], xmm2;
 
            movapd xmm3, [r8 + rax - 80];
-           divdp xmm3, [r9 + rax - 80];
+           divpd xmm3, [r9 + rax - 80];
 
            movapd [rcx + rax - 80], xmm3;
 
            movapd xmm0, [r8 + rax - 64];
-           divdp xmm0, [r9 + rax - 64];
+           divpd xmm0, [r9 + rax - 64];
 
            movapd [rcx + rax - 64], xmm0;
 
            movapd xmm1, [r8 + rax - 48];
-           divdp xmm1, [r9 + rax - 48];
+           divpd xmm1, [r9 + rax - 48];
 
            movapd [rcx + rax - 48], xmm1;
 
            movapd xmm2, [r8 + rax - 32];
-           divdp xmm2, [r9 + rax - 32];
+           divpd xmm2, [r9 + rax - 32];
 
            movapd [rcx + rax - 32], xmm2;
 
            movapd xmm3, [r8 + rax - 16];
-           divdp xmm3, [r9 + rax - 16];
+           divpd xmm3, [r9 + rax - 16];
 
            movapd [rcx + rax - 16], xmm3;
        jmp @addforxloop
@@ -772,7 +898,7 @@ asm
 
        @addforxloop2:
            movapd xmm0, [r8 + rax];
-           divdp xmm0, [r9 + rax];
+           divpd xmm0, [r9 + rax];
 
            movapd [rcx + rax], xmm0;
        add rax, 16;
@@ -795,14 +921,32 @@ asm
    // loop y end
    dec rbx;
    jnz @@addforyloop;
+
+   // epilog
+   mov rbx, iRBX;
+   mov r11, iR11;
+   mov r12, iR12;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixElemDivUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var iRBX, iR11, iR12 : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iR11, r11;
+   mov iR12, r12;
+   {
    .pushnv rbx;
    .pushnv r11;
    .pushnv r12;
+   }
 
    mov r11, LineWidth1;
    mov r12, LineWidth2;
@@ -831,49 +975,49 @@ asm
            // addition:
            movupd xmm0, [r8 + rax - 128];
            movupd xmm1, [r9 + rax - 128];
-           divdp xmm0, xmm1;
+           divpd xmm0, xmm1;
 
            movupd [rcx + rax - 128], xmm0;
 
            movupd xmm0, [r8 + rax - 112];
            movupd xmm1, [r9 + rax - 112];
-           divdp xmm0, xmm1;
+           divpd xmm0, xmm1;
 
            movupd [rcx + rax - 112], xmm0;
 
            movupd xmm0, [r8 + rax - 96];
            movupd xmm1, [r9 + rax - 96];
-           divdp xmm0, xmm1;
+           divpd xmm0, xmm1;
 
            movupd [rcx + rax - 96], xmm0;
 
            movupd xmm0, [r8 + rax - 80];
            movupd xmm1, [r9 + rax - 80];
-           divdp xmm0, xmm1;
+           divpd xmm0, xmm1;
 
            movupd [rcx + rax - 80], xmm0;
 
            movupd xmm0, [r8 + rax - 64];
            movupd xmm1, [r9 + rax - 64];
-           divdp xmm0, xmm1;
+           divpd xmm0, xmm1;
 
            movupd [rcx + rax - 64], xmm0;
 
            movupd xmm0, [r8 + rax - 48];
            movupd xmm1, [r9 + rax - 48];
-           divdp xmm0, xmm1;
+           divpd xmm0, xmm1;
 
            movupd [rcx + rax - 48], xmm0;
 
            movupd xmm0, [r8 + rax - 32];
            movupd xmm1, [r9 + rax - 32];
-           divdp xmm0, xmm1;
+           divpd xmm0, xmm1;
 
            movupd [rcx + rax - 32], xmm0;
 
            movupd xmm0, [r8 + rax - 16];
            movupd xmm1, [r9 + rax - 16];
-           divdp xmm0, xmm1;
+           divpd xmm0, xmm1;
 
            movupd [rcx + rax - 16], xmm0;
        jmp @addforxloop
@@ -887,7 +1031,7 @@ asm
        @addforxloop2:
            movupd xmm0, [r8 + rax];
            movupd xmm1, [r9 + rax];
-           divdp xmm0, xmm1;
+           divpd xmm0, xmm1;
 
            movupd [rcx + rax], xmm0;
        add rax, 16;
@@ -910,8 +1054,15 @@ asm
    // loop y end
    dec rbx;
    jnz @@addforyloop;
-end;
 
+   // epilog
+   mov rbx, iRBX;
+   mov r11, iR11;
+   mov r12, iR12;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+end;
 
 {$ENDIF}
 

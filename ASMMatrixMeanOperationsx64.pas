@@ -18,6 +18,12 @@ unit ASMMatrixMeanOperationsx64;
 interface
 
 {$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF x64}
 
 uses MatrixConst;
 
@@ -35,13 +41,24 @@ procedure ASMMatrixMeanColumnUnAlignedOddW(dest : PDouble; const destLineWidth :
 
 implementation
 
-{$IFDEF CPUX64}
+{$IFDEF x64}
+
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 
 procedure ASMMatrixMeanRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+var dXMM5 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-	  // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
+   // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
+
+   // prolog
+   movapd dXMM5, xmm5;
+   {
    .savenv xmm5;
+   }
 
    // iters := -width*sizeof(double)
    mov r10, width;
@@ -114,13 +131,29 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
+
+   // epilog
+   movapd xmm5, dXMM5;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMeanRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+var dXMM5, dXMM4 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-	  // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
-   .savenv xmm4;
+   // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
+
+   // prolog
+   movapd dXMM5, xmm5;
+   movapd dXMM4, xmm4;
+   {
    .savenv xmm5;
+   .savenv xmm4;
+   }
 
    // iters := -width*sizeof(double)
    mov r10, width;
@@ -200,12 +233,28 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
+
+   // epilog
+   movapd xmm5, dXMM5;
+   movapd xmm4, dXMM4
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMeanRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+var dXMM5 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-	  // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
+   // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
+
+   // prolog
+   movapd dXMM5, xmm5;
+   {
    .savenv xmm5;
+   }
 
    // iters := -width*sizeof(double)
    mov r10, width;
@@ -283,13 +332,29 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
+
+   // epilog
+   movapd xmm5, dXMM5;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMeanRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+var dXMM5, dXMM4 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-	  // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
-   .savenv xmm4;
+   // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
+
+   // prolog
+   movapd dXMM5, xmm5;
+   movapd dXMM4, xmm4;
+   {
    .savenv xmm5;
+   .savenv xmm4;
+   }
 
    // iters := -width*sizeof(double)
    mov r10, width;
@@ -374,12 +439,22 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
+
+   // epilog
+   movapd xmm5, dXMM5;
+   movapd xmm4, dXMM4;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMeanColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-			// note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
-	  xor r10, r10;
+   // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
+   xor r10, r10;
    sub r10, height;
    imul r10, srcLineWidth;
 
@@ -414,12 +489,18 @@ asm
    // loop x end
    dec r11;
    jnz @@addforxloop;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMeanColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-			// note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
-	  xor r10, r10;
+   // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
+   xor r10, r10;
    sub r10, height;
    imul r10, srcLineWidth;
 
@@ -455,12 +536,18 @@ asm
    // loop x end
    dec r11;
    jnz @@addforxloop;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMeanColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-			// note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
-	  xor r10, r10;
+   // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
+   xor r10, r10;
    sub r10, height;
    imul r10, srcLineWidth;
 
@@ -514,12 +601,18 @@ asm
    divsd xmm1, xmm2;
 
    movlpd [rcx], xmm1;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMeanColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-			// note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
-	  xor r10, r10;
+   // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
+   xor r10, r10;
    sub r10, height;
    imul r10, srcLineWidth;
 
@@ -574,6 +667,9 @@ asm
    divsd xmm1, xmm2;
 
    movlpd [rcx], xmm1;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 {$ENDIF}

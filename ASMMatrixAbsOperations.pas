@@ -6,9 +6,15 @@ unit ASMMatrixAbsOperations;
 
 interface
 
-{$IFNDEF CPUX64}
+{$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFNDEF x64}
 
-uses ASMConsts;
+uses MatrixConst;
 
 procedure ASMMatrixAbsAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
 procedure ASMMatrixAbsUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
@@ -20,7 +26,7 @@ procedure ASMMatrixAbsUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Heig
 
 implementation
 
-{$IFNDEF CPUX64}
+{$IFNDEF x64}
 
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 

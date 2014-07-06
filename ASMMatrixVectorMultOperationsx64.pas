@@ -22,6 +22,12 @@ unit ASMMatrixVectorMultOperationsx64;
 interface
 
 {$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF x64}
 
 uses MatrixConst;
 
@@ -35,13 +41,25 @@ procedure ASMMatrixVectorMultUnAlignedOddW1(dest : PDouble; const destLineWidth 
 
 implementation
 
-{$IFDEF CPUX64}
+{$IFDEF x64}
+
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 procedure ASMMatrixVectorMultAlignedEvenW1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt);
+var iRBX, iRDI, iR12 : NativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-	  .pushnv rbx;
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRDI, rdi;
+   mov iR12, r12;
+   {
+   .pushnv rbx;
    .pushnv rdi;
    .pushnv r12;
+   }
 
    mov r10, width1;
    shl r10, 3;
@@ -135,13 +153,31 @@ asm
        add r11, rdi;
    dec rbx;
    jnz @@foryloop;
+
+   // epilog - cleanup stack
+   mov rbx, iRBX;
+   mov rdi, iRDI;
+   mov r12, iR12;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixVectorMultUnAlignedEvenW1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt);
+var iRBX, iRDI, iR12 : NativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-	  .pushnv rbx;
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRDI, rdi;
+   mov iR12, r12;
+   {
+   .pushnv rbx;
    .pushnv rdi;
    .pushnv r12;
+   }
 
    mov r10, width1;
    shl r10, 3;
@@ -231,14 +267,32 @@ asm
        add r11, rdi;
    dec rbx;
    jnz @@foryloop;
+
+   // epilog - cleanup stack
+   mov rbx, iRBX;
+   mov rdi, iRDI;
+   mov r12, iR12;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 
 procedure ASMMatrixVectorMultAlignedOddW1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt);
+var iRBX, iRDI, iR12 : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRDI, rdi;
+   mov iR12, r12;
+   {
    .pushnv rbx;
    .pushnv rdi;
    .pushnv r12;
+   }
 
    mov r10, width1;
    dec r10;
@@ -340,13 +394,31 @@ asm
        add r11, rdi;
    dec rbx;
    jnz @@foryloop;
+
+   // epilog - cleanup stack
+   mov rbx, iRBX;
+   mov rdi, iRDI;
+   mov r12, iR12;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixVectorMultUnAlignedOddW1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt);
+var iRBX, iRDI, iR12 : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-	  .pushnv rbx;
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRDI, rdi;
+   mov iR12, r12;
+   {
+   .pushnv rbx;
    .pushnv rdi;
    .pushnv r12;
+   }
 
    mov r10, width1;
    dec r10;
@@ -444,6 +516,14 @@ asm
        add r11, rdi;
    dec rbx;
    jnz @@foryloop;
+
+   // epilog - cleanup stack
+   mov rbx, iRBX;
+   mov rdi, iRDI;
+   mov r12, iR12;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 

@@ -61,7 +61,6 @@ uses
   ThreadedLinAlg in '..\ThreadedLinAlg.pas',
   ThreadedMatrix in '..\ThreadedMatrix.pas',
   ThreadedMatrixOperations in '..\ThreadedMatrixOperations.pas',
-  Utilities in '..\Utilities.pas',
   GCDDispatch in '..\mac\GCDDispatch.pas',
   MacOsThreadPool in '..\mac\MacOsThreadPool.pas',
   SimpleWinThreadPool in '..\win\SimpleWinThreadPool.pas',

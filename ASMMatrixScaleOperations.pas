@@ -17,7 +17,13 @@ unit ASMMatrixScaleOperations;
 
 interface
 
-{$IFNDEF CPUX64}
+{$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFNDEF x64}
 
 uses MatrixConst;
 
@@ -37,7 +43,7 @@ procedure ASMMatrixScaleAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width,
 
 implementation
 
-{$IFNDEF CPUX64}
+{$IFNDEF x64}
 
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 

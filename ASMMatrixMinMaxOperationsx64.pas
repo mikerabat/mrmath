@@ -18,6 +18,12 @@ unit ASMMatrixMinMaxOperationsx64;
 interface
 
 {$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF x64}
 
 uses MatrixConst;
 
@@ -37,7 +43,9 @@ function ASMMatrixMinUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; 
 
 implementation
 
-{$IFDEF CPUX64}
+{$IFDEF x64}
+
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 uses Math;
 
@@ -45,10 +53,18 @@ const cNegMaxDouble : double = -MaxDouble;
       cMaxDouble : double = MaxDouble;
 
 function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+var iRBX : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-	  .pushnv rbx;
+   // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   {
+   .pushnv rbx;
+   }
 
-			// note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    shl rdx, 3;
    imul rdx, -1;
 
@@ -110,13 +126,27 @@ asm
    maxpd xmm0, xmm3;
    movhlps xmm1, xmm0;
    maxsd xmm0, xmm1;
+
+   // epilog - cleanup stack
+   mov rbx, iRBX;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 function ASMMatrixMaxUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+var iRBX : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-	  .pushnv rbx;
+   // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   {
+   .pushnv rbx;
+   }
 
-			// note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    shl rdx, 3;
    imul rdx, -1;
 
@@ -180,14 +210,28 @@ asm
    maxpd xmm0, xmm3;
    movhlps xmm1, xmm0;
    maxsd xmm0, xmm1;
+
+   // epilog - cleanup stack
+   mov rbx, iRBX;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 
 function ASMMatrixMaxAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+var iRBX : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-	  .pushnv rbx;
+   // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   {
+   .pushnv rbx;
+   }
 
-			// note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    dec rdx;
    shl rdx, 3;
    imul rdx, -1;
@@ -254,13 +298,27 @@ asm
    maxpd xmm0, xmm3;
    movhlps xmm1, xmm0;
    maxsd xmm0, xmm1;
+
+   // epilog - cleanup stack
+   mov rbx, iRBX;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 function ASMMatrixMaxUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+var iRBX : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-	  .pushnv rbx;
+   // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   {
+   .pushnv rbx;
+   }
 
-			// note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    dec rdx;
    shl rdx, 3;
    imul rdx, -1;
@@ -329,14 +387,28 @@ asm
    maxpd xmm0, xmm3;
    movhlps xmm1, xmm0;
    maxsd xmm0, xmm1;
+
+   // epilog - cleanup stack
+   mov rbx, iRBX;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 
 function ASMMatrixMinAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+var iRBX : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-	  .pushnv rbx;
+   // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   {
+   .pushnv rbx;
+   }
 
-			// note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    shl rdx, 3;
    imul rdx, -1;
 
@@ -398,13 +470,27 @@ asm
    minpd xmm0, xmm3;
    movhlps xmm1, xmm0;
    Minsd xmm0, xmm1;
+
+   // epilog - cleanup stack
+   mov rbx, iRBX;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 function ASMMatrixMinUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+var iRBX : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-	  .pushnv rbx;
+   // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   {
+   .pushnv rbx;
+   }
 
-			// note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    shl rdx, 3;
    imul rdx, -1;
 
@@ -468,14 +554,28 @@ asm
    minpd xmm0, xmm3;
    movhlps xmm1, xmm0;
    Minsd xmm0, xmm1;
+
+   // epilog - cleanup stack
+   mov rbx, iRBX;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 
 function ASMMatrixMinAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+var iRBX : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-	  .pushnv rbx;
+   // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   {
+   .pushnv rbx;
+   }
 
-			// note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    dec rdx;
    shl rdx, 3;
    imul rdx, -1;
@@ -542,13 +642,27 @@ asm
    minpd xmm0, xmm3;
    movhlps xmm1, xmm0;
    Minsd xmm0, xmm1;
+
+   // epilog - cleanup stack
+   mov rbx, iRBX;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 function ASMMatrixMinUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+var iRBX : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-	  .pushnv rbx;
+   // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   {
+   .pushnv rbx;
+   }
 
-			// note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    dec rdx;
    shl rdx, 3;
    imul rdx, -1;
@@ -617,6 +731,12 @@ asm
    minpd xmm0, xmm3;
    movhlps xmm1, xmm0;
    Minsd xmm0, xmm1;
+
+   // epilog - cleanup stack
+   mov rbx, iRBX;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 {$ENDIF}

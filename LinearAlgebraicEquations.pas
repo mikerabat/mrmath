@@ -740,7 +740,8 @@ begin
           // now it's time to apply the gauss elimination
           indx^[0] := idx;
 
-          if Abs(maxVal) > MinDouble then
+          // check for save invertion of maxVal
+          if Abs(maxVal) > 10/MaxDouble then
           begin
                MatrixScaleAndAdd(A, data.LineWidth, 1, Height, 0, 1/maxVal);
                pA := A;

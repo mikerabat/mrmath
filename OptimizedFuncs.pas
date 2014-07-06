@@ -302,7 +302,7 @@ begin
      assert(High(mt2) = High(mt1), 'Dimension Error');
      assert(High(dest) = High(mt1), 'Dimension Error');
 
-     elemWiseFunc(@dest[0], width*sizeof(double), @mt1[0], @mt2[0], width, (High(mt1) + 1) div width, width*sizeof(double), width*sizeof(double));
+     elemWiseFunc(@dest[0], width*sizeof(double), @mt1[0], @mt2[0], width, Height, width*sizeof(double), width*sizeof(double));
 end;
 
 function MatrixElemMult(const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
@@ -330,7 +330,7 @@ begin
      assert(High(mt2) = High(mt1), 'Dimension Error');
      assert(High(dest) = High(mt1), 'Dimension Error');
 
-     elemWiseDivFunc(@dest[0], width*sizeof(double), @mt1[0], @mt2[0], width, (High(mt1) + 1) div width, width*sizeof(double), width*sizeof(double));
+     elemWiseDivFunc(@dest[0], width*sizeof(double), @mt1[0], @mt2[0], width, height, width*sizeof(double), width*sizeof(double));
 end;
 
 function MatrixElemDiv(const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
@@ -608,7 +608,7 @@ end;
 
 initialization
   actUseSSEoptions := IsSSE3Present;
-  actUseStrassenMult := True;
+  actUseStrassenMult := False;
 
   InitMathFunctions(actUseSSEoptions, actUseSSEoptions);
 
