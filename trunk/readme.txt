@@ -34,7 +34,7 @@ The library has been extendend to be compatible with MacOS. There is a new
 unit test project - MathUtilsTestsMac.dpr - which can be used on this
 operating system.
 
-FreePascal support has been added but is only available for 32 bit binaries.
+FreePascal support has been added for both x86 and x64 windows platforms.
 You find a unit test project in the "Test" folder called MathUtilsTestsFPC.lpr
 
 
@@ -45,6 +45,13 @@ William Cantrall - special thanks for making the library MacOs compatible.
 
 // ###################################################################
 changelog:
+
+Date 6.7.2014
+Implemented x64 compatibility for Freepascal. Removed a few unused units. 
+-> The stack handling had to be completely rewritten for x64.
+Sidenotes: Sometimes stackalignment is not garanted to be properly aligned so I had to introduce some alignment dummy variables.
+FPC reserves extra space for parameters thus accessing the parameters instead of the registers leads to different 
+results.
 
 Date: 12.06.2014
 Made a Lazarus compatible project - mrMath is now compatible with Freepascal for windows 32 bit!

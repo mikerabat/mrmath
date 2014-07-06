@@ -182,7 +182,7 @@ type
 
 implementation
 
-uses Math, Utilities;
+uses Math, MathUtilFunc;
 
 // ######################################################################
 // #### local definitions

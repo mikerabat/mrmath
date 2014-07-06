@@ -22,6 +22,12 @@ unit ASMMatrixAddSubOperationsx64;
 interface
 
 {$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF x64}
 
 uses MatrixConst;
 
@@ -41,14 +47,24 @@ procedure ASMMatrixSubUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNa
 
 implementation
 
-{$IFDEF CPUX64}
+{$IFDEF x64}
+
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 procedure ASMMatrixAddAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var iRBX, iR12 : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iR12, r12;
+   {
    .pushnv rbx;
    .pushnv r12;
-
+   }
    //iters := -width*sizeof(double);
    mov r10, width;
    shl r10, 3;
@@ -58,9 +74,9 @@ asm
    mov r12, LineWidth2;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub mt1, r10;
-   sub mt2, r10;
-   sub dest, r10;
+   sub r8, r10;
+   sub r9, r10;
+   sub rcx, r10;
 
    // for y := 0 to height - 1:
    mov rbx, Height;
@@ -142,13 +158,29 @@ asm
    // loop y end
    dec rbx;
    jnz @@addforyloop;
+
+   // epilog
+   mov rbx, iRBX;
+   mov r12, iR12;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 procedure ASMMatrixAddUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var iRBX, iR12 : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iR12, r12;
+   {
    .pushnv rbx;
    .pushnv r12;
+   }
 
    mov r11, LineWidth1;
    mov r12, LineWidth2;
@@ -252,13 +284,29 @@ asm
    // loop y end
    dec rbx;
    jnz @@addforyloop;
+
+   // epilog
+   mov rbx, iRBX;
+   mov r12, iR12;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 procedure ASMMatrixAddAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var iRBX, iR12 : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iR12, r12;
+   {
    .pushnv rbx;
    .pushnv r12;
+   }
 
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
@@ -270,9 +318,9 @@ asm
    mov r12, LineWidth2;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub mt1, r10;
-   sub mt2, r10;
-   sub dest, r10;
+   sub r8, r10;
+   sub r9, r10;
+   sub rcx, r10;
 
    // for y := 0 to height - 1:
    mov rbx, Height;
@@ -360,13 +408,29 @@ asm
    // loop y end
    dec rbx;
    jnz @@addforyloop;
+
+   // epilog
+   mov rbx, iRBX;
+   mov r12, iR12;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 procedure ASMMatrixAddUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var iRBX, iR12 : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iR12, r12;
+   {
    .pushnv rbx;
    .pushnv r12;
+   }
 
    mov r11, LineWidth1;
    mov r12, LineWidth2;
@@ -477,13 +541,29 @@ asm
    // loop y end
    dec rbx;
    jnz @@addforyloop;
+
+   // epilog
+   mov rbx, iRBX;
+   mov r12, iR12;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 procedure ASMMatrixSubAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var iRBX, iR12 : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iR12, r12;
+   {
    .pushnv rbx;
    .pushnv r12;
+   }
 
    //iters := -width*sizeof(double);
    mov r10, width;
@@ -494,9 +574,9 @@ asm
    mov r12, LineWidth2;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub mt1, r10;
-   sub mt2, r10;
-   sub dest, r10;
+   sub r8, r10;
+   sub r9, r10;
+   sub rcx, r10;
 
    // for y := 0 to height - 1:
    mov rbx, Height;
@@ -578,13 +658,29 @@ asm
    // loop y end
    dec rbx;
    jnz @@addforyloop;
+
+   // epilog
+   mov rbx, iRBX;
+   mov r12, iR12;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 procedure ASMMatrixSubUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var iRBX, iR12 : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iR12, r12;
+   {
    .pushnv rbx;
    .pushnv r12;
+   }
 
    mov r11, LineWidth1;
    mov r12, LineWidth2;
@@ -688,13 +784,29 @@ asm
    // loop y end
    dec rbx;
    jnz @@addforyloop;
+
+   // epilog
+   mov rbx, iRBX;
+   mov r12, iR12;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 procedure ASMMatrixSubAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var iRBX, iR12 : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iR12, r12;
+   {
    .pushnv rbx;
    .pushnv r12;
+   }
 
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
@@ -706,9 +818,9 @@ asm
    mov r12, LineWidth2;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub mt1, r10;
-   sub mt2, r10;
-   sub dest, r10;
+   sub r8, r10;
+   sub r9, r10;
+   sub rcx, r10;
 
    // for y := 0 to height - 1:
    mov rbx, Height;
@@ -796,13 +908,29 @@ asm
    // loop y end
    dec rbx;
    jnz @@addforyloop;
+
+   // epilog
+   mov rbx, iRBX;
+   mov r12, iR12;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 procedure ASMMatrixSubUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var iRBX, iR12 : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iR12, r12;
+   {
    .pushnv rbx;
    .pushnv r12;
+   }
 
    mov r11, LineWidth1;
    mov r12, LineWidth2;
@@ -913,7 +1041,14 @@ asm
    // loop y end
    dec rbx;
    jnz @@addforyloop;
+
+   // epilog
+   mov rbx, iRBX;
+   mov r12, iR12;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 {$ENDIF}
 

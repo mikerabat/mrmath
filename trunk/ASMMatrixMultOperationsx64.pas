@@ -18,6 +18,12 @@ unit ASMMatrixMultOperationsx64;
 interface
 
 {$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF x64}
 
 uses MatrixConst;
 
@@ -41,12 +47,34 @@ procedure ASMMatrixMultUnAlignedOddW1OddW2(dest : PDouble; const destLineWidth :
 
 implementation
 
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
-{$IFDEF CPUX64}
+{$IFDEF x64}
 procedure ASMMatrixMultAlignedEvenW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : NativeInt;
+
+{$IFDEF FPC}
+begin
+  {$ENDIF}
+
 asm
     // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
-   .pushnv rbx;
+    // prolog - simulate stack
+    mov iRBX, rbx;
+    mov iRSI, rsi;
+    mov iRDI, rdi;
+    mov iR12, r12;
+    mov iR13, r13;
+    mov iR14, r14;
+    mov iR15, r15;
+
+    movapd dXMM4, xmm4;
+    movapd dXMM5, xmm5;
+    movapd dXMM6, xmm6;
+    movapd dXMM7, xmm7;
+
+    {
    .pushnv rbx;
    .pushnv rsi;
    .pushnv rdi;
@@ -59,6 +87,7 @@ asm
    .savenv xmm5;
    .savenv xmm6;
    .savenv xmm7;
+   }
 
     //destOffset := destLineWidth - Width2*sizeof(double);
     mov rbx, Width2;
@@ -166,13 +195,51 @@ asm
     // end for y := 0 to height1 - 1
     //dec eax;
     dec rsi;
-    jnz @@forylabel
+    jnz @@forylabel;
+
+
+    // epilog
+    mov rbx, iRBX;
+    mov rsi, iRSI;
+    mov rdi, iRDI;
+    mov r12, iR12;
+    mov r13, iR13;
+    mov r14, iR14;
+    mov r15, iR15;
+
+    movapd xmm4, dXMM4;
+    movapd xmm5, dXMM5;
+    movapd xmm6, dXMM6;
+    movapd xmm7, dXMM7;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 procedure ASMMatrixMultUnAlignedEvenW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : NativeInt;
+
+{$IFDEF FPC}
+begin
+  {$ENDIF}
+
 asm
     // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
-   .pushnv rbx;
+    // prolog - simulate stack
+    mov iRBX, rbx;
+    mov iRSI, rsi;
+    mov iRDI, rdi;
+    mov iR12, r12;
+    mov iR13, r13;
+    mov iR14, r14;
+    mov iR15, r15;
+
+    movapd dXMM4, xmm4;
+    movapd dXMM5, xmm5;
+    movapd dXMM6, xmm6;
+    movapd dXMM7, xmm7;
+    {
    .pushnv rbx;
    .pushnv rsi;
    .pushnv rdi;
@@ -185,7 +252,7 @@ asm
    .savenv xmm5;
    .savenv xmm6;
    .savenv xmm7;
-
+   }
     //destOffset := destLineWidth - Width2*sizeof(double);
     mov rbx, Width2;
     shl rbx, 3;
@@ -292,14 +359,51 @@ asm
     // end for y := 0 to height1 - 1
     //dec eax;
     dec rsi;
-    jnz @@forylabel
+    jnz @@forylabel;
+
+    // epilog
+    mov rbx, iRBX;
+    mov rsi, iRSI;
+    mov rdi, iRDI;
+    mov r12, iR12;
+    mov r13, iR13;
+    mov r14, iR14;
+    mov r15, iR15;
+
+    movapd xmm4, dXMM4;
+    movapd xmm5, dXMM5;
+    movapd xmm6, dXMM6;
+    movapd xmm7, dXMM7;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 // the width of the second matrix is uneven -> the last column of mt2 must be handled differently
 procedure ASMMatrixMultAlignedEvenW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : NativeInt;
+
+{$IFDEF FPC}
+begin
+  {$ENDIF}
+
 asm
     // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
-   .pushnv rbx;
+    // prolog - simulate stack
+    mov iRBX, rbx;
+    mov iRSI, rsi;
+    mov iRDI, rdi;
+    mov iR12, r12;
+    mov iR13, r13;
+    mov iR14, r14;
+    mov iR15, r15;
+
+    movapd dXMM4, xmm4;
+    movapd dXMM5, xmm5;
+    movapd dXMM6, xmm6;
+    movapd dXMM7, xmm7;
+    {
    .pushnv rbx;
    .pushnv rsi;
    .pushnv rdi;
@@ -312,6 +416,7 @@ asm
    .savenv xmm5;
    .savenv xmm6;
    .savenv xmm7;
+   }
 
     //destOffset := destLineWidth - (Width2 - 1)*sizeof(double);
     mov rbx, Width2;
@@ -439,13 +544,50 @@ asm
     // end for y := 0 to height1 - 1
     //dec eax;
     dec rsi;
-    jnz @@forylabel
+    jnz @@forylabel;
+
+    // epilog
+    mov rbx, iRBX;
+    mov rsi, iRSI;
+    mov rdi, iRDI;
+    mov r12, iR12;
+    mov r13, iR13;
+    mov r14, iR14;
+    mov r15, iR15;
+
+    movapd xmm4, dXMM4;
+    movapd xmm5, dXMM5;
+    movapd xmm6, dXMM6;
+    movapd xmm7, dXMM7;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 procedure ASMMatrixMultUnAlignedEvenW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : NativeInt;
+
+{$IFDEF FPC}
+begin
+  {$ENDIF}
+
 asm
     // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
-   .pushnv rbx;
+    // prolog - simulate stack
+    mov iRBX, rbx;
+    mov iRSI, rsi;
+    mov iRDI, rdi;
+    mov iR12, r12;
+    mov iR13, r13;
+    mov iR14, r14;
+    mov iR15, r15;
+
+    movapd dXMM4, xmm4;
+    movapd dXMM5, xmm5;
+    movapd dXMM6, xmm6;
+    movapd dXMM7, xmm7;
+    {
    .pushnv rbx;
    .pushnv rsi;
    .pushnv rdi;
@@ -458,6 +600,7 @@ asm
    .savenv xmm5;
    .savenv xmm6;
    .savenv xmm7;
+   }
 
     //destOffset := destLineWidth - (Width2 - 1)*sizeof(double);
     mov rbx, Width2;
@@ -585,14 +728,51 @@ asm
     // end for y := 0 to height1 - 1
     //dec eax;
     dec rsi;
-    jnz @@forylabel
+    jnz @@forylabel;
+
+    // epilog
+    mov rbx, iRBX;
+    mov rsi, iRSI;
+    mov rdi, iRDI;
+    mov r12, iR12;
+    mov r13, iR13;
+    mov r14, iR14;
+    mov r15, iR15;
+
+    movapd xmm4, dXMM4;
+    movapd xmm5, dXMM5;
+    movapd xmm6, dXMM6;
+    movapd xmm7, dXMM7;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 // the width of mt1 is odd but the one of mt2 is even
 procedure ASMMatrixMultAlignedOddW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : NativeInt;
+
+{$IFDEF FPC}
+begin
+  {$ENDIF}
+
 asm
     // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
-   .pushnv rbx;
+    // prolog - simulate stack
+    mov iRBX, rbx;
+    mov iRSI, rsi;
+    mov iRDI, rdi;
+    mov iR12, r12;
+    mov iR13, r13;
+    mov iR14, r14;
+    mov iR15, r15;
+
+    movapd dXMM4, xmm4;
+    movapd dXMM5, xmm5;
+    movapd dXMM6, xmm6;
+    movapd dXMM7, xmm7;
+    {
    .pushnv rbx;
    .pushnv rsi;
    .pushnv rdi;
@@ -605,6 +785,7 @@ asm
    .savenv xmm5;
    .savenv xmm6;
    .savenv xmm7;
+   }
 
     //destOffset := destLineWidth - Width2*sizeof(double);
     mov rbx, Width2;
@@ -724,12 +905,50 @@ asm
     // end for y := 0 to height1 - 1
     //dec eax;
     dec rsi;
-    jnz @@forylabel
+    jnz @@forylabel;
+
+    // epilog
+    mov rbx, iRBX;
+    mov rsi, iRSI;
+    mov rdi, iRDI;
+    mov r12, iR12;
+    mov r13, iR13;
+    mov r14, iR14;
+    mov r15, iR15;
+
+    movapd xmm4, dXMM4;
+    movapd xmm5, dXMM5;
+    movapd xmm6, dXMM6;
+    movapd xmm7, dXMM7;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 procedure ASMMatrixMultUnAlignedOddW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : NativeInt;
+
+{$IFDEF FPC}
+begin
+  {$ENDIF}
+
 asm
     // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
+    // prolog - simulate stack
+    mov iRBX, rbx;
+    mov iRSI, rsi;
+    mov iRDI, rdi;
+    mov iR12, r12;
+    mov iR13, r13;
+    mov iR14, r14;
+    mov iR15, r15;
+
+    movapd dXMM4, xmm4;
+    movapd dXMM5, xmm5;
+    movapd dXMM6, xmm6;
+    movapd dXMM7, xmm7;
+    {
    .pushnv rbx;
    .pushnv rsi;
    .pushnv rdi;
@@ -742,6 +961,7 @@ asm
    .savenv xmm5;
    .savenv xmm6;
    .savenv xmm7;
+   }
 
     //destOffset := destLineWidth - Width2*sizeof(double);
     mov rbx, Width2;
@@ -862,14 +1082,53 @@ asm
     // end for y := 0 to height1 - 1
     //dec eax;
     dec rsi;
-    jnz @@forylabel
-end;
+    jnz @@forylabel;
 
+    // epilog
+    mov rbx, iRBX;
+    mov rsi, iRSI;
+    mov rdi, iRDI;
+    mov r12, iR12;
+    mov r13, iR13;
+    mov r14, iR14;
+    mov r15, iR15;
+
+    movapd xmm4, dXMM4;
+    movapd xmm5, dXMM5;
+    movapd xmm6, dXMM6;
+    movapd xmm7, dXMM7;
+end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 // both matrices have an odd width
 procedure ASMMatrixMultAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var dXMM4, dXMM5, dXMM6, dXMM7, dXMM8 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : NativeInt;
+
+{$IFDEF FPC}
+begin
+  {$ENDIF}
+
 asm
     // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
+    // prolog - simulate stack
+    mov iRBX, rbx;
+    mov iRSI, rsi;
+    mov iRDI, rdi;
+    mov iR12, r12;
+    mov iR13, r13;
+    mov iR14, r14;
+    mov iR15, r15;
+
+    movapd dXMM4, xmm4;
+    movapd dXMM5, xmm5;
+    movapd dXMM6, xmm6;
+    movapd dXMM7, xmm7;
+    movapd dXMM8, xmm8;
+    {
+   .pushnv rbx;
    .pushnv rbx;
    .pushnv rsi;
    .pushnv rdi;
@@ -883,6 +1142,7 @@ asm
    .savenv xmm6;
    .savenv xmm7;
    .savenv xmm8;
+   }
 
     //destOffset := destLineWidth - (Width2 - 1)*sizeof(double);
     mov rbx, Width2;
@@ -1026,13 +1286,52 @@ asm
     // end for y := 0 to height1 - 1
     //dec eax;
     dec rsi;
-    jnz @@forylabel
+    jnz @@forylabel;
+
+    // epilog
+    mov rbx, iRBX;
+    mov rsi, iRSI;
+    mov rdi, iRDI;
+    mov r12, iR12;
+    mov r13, iR13;
+    mov r14, iR14;
+    mov r15, iR15;
+
+    movapd xmm4, dXMM4;
+    movapd xmm5, dXMM5;
+    movapd xmm6, dXMM6;
+    movapd xmm7, dXMM7;
+    movapd xmm8, dXMM8;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 procedure ASMMatrixMultUnAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var buf : double;
+var dXMM4, dXMM5, dXMM6, dXMM7, dXMM8 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : NativeInt;
+
+{$IFDEF FPC}
+begin
+  {$ENDIF}
+
 asm
     // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
+    // prolog - simulate stack
+    mov iRBX, rbx;
+    mov iRSI, rsi;
+    mov iRDI, rdi;
+    mov iR12, r12;
+    mov iR13, r13;
+    mov iR14, r14;
+    mov iR15, r15;
+
+    movapd dXMM4, xmm4;
+    movapd dXMM5, xmm5;
+    movapd dXMM6, xmm6;
+    movapd dXMM7, xmm7;
+    movapd dXMM8, xmm8;
+    {
    .pushnv rbx;
    .pushnv rbx;
    .pushnv rsi;
@@ -1047,6 +1346,7 @@ asm
    .savenv xmm6;
    .savenv xmm7;
    .savenv xmm8;
+   }
 
     //destOffset := destLineWidth - (Width2 - 1)*sizeof(double);
     mov rbx, Width2;
@@ -1165,11 +1465,9 @@ asm
         @@InnerLoop2:
             // load element from line
             movlpd xmm1, [r8 + rdx];
-            movlpd buf, xmm1;
 
             // load, multiply and add
             movlpd xmm2, [rdi];
-            movlpd buf, xmm2;
             mulsd xmm1, [rdi];
             add rdi, rax;       // next row
 
@@ -1193,8 +1491,25 @@ asm
     // end for y := 0 to height1 - 1
     //dec eax;
     dec rsi;
-    jnz @@forylabel
+    jnz @@forylabel;
+
+    mov rbx, iRBX;
+    mov rsi, iRSI;
+    mov rdi, iRDI;
+    mov r12, iR12;
+    mov r13, iR13;
+    mov r14, iR14;
+    mov r15, iR15;
+
+    movapd xmm4, dXMM4;
+    movapd xmm5, dXMM5;
+    movapd xmm6, dXMM6;
+    movapd xmm7, dXMM7;
+    movapd xmm8, dXMM8;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 {$ENDIF}
 

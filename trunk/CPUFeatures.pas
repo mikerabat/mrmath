@@ -35,17 +35,33 @@ type
     EDX: Cardinal;
   end;
 
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
+
 {$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF x64}
 
 function IsCPUID_Available : boolean;
 begin
- 	   Result := true;
+     Result := true;
 end;
 
 procedure GetCPUID(Param: Cardinal; var Registers: TRegisters);
+var iRBX, iRDI : int64;
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
+   mov iRBX, rbx;
+   mov iRDI, rdi;
+   {
    .pushnv rbx;                        {save affected registers}
    .pushnv rdi;
+   }
    MOV     RDI, Registers
    MOV     EAX, Param;
    XOR     RBX, RBX                    {clear EBX register}
@@ -56,12 +72,17 @@ asm
    MOV     TRegisters(RDI).&EBX, EBX   {save EBX register}
    MOV     TRegisters(RDI).&ECX, ECX   {save ECX register}
    MOV     TRegisters(RDI).&EDX, EDX   {save EDX register}
+
+   // epilog
+   mov rbx, iRBX;
+   mov rdi, IRDI;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 
 {$ELSE}
-
-{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 function IsCPUID_Available: Boolean; register;
 {$IFDEF FPC} begin {$ENDIF}

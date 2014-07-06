@@ -18,6 +18,12 @@ unit ASMMatrixSumOperationsx64;
 interface
 
 {$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF x64}
 
 uses MatrixConst;
 
@@ -35,9 +41,14 @@ procedure ASMMatrixSumColumnUnAlignedOddW(dest : PDouble; const destLineWidth : 
 
 implementation
 
-{$IFDEF CPUX64}
+{$IFDEF x64}
+
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 procedure ASMMatrixSumRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = widh, R9 = height
 
@@ -107,10 +118,15 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixSumRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var buf : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = widh, R9 = height
 
@@ -180,9 +196,15 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixSumRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = widh, R9 = height
 
@@ -257,9 +279,15 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixSumRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = widh, R9 = height
 
@@ -334,13 +362,19 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 
 procedure ASMMatrixSumColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-			// note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
-	  xor r10, r10;
+   // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
+   xor r10, r10;
    sub r10, height;
    imul r10, srcLineWidth;
 
@@ -371,12 +405,18 @@ asm
    // loop x end
    dec r11;
    jnz @@addforxloop;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixSumColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-			// note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
-	  xor r10, r10;
+   // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
+   xor r10, r10;
    sub r10, height;
    imul r10, srcLineWidth;
 
@@ -408,12 +448,18 @@ asm
    // loop x end
    dec r11;
    jnz @@addforxloop;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixSumColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-			// note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
-	  xor r10, r10;
+   // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
+   xor r10, r10;
    sub r10, height;
    imul r10, srcLineWidth;
 
@@ -461,12 +507,19 @@ asm
 
    // build result
    movlpd [rcx], xmm1;
+
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixSumColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-			// note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
-	  xor r10, r10;
+   // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
+   xor r10, r10;
    sub r10, height;
    imul r10, srcLineWidth;
 
@@ -515,6 +568,9 @@ asm
 
    // build result
    movlpd [rcx], xmm1;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 

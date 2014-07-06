@@ -77,8 +77,15 @@ procedure BlockedMatrixVectorMultiplication(dest : PDouble; const destLineWidth 
 
 implementation
 
+{$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+
 uses Math, BlockSizeSetup, SimpleMatrixOperations,
-     {$IFDEF CPUX64}
+     {$IFDEF x64}
      ASMMatrixMultOperationsx64, ASMMatrixVectorMultOperationsx64, ASMMatrixAbsOperationsx64,
      ASMMatrixMultTransposedOperationsx64, ASMMatrixAddSubOperationsx64,
      ASMMatrixElementwiseMultOperationsx64, ASMMatrixScaleOperationsx64, ASMMatrixSQRTOperationsx64,
@@ -228,7 +235,7 @@ begin
           LineWidth := width*sizeof(double) + (width and 1)*sizeof(double);
      end;
 
-     if (Cardinal(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
+     if (TASMNativeUInt(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
      begin
           if (width and 1) = 0
           then
@@ -258,7 +265,7 @@ begin
           LineWidth := width*sizeof(double) + (width and 1)*sizeof(double);
      end;
 
-     if (Cardinal(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
+     if (TASMNativeUInt(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
      begin
           if (width and 1) = 0
           then
@@ -288,7 +295,7 @@ begin
           LineWidth := width*sizeof(double) + (width and 1)*sizeof(double);
      end;
 
-     if (Cardinal(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
+     if (TASMNativeUInt(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
      begin
           if (width and 1) = 0
           then
@@ -318,7 +325,7 @@ begin
           LineWidth := width*sizeof(double) + (width and 1)*sizeof(double);
      end;
 
-     if (Cardinal(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
+     if (TASMNativeUInt(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
      begin
           if (width and 1) = 0
           then
@@ -350,7 +357,7 @@ begin
           destLineWidth := LineWidth1;
      end;
 
-     if (Cardinal(mt1) and $0000000F = 0) and (Cardinal(mt2) and $0000000F = 0) and (Cardinal(dest) and $0000000F = 0) and
+     if (TASMNativeUInt(mt1) and $0000000F = 0) and (TASMNativeUInt(mt2) and $0000000F = 0) and (TASMNativeUInt(dest) and $0000000F = 0) and
         (destLineWidth and $0000000F = 0) and (LineWidth1 and $0000000F = 0) and (LineWidth2 and $0000000F = 0)
      then
      begin
@@ -384,7 +391,7 @@ begin
           destLineWidth := LineWidth1;
      end;
 
-     if (Cardinal(mt1) and $0000000F = 0) and (Cardinal(mt2) and $0000000F = 0) and (Cardinal(dest) and $0000000F = 0) and
+     if (TASMNativeUInt(mt1) and $0000000F = 0) and (TASMNativeUInt(mt2) and $0000000F = 0) and (TASMNativeUInt(dest) and $0000000F = 0) and
         (destLineWidth and $0000000F = 0) and (LineWidth1 and $0000000F = 0) and (LineWidth2 and $0000000F = 0)
      then
      begin
@@ -419,7 +426,7 @@ begin
           LineWidth := width*sizeof(double) + (width and 1)*sizeof(double);
      end;
 
-     if (Cardinal(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
+     if (TASMNativeUInt(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
      begin
           if (width and 1) = 0
           then
@@ -443,7 +450,7 @@ begin
      if (width = 0) or (height = 0) then
         exit;
 
-     if (Cardinal(mt1) and $0000000F = 0) and (Cardinal(mt2) and $0000000F = 0) and (Cardinal(dest) and $0000000F = 0) and
+     if (TASMNativeUInt(mt1) and $0000000F = 0) and (TASMNativeUInt(mt2) and $0000000F = 0) and (TASMNativeUInt(dest) and $0000000F = 0) and
         (destLineWidth and $0000000F = 0) and (LineWidth1 and $0000000F = 0) and (LineWidth2 and $0000000F = 0)
      then
      begin
@@ -468,7 +475,7 @@ begin
      if (width = 0) or (height = 0) then
         exit;
 
-     if (Cardinal(mt1) and $0000000F = 0) and (Cardinal(mt2) and $0000000F = 0) and (Cardinal(dest) and $0000000F = 0) and
+     if (TASMNativeUInt(mt1) and $0000000F = 0) and (TASMNativeUInt(mt2) and $0000000F = 0) and (TASMNativeUInt(dest) and $0000000F = 0) and
         (destLineWidth and $0000000F = 0) and (LineWidth1 and $0000000F = 0) and (LineWidth2 and $0000000F = 0)
      then
      begin
@@ -491,11 +498,11 @@ end;
 function ASMMatrixMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 begin
      Result := -MaxDouble;
-					if (width = 0) or (height = 0) then
+     if (width = 0) or (height = 0) then
         exit;
      assert((width*sizeof(double) <= LineWidth), 'Dimension error');
 
-     if (Cardinal(mt) and $0000000F = 0) and (LineWidth and $0000000F = 0)
+     if (TASMNativeUInt(mt) and $0000000F = 0) and (LineWidth and $0000000F = 0)
      then
      begin
           if (width and 1) = 0
@@ -516,12 +523,12 @@ end;
 
 function ASMMatrixMin(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 begin
-	    Result := MaxDouble;
-					if (width = 0) or (height = 0) then
+     Result := MaxDouble;
+     if (width = 0) or (height = 0) then
         exit;
      assert((width*sizeof(double) <= LineWidth), 'Dimension error');
 
-     if (Cardinal(mt) and $0000000F = 0) and (LineWidth and $0000000F = 0)
+     if (TASMNativeUInt(mt) and $0000000F = 0) and (LineWidth and $0000000F = 0)
      then
      begin
           if (width and 1) = 0
@@ -548,7 +555,7 @@ begin
 
      if (width > 1) and (height > 1) then
      begin
-          if (Cardinal(Dest) and $0000000F = 0) and (Cardinal(mt) and $0000000F = 0) and
+          if (TASMNativeUInt(Dest) and $0000000F = 0) and (TASMNativeUInt(mt) and $0000000F = 0) and
              (destLineWidth and $0000000F = 0) and (LineWidth and $0000000F = 0)
           then
           begin
@@ -610,7 +617,7 @@ begin
           RowWise := True;
      end;
 
-     if (Cardinal(Dest) and $0000000F = 0) and (Cardinal(src) and $0000000F = 0) and
+     if (TASMNativeUInt(Dest) and $0000000F = 0) and (TASMNativeUInt(src) and $0000000F = 0) and
         (destLineWidth and $0000000F = 0) and (srcLineWidth and $0000000F = 0)
      then
      begin
@@ -669,7 +676,7 @@ begin
           RowWise := True;
      end;
 
-     if (Cardinal(Dest) and $0000000F = 0) and (Cardinal(src) and $0000000F = 0) and
+     if (TASMNativeUInt(Dest) and $0000000F = 0) and (TASMNativeUInt(src) and $0000000F = 0) and
         (destLineWidth and $0000000F = 0) and (srcLineWidth and $0000000F = 0)
      then
      begin
@@ -727,7 +734,7 @@ begin
           RowWise := True;
      end;
 
-     if (Cardinal(Dest) and $0000000F = 0) and (Cardinal(src) and $0000000F = 0) and
+     if (TASMNativeUInt(Dest) and $0000000F = 0) and (TASMNativeUInt(src) and $0000000F = 0) and
         (destLineWidth and $0000000F = 0) and (srcLineWidth and $0000000F = 0)
      then
      begin
@@ -783,7 +790,7 @@ begin
           destLineWidth := srcLineWidth;
      end;
 
-     if (Cardinal(Dest) and $0000000F = 0) and (Cardinal(src) and $0000000F = 0) and
+     if (TASMNativeUInt(Dest) and $0000000F = 0) and (TASMNativeUInt(src) and $0000000F = 0) and
         (destLineWidth and $0000000F = 0) and (srcLineWidth and $0000000F = 0)
      then
      begin
@@ -808,7 +815,7 @@ begin
      if (width = 0) then
         exit;
 
-     if (Cardinal(A) and $0000000F = 0) and (Cardinal(B) and $0000000F = 0)
+     if (TASMNativeUInt(A) and $0000000F = 0) and (TASMNativeUInt(B) and $0000000F = 0)
      then
      begin
           if (width and 1) = 0
@@ -959,7 +966,7 @@ begin
           begin
                if LineWidth2 = sizeof(double) then
                begin
-                    if ((Cardinal(dest) and $0000000F) = 0) and ((Cardinal(mt1) and $0000000F) = 0) and ((Cardinal(mt2) and $0000000F) = 0) and
+                    if ((TASMNativeUInt(dest) and $0000000F) = 0) and ((TASMNativeUInt(mt1) and $0000000F) = 0) and ((TASMNativeUInt(mt2) and $0000000F) = 0) and
                        ((LineWidth1 and $0000000F) = 0) then
                     begin
                          if (width1 and $00000001 = 0)
@@ -989,7 +996,7 @@ begin
           // ####  In this case mt2 is already transposed -> direct multiplication
 
           // check for alignment:
-          if ((Cardinal(dest) and $0000000F) = 0) and ((Cardinal(mt1) and $0000000F) = 0) and ((Cardinal(mt2) and $0000000F) = 0) and
+          if ((TASMNativeUInt(dest) and $0000000F) = 0) and ((TASMNativeUInt(mt1) and $0000000F) = 0) and ((TASMNativeUInt(mt2) and $0000000F) = 0) and
              ((destLineWidth and $0000000F) = 0) and ((LineWidth1 and $0000000F) = 0) and ((LineWidth2 and $0000000F) = 0) then
           begin
                if (width1 and $00000001) = 0 then
@@ -1057,7 +1064,7 @@ begin
           begin
                if LineWidth2 = sizeof(double) then
                begin
-                    if ((Cardinal(dest) and $0000000F) = 0) and ((Cardinal(mt1) and $0000000F) = 0) and ((Cardinal(mt2) and $0000000F) = 0) and
+                    if ((TASMNativeUInt(dest) and $0000000F) = 0) and ((TASMNativeUInt(mt1) and $0000000F) = 0) and ((TASMNativeUInt(mt2) and $0000000F) = 0) and
                        ((LineWidth1 and $0000000F) = 0) then
                     begin
                          if (width1 and $00000001 = 0)
@@ -1098,7 +1105,7 @@ begin
           height2 := help;
 
           // check for alignment:
-          if ((Cardinal(dest) and $0000000F) = 0) and ((Cardinal(mt1) and $0000000F) = 0) and ((Cardinal(mtx) and $0000000F) = 0) and
+          if ((TASMNativeUInt(dest) and $0000000F) = 0) and ((TASMNativeUInt(mt1) and $0000000F) = 0) and ((TASMNativeUInt(mtx) and $0000000F) = 0) and
              ((destLineWidth and $0000000F) = 0) and ((LineWidth1 and $0000000F) = 0) and ((mtxLineWidth and $0000000F) = 0) then
           begin
                if (width1 and $00000001) = 0 then
@@ -1188,7 +1195,7 @@ begin
 
      assert(blockSize > 1, 'Error blocksize must be at least 2');
 
-     isAligned := (Cardinal(dest) and $0000000F) = 0;
+     isAligned := (TASMNativeUInt(dest) and $0000000F) = 0;
 
      h1FitCacheSize := (height1 mod blockSize) = 0;
      w2FitCacheSize := (width2 mod blockSize) = 0;
@@ -1544,7 +1551,7 @@ begin
           begin
                if LineWidth2 = sizeof(double) then
                begin
-                    if ((Cardinal(dest) and $0000000F) = 0) and ((Cardinal(mt1) and $0000000F) = 0) and ((Cardinal(mt2) and $0000000F) = 0) and
+                    if ((TASMNativeUInt(dest) and $0000000F) = 0) and ((TASMNativeUInt(mt1) and $0000000F) = 0) and ((TASMNativeUInt(mt2) and $0000000F) = 0) and
                        ((LineWidth1 and $0000000F) = 0) then
                     begin
                          if (width1 and $00000001 = 0)
@@ -1571,7 +1578,7 @@ begin
      else
      begin
           // check for alignment:
-          if ((Cardinal(dest) and $0000000F) = 0) and ((Cardinal(mt1) and $0000000F) = 0) and ((Cardinal(mt2) and $0000000F) = 0) and
+          if ((TASMNativeUInt(dest) and $0000000F) = 0) and ((TASMNativeUInt(mt1) and $0000000F) = 0) and ((TASMNativeUInt(mt2) and $0000000F) = 0) and
              ((destLineWidth and $0000000F) = 0) and ((LineWidth1 and $0000000F) = 0) and ((LineWidth2 and $0000000F) = 0) then
           begin
                if (width1 and $00000001) = 0 then

@@ -7,8 +7,14 @@ unit ASMMatrixAbsOperationsx64;
 interface
 
 {$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF x64}
 
-uses ASMConsts;
+uses MatrixConst;
 
 procedure ASMMatrixAbsAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
 procedure ASMMatrixAbsUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
@@ -20,20 +26,25 @@ procedure ASMMatrixAbsUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Heig
 
 implementation
 
-{$IFDEF CPUX64}
+{$IFDEF x64}
+
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 const cSignBits : Array[0..1] of int64 = ($7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF);
 
 procedure ASMMatrixAbsAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-	  // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
+   // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    //iters := -width*sizeof(double);
    mov r10, width;
    shl r10, 3;
    imul r10, -1;
 
-   // helper registers for the mt1, mt2 and dest pointers
-   sub dest, r10;
+   // helper registers for the dest pointer
+   sub rcx, r10;
 
    movupd xmm0, cSignBits;
 
@@ -105,18 +116,24 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixAbsUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-	  // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
+   // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    //iters := -width*sizeof(double);
    mov r10, width;
    shl r10, 3;
    imul r10, -1;
 
-   // helper registers for the mt1, mt2 and dest pointers
-   sub dest, r10;
+   // helper registers for the dest pointer
+   sub rcx, r10;
 
    movupd xmm0, cSignBits;
 
@@ -186,19 +203,25 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixAbsAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-	  // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
+   // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
    dec r10;
    shl r10, 3;
    imul r10, -1;
 
-   // helper registers for the mt1, mt2 and dest pointers
-   sub dest, r10;
+   // helper registers for the dest pointer
+   sub rcx, r10;
 
    movupd xmm0, cSignBits;
 
@@ -276,18 +299,25 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixAbsUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-	  // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
-   //iters := -width*sizeof(double);
+   // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
+   //iters := -(width-1)*sizeof(double);
    mov r10, width;
+   dec r10;
    shl r10, 3;
    imul r10, -1;
 
-   // helper registers for the mt1, mt2 and dest pointers
-   sub dest, r10;
+   // helper registers for the dest pointer
+   sub rcx, r10;
 
    movupd xmm0, cSignBits;
 
@@ -344,7 +374,7 @@ asm
 
        @addforxloop2:
            movupd xmm1, [rcx + rax];
-           adnpd xmm1, xmm0;
+           andpd xmm1, xmm0;
            movupd [rcx + rax], xmm1;
        add rax, 16;
        jnz @addforxloop2;
@@ -362,6 +392,9 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 {$ENDIF}

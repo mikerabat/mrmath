@@ -18,6 +18,12 @@ unit ASMMatrixNormOperationsx64;
 interface
 
 {$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF x64}
 
 uses MatrixConst;
 
@@ -42,15 +48,27 @@ procedure ASMMatrixNormalizeColumnUnAlignedOddW(dest : PDouble; const destLineWi
 
 implementation
 
-{$IFDEF CPUX64}
+{$IFDEF x64}
+
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 const cOne : double = 1.0;
 
 function ASMMatrixElementwiseNorm2AlignedEvenW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
+var stackSpare : TASMNativeInt; // for aligned stack
+    dXMM4, dXMM7 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = widh, R9 = height
+   // prolog - simulate stack
+   movapd dXMM4, xmm4;
+   movapd dXMM7, xmm7;
+   {
    .savenv xmm4;
    .savenv xmm7;
+   }
 
    //iters := -width*sizeof(double);
    mov r10, width;
@@ -58,7 +76,7 @@ asm
    imul r10, -1;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub dest, r10;
+   sub rcx, r10;
 
    xorpd xmm0, xmm0;
 
@@ -134,13 +152,30 @@ asm
    movhlps xmm1, xmm0;
    addsd xmm0, xmm1;
    sqrtsd xmm0, xmm0;
+
+   // epilog claenup stack
+   movapd xmm4, dXMM4;
+   movapd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 function ASMMatrixElementwiseNorm2UnAlignedEvenW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
+var stackSpare : TASMNativeInt; // for aligned stack
+    dXMM4, dXMM7 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = widh, R9 = height
+   // prolog - simulate stack
+   movapd dXMM4, xmm4;
+   movapd dXMM7, xmm7;
+   {
    .savenv xmm4;
    .savenv xmm7;
+   }
 
    //iters := -width*sizeof(double);
    mov r10, width;
@@ -148,7 +183,7 @@ asm
    imul r10, -1;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub dest, r10;
+   sub rcx, r10;
 
    xorpd xmm0, xmm0;
 
@@ -221,14 +256,31 @@ asm
    movhlps xmm1, xmm0;
    addsd xmm0, xmm1;
    sqrtsd xmm0, xmm0;
+
+   // epilog claenup stack
+   movapd xmm4, dXMM4;
+   movapd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 
 function ASMMatrixElementwiseNorm2AlignedOddW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
+var stackSpare : TASMNativeInt; // for aligned stack
+    dXMM4, dXMM7 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = widh, R9 = height
+   // prolog - simulate stack
+   movapd dXMM4, xmm4;
+   movapd dXMM7, xmm7;
+   {
    .savenv xmm4;
    .savenv xmm7;
+   }
 
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
@@ -237,7 +289,7 @@ asm
    imul r10, -1;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub dest, r10;
+   sub rcx, r10;
 
    xorpd xmm0, xmm0;
 
@@ -317,13 +369,30 @@ asm
    movhlps xmm1, xmm0;
    addsd xmm0, xmm1;
    sqrtsd xmm0, xmm0;
+
+   // epilog claenup stack
+   movapd xmm4, dXMM4;
+   movapd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 function ASMMatrixElementwiseNorm2UnAlignedOddW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
+var stackSpare : TASMNativeInt; // for aligned stack
+    dXMM4, dXMM7 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = widh, R9 = height
+   // prolog - simulate stack
+   movapd dXMM4, xmm4;
+   movapd dXMM7, xmm7;
+   {
    .savenv xmm4;
    .savenv xmm7;
+   }
 
    //iters := -width*sizeof(double);
    mov r10, width;
@@ -332,7 +401,7 @@ asm
    imul r10, -1;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub dest, r10;
+   sub rcx, r10;
 
    xorpd xmm0, xmm0;
 
@@ -410,13 +479,29 @@ asm
    movhlps xmm1, xmm0;
    addsd xmm0, xmm1;
    sqrtsd xmm0, xmm0;
+
+   // epilog claenup stack
+   movapd xmm4, dXMM4;
+   movapd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixNormalizeRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+var dXMM4, dXMM7 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-   // note: RCX = dest, RDX = destLineWidth, R8 = widh, R9 = height
+   // note: RCX = dest, RDX = destLineWidth, R8 = src
+   // prolog - simulate stack
+   movapd dXMM4, xmm4;
+   movapd dXMM7, xmm7;
+   {
    .savenv xmm4;
    .savenv xmm7;
+   }
 
    //iters := -width*sizeof(double);
    mov r10, width;
@@ -424,8 +509,8 @@ asm
    imul r10, -1;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub dest, r10;
-   sub src, r10;
+   sub rcx, r10;
+   sub r8, r10;
 
    mov r11, Height;
    @@addforyloop:
@@ -566,13 +651,30 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
+
+   // epilog claenup stack
+   movapd xmm4, dXMM4;
+   movapd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixNormalizeRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+var dXMM4, dXMM7 : Array[0..1] of double;
+
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-   // note: RCX = dest, RDX = destLineWidth, R8 = widh, R9 = height
+   // note: RCX = dest, RDX = destLineWidth, R8 = src
+   // prolog - simulate stack
+   movapd dXMM4, xmm4;
+   movapd dXMM7, xmm7;
+   {
    .savenv xmm4;
    .savenv xmm7;
+   }
 
    //iters := -width*sizeof(double);
    mov r10, width;
@@ -580,8 +682,8 @@ asm
    imul r10, -1;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub dest, r10;
-   sub src, r10;
+   sub rcx, r10;
+   sub r8, r10;
 
    mov r11, Height;
    @@addforyloop:
@@ -644,9 +746,9 @@ asm
        @buildResult:
 
        // build result
-   				movhlps xmm1, xmm0;
-   				addsd xmm0, xmm1;
-   				sqrtsd xmm0, xmm0;
+       movhlps xmm1, xmm0;
+       addsd xmm0, xmm1;
+       sqrtsd xmm0, xmm0;
 
        movsd xmm1, cOne;
        divsd xmm1, xmm0;
@@ -715,13 +817,30 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
+
+
+   // epilog claenup stack
+   movapd xmm4, dXMM4;
+   movapd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixNormalizeRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+var dXMM4, dXMM7 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = widh, R9 = height
+   // prolog - simulate stack
+   movapd dXMM4, xmm4;
+   movapd dXMM7, xmm7;
+   {
    .savenv xmm4;
    .savenv xmm7;
+   }
 
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
@@ -730,8 +849,8 @@ asm
    imul r10, -1;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub dest, r10;
-   sub src, r10;
+   sub rcx, r10;
+   sub r8, r10;
 
    mov r11, Height;
    @@addforyloop:
@@ -802,9 +921,9 @@ asm
        addsd xmm0, xmm7;
 
        // build result
-   				movhlps xmm1, xmm0;
-   				addsd xmm0, xmm1;
-   				sqrtsd xmm0, xmm0;
+       movhlps xmm1, xmm0;
+       addsd xmm0, xmm1;
+       sqrtsd xmm0, xmm0;
 
        movsd xmm1, cOne;
        divsd xmm1, xmm0;
@@ -882,13 +1001,29 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
+
+   // epilog claenup stack
+   movapd xmm4, dXMM4;
+   movapd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixNormalizeRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+var dXMM4, dXMM7 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = widh, R9 = height
+   // prolog - simulate stack
+   movapd dXMM4, xmm4;
+   movapd dXMM7, xmm7;
+   {
    .savenv xmm4;
    .savenv xmm7;
+   }
 
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
@@ -897,8 +1032,8 @@ asm
    imul r10, -1;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub dest, r10;
-   sub src, r10;
+   sub rcx, r10;
+   sub r8, r10;
 
    mov r11, Height;
    @@addforyloop:
@@ -1042,24 +1177,42 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
+
+   // epilog claenup stack
+   movapd xmm4, dXMM4;
+   movapd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixNormalizeColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+var iRBX, iRSI : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-			// rcx = dest, rdx = destlinewidth, r8 = src, r9 = srclinewidth
+   // rcx = dest, rdx = destlinewidth, r8 = src, r9 = srclinewidth
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRSI, rsi;
+   {
    .pushnv rsi;
    .pushnv rbx;
+   }
 
-	  // iter := width*srcLineWidth
-	  mov r10, height;
+   // iter := width*srcLineWidth
+   mov r10, height;
    imul r10, srcLineWidth;
 
    // iters2 := height*destLineWidth;
    mov r11, height;
    imul r11, destLineWidth;
 
-   sub dest, destLineWidth;
-   sub src, srcLineWidth;
+   //note: FPC does not like that syntax sub dest, destLineWidth;
+   sub rcx, rdx;
+   // sub src, srcLineWidth;
+   sub r8, r9;
 
    mov rbx, Width;
    sar rbx, 1;
@@ -1102,24 +1255,42 @@ asm
    // loop x end
    dec rbx;
    jnz @@addforxloop;
+
+   // epliog cleanup stack
+   mov rbx, iRBX;
+   mov rsi, iRSI;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixNormalizeColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+var iRBX, iRSI : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-			// rcx = dest, rdx = destlinewidth, r8 = src, r9 = srclinewidth
+   // rcx = dest, rdx = destlinewidth, r8 = src, r9 = srclinewidth
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRSI, rsi;
+   {
    .pushnv rsi;
    .pushnv rbx;
+   }
 
-	  // iter := width*srcLineWidth
-	  mov r10, height;
+   // iter := width*srcLineWidth
+   mov r10, height;
    imul r10, srcLineWidth;
 
    // iters2 := height*destLineWidth;
    mov r11, height;
    imul r11, destLineWidth;
 
-   sub dest, destLineWidth;
-   sub src, srcLineWidth;
+   //note: FPC does not like that syntax sub dest, destLineWidth;
+   sub rcx, rdx;
+   // sub src, srcLineWidth;
+   sub r8, r9;
 
    mov rbx, Width;
    sar rbx, 1;
@@ -1162,25 +1333,43 @@ asm
    // loop x end
    dec rbx;
    jnz @@addforxloop;
+
+   // epliog cleanup stack
+   mov rbx, iRBX;
+   mov rsi, iRSI;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 
 procedure ASMMatrixNormalizeColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+var iRBX, iRSI : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-			// rcx = dest, rdx = destlinewidth, r8 = src, r9 = srclinewidth
+   // rcx = dest, rdx = destlinewidth, r8 = src, r9 = srclinewidth
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRSI, rsi;
+   {
    .pushnv rsi;
    .pushnv rbx;
+   }
 
-	  // iter := width*srcLineWidth
-	  mov r10, height;
+   // iter := width*srcLineWidth
+   mov r10, height;
    imul r10, srcLineWidth;
 
    // iters2 := height*destLineWidth;
    mov r11, height;
    imul r11, destLineWidth;
 
-   sub dest, destLineWidth;
-   sub src, srcLineWidth;
+   //note: FPC does not like that syntax sub dest, destLineWidth;
+   sub rcx, rdx;
+   // sub src, srcLineWidth;
+   sub r8, r9;
 
    mov rbx, Width;
    sar rbx, 1;
@@ -1257,24 +1446,42 @@ asm
        sub rsi, rdx;
    sub rax, r9;
    jnz @addforyloop4;
+
+   // epliog cleanup stack
+   mov rbx, iRBX;
+   mov rsi, iRSI;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixNormalizeColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+var iRBX, iRSI : NativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-			// rcx = dest, rdx = destlinewidth, r8 = src, r9 = srclinewidth
+   // rcx = dest, rdx = destlinewidth, r8 = src, r9 = srclinewidth
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRSI, rsi;
+   {
    .pushnv rsi;
    .pushnv rbx;
+   }
 
-	  // iter := width*srcLineWidth
-	  mov r10, height;
+   // iter := width*srcLineWidth
+   mov r10, height;
    imul r10, srcLineWidth;
 
    // iters2 := height*destLineWidth;
    mov r11, height;
    imul r11, destLineWidth;
 
-   sub dest, destLineWidth;
-   sub src, srcLineWidth;
+   //note: FPC does not like that syntax sub dest, destLineWidth;
+   sub rcx, rdx;
+   // sub src, srcLineWidth;
+   sub r8, r9;
 
    mov rbx, Width;
    sar rbx, 1;
@@ -1351,6 +1558,13 @@ asm
        sub rsi, rdx;
    sub rax, r9;
    jnz @addforyloop4;
+
+   // epliog cleanup stack
+   mov rbx, iRBX;
+   mov rsi, iRSI;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 {$ENDIF}

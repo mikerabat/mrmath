@@ -23,6 +23,12 @@ unit ASMMatrixMultTransposedOperationsx64;
 interface
 
 {$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF x64}
 
 uses MatrixConst;
 
@@ -43,12 +49,33 @@ procedure ASMMatrixMultUnAlignedOddW1OddH2Transposed(dest : PDouble; const destL
 
 implementation
 
-{$IFDEF CPUX64}
+{$IFDEF x64}
+
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 procedure ASMMatrixMultUnAlignedEvenW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
+
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-   // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
-   .pushnv rbx;
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRSI, rsi;
+   mov iRDI, rdi;
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+   mov iR15, r15;
+
+   movapd dXMM4, xmm4;
+   movapd dXMM5, xmm5;
+   movapd dXMM6, xmm6;
+   movapd dXMM7, xmm7;
+
+   {
    .pushnv rbx;
    .pushnv rsi;
    .pushnv rdi;
@@ -61,6 +88,7 @@ asm
    .savenv xmm5;
    .savenv xmm6;
    .savenv xmm7;
+   }
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -175,13 +203,49 @@ asm
 
    // end for y := 0 to height1 - 1
    dec r11;
-   jnz @@forylabel
+   jnz @@forylabel;
+
+   // epilog - cleanup stack
+   mov rbx, iRBX;
+   mov rsi, iRSI;
+   mov rdi, iRDI;
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+   mov r15, iR15;
+
+   movapd xmm4, dXMM4;
+   movapd xmm5, dXMM5;
+   movapd xmm6, dXMM6;
+   movapd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMultAlignedEvenW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
+
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-   // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
-   .pushnv rbx;
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRSI, rsi;
+   mov iRDI, rdi;
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+   mov iR15, r15;
+
+   movapd dXMM4, xmm4;
+   movapd dXMM5, xmm5;
+   movapd dXMM6, xmm6;
+   movapd dXMM7, xmm7;
+
+   {
    .pushnv rbx;
    .pushnv rsi;
    .pushnv rdi;
@@ -194,6 +258,7 @@ asm
    .savenv xmm5;
    .savenv xmm6;
    .savenv xmm7;
+   }
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -308,13 +373,49 @@ asm
 
    // end for y := 0 to height1 - 1
    dec r11;
-   jnz @@forylabel
+   jnz @@forylabel;
+
+   // epilog - cleanup stack
+   mov rbx, iRBX;
+   mov rsi, iRSI;
+   mov rdi, iRDI;
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+   mov r15, iR15;
+
+   movapd xmm4, dXMM4;
+   movapd xmm5, dXMM5;
+   movapd xmm6, dXMM6;
+   movapd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMultAlignedEvenW1EvenH2TransposedMod16(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
+
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-   // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
-   .pushnv rbx;
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRSI, rsi;
+   mov iRDI, rdi;
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+   mov iR15, r15;
+
+   movapd dXMM4, xmm4;
+   movapd dXMM5, xmm5;
+   movapd dXMM6, xmm6;
+   movapd dXMM7, xmm7;
+
+   {
    .pushnv rbx;
    .pushnv rsi;
    .pushnv rdi;
@@ -327,6 +428,7 @@ asm
    .savenv xmm5;
    .savenv xmm6;
    .savenv xmm7;
+   }
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -517,14 +619,50 @@ asm
 
    // end for y := 0 to height1 - 1
    dec r11;
-   jnz @@forylabel
+   jnz @@forylabel;
+
+   // epilog - cleanup stack
+   mov rbx, iRBX;
+   mov rsi, iRSI;
+   mov rdi, iRDI;
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+   mov r15, iR15;
+
+   movapd xmm4, dXMM4;
+   movapd xmm5, dXMM5;
+   movapd xmm6, dXMM6;
+   movapd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 // note mt2 is transposed this time -> width1 and width2 must be the same!
 procedure ASMMatrixMultAlignedEvenW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
+
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-   // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
-   .pushnv rbx;
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRSI, rsi;
+   mov iRDI, rdi;
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+   mov iR15, r15;
+
+   movapd dXMM4, xmm4;
+   movapd dXMM5, xmm5;
+   movapd dXMM6, xmm6;
+   movapd dXMM7, xmm7;
+
+   {
    .pushnv rbx;
    .pushnv rsi;
    .pushnv rdi;
@@ -537,6 +675,7 @@ asm
    .savenv xmm5;
    .savenv xmm6;
    .savenv xmm7;
+   }
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -625,13 +764,49 @@ asm
 
    // end for y := 0 to height1 - 1
    dec r11;
-   jnz @@forylabel
+   jnz @@forylabel;
+
+   // epilog - cleanup stack
+   mov rbx, iRBX;
+   mov rsi, iRSI;
+   mov rdi, iRDI;
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+   mov r15, iR15;
+
+   movapd xmm4, dXMM4;
+   movapd xmm5, dXMM5;
+   movapd xmm6, dXMM6;
+   movapd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMultUnAlignedEvenW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
+
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-   // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
-   .pushnv rbx;
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRSI, rsi;
+   mov iRDI, rdi;
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+   mov iR15, r15;
+
+   movapd dXMM4, xmm4;
+   movapd dXMM5, xmm5;
+   movapd dXMM6, xmm6;
+   movapd dXMM7, xmm7;
+
+   {
    .pushnv rbx;
    .pushnv rsi;
    .pushnv rdi;
@@ -644,6 +819,7 @@ asm
    .savenv xmm5;
    .savenv xmm6;
    .savenv xmm7;
+   }
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -732,13 +908,49 @@ asm
 
    // end for y := 0 to height1 - 1
    dec r11;
-   jnz @@forylabel
+   jnz @@forylabel;
+
+   // epilog - cleanup stack
+   mov rbx, iRBX;
+   mov rsi, iRSI;
+   mov rdi, iRDI;
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+   mov r15, iR15;
+
+   movapd xmm4, dXMM4;
+   movapd xmm5, dXMM5;
+   movapd xmm6, dXMM6;
+   movapd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMultUnAlignedOddW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
+
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-   // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
-   .pushnv rbx;
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRSI, rsi;
+   mov iRDI, rdi;
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+   mov iR15, r15;
+
+   movapd dXMM4, xmm4;
+   movapd dXMM5, xmm5;
+   movapd dXMM6, xmm6;
+   movapd dXMM7, xmm7;
+
+   {
    .pushnv rbx;
    .pushnv rsi;
    .pushnv rdi;
@@ -751,6 +963,7 @@ asm
    .savenv xmm5;
    .savenv xmm6;
    .savenv xmm7;
+   }
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -853,13 +1066,49 @@ asm
 
    // end for y := 0 to height1 - 1
    dec r11;
-   jnz @@forylabel
+   jnz @@forylabel;
+
+   // epilog - cleanup stack
+   mov rbx, iRBX;
+   mov rsi, iRSI;
+   mov rdi, iRDI;
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+   mov r15, iR15;
+
+   movapd xmm4, dXMM4;
+   movapd xmm5, dXMM5;
+   movapd xmm6, dXMM6;
+   movapd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMultAlignedOddW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
+
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-   // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
-   .pushnv rbx;
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRSI, rsi;
+   mov iRDI, rdi;
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+   mov iR15, r15;
+
+   movapd dXMM4, xmm4;
+   movapd dXMM5, xmm5;
+   movapd dXMM6, xmm6;
+   movapd dXMM7, xmm7;
+
+   {
    .pushnv rbx;
    .pushnv rsi;
    .pushnv rdi;
@@ -872,6 +1121,7 @@ asm
    .savenv xmm5;
    .savenv xmm6;
    .savenv xmm7;
+   }
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -974,13 +1224,49 @@ asm
 
    // end for y := 0 to height1 - 1
    dec r11;
-   jnz @@forylabel
+   jnz @@forylabel;
+
+   // epilog - cleanup stack
+   mov rbx, iRBX;
+   mov rsi, iRSI;
+   mov rdi, iRDI;
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+   mov r15, iR15;
+
+   movapd xmm4, dXMM4;
+   movapd xmm5, dXMM5;
+   movapd xmm6, dXMM6;
+   movapd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMultAlignedOddW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
+
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-   // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
-   .pushnv rbx;
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRSI, rsi;
+   mov iRDI, rdi;
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+   mov iR15, r15;
+
+   movapd dXMM4, xmm4;
+   movapd dXMM5, xmm5;
+   movapd dXMM6, xmm6;
+   movapd dXMM7, xmm7;
+
+   {
    .pushnv rbx;
    .pushnv rsi;
    .pushnv rdi;
@@ -993,6 +1279,7 @@ asm
    .savenv xmm5;
    .savenv xmm6;
    .savenv xmm7;
+   }
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -1127,13 +1414,49 @@ asm
 
    // end for y := 0 to height1 - 1
    dec r11;
-   jnz @@forylabel
+   jnz @@forylabel;
+
+   // epilog - cleanup stack
+   mov rbx, iRBX;
+   mov rsi, iRSI;
+   mov rdi, iRDI;
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+   mov r15, iR15;
+
+   movapd xmm4, dXMM4;
+   movapd xmm5, dXMM5;
+   movapd xmm6, dXMM6;
+   movapd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMultUnAlignedOddW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
+
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-   // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
-   .pushnv rbx;
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRSI, rsi;
+   mov iRDI, rdi;
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+   mov iR15, r15;
+
+   movapd dXMM4, xmm4;
+   movapd dXMM5, xmm5;
+   movapd dXMM6, xmm6;
+   movapd dXMM7, xmm7;
+
+   {
    .pushnv rbx;
    .pushnv rsi;
    .pushnv rdi;
@@ -1146,6 +1469,7 @@ asm
    .savenv xmm5;
    .savenv xmm6;
    .savenv xmm7;
+   }
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -1280,7 +1604,24 @@ asm
 
    // end for y := 0 to height1 - 1
    dec r11;
-   jnz @@forylabel
+   jnz @@forylabel;
+
+   // epilog - cleanup stack
+   mov rbx, iRBX;
+   mov rsi, iRSI;
+   mov rdi, iRDI;
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+   mov r15, iR15;
+
+   movapd xmm4, dXMM4;
+   movapd xmm5, dXMM5;
+   movapd xmm6, dXMM6;
+   movapd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 {$ENDIF}

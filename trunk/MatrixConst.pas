@@ -65,6 +65,12 @@ const cStrassenMinSize = 32;
       cCacheBlkSize = 16;
 
 {$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF x64}
 type
   TASMNativeInt = NativeInt;
   TASMNativeUInt = NativeUInt;

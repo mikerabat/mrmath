@@ -17,7 +17,13 @@ unit ASMMatrixElementwiseMultOperations;
 
 interface
 
-{$IFNDEF CPUX64}
+{$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFNDEF x64}
 
 uses MatrixConst;
 
@@ -38,7 +44,7 @@ procedure ASMMatrixElemDivUnAlignedOddW(dest : PDouble; const destLineWidth : TA
 
 implementation
 
-{$IFNDEF CPUX64}
+{$IFNDEF x64}
 
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 

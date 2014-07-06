@@ -22,6 +22,12 @@ unit ASMMoveOperationsx64;
 interface
 
 {$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF x64}
 
 uses MatrixConst;
 
@@ -41,17 +47,22 @@ procedure ASMRowSwapUnAlignedOddW(A, B : PDouble; width : TASMNativeInt);
 
 implementation
 
-{$IFDEF CPUX64}
+{$IFDEF x64}
+
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 procedure ASMRowSwapAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    // note: RCX = a, RDX = b, R8 = width
    mov r10, width;
    shl r10, 3;
    imul r10, -1;
 
-   sub A, r10;
-   sub B, r10;
+   sub rcx, r10;
+   sub rdx, r10;
 
    @unrolloop:
      add r10, 64;
@@ -102,9 +113,15 @@ asm
    jnz @loop;
 
    @endfunc:
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMRowSwapUnAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    // note: RCX = a, RDX = b, R8 = width
    mov r10, width;
@@ -159,9 +176,15 @@ asm
    jnz @loop;
 
    @endfunc:
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMRowSwapAlignedOddW(A, B : PDouble; width : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    // note: RCX = a, RDX = b, R8 = width
    mov r10, width;
@@ -228,9 +251,15 @@ asm
 
    movlpd [rcx], xmm1;
    movlpd [rdx], xmm0;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMRowSwapUnAlignedOddW(A, B : PDouble; width : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    // note: RCX = a, RDX = b, R8 = width
    mov r10, width;
@@ -293,19 +322,25 @@ asm
 
    movlpd [rcx], xmm1;
    movlpd [rdx], xmm0;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixCopyAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-   // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
+   // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    //iters := -width*sizeof(double);
    mov r10, width;
    shl r10, 3;
    imul r10, -1;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub src, r10;
-   sub dest, r10;
+   sub r8, r10;
+   sub rcx, r10;
 
    // for y := 0 to height - 1:
    mov r11, Height;
@@ -369,18 +404,24 @@ asm
    dec r11;
    jnz @@addforyloop;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 procedure ASMMatrixCopyUnAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-   // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
+   // note: RCX = dest, RDX = destLineWidth, R8 =src, R9 = src
    //iters := -width*sizeof(double);
    mov r10, width;
    shl r10, 3;
    imul r10, -1;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub src, r10;
-   sub dest, r10;
+   sub r8, r10;
+   sub rcx, r10;
 
    // for y := 0 to height - 1:
    mov r11, Height;
@@ -440,10 +481,16 @@ asm
    dec r11;
    jnz @@addforyloop;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 procedure ASMMatrixCopyAlignedOddW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-   // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
+   // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
    dec r10;
@@ -451,8 +498,8 @@ asm
    imul r10, -1;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub src, r10;
-   sub dest, r10;
+   sub r8, r10;
+   sub rcx, r10;
 
    // for y := 0 to height - 1:
    mov r11, Height;
@@ -520,10 +567,16 @@ asm
    dec r11;
    jnz @@addforyloop;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 procedure ASMMatrixCopyUnAlignedOddW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-   // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
+   // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
    dec r10;
@@ -531,8 +584,8 @@ asm
    imul r10, -1;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub src, r10;
-   sub dest, r10;
+   sub r8, r10;
+   sub rcx, r10;
 
    // for y := 0 to height - 1:
    mov r11, Height;
@@ -596,6 +649,9 @@ asm
    dec r11;
    jnz @@addforyloop;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 {$ENDIF}
 

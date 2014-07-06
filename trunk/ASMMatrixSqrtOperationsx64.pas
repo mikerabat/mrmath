@@ -22,6 +22,12 @@ unit ASMMatrixSqrtOperationsx64;
 interface
 
 {$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF x64}
 
 uses MatrixConst;
 
@@ -35,18 +41,23 @@ procedure ASMMatrixSQRTUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Hei
 
 implementation
 
-{$IFDEF CPUX64}
+{$IFDEF x64}
+
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 procedure ASMMatrixSQRTAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-	  // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
+   // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    //iters := -width*sizeof(double);
    mov r10, width;
    shl r10, 3;
    imul r10, -1;
 
-   // helper registers for the mt1, mt2 and dest pointers
-   sub dest, r10;
+   // helper registers dest pointers
+   sub rcx, r10;
 
    // for y := 0 to height - 1:
    mov r11, Height;
@@ -108,18 +119,25 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
+
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixSQRTUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
-	  // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
+   // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    //iters := -width*sizeof(double);
    mov r10, width;
    shl r10, 3;
    imul r10, -1;
 
-   // helper registers for the mt1, mt2 and dest pointers
-   sub dest, r10;
+   // helper registers dest pointers
+   sub rcx, r10;
 
    // for y := 0 to height - 1:
    mov r11, Height;
@@ -187,19 +205,26 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
+
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixSQRTAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-	  // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
+   // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
    dec r10;
    shl r10, 3;
    imul r10, -1;
 
-   // helper registers for the mt1, mt2 and dest pointers
-   sub dest, r10;
+   // helper registers dest pointers
+   sub rcx, r10;
 
    // for y := 0 to height - 1:
    mov r11, Height;
@@ -266,18 +291,25 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
+
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixSQRTUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-	  // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
+   // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    //iters := -width*sizeof(double);
    mov r10, width;
    shl r10, 3;
    imul r10, -1;
 
-   // helper registers for the mt1, mt2 and dest pointers
-   sub dest, r10;
+   // helper registers dest pointers
+   sub rcx, r10;
 
    // for y := 0 to height - 1:
    mov r11, Height;
@@ -350,6 +382,9 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 {$ENDIF}

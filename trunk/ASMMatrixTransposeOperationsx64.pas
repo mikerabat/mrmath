@@ -18,6 +18,12 @@ unit ASMMatrixTransposeOperationsx64;
 interface
 
 {$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF x64}
 
 uses MatrixConst;
 
@@ -37,18 +43,30 @@ procedure ASMMatrixTransposeUnAlignedOddWOddH(dest : PDouble; const destLineWidt
 
 implementation
 
-{$IFDEF CPUX64}
+{$IFDEF x64}
+
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 procedure ASMMatrixTransposeAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+var iR12, iR13, iR14, iRDI : NativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-			.pushnv r12;
+   // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+   mov iRDI, rdi;
+   {
+   .pushnv r12;
    .pushnv r13;
    .pushnv r14;
    .pushnv rdi;
+   }
 
-   // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
    // iters := -width*sizeof(double);
-			mov r10, width;
+   mov r10, width;
    shl r10, 3;
    imul r10, -1;
 
@@ -204,18 +222,37 @@ asm
 
        sub rdi, 2;
    jnz @foryloop;
+
+   // epilog - cleanup stack
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+   mov rdi, iRDI;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixTransposeUnAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+var iR12, iR13, iR14, iRDI : NativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-			.pushnv r12;
+   // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+   mov iRDI, rdi;
+   {
+   .pushnv r12;
    .pushnv r13;
    .pushnv r14;
    .pushnv rdi;
+   }
 
-   // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
    // iters := -width*sizeof(double);
-			mov r10, width;
+   mov r10, width;
    shl r10, 3;
    imul r10, -1;
 
@@ -368,17 +405,36 @@ asm
 
        sub rdi, 2;
    jnz @foryloop;
+
+   // epilog - cleanup stack
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+   mov rdi, iRDI;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 
 procedure ASMMatrixTransposeAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+var iR12, iR13, iR14, iRDI : NativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
+   // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+   mov iRDI, rdi;
+   {
    .pushnv r12;
    .pushnv r13;
    .pushnv r14;
    .pushnv rdi;
+   }
 
-   // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
    // iters := -width*sizeof(double);
 			mov r10, width;
    shl r10, 3;
@@ -554,16 +610,35 @@ asm
        add rcx, r11;
    add rax, 16;
    jnz @forxloop3;
+
+   // epilog - cleanup stack
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+   mov rdi, iRDI;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixTransposeUnAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+var iR12, iR13, iR14, iRDI : NativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-			.pushnv r12;
+   // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+   mov iRDI, rdi;
+   {
+   .pushnv r12;
    .pushnv r13;
    .pushnv r14;
    .pushnv rdi;
+   }
 
-   // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
    // iters := -width*sizeof(double);
 			mov r10, width;
    shl r10, 3;
@@ -735,16 +810,35 @@ asm
        add rcx, r11;
    add rax, 16;
    jnz @forxloop3;
+
+   // epilog - cleanup stack
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+   mov rdi, iRDI;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixTransposeAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+var iR12, iR13, iR14, iRDI : NativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-			.pushnv r12;
+   // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+   mov iRDI, rdi;
+   {
+   .pushnv r12;
    .pushnv r13;
    .pushnv r14;
    .pushnv rdi;
+   }
 
-   // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
    // iters := -(width - 1)*sizeof(double);
 			mov r10, width;
    dec r10;
@@ -910,16 +1004,35 @@ asm
 
        sub rdi, 2;
    jnz @foryloop;
+
+   // epilog - cleanup stack
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+   mov rdi, iRDI;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixTransposeUnAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+var iR12, iR13, iR14, iRDI : NativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
-			.pushnv r12;
+   // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+   mov iRDI, rdi;
+   {
+   .pushnv r12;
    .pushnv r13;
    .pushnv r14;
    .pushnv rdi;
+   }
 
-   // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
    // iters := -(width - 1)*sizeof(double);
 			mov r10, width;
    dec r10;
@@ -1082,17 +1195,36 @@ asm
 
        sub rdi, 2;
    jnz @foryloop;
+
+   // epilog - cleanup stack
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+   mov rdi, iRDI;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 
 procedure ASMMatrixTransposeAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+var iR12, iR13, iR14, iRDI : NativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
+   // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+   mov iRDI, rdi;
+   {
    .pushnv r12;
    .pushnv r13;
    .pushnv r14;
    .pushnv rdi;
+   }
 
-   // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
    // iters := -width*sizeof(double);
 			mov r10, width;
    dec r10;
@@ -1280,16 +1412,35 @@ asm
    // last element of last line
    movsd xmm0, [r8];
    movsd [rcx], xmm0;
+
+   // epilog - cleanup stack
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+   mov rdi, iRDI;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixTransposeUnAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+var iR12, iR13, iR14, iRDI : NativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
+   // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+   mov iRDI, rdi;
+   {
    .pushnv r12;
    .pushnv r13;
    .pushnv r14;
    .pushnv rdi;
+   }
 
-   // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
    // iters := -width*sizeof(double);
 			mov r10, width;
    dec r10;
@@ -1474,6 +1625,15 @@ asm
    // last element of last line
    movsd xmm0, [r8];
    movsd [rcx], xmm0;
+
+   // epilog - cleanup stack
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+   mov rdi, iRDI;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 

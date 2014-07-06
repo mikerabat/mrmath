@@ -98,9 +98,16 @@ type
 
 implementation
 
+{$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+
 uses ASMMatrixOperations, ThreadedMatrixOperations, MtxThreadPool, mtxTimer,
      BlockSizeSetup, math,
-     {$IFDEF CPUX64}
+     {$IFDEF x64}
      ASMMatrixMultOperationsx64, ASMMatrixVectorMultOperationsx64, ASMMatrixMultTransposedOperationsx64,
      ASMMatrixTransposeOperationsx64, ASMMatrixNormOperationsx64,
      ASMMatrixMeanOperationsx64, ASMMatrixSumOperationsx64,
@@ -109,7 +116,7 @@ uses ASMMatrixOperations, ThreadedMatrixOperations, MtxThreadPool, mtxTimer,
      ASMMatrixTransposeOperations, ASMMatrixNormOperations,
      ASMMatrixMeanOperations, ASMMatrixSumOperations,
      {$ENDIF}
-     MatrixConst, ASMConsts;
+     MatrixConst;
 
 procedure TestMatrixOperations.TestAbs;
 const mt1 : Array[0..5] of double = (-1, 2, 2, -2, 3, -3);
@@ -751,10 +758,10 @@ begin
      mtx[0, 0] := -2;
      mtx[0, 1] := -2;
      mtx[0, 3] := -2;
-     mtx[0, 1] := -2;
+     mtx[0, 4] := -2;
      GenericMtxElemDiv(PDouble(@mtx[0, 0]), 3*sizeof(double), PDouble(@mtx[0, 0]), PDouble(@mtx[0, 0]), 2, 2, 3*sizeof(double), 3*sizeof(double));
      Check(SameValue(mtx[0, 0], 1) and SameValue(mtx[0, 1], 1), 'Error 2x2 elementwise mult odd LineSize failed');
-     Check(SameValue(mtx[0, 3], 1) and SameValue(mtx[0, 1], 1), 'Error 2x2 elementwise mult odd LineSize failed');
+     Check(SameValue(mtx[0, 3], 1) and SameValue(mtx[0, 4], 1), 'Error 2x2 elementwise mult odd LineSize failed');
 
      mtx[0, 0] := -2;
      mtx[0, 1] := -2;
@@ -768,17 +775,17 @@ begin
      mtx[0, 0] := -2;
      mtx[0, 1] := -2;
      mtx[0, 3] := -2;
-     mtx[0, 1] := -2;
+     mtx[0, 4] := -2;
      ASMMatrixElemDiv(PDouble(@mtx[0, 0]), 3*sizeof(double), PDouble(@mtx[0, 0]), PDouble(@mtx[0, 0]), 2, 2, 3*sizeof(double), 3*sizeof(double));
      Check(SameValue(mtx[0, 0], 1) and SameValue(mtx[0, 1], 1), 'Error 2x2 elementwise mult failed');
-     Check(SameValue(mtx[0, 3], 1) and SameValue(mtx[0, 1], 1), 'Error 2x2 elementwise mult failed');
+     Check(SameValue(mtx[0, 3], 1) and SameValue(mtx[0, 4], 1), 'Error 2x2 elementwise mult failed');
 
 
      mtx[0, 0] := -2;
      mtx[0, 1] := -2;
      mtx[0, 2] := -2;
      mtx[0, 3] := -2;
-     mtx[0, 1] := -2;
+     mtx[0, 4] := -2;
      mtx[0, 5] := -2;
      GenericMtxElemDiv(PDouble(@mtx[0, 0]), 3*sizeof(double), PDouble(@mtx[0, 0]), PDouble(@mtx[0, 0]), 3, 2, 3*sizeof(double), 3*sizeof(double));
      Check(SameValue(mtx[0, 0], 1) and SameValue(mtx[0, 1], 1), 'Error 3x2 elementwise mult failed');
@@ -789,7 +796,7 @@ begin
      mtx[0, 1] := -2;
      mtx[0, 2] := -2;
      mtx[0, 3] := -2;
-     mtx[0, 1] := -2;
+     mtx[0, 4] := -2;
      mtx[0, 5] := -2;
      GenericMtxElemDiv(PDouble(@mtx[0, 0]), 2*sizeof(double), PDouble(@mtx[0, 0]), PDouble(@mtx[0, 0]), 2, 3, 2*sizeof(double), 2*sizeof(double));
      Check(SameValue(mtx[0, 0], 1) and SameValue(mtx[0, 1], 1), 'Error 2x3 elementwise mult failed');
@@ -800,7 +807,7 @@ begin
      mtx[0, 1] := -2;
      mtx[0, 2] := -2;
      mtx[0, 3] := -2;
-     mtx[0, 1] := -2;
+     mtx[0, 4] := -2;
      mtx[0, 5] := -2;
      ASMMatrixElemDiv(PDouble(@mtx[0, 0]), 3*sizeof(double), PDouble(@mtx[0, 0]), PDouble(@mtx[0, 0]), 3, 2, 3*sizeof(double), 3*sizeof(double));
      Check(SameValue(mtx[0, 0], 1) and SameValue(mtx[0, 1], 1), 'Error 3x2 elementwise asm mult failed');
@@ -811,7 +818,7 @@ begin
      mtx[0, 1] := -2;
      mtx[0, 2] := -2;
      mtx[0, 3] := -2;
-     mtx[0, 1] := -2;
+     mtx[0, 4] := -2;
      mtx[0, 5] := -2;
      ASMMatrixElemDiv(PDouble(@mtx[0, 0]), 2*sizeof(double), PDouble(@mtx[0, 0]), PDouble(@mtx[0, 0]), 2, 3, 2*sizeof(double), 2*sizeof(double));
      Check(SameValue(mtx[0, 0], 1) and SameValue(mtx[0, 1], 1), 'Error 2x3 elementwise asm mult failed');

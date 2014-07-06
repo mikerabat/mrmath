@@ -17,7 +17,13 @@ unit ASMMatrixMultOperations;
 
 interface
 
-{$IFNDEF CPUX64}
+{$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFNDEF x64}
 
 uses MatrixConst;
 
@@ -41,7 +47,7 @@ procedure ASMMatrixMultUnAlignedOddW1OddW2(dest : PDouble; const destLineWidth :
 
 implementation
 
-{$IFNDEF CPUX64}
+{$IFNDEF x64}
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 procedure ASMMatrixMultAlignedEvenW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var destOffset : integer;

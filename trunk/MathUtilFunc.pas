@@ -30,9 +30,63 @@ function eps(const val : double) : double;
 
 //procedure ShowMtx(mtx : PDouble; LineWidth : integer; Width : integer; height : integer);
 
+type
+  TQuickSortFunc = function(const Item1, Item2) : integer;
+
+
+function DoubleSortFunc(const Item1, Item2) : integer;
+procedure QuickSort(var A; ItemSize : integer; ItemCount : integer; ItemSort : TQuickSortFunc);
+
 implementation
 
-uses SysUtils;
+uses SysUtils, Math;
+
+function DoubleSortFunc(const Item1, Item2) : integer;
+begin
+     Result := CompareValue(PDouble(@Item1)^, PDouble(@Item2)^);
+end;
+
+procedure QuickSort(var A; ItemSize : integer; ItemCount : integer; ItemSort : TQuickSortFunc);
+var P : Array of byte;
+    Help : Array of Byte;
+procedure Qs(Lo, hi : integer);
+var I, J: Integer;
+begin
+     // quick sort implementation of for double values
+     repeat
+           I := Lo;
+           J := Hi;
+
+           Move(PByteArray(@A)[ItemSize*((Lo + Hi) shr 1)], P[0], ItemSize);
+           repeat
+                 while ItemSort(PByteArray(@A)[ItemSize*I], P[0]) < 0 do
+                       Inc(I);
+                 while ItemSort(PByteArray(@A)[ItemSize*J], P[0]) > 0 do
+                       Dec(J);
+                 if I <= J then
+                 begin
+                      Move(PByteArray(@A)[ItemSize*I], Help[0], ItemSize);
+                      Move(PByteArray(@A)[ItemSize*J], PByteArray(@A)[ItemSize*I], ItemSize);
+                      Move(Help[0], PByteArray(@A)[ItemSize*J], ItemSize);
+
+                      Inc(I);
+                      Dec(J);
+                 end;
+           until I > J;
+
+           if Lo < J then
+              Qs(Lo, J);
+           Lo := I;
+     until I >= Hi;
+end;
+begin
+     if (ItemCount <= 0) or (ItemSize <= 0) then
+        exit;
+
+     SetLength(P, ItemSize);
+     SetLength(Help, ItemSize);
+     Qs(0, ItemCount - 1);
+end;
 
 function eps(const val : double) : double;
 const cDoubleEpsilon = 2.2204460492503131e-016; // smallest such that 1.0+DBL_EPSILON != 1.0

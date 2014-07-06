@@ -37,7 +37,8 @@ function ThrMatrixLinEQSolve(A : PDouble; const LineWidthA : integer; width : in
 
 implementation
 
-uses MtxThreadPool, LinearAlgebraicEquations, Math, ThreadedMatrixOperations, OptimizedFuncs;
+uses MtxThreadPool, LinearAlgebraicEquations, Math, ThreadedMatrixOperations, OptimizedFuncs,
+     ASMMatrixOperations;
 
 type
   TAsyncMatrixUSubst = class(TObject)
@@ -196,7 +197,7 @@ begin
           // now it's time to apply the gauss elimination
           indx^[0] := idx;
 
-          if Abs(maxVal) > MinDouble then
+          if Abs(maxVal) > 10/MaxDouble then
           begin
                MatrixScaleAndAdd(A, data.LineWidth, 1, Height, 0, 1/maxVal);
                pA := A;

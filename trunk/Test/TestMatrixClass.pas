@@ -508,6 +508,13 @@ begin
      for i := 0 to cBlkSize - 1 do
          x[i] := Random/3.8 - 0.5/3.8;
 
+     with TFileStream.Create('D:\mtx.bin', fmCreate or fmOpenWrite) do
+     try
+        WriteBuffer(x[0], Length(x)*sizeof(double));
+     finally
+            free;
+     end;
+
      m1 := TDoubleMatrix.Create(x, cBlkWidth, cBlkWidth);
      m2 := TThreadedMatrix.Create(x, cBlkWidth, cBlkWidth);
 

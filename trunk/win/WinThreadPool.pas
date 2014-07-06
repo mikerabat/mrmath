@@ -179,7 +179,7 @@ end;
 procedure TWinMtxAsyncCallThread.Execute;
 var asyncCall : TWinMtxAsyncCall;
 {$IFDEF FPC}
-    mask, procMask, sysmask : DWord;
+    mask, procMask, sysmask : NativeUInt;
 {$ELSE} {$IF CompilerVersion > 22}
     mask, procMask, sysmask : NativeUInt;
 {$ELSE}
