@@ -74,6 +74,12 @@ function MatrixMean(const Src : Array of double; width, height : TASMNativeInt; 
 procedure MatrixMean(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean); overload;
 procedure MatrixMean(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean); overload;
 
+function MatrixVar(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean) : TDoubleDynArray; overload;
+function Matrixvar(const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean) : TDoubleDynArray; overload;
+procedure MatrixVar(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean); overload;
+procedure MatrixVar(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean); overload;
+
+
 function MatrixSum(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
 function MatrixSum(const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
 procedure MatrixSum(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean); overload;
@@ -121,6 +127,7 @@ type
   TMatrixTransposeFunc = procedure(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
   TMatrixElemWiseNormFunc = function (dest : PDouble; LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
   TMatrixNormalizeFunc = procedure(dest : PDouble; destLineWidth : TASMNativeInt; src : PDouble; srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; RowWise : Boolean);
+  TMatrixVarianceFunc = procedure(dest : PDouble; destLineWidth : TASMNativeInt; src : PDouble; srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; RowWise : Boolean; unbiased : boolean);
   TMatrixRowSwapFunc = procedure (A, B : PDouble; width : TASMNativeInt);
 
 var multFunc : TMatrixMultFunc;
@@ -140,6 +147,7 @@ var multFunc : TMatrixMultFunc;
     transposeFunc : TMatrixTransposeFunc;
     matrixNormalizeFunc : TMatrixNormalizeFunc;
     matrixMeanFunc : TMatrixNormalizeFunc;
+    matrixVarFunc : TMatrixVarianceFunc;
     matrixSumFunc : TMatrixNormalizeFunc;
     rowSwapFunc : TMatrixRowSwapFunc;
 
@@ -438,6 +446,32 @@ begin
      MatrixMean(@dest[0], width*sizeof(double), @src[0], width*sizeof(double), width, height, RowWise);
 end;
 
+function MatrixVar(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean) : TDoubleDynArray; overload;
+begin
+     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
+     SetLength(Result, width*height);
+     MatrixVar(@Result[0], width*sizeof(double), src, srcLineWidth, width, height, RowWise, unbiased);
+end;
+
+function MatrixVar(const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean) : TDoubleDynArray; overload;
+begin
+     assert((width > 0) and (height > 0) and (Length(src) >= width*height), 'Dimension error');
+     Result := MatrixVar(@Src[0], width*sizeof(double), width, height, RowWise, unbiased);
+end;
+
+procedure MatrixVar(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean); overload;
+begin
+     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
+     assert((RowWise and (destLineWidth >= sizeof(double))) or (not RowWise and (destLineWidth >= width*sizeof(double))), 'Dimension error');
+     matrixVarFunc(dest, destLineWidth, Src, srcLineWidth, width, height, RowWise, unbiased);
+end;
+
+procedure MatrixVar(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean); overload;
+begin
+     assert((width > 0) and (height > 0) and (Length(dest) >= width*height) and (Length(src) >= width*height), 'Dimension error');
+     MatrixVar(@dest[0], width*sizeof(double), @src[0], width*sizeof(double), width, height, RowWise, unbiased);
+end;
+
 function MatrixSum(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
 begin
      assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
@@ -563,6 +597,7 @@ begin
           elemNormFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixElementwiseNorm2;
           matrixNormalizeFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixNormalize;
           matrixMeanFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixMean;
+          matrixVarFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixVar; // todo: assembler version
           matrixSumFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixSum;
           rowSwapFunc := {$IFDEF FPC}@{$ENDIF}ASMRowSwap;
           absFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixAbs;
@@ -589,6 +624,7 @@ begin
           elemNormFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxElementwiseNorm2;
           matrixNormalizeFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxNormalize;
           matrixMeanFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMean;
+          matrixVarFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxVar;
           matrixSumFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxSum;
           rowSwapFunc := {$IFDEF FPC}@{$ENDIF}GenericRowSwap;
           absFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxAbs;

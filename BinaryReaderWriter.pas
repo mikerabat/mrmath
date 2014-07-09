@@ -219,6 +219,9 @@ begin
      finally
             objs.Free;
      end;
+
+     // inform the object that it has been finally initalized
+     THackMathPersistence(Result).FinishReading;
 end;
 
 procedure TBinaryReaderWriter.ReadBinaryData(sectName : String; Len : LongInt; obj: TBaseMathPersistence;

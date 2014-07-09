@@ -21,6 +21,8 @@ unit MathUtilFunc;
 
 interface
 
+uses Types;
+
 function pythag(const A, B : double) : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function sign(a : double; b : double) : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 procedure DoubleSwap(var a, b : Double); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
@@ -29,6 +31,8 @@ function binom(n, k : integer) : int64;
 function eps(const val : double) : double;
 
 //procedure ShowMtx(mtx : PDouble; LineWidth : integer; Width : integer; height : integer);
+
+procedure WriteMtlMtx(const fileName : string; const mtx : TDoubleDynArray; width : integer; prec : integer = 8);
 
 type
   TQuickSortFunc = function(const Item1, Item2) : integer;
@@ -39,7 +43,7 @@ procedure QuickSort(var A; ItemSize : integer; ItemCount : integer; ItemSort : T
 
 implementation
 
-uses SysUtils, Math;
+uses SysUtils, Math, Classes;
 
 function DoubleSortFunc(const Item1, Item2) : integer;
 begin
@@ -151,6 +155,33 @@ begin
          Result := abs(a)
      else
          Result := -abs(a);
+end;
+
+// writes the matrix such that matlab can read it nicely
+procedure WriteMtlMtx(const fileName : string; const mtx : TDoubleDynArray; width : integer; prec : integer = 8);
+var s : UTF8String;
+    x, y : integer;
+    ft : TFormatSettings;    
+begin
+     GetLocaleFormatSettings(0, ft);
+     ft.DecimalSeparator := '.';
+
+     with TFileStream.Create(fileName, fmCreate or fmOpenWrite) do
+     try
+        for y := 0 to (Length(mtx) div width) - 1 do
+        begin
+             s := '';
+             for x := 0 to width - 1 do
+                 s := s + UTF8String(Format('%.*f,', [prec, mtx[x + y*width]], ft));
+
+             s[length(s)] := #13;
+             s := s + #10;
+
+             WriteBuffer(s[1], Length(s));
+        end;
+     finally
+            Free;
+     end;
 end;
 
 end.

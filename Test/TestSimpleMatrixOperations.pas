@@ -88,6 +88,8 @@ type
     procedure TestThreadMatrixAddAndScale;
     procedure TestStrassenMult;
     procedure TestAbs;
+    procedure TestVarianceRow;
+    procedure TestVarianceCol;
   end;
 
   TASMatrixBlockSizeSetup = class(TBaseMatrixTestCase)
@@ -1429,6 +1431,176 @@ var dest : Array[0..5] of double;
 begin
      ASMMatrixTransposeUnAlignedEvenWOddH(@dest[0], 3*Sizeof(double), @mt1[0], 2*sizeof(double), 2, 3);
      CheckEqualsMem(@mt2, @dest[0], sizeof(mt2), 'Error matrix transpose: ');
+end;
+
+procedure TASMMatrixOperations.TestVarianceCol;
+const cMT1Len : integer = 4;
+      cMt1height : integer = 3;
+      mt1 : Array[0..11] of double = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+      cBigMtxSize = 522;
+var ptr : Pointer;
+    pMem : PDouble;
+    pDest, pDest2 : PConstDoubleArr;
+    mt1T : Array[0..11] of double;
+    mt1Dyn : Array of double;
+    x, y : TDoubleDynArray;
+    p1, p2 : PDouble;
+begin
+     ASMMatrixTranspose(@mt1T[0], 3*sizeof(double), @mt1[0], cMT1Len*sizeof(double), 4, 3);
+
+     SetLength(mt1Dyn, Length(mt1));
+     Move(mt1T[0], mt1Dyn[0], sizeof(mt1));
+     ptr := GetMemory(sizeof(mt1) + 32 + 8*sizeof(double));
+     pMem := PDouble( NativeUInt(ptr) + 16 - NativeUInt(ptr) and $0F );
+
+     pDest := PConstDoubleArr(pMem);
+     inc(PDouble(pDest), Length(mt1));
+
+     GenericMtxVar(PDouble(pDest), 4*sizeof(double), @mt1[0], cMT1Len*sizeof(double), cMT1Len, cMt1height, False, True);
+     Check( SameValue( Variance(Copy(mt1Dyn, 0, cMt1height)), pDest^[0], 1e-6), 'Error calculating variance.');
+     Check( SameValue( Variance(Copy(mt1Dyn, cMt1height, cMt1height)), pDest^[1], 1e-6), 'Error calculating variance.');
+     Check( SameValue( Variance(Copy(mt1Dyn, 2*cMt1height, cMt1height)), pDest^[2], 1e-6), 'Error calculating variance.');
+     Check( SameValue( Variance(Copy(mt1Dyn, 3*cMt1height, cMt1height)), pDest^[3], 1e-6), 'Error calculating variance.');
+     
+     FillChar(pDest^, 4*sizeof(double), 0);
+     Move(mt1, pMem^, sizeof(mt1));
+     ASMMatrixVarColumnAlignedEvenW(PDouble(pDest), 4*sizeof(double), pMem, cMT1Len*sizeof(double), cMT1Len, cMt1height, True);
+     Check( SameValue( Variance(Copy(mt1Dyn, 0, cMt1height)), pDest^[0], 1e-6), 'Error calculating variance.');
+     Check( SameValue( Variance(Copy(mt1Dyn, cMt1height, cMt1height)), pDest^[1], 1e-6), 'Error calculating variance.');
+     Check( SameValue( Variance(Copy(mt1Dyn, 2*cMt1height, cMt1height)), pDest^[2], 1e-6), 'Error calculating variance.');
+     Check( SameValue( Variance(Copy(mt1Dyn, 3*cMt1height, cMt1height)), pDest^[3], 1e-6), 'Error calculating variance.');
+     
+     FillChar(pDest^, 4*sizeof(double), 0);
+     ASMMatrixVarColumnUnAlignedEvenW(PDouble(pDest), 4*sizeof(double), @mt1[0], cMT1Len*sizeof(double), cMT1Len, cMt1height, True); 
+     Check( SameValue( Variance(Copy(mt1Dyn, 0, cMt1height)), pDest^[0], 1e-6), 'Error calculating variance.');
+     Check( SameValue( Variance(Copy(mt1Dyn, cMt1height, cMt1height)), pDest^[1], 1e-6), 'Error calculating variance.');
+     Check( SameValue( Variance(Copy(mt1Dyn, 2*cMt1height, cMt1height)), pDest^[2], 1e-6), 'Error calculating variance.');
+     Check( SameValue( Variance(Copy(mt1Dyn, 3*cMt1height, cMt1height)), pDest^[3], 1e-6), 'Error calculating variance.');
+
+     FillChar(pDest^, 4*sizeof(double), 0);
+     Move(mt1, pMem^, sizeof(mt1));
+     ASMMatrixVarColumnAlignedOddW(PDouble(pDest), 4*sizeof(double), pMem, cMT1Len*sizeof(double), cMT1Len - 1, cMt1height, True);
+     Check( SameValue( Variance(Copy(mt1Dyn, 0, cMt1height)), pDest^[0], 1e-6), 'Error calculating variance.');
+     Check( SameValue( Variance(Copy(mt1Dyn, cMt1height, cMt1height)), pDest^[1], 1e-6), 'Error calculating variance.');
+     Check( SameValue( Variance(Copy(mt1Dyn, 2*cMt1height, cMt1height)), pDest^[2], 1e-6), 'Error calculating variance.');
+     
+     FillChar(pDest^, 4*sizeof(double), 0);
+     ASMMatrixVarColumnUnAlignedOddW(PDouble(pDest), 4*sizeof(double), @mt1[0], cMT1Len*sizeof(double), cMT1Len - 1, 3, True); 
+     Check( SameValue( Variance(Copy(mt1Dyn, 0, cMt1height)), pDest^[0], 1e-6), 'Error calculating variance.');
+     Check( SameValue( Variance(Copy(mt1Dyn, cMt1height, cMt1height)), pDest^[1], 1e-6), 'Error calculating variance.');
+     Check( SameValue( Variance(Copy(mt1Dyn, 2*cMt1height, cMt1height)), pDest^[2], 1e-6), 'Error calculating variance.');
+     
+     FreeMem(ptr);
+
+     // ###########################################
+     // #### Big matrix analysis
+     ptr := GetMemory(32 + 2*2*cBigMtxSize*sizeof(double));
+     pDest := PConstDoubleArr( NativeUInt(ptr) + 16 - NativeUInt(ptr) and $0F );
+     pDest2 := PConstDoubleArr( NativeUInt(pDest) + 2*cBigMtxSize*sizeof(double));
+
+     FillChar(pDest^, 2*cBigMtxSize*sizeof(double), 0);
+     FillMatrix(cBigMtxSize*cBigMtxSize, x, y, p1, p2);
+
+     GenericMtxVar(PDouble(pDest2), cBigMtxSize*sizeof(double), @x[0], cBigMtxSize*sizeof(double), cBigMtxSize, cBigMtxSize, False, True);
+     ASMMatrixVar(PDouble(pDest), cBigMtxSize*sizeof(double), @x[0], cBigMtxSize*sizeof(double), cBigMtxSize, cBigMtxSize, False, True);
+     Check(CheckMtx(Slice(pDest2^, cBigMtxSize), Slice(pDest^, cBigMtxSize) ), 'Variance big matrix failed');
+
+     FillChar(pDest^, 2*cBigMtxSize*sizeof(double), 0);
+     ASMMatrixVar(PDouble(pDest), cBigMtxSize*sizeof(double), p1, cBigMtxSize*sizeof(double), cBigMtxSize, cBigMtxSize, False, True);
+     Check(CheckMtx(Slice(pDest2^, cBigMtxSize), Slice(pDest^, cBigMtxSize) ), 'Variance big matrix failed');
+     
+     FillChar(pDest^, 2*cBigMtxSize*sizeof(double), 0);
+     GenericMtxVar(PDouble(pDest2), cBigMtxSize*sizeof(double), @x[0], cBigMtxSize*sizeof(double), cBigMtxSize - 1, cBigMtxSize, False, True);
+     ASMMatrixVar(PDouble(pDest), cBigMtxSize*sizeof(double), @x[0], cBigMtxSize*sizeof(double), cBigMtxSize - 1, cBigMtxSize, False, True);
+     Check(CheckMtx(Slice(pDest2^, cBigMtxSize - 1), Slice(pDest^, cBigMtxSize - 1) ), 'Variance big matrix failed');
+
+     FillChar(pDest^, 2*cBigMtxSize*sizeof(double), 0);
+     ASMMatrixVar(PDouble(pDest), cBigMtxSize*sizeof(double), p1, cBigMtxSize*sizeof(double), cBigMtxSize - 1, cBigMtxSize, False, True);
+     Check(CheckMtx(Slice(pDest2^, cBigMtxSize - 1), Slice(pDest^, cBigMtxSize - 1) ), 'Variance big matrix failed');
+     
+     FreeMem(p1);
+     FreeMem(p2);
+     
+     FreeMem(ptr);
+end;
+
+procedure TASMMatrixOperations.TestVarianceRow;
+const cMT1Len : integer = 6;
+      mt1 : Array[0..11] of double = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+      cBigMtxSize = 522;
+var ptr : Pointer;
+    pMem : PDouble;
+    pDest, pDest2 : PConstDoubleArr;
+    mt1Dyn : Array of double;
+    x, y : TDoubleDynArray;
+    p1, p2 : PDouble;
+begin
+     SetLength(mt1Dyn, Length(mt1));
+     Move(mt1[0], mt1Dyn[0], sizeof(mt1));
+     ptr := GetMemory(sizeof(mt1) + 32 + 8*sizeof(double));
+     pMem := PDouble( NativeUInt(ptr) + 16 - NativeUInt(ptr) and $0F );
+
+     pDest := PConstDoubleArr(pMem);
+     inc(PDouble(pDest), Length(mt1));
+
+     GenericMtxVar(PDouble(pDest), sizeof(double), @mt1[0], cMT1Len*sizeof(double), cMT1Len, 2, True, True);
+     Check( SameValue( Variance(Copy(mt1Dyn, 0, cMT1Len)), pDest^[0], 1e-6), 'Error calculating variance.');
+     Check( SameValue( Variance(Copy(mt1Dyn, cMT1Len, cMT1Len)), pDest^[1], 1e-6), 'Error calculating variance.');
+     
+     FillChar(pDest^, 4*sizeof(double), 0);
+     Move(mt1, pMem^, sizeof(mt1));
+     ASMMatrixVarRowAlignedEvenW(PDouble(pDest), 2*sizeof(double), pMem, cMT1Len*sizeof(double), cMT1Len, 2, True);
+     Check( SameValue( Variance(Copy(mt1Dyn, 0, cMT1Len)), pDest^[0], 1e-6), 'Error calculating variance.');
+     Check( SameValue( Variance(Copy(mt1Dyn, cMT1Len, cMT1Len)), pDest^[2], 1e-6), 'Error calculating variance.');
+     
+     FillChar(pDest^, 4*sizeof(double), 0);
+     ASMMatrixVarRowUnAlignedEvenW(PDouble(pDest), sizeof(double), @mt1[0], cMT1Len*sizeof(double), cMT1Len, 2, True); 
+     Check( SameValue( Variance(Copy(mt1Dyn, 0, cMT1Len)), pDest^[0], 1e-6), 'Error calculating variance.');
+     Check( SameValue( Variance(Copy(mt1Dyn, cMT1Len, cMT1Len)), pDest^[1], 1e-6), 'Error calculating variance.');
+
+     FillChar(pDest^, 4*sizeof(double), 0);
+     Move(mt1, pMem^, sizeof(mt1));
+     ASMMatrixVarRowAlignedOddW(PDouble(pDest), 2*sizeof(double), pMem, cMT1Len*sizeof(double), cMT1Len - 1, 2, True);
+     Check( SameValue( Variance(Copy(mt1Dyn, 0, cMT1Len - 1)), pDest^[0], 1e-6), 'Error calculating variance.');
+     Check( SameValue( Variance(Copy(mt1Dyn, cMT1Len, cMT1Len - 1)), pDest^[2], 1e-6), 'Error calculating variance.');
+     
+     FillChar(pDest^, 4*sizeof(double), 0);
+     ASMMatrixVarRowUnAlignedOddW(PDouble(pDest), sizeof(double), @mt1[0], cMT1Len*sizeof(double), cMT1Len - 1, 2, True); 
+     Check( SameValue( Variance(Copy(mt1Dyn, 0, cMT1Len - 1)), pDest^[0], 1e-6), 'Error calculating variance.');
+     Check( SameValue( Variance(Copy(mt1Dyn, cMT1Len, cMT1Len - 1)), pDest^[1], 1e-6), 'Error calculating variance.');
+     
+     FreeMem(ptr);
+
+     // ###########################################
+     // #### Big matrix analysis
+     ptr := GetMemory(32 + 2*2*cBigMtxSize*sizeof(double));
+     pDest := PConstDoubleArr( NativeUInt(ptr) + 16 - NativeUInt(ptr) and $0F );
+     pDest2 := PConstDoubleArr( NativeUInt(pDest) + 2*cBigMtxSize*sizeof(double));
+
+     FillChar(pDest^, 2*cBigMtxSize*sizeof(double), 0);
+     FillMatrix(cBigMtxSize*cBigMtxSize, x, y, p1, p2);
+
+     GenericMtxVar(PDouble(pDest2), 2*sizeof(double), @x[0], cBigMtxSize*sizeof(double), cBigMtxSize, cBigMtxSize, True, True);
+     ASMMatrixVar(PDouble(pDest), 2*sizeof(double), @x[0], cBigMtxSize*sizeof(double), cBigMtxSize, cBigMtxSize, True, True);
+     Check(CheckMtx(Slice(pDest2^, 2*cBigMtxSize), Slice(pDest^, 2*cBigMtxSize) ), 'Variance big matrix failed');
+
+     FillChar(pDest^, 2*cBigMtxSize*sizeof(double), 0);
+     ASMMatrixVar(PDouble(pDest), 2*sizeof(double), p1, cBigMtxSize*sizeof(double), cBigMtxSize, cBigMtxSize, True, True);
+     Check(CheckMtx(Slice(pDest2^, 2*cBigMtxSize), Slice(pDest^, 2*cBigMtxSize) ), 'Variance big matrix failed');
+     
+     FillChar(pDest^, 2*cBigMtxSize*sizeof(double), 0);
+     GenericMtxVar(PDouble(pDest2), 2*sizeof(double), @x[0], cBigMtxSize*sizeof(double), cBigMtxSize - 1, cBigMtxSize, True, True);
+     ASMMatrixVar(PDouble(pDest), 2*sizeof(double), @x[0], cBigMtxSize*sizeof(double), cBigMtxSize - 1, cBigMtxSize, True, True);
+     Check(CheckMtx(Slice(pDest2^, 2*cBigMtxSize), Slice(pDest^, 2*cBigMtxSize) ), 'Variance big matrix failed');
+
+     FillChar(pDest^, 2*cBigMtxSize*sizeof(double), 0);
+     ASMMatrixVar(PDouble(pDest), 2*sizeof(double), p1, cBigMtxSize*sizeof(double), cBigMtxSize - 1, cBigMtxSize, True, True);
+     Check(CheckMtx(Slice(pDest2^, 2*cBigMtxSize), Slice(pDest^, 2*cBigMtxSize) ), 'Variance big matrix failed');
+     
+     FreeMem(p1);
+     FreeMem(p2);
+     
+     FreeMem(ptr);
 end;
 
 procedure TestMatrixOperations.TestTranspose;

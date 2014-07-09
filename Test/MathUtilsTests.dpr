@@ -24,6 +24,7 @@ program MathUtilsTests;
 {$ENDIF}
 
 uses
+  madExcept,
   Forms,
   TestFramework,
   GUITestRunner,

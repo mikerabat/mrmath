@@ -54,6 +54,7 @@ type
     procedure AddObject(Obj : TBaseMathPersistence); overload;
     procedure AddObject(const Name : String; obj : TBaseMathPersistence); overload;
   protected
+    procedure FinishReading; virtual;
     procedure OnLoadDoubleProperty(const Name : String; const Value : double); virtual;
     procedure OnLoadStringProperty(const Name : String; const Value : String); virtual;
     procedure OnLoadIntProperty(const Name : String; Value : integer); virtual;
@@ -391,6 +392,11 @@ begin
      assert(Assigned(fWriter), 'No writer assigned');
      fWriter.WriteListEnd;
      fInList := False;
+end;
+
+procedure TBaseMathPersistence.FinishReading;
+begin
+     // do nothing in the base class
 end;
 
 procedure TBaseMathPersistence.InitWriter(Writer: TCustomMathPersistenceIO);
