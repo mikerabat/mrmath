@@ -108,8 +108,12 @@ type
     procedure AddAndScaleInPlace(const Offset, Scale : double);
     function AddAndScale(const Offset, Scale : double) : TDoubleMatrix;
 
-    function Mean(RowWise : boolean) : TDoubleMatrix; overload;
-    procedure MeanInPlace(RowWise : boolean); overload;
+    function Mean(RowWise : boolean) : TDoubleMatrix; 
+    procedure MeanInPlace(RowWise : boolean); 
+    function Variance(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
+    procedure VarianceInPlace(RowWise : boolean; unbiased : boolean = True);
+    function Std(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
+    procedure StdInPlace(RowWise : boolean; unbiased : boolean = True);
     function Sum(RowWise : boolean) : TDoubleMatrix;
     procedure SumInPlace(RowWise : boolean);
 
@@ -292,8 +296,13 @@ type
     procedure AddAndScaleInPlace(const Offset, Scale : double); virtual;
     function AddAndScale(const Offset, Scale : double) : TDoubleMatrix; virtual;
 
-    function Mean(RowWise : boolean) : TDoubleMatrix; overload;
-    procedure MeanInPlace(RowWise : boolean); overload;
+    function Mean(RowWise : boolean) : TDoubleMatrix; 
+    procedure MeanInPlace(RowWise : boolean); 
+    function Variance(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
+    procedure VarianceInPlace(RowWise : boolean; unbiased : boolean = True);
+    function Std(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
+    procedure StdInPlace(RowWise : boolean; unbiased : boolean = True);
+    
     function Sum(RowWise : boolean) : TDoubleMatrix;
     procedure SumInPlace(RowWise : boolean);
 
@@ -959,6 +968,56 @@ begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
 
      dl := Mean(RowWise);
+     try
+        Assign(dl);
+     finally
+            dl.Free;
+     end;
+end;
+
+function TDoubleMatrix.Std(RowWise: boolean; unbiased : boolean = True): TDoubleMatrix;
+begin
+     Result := Variance(RowWise, unbiased);
+     Result.SQRTInPlace;
+end;
+
+procedure TDoubleMatrix.StdInPlace(RowWise: boolean; unbiased : boolean = True);
+var dl : TDoubleMatrix;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+
+     dl := Std(RowWise, unbiased);
+     try
+        Assign(dl);
+     finally
+            dl.Free;
+     end;
+end;
+
+function TDoubleMatrix.Variance(RowWise: boolean; unbiased : boolean = True): TDoubleMatrix;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+
+     if RowWise then
+     begin
+          Result := TDoubleMatrix.Create(1, fSubHeight);
+
+          MatrixVar(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise, unbiased);
+     end
+     else
+     begin
+          Result := TDoubleMatrix.Create(fSubWidth, 1);
+
+          MatrixVar(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise, unbiased);
+     end;
+end;
+
+procedure TDoubleMatrix.VarianceInPlace(RowWise: boolean; unbiased : boolean = True);
+var dl : TDoubleMatrix;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+
+     dl := Variance(RowWise, unbiased);
      try
         Assign(dl);
      finally

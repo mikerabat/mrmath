@@ -21,7 +21,7 @@ unit SimpleMatrixOperations;
 
 interface
 
-uses MatrixConst, SysUtils, Types;
+uses MatrixConst, Types;
 
 procedure GenericMtxCopy(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); overload;
 procedure GenericMtxCopy(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt); overload;
@@ -70,6 +70,7 @@ procedure GenericMtxNormalize(dest : PDouble; destLineWidth : TASMNativeInt; Src
 procedure GenericMtxNormalize(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean); overload;
 
 procedure GenericMtxMean(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure GenericMtxVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
 procedure GenericMtxSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
 
 procedure GenericMtxAddAndScale(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
@@ -226,6 +227,89 @@ begin
 
                if Height > 0 then
                   dest^ := val/Height;
+
+               inc(pVal1, sizeof(double));
+               inc(dest);
+          end;
+     end;
+end;
+
+// note: this function calculates the unbiased version of the matrix variance!
+procedure GenericMtxVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
+var x, y : TASMNativeInt;
+    pVal1 : PByte;
+    pVal2 : PConstDoubleArr;
+    pVal : PDouble;
+    meanVal : double;
+begin
+     assert((Width > 0) and (Height > 0), 'No data assigned');
+
+     pVal1 := PByte(Src);
+     if RowWise then
+     begin
+          for y := 0 to Height - 1 do
+          begin
+               meanVal := 0;
+
+               dest^ := Infinity;
+               pVal2 := PConstDoubleArr(pVal1);
+               for x := 0 to Width - 1 do
+                   meanVal := meanVal + pVal2^[x];
+
+               if Width > 0 then
+                  meanVal := meanVal/Width;
+
+               if meanVal <> 0 then
+               begin
+                    dest^ := 0;
+                    for x := 0 to Width - 1 do
+                        dest^ := dest^ + sqr( pVal2^[x] - meanVal );
+
+                    if unbiased 
+                    then
+                        dest^ := dest^/Max(1, width - 1)
+                    else
+                        dest^ := dest^/width;
+               end;
+                  
+               inc(pVal1, srcLineWidth);
+               inc(PByte(dest), destLineWidth);
+          end;
+     end
+     else
+     begin
+          for x := 0 to Width - 1 do
+          begin
+               meanVal := 0;
+
+               dest^ := Infinity;
+               
+               pVal := PDouble(pVal1);
+               for y := 0 to Height - 1 do
+               begin
+                    meanVal := meanVal + pVal^;
+                    inc(PByte(pVal), srcLineWidth);
+               end;
+
+               if Height > 0 then
+                  meanVal := meanVal/Height;
+
+               if meanVal <> 0 then
+               begin
+                    pVal := PDouble(pVal1);
+                    dest^ := 0;
+                    for y := 0 to Height - 1 do
+                    begin
+                         dest^ := dest^ + sqr( pVal^ - meanVal );
+                         inc(PByte(pVal), srcLineWidth);
+                    end;   
+
+                    if unbiased 
+                    then
+                        dest^ := dest^/Max(1, height - 1)
+                    else
+                        dest^ := dest^/height;
+               end;
 
                inc(pVal1, sizeof(double));
                inc(dest);

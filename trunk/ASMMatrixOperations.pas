@@ -54,6 +54,7 @@ procedure ASMMatrixTranspose(dest : PDouble; const destLineWidth : TASMNativeInt
 function ASMMatrixElementwiseNorm2(dest : PDouble; LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
 procedure ASMMatrixNormalize(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
 procedure ASMMatrixMean(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure ASMMatrixVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
 procedure ASMMatrixSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
 
 // this routine first performs a transposition on the second matrix before the multiplication is executed. This results
@@ -714,6 +715,66 @@ begin
                    ASMMatrixMeanRowUnAlignedOddW(dest, destLineWidth, Src, srcLineWidth, width, height)
                else
                    ASMMatrixMeanColumnUnAlignedOddW(dest, destLineWidth, Src, srcLineWidth, width, height);
+          end;
+     end;
+end;
+
+procedure ASMMatrixVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
+var meanVal : double;
+begin
+     if (width = 0) or (height = 0) then
+        exit;
+     assert((width*sizeof(double) <= srcLineWidth), 'Dimension error');
+     assert((rowWise and (destLineWidth >= sizeof(double))) or (not rowWise and (destLineWidth >= width*sizeof(double))), 'Dimension error');
+
+     // check if they are vector operations:
+     if (width = 1) and (srcLineWidth = sizeof(double)) and not RowWise then
+     begin
+          width := Height;
+          height := 1;
+          srcLineWidth := width*sizeof(double) + (width and 1)*sizeof(double);
+          destLineWidth := srcLineWidth;
+          RowWise := True;
+     end;
+
+     if (TASMNativeUInt(Dest) and $0000000F = 0) and (TASMNativeUInt(src) and $0000000F = 0) and
+        (destLineWidth and $0000000F = 0) and (srcLineWidth and $0000000F = 0)
+     then
+     begin
+          if width and 1 = 0 then
+          begin
+               if RowWise
+               then
+                   ASMMatrixVarRowAlignedEvenW(dest, destLineWidth, Src, srcLineWidth, width, height, unbiased)
+               else
+                   ASMMatrixVarColumnAlignedEvenW(dest, destLineWidth, Src, srcLineWidth, width, height, unbiased)
+          end
+          else
+          begin
+               if RowWise
+               then
+                   ASMMatrixVarRowAlignedOddW(dest, destLineWidth, Src, srcLineWidth, width, height, unbiased)
+               else
+                   ASMMatrixVarColumnAlignedOddW(dest, destLineWidth, Src, srcLineWidth, width, height, unbiased);
+          end;
+     end
+     else
+     begin
+          if width and 1 = 0 then
+          begin
+               if RowWise
+               then
+                   ASMMatrixVarRowUnAlignedEvenW(dest, destLineWidth, Src, srcLineWidth, width, height, unbiased)
+               else
+                   ASMMatrixVarColumnUnAlignedEvenW(dest, destLineWidth, Src, srcLineWidth, width, height, unbiased)
+          end
+          else
+          begin
+               if RowWise
+               then
+                   ASMMatrixVarRowUnAlignedOddW(dest, destLineWidth, Src, srcLineWidth, width, height, unbiased)
+               else
+                   ASMMatrixVarColumnUnAlignedOddW(dest, destLineWidth, Src, srcLineWidth, width, height, unbiased);
           end;
      end;
 end;
