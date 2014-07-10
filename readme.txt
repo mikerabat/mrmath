@@ -46,6 +46,10 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: 10.7.2014
+Fixed some x64 variance calculation issues (tested under Lazarus).
+Tidy up work - removed some unreferenced units.
+
 Date 6.7.2014
 Implemented x64 compatibility for Freepascal. Removed a few unused units. 
 -> The stack handling had to be completely rewritten for x64.
