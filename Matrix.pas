@@ -226,10 +226,6 @@ type
     function GetSubWidth : integer;
     function GetSubHeight : integer;
     function GetObjRef : TDoubleMatrix;
-
-    // direct access functionality (use only when you know what you are doing!)
-    function StartElement : PDouble; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
-    function LineWidth : integer; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
   public
     property Width : integer read GetSubWidth write SetWidth;
     property Height : integer read GetSubHeight write SetHeight;
@@ -240,6 +236,11 @@ type
     property LineEQProgress : TLinEquProgress read GetLinEQProgress write SetLinEQProgress;
 
     // general access
+
+    // direct access functionality (use only when you know what you are doing!)
+    function StartElement : PDouble; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+    function LineWidth : integer; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+
     property Items[x, y : integer] : double read GetItems write SetItems; default;
     function SubMatrix : TDoubleDynArray;
     procedure SetSubMatrix(x, y, Subwidth, Subheight : integer);
