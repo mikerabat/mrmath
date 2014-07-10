@@ -18,7 +18,7 @@ interface
 
 uses
   {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF} ,
-  Classes, SysUtils, Types, SimpleMatrixOperations, Matrix, BaseMatrixTestCase,
+  Classes, SysUtils, Types, Matrix, BaseMatrixTestCase,
   ThreadedMatrix;
 
 type

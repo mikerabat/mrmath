@@ -1499,6 +1499,7 @@ begin
      pDest2 := PConstDoubleArr( NativeUInt(pDest) + 2*cBigMtxSize*sizeof(double));
 
      FillChar(pDest^, 2*cBigMtxSize*sizeof(double), 0);
+     FillChar(pDest2^, 2*cBigMtxSize*sizeof(double), 0);
      FillMatrix(cBigMtxSize*cBigMtxSize, x, y, p1, p2);
 
      GenericMtxVar(PDouble(pDest2), cBigMtxSize*sizeof(double), @x[0], cBigMtxSize*sizeof(double), cBigMtxSize, cBigMtxSize, False, True);
@@ -1510,6 +1511,7 @@ begin
      Check(CheckMtx(Slice(pDest2^, cBigMtxSize), Slice(pDest^, cBigMtxSize) ), 'Variance big matrix failed');
      
      FillChar(pDest^, 2*cBigMtxSize*sizeof(double), 0);
+     FillChar(pDest2^, 2*cBigMtxSize*sizeof(double), 0);
      GenericMtxVar(PDouble(pDest2), cBigMtxSize*sizeof(double), @x[0], cBigMtxSize*sizeof(double), cBigMtxSize - 1, cBigMtxSize, False, True);
      ASMMatrixVar(PDouble(pDest), cBigMtxSize*sizeof(double), @x[0], cBigMtxSize*sizeof(double), cBigMtxSize - 1, cBigMtxSize, False, True);
      Check(CheckMtx(Slice(pDest2^, cBigMtxSize - 1), Slice(pDest^, cBigMtxSize - 1) ), 'Variance big matrix failed');
@@ -1578,6 +1580,7 @@ begin
      pDest2 := PConstDoubleArr( NativeUInt(pDest) + 2*cBigMtxSize*sizeof(double));
 
      FillChar(pDest^, 2*cBigMtxSize*sizeof(double), 0);
+     FillChar(pDest2^, 2*cBigMtxSize*sizeof(double), 0);
      FillMatrix(cBigMtxSize*cBigMtxSize, x, y, p1, p2);
 
      GenericMtxVar(PDouble(pDest2), 2*sizeof(double), @x[0], cBigMtxSize*sizeof(double), cBigMtxSize, cBigMtxSize, True, True);
@@ -1589,6 +1592,7 @@ begin
      Check(CheckMtx(Slice(pDest2^, 2*cBigMtxSize), Slice(pDest^, 2*cBigMtxSize) ), 'Variance big matrix failed');
      
      FillChar(pDest^, 2*cBigMtxSize*sizeof(double), 0);
+     FillChar(pDest2^, 2*cBigMtxSize*sizeof(double), 0);
      GenericMtxVar(PDouble(pDest2), 2*sizeof(double), @x[0], cBigMtxSize*sizeof(double), cBigMtxSize - 1, cBigMtxSize, True, True);
      ASMMatrixVar(PDouble(pDest), 2*sizeof(double), @x[0], cBigMtxSize*sizeof(double), cBigMtxSize - 1, cBigMtxSize, True, True);
      Check(CheckMtx(Slice(pDest2^, 2*cBigMtxSize), Slice(pDest^, 2*cBigMtxSize) ), 'Variance big matrix failed');

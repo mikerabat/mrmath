@@ -18,7 +18,7 @@ unit TestEigensystems;
 interface
 
 uses {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF} ,
-     Classes, SysUtils, Types, SimpleMatrixOperations, BaseMatrixTestCase;
+     Classes, SysUtils, BaseMatrixTestCase;
 
 type
  TTestEigensystems = class(TBaseMatrixTestCase)

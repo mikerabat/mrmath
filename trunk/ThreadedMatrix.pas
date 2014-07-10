@@ -67,7 +67,7 @@ type
 
 implementation
 
-uses SysUtils, ThreadedMatrixOperations, Types, MtxThreadPool, ThreadedLinAlg;
+uses SysUtils, ThreadedMatrixOperations, MtxThreadPool, ThreadedLinAlg;
 
 // never realy understood why I can't access protected members from the base class if
 // I want to access a member in from a parameter. So I need this "hack" class definition.
