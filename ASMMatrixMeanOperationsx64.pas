@@ -952,7 +952,7 @@ asm
 
        @addforxloop2:
            movupd xmm1, [r8 + rax];
-           addpd xmm0, movupd;
+           addpd xmm0, xmm1;
        add rax, 16;
        jnz @addforxloop2;
 
@@ -1367,7 +1367,7 @@ asm
        // for x := 0 to w - 1;
        // prepare for reverse loop
        // variance = sum (x - mean)^2
-       mov rax, r8;
+       mov rax, r10;
        @addforxloop3:
            add rax, 128;
            jg @loopEnd2;
@@ -1456,7 +1456,7 @@ asm
             
        // write result
        @@writeRes:
-       movlpd [rcx], xmm4;
+       movlpd [rcx], xmm0;
 
        // next line:
        add r8, r9;

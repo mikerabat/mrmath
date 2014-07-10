@@ -720,7 +720,6 @@ begin
 end;
 
 procedure ASMMatrixVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
-var meanVal : double;
 begin
      if (width = 0) or (height = 0) then
         exit;
