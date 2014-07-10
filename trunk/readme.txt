@@ -48,6 +48,7 @@ changelog:
 
 Date: 10.7.2014
 Fixed some x64 variance calculation issues (tested under Lazarus).
+Made some data access functions public in the matrix class.
 Tidy up work - removed some unreferenced units.
 
 Date 6.7.2014
