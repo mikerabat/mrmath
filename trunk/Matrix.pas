@@ -514,6 +514,8 @@ begin
      begin
           SetWidthHeight(Value.fWidth, Value.fHeight);
           MatrixCopy(StartElement, LineWidth, PDouble(Value.fData), Value.LineWidth, Value.fWidth, Value.fHeight);
+          fSubWidth := Value.fSubWidth;
+          fSubHeight := Value.fSubHeight;
      end;
 end;
 
