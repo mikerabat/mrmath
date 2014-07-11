@@ -95,6 +95,7 @@ contains
   GCDDispatch in 'mac\GCDDispatch.pas',
   MtxTimer in 'MtxTimer.pas',
   ASMMatrixAbsOperations in 'ASMMatrixAbsOperations.pas',
-  ASMMatrixAbsOperationsx64 in 'ASMMatrixAbsOperationsx64.pas';
+  ASMMatrixAbsOperationsx64 in 'ASMMatrixAbsOperationsx64.pas',
+  Utilities in 'Utilities.pas';
 
 end.
