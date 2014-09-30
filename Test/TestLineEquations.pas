@@ -40,6 +40,9 @@ type
   procedure TestSVD3;
   procedure TestCholesky;
   procedure TestQRDecomp;
+  procedure TestQRDecomp2;
+  procedure TestQRDecomp3;
+  procedure TestQRDecomp4;
   procedure TestPseudoInversion;
   procedure TestPseudoInversion2;
   procedure TestBigLUDecomp;
@@ -48,8 +51,7 @@ type
 
 implementation
 
-uses LinearAlgebraicEquations, ThreadedMatrixOperations,
-     MtxThreadPool, ThreadedLinAlg, math, MtxTimer;
+uses LinearAlgebraicEquations, MtxThreadPool, ThreadedLinAlg, math, MtxTimer;
 
 { TestTDoubleMatrix }
 
@@ -444,6 +446,106 @@ begin
      MatrixQRSolveLinEq(@dest[0], 3*sizeof(double), 3, @C[0], sizeof(double), @D[0], sizeof(double), @B[0], sizeof(double));
 
      Check(CheckMtx(Bexp, B), 'Error QR decomposistion: ' + WriteMtx(B, 3));
+end;
+
+procedure TTestLinearEquations.TestQRDecomp2;
+const A : Array[0..15] of double = (1, 2, 2, 0.5,
+                                   -1, 4, -2, -0.1,
+                                   2, 2, -1, 1.2,
+                                   3, 2, -1, -1.1);
+var dest : Array[0..15] of double;
+    dest2 : Array[0..15] of double;
+    tau : Array[0..3] of double;
+    work : Array[0..3] of double;
+    i, j : integer;
+begin
+     Move(A, dest, sizeof(A));
+     MatrixQRDecompInPlace2(@dest[0], 4*sizeof(double), 4, 4, @tau[0], nil, 4);
+
+     Move(A, dest2, sizeof(A));
+     MatrixQRDecompInPlace(@dest2[0], 4*sizeof(double), 4, @tau[0], sizeof(double), @work[0], sizeof(double));
+
+     // overwrite diagonal elements of dest2 with D
+     for i := 0 to 3 do
+         dest2[i + 4*i] := work[i];
+
+
+     // compare only matrix R - the two algorithms differ on Q
+     for i := 0 to 3 do
+     begin
+          for j := i to 3 do
+              Check(SameValue(dest[i*4 + j], dest2[i*4 + j], 1e-8));
+     end;
+end;
+
+
+procedure TTestLinearEquations.TestQRDecomp3;
+var a : TDoubleDynArray;
+    tau, work : TDoubleDynArray;
+const cSize = 6;
+      cA : Array[0..cSize*cSize - 1] of double = (1, 2, 2, 0.5, -1, -2,
+                                   -1, 4, -2, -0.1, 0.1, -1,
+                                   2, 2, -1, 1.2, 1, 1,
+                                   3, 2, -1, -1.1, -1.1, -2,
+                                   1.5, 3, -1, -1, -2, 1,
+                                   1, 1, 2, 2, -1, -1);
+      // economy size qr decomp output from matlab
+      cC : Array[0..cSize*cSize-1] of double = (-4.272002, -3.160111, 0.117041, -0.046816, 1.498127, 1.053370,
+                                                -0.189681, -5.292797, 1.630544, 0.065739, 0.768167, 0.882564,
+                                                 0.379363, 0.004132, 3.511072, 1.708392, -1.004785, -1.584230,
+                                                 0.569044, -0.091157, 0.454708, 2.232685, 1.628624, 0.984368,
+                                                 0.284522, 0.149133, 0.200997, 0.301584, 1.312831, -1.029085,
+                                                 0.189681, 0.002066, -0.316509, -0.502364, 0.442936, -2.360871);
+begin
+     SetLength(tau, cSize*cSize);
+     SetLength(work, cSize*cSize);  // should be cSize*nb
+
+     SetLength(a, cSize*cSize);
+     Move(ca, a[0], sizeof(ca));
+
+     MatrixQRDecompInPlace2(@a[0], cSize*sizeof(double), cSize, cSize, @tau[0], nil, 4);
+
+     Check(CheckMtx(cC, a), 'QR Decomposition 2 failed' );
+end;
+
+procedure TTestLinearEquations.TestQRDecomp4;
+var a : TDoubleDynArray;
+    tau : TDoubleDynArray;
+    b, c : TDoubleDynArray;
+    counter: Integer;
+    start, stop : Int64;
+const cSize = 1258;
+begin
+     MtxThreadPool.InitMtxThreadPool;
+     RandSeed := 243;
+     SetLength(a, cSize*cSize);
+
+     for counter := 0 to Length(a) - 1 do
+         a[counter] := random - 0.5;
+     b := Copy(a, 0, Length(a));
+     c := Copy(a, 0, Length(a));
+
+     SetLength(tau, cSize);
+
+     start := MtxGetTime;
+     MatrixQRDecompInPlace2(@a[0], cSize*sizeof(double), cSize, cSize, @tau[0], nil, 24);
+     stop := MtxGetTime;
+     Status(Format('Blocked QR decomp: %.2fms', [(stop - start)/mtxfreq*1000]));
+
+     start := MtxGetTime;
+     ThrMatrixQRDecomp(@c[0], cSize*sizeof(double), cSize, cSize, @tau[0], nil, 24);
+     stop := MtxGetTime;
+     Status(Format('Threaded QR decomp: %.2fms', [(stop - start)/mtxfreq*1000]));
+
+     // compare against the unblocked version
+     start := MtxGetTime;
+     MatrixQRDecompInPlace2(@b[0], cSize*sizeof(double), cSize, cSize, @tau[0], nil, cSize);
+     stop := MtxGetTime;
+     Status(Format('QR decomp: %.2fms', [(stop - start)/mtxfreq*1000]));
+
+     MtxThreadPool.FinalizeMtxThreadPool;
+     Check(CheckMtx(a, b), 'Blocked QR failed miserably');
+     Check(CheckMtx(a, c), 'Threaded QR failed miserably');
 end;
 
 procedure TTestLinearEquations.TestSVD1;

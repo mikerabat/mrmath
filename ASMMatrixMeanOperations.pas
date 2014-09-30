@@ -1221,7 +1221,6 @@ end;
 
 procedure ASMMatrixVarRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 var iters : integer;
-const cOne : double = 1;
 begin
      Assert((width and 1) = 1, 'Error width must be odd');
 
@@ -1433,6 +1432,8 @@ begin
         sub ecx, iters;
         mov ebx, dest;
 
+        movupd xmm2, cOnes;
+
         cvtsi2sd xmm5, height;
         movddup xmm6, xmm5;
 
@@ -1473,8 +1474,8 @@ begin
             jz @@dobiased;
 
             movapd xmm4, xmm6;
-            subpd xmm4, cOnes;
-            maxpd xmm4, cOnes;
+            subpd xmm4, xmm2;
+            maxpd xmm4, xmm2;
 
             divpd xmm0, xmm4;
 
@@ -1516,6 +1517,8 @@ begin
         sub ecx, iters;
         mov ebx, dest;
 
+        movupd xmm2, cOnes;
+
         cvtsi2sd xmm5, height;
         movddup xmm6, xmm5;
 
@@ -1555,8 +1558,8 @@ begin
             jz @@dobiased;
 
             movapd xmm4, xmm6;
-            subpd xmm4, cOnes;
-            maxpd xmm4, cOnes;
+            subpd xmm4, xmm2;
+            maxpd xmm4, xmm2;
 
             divpd xmm0, xmm4;
 
@@ -1600,6 +1603,8 @@ begin
         sub ecx, iters;
         mov ebx, dest;
 
+        movupd xmm2, cOnes;
+
         cvtsi2sd xmm5, height;
         movddup xmm6, xmm5;
 
@@ -1639,8 +1644,8 @@ begin
             jz @@dobiased;
 
             movapd xmm4, xmm6;
-            subpd xmm4, cOnes;
-            maxpd xmm4, cOnes;
+            subpd xmm4, xmm2;
+            maxpd xmm4, xmm2;
 
             divpd xmm0, xmm4;
 
@@ -1730,6 +1735,8 @@ begin
         sub ecx, iters;
         mov ebx, dest;
 
+        movupd xmm2, cOnes;
+
         cvtsi2sd xmm5, height;
         movddup xmm6, xmm5;
 
@@ -1770,8 +1777,8 @@ begin
             jz @@dobiased;
 
             movapd xmm4, xmm6;
-            subpd xmm4, cOnes;
-            maxpd xmm4, cOnes;
+            subpd xmm4, xmm2;
+            maxpd xmm4, xmm2;
 
             divpd xmm0, xmm4;
 

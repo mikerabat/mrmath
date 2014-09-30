@@ -23,7 +23,7 @@ unit WinThreadPool;
 // http://andy.jgknet.de/blog/bugfix-units/asynccalls-29-asynchronous-function-calls/
 interface
 {$IFDEF MSWINDOWS}
-uses MatrixConst, MtxThreadPool, SysUtils;
+uses MtxThreadPool, SysUtils;
 
 procedure InitWinMtxThreadPool;
 procedure FinalizeWinMtxThreadPool;

@@ -45,6 +45,20 @@ procedure GenericMtxMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt
 function GenericMtxMult(const mt1, mt2 : Array of Double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt) : TDoubleDynArray; overload;
 procedure GenericMtxMult(var dest : Array of Double; mt1, mt2 : Array of double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt); overload;
 
+// calculatates mt1'*mt2
+procedure GenericTranspMtxMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+// calculates mt1*mt2'
+procedure GenericMtxMultTransp(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
+
+procedure GenericTranspMtxMultAdd(dest : PDouble; const destLineWidth : TASMNativeInt;
+  mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
+  const LineWidth1, LineWidth2 : TASMNativeInt; C : PDouble; LineWidthC : integer);
+// calculates dest = alpha*mt1*mt2' + C
+procedure GenericMtxMultTranspAdd(dest : PDouble; const destLineWidth : TASMNativeInt; const alpha : double;
+  mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
+  const LineWidth1, LineWidth2 : TASMNativeInt; C : PDouble; LineWidthC : integer);
+
+
 procedure GenericMtxElemMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt); overload;
 function GenericMtxElemMult(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
 procedure GenericMtxElemMult(var dest : Array of Double; const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt); overload;
@@ -90,8 +104,14 @@ procedure GenericBlockedMatrixMultiplication(dest : PDouble; const destLineWidth
   width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
   const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation = doNone; mem : PDouble = nil);
 
-//
+// calculates dest = mt1'*mt2
+procedure GenericBlockedMatrixMultiplicationT1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
+  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
+// calculates dest = mt1*mt2'
+procedure GenericBlockedMatrixMultiplicationT2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
+  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
 
+// Apply a function to a matrix:
 procedure GenericMtxFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixFunc); overload;
 procedure GenericMtxFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixObjFunc); overload;
 procedure GenericMtxFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFunc); overload;
@@ -651,6 +671,170 @@ begin
           dec(mt2, Width2);
           inc(PByte(mt1), LineWidth1);
           inc(PByte(dest), destOffset);
+     end;
+end;
+
+procedure GenericMtxMultTransp(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
+var x, y, idx : TASMNativeInt;
+    valCounter1 : PDouble;
+    valCounter2 : PDouble;
+    pMt2 : PDouble;
+    pDest : PDouble;
+begin
+     assert((width1 > 0) and (height1 > 0) and (width1 = width2), 'Dimension error');
+     assert(destLineWidth - height2*sizeof(double) >= 0, 'Destination width error');
+
+     for y := 0 to Height1 - 1 do
+     begin
+          pDest := dest;
+          pMt2 := mt2;
+          for x := 0 to height2 - 1 do
+          begin
+               pDest^ := 0;
+               valCounter1 := mt1;
+               valCounter2 := pMt2;
+               for idx := 0 to width1 - 1 do
+               begin
+                    pDest^ := pDest^ + valCounter1^*valCounter2^;
+                    inc(valCounter1);
+                    inc(valCounter2);
+               end;
+
+               inc(PByte(pMt2), LineWidth2);
+               inc(pDest);
+          end;
+          inc(PByte(mt1), LineWidth1);
+          inc(PByte(dest), destLineWidth);
+     end;
+end;
+
+// performs dest = mt1'*mt2
+procedure GenericTranspMtxMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+var x, y, idx : TASMNativeInt;
+    valCounter1 : PDouble;
+    valCounter2 : PDouble;
+    pDest : PDouble;
+begin
+     assert((width1 > 0) and (height1 > 0) and (height2 = height1), 'Dimension error');
+
+     for y := 0 to width1 - 1 do
+     begin
+          pDest := dest;
+          for x := 0 to Width2 - 1 do
+          begin
+               pDest^ := 0;
+               valCounter1 := mt1;
+               valCounter2 := mt2;
+               for idx := 0 to height2 - 1 do
+               begin
+                    pDest^ := pDest^ + valCounter1^*valCounter2^;
+                    inc(PByte(valCounter1), LineWidth1);
+                    inc(PByte(valCounter2), LineWidth2);
+               end;
+
+               inc(mt2);
+               inc(pDest);
+          end;
+
+          dec(mt2, Width2);
+          inc(mt1);
+
+          inc(PByte(dest), destLineWidth);
+     end;
+end;
+
+procedure GenericTranspMtxMultAdd(dest : PDouble; const destLineWidth : TASMNativeInt;
+  mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
+  const LineWidth1, LineWidth2 : TASMNativeInt; C : PDouble; LineWidthC : integer);
+var x, y, idx : TASMNativeInt;
+    valCounter1 : PDouble;
+    valCounter2 : PDouble;
+    pDest : PDouble;
+    pC : PDouble;
+    addVal : Double;
+begin
+     assert((width1 > 0) and (height1 > 0) and (height2 = height1), 'Dimension error');
+
+     for y := 0 to width1 - 1 do
+     begin
+          pC := C;
+          pDest := dest;
+          for x := 0 to Width2 - 1 do
+          begin
+               if C <> nil
+               then
+                   addVal := pC^
+               else
+                   addVal := 0;
+
+               pDest^ := 0;
+               valCounter1 := mt1;
+               valCounter2 := mt2;
+               for idx := 0 to height2 - 1 do
+               begin
+                    pDest^ := pDest^ + valCounter1^*valCounter2^;
+                    inc(PByte(valCounter1), LineWidth1);
+                    inc(PByte(valCounter2), LineWidth2);
+               end;
+
+               pDest^ := pDest^ + addVal;
+               inc(mt2);
+               inc(pDest);
+               inc(pC);
+          end;
+
+          dec(mt2, Width2);
+          inc(mt1);
+
+          inc(PByte(dest), destLineWidth);
+          inc(PByte(C), LineWidthC);
+     end;
+end;
+
+// performs dest = alpha*A*B' + C
+procedure GenericMtxMultTranspAdd(dest : PDouble; const destLineWidth : TASMNativeInt; const alpha : double;
+  mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
+  const LineWidth1, LineWidth2 : TASMNativeInt; C : PDouble; LineWidthC : integer);
+var x, y, idx : TASMNativeInt;
+    valCounter1 : PDouble;
+    valCounter2 : PDouble;
+    pDest : PDouble;
+    pC : PDouble;
+    addVal : Double;
+    pMT2 : PDouble;
+begin
+     assert((width1 > 0) and (height1 > 0) and (width1 = width2), 'Dimension error');
+
+     for y := 0 to height1 - 1 do
+     begin
+          pC := C;
+          pDest := dest;
+          pMt2 := mt2;
+          for x := 0 to height2 - 1 do
+          begin
+               addVal := pC^;
+
+               pDest^ := 0;
+               valCounter1 := mt1;
+               valCounter2 := pMt2;
+               for idx := 0 to width2 - 1 do
+               begin
+                    pDest^ := pDest^ + valCounter1^*valCounter2^;
+                    inc(valCounter1);
+                    inc(valCounter2);
+               end;
+
+               pDest^ := alpha*pDest^ + addVal;
+               inc(PByte(PMt2), LineWidth2);
+               inc(pDest);
+               inc(pC);
+          end;
+
+          //inc(mt2, Width2);
+          inc(PByte(mt1), LineWidth1);
+
+          inc(PByte(dest), destLineWidth);
+          inc(PByte(C), LineWidthC);
      end;
 end;
 
@@ -1257,17 +1441,14 @@ begin
      w := width2 div blockSize + TASMNativeInt(not w2FitCacheSize) - 1;
      gamma := width1 div blockSize + TASMNativeInt(not w1FitCacheSize) - 1;
 
-     if Assigned(mem) then
-     begin
-          actBlk := mem;
-          multBlk := actBlk;
-          inc(multBlk, blockSize*blockSize);
-     end
+     if Assigned(mem)
+     then
+         actBlk := mem
      else
-     begin
-          GetMem(actBlk, blockSize*blockSize*sizeof(double));
-          GetMem(multBlk, blockSize*blockSize*sizeof(double));
-     end;
+         GetMem(actBlk, BlockMultMemSize(blockSize));
+
+     multBlk := actBlk;
+     inc(multBlk, blockSize*blockSize);
 
      blkHeight := blockSize;
 
@@ -1318,10 +1499,206 @@ begin
      end;
 
      if not Assigned(mem) then
+        FreeMem(actBlk);
+end;
+
+// calculates mt1'*mt2
+procedure GenericBlockedMatrixMultiplicationT1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
+  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
+var w, w1 : TASMNativeInt;
+    blkIdxX : TASMNativeInt;
+    actBlk : PDouble;
+    multBlk : PDouble;
+    transBlk1 : PDouble;
+    pA, pB : PDouble;
+    blkIdxY : TASMNativeInt;
+    idx : TASMNativeInt;
+    gamma : TASMNativeInt;
+    pDest : PDouble;
+    pMt2 : PDouble;
+    w1FitCacheSize : boolean;
+    w2FitCacheSize : boolean;
+    h1FitCacheSize : boolean;
+    blkWidth1 : TASMNativeInt;
+    blkWidth : TASMNativeInt;
+    gammaHeight : TASMNativeInt;
+    blockByteSize : Cardinal;
+    blockLineSize : Cardinal;
+begin
+					if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
+     	  exit;
+     assert((height1 = height2), 'Dimension error');
+     assert((destLineWidth - Width2*sizeof(double) >= 0) and (LineWidth1 >= width1*sizeof(double)) and (LineWidth2 >= width2*sizeof(double)), 'Line widths do not match');
+
+     assert(blockSize > 1, 'Error blocksize must be at least 2');
+
+     h1FitCacheSize := (height1 mod blockSize) = 0;
+     w2FitCacheSize := (width2 mod blockSize) = 0;
+     w1FitCacheSize := (width1 mod blockSize) = 0;
+
+     w1 := width1 div blockSize + TASMNativeInt(not h1FitCacheSize) - 1;
+     w := width2 div blockSize + TASMNativeInt(not w2FitCacheSize) - 1;
+     gamma := height1 div blockSize + TASMNativeInt(not w1FitCacheSize) - 1;
+
+     blockByteSize := blockSize*blockSize*sizeof(double);
+
+     actBlk := mem;
+     if not Assigned(mem) then
+        GetMem(actBlk, BlockMultMemSize(blockSize));
+     multBlk := PDouble(PAnsiChar(actBlk) + blockByteSize);
+     transBlk1 := PDouble(PAnsiChar(actBlk) + 2*blockByteSize);
+
+     blockLineSize := blockSize*sizeof(double);
+
+     blkWidth1 := blockSize;
+
+     for blkIdxY := 0 to w1 do
      begin
-          FreeMem(actBlk);
-          FreeMem(multBlk);
+          if (blkIdxY = w1) and not w1FitCacheSize then
+             blkWidth1 := (width1 mod blockSize);
+
+          pDest := dest;
+          inc(PByte(pDest), blkIdxY*blockSize*destLineWidth);
+          pMt2 := mt2;
+          blkWidth := blockSize;
+
+          for blkIdxX := 0 to w do
+          begin
+               if (blkIdxX = w) and not w2FitCacheSize then
+                  blkWidth := (width2 mod blockSize);
+
+               FillChar(actBlk^, blockByteSize, 0);
+               pa := mt1;
+               pb := pMt2;
+
+               gammaHeight := blockSize;
+               for idx := 0 to gamma do
+               begin
+                    if (idx = gamma) and not h1FitCacheSize then
+                       gammaHeight := height1 mod blockSize;
+
+                    GenericMtxTranspose(transBlk1, blockLineSize, pa, LineWidth1, blkWidth1, gammaHeight);
+                    GenericMtxMult(multBlk, blockLineSize, transBlk1, pb, gammaHeight, blkWidth1, blkWidth, gammaHeight, blockLineSize, LineWidth2);
+                    GenericMtxAdd(actBlk, blockLineSize, actBlk, multBlk, blkWidth, blkWidth1, blockLineSize, blockLineSize);
+
+                    inc(PByte(pa), gammaHeight*LineWidth1);
+                    inc(PByte(pb), gammaHeight*LineWidth2);
+               end;
+
+               // apply final operation such that we got the final result: Dest := Dest +- A*B ;
+               case op of
+                 doNone: GenericMtxCopy(pDest, destLineWidth, actBlk, blockLineSize, blkWidth, blkWidth1);
+                 doAdd: GenericMtxAdd(pDest, destLineWidth, pDest, actBlk, blkWidth, blkWidth1, destLineWidth, blockLineSize);
+                 doSub: GenericMtxSub(pDest, destLineWidth, pDest, actBlk, blkWidth, blkWidth1, destLineWidth, blockLineSize);
+               end;
+
+               inc(pDest, blockSize);
+               inc(pMt2, blockSize);
+          end;
+
+          inc(mt1, blkWidth1);
      end;
+
+     if not Assigned(mem) then
+        FreeMem(actBlk);
+end;
+
+// calculates mt1*mt2'
+procedure GenericBlockedMatrixMultiplicationT2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
+  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
+var h1, h : TASMNativeInt;
+    blkIdxX : TASMNativeInt;
+    actBlk : PDouble;
+    multBlk : PDouble;
+    pA, pB : PDouble;
+    blkIdxY : TASMNativeInt;
+    idx : TASMNativeInt;
+    gamma : TASMNativeInt;
+    pDest : PDouble;
+    pMt2 : PDouble;
+    w1FitCacheSize : boolean;
+    h2FitCacheSize : boolean;
+    h1FitCacheSize : boolean;
+    blkHeight : TASMNativeInt;
+    blkHeight1 : TASMNativeInt;
+    gammaWidth : TASMNativeInt;
+    blockByteSize : Cardinal;
+    blockLineSize : Cardinal;
+begin
+					if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
+     	  exit;
+     assert((width1 = width2), 'Dimension error');
+     assert((destLineWidth - height2*sizeof(double) >= 0) and (LineWidth1 >= width1*sizeof(double)) and (LineWidth2 >= width2*sizeof(double)), 'Line widths do not match');
+
+     assert(blockSize > 1, 'Error blocksize must be at least 2');
+
+     h1FitCacheSize := (height1 mod blockSize) = 0;
+     h2FitCacheSize := (height2 mod blockSize) = 0;
+     w1FitCacheSize := (width1 mod blockSize) = 0;
+
+     h := height1 div blockSize + TASMNativeInt(not h1FitCacheSize) - 1;
+     h1 := height2 div blockSize + TASMNativeInt(not h2FitCacheSize) - 1;
+     gamma := width1 div blockSize + TASMNativeInt(not w1FitCacheSize) - 1;
+
+     blockByteSize := blockSize*blockSize*sizeof(double);
+
+     actBlk := mem;
+     if not Assigned(mem) then
+        GetMem(actBlk, BlockMultMemSize(blockSize));
+     multBlk := PDouble(PAnsiChar(actBlk) + blockByteSize);
+
+     blockLineSize := blockSize*sizeof(double);
+
+     blkHeight := blockSize;
+
+     for blkIdxY := 0 to h do
+     begin
+          if (blkIdxY = h) and not h1FitCacheSize then
+             blkHeight := (height1 mod blockSize);
+
+          pDest := dest;
+          inc(PByte(pDest), blkIdxY*blockSize*destLineWidth);
+          pMt2 := mt2;
+          blkHeight1 := blockSize;
+
+          for blkIdxX := 0 to h1 do
+          begin
+               if (blkIdxX = h1) and not h2FitCacheSize then
+                  blkHeight1 := (height2 mod blockSize);
+
+               FillChar(actBlk^, blockByteSize, 0);
+               pa := mt1;
+               pb := pMt2;
+
+               gammaWidth := blockSize;
+               for idx := 0 to gamma do
+               begin
+                    if (idx = gamma) and not w1FitCacheSize then
+                       gammaWidth := width1 mod blockSize;
+
+                    GenericMtxMultTransp(multBlk, blockLineSize, pa, pb, gammaWidth, blkHeight, gammaWidth, blkHeight1, LineWidth1, LineWidth2);
+                    GenericMtxAdd(actBlk, blockLineSize, actBlk, multBlk, blkHeight1, blkHeight, blockLineSize, blockLineSize);
+
+                    inc(pa, gammaWidth);
+                    inc(pb, gammaWidth);
+               end;
+
+               // apply final operation such that we got the final result: Dest := Dest +- A*B ;
+               case op of
+                 doNone: GenericMtxCopy(pDest, destLineWidth, actBlk, blockLineSize, blkHeight1, blkHeight);
+                 doAdd: GenericMtxAdd(pDest, destLineWidth, pDest, actBlk, blkHeight1, blkHeight, destLineWidth, blockLineSize);
+                 doSub: GenericMtxSub(pDest, destLineWidth, pDest, actBlk, blkHeight1, blkHeight, destLineWidth, blockLineSize);
+               end;
+
+               inc(pDest, blockSize);
+               inc(PByte(pMt2), blockSize*LineWidth2);
+          end;
+
+          inc(PByte(mt1), blkHeight*LineWidth1);
+     end;
+
+     if not Assigned(mem) then
+        FreeMem(actBlk);
 end;
 
 end.

@@ -58,10 +58,10 @@ begin
 asm
    mov iRBX, rbx;
    mov iRDI, rdi;
-   {
-   .pushnv rbx;                        {save affected registers}
-   .pushnv rdi;
-   }
+
+//   .pushnv rbx;                        {save affected registers}
+//   .pushnv rdi;
+
    MOV     RDI, Registers
    MOV     EAX, Param;
    XOR     RBX, RBX                    {clear EBX register}

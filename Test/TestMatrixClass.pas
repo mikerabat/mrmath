@@ -46,6 +46,8 @@ type
    procedure TestMult;
    procedure TestMult2;
    procedure TestMult3;
+   procedure TestMultT1;
+   procedure TestMultT2;
    procedure TestSVD;
    procedure TestTranspose;
    procedure TestCovariance;
@@ -94,7 +96,7 @@ type
 implementation
 
 uses BaseMathPersistence, binaryReaderWriter,
-     math, MatrixConst, mtxTimer, Dialogs;
+     math, MatrixConst, mtxTimer, Dialogs, MathUtilFunc;
 
 { TestTDoubleMatrix }
 
@@ -250,14 +252,12 @@ end;
 procedure TestTDoubleMatrix.TestMult2;
      // test to show if the bug reported from sutetemp is fixed:
 var a, b, c: IMatrix;
-    aa, bb, cc : TDoubleDynArray;
+    cc : TDoubleDynArray;
     counter: Integer;
 begin
      // test different odd and even values
      a := TDoubleMatrix.Create(610, 62, 1);
-     aa := a.SubMatrix;
      b := TDoubleMatrix.Create(1, 610, 2);
-     bb := b.SubMatrix;
      c := a.Mult(b);
 
      Check((c.Width = 1) and (c.Height = 62), 'Error matrix dimension wrong');
@@ -267,9 +267,7 @@ begin
          Check(SameValue(cc[counter], 1220, 1e-12), 'Error multiplying line matrices');
 
      a := TDoubleMatrix.Create(611, 62, 1);
-     aa := a.SubMatrix;
      b := TDoubleMatrix.Create(1, 611, 2);
-     bb := b.SubMatrix;
      c := a.Mult(b);
 
      Check((c.Width = 1) and (c.Height = 62), 'Error matrix dimension wrong');
@@ -279,9 +277,7 @@ begin
          Check(SameValue(cc[counter], 1222, 1e-12), 'Error multiplying line matrices');
 
      a := TDoubleMatrix.Create(611, 63, 1);
-     aa := a.SubMatrix;
      b := TDoubleMatrix.Create(1, 611, 2);
-     bb := b.SubMatrix;
      c := a.Mult(b);
 
      Check((c.Width = 1) and (c.Height = 63), 'Error matrix dimension wrong');
@@ -304,6 +300,37 @@ begin
      x.Free;
      y.Free;
 end;
+
+procedure TestTDoubleMatrix.TestMultT1;
+var mtx : TDoubleMatrix;
+    mtx1 : TDoubleMatrix;
+begin
+     mtx1 := TDoubleMatrix.Create;
+     mtx1.Assign(fRefMatrix1);
+     mtx := fRefMatrix1.MultT1(mtx1);
+     try
+        Check((mtx.width = mtx.height) and (mtx.width = 5), 'Mult Matrix dimension error');
+     finally
+            mtx.Free;
+            mtx1.Free;
+     end;
+end;
+
+procedure TestTDoubleMatrix.TestMultT2;
+var mtx : TDoubleMatrix;
+    mtx1 : TDoubleMatrix;
+begin
+     mtx1 := TDoubleMatrix.Create;
+     mtx1.Assign(fRefMatrix1);
+     mtx := fRefMatrix1.MultT2(mtx1);
+     try
+        Check((mtx.width = mtx.height) and (mtx.width = 10), 'Mult Matrix dimension error');
+     finally
+            mtx.Free;
+            mtx1.Free;
+     end;
+end;
+
 
 procedure TestTDoubleMatrix.TestPersistence;
 var dx, dy : Array[0..49] of double;
@@ -508,13 +535,6 @@ begin
      for i := 0 to cBlkSize - 1 do
          x[i] := Random/3.8 - 0.5/3.8;
 
-     with TFileStream.Create('D:\mtx.bin', fmCreate or fmOpenWrite) do
-     try
-        WriteBuffer(x[0], Length(x)*sizeof(double));
-     finally
-            free;
-     end;
-
      m1 := TDoubleMatrix.Create(x, cBlkWidth, cBlkWidth);
      m2 := TThreadedMatrix.Create(x, cBlkWidth, cBlkWidth);
 
@@ -531,7 +551,9 @@ begin
 
      Status(Format('Big threaded determinant: %.2fms with value %.5f', [(stop - start)/mtxfreq*1000, detThr]));
 
-     Check(SameValue(det, detThr), 'Error Determinatnts differ too much');
+     // seems that the threaded version has a different error propagation than the single
+     // threaded version so the difference is about 1e-10 (on that big matrix)
+     Check(SameValue(det, detThr, Abs(det/1e10)), 'Error Determinatnts differ too much');
 end;
 
 

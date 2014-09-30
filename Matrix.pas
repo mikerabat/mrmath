@@ -89,12 +89,24 @@ type
     function Sub(Value : TDoubleMatrix) : TDoubleMatrix; overload;
     procedure MultInPlace(Value : TDoubleMatrix); overload;
     function Mult(Value : TDoubleMatrix) : TDoubleMatrix; overload;
+
+    // multT1: dest = mt1' * mt2     mt1' = mt1.transpose
+    procedure MultInPlaceT1(Value : TDoubleMatrix); overload;
+    function MultT1(Value : TDoubleMatrix) : TDoubleMatrix; overload;
+
+    // multT2: dest = mt1 * mt2'     mt2 = mt2.transpose
+    procedure MultInPlaceT2(Value : TDoubleMatrix); overload;
+    function MultT2(Value : TDoubleMatrix) : TDoubleMatrix; overload;
     procedure AddInplace(Value : IMatrix); overload;
     function Add(Value : IMatrix) : TDoubleMatrix; overload;
     procedure SubInPlace(Value : IMatrix); overload;
     function Sub(Value : IMatrix) : TDoubleMatrix; overload;
     procedure MultInPlace(Value : IMatrix); overload;
     function Mult(Value : IMatrix) : TDoubleMatrix; overload;
+    procedure MultInPlaceT1(Value : IMatrix); overload;
+    function MultT1(Value : IMatrix) : TDoubleMatrix; overload;
+    procedure MultInPlaceT2(Value : IMatrix); overload;
+    function MultT2(Value : IMatrix) : TDoubleMatrix; overload;
     procedure ElementWiseMultInPlace(Value : TDoubleMatrix); overload;
     function ElementWiseMult(Value : TDoubleMatrix) : TDoubleMatrix; overload;
     procedure ElementWiseMultInPlace(Value : IMatrix); overload;
@@ -167,8 +179,8 @@ type
     function Eig(out EigVals : IMatrix)  : TEigenvalueConvergence; overload;
     function Cholesky(out Chol : TDoubleMatrix) : TCholeskyResult; overload;
     function Cholesky(out Chol : IMatrix) : TCholeskyResult; overload;
-    function QR(out R : TDoubleMatrix) : TQRResult; overload;
-    function QR(out R : IMatrix) : TQRResult; overload;
+    function QR(out R : TDoubleMatrix; out tau : TDoubleMatrix) : TQRResult; overload;
+    function QR(out R : IMatrix; out tau : IMatrix) : TQRResult; overload;
 
     // ###################################################
     // #### Matrix assignment operations
@@ -238,8 +250,8 @@ type
     // general access
 
     // direct access functionality (use only when you know what you are doing!)
-    function StartElement : PDouble; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
-    function LineWidth : integer; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+    function StartElement : PDouble; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$ENDIF} {$ENDIF}
+    function LineWidth : integer; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$ENDIF} {$ENDIF}
 
     property Items[x, y : integer] : double read GetItems write SetItems; default;
     function SubMatrix : TDoubleDynArray;
@@ -278,12 +290,20 @@ type
     function Sub(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
     procedure MultInPlace(Value : TDoubleMatrix); overload; virtual;
     function Mult(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
+    procedure MultInPlaceT1(Value : TDoubleMatrix); overload; virtual;
+    function MultT1(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
+    procedure MultInPlaceT2(Value : TDoubleMatrix); overload; virtual;
+    function MultT2(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
     procedure AddInplace(Value : IMatrix); overload;
     function Add(Value : IMatrix) : TDoubleMatrix; overload;
     procedure SubInPlace(Value : IMatrix); overload;
     function Sub(Value : IMatrix) : TDoubleMatrix; overload;
     procedure MultInPlace(Value : IMatrix); overload;
     function Mult(Value : IMatrix) : TDoubleMatrix; overload;
+    procedure MultInPlaceT1(Value : IMatrix); overload;
+    function MultT1(Value : IMatrix) : TDoubleMatrix; overload;
+    procedure MultInPlaceT2(Value : IMatrix); overload;
+    function MultT2(Value : IMatrix) : TDoubleMatrix; overload;
     procedure ElementWiseMultInPlace(Value : IMatrix); overload;
     function ElementWiseMult(Value : IMatrix) : TDoubleMatrix; overload;
     procedure ElementWiseMultInPlace(Value : TDoubleMatrix); overload; virtual;
@@ -357,8 +377,8 @@ type
     function Eig(out EigVals : IMatrix)  : TEigenvalueConvergence; overload;
     function Cholesky(out Chol : TDoubleMatrix) : TCholeskyResult; overload;
     function Cholesky(out Chol : IMatrix) : TCholeskyResult; overload;
-    function QR(out R : TDoubleMatrix) : TQRResult; overload;
-    function QR(out R : IMatrix) : TQRResult; overload;
+    function QR(out ecosizeR : TDoubleMatrix; out tau : TDoubleMatrix) : TQRResult; overload; virtual;
+    function QR(out ecosizeR : IMatrix; out tau : IMatrix) : TQRResult; overload;
 
     // ###################################################
     // #### Matrix assignment operations
@@ -1059,6 +1079,52 @@ begin
      end;
 end;
 
+procedure TDoubleMatrix.MultInPlaceT1(Value: TDoubleMatrix);
+var dl : TDoubleMatrix;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+     CheckAndRaiseError((fOffsetX = 0) and (fOffsetY = 0) and (fWidth = fSubWidth) and (fHeight = fSubHeight), 'Operation only allowed on full matrices');
+
+     dl := MultT1(Value);
+     try
+        Assign(dl);
+     finally
+            dl.Free;
+     end;
+end;
+
+procedure TDoubleMatrix.MultInPlaceT2(Value: TDoubleMatrix);
+var dl : TDoubleMatrix;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+     CheckAndRaiseError((fOffsetX = 0) and (fOffsetY = 0) and (fWidth = fSubWidth) and (fHeight = fSubHeight), 'Operation only allowed on full matrices');
+
+     dl := MultT2(Value);
+     try
+        Assign(dl);
+     finally
+            dl.Free;
+     end;
+end;
+
+function TDoubleMatrix.MultT1(Value: TDoubleMatrix): TDoubleMatrix;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+     Result := TDoubleMatrix.Create(Value.fSubWidth, fSubWidth);
+
+     MatrixMultT1(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight,
+                Value.fSubWidth, Value.fSubHeight, LineWidth, Value.LineWidth);
+end;
+
+function TDoubleMatrix.MultT2(Value: TDoubleMatrix): TDoubleMatrix;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+     Result := TDoubleMatrix.Create(Value.fSubHeight, fSubHeight);
+
+     MatrixMultT2(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight,
+                Value.fSubWidth, Value.fSubHeight, LineWidth, Value.LineWidth);
+end;
+
 function TDoubleMatrix.Scale(const Value: double): TDoubleMatrix;
 begin
      CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'Dimension Error');
@@ -1148,35 +1214,25 @@ begin
      end;
 end;
 
-function TDoubleMatrix.QR(out R: IMatrix): TQRResult;
+function TDoubleMatrix.QR(out ecosizeR: IMatrix; out tau : IMatrix): TQRResult;
 var outR : TDoubleMatrix;
+    outTau : TDoubleMatrix;
 begin
-     Result := QR(outR);
-     R := outR;
+     Result := QR(outR, outTau);
+     ecosizeR := outR;
+     tau := outTau;
 end;
 
-function TDoubleMatrix.QR(out R: TDoubleMatrix): TQRResult;
-var C : TDoubleDynArray;
-    D : TDoubleDynArray;
-    x, y : Integer;
+function TDoubleMatrix.QR(out ecosizeR: TDoubleMatrix; out tau : TDoubleMatrix): TQRResult;
 begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubWidth = fSubHeight), 'QE decomposition is only allowed on square matrices');
-     R := TDoubleMatrix.Create;
+     ecosizeR := TDoubleMatrix.Create;
+     tau := TDoubleMatrix.Create(width, 1);
      try
-        R.Assign(self);
-
-        SetLength(C, width);
-        SetLength(D, width);
-        Result := MatrixQRDecompInPlace(R.StartElement, R.LineWidth, Width, @C[0], sizeof(double), @D[0], sizeof(double), fLinEQProgress);
-
-        for x := 0 to R.Width - 1 do
-        begin
-             R[x, x] := D[x];
-             for y := x + 1 to R.Height - 1 do
-                 R[x, y] := 0;
-        end;
+        ecosizeR.Assign(self);
+        Result := MatrixQRDecompInPlace2(ecosizeR.StartElement, ecosizeR.LineWidth, width, height, tau.StartElement, fLinEQProgress);
      except
-           FreeAndNil(R);
+           FreeAndNil(ecosizeR);
+           FreeAndNil(tau);
 
            raise;
      end;
@@ -1668,7 +1724,7 @@ end;
 procedure TDoubleMatrix.OnLoadDoubleArr(const Name: String;
   const Value: TDoubleDynArray);
 begin
-     if Length(Value) > 0 then
+     if (CompareText(Name, 'data') = 0) and (Length(Value) > 0) then
      begin
           CheckAndRaiseError(Length(value) = fWidth*fHeight, 'The loaded array does not fit the expected size.');
           Assign(Value, fWidth, fHeight);
@@ -1783,6 +1839,26 @@ end;
 procedure TDoubleMatrix.MultInPlace(Value: IMatrix);
 begin
      MultInPlace(Value.GetObjRef);
+end;
+
+procedure TDoubleMatrix.MultInPlaceT1(Value: IMatrix);
+begin
+     MultInPlaceT1(Value.GetObjRef);
+end;
+
+procedure TDoubleMatrix.MultInPlaceT2(Value: IMatrix);
+begin
+     MultInPlaceT2(Value.GetObjRef);
+end;
+
+function TDoubleMatrix.MultT1(Value: IMatrix): TDoubleMatrix;
+begin
+     Result := MultT1(Value.GetObjRef);
+end;
+
+function TDoubleMatrix.MultT2(Value: IMatrix): TDoubleMatrix;
+begin
+     Result := MultT2(VAlue.GetObjRef);
 end;
 
 function TDoubleMatrix.Sub(Value: IMatrix): TDoubleMatrix;

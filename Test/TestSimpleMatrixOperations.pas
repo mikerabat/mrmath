@@ -73,6 +73,8 @@ type
     procedure TestBigASMMult;
     procedure TestBigTiledMult;
     procedure TestBigTiledMult2;
+    procedure TestTiledMultT1;
+    procedure TestTiledMultT2;
     procedure TestTransposedASMEvenWEvenH;
     procedure TestTransposedASMEvenWOddH;
     procedure TestTransposeASSMOddWOddH;
@@ -86,6 +88,8 @@ type
     procedure TestThreadMatrixMult;
     procedure TestThreadMatrixAddSub;
     procedure TestThreadMatrixAddAndScale;
+    procedure TestThreadedMatrixMultT1;
+    procedure TestThreadedMatrixMultT2;
     procedure TestStrassenMult;
     procedure TestAbs;
     procedure TestVarianceRow;
@@ -362,7 +366,7 @@ var x, y, dest1, dest2 : TDoubleDynArray;
     endTime4: Int64;
     res : boolean;
     blk : PDouble;
-const cMtxWidth = 2000;
+const cMtxWidth = 1500;
       cMtxHeight = 500;
       cMtxSize = cMtxWidth*cMtxHeight;
       cMtxDestSize = cMtxWidth*cMtxWidth;
@@ -441,11 +445,11 @@ var x, y, dest1, dest2 : TDoubleDynArray;
     res : boolean;
     startTime3, endTime3 : int64;
     startTime5, endTime5 : int64;
-const cMtxWidth = 5*cCacheMtxSize;
-      cMtxHeight = cCacheMtxSize*4;
+const cMtxWidth = 3*cCacheMtxSize;
+      cMtxHeight = cCacheMtxSize*2;
       cMtxSize = cMtxWidth*cMtxHeight;
-      cMtxLinewidth = cMtxWidth*8;
-      cMtxLineWidth2 = cMtxHeight*8;
+      cMtxLinewidth = cMtxWidth*sizeof(double);
+      cMtxLineWidth2 = cMtxHeight*sizeof(double);
 begin
      //SetThreadAffinityMask(GetCurrentThread, 1);
      randomize;
@@ -660,6 +664,92 @@ begin
      FreeMem(xa);
      FreeMem(ya);
      FreeMem(dest2a);
+end;
+
+procedure TASMMatrixOperations.TestTiledMultT1;
+var x, y, dest1, dest2 : TDoubleDynArray;
+    idx : integer;
+    startTime1: Int64;
+    endTime1: Int64;
+    startTime2: Int64;
+    endTime2: Int64;
+    res : boolean;
+const cMtxWidth = 8;
+      cMtxHeight = 8;
+      cMtxSize = cMtxWidth*cMtxHeight;
+      cMtxLinewidth = cMtxWidth*8;
+      cMtxLineWidth2 = cMtxWidth*8;
+begin
+     //SetThreadAffinityMask(GetCurrentThread, 1);
+     randomize;
+     SetLength(x, cMtxSize);
+     SetLength(y, cMtxSize);
+
+     for idx := 0 to Length(x) - 1 do
+     begin
+          x[idx] := idx;
+          y[idx] := idx - 1;
+     end;
+
+     SetLength(dest1, cMtxWidth*cMtxWidth);
+     SetLength(dest2, cMtxWidth*cMtxWidth);
+
+     startTime2 := MtxGetTime;
+     GenericTranspMtxMult(@dest1[0], cMtxLineWidth2, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxWidth, cMtxHeight, cMtxLinewidth, cMtxLinewidth2);
+     endTime2 := MtxGetTime;
+
+     startTime1 := MtxGetTime;
+     BlockedMatrixMultiplicationT1(@dest2[0], cMtxLineWidth2, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxWidth, cMtxHeight, cMtxLinewidth, cMtxLinewidth2, 4, doNone, nil);
+     endTime1 := MtxGetTime;
+
+     res := CheckMtxIdx(dest1, dest2, idx);
+     if not res then
+        Status(IntToStr(idx));
+
+     Status(Format('%.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000]));
+end;
+
+procedure TASMMatrixOperations.TestTiledMultT2;
+var x, y, dest1, dest2 : TDoubleDynArray;
+    idx : integer;
+    startTime1: Int64;
+    endTime1: Int64;
+    startTime2: Int64;
+    endTime2: Int64;
+    res : boolean;
+const cMtxWidth = 7;
+      cMtxHeight = 8;
+      cMtxSize = cMtxWidth*cMtxHeight;
+      cMtxLinewidth = cMtxWidth*8;
+      cMtxLineWidth2 = cMtxWidth*8;
+begin
+     //SetThreadAffinityMask(GetCurrentThread, 1);
+     randomize;
+
+     SetLength(x, cMtxSize);
+     SetLength(y, cMtxSize);
+     for idx := 0 to Length(x) - 1 do
+     begin
+          x[idx] := idx;
+          y[idx] := idx - 1;
+     end;
+
+     SetLength(dest1, cMtxHeight*cMtxHeight);
+     SetLength(dest2, cMtxHeight*cMtxHeight);
+
+     startTime2 := MtxGetTime;
+     GenericMtxMultTransp(@dest1[0], cMtxHeight*sizeof(double), @x[0], @y[0], cMtxWidth, cMtxheight, cMtxWidth, cMtxHeight, cMtxLinewidth, cMtxLinewidth2);
+     endTime2 := MtxGetTime;
+
+     startTime1 := MtxGetTime;
+     BlockedMatrixMultiplicationT2(@dest2[0], cMtxHeight*sizeof(double), @x[0], @y[0], cMtxWidth, cMtxheight, cMtxWidth, cMtxHeight, cMtxLinewidth, cMtxLinewidth2, 4, doNone, nil);
+     endTime1 := MtxGetTime;
+
+     res := CheckMtxIdx(dest1, dest2, idx);
+     if not res then
+        Status(IntToStr(idx));
+
+     Status(Format('%.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000]));
 end;
 
 procedure TASMMatrixOperations.TestBigTransposedASM;
@@ -1184,6 +1274,49 @@ begin
      CheckEqualsMem(@mt4, @res[0], sizeof(mt4), 'Error Matrix substraction: ' + #13#10 + WriteMtxDyn(res, 2));
 end;
 
+procedure TASMMatrixOperations.TestThreadedMatrixMultT1;
+const cMtxWidth = 15;
+      cMtxWidth2 = 8;
+var a : Array[0..cMtxWidth*cMtxWidth - 1] of double;
+    b : Array[0..cMtxWidth*cMtxWidth2 - 1] of double;
+    counter: Integer;
+    c1, c2, c3 : Array[0..cMtxWidth*cMtxWidth2-1] of double;
+begin
+     for counter := 0 to High(a) do
+         a[counter] := counter;
+     for counter := 0 to High(b) do
+         b[counter] := counter;
+
+     GenericTranspMtxMult(@c3[0], cMtxWidth2*sizeof(double), @a[0], @b[0], cMtxWidth, cMtxWidth, cMtxWidth2, cMtxWidth, cMtxWidth*sizeof(double), cMtxWidth2*sizeof(double));
+     GenericBlockedMatrixMultiplicationT1(@c1[0], cMtxWidth2*sizeof(double), @a[0], @b[0], cMtxWidth, cMtxWidth, cMtxWidth2, cMtxWidth, cMtxWidth*sizeof(double), cMtxWidth2*sizeof(double), 4, doNone, nil);
+     ThrMatrixMultT1Ex(@c2[0], cMtxWidth2*sizeof(double), @a[0], @b[0], cMtxWidth, cMtxWidth, cMtxWidth2, cMtxWidth, cMtxWidth*sizeof(double), cMtxWidth2*sizeof(double), 4, doNone, nil);
+
+     Check(CheckMtx(c3, c1), 'GenericBlockedMatrixMultiplicationT1 failed');
+     Check(CheckMtx(c3, c2), 'ThrMatrixMultT1Ex failed');
+end;
+
+procedure TASMMatrixOperations.TestThreadedMatrixMultT2;
+const cMtxWidth = 24;
+      cMtxWidth2 = 617;
+var a : Array[0..cMtxWidth*cMtxWidth - 1] of double;
+    b : Array[0..cMtxWidth*cMtxWidth2 - 1] of double;
+    counter: Integer;
+    c1, c2, c3 : Array[0..cMtxWidth*cMtxWidth2-1] of double;
+begin
+     for counter := 0 to High(a) do
+         a[counter] := counter;
+     for counter := 0 to High(b) do
+         b[counter] := counter;
+
+     GenericMtxMultTransp(@c3[0], cMtxWidth2*sizeof(double), @a[0], @b[0], cMtxWidth, cMtxWidth, cMtxWidth, cMtxWidth2, cMtxWidth*sizeof(double), cMtxWidth*sizeof(double));
+     GenericBlockedMatrixMultiplicationT2(@c1[0], cMtxWidth2*sizeof(double), @a[0], @b[0], cMtxWidth, cMtxWidth, cMtxWidth, cMtxWidth2, cMtxWidth*sizeof(double), cMtxWidth*sizeof(double), 4, doNone, nil);
+     ThrMatrixMultT2Ex(@c2[0], cMtxWidth2*sizeof(double), @a[0], @b[0], cMtxWidth, cMtxWidth, cMtxWidth, cMtxWidth2, cMtxWidth*sizeof(double), cMtxWidth*sizeof(double), 4, doNone, nil);
+
+     Check(CheckMtx(c3, c1), 'GenericBlockedMatrixMultiplicationT1 failed');
+     Check(CheckMtx(c3, c2), 'ThrMatrixMultT1Ex failed');
+end;
+
+
 procedure TASMMatrixOperations.TestThreadMatrixAddAndScale;
 var x, y, dest1 : TDoubleDynArray;
     xa, ya : PDouble;
@@ -1330,6 +1463,11 @@ begin
 
      FreeMem(xa);
      FreeMem(ya);
+
+     FreeMem(dest2a);
+     freeMem(dest1a);
+
+     exit;
 
      FillMatrix(1024*1024*20, x, y, xa, ya);
 
@@ -1765,9 +1903,6 @@ end;
 
 procedure TASMMatrixOperations.TestMinMaxASM;
 const mt1 : Array[0..15] of double = (0, 1, 2, -2, 3, 4, 5, 0, 6, 7, -1, 0, 0, 0, 0, 0);
-      mt2 : Array[0..15] of double = (-1, 0, 1, 0, 2, 3, 4, 0, 5, 6, 7, 0, 0, 0, 0, 0);
-      mt3 : Array[0..15] of double = (12, 15, 18, 0, 30, 42, 54, 0, 48, 69, 90, 0, 0, 0, 0, 0);
-      mt4 : Array[0..15] of double = (0, 1, 2, 4, 3, 4, 5, 5, 6, 7, 8, 6, 7, 8, 9, 10);
       mt5 : Array[0..15] of double = (-1, 0, 1, 1, 2, 3, 4, 2, 5, 6, 7, 3, 4, 5, 6, 7);
       mt6 : Array[0..15] of double = (28, 35, 42, 36, 50, 67, 84, 61, 72, 99, 126, 86, 94, 128, 162, 120);
 
@@ -2459,7 +2594,6 @@ end;
 procedure TASMMatrixOperations.TestMultASMEvenW1OddW2;
 const mt1 : Array[0..15] of double = (0, 1, 2, 4, 3, 4, 5, 5, 6, 7, 8, 6, 7, 8, 9, 10);
       mt2 : Array[0..15] of double = (-1, 0, 1, 1, 2, 3, 4, 2, 5, 6, 7, 3, 4, 5, 6, 7);
-      mt3 : Array[0..8] of double = (28, 35, 42, 50, 67, 84, 72, 99, 126);
       mt4 : Array[0..11] of double = (28, 35, 42, 0, 50, 67, 84, 0, 72, 99, 126, 0);
 var dest : Array[0..11] of double;
     dest2 : PDouble;

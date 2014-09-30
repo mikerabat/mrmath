@@ -55,8 +55,8 @@ begin
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    // prolog - simulate stack
-   movapd dXMM6, xmm6;
-   movapd dXMM7, xmm7;
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
 
    {
    .savenv xmm6;
@@ -154,8 +154,8 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   movapd xmm6, dXMM6;
-   movapd xmm7, dXMM7;
+   movupd xmm6, dXMM6;
+   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -169,8 +169,8 @@ begin
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    // prolog - simulate stack
-   movapd dXMM6, xmm6;
-   movapd dXMM7, xmm7;
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
 
    {
    .savenv xmm6;
@@ -266,8 +266,8 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   movapd xmm6, dXMM6;
-   movapd xmm7, dXMM7;
+   movupd xmm6, dXMM6;
+   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -282,8 +282,8 @@ begin
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    // prolog - simulate stack
-   movapd dXMM6, xmm6;
-   movapd dXMM7, xmm7;
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
 
    {
    .savenv xmm6;
@@ -389,8 +389,8 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   movapd xmm6, dXMM6;
-   movapd xmm7, dXMM7;
+   movupd xmm6, dXMM6;
+   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -404,8 +404,8 @@ begin
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    // prolog - simulate stack
-   movapd dXMM6, xmm6;
-   movapd dXMM7, xmm7;
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
 
    {
    .savenv xmm6;
@@ -508,8 +508,8 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   movapd xmm6, dXMM6;
-   movapd xmm7, dXMM7;
+   movupd xmm6, dXMM6;
+   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -524,8 +524,8 @@ begin
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    // prolog - simulate stack
-   movapd dXMM6, xmm6;
-   movapd dXMM7, xmm7;
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
 
    {
    .savenv xmm6;
@@ -624,8 +624,8 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   movapd xmm6, dXMM6;
-   movapd xmm7, dXMM7;
+   movupd xmm6, dXMM6;
+   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -639,8 +639,8 @@ begin
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    // prolog - simulate stack
-   movapd dXMM6, xmm6;
-   movapd dXMM7, xmm7;
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
 
    {
    .savenv xmm6;
@@ -736,8 +736,8 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   movapd xmm6, dXMM6;
-   movapd xmm7, dXMM7;
+   movupd xmm6, dXMM6;
+   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -752,8 +752,8 @@ begin
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    // prolog - simulate stack
-   movapd dXMM6, xmm6;
-   movapd dXMM7, xmm7;
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
 
    {
    .savenv xmm6;
@@ -859,8 +859,8 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   movapd xmm6, dXMM6;
-   movapd xmm7, dXMM7;
+   movupd xmm6, dXMM6;
+   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -874,8 +874,8 @@ begin
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    // prolog - simulate stack
-   movapd dXMM6, xmm6;
-   movapd dXMM7, xmm7;
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
 
    {
    .savenv xmm6;
@@ -978,8 +978,8 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   movapd xmm6, dXMM6;
-   movapd xmm7, dXMM7;
+   movupd xmm6, dXMM6;
+   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}
