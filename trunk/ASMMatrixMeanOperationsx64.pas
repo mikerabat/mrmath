@@ -65,7 +65,7 @@ asm
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
 
    // prolog
-   movapd dXMM5, xmm5;
+   movupd dXMM5, xmm5;
    {
    .savenv xmm5;
    }
@@ -143,7 +143,7 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   movapd xmm5, dXMM5;
+   movupd xmm5, dXMM5;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -158,8 +158,8 @@ asm
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
 
    // prolog
-   movapd dXMM5, xmm5;
-   movapd dXMM4, xmm4;
+   movupd dXMM5, xmm5;
+   movupd dXMM4, xmm4;
    {
    .savenv xmm5;
    .savenv xmm4;
@@ -245,8 +245,8 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   movapd xmm5, dXMM5;
-   movapd xmm4, dXMM4
+   movupd xmm5, dXMM5;
+   movupd xmm4, dXMM4
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -261,7 +261,7 @@ asm
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
 
    // prolog
-   movapd dXMM5, xmm5;
+   movupd dXMM5, xmm5;
    {
    .savenv xmm5;
    }
@@ -344,7 +344,7 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   movapd xmm5, dXMM5;
+   movupd xmm5, dXMM5;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -359,8 +359,8 @@ asm
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
 
    // prolog
-   movapd dXMM5, xmm5;
-   movapd dXMM4, xmm4;
+   movupd dXMM5, xmm5;
+   movupd dXMM4, xmm4;
    {
    .savenv xmm5;
    .savenv xmm4;
@@ -451,8 +451,8 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   movapd xmm5, dXMM5;
-   movapd xmm4, dXMM4;
+   movupd xmm5, dXMM5;
+   movupd xmm4, dXMM4;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -705,7 +705,7 @@ asm
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
 
    // prolog
-   movapd dXMM5, xmm5;
+   movupd dXMM5, xmm5;
    {
    .savenv xmm5;
    }
@@ -874,7 +874,7 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   movapd xmm5, dXMM5;
+   movupd xmm5, dXMM5;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -889,7 +889,7 @@ asm
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
 
    // prolog
-   movapd dXMM5, xmm5;
+   movupd dXMM5, xmm5;
    {
    .savenv xmm5;
    }
@@ -1067,7 +1067,7 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   movapd xmm5, dXMM5;
+   movupd xmm5, dXMM5;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -1082,7 +1082,7 @@ asm
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
 
    // prolog
-   movapd dXMM5, xmm5;
+   movupd dXMM5, xmm5;
    {
    .savenv xmm5;
    }
@@ -1262,7 +1262,7 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   movapd xmm5, dXMM5;
+   movupd xmm5, dXMM5;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -1278,8 +1278,8 @@ asm
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
 
    // prolog
-   movapd dXMM5, xmm5;
-   movapd dXMM4, xmm4;
+   movupd dXMM5, xmm5;
+   movupd dXMM4, xmm4;
    {
    .savenv xmm5;
    .savenv xmm4;
@@ -1467,8 +1467,8 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   movapd xmm5, dXMM5;
-   movapd xmm4, dXMM4;
+   movupd xmm5, dXMM5;
+   movupd xmm4, dXMM4;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -1486,6 +1486,9 @@ asm
 
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
+
+   // according to microsoft the xmm5 does not need to be saved (volatile!)
+   movupd xmm5, cOnes;
 
    cvtsi2sd xmm0, height;
    movddup xmm2, xmm0;
@@ -1525,8 +1528,8 @@ asm
        jz @@dobiased;
 
        movapd xmm3, xmm2;
-       subpd xmm3, cOnes;
-       maxpd xmm3, cOnes;
+       subpd xmm3, xmm5;
+       maxpd xmm3, xmm5;
 
        divpd xmm4, xmm3;
 
@@ -1564,6 +1567,7 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
+   movupd xmm5, cOnes;
    cvtsi2sd xmm0, height;
    movddup xmm2, xmm0;
 
@@ -1603,8 +1607,8 @@ asm
        jz @@dobiased;
 
        movapd xmm3, xmm2;
-       subpd xmm3, cOnes;
-       maxpd xmm3, cOnes;
+       subpd xmm3, xmm5;
+       maxpd xmm3, xmm5;
 
        divpd xmm4, xmm3;
 
@@ -1642,6 +1646,7 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
+   movupd xmm5, cOnes;
    cvtsi2sd xmm0, height;
    movddup xmm2, xmm0;
 
@@ -1681,8 +1686,8 @@ asm
        jz @@dobiased;
 
        movapd xmm1, xmm2;
-       subpd xmm1, cOnes;
-       maxpd xmm1, cOnes;
+       subpd xmm1, xmm5;
+       maxpd xmm1, xmm5;
 
        divpd xmm4, xmm1;
 
@@ -1769,6 +1774,7 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
+   movupd xmm5, cOnes;
    cvtsi2sd xmm0, height;
    movddup xmm2, xmm0;
 
@@ -1809,8 +1815,8 @@ asm
        jz @@dobiased;
 
        movapd xmm1, xmm2;
-       subpd xmm1, cOnes;
-       maxpd xmm1, cOnes;
+       subpd xmm1, xmm5;
+       maxpd xmm1, xmm5;
 
        divpd xmm4, xmm1;
 

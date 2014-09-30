@@ -23,14 +23,18 @@ interface
 
 uses Types;
 
+{$WRITEABLECONST ON}
+
+const cDoubleEpsilon : double = 2.2204460492503131e-016;  // smallest such that 1.0+DBL_EPSILON != 1.0
+const cMinDblDivEps : double = 0;     // filled in initialization
+
 function pythag(const A, B : double) : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function sign(a : double; b : double) : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 procedure DoubleSwap(var a, b : Double); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function binom(n, k : integer) : int64;
 
 function eps(const val : double) : double;
-
-//procedure ShowMtx(mtx : PDouble; LineWidth : integer; Width : integer; height : integer);
+function MinDblDiv : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 
 procedure WriteMtlMtx(const fileName : string; const mtx : TDoubleDynArray; width : integer; prec : integer = 8);
 
@@ -44,6 +48,10 @@ procedure QuickSort(var A; ItemSize : integer; ItemCount : integer; ItemSort : T
 implementation
 
 uses SysUtils, Math, Classes;
+
+// ##########################################
+// #### utility function implementation
+// ##########################################
 
 function DoubleSortFunc(const Item1, Item2) : integer;
 begin
@@ -93,11 +101,20 @@ begin
 end;
 
 function eps(const val : double) : double;
-const cDoubleEpsilon = 2.2204460492503131e-016; // smallest such that 1.0+DBL_EPSILON != 1.0
 begin
      Result := val*cDoubleEpsilon;
 end;
 
+function MinDblDiv : double;
+var small : double;
+begin
+     Result := MinDouble;
+
+     small := 1/MaxDouble;
+
+     if small > Result then
+        Result := small*(1 + eps(1));
+end;
 
 // implements "n over k" -> binominal koefficients.
 // see: http://de.wikipedia.org/wiki/Binomialkoeffizient
@@ -150,7 +167,7 @@ end;
 
 function sign(a : double; b : double) : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 begin
-     if b > 0
+     if b >= 0
      then
          Result := abs(a)
      else
@@ -183,5 +200,8 @@ begin
             Free;
      end;
 end;
+
+initialization
+  cMinDblDivEps := MinDblDiv/eps(1);
 
 end.

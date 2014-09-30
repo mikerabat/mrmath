@@ -22,6 +22,9 @@ unit BlockSizeSetup;
 
 interface
 
+// nice values for processors:
+// core2 ~ 256
+// AMD A8 ~ 128
 const cDefCacheBlkSize = 256;
 
 var BlockMatrixCacheSize : integer = cDefCacheBlkSize;
@@ -29,17 +32,21 @@ var BlockMatrixCacheSize : integer = cDefCacheBlkSize;
 
 var BlockedMatrixMultSize : integer = 512;
     BlockedVectorMatrixMultSize : integer = cDefCacheBlkSize*cDefCacheBlkSize;
+    QRBlockSize : integer = 24;
+    QRMultBlockSize : integer = 64;
 
 // checks when first applying a transpose operation is better for the multiplication
 procedure SetupOptBlockMatrixSize;
 procedure SetupBlockedMatrixMultSize;
+
+// returns the needed additional size when doing a blocked multiplication
+function BlockMultMemSize(blkSize : integer) : integer;
 
 implementation
 
 uses Classes, ASMMatrixOperations, Types, MtxTimer, Math, OptimizedFuncs;
 
 const cMatrixMaxTestSize = 2048;
-      cVectorMatrixTestSize = cMatrixMaxTestSize*24;
       cNumIter = 5;
 
 procedure SetupInitVars(var dest, a, b : PDouble; awidth, aheight, bwidth : integer); overload;
@@ -266,6 +273,14 @@ begin
      FreeMem(dest);
 
      iterList.Free;
+end;
+
+function BlockMultMemSize(blkSize : integer) : integer;
+var blockByteSize : integer;
+begin
+     blockByteSize := blkSize*blkSize*sizeof(double);
+
+     Result := 4*blockByteSize;
 end;
 
 end.

@@ -55,16 +55,15 @@ implementation
 const cOne : double = 1.0;
 
 function ASMMatrixElementwiseNorm2AlignedEvenW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
-var stackSpare : TASMNativeInt; // for aligned stack
-    dXMM4, dXMM7 : Array[0..1] of double;
+var dXMM4, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
   {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = widh, R9 = height
    // prolog - simulate stack
-   movapd dXMM4, xmm4;
-   movapd dXMM7, xmm7;
+   movupd dXMM4, xmm4;
+   movupd dXMM7, xmm7;
    {
    .savenv xmm4;
    .savenv xmm7;
@@ -154,24 +153,23 @@ asm
    sqrtsd xmm0, xmm0;
 
    // epilog claenup stack
-   movapd xmm4, dXMM4;
-   movapd xmm7, dXMM7;
+   movupd xmm4, dXMM4;
+   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}
 end;
 
 function ASMMatrixElementwiseNorm2UnAlignedEvenW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
-var stackSpare : TASMNativeInt; // for aligned stack
-    dXMM4, dXMM7 : Array[0..1] of double;
+var dXMM4, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
   {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = widh, R9 = height
    // prolog - simulate stack
-   movapd dXMM4, xmm4;
-   movapd dXMM7, xmm7;
+   movupd dXMM4, xmm4;
+   movupd dXMM7, xmm7;
    {
    .savenv xmm4;
    .savenv xmm7;
@@ -258,8 +256,8 @@ asm
    sqrtsd xmm0, xmm0;
 
    // epilog claenup stack
-   movapd xmm4, dXMM4;
-   movapd xmm7, dXMM7;
+   movupd xmm4, dXMM4;
+   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -267,16 +265,15 @@ end;
 
 
 function ASMMatrixElementwiseNorm2AlignedOddW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
-var stackSpare : TASMNativeInt; // for aligned stack
-    dXMM4, dXMM7 : Array[0..1] of double;
+var dXMM4, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
   {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = widh, R9 = height
    // prolog - simulate stack
-   movapd dXMM4, xmm4;
-   movapd dXMM7, xmm7;
+   movupd dXMM4, xmm4;
+   movupd dXMM7, xmm7;
    {
    .savenv xmm4;
    .savenv xmm7;
@@ -371,24 +368,23 @@ asm
    sqrtsd xmm0, xmm0;
 
    // epilog claenup stack
-   movapd xmm4, dXMM4;
-   movapd xmm7, dXMM7;
+   movupd xmm4, dXMM4;
+   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}
 end;
 
 function ASMMatrixElementwiseNorm2UnAlignedOddW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
-var stackSpare : TASMNativeInt; // for aligned stack
-    dXMM4, dXMM7 : Array[0..1] of double;
+var dXMM4, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
   {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = widh, R9 = height
    // prolog - simulate stack
-   movapd dXMM4, xmm4;
-   movapd dXMM7, xmm7;
+   movupd dXMM4, xmm4;
+   movupd dXMM7, xmm7;
    {
    .savenv xmm4;
    .savenv xmm7;
@@ -481,8 +477,8 @@ asm
    sqrtsd xmm0, xmm0;
 
    // epilog claenup stack
-   movapd xmm4, dXMM4;
-   movapd xmm7, dXMM7;
+   movupd xmm4, dXMM4;
+   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -496,8 +492,8 @@ begin
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = src
    // prolog - simulate stack
-   movapd dXMM4, xmm4;
-   movapd dXMM7, xmm7;
+   movupd dXMM4, xmm4;
+   movupd dXMM7, xmm7;
    {
    .savenv xmm4;
    .savenv xmm7;
@@ -653,8 +649,8 @@ asm
    jnz @@addforyloop;
 
    // epilog claenup stack
-   movapd xmm4, dXMM4;
-   movapd xmm7, dXMM7;
+   movupd xmm4, dXMM4;
+   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -669,8 +665,8 @@ begin
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = src
    // prolog - simulate stack
-   movapd dXMM4, xmm4;
-   movapd dXMM7, xmm7;
+   movupd dXMM4, xmm4;
+   movupd dXMM7, xmm7;
    {
    .savenv xmm4;
    .savenv xmm7;
@@ -820,8 +816,8 @@ asm
 
 
    // epilog claenup stack
-   movapd xmm4, dXMM4;
-   movapd xmm7, dXMM7;
+   movupd xmm4, dXMM4;
+   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -835,8 +831,8 @@ begin
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = widh, R9 = height
    // prolog - simulate stack
-   movapd dXMM4, xmm4;
-   movapd dXMM7, xmm7;
+   movupd dXMM4, xmm4;
+   movupd dXMM7, xmm7;
    {
    .savenv xmm4;
    .savenv xmm7;
@@ -1003,8 +999,8 @@ asm
    jnz @@addforyloop;
 
    // epilog claenup stack
-   movapd xmm4, dXMM4;
-   movapd xmm7, dXMM7;
+   movupd xmm4, dXMM4;
+   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -1018,8 +1014,8 @@ begin
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = widh, R9 = height
    // prolog - simulate stack
-   movapd dXMM4, xmm4;
-   movapd dXMM7, xmm7;
+   movupd dXMM4, xmm4;
+   movupd dXMM7, xmm7;
    {
    .savenv xmm4;
    .savenv xmm7;
@@ -1179,8 +1175,8 @@ asm
    jnz @@addforyloop;
 
    // epilog claenup stack
-   movapd xmm4, dXMM4;
-   movapd xmm7, dXMM7;
+   movupd xmm4, dXMM4;
+   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}

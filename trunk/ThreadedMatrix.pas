@@ -34,6 +34,10 @@ type
   public
     procedure MultInPlace(Value : TDoubleMatrix); override;
     function Mult(Value : TDoubleMatrix) : TDoubleMatrix; override;
+    procedure MultInPlaceT1(Value : TDoubleMatrix); override;
+    function MultT1(Value : TDoubleMatrix) : TDoubleMatrix; override;
+    procedure MultInPlaceT2(Value : TDoubleMatrix); override;
+    function MultT2(Value : TDoubleMatrix) : TDoubleMatrix; override;
 
     procedure AddAndScaleInPlace(const aOffset, aScale : double); override;
     function AddAndScale(const aOffset, aScale : double) : TDoubleMatrix; override;
@@ -60,6 +64,7 @@ type
     function SolveLinEQ(Value : TDoubleMatrix; numRefinements : integer = 0) : TDoubleMatrix; override;
     procedure SolveLinEQInPlace(Value : TDoubleMatrix; numRefinements : integer = 0); override;
     function Determinant: double; override;
+    function QR(out ecosizeR : TDoubleMatrix; out tau : TDoubleMatrix) : TQRResult; override;
 
     class procedure InitThreadPool;
     class procedure FinalizeThreadPool;
@@ -67,7 +72,7 @@ type
 
 implementation
 
-uses SysUtils, ThreadedMatrixOperations, MtxThreadPool, ThreadedLinAlg;
+uses SysUtils, ThreadedMatrixOperations, MtxThreadPool, ThreadedLinAlg, BlockSizeSetup;
 
 // never realy understood why I can't access protected members from the base class if
 // I want to access a member in from a parameter. So I need this "hack" class definition.
@@ -247,7 +252,7 @@ begin
      assert((fOffsetX = 0) and (fOffsetY = 0) and (Width = fSubWidth) and (Height = fSubHeight), 'Operation only allowed on full matrices');
      assert((fSubWidth = THackMtx(Value).fSubHeight), 'Dimension error');
 
-     res := TThreadedMatrix.Create(Value.Width, Height);
+     res := TThreadedMatrix.Create(Value.Width, fSubHeight);
 
      try
         if (Value.Width = 1) and (THackMtx(Value).LineWidth = sizeof(double))
@@ -259,6 +264,74 @@ begin
         Assign(res);
      except
            res.Free;
+           raise;
+     end;
+end;
+
+procedure TThreadedMatrix.MultInPlaceT1(Value: TDoubleMatrix);
+var res : TThreadedMatrix;
+begin
+     assert((Width > 0) and (Height > 0), 'No data assigned');
+     assert((fOffsetX = 0) and (fOffsetY = 0) and (Width = fSubWidth) and (Height = fSubHeight), 'Operation only allowed on full matrices');
+     assert((fSubHeight = THackMtx(Value).fSubHeight), 'Dimension error');
+
+     res := TThreadedMatrix.Create(Value.Width, fSubWidth);
+
+     try
+        ThrMatrixMultT1(res.StartElement, res.LineWidth, StartElement, THackMtx(Value).StartElement, Width, Height, Value.Width, Value.Height, LineWidth, THackMtx(Value).LineWidth);
+
+        Assign(res);
+     except
+           res.Free;
+           raise;
+     end;
+end;
+
+procedure TThreadedMatrix.MultInPlaceT2(Value: TDoubleMatrix);
+var res : TThreadedMatrix;
+begin
+     assert((Width > 0) and (Height > 0), 'No data assigned');
+     assert((fOffsetX = 0) and (fOffsetY = 0) and (Width = fSubWidth) and (Height = fSubHeight), 'Operation only allowed on full matrices');
+     assert((fSubWidth = THackMtx(Value).fSubWidth), 'Dimension error');
+
+     res := TThreadedMatrix.Create(Value.Height, fSubHeight);
+     try
+        ThrMatrixMultT2(res.StartElement, res.LineWidth, StartElement, THackMtx(Value).StartElement, Width, Height, Value.Width, Value.Height, LineWidth, THackMtx(Value).LineWidth);
+
+        Assign(res);
+     except
+           res.Free;
+           raise;
+     end;
+end;
+
+function TThreadedMatrix.MultT1(Value: TDoubleMatrix): TDoubleMatrix;
+begin
+     assert((Width > 0) and (Height > 0), 'No data assigned');
+     Result := TThreadedMatrix.Create(Value.Width, fSubWidth);
+
+     ThrMatrixMultT1(THackMtx(Result).StartElement, THackMtx(Result).LineWidth, StartElement, THackMtx(Value).StartElement, Width, Height, Value.Width, Value.Height, LineWidth, THackMtx(Value).LineWidth);
+end;
+
+function TThreadedMatrix.MultT2(Value: TDoubleMatrix): TDoubleMatrix;
+begin
+     assert((Width > 0) and (Height > 0), 'No data assigned');
+     Result := TThreadedMatrix.Create(Value.Height, fSubHeight);
+
+     ThrMatrixMultT2(THackMtx(Result).StartElement, THackMtx(Result).LineWidth, StartElement, THackMtx(Value).StartElement, Width, Height, Value.Width, Value.Height, LineWidth, THackMtx(Value).LineWidth);
+end;
+
+function TThreadedMatrix.QR(out ecosizeR, tau: TDoubleMatrix): TQRResult;
+begin
+     ecosizeR := TThreadedMatrix.Create;
+     tau := TThreadedMatrix.Create(width, 1);
+     try
+        ecosizeR.Assign(self);
+        Result := ThrMatrixQRDecomp(ecosizeR.StartElement, ecosizeR.LineWidth, width, height, tau.StartElement, nil, QRBlockSize, fLinEQProgress);
+     except
+           FreeAndNil(ecosizeR);
+           FreeAndNil(tau);
+
            raise;
      end;
 end;

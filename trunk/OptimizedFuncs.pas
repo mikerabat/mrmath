@@ -39,10 +39,29 @@ function MatrixSub(const mt1, mt2 : array of double; width : TASMNativeInt) : TD
 procedure MatrixSub(var dest : Array of double; const mt1, mt2 : Array of double; width : TASMNativeInt); overload;
 function MatrixSub(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
 
+// performs mt1 * mt2
 function MatrixMult(mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
 procedure MatrixMult(var dest : Array of Double; mt1, mt2 : Array of double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt); overload;
 function MatrixMult(const mt1, mt2 : Array of Double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt) : TDoubleDynArray; overload;
 procedure MatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
+
+procedure MatrixMultEx(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble); overload;
+
+// performs mt1' * mt2
+function MatrixMultT1(mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
+procedure MatrixMultT1(var dest : Array of Double; mt1, mt2 : Array of double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt); overload;
+function MatrixMultT1(const mt1, mt2 : Array of Double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt) : TDoubleDynArray; overload;
+procedure MatrixMultT1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
+
+procedure MatrixMultT1Ex(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble); overload;
+
+// performs mt1 * mt2'
+function MatrixMultT2(mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
+procedure MatrixMultT2(var dest : Array of Double; mt1, mt2 : Array of double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt); overload;
+function MatrixMultT2(const mt1, mt2 : Array of Double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt) : TDoubleDynArray; overload;
+procedure MatrixMultT2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
+
+procedure MatrixMultT2Ex(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble); overload;
 
 procedure MatrixElemMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
 function MatrixElemMult(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
@@ -106,13 +125,6 @@ procedure InitSSEOptFunctions(UseSSEOptFuncs : boolean);
 // also the block wise multiplication has a lower additional memory consumption
 procedure InitMult(useStrassenMult : boolean);
 
-implementation
-
-uses BlockSizeSetup, SimpleMatrixOperations, ASMMatrixOperations, CPUFeatures;
-
-var actUseSSEoptions : boolean;
-    actUseStrassenMult : boolean;
-
 type
   TMatrixMultFunc = procedure(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
   TMatrixBlockedMultfunc = procedure (dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble);
@@ -130,8 +142,18 @@ type
   TMatrixVarianceFunc = procedure(dest : PDouble; destLineWidth : TASMNativeInt; src : PDouble; srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; RowWise : Boolean; unbiased : boolean);
   TMatrixRowSwapFunc = procedure (A, B : PDouble; width : TASMNativeInt);
 
+
+implementation
+
+uses BlockSizeSetup, SimpleMatrixOperations, ASMMatrixOperations, CPUFeatures;
+
+var actUseSSEoptions : boolean;
+    actUseStrassenMult : boolean;
+
 var multFunc : TMatrixMultFunc;
     blockedMultFunc : TMatrixBlockedMultfunc;
+    blockedMultT1Func : TMatrixBlockedMultfunc;
+    blockedMultT2Func : TMatrixBlockedMultfunc;
     addFunc : TMatrixAddFunc;
     subFunc : TMatrixSubFunc;
     elemWiseFunc : TMatrixElemWiseFunc;
@@ -263,7 +285,6 @@ begin
      assert((width2 > 0) and (height2 > 0), 'Dimension Error');
      assert(High(mt1) >= width1 + 1, 'Dimension Error');
      assert(High(mt2) = width2 + 1, 'Dimension Error');
-     assert(High(mt2) = width2 + 1, 'Dimension Error');
      MatrixMult(@dest[0], width2*sizeof(double), @mt1[0], @mt2[0], width1, height1, width2, height2, width1*sizeof(double), width2*sizeof(double));
 end;
 
@@ -288,6 +309,93 @@ begin
          blockedMultFunc(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, BlockMatrixCacheSize, doNone, nil)
      else
          multFunc(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2);
+end;
+
+procedure MatrixMultEx(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble); overload;
+begin
+     blockedMultFunc(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, blockSize, op, mem);
+end;
+
+// mt1' * mt2
+function MatrixMultT1(mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray;
+begin
+     assert((width1 > 0) and (height1 > 0) and (height1 = height2), 'Dimension error');
+     SetLength(Result, width1*width2);
+     MatrixMultT1(@Result[0], sizeof(double)*Width2, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2);
+end;
+
+procedure MatrixMultT1(var dest : Array of Double; mt1, mt2 : Array of double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt);
+begin
+     assert((width1 > 0) and (height1 > 0), 'Dimension Error');
+     assert((width2 > 0) and (height2 > 0), 'Dimension Error');
+     assert(High(mt1) >= width1 + 1, 'Dimension Error');
+     assert(High(mt2) = width2 + 1, 'Dimension Error');
+     assert(Length(dest) >= width1*width2, 'Dimension Error');
+     MatrixMultT1(@dest[0], width2*sizeof(double), @mt1[0], @mt2[0], width1, height1, width2, height2, width1*sizeof(double), width2*sizeof(double));
+end;
+
+function MatrixMultT1(const mt1, mt2 : Array of Double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt) : TDoubleDynArray;
+begin
+     assert((width1 > 0) and (height1 > 0), 'Dimension Error');
+     assert((width2 > 0) and (height2 > 0), 'Dimension Error');
+     assert(Length(mt1) >= width1*height1, 'Dimension Error');
+     assert(Length(mt2) = width2*height2, 'Dimension Error');
+
+     SetLength(Result, width1*width2);
+     MatrixMultT1(@Result[0], width2*sizeof(double), @mt1[0], @mt2[0], width1, height1, width2, height2, width1*sizeof(double), width2*sizeof(double));
+end;
+
+procedure MatrixMultT1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+begin
+     assert((width1 > 0) and (height1 > 0), 'Dimension Error');
+     assert((width2 > 0) and (height2 > 0), 'Dimension Error');
+     blockedMultT1Func(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, BlockMatrixCacheSize, doNone, nil);
+end;
+
+procedure MatrixMultT1Ex(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble); overload;
+begin
+     blockedMultT1Func(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, blockSize, op, mem);
+end;
+
+// mt1 * mt2'
+function MatrixMultT2(mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray;
+begin
+     assert((width1 > 0) and (height1 > 0) and (height1 = height2), 'Dimension error');
+     SetLength(Result, height1*height2);
+     MatrixMultT2(@Result[0], sizeof(double)*height2, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2);
+end;
+
+procedure MatrixMultT2(var dest : Array of Double; mt1, mt2 : Array of double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt);
+begin
+     assert((width1 > 0) and (height1 > 0), 'Dimension Error');
+     assert((width2 > 0) and (height2 > 0), 'Dimension Error');
+     assert(High(mt1) >= width1 + 1, 'Dimension Error');
+     assert(High(mt2) = width2 + 1, 'Dimension Error');
+     assert(Length(dest) >= height1*height2, 'Dimension Error');
+     MatrixMultT2(@dest[0], height2*sizeof(double), @mt1[0], @mt2[0], width1, height1, width2, height2, width1*sizeof(double), width2*sizeof(double));
+end;
+
+function MatrixMultT2(const mt1, mt2 : Array of Double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt) : TDoubleDynArray;
+begin
+     assert((width1 > 0) and (height1 > 0), 'Dimension Error');
+     assert((width2 > 0) and (height2 > 0), 'Dimension Error');
+     assert(Length(mt1) >= width1*height1, 'Dimension Error');
+     assert(Length(mt2) = width2*height2, 'Dimension Error');
+
+     SetLength(Result, height1*height2);
+     MatrixMultT2(@Result[0], height2*sizeof(double), @mt1[0], @mt2[0], width1, height1, width2, height2, width1*sizeof(double), width2*sizeof(double));
+end;
+
+procedure MatrixMultT2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+begin
+     assert((width1 > 0) and (height1 > 0), 'Dimension Error');
+     assert((width2 > 0) and (height2 > 0), 'Dimension Error');
+     blockedMultT2Func(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, BlockMatrixCacheSize, doNone, nil)
+end;
+
+procedure MatrixMultT2Ex(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble); overload;
+begin
+     blockedMultT2Func(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, blockSize, op, mem);
 end;
 
 procedure MatrixElemMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
@@ -590,6 +698,8 @@ begin
           scaleAddFunc := {$IFDEF FPC}@{$ENDIF}ASMMAtrixScaleAndAdd;
           sqrtFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixSQRT;
           blockedMultFunc := {$IFDEF FPC}@{$ENDIF}BlockedMatrixMultiplication;
+          blockedMultT1Func := {$IFDEF FPC}@{$ENDIF}BlockedMatrixMultiplicationT1;
+          blockedMultT2Func := {$IFDEF FPC}@{$ENDIF}BlockedMatrixMultiplicationT2;
           copyFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixCopy;
           minFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixMin;
           maxFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixMax;
@@ -597,7 +707,7 @@ begin
           elemNormFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixElementwiseNorm2;
           matrixNormalizeFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixNormalize;
           matrixMeanFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixMean;
-          matrixVarFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixVar; // todo: assembler version
+          matrixVarFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixVar;
           matrixSumFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixSum;
           rowSwapFunc := {$IFDEF FPC}@{$ENDIF}ASMRowSwap;
           absFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixAbs;
@@ -617,6 +727,8 @@ begin
           scaleAddFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxScaleAndAdd;
           sqrtFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxSqrt;
           blockedMultFunc := {$IFDEF FPC}@{$ENDIF}GenericBlockedMatrixMultiplication;
+          blockedMultT1Func := {$IFDEF FPC}@{$ENDIF}GenericBlockedMatrixMultiplicationT1;
+          blockedMultT2Func := {$IFDEF FPC}@{$ENDIF}GenericBlockedMatrixMultiplicationT2;
           copyFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxCopy;
           minFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMin;
           maxFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMax;

@@ -21,7 +21,7 @@ unit LinearAlgebraicEquations;
 
 interface
 
-uses SysUtils, Types, MatrixConst;
+uses SysUtils, Types, MatrixConst, OptimizedFuncs;
 
 // solves the matrix A*X = B where A*x1=b1, A*x2=b2, ... A*xm=bm
 // The function stores in A the inverse of A and B stores the result vectors
@@ -81,6 +81,7 @@ procedure MatrixCholeskySolveLinEq(A : PDouble; const LineWidthA : integer; widt
   const LineWidthP : integer; B : PDouble; const LineWidthB : integer; X : PDouble; const LineWidthX : integer; progress : TLinEquProgress = nil);
 
 
+// original functions from Numerical Recipies:
 // In place QR decomposition. Constructs the QR decomposition of A (n*n). The upper triangle matrix R is returned
 // in the upper triangle of a, except for the diagonal elements of R which are returned in
 // d. The orthogonal matrix Q is represented as a product of n-1 Householder matrices Q1...Qn-1, where
@@ -95,6 +96,22 @@ function MatrixQRDecomp(dest : PDouble; const LineWidthDest : integer; A : PDoub
 procedure MatrixQRSolveLinEq(A : PDouble; const LineWidthA : integer; width : integer; C : PDouble; const LineWidthC : integer;
   D : PDouble; const LineWidthD : integer; B : PDouble; const LineWidthB : integer; progress : TLinEquProgress = nil);
 
+
+// implementation of Lapack's blocked QR decomposition
+// the upper triangle matrix R is returned in the upper triangle of A. The elements below the
+// diagonal with the array TAU, represent the orthogonal matrix Q as a product of elementary reflectors.
+// further details: The matrix Q is represented as a product of elementary reflectors
+//   Q = H(1) H(2) . . . H(k), where k = min(m,n).
+//   Each H(i) has the form
+//   H(i) = I - tau * v * v**T
+//   where tau is a real scalar, and v is a real vector with
+//   v(1:i-1) = 0 and v(i) = 1; v(i+1:m) is stored on exit in A(i+1:m,i),
+//   and tau in TAU(i).
+// note the matrix above starts with index 1 instead of 0.
+// the output is the same as the matlab economy size output on a QR decomposition e.g. dcmp = qr(A, 0);
+function MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; progress : TLinEquProgress = nil) : TQRResult; overload;
+function MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; work : PDouble; pnlSize : integer; progress : TLinEquProgress = nil) : TQRResult; overload;
+
 // Pseudoinversion - implementation taken from matlab
 // X = pinv(A) produces a matrix X of the same dimensions
 //  as A' so that A*X*A = A, X*A*X = X and A*X and X*A
@@ -107,7 +124,8 @@ function MatrixPseudoinverse(dest : PDouble; const LineWidthDest : integer; X : 
   width, height : integer; progress : TLinEquProgress = nil) : TSVDResult;
 
 
-// internaly used objects and definitions
+// ######################################################
+// #### internaly used objects and definitions
 type
   TLinearEQProgress = class(TObject)
   public
@@ -119,10 +137,30 @@ type
   end;
 
 
+// only for internal use
+type
+  TRecMtxQRDecompData = record
+    pWorkMem : PByte;
+    work : PDouble;
+    LineWidthWork : TASMNativeInt;
+    BlkMultMem : PDouble;
+    Progress : TLinEquProgress;
+    qrWidth, qrHeight : integer;
+    actIdx : integer;
+    pnlSize : integer;
+
+    MatrixMultT1 : TMatrixBlockedMultfunc;
+    MatrixMultT2 : TMatrixBlockedMultfunc;
+  end;
+
+function InternalMatrixQRDecompInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; qrData : TRecMtxQRDecompData) : boolean;
+
+
+
 implementation
 
-uses Math, MathUtilFunc, OptimizedFuncs, ASMMatrixOperations,
-     SimpleMatrixOperations;
+uses Math, MathUtilFunc, ASMMatrixOperations,
+     SimpleMatrixOperations, BlockSizeSetup;
 
 function MatrixPseudoinverse(dest : PDouble; const LineWidthDest : integer; X : PDouble; const LineWidthX : integer;
   width, height : integer; progress : TLinEquProgress) : TSVDResult;
@@ -2052,4 +2090,519 @@ begin
      MatrixRSolve(A, LineWidthA, width, C, LineWidthC, D, LineWidthD, B, LineWidthB, progress);
 end;
 
+
+// ##########################################################
+// #### Blocked QR Decomposition methods
+// ##########################################################
+
+// apply householder transformation to A (one column)
+// original DLARFG in Lapack
+function GenElemHousholderRefl(A : PDouble; LineWidthA : integer; Height : integer; var Alpha : double; Tau : PDouble) : boolean;
+var beta : double;
+    xNorm : double;
+    //saveMin : double;
+begin
+     Result := False;
+     if height < 1 then
+     begin
+          Tau^ := 0;
+          exit;
+     end;
+
+     xNorm := MatrixElementwiseNorm2(A, LineWidthA, 1, height);
+     if xNorm = 0 then
+     begin
+          // H = I
+          Tau^ := 0;
+          exit;
+     end;
+
+     beta := -sign( pythag(alpha, xnorm), alpha);
+
+     // todo: apply under/overflow code here as lapack does
+     // check for possible under/overflow -> rescale
+     //saveMin := cMinDblDivEps;
+//     // note this is not the original code
+//     if Abs(beta) < saveMin then
+//     begin
+//          // todo:
+//     end;
+
+     Tau^ := (beta - alpha)/beta;
+     MatrixScaleAndAdd(A, LineWidthA, 1, Height, 0, 1/(alpha - beta));
+
+     alpha := beta;
+
+     Result := True;
+end;
+
+
+// original Dlarf in lapack
+procedure ApplyElemHousholderRefl(A : PDouble; LineWidthA : integer; width, height : integer; Tau : PDouble; Work : PDouble);
+var pA1 : PDouble;
+    x, y : Integer;
+    pDest : PDouble;
+    pWork : PDouble;
+    pA : PDouble;
+    tmp : double;
+begin
+     // work = A(1:m, 2:n)T*A(1:m, 1)
+     if tau^ <> 0 then
+     begin
+          pA1 := A;
+          inc(pA1);
+
+          // todo: there is some other scanning going on for non zero columns...
+          // do the basic operation here...
+          GenericTranspMtxMult(work, sizeof(double), pA1, A, width - 1, height, 1, height, LineWidthA,
+                                                   LineWidthA);
+
+          // dger: A - tau*A(1:m,1)*work -> do not touch first column
+          pA := A;
+          for y := 0 to height - 1 do
+          begin
+               pDest := pA1;
+               pWork := work;
+               tmp := tau^*pA^;
+               for x := 1 to width - 1 do
+               begin
+                    pDest^ := pDest^ - tmp*pwork^;
+                    inc(pDest);
+                    inc(pWork);
+               end;
+
+               inc(PByte(pA1), LineWidthA);
+               inc(PByte(pA), LineWidthA);
+          end;
+     end;
+end;
+
+// implementation of lapack's DGEQR2
+function MtxQRUnblocked(A : PDouble; LineWidthA : TASMNativeInt; width, height : TASMNativeInt; Tau : PDouble; const qrData : TRecMtxQRDecompData) : boolean;
+var k : integer;
+    i : integer;
+    pA : PDouble;
+    pTau : PDouble;
+    aii : double;
+    pAlpha : PDouble;
+    lineRes : boolean;
+begin
+     Result := true;
+     k := min(width, height);
+
+     pA := A;
+     pTau := Tau;
+     for i := 0 to k - 1 do
+     begin
+          // Generate elemetary reflector H(i) to annihilate A(1+i:height-1,i);
+          pAlpha := pA;
+          if i < height - 1 then
+             inc(PByte(pA), LineWidthA);
+
+          lineRes := GenElemHousholderRefl(pA, LineWidthA, height - i - 1, pAlpha^, pTau);
+          Result := Result and lineRes;
+
+          // Apply H(i) to A(i:m,i+1:n) from the left
+          if i < width - 1 then
+          begin
+               aii := pAlpha^;
+               pAlpha^ := 1;
+
+               ApplyElemHousholderRefl(pAlpha, LineWidthA, width - i, height - i, pTau, qrData.work);
+
+               pAlpha^ := aii;
+          end;
+
+          if Assigned(qrData.Progress) then
+             qrData.Progress((qrData.actIdx + i)*100 div qrData.qrWidth);
+
+          inc(pTau);
+          inc(pA);
+     end;
+end;
+
+// note the result is stored in mt2 again!
+// dest = mt1'*mt2; where mt2 is a lower triangular matrix and the operation is transposition
+// the function assumes a unit diagonal (does not touch the real middle elements)
+// width and height values are assumed to be the "original" (non transposed) ones
+procedure MtxMultTria2T1(dest : PDouble; LineWidthDest : integer; mt1 : PDouble; LineWidth1 : integer; mt2 : PDouble; LineWidth2 : integer;
+  width1, height1, width2, height2 : integer);
+var x, y, idx : TASMNativeInt;
+    valCounter1 : PDouble;
+    valCounter2 : PDouble;
+    tmp : double;
+    pMt2 : PDouble;
+    pDest : PDouble;
+begin
+     assert((width1 > 0) and (height1 > 0) and (height1 = height2), 'Dimension error');
+
+     for x := 0 to width1 - 1 do
+     begin
+          pMT2 := mt2;
+          pDest := dest;
+          for y := 0 to width2 - 1 do
+          begin
+               valCounter1 := mt1;
+               valCounter2 := pMT2;
+               inc(PByte(valCounter2), (y + 1)*LineWidth2);
+               inc(PByte(valCounter1), (y)*LineWidth1);
+               tmp := valCounter1^;
+               inc(PByte(valCounter1), LineWidth1);
+               for idx := 1 to height2 - y - 1 do
+               begin
+                    tmp := tmp + valCounter1^*valCounter2^;
+                    inc(PByte(valCounter1), LineWidth1);
+                    inc(PByte(valCounter2), LineWidth2);
+               end;
+
+               pDest^ := tmp;
+               inc(pDest);
+               inc(pMT2);
+          end;
+          inc(mt1);
+          inc(PByte(dest), LineWidthDest);
+     end;
+end;
+
+// note the result is stored in mt1 again!
+// mt1 = mt1*mt2; where mt2 is an upper triangular matrix
+procedure MtxMultTria2(mt1 : PDouble; LineWidth1 : integer; mt2 : PDouble; LineWidth2 : integer;
+  width1, height1, width2, height2 : integer);
+var x, y, idx : TASMNativeInt;
+    valCounter1 : PDouble;
+    valCounter2 : PDouble;
+    tmp : double;
+    pMt1 : PDouble;
+begin
+     assert((width1 > 0) and (height1 > 0) and (width1 = height2), 'Dimension error');
+
+     // start from the back
+     inc(mt2, width2 - 1);
+     for x := 0 to width2 - 1 do
+     begin
+          pmt1 := mt1;
+          for y := 0 to height1 - 1 do
+          begin
+               tmp := 0;
+               valCounter1 := pmt1;
+               valCounter2 := MT2;
+
+               for idx := 0 to width1 - x - 1 do
+               begin
+                    tmp := tmp + valCounter1^*valCounter2^;
+                    inc(valCounter1);
+                    inc(PByte(valCounter2), LineWidth2);
+               end;
+
+               PConstDoubleArr(pmt1)^[width2 - 1 - x] := tmp;
+               inc(PByte(pmT1), LineWidth1);
+          end;
+
+          dec(mt2);
+     end;
+end;
+
+// calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be 1!
+procedure MtxMultTria2T2(mt1 : PDouble; LineWidth1 : integer; mt2 : PDouble; LineWidth2 : integer;
+  width1, height1, width2, height2 : integer);
+var x, y, idx : TASMNativeInt;
+    valCounter1 : PDouble;
+    valCounter2 : PDouble;
+    tmp : double;
+    pMT1 : PDouble;
+begin
+     assert((width1 > 0) and (height1 > 0) and (width1 = height2), 'Dimension error');
+
+     inc(PByte(mt2),(height2 - 1)*LineWidth2);
+
+     for x := 0 to width2 - 1 do
+     begin
+          pMt1 := mt1;
+          for y := 0 to height1 - 1 do
+          begin
+               tmp := 0;
+               valCounter1 := pMt1;
+               valCounter2 := mt2;
+               for idx := 0 to width2 - x - 2 do
+               begin
+                    tmp := tmp + valCounter1^*valCounter2^;
+                    inc(valCounter1);
+                    inc(valCounter2);
+               end;
+
+               PConstDoubleArr(pMt1)^[width2 - x - 1] := tmp + valCounter1^;
+
+               inc(PByte(pMt1), LineWidth1);
+          end;
+
+          dec(PByte(mt2), LineWidth2);
+     end;
+end;
+
+// original DLARFT in Lapack
+procedure CreateTMtx(n, k : integer; A : PDouble; LineWidthA : TASMNativeInt; Tau : PDouble; const qrData : TRecMtxQRDecompData);
+var i, j : Integer;
+    pT, pA : PDouble;
+    pA1 : PDouble;
+    pDest : PDouble;
+    pT1, pt2 : PDouble;
+    x, y : integer;
+    tmp : Double;
+    pMem : PDouble;
+    pResVec : PDouble;
+    T : PDouble;
+begin
+     assert(k <= n, 'Error k needs to be smaller than n');
+
+     // it is assumed that mem is a memory block of at least (n, k) where the first (k, k) elements are reserved for T
+     T := qrData.work;
+     pMem := T;
+     inc(PByte(pMem), k*qrData.LineWidthWork);
+
+     for i := 0 to k - 1 do
+     begin
+          if Tau^ = 0 then
+          begin
+               // H = I
+               pT := T;
+               for j := 0 to i do
+               begin
+                    pT^ := 0;
+                    inc(PByte(pT), qrData.LineWidthWork);
+               end;
+          end
+          else
+          begin
+               // general case
+
+               // T(1:i-1,i) := - tau(i) * A(i:j,1:i-1)**T * A(i:j,i)          **T = Transposed
+
+               // T(1:i-1,i) := - tau(i) * V(i:n,1:i-1)' * V(i:n,i) */
+
+               pA1 := A;
+               inc(PByte(pA1), LineWidthA*i); // i + 1);
+
+               // precalculate -tau*v for the vector T
+               pA := A;
+               inc(pA, i);
+               inc(PByte(pA), (i+1)*LineWidthA);
+               pResVec := pMem;
+               pResVec^ := -Tau^;   // first element of V is 1!
+               inc(pResVec);
+               for j := i + 1 to n - 1 do   // do not calculate the rest they are gona be multiplied with 0
+               begin
+                    pResVec^ := -Tau^*pA^;
+                    inc(pResVec);
+                    inc(PByte(pA), LineWidthA);
+               end;
+               pT := T;
+               inc(pT, i);
+
+               // final -tau * Y' * v  ->
+               // todo: Implement an optimized matrix vector operator for mt1'mt2
+               GenericTranspMtxMult(pT, qrData.LineWidthWork, pA1, pMem, k, n - i, 1, n - i, LineWidthA, sizeof(double));
+          end;
+
+          // dtrmv: upper triangle matrix mult T(1:i-1,i) := T(1:i-1, 1:i-1)*T(1:i-1,i)
+          if i > 0 then
+          begin
+               pDest := T;
+               inc(pDest, i);
+               for y := 0 to i - 1 do
+               begin
+                    pT1 := T;
+                    inc(pT1, y);
+                    inc(PByte(pT1), y*qrData.LineWidthWork);
+
+                    pT2 := pDest;
+                    tmp := 0;
+                    for x := y to i - 1 do
+                    begin
+                         tmp := tmp + pT1^*pT2^;
+                         inc(pT1);
+                         inc(PByte(pT2), qrData.LineWidthWork);
+                    end;
+
+                    pDest^ := tmp;
+                    inc(PByte(pDest), qrData.LineWidthWork);
+               end;
+          end;
+
+          pT := T;
+          inc(pT, i);
+          inc(PByte(pT), i*qrData.LineWidthWork);
+          pT^ := Tau^;  // fill in last Tau
+
+          inc(Tau);
+     end;
+end;
+
+procedure MatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
+var x, y : TASMNativeInt;
+    pA, pB : PDouble;
+begin
+     // calculate A = A - B'
+     for y := 0 to height - 1 do
+     begin
+          pA := A;
+          pB := B;
+          for x := 0 to width - 1 do
+          begin
+               pA^ := pA^ - pB^;
+               inc(pA);
+               inc(PByte(pB), LineWidthB);
+          end;
+
+          inc(PByte(A), LineWidthA);
+          inc(B);
+     end;
+end;
+
+// apply block reflector to a matrix
+// original DLARFB in Lapack
+procedure ApplyBlockReflector(A : PDouble; LineWidthA : integer; const qrData : TRecMtxQRDecompData;
+  width, height : integer; widthT : integer);
+var pC1, pC2 : PDouble;
+    pY1, pY2 : PDouble;
+    T : PDouble;
+    LineWidthT : TASMNativeInt;
+    mem : PDouble;
+    LineWidthMem : TASMNativeInt;
+begin
+     mem := qrData.work;
+     inc(PByte(mem), widthT*qrData.LineWidthWork);  // upper part (nb x nb) is dedicated to T, lower port to W in dlarfb
+     LineWidthMem := qrData.LineWidthWork;
+
+     T := qrData.work;
+     LineWidthT := qrData.LineWidthWork;
+
+     // (I - Y*T*Y')xA_trailing
+     pY1 := A;
+     pY2 := A;
+     inc(PByte(pY2), widthT*LineWidthA);
+     pC1 := A;
+     inc(pC1, widthT);
+     pC2 := pC1;
+     inc(PByte(pC2), widthT*LineWidthA);
+
+     // W = C1'*Y1
+     MtxMultTria2T1(mem, LineWidthMem, pC1, LineWidthA, pY1, LineWidthA, width - widthT, widthT, widthT, widthT);
+
+     // W = W + C2'*Y2
+     qrData.MatrixMultT1(mem, LineWidthMem, pC2, pY2, Width - WidthT, height - widthT, WidthT, height - widthT, LineWidthA, LineWidthA, QRMultBlockSize, doAdd, qrData.BlkMultMem);
+     //MatrixMultT1Ex(mem, LineWidthMem, pC2, pY2, Width - WidthT, height - widthT, WidthT, height - widthT, LineWidthA, LineWidthA, QRMultBlockSize, doAdd, qrData.BlkMultMem);
+
+     // W = W * T (using dtrm)
+     MtxMultTria2(mem, LineWidthMem, T, LineWidthT, widthT, height - WidthT, WidthT, WidthT);
+
+     // C2 = C2 - Y2*W'
+     qrData.MatrixMultT2(pC2, LineWidthA, pY2, mem, widthT, height - widthT, widthT, height - widthT, LineWidthA, LineWidthMem, QRMultBlockSize, doSub, qrData.BlkMultMem);
+     //MatrixMultT2Ex(pC2, LineWidthA, pY2, mem, widthT, height - widthT, widthT, height - widthT, LineWidthA, LineWidthMem, QRMultBlockSize, doSub, qrData.BlkMultMem);
+
+     // W = W*Y1' (lower left part of Y1! -> V1)
+     MtxMultTria2T2(mem, LineWidthMem, A, LineWidthA, WidthT, height - widthT, widthT, widthT);
+
+     // C1 = C1 - W'
+     MatrixSubT(pC1, LineWidthA, mem, LineWidthMem, width - widthT, widthT);
+end;
+
+function InternalMatrixQRDecompInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; qrData : TRecMtxQRDecompData) : boolean;
+var k : TASMNativeInt;
+    idx : TASMNativeInt;
+    ib : TASMNativeInt;
+    pA : PDouble;
+    pnlRes : boolean;
+begin
+     // ######################################################
+     // #### original linpack DGEQRF routine
+     k := Min(width, height);
+
+     // check if the panel size fits the width/heigth -> if not adjust the panel size
+     if (qrdata.pnlSize > 1) and (qrdata.pnlSize > k) then
+        qrdata.pnlSize := max(2, k div 2);
+
+     Result := True;
+     qrData.LineWidthWork := sizeof(double)*qrdata.pnlSize;
+     idx := 0;
+     pA := A;
+
+     if (qrdata.pnlSize >= 2) and (qrdata.pnlSize < k) then
+     begin
+          // calculate the qr decomposition for the current panel
+          while idx < width - qrdata.pnlSize do
+          begin
+               ib := min(width - idx, qrdata.pnlSize);
+
+               pnlRes := MtxQRUnblocked(pA, LineWidthA, qrdata.pnlSize, height - idx, Tau, qrData);
+               Result := Result and pnlRes;
+
+               // calculate T matrix
+               if idx + ib <= width then
+               begin
+                    CreateTMtx(height - idx, ib, pA, LineWidthA, Tau, qrData);
+
+                    // apply H to A from the left
+                    ApplyBlockReflector(pA, LineWidthA, qrData, width - idx, height - idx, qrdata.pnlSize);
+               end;
+
+               inc(qrData.actIdx, qrdata.pnlSize);
+
+               inc(pA, qrdata.pnlSize);
+               inc(PByte(pA), qrdata.pnlSize*LineWidthA);
+               inc(idx, qrdata.pnlSize);
+               inc(Tau, qrdata.pnlSize);
+          end;
+     end;
+
+     // calculate the last panel
+     pnlRes := MtxQRUnblocked(pA, LineWidthA, width - idx, height - idx, Tau, qrData);
+     Result := Result and pnlRes;
+end;
+
+function MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; progress : TLinEquProgress = nil) : TQRResult; overload;
+begin
+     Result := MatrixQRDecompInPlace2(A, LineWidthA, width, height, tau, nil, QRBlockSize, Progress);
+end;
+
+function MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; work : PDouble; pnlSize : integer; progress : TLinEquProgress = nil) : TQRResult; overload;
+var res : boolean;
+    qrData : TRecMtxQRDecompData;
+begin
+     qrData.pWorkMem := nil;
+     qrData.work := work;
+     qrData.BlkMultMem := nil;
+     qrData.Progress := progress;
+     qrData.qrWidth := width;
+     qrData.qrHeight := height;
+     qrData.actIdx := 0;
+     qrData.pnlSize := pnlSize;
+     qrData.MatrixMultT1 := {$IFDEF FPC}@{$ENDIF}MatrixMultT1Ex;
+     qrData.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}MatrixMultT2Ex;
+
+     if work = nil then
+     begin
+          qrData.pWorkMem := GetMemory(pnlSize*sizeof(double)*height + 64 + BlockMultMemSize(QRMultBlockSize) );
+          qrData.work := PDouble(qrData.pWorkMem);
+          if (NativeUInt(qrData.pWorkMem) and $0000000F) <> 0 then
+             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 16 - NativeUInt(qrData.pWorkMem) and $0F);
+     end;
+
+     // it's assumed that the work memory block may also be used
+     // as blocked multiplication memory storage!
+     qrData.BlkMultMem := qrData.work;
+     inc(qrData.BlkMultMem, pnlSize*height);
+
+     res := InternalMatrixQRDecompInPlace2(A, LineWidthA, width, height, tau, qrData);
+
+     if work = nil then
+        FreeMem(qrData.pWorkMem);
+
+     if res
+     then
+         Result := qrOK
+     else
+         Result := qrSingular;
+end;
+
 end.
+

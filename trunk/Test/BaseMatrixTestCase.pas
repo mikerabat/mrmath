@@ -35,10 +35,10 @@ type
 
    procedure WriteMatlabData(const fileName : string; const data : Array of double; width : integer);
    procedure TryClearCache;
-   function WriteMtx(const data : Array of Double; width : integer) : string; overload;
+   function WriteMtx(const data : Array of Double; width : integer; prec : integer = 3) : string; overload;
    function CheckMtx(const data1 : Array of Double; const data2 : Array of double; w : integer = -1; h : integer = -1; const epsilon : double = 1e-4) : boolean;
    function CheckMtxIdx(const data1 : Array of Double; const data2 : Array of double; var idx : integer; w : integer = -1; h : integer = -1; const epsilon : double = 1e-4) : boolean;
-   function WriteMtxDyn(const data : TDoubleDynArray; width : integer) : string; overload;
+   function WriteMtxDyn(const data : TDoubleDynArray; width : integer; prec : integer = 3) : string; overload;
  end;
 
  TBaseImgTestCase = class(TBaseMatrixTestCase)
@@ -174,7 +174,7 @@ begin
 end;
 
 function TBaseMatrixTestCase.WriteMtx(const data: array of Double;
-  width: integer): string;
+  width: integer; prec : integer = 3): string;
 var x, y : integer;
 begin
      Result := '';
@@ -182,14 +182,14 @@ begin
      for y := 0 to (High(data) + 1) div width - 1 do
      begin
           for x := 0 to width - 1 do
-              Result := Result + Format('%.3f ', [data[x + y*width]]);
+              Result := Result + Format('%.*f ', [prec, data[x + y*width]]);
 
           Result := Result + #13#10;
      end;
 end;
 
 function TBaseMatrixTestCase.WriteMtxDyn(const data: TDoubleDynArray;
-  width: integer) : string;
+  width: integer; prec : integer = 3) : string;
 var x, y : integer;
 begin
      Result := '';
@@ -197,7 +197,7 @@ begin
      for y := 0 to Length(data) div width - 1 do
      begin
           for x := 0 to width - 1 do
-              Result := Result + Format('%.4f ', [data[x + y*width]]);
+              Result := Result + Format('%.*f ', [prec, data[x + y*width]]);
 
           Result := Result + #13#10;
      end;

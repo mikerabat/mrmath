@@ -35,10 +35,13 @@ function ThrMatrixDeterminant(A : PDouble; const LineWidthA : integer; width : i
 function ThrMatrixLinEQSolve(A : PDouble; const LineWidthA : integer; width : integer; B : PDouble; const LineWidthB : integer; X : PDouble;
  const LineWidthX : integer;  width2 : integer; const NumRefinments : integer = 0; progress : TLinEquProgress = nil) : TLinEquResult;
 
+ // Threaded version of the matrix qr decomposition -> makes use of threaded matrix multiplications
+function ThrMatrixQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; work : PDouble; pnlSize : integer; progress : TLinEquProgress = nil) : TQRResult; overload;
+
 implementation
 
 uses MtxThreadPool, LinearAlgebraicEquations, Math, ThreadedMatrixOperations, OptimizedFuncs,
-     ASMMatrixOperations;
+     BlockSizeSetup;
 
 type
   TAsyncMatrixUSubst = class(TObject)
@@ -532,5 +535,49 @@ begin
      width := aWidth;
      height := aheight;
 end;
+
+// ######################################################
+// ##### Threaded version of matrix QR decomposition
+// ######################################################
+
+function ThrMatrixQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; work : PDouble; pnlSize : integer; progress : TLinEquProgress = nil) : TQRResult;
+var res : boolean;
+    qrData : TRecMtxQRDecompData;
+begin
+     qrData.pWorkMem := nil;
+     qrData.work := work;
+     qrData.BlkMultMem := nil;
+     qrData.Progress := progress;
+     qrData.qrWidth := width;
+     qrData.qrHeight := height;
+     qrData.actIdx := 0;
+     qrData.pnlSize := pnlSize;
+     qrData.MatrixMultT1 := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultT1Ex;
+     qrData.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultT2Ex;
+
+     if work = nil then
+     begin
+          qrData.pWorkMem := GetMemory(pnlSize*sizeof(double)*height + 64 );
+          qrData.work := PDouble(qrData.pWorkMem);
+          if (NativeUInt(qrData.pWorkMem) and $0000000F) <> 0 then
+             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 16 - NativeUInt(qrData.pWorkMem) and $0F);
+     end;
+
+     qrData.BlkMultMem := GetMemory(numCPUCores*(4 + BlockMultMemSize(QRMultBlockSize)));
+
+     res := InternalMatrixQRDecompInPlace2(A, LineWidthA, width, height, tau, qrData);
+
+     if work = nil then
+        FreeMem(qrData.pWorkMem);
+
+     FreeMem(qrData.BlkMultMem);
+
+     if res
+     then
+         Result := qrOK
+     else
+         Result := qrSingular;
+end;
+
 
 end.

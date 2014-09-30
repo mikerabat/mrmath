@@ -536,7 +536,7 @@ var sect : TBinarySectionRec;
     sValue : UTF8String;
 begin
      sName := UTF8String(Name);
-     sValue := UTF8String(sValue);
+     sValue := UTF8String(Value);
 
      sect.Len := sizeof(sect) + Length(sName) + Length(sValue);
      sect.SectTpye := bsString;

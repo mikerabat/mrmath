@@ -69,10 +69,10 @@ asm
     mov iR14, r14;
     mov iR15, r15;
 
-    movapd dXMM4, xmm4;
-    movapd dXMM5, xmm5;
-    movapd dXMM6, xmm6;
-    movapd dXMM7, xmm7;
+    movupd dXMM4, xmm4;
+    movupd dXMM5, xmm5;
+    movupd dXMM6, xmm6;
+    movupd dXMM7, xmm7;
 
     {
    .pushnv rbx;
@@ -207,10 +207,10 @@ asm
     mov r14, iR14;
     mov r15, iR15;
 
-    movapd xmm4, dXMM4;
-    movapd xmm5, dXMM5;
-    movapd xmm6, dXMM6;
-    movapd xmm7, dXMM7;
+    movupd xmm4, dXMM4;
+    movupd xmm5, dXMM5;
+    movupd xmm6, dXMM6;
+    movupd xmm7, dXMM7;
 end;
 {$IFDEF FPC}
 end;
@@ -235,10 +235,10 @@ asm
     mov iR14, r14;
     mov iR15, r15;
 
-    movapd dXMM4, xmm4;
-    movapd dXMM5, xmm5;
-    movapd dXMM6, xmm6;
-    movapd dXMM7, xmm7;
+    movupd dXMM4, xmm4;
+    movupd dXMM5, xmm5;
+    movupd dXMM6, xmm6;
+    movupd dXMM7, xmm7;
     {
    .pushnv rbx;
    .pushnv rsi;
@@ -370,10 +370,10 @@ asm
     mov r14, iR14;
     mov r15, iR15;
 
-    movapd xmm4, dXMM4;
-    movapd xmm5, dXMM5;
-    movapd xmm6, dXMM6;
-    movapd xmm7, dXMM7;
+    movupd xmm4, dXMM4;
+    movupd xmm5, dXMM5;
+    movupd xmm6, dXMM6;
+    movupd xmm7, dXMM7;
 end;
 {$IFDEF FPC}
 end;
@@ -399,10 +399,10 @@ asm
     mov iR14, r14;
     mov iR15, r15;
 
-    movapd dXMM4, xmm4;
-    movapd dXMM5, xmm5;
-    movapd dXMM6, xmm6;
-    movapd dXMM7, xmm7;
+    movupd dXMM4, xmm4;
+    movupd dXMM5, xmm5;
+    movupd dXMM6, xmm6;
+    movupd dXMM7, xmm7;
     {
    .pushnv rbx;
    .pushnv rsi;
@@ -555,10 +555,10 @@ asm
     mov r14, iR14;
     mov r15, iR15;
 
-    movapd xmm4, dXMM4;
-    movapd xmm5, dXMM5;
-    movapd xmm6, dXMM6;
-    movapd xmm7, dXMM7;
+    movupd xmm4, dXMM4;
+    movupd xmm5, dXMM5;
+    movupd xmm6, dXMM6;
+    movupd xmm7, dXMM7;
 end;
 {$IFDEF FPC}
 end;
@@ -583,10 +583,10 @@ asm
     mov iR14, r14;
     mov iR15, r15;
 
-    movapd dXMM4, xmm4;
-    movapd dXMM5, xmm5;
-    movapd dXMM6, xmm6;
-    movapd dXMM7, xmm7;
+    movupd dXMM4, xmm4;
+    movupd dXMM5, xmm5;
+    movupd dXMM6, xmm6;
+    movupd dXMM7, xmm7;
     {
    .pushnv rbx;
    .pushnv rsi;
@@ -739,10 +739,10 @@ asm
     mov r14, iR14;
     mov r15, iR15;
 
-    movapd xmm4, dXMM4;
-    movapd xmm5, dXMM5;
-    movapd xmm6, dXMM6;
-    movapd xmm7, dXMM7;
+    movupd xmm4, dXMM4;
+    movupd xmm5, dXMM5;
+    movupd xmm6, dXMM6;
+    movupd xmm7, dXMM7;
 end;
 {$IFDEF FPC}
 end;
@@ -768,10 +768,10 @@ asm
     mov iR14, r14;
     mov iR15, r15;
 
-    movapd dXMM4, xmm4;
-    movapd dXMM5, xmm5;
-    movapd dXMM6, xmm6;
-    movapd dXMM7, xmm7;
+    movupd dXMM4, xmm4;
+    movupd dXMM5, xmm5;
+    movupd dXMM6, xmm6;
+    movupd dXMM7, xmm7;
     {
    .pushnv rbx;
    .pushnv rsi;
@@ -916,10 +916,10 @@ asm
     mov r14, iR14;
     mov r15, iR15;
 
-    movapd xmm4, dXMM4;
-    movapd xmm5, dXMM5;
-    movapd xmm6, dXMM6;
-    movapd xmm7, dXMM7;
+    movupd xmm4, dXMM4;
+    movupd xmm5, dXMM5;
+    movupd xmm6, dXMM6;
+    movupd xmm7, dXMM7;
 end;
 {$IFDEF FPC}
 end;
@@ -944,10 +944,10 @@ asm
     mov iR14, r14;
     mov iR15, r15;
 
-    movapd dXMM4, xmm4;
-    movapd dXMM5, xmm5;
-    movapd dXMM6, xmm6;
-    movapd dXMM7, xmm7;
+    movupd dXMM4, xmm4;
+    movupd dXMM5, xmm5;
+    movupd dXMM6, xmm6;
+    movupd dXMM7, xmm7;
     {
    .pushnv rbx;
    .pushnv rsi;
@@ -1093,10 +1093,10 @@ asm
     mov r14, iR14;
     mov r15, iR15;
 
-    movapd xmm4, dXMM4;
-    movapd xmm5, dXMM5;
-    movapd xmm6, dXMM6;
-    movapd xmm7, dXMM7;
+    movupd xmm4, dXMM4;
+    movupd xmm5, dXMM5;
+    movupd xmm6, dXMM6;
+    movupd xmm7, dXMM7;
 end;
 {$IFDEF FPC}
 end;
@@ -1122,11 +1122,11 @@ asm
     mov iR14, r14;
     mov iR15, r15;
 
-    movapd dXMM4, xmm4;
-    movapd dXMM5, xmm5;
-    movapd dXMM6, xmm6;
-    movapd dXMM7, xmm7;
-    movapd dXMM8, xmm8;
+    movupd dXMM4, xmm4;
+    movupd dXMM5, xmm5;
+    movupd dXMM6, xmm6;
+    movupd dXMM7, xmm7;
+    movupd dXMM8, xmm8;
     {
    .pushnv rbx;
    .pushnv rbx;
@@ -1297,11 +1297,11 @@ asm
     mov r14, iR14;
     mov r15, iR15;
 
-    movapd xmm4, dXMM4;
-    movapd xmm5, dXMM5;
-    movapd xmm6, dXMM6;
-    movapd xmm7, dXMM7;
-    movapd xmm8, dXMM8;
+    movupd xmm4, dXMM4;
+    movupd xmm5, dXMM5;
+    movupd xmm6, dXMM6;
+    movupd xmm7, dXMM7;
+    movupd xmm8, dXMM8;
 end;
 {$IFDEF FPC}
 end;
@@ -1326,11 +1326,11 @@ asm
     mov iR14, r14;
     mov iR15, r15;
 
-    movapd dXMM4, xmm4;
-    movapd dXMM5, xmm5;
-    movapd dXMM6, xmm6;
-    movapd dXMM7, xmm7;
-    movapd dXMM8, xmm8;
+    movupd dXMM4, xmm4;
+    movupd dXMM5, xmm5;
+    movupd dXMM6, xmm6;
+    movupd dXMM7, xmm7;
+    movupd dXMM8, xmm8;
     {
    .pushnv rbx;
    .pushnv rbx;
@@ -1501,11 +1501,11 @@ asm
     mov r14, iR14;
     mov r15, iR15;
 
-    movapd xmm4, dXMM4;
-    movapd xmm5, dXMM5;
-    movapd xmm6, dXMM6;
-    movapd xmm7, dXMM7;
-    movapd xmm8, dXMM8;
+    movupd xmm4, dXMM4;
+    movupd xmm5, dXMM5;
+    movupd xmm6, dXMM6;
+    movupd xmm7, dXMM7;
+    movupd xmm8, dXMM8;
 end;
 {$IFDEF FPC}
 end;

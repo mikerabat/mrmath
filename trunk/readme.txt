@@ -46,6 +46,18 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: 30.9.2014
+Implemented a blocked QR decomposition -> outcome is the economysize QR decomposition of the input matrix
+Fixed a few problems when loading constants. 
+New transposed multiplication methods (used in the QR decomposition!)
+A simple threaded version of QR decomposition (actually only the big multiplications are multithreaded)
+
+
+Date: 11.7.2014
+Minor: The Assign function does now also set the subwidth fields.
+Added the utilities unit to the package.
+Fixed some unused references.
+
 Date: 10.7.2014
 Fixed some x64 variance calculation issues (tested under Lazarus).
 Made some data access functions public in the matrix class.

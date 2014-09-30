@@ -22,6 +22,15 @@ procedure ThrMatrixMultDirect(dest : PDouble; const destLineWidth : TASMNativeIn
 procedure ThrMatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation = doNone);
 procedure ThrMatrixMultEx(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
                           const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble; blockSize : integer);
+procedure ThrMatrixMultT1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation = doNone);
+procedure ThrMatrixMultT1Ex(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble;
+  width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
+  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble);
+
+procedure ThrMatrixMultT2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation = doNone);
+procedure ThrMatrixMultT2Ex(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1,
+  LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble);
+
 procedure ThrMatrixVecMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt);
 procedure ThrMatrixAddAndScale(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
 procedure ThrMatrixAdd(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
@@ -35,8 +44,7 @@ procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; wid
 
 implementation
 
-uses  MtxThreadPool, Math, ASMMatrixOperations, OptimizedFuncs, BlockSizeSetup, 
-      LinearAlgebraicEquations;       
+uses  MtxThreadPool, ASMMatrixOperations, OptimizedFuncs, BlockSizeSetup;
 
 type
   TMatrixAddSubFunc = procedure(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
@@ -187,6 +195,50 @@ begin
                     TAsyncMultObj(obj).LineWidth2)
      else
          BlockedMatrixMultiplication(TAsyncMultObj(obj).dest,
+                    TAsyncMultObj(obj).destLineWidth, TAsyncMultObj(obj).mt1,
+                    TAsyncMultObj(obj).mt2, TAsyncMultObj(obj).width1,
+                    TAsyncMultObj(obj).height1, TAsyncMultObj(obj).width2,
+                    TAsyncMultObj(obj).height2, TAsyncMultObj(obj).LineWidth1,
+                    TAsyncMultObj(obj).LineWidth2, TAsyncMultObj(obj).BlockSize, TAsyncMultObj(obj).op,
+                    TAsyncMultObj(obj).mem);
+
+     Result := 0;
+end;
+
+function MatrixMultT1Func(obj : TObject) : integer;
+begin
+     if (TAsyncMultObj(obj).op = doNone) and not Assigned(TAsyncMultObj(obj).mem)
+     then
+         MatrixMultT1(TAsyncMultObj(obj).dest,
+                    TAsyncMultObj(obj).destLineWidth, TAsyncMultObj(obj).mt1,
+                    TAsyncMultObj(obj).mt2, TAsyncMultObj(obj).width1,
+                    TAsyncMultObj(obj).height1, TAsyncMultObj(obj).width2,
+                    TAsyncMultObj(obj).height2, TAsyncMultObj(obj).LineWidth1,
+                    TAsyncMultObj(obj).LineWidth2)
+     else
+         BlockedMatrixMultiplicationT1(TAsyncMultObj(obj).dest,
+                    TAsyncMultObj(obj).destLineWidth, TAsyncMultObj(obj).mt1,
+                    TAsyncMultObj(obj).mt2, TAsyncMultObj(obj).width1,
+                    TAsyncMultObj(obj).height1, TAsyncMultObj(obj).width2,
+                    TAsyncMultObj(obj).height2, TAsyncMultObj(obj).LineWidth1,
+                    TAsyncMultObj(obj).LineWidth2, TAsyncMultObj(obj).BlockSize, TAsyncMultObj(obj).op,
+                    TAsyncMultObj(obj).mem);
+
+     Result := 0;
+end;
+
+function MatrixMultT2Func(obj : TObject) : integer;
+begin
+     if (TAsyncMultObj(obj).op = doNone) and not Assigned(TAsyncMultObj(obj).mem)
+     then
+         MatrixMultT2(TAsyncMultObj(obj).dest,
+                    TAsyncMultObj(obj).destLineWidth, TAsyncMultObj(obj).mt1,
+                    TAsyncMultObj(obj).mt2, TAsyncMultObj(obj).width1,
+                    TAsyncMultObj(obj).height1, TAsyncMultObj(obj).width2,
+                    TAsyncMultObj(obj).height2, TAsyncMultObj(obj).LineWidth1,
+                    TAsyncMultObj(obj).LineWidth2)
+     else
+         BlockedMatrixMultiplicationT2(TAsyncMultObj(obj).dest,
                     TAsyncMultObj(obj).destLineWidth, TAsyncMultObj(obj).mt1,
                     TAsyncMultObj(obj).mt2, TAsyncMultObj(obj).width1,
                     TAsyncMultObj(obj).height1, TAsyncMultObj(obj).width2,
@@ -359,7 +411,8 @@ begin
 
           widthFits := (width2 mod cpud2) = 0;
           // ensure that we can do aligned operations on matrices
-          thrWidth := (width2 div cpud2) + 2*TASMNativeInt(not widthFits);
+          thrWidth := (width2 div cpud2) + TASMNativeInt(not widthFits);
+          thrWidth := thrWidth + thrWidth and $1;
 
           heightFits := (height1 mod heightCores) = 0;
           thrHeight := height1 div heightCores + TASMNativeInt(not heightFits);
@@ -369,6 +422,7 @@ begin
           cpud2 := 1;
           heightFits := (height1 mod numCPUCores) = 0;
           thrHeight := height1 div numCPUCores + TASMNativeInt(not heightFits);
+          thrHeight := thrHeight + thrHeight and $1;
           heightCores := numCPUCores;
      end;
 
@@ -429,6 +483,195 @@ procedure ThrMatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1
 begin
      ThrMatrixMultEx(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, op, nil, BlockMatrixCacheSize);
 end;
+
+procedure ThrMatrixMultT1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation = doNone);
+begin
+     ThrMatrixMultT1Ex(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, BlockMatrixCacheSize, op, nil);
+end;
+
+procedure ThrMatrixMultT1Ex(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble;
+  width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
+  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble);
+var obj : TAsyncMultObj;
+    i, j : TASMNativeInt;
+    thrWidth : TASMNativeInt;
+    cpud2 : TASMNativeInt;
+    calls : IMtxAsyncCallGroup;
+    widthFits, widthFits1 : boolean;
+    widthCores : TASMNativeInt;
+    doBreak : boolean;
+    thrWidth1 : integer;
+begin
+     // calculates mt1'*mt2
+     cpud2 := numCPUCores div 2;
+     thrWidth := width2;
+     if cpud2 > 1 then
+     begin
+          widthCores := cpud2;
+          cpud2 := numCPUCores div widthCores;
+
+          widthFits := (width2 mod cpud2) = 0;
+          // ensure that we can do aligned operations on matrices
+          thrWidth := (width2 div cpud2) + TASMNativeInt(not widthFits);
+          thrWidth := thrWidth + thrWidth and $1;
+
+          widthFits1 := (width1 mod widthCores) = 0;
+          thrWidth1 := width1 div widthCores + TASMNativeInt(not widthFits1);
+          thrWidth1 := thrWidth1 + thrWidth1 and $1;
+     end
+     else
+     begin
+          cpud2 := 1;
+          widthFits1 := (width1 mod numCPUCores) = 0;
+          thrWidth1 := width1 div numCPUCores + TASMNativeInt(not widthFits1);
+          thrWidth1 := thrWidth1 + thrWidth1 and $1;
+          widthCores := numCPUCores;
+     end;
+
+     calls := MtxInitTaskGroup;
+     doBreak := False;
+
+     for j := 0 to cpud2 - 1 do
+     begin
+          for i := 0 to widthCores - 1 do
+          begin
+               obj := TAsyncMultObj.Create(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2,
+                                           LineWidth1, LineWidth2, op);
+               obj.thrIdx := (j*widthCores) + i;
+               inc(PByte(obj.dest), i*thrWidth1*destLineWidth);
+               inc(obj.mt1, i*thrWidth1);
+               if width1 > (i + 1)*thrWidth1
+               then
+                   obj.width1 := thrWidth1
+               else
+                   obj.width1 := obj.width1 - i*thrWidth1;
+
+               if width2 > (j + 1)*thrWidth
+               then
+                   obj.width2 := thrWidth
+               else
+                   obj.width2 := obj.width2 - j*thrWidth;
+
+               // check if the number of cores exceeds the matrix dimension -> simply use not so many cores
+               if (obj.width1 <= 0) or (obj.width2 <= 0) then
+               begin
+                    doBreak := True;
+                    obj.Free;
+                    break;
+               end;
+               inc(obj.dest, j*thrWidth);
+               inc(obj.mt2, j*thrWidth);
+
+               if Assigned(mem) then
+               begin
+                    obj.mem := mem;
+                    inc(mem, 4*blockSize*blockSize + 2);
+               end;
+               obj.BlockSize := blockSize;
+
+               calls.AddTask(@MatrixMultT1Func, obj);
+          end;
+
+          if doBreak then
+             break;
+     end;
+
+     calls.SyncAll;
+end;
+
+procedure ThrMatrixMultT2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation = doNone);
+begin
+     ThrMatrixMultT2Ex(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, BlockMatrixCacheSize, op, nil);
+end;
+
+// calculates mt1*mt2'
+procedure ThrMatrixMultT2Ex(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1,
+  LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble);
+var obj : TAsyncMultObj;
+    i, j : TASMNativeInt;
+    thrHeight, thrHeight1 : TASMNativeInt;
+    cpud2 : TASMNativeInt;
+    calls : IMtxAsyncCallGroup;
+    heightFits1, heightFits : boolean;
+    heightCores : TASMNativeInt;
+    doBreak : boolean;
+begin
+     cpud2 := numCPUCores div 2;
+     thrHeight1 := height2;
+     if cpud2 > 1 then
+     begin
+          heightCores := cpud2;
+          cpud2 := numCPUCores div heightCores;
+
+          heightFits1 := (height2 mod cpud2) = 0;
+          // ensure that we can do aligned operations on matrices
+          thrHeight1 := (height2 div cpud2) + TASMNativeInt(not heightFits1);
+          thrHeight1 := thrHeight1 + thrHeight1 and $1;
+
+          heightFits := (height1 mod heightCores) = 0;
+          thrHeight := height1 div heightCores + TASMNativeInt(not heightFits);
+          thrHeight := thrHeight + thrHeight and $1;
+     end
+     else
+     begin
+          cpud2 := 1;
+          heightFits := (height1 mod numCPUCores) = 0;
+          thrHeight := height1 div numCPUCores + TASMNativeInt(not heightFits);
+          thrHeight := thrHeight + thrHeight and $1;
+          heightCores := numCPUCores;
+     end;
+
+     calls := MtxInitTaskGroup;
+     doBreak := False;
+
+     for j := 0 to cpud2 - 1 do
+     begin
+          for i := 0 to heightCores - 1 do
+          begin
+               obj := TAsyncMultObj.Create(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2,
+                                                     LineWidth1, LineWidth2, op);
+               obj.thrIdx := (j*heightCores) + i;
+               inc(PByte(obj.dest), i*thrHeight*destLineWidth);
+               inc(PByte(obj.mt1), i*thrHeight*LineWidth1);
+               if height1 > (i + 1)*thrHeight
+               then
+                   obj.height1 := thrHeight
+               else
+                   obj.height1 := obj.height1 - i*thrHeight;
+
+               if height2 > (j + 1)*thrHeight1
+               then
+                   obj.height2 := thrHeight1
+               else
+                   obj.height2 := obj.height2 - j*thrHeight1;
+
+               // check if the number of cores exceeds the matrix dimension -> simply use not so many cores
+               if (obj.height1 <= 0) or (obj.height2 <= 0) then
+               begin
+                    doBreak := True;
+                    obj.Free;
+                    break;
+               end;
+               inc(obj.dest, j*thrHeight1);
+               inc(PByte(obj.mt2), j*thrHeight1*LineWidth2);
+
+               if Assigned(mem) then
+               begin
+                    obj.mem := mem;
+                    inc(mem, 4*blockSize*blockSize + 2);
+               end;
+               obj.BlockSize := blockSize;
+
+               calls.AddTask(@MatrixMultT2Func, obj);
+          end;
+
+          if doBreak then
+             break;
+     end;
+
+     calls.SyncAll;
+end;
+
 
 procedure ThrMatrixVecMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt);
 var obj : TAsyncMatrixVectorMultObj;
