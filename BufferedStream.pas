@@ -70,7 +70,11 @@ end;
 
 destructor TBufferedStream.Destroy;
 begin
+     {$IF DEFINED(FPC) or (CompilerVersion <= 21)}
      fStream.Seek(fStartPos + fBytesRead, soFromBeginning);
+     {$ELSE}
+     fStream.Seek(fStartPos + fBytesRead, soBeginning);
+     {$ENDIF}
 
      inherited;
 end;
@@ -149,7 +153,12 @@ begin
           // clear and wait until the next block is read
           fBytesRead := NewPosition;
           fBytesLeft := 0;
+          {$IF DEFINED(FPC) or (CompilerVersion <= 21)}
           Result := fStream.Seek(NewPosition, soFromBeginning);
+          {$ELSE}
+          Result := fStream.Seek(NewPosition, soBeginning);
+          {$ENDIF}
+
           fReadBlockSize := 0;
           fActPos := @fBuffer[0];
      end;

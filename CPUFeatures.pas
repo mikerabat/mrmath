@@ -50,7 +50,7 @@ begin
      Result := true;
 end;
 
-procedure GetCPUID(Param: Cardinal; var Registers: TRegisters);
+procedure GetCPUID(Param: Cardinal; out Registers: TRegisters);
 var iRBX, iRDI : int64;
 {$IFDEF FPC}
 begin

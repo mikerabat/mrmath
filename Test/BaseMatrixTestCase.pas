@@ -37,7 +37,7 @@ type
    procedure TryClearCache;
    function WriteMtx(const data : Array of Double; width : integer; prec : integer = 3) : string; overload;
    function CheckMtx(const data1 : Array of Double; const data2 : Array of double; w : integer = -1; h : integer = -1; const epsilon : double = 1e-4) : boolean;
-   function CheckMtxIdx(const data1 : Array of Double; const data2 : Array of double; var idx : integer; w : integer = -1; h : integer = -1; const epsilon : double = 1e-4) : boolean;
+   function CheckMtxIdx(const data1 : Array of Double; const data2 : Array of double; out idx : integer; w : integer = -1; h : integer = -1; const epsilon : double = 1e-4) : boolean;
    function WriteMtxDyn(const data : TDoubleDynArray; width : integer; prec : integer = 3) : string; overload;
  end;
 
@@ -86,7 +86,7 @@ begin
 end;
 
 function TBaseMatrixTestCase.CheckMtxIdx(const data1: array of Double;
-  const data2: array of double; var idx: integer; w: integer; h: integer;
+  const data2: array of double; out idx: integer; w: integer; h: integer;
   const epsilon: double): boolean;
 var i : integer;
     miss : integer;
