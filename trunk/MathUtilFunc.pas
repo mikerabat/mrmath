@@ -180,7 +180,12 @@ var s : UTF8String;
     x, y : integer;
     ft : TFormatSettings;    
 begin
+     {$IF DEFINED(FPC) or (CompilerVersion <= 21)}
      GetLocaleFormatSettings(0, ft);
+     {$ELSE}
+     ft := TFormatSettings.Create;
+     {$ENDIF}
+
      ft.DecimalSeparator := '.';
 
      with TFileStream.Create(fileName, fmCreate or fmOpenWrite) do

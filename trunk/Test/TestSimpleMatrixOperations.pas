@@ -48,7 +48,7 @@ type
     procedure SetUp; override;
     procedure TearDown; override;
 
-    procedure FillMatrix(mtxSize : integer; var x, y : TDoubleDynArray; var p1, p2 : PDouble);
+    procedure FillMatrix(mtxSize : integer; out x, y : TDoubleDynArray; out p1, p2 : PDouble);
   published
     procedure TestMatrixASMCopy;
     procedure TestASMAdd;
@@ -156,8 +156,8 @@ begin
 end;
 
 
-procedure TASMMatrixOperations.FillMatrix(mtxSize: integer; var x,
-  y: TDoubleDynArray; var p1, p2: PDouble);
+procedure TASMMatrixOperations.FillMatrix(mtxSize: integer; out x,
+  y: TDoubleDynArray; out p1, p2: PDouble);
 var px : PDouble;
     py : PDouble;
     idx : integer;

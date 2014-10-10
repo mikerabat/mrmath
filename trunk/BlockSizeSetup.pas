@@ -49,7 +49,7 @@ uses Classes, ASMMatrixOperations, Types, MtxTimer, Math, OptimizedFuncs;
 const cMatrixMaxTestSize = 2048;
       cNumIter = 5;
 
-procedure SetupInitVars(var dest, a, b : PDouble; awidth, aheight, bwidth : integer); overload;
+procedure SetupInitVars(out dest, a, b : PDouble; awidth, aheight, bwidth : integer); overload;
 var pa, pb, pDest : PDouble;
     x : integer;
 begin
@@ -80,7 +80,7 @@ begin
      end;
 end;
 
-procedure SetupInitVars(var dest, a, b : PDouble; setupSize : integer);  overload;
+procedure SetupInitVars(out dest, a, b : PDouble; setupSize : integer);  overload;
 begin
      SetupInitVars(dest, a, b, setupSize, setupSize, setupSize);
 end;
