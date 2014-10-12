@@ -252,7 +252,7 @@ begin
      then
          fWyT := obj as IMatrix
      else
-         Result := inherited;
+         Result := inherited OnLoadObject(Name, Obj);
 end;
 
 destructor TMatrixCCA.Destroy;

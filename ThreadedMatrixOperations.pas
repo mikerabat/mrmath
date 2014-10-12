@@ -1056,7 +1056,7 @@ begin
                if height < (i + 1)*thrSize then
                   obj.Height := height - i*thrSize;
 
-               calls.AddTask(@MatrixAddSubFunc, obj);
+              calls.AddTask(@MatrixAddSubFunc, obj);
           end;
      end;
 
@@ -1065,12 +1065,12 @@ end;
 
 procedure ThrMatrixSub(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 begin
-     ThrMatrixAddSub(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2, @MatrixSub);
+     ThrMatrixAddSub(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2, {$IFDEF FPC}@{$ENDIF}MatrixSub);
 end;
 
 procedure ThrMatrixAdd(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 begin
-     ThrMatrixAddSub(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2, @MatrixAdd);
+     ThrMatrixAddSub(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2, {$IFDEF FPC}@{$ENDIF}MatrixAdd);
 end;
 
 { TAsyncMultObj }
