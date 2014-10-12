@@ -31,7 +31,7 @@ implementation
 {$IFDEF MSWINDOWS}
 uses Windows, Classes;
 
-{$IFDEF FPC}
+{$IF Defined(FPC) or (CompilerVersion <= 20)}
 type
   TThreadStartRoutine = function(lpThreadParameter: Pointer): Integer stdcall;
 
@@ -39,7 +39,7 @@ const WT_EXECUTEDEFAULT       = ULONG($00000000);
 
 function QueueUserWorkItem(func: TThreadStartRoutine; Context: Pointer; Flags: ULONG): BOOL; stdcall; external 'kernel32.dll' name 'QueueUserWorkItem';
 
-{$ENDIF}
+{$IFEND}
 
 type
   TSimpleWinMtxAsyncCall = class(TInterfacedObject, IMtxAsyncCall)

@@ -167,7 +167,7 @@ begin
         end;
         EndUpdate;
 
-        SaveToFile(FileName {$IFNDEF FPC} , TEncoding.ASCII {$ENDIF});
+        SaveToFile(FileName {$IF not Defined(FPC) and (CompilerVersion >= 20)} , TEncoding.ASCII {$IFEND});
      finally
             Free;
      end;

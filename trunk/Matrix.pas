@@ -250,8 +250,8 @@ type
     // general access
 
     // direct access functionality (use only when you know what you are doing!)
-    function StartElement : PDouble; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$ENDIF} {$ENDIF}
-    function LineWidth : integer; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$ENDIF} {$ENDIF}
+    function StartElement : PDouble; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+    function LineWidth : integer; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 
     property Items[x, y : integer] : double read GetItems write SetItems; default;
     function SubMatrix : TDoubleDynArray;

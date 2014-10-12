@@ -184,7 +184,7 @@ begin
      GetLocaleFormatSettings(0, ft);
      {$ELSE}
      ft := TFormatSettings.Create;
-     {$ENDIF}
+     {$IFEND}
 
      ft.DecimalSeparator := '.';
 

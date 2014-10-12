@@ -74,7 +74,7 @@ begin
      fStream.Seek(fStartPos + fBytesRead, soFromBeginning);
      {$ELSE}
      fStream.Seek(fStartPos + fBytesRead, soBeginning);
-     {$ENDIF}
+     {$IFEND}
 
      inherited;
 end;
@@ -157,7 +157,7 @@ begin
           Result := fStream.Seek(NewPosition, soFromBeginning);
           {$ELSE}
           Result := fStream.Seek(NewPosition, soBeginning);
-          {$ENDIF}
+          {$IFEND}
 
           fReadBlockSize := 0;
           fActPos := @fBuffer[0];
