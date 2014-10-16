@@ -400,7 +400,6 @@ var obj : TAsyncMultObj;
     calls : IMtxAsyncCallGroup;
     widthFits, heightFits : boolean;
     heightCores : TASMNativeInt;
-    doBreak : boolean;
 begin
      cpud2 := numCPUCores div 2;
      thrWidth := width2;
@@ -427,7 +426,6 @@ begin
      end;
 
      calls := MtxInitTaskGroup;
-     doBreak := False;
      
      for j := 0 to cpud2 - 1 do
      begin
@@ -453,7 +451,6 @@ begin
                // check if the number of cores exceeds the matrix dimension -> simply use not so many cores
                if (obj.height1 <= 0) or (obj.width2 <= 0) then
                begin
-                    doBreak := True;
                     obj.Free;
                     break;
                end;
@@ -469,9 +466,6 @@ begin
 
                calls.AddTask(@MatrixMultFunc, obj);
           end;
-
-          if doBreak then
-             break;
      end;
 
      calls.SyncAll;
@@ -499,7 +493,6 @@ var obj : TAsyncMultObj;
     calls : IMtxAsyncCallGroup;
     widthFits, widthFits1 : boolean;
     widthCores : TASMNativeInt;
-    doBreak : boolean;
     thrWidth1 : integer;
 begin
      // calculates mt1'*mt2
@@ -529,7 +522,6 @@ begin
      end;
 
      calls := MtxInitTaskGroup;
-     doBreak := False;
 
      for j := 0 to cpud2 - 1 do
      begin
@@ -555,7 +547,6 @@ begin
                // check if the number of cores exceeds the matrix dimension -> simply use not so many cores
                if (obj.width1 <= 0) or (obj.width2 <= 0) then
                begin
-                    doBreak := True;
                     obj.Free;
                     break;
                end;
@@ -571,9 +562,6 @@ begin
 
                calls.AddTask(@MatrixMultT1Func, obj);
           end;
-
-          if doBreak then
-             break;
      end;
 
      calls.SyncAll;
@@ -594,7 +582,6 @@ var obj : TAsyncMultObj;
     calls : IMtxAsyncCallGroup;
     heightFits1, heightFits : boolean;
     heightCores : TASMNativeInt;
-    doBreak : boolean;
 begin
      cpud2 := numCPUCores div 2;
      thrHeight1 := height2;
@@ -622,7 +609,6 @@ begin
      end;
 
      calls := MtxInitTaskGroup;
-     doBreak := False;
 
      for j := 0 to cpud2 - 1 do
      begin
@@ -648,7 +634,6 @@ begin
                // check if the number of cores exceeds the matrix dimension -> simply use not so many cores
                if (obj.height1 <= 0) or (obj.height2 <= 0) then
                begin
-                    doBreak := True;
                     obj.Free;
                     break;
                end;
@@ -664,9 +649,6 @@ begin
 
                calls.AddTask(@MatrixMultT2Func, obj);
           end;
-
-          if doBreak then
-             break;
      end;
 
      calls.SyncAll;

@@ -206,7 +206,7 @@ begin
                // treat the addition as vector add:
                if blkHeight > 1
                then
-                   ASMMatrixAdd(actBlk, blkHeight*sizeof(double), actBlk, multBlk, blkHeight, 1, blkHeight*sizeof(double), blkheight*sizeof(double))
+                   ASMMatrixAdd(actBlk, sizeof(double), actBlk, multBlk, blkHeight, 1, sizeof(double), sizeof(double))
                else
                    // intersting: the normal matrix addition is a bit faster (or just a tiny bit slower) than the asm version in this case!
                    GenericMtxAdd(actBlk, sizeof(double), actBlk, multBlk, 1, blkHeight, sizeof(double), sizeof(double));
