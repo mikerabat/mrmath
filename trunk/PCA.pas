@@ -15,7 +15,7 @@
 unit PCA;
 
 // ###############################################
-// #### Enhanced matrix functions
+// #### PCA related classes
 // ###############################################
 
 interface

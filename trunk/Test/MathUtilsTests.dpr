@@ -89,7 +89,9 @@ uses
   WinThreadPool in '..\win\WinThreadPool.pas',
   GCDDispatch in '..\mac\GCDDispatch.pas',
   MtxTimer in '..\MtxTimer.pas',
-  TestCCA in 'TestCCA.pas';
+  TestCCA in 'TestCCA.pas',
+  NNMF in '..\NNMF.pas',
+  TestNMF in 'TestNMF.pas';
 
 {$R *.RES}
 
