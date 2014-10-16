@@ -369,16 +369,10 @@ begin
      stop := MtxGetTime;
      Status(Format('Blocked LU decomp: %.2fms', [(stop - start)/mtxfreq*1000]));
 
-     //WriteMatlabData('D:\a.txt', a, cBlkWidth);
-     //WriteMatlabData('D:\b.txt', b, 3);
-     //WriteMatlabData('D:\x1.txt', x1, 3);
-
      start := MtxGetTime;
      ThrMatrixLinEQSolve(@a[0], cBlkWidth*sizeof(double), cBlkWidth, @b[0], 3*sizeof(double), @x2[0], 3*sizeof(double), 3);
      stop := MtxGetTime;
      Status(Format('Threaded LU decomp: %.2fms', [(stop - start)/mtxfreq*1000]));
-
-     //WriteMatlabData('D:\x2.txt', x2, 3);
 
      FinalizeMtxThreadPool;
 

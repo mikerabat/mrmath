@@ -1464,11 +1464,6 @@ begin
      FreeMem(xa);
      FreeMem(ya);
 
-     FreeMem(dest2a);
-     freeMem(dest1a);
-
-     exit;
-
      FillMatrix(1024*1024*20, x, y, xa, ya);
 
      // matrix vector operations:

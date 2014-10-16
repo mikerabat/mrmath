@@ -49,6 +49,10 @@ changelog:
 Date: 16.10.2014
 New global subspace method: Non-Negative Matrix Transformation including 3 different
 calculations schemes: divergence update, eukledian update and alternating least squares.
+Removed an unnecessary exit in the threaded matrix multiplication routin and optimized
+a bit the blocked matrix x vector multiplication.
+Fix: On platforms with many cores (> 10) the threaded matrix operations may fail because the
+break critera was met too early.
 
 Date: 30.9.2014
 Implemented a blocked QR decomposition -> outcome is the economysize QR decomposition of the input matrix
