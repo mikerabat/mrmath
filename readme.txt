@@ -46,6 +46,10 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: 16.10.2014
+New global subspace method: Non-Negative Matrix Transformation including 3 different
+calculations schemes: divergence update, eukledian update and alternating least squares.
+
 Date: 30.9.2014
 Implemented a blocked QR decomposition -> outcome is the economysize QR decomposition of the input matrix
 Fixed a few problems when loading constants. 
