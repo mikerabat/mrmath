@@ -42,7 +42,10 @@ type
   procedure TestQRDecomp;
   procedure TestQRDecomp2;
   procedure TestQRDecomp3;
-  procedure TestQRDecomp4;
+  procedure TestFullQRDecomp;
+  procedure TestLargeFullQRDecomp;
+  procedure TestAsymQRDecomp1;
+  procedure TestAsymQRDecomp2;
   procedure TestPseudoInversion;
   procedure TestPseudoInversion2;
   procedure TestBigLUDecomp;
@@ -502,10 +505,11 @@ begin
      Check(CheckMtx(cC, a), 'QR Decomposition 2 failed' );
 end;
 
-procedure TTestLinearEquations.TestQRDecomp4;
+procedure TTestLinearEquations.TestLargeFullQRDecomp;
 var a : TDoubleDynArray;
     tau : TDoubleDynArray;
     b, c : TDoubleDynArray;
+    q1, q2 : TDoubleDynArray;
     counter: Integer;
     start, stop : Int64;
 const cSize = 1258;
@@ -537,9 +541,150 @@ begin
      stop := MtxGetTime;
      Status(Format('QR decomp: %.2fms', [(stop - start)/mtxfreq*1000]));
 
-     MtxThreadPool.FinalizeMtxThreadPool;
      Check(CheckMtx(a, b), 'Blocked QR failed miserably');
      Check(CheckMtx(a, c), 'Threaded QR failed miserably');
+
+     // now check the creation of the full Q an R matrices:
+     q1 := Copy(a, 0, Length(a));
+     q2 := Copy(a, 0, Length(a));
+
+     start := MtxGetTime;
+     MatrixQFromQRDecomp(@q1[0], cSize*SizeOf(double), cSize, cSize, @tau[0], 24, nil);
+     stop := MtxGetTime;
+
+     Status(Format('Q from ecosize QR decomp: %.2fms', [(stop - start)/mtxfreq*1000]));
+
+     start := MtxGetTime;
+     ThrMatrixQFromQRDecomp(@q2[0], cSize*SizeOf(double), cSize, cSize, @tau[0], 24, nil);
+     stop := MtxGetTime;
+
+     Status(Format('Threaded Q from ecosize QR decomp: %.2fms', [(stop - start)/mtxfreq*1000]));
+     Check(CheckMtx(q1, q2), 'Threaded Q from ecsosize QR failed');
+     
+     MtxThreadPool.FinalizeMtxThreadPool;
+end;
+
+procedure TTestLinearEquations.TestFullQRDecomp;
+var q : TDoubleDynArray;
+    qBlk : TDoubleDynArray;
+    R : TDoubleDynArray;
+    tau : TDoubleDynArray;
+    x, y : integer;
+    dest : TDoubleDynArray;
+const cSize = 6;
+      cA : Array[0..cSize*cSize - 1] of double = (1, 2, 2, 0.5, -1, -2,
+                                   -1, 4, -2, -0.1, 0.1, -1,
+                                   2, 2, -1, 1.2, 1, 1,
+                                   3, 2, -1, -1.1, -1.1, -2,
+                                   1.5, 3, -1, -1, -2, 1,
+                                   1, 1, 2, 2, -1, -1);
+begin
+     SetLength(tau, cSize*cSize);
+
+     SetLength(q, cSize*cSize);
+     Move(ca, q[0], sizeof(ca));
+
+     MatrixQRDecompInPlace2(@q[0], cSize*sizeof(double), cSize, cSize, @tau[0], nil, 4);
+     R := Copy(q, 0, length(q));
+     qBlk := Copy(q, 0, length(q));
+     // zero out the parts occupied by Q
+     for y := 1 to cSize - 1 do
+     begin
+          for x := 0 to y - 1 do
+              R[x + y*cSize] := 0;
+     end;
+     MatrixQFromQRDecomp(@q[0], cSize*sizeof(double), cSize, cSize, @tau[0], cSize, nil);
+
+     // blocked version
+     MatrixQFromQRDecomp(@qBlk[0], cSize*sizeof(double), cSize, cSize, @tau[0], 2, nil );
+
+     // simple test if Q*R matches cA
+     dest := MatrixMult(Q, r, cSize, cSize, cSize, cSize);
+
+     Check(CheckMtx(dest, ca), 'Error Q*R does not match A');
+
+     dest := MatrixMult(QBlk, r, cSize, CSize, CSize, CSize);
+
+     Check(CheckMtx(dest, ca), 'Error blocked Q*R does not match A');
+end;
+
+procedure TTestLinearEquations.TestAsymQRDecomp1;
+const cBlkWidth = 12;
+      cBlkHeight = 7;
+      cBlkSize = cBlkWidth*cBlkHeight;
+var x, y : integer;
+    i: Integer;
+    A, q, R, qBlk : TDoubleDynArray;
+    tau, dest : TDoubleDynArray;
+begin
+     SetLength(q, cBlkWidth*cBlkHeight);
+     RandSeed := 15;
+     for i := 0 to cBlkSize - 1 do
+         q[i] := Random - 0.5;
+
+     A := Copy(q, 0, Length(q));
+     SetLength(tau, cBlkWidth);
+
+     MatrixQRDecompInPlace2(@q[0], cBlkWidth*sizeof(double), cBlkWidth, cBlkHeight, @tau[0]);
+
+     R := Copy(q, 0, length(q));
+     qBlk := Copy(q, 0, length(q));
+     // zero out the parts occupied by Q
+     for y := 1 to cBlkHeight - 1 do
+     begin
+          for x := 0 to y - 1 do
+              R[x + y*cBlkWidth] := 0;
+     end;
+     MatrixQFromQRDecomp(@q[0], cBlkWidth*sizeof(double), cBlkWidth, cBlkHeight, @tau[0], cBlkWidth, nil);
+
+     // blocked version
+     MatrixQFromQRDecomp(@qBlk[0], cBlkWidth*sizeof(double), cBlkWidth, cBlkHeight, @tau[0], 4, nil);
+
+     Check(CheckMtx(q, qBlk, cBlkWidth), 'Error: blocked Q version differs from unblocked');
+
+     // simple test if Q*R matches A
+     dest := MatrixMult(@qBlk[0], @r[0], cBlkHeight, cBlkHeight, cBlkWidth, cBlkHeight, cBlkWidth*sizeof(double), cBlkWidth*sizeof(double));
+     Check(CheckMtx(dest, a), 'Error Q*R does not match A');
+end;
+
+procedure TTestLinearEquations.TestAsymQRDecomp2;
+const cBlkWidth = 7;
+      cBlkHeight = 12;
+      cBlkSize = cBlkWidth*cBlkHeight;
+var x, y : integer;
+    i: Integer;
+    A, q, R, qBlk : TDoubleDynArray;
+    tau, dest : TDoubleDynArray;
+begin
+     SetLength(q, cBlkWidth*cBlkHeight);
+     RandSeed := 15;
+     for i := 0 to cBlkSize - 1 do
+         q[i] := Random - 0.5;
+
+     A := Copy(q, 0, Length(q));
+     SetLength(tau, cBlkWidth);
+
+     MatrixQRDecompInPlace2(@q[0], cBlkWidth*sizeof(double), cBlkWidth, cBlkHeight, @tau[0]);
+
+     R := Copy(q, 0, length(q));
+     qBlk := Copy(q, 0, length(q));
+     // zero out the parts occupied by Q
+     for y := 1 to cBlkHeight - 1 do
+     begin
+          for x := 0 to y - 1 do
+              R[x + y*cBlkWidth] := 0;
+     end;
+
+     MatrixQFromQRDecomp(@q[0], cBlkWidth*sizeof(double), cBlkWidth, cBlkHeight, @tau[0], cBlkWidth, nil);
+
+     // blocked version
+     MatrixQFromQRDecomp(@qBlk[0], cBlkWidth*sizeof(double), cBlkWidth, cBlkHeight, @tau[0], 4, nil);
+
+     Check(CheckMtx(q, qBlk, cBlkWidth), 'Error: blocked Q version differs from unblocked');
+
+     // simple test if Q*R matches A
+     dest := MatrixMult(@qBlk[0], @r[0], cBlkWidth, cBlkHeight, cBlkWidth, cBlkWidth, cBlkWidth*sizeof(double), cBlkWidth*sizeof(double));
+     Check(CheckMtx(dest, a), 'Error Q*R does not match A');
 end;
 
 procedure TTestLinearEquations.TestSVD1;

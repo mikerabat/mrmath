@@ -181,6 +181,8 @@ type
     function Cholesky(out Chol : IMatrix) : TCholeskyResult; overload;
     function QR(out R : TDoubleMatrix; out tau : TDoubleMatrix) : TQRResult; overload;
     function QR(out R : IMatrix; out tau : IMatrix) : TQRResult; overload;
+    function QRFull(out Q, R : TDoubleMatrix) : TQRResult; overload;
+    function QRFull(out Q, R : IMatrix) : TQRResult; overload;
 
     // ###################################################
     // #### Matrix assignment operations
@@ -197,8 +199,14 @@ type
 
 // #################################################
 // #### Builds base matrix operations
+  TDoubleMatrixClass = class of TDoubleMatrix;
   TDoubleMatrix = class(TBaseMathPersistence, IMatrix)
   protected
+    // used to determine which class type to use as a result
+    // e.g. the threaded class does not override all standard functions but
+    // the resulting class type shall always be the threaded class!
+    class function ResultClass : TDoubleMatrixClass; virtual;
+  
     // matrix persistence functions
     function GetItems(x, y: integer): double; register;
     procedure SetItems(x, y: integer; const Value: double); register;
@@ -379,6 +387,8 @@ type
     function Cholesky(out Chol : IMatrix) : TCholeskyResult; overload;
     function QR(out ecosizeR : TDoubleMatrix; out tau : TDoubleMatrix) : TQRResult; overload; virtual;
     function QR(out ecosizeR : IMatrix; out tau : IMatrix) : TQRResult; overload;
+    function QRFull(out Q, R : TDoubleMatrix) : TQRResult; overload; virtual;
+    function QRFull(out Q, R : IMatrix) : TQRResult; overload;
 
     // ###################################################
     // #### Matrix assignment operations
@@ -420,7 +430,7 @@ type
 function TDoubleMatrix.Abs: TDoubleMatrix;
 begin
      CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'Dimension Error');
-     Result := TDoubleMatrix.Create;
+     Result := ResultClass.Create;
      Result.Assign(Self, True);
 
      MatrixAbs(Result.StartElement, Result.LineWidth, Result.Width, Result.Height);
@@ -441,7 +451,7 @@ end;
 function TDoubleMatrix.Add(const Value: double): TDoubleMatrix;
 begin
      CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'Dimension Error');
-     Result := TDoubleMatrix.Create;
+     Result := ResultClass.Create;
      Result.Assign(Self, True);
 
      MatrixAddAndScale(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, Value, 1);
@@ -450,7 +460,7 @@ end;
 function TDoubleMatrix.AddAndScale(const Offset, Scale: double): TDoubleMatrix;
 begin
      CheckAndRaiseError((width > 0) and (Height > 0), 'No data assigned');
-     Result := TDoubleMatrix.Create;
+     Result := ResultClass.Create;
      Result.Assign(self, True);
 
      Result.AddAndScaleInPlace(Offset, Scale);
@@ -544,7 +554,7 @@ begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
      CheckAndRaiseError((Value.fSubWidth = fSubWidth) and (Value.fSubHeight = fSubHeight), 'Dimension error');
 
-     Result := TDoubleMatrix.Create(fSubWidth, fSubHeight);
+     Result := ResultClass.Create(fSubWidth, fSubHeight);
      MatrixAdd(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight, LineWidth, Value.LineWidth);
 end;
 
@@ -558,7 +568,7 @@ var p : TDoubleDynArray;
     x, y : integer;
 begin
      CheckAndRaiseError((fSubWidth > 0) and (fSubWidth = fSubHeight), 'Cholesky decomposition is only allowed on square matrices');
-     chol := TDoubleMatrix.Create(fSubWidth, fSubHeight);
+     chol := ResultClass.Create(fSubWidth, fSubHeight);
      try
         SetLength(p, fSubWidth);
 
@@ -590,6 +600,24 @@ begin
      SetWidthHeight(1, 1);
 end;
 
+constructor TDoubleMatrix.Create(data: PDouble; aLineWidth, aWidth,
+  aHeight: integer);
+begin
+     inherited Create;
+
+     fWidth := aWidth;
+     fHeight := aHeight;
+     fMemory := data;
+     fData := PConstDoubleArr(data);
+     fLineWidth := aLineWidth;
+
+     fOffsetX := 0;
+     fOffsetY := 0;
+     fSubWidth := fWidth;
+     fSubHeight := fHeight;
+     CheckAndRaiseError(width*sizeof(double) <= LineWidth, 'Dimension error');
+end;
+
 constructor TDoubleMatrix.Create(aWidth, aHeight: integer; const initVal : double);
 var pData : PDouble;
     x, y : integer;
@@ -614,6 +642,25 @@ begin
      end;
 end;
 
+constructor TDoubleMatrix.Create(const Data: TDoubleDynArray; aWidth,
+  aHeight: integer);
+begin
+     inherited Create;
+
+     Assign(Data, aWidth, aHeight);
+end;
+
+constructor TDoubleMatrix.CreateEye(aWidth: integer);
+var i : integer;
+begin
+     inherited Create;
+
+     SetWidthHeight(aWidth, aWidth);
+
+     for i := 0 to width - 1 do
+         Items[i, i] := 1;
+end;
+
 function TDoubleMatrix.Determinant: double;
 begin
      CheckAndRaiseError((Width > 0) and (Height = Width), 'Determinant only allowed on square matrices');
@@ -628,7 +675,7 @@ begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
      CheckAndRaiseError((fSubWidth = fSubHeight) and (Value.fSubHeight = fSubHeight), 'Dimension error');
 
-     Result := TDoubleMatrix.Create(Value.fSubWidth, fSubHeight);
+     Result := ResultClass.Create(Value.fSubWidth, fSubHeight);
      try
         if MatrixLinEQSolve(StartElement, LineWidth, fSubWidth, Value.StartElement, Value.LineWidth, Result.StartElement,
                             Result.LineWidth, Value.fSubWidth, numRefinements, fLinEQProgress) = leSingular
@@ -662,7 +709,7 @@ begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
      CheckAndRaiseError((fSubWidth = fSubHeight) and (Value.fSubHeight = fSubHeight), 'Dimension error');
 
-     dt := TDoubleMatrix.Create(Value.fSubWidth, fSubHeight);
+     dt := ResultClass.Create(Value.fSubWidth, fSubHeight);
      try
         if MatrixLinEQSolve(StartElement, LineWidth, fSubWidth, Value.StartElement, Value.LineWidth, dt.StartElement,
                             dt.LineWidth, Value.fSubWidth, numRefinements, fLinEQProgress) = leSingular
@@ -678,7 +725,7 @@ end;
 function TDoubleMatrix.SQRT: TDoubleMatrix;
 begin
      CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
-     Result := TDoubleMatrix.Create;
+     Result := ResultClass.Create;
      Result.Assign(Self, True);
 
      MatrixSQRT(Result.StartElement, Result.LineWidth, Result.Width, Result.Height);
@@ -697,7 +744,7 @@ begin
      CheckAndRaiseError((fSubWidth > 0) and (fSubHeight = fSubWidth), 'Eigenvalues are only defined for square matrices');
 
      EigVals := nil;
-     dt := TDoubleMatrix.Create(fSubWidth, 2);
+     dt := ResultClass.Create(fSubWidth, 2);
      pReal := dt.StartElement;
      pImag := pReal;
      inc(pImag);
@@ -721,12 +768,12 @@ begin
      dt := nil;
      vec := nil;
      try
-        dt := TDoubleMatrix.Create(fSubWidth, 2);
+        dt := ResultClass.Create(fSubWidth, 2);
         pReal := dt.StartElement;
         pImag := pReal;
         inc(pImag);
 
-        vec := TDoubleMatrix.Create(fSubWidth, fSubHeight);
+        vec := ResultClass.Create(fSubWidth, fSubHeight);
         Result := MatrixEigVecHessenbergInPlace(StartElement, LineWidth, fSubWidth, pReal, dt.LineWidth, pImag, dt.LineWidth,
                                                 vec.StartElement, vec.LineWidth);
         if Result = qlOk then
@@ -750,7 +797,7 @@ end;
 function TDoubleMatrix.ElementwiseFunc(func: TMatrixFunc): TDoubleMatrix;
 begin
      CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
-     Result := TDoubleMatrix.Create;
+     Result := ResultClass.Create;
      Result.Assign(self);
 
      MatrixFunc(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, func);
@@ -766,7 +813,7 @@ end;
 function TDoubleMatrix.ElementwiseFunc(func: TMatrixObjFunc): TDoubleMatrix;
 begin
      CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
-     Result := TDoubleMatrix.Create;
+     Result := ResultClass.Create;
      Result.Assign(self);
 
      MatrixFunc(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, func);
@@ -782,7 +829,7 @@ end;
 function TDoubleMatrix.ElementwiseFunc(func: TMatrixMtxRefFunc): TDoubleMatrix;
 begin
      CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
-     Result := TDoubleMatrix.Create;
+     Result := ResultClass.Create;
      Result.Assign(self);
 
      MatrixFunc(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, func);
@@ -791,7 +838,7 @@ end;
 function TDoubleMatrix.ElementwiseFunc(func: TMatrixMtxRefObjFunc): TDoubleMatrix;
 begin
      CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
-     Result := TDoubleMatrix.Create;
+     Result := ResultClass.Create;
      Result.Assign(self);
 
      MatrixFunc(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, func);
@@ -815,7 +862,7 @@ function TDoubleMatrix.ElementWiseMult(Value: TDoubleMatrix) : TDoubleMatrix;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
      CheckAndRaiseError((fSubWidth = Value.fSubWidth) and (fSubHeight = Value.fSubHeight), 'Dimension error');
-     Result := TDoubleMatrix.Create;
+     Result := ResultClass.Create;
      Result.Assign(self);
      MatrixElemMult(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight, LineWidth, Value.LineWidth);
 end;
@@ -831,7 +878,7 @@ function TDoubleMatrix.ElementWiseDiv(Value: TDoubleMatrix): TDoubleMatrix;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
      CheckAndRaiseError((fSubWidth = Value.fSubWidth) and (fSubHeight = Value.fSubHeight), 'Dimension error');
-     Result := TDoubleMatrix.Create;
+     Result := ResultClass.Create;
      Result.Assign(self);
      MatrixElemDiv(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight, LineWidth, Value.LineWidth);
 end;
@@ -896,7 +943,7 @@ begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
      CheckAndRaiseError(fSubWidth = fSubHeight, 'Operation only allowed on square matrices');
 
-     Result := TDoubleMatrix.Create;
+     Result := ResultClass.Create;
      try
         Result.Assign(Self, True);
 
@@ -914,7 +961,7 @@ begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
      CheckAndRaiseError(fSubWidth = fSubHeight, 'Operation only allowed on square matrices');
 
-     dt := TDoubleMatrix.Create(Width, Height);
+     dt := ResultClass.Create(Width, Height);
      try
         dt.Assign(self, True);
         Result := MatrixInverseInPlace(dt.StartElement, dt.LineWidth, fSubWidth, fLinEQProgress);
@@ -973,13 +1020,13 @@ begin
 
      if RowWise then
      begin
-          Result := TDoubleMatrix.Create(1, fSubHeight);
+          Result := ResultClass.Create(1, fSubHeight);
 
           MatrixMean(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise);
      end
      else
      begin
-          Result := TDoubleMatrix.Create(fSubWidth, 1);
+          Result := ResultClass.Create(fSubWidth, 1);
 
           MatrixMean(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise);
      end;
@@ -1023,13 +1070,13 @@ begin
 
      if RowWise then
      begin
-          Result := TDoubleMatrix.Create(1, fSubHeight);
+          Result := ResultClass.Create(1, fSubHeight);
 
           MatrixVar(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise, unbiased);
      end
      else
      begin
-          Result := TDoubleMatrix.Create(fSubWidth, 1);
+          Result := ResultClass.Create(fSubWidth, 1);
 
           MatrixVar(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise, unbiased);
      end;
@@ -1058,7 +1105,7 @@ end;
 function TDoubleMatrix.Mult(Value: TDoubleMatrix): TDoubleMatrix;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     Result := TDoubleMatrix.Create(Value.fSubWidth, fSubHeight);
+     Result := ResultClass.Create(Value.fSubWidth, fSubHeight);
 
      MatrixMult(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight,
                 Value.fSubWidth, Value.fSubHeight, LineWidth, Value.LineWidth);
@@ -1110,7 +1157,7 @@ end;
 function TDoubleMatrix.MultT1(Value: TDoubleMatrix): TDoubleMatrix;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     Result := TDoubleMatrix.Create(Value.fSubWidth, fSubWidth);
+     Result := ResultClass.Create(Value.fSubWidth, fSubWidth);
 
      MatrixMultT1(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight,
                 Value.fSubWidth, Value.fSubHeight, LineWidth, Value.LineWidth);
@@ -1119,7 +1166,7 @@ end;
 function TDoubleMatrix.MultT2(Value: TDoubleMatrix): TDoubleMatrix;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     Result := TDoubleMatrix.Create(Value.fSubHeight, fSubHeight);
+     Result := ResultClass.Create(Value.fSubHeight, fSubHeight);
 
      MatrixMultT2(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight,
                 Value.fSubWidth, Value.fSubHeight, LineWidth, Value.LineWidth);
@@ -1128,7 +1175,7 @@ end;
 function TDoubleMatrix.Scale(const Value: double): TDoubleMatrix;
 begin
      CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'Dimension Error');
-     Result := TDoubleMatrix.Create;
+     Result := ResultClass.Create;
      Result.Assign(Self, True);
 
      MatrixAddAndScale(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, 0, Value);
@@ -1137,7 +1184,7 @@ end;
 function TDoubleMatrix.ScaleAndAdd(const aOffset, aScale: double): TDoubleMatrix;
 begin
      CheckAndRaiseError((width > 0) and (Height > 0), 'No data assigned');
-     Result := TDoubleMatrix.Create;
+     Result := ResultClass.Create;
      Result.Assign(self, True);
 
      Result.ScaleAndAddInPlace(aOffset, aScale);
@@ -1162,9 +1209,9 @@ begin
 
      if RowWise
      then
-         dt := TDoubleMatrix.Create(Width, 1)
+         dt := ResultClass.Create(Width, 1)
      else
-         dt := TDoubleMatrix.Create(1, Height);
+         dt := ResultClass.Create(1, Height);
 
      try
         MatrixNormalize(dt.StartElement, dt.LineWidth, StartElement, LineWidth, Width, Height, RowWise);
@@ -1178,7 +1225,7 @@ function TDoubleMatrix.PseudoInversion(out mtx : TDoubleMatrix) : TSVDResult;
 begin
      CheckAndRaiseError((width > 0) and (height > 0), 'Dimension error');
 
-     mtx := TDoubleMatrix.Create;
+     mtx := ResultClass.Create;
      try
         mtx.Assign(self);
         mtx.fLinEQProgress := fLinEQProgress;
@@ -1203,7 +1250,7 @@ var mtx : TDoubleMatrix;
 begin
      CheckAndRaiseError((width > 0) and (height > 0), 'Dimension error');
 
-     mtx := TDoubleMatrix.Create(height, width);
+     mtx := ResultClass.Create(height, width);
      try
         Result := MatrixPseudoinverse(mtx.StartElement, mtx.LineWidth, StartElement, LineWidth, Width, Height, fLinEQProgress);
 
@@ -1223,10 +1270,79 @@ begin
      tau := outTau;
 end;
 
+function TDoubleMatrix.QRFull(out Q, R: TDoubleMatrix): TQRResult;
+var tau : TDoubleMatrix;
+    tmp : TDoubleMatrix;
+    x, y : integer;
+    pdata : PConstDoubleArr;
+begin
+     Q := nil;
+     R := nil;
+
+     // ###########################################
+     // #### First create a compact QR decomposition
+     Result := QR(R, Tau);
+
+     if Result <> qrOK then
+     begin
+          FreeAndNil(R);
+          exit;
+     end;
+
+     // ###########################################
+     // #### Calculation Q from the previous operation
+     tmp := ResultClass.Create;
+     try
+        tmp.Assign(R);
+     
+        MatrixQFromQRDecomp(tmp.StartElement, tmp.LineWidth, Width, Height, tau.StartElement, fLinEQProgress);
+
+        // now assign only the relevant parts of Q (or just copy it if we have a square matrix)
+        if Width = height 
+        then
+            Q := tmp
+        else
+        begin
+             // economy size Q:
+             tmp.SetSubMatrix(0, 0, Math.min(tmp.Width, tmp.Height), tmp.Height);
+          
+             Q := ResultClass.Create;
+             Q.Assign(tmp, True);
+             tmp.Free;
+             
+             tmp := R;
+             tmp.SetSubMatrix(0, 0, tmp.Width, Math.Min(tmp.Width, tmp.Height));
+             R := ResultClass.Create;
+             R.Assign(tmp, True);
+             tmp.Free;
+        end;       
+
+        // clear R so we only have un upper triangle matrix
+        // zero out the parts occupied by Q
+        for y := 1 to R.Height - 1 do
+        begin
+             pData := PConstDoubleArr( R.StartElement );
+             inc(PByte(pData), y*R.LineWidth);
+             for x := 0 to Math.Min(r.Width, y) - 1 do
+                 pData^[x] := 0;
+        end;
+     finally
+            Tau.Free;
+     end;
+end;
+
+function TDoubleMatrix.QRFull(out Q, R: IMatrix): TQRResult;
+var outR, outQ : TDoubleMatrix;
+begin
+     Result := QRFull(outR, outQ);
+     Q := outQ;
+     R := outR;
+end;
+
 function TDoubleMatrix.QR(out ecosizeR: TDoubleMatrix; out tau : TDoubleMatrix): TQRResult;
 begin
-     ecosizeR := TDoubleMatrix.Create;
-     tau := TDoubleMatrix.Create(width, 1);
+     ecosizeR := ResultClass.Create;
+     tau := ResultClass.Create(width, 1);
      try
         ecosizeR.Assign(self);
         Result := MatrixQRDecompInPlace2(ecosizeR.StartElement, ecosizeR.LineWidth, width, height, tau.StartElement, fLinEQProgress);
@@ -1269,7 +1385,7 @@ begin
      CheckAndRaiseError((fWidth > 0) and (fHeight > 0), 'Error operation not allowed on empty matrices');
      CheckAndRaiseError((newWidth*newHeight) = (fWidth*fHeight), 'Error new dimension does not fit into the old one');
 
-     Result := TDoubleMatrix.Create;
+     Result := ResultClass.Create;
      try
         Result.Assign(Self, True);
         Result.ReshapeInPlace(newWidth, newHeight);
@@ -1341,6 +1457,11 @@ begin
      fSubHeight := newHeight;
      fOffsetX := 0;
      fOffsetY := 0;
+end;
+
+class function TDoubleMatrix.ResultClass: TDoubleMatrixClass;
+begin
+     Result := TDoubleMatrix;
 end;
 
 procedure TDoubleMatrix.SetColumn(col : integer; Values: TDoubleMatrix; ValCols : integer);
@@ -1496,7 +1617,7 @@ begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
      CheckAndRaiseError((Value.fSubWidth = fSubWidth) and (Value.fSubHeight = fSubHeight), 'Dimension error');
 
-     Result := TDoubleMatrix.Create(fSubWidth, fSubHeight);
+     Result := ResultClass.Create(fSubWidth, fSubHeight);
      MatrixSub(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight, LineWidth, Value.LineWidth);
 end;
 
@@ -1532,13 +1653,13 @@ begin
 
      if RowWise then
      begin
-          Result := TDoubleMatrix.Create(1, fSubHeight);
+          Result := ResultClass.Create(1, fSubHeight);
 
           MatrixSum(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise);
      end
      else
      begin
-          Result := TDoubleMatrix.Create(fSubWidth, 1);
+          Result := ResultClass.Create(fSubWidth, 1);
 
           MatrixSum(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise);
      end;
@@ -1574,9 +1695,9 @@ begin
      V := nil;
      W := Nil;
      try
-        U := TDoubleMatrix.Create(fSubWidth, fSubHeight);
-        V := TDoubleMatrix.Create(fSubWidth, fSubWidth);
-        W := TDoubleMatrix.Create(ifthen(onlyDiagElements, 1, fSubWidth), fSubWidth);
+        U := ResultClass.Create(fSubWidth, fSubHeight);
+        V := ResultClass.Create(fSubWidth, fSubWidth);
+        W := ResultClass.Create(ifthen(onlyDiagElements, 1, fSubWidth), fSubWidth);
 
         // create three matrices -> Matrix W is a diagonal matrix with the singular values stored in the diagonal
         Result := MatrixSVD(StartElement, LineWidth, fSubWidth, fSubHeight, U.StartElement, U.LineWidth, 
@@ -1606,8 +1727,8 @@ begin
 
      EigVals := nil;
 
-     dt := TDoubleMatrix.Create(fSubWidth, 1);
-     vec := TDoubleMatrix.Create(fSubWidth, fSubWidth);
+     dt := ResultClass.Create(fSubWidth, 1);
+     vec := ResultClass.Create(fSubWidth, fSubWidth);
      try
         Result := MatrixEigTridiagonalMatrix(vec.StartElement, vec.LineWidth, StartElement, LineWidth, fSubWidth, dt.StartElement, dt.LineWidth);
         if Result = qlOk then
@@ -1637,8 +1758,8 @@ begin
      EigVals := nil;
      EigVect := nil;
 
-     dt := TDoubleMatrix.Create(fSubWidth, 1);
-     vec := TDoubleMatrix.Create(fSubWidth, fSubWidth);
+     dt := ResultClass.Create(fSubWidth, 1);
+     vec := ResultClass.Create(fSubWidth, fSubWidth);
      try
         Result := MatrixEigTridiagonalMatrix(vec.StartElement, vec.LineWidth, StartElement, LineWidth, fSubWidth, dt.StartElement, dt.LineWidth);
         if Result = qlOk then
@@ -1662,7 +1783,7 @@ end;
 function TDoubleMatrix.Transpose : TDoubleMatrix;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     Result := TDoubleMatrix.Create(fSubHeight, fSubWidth);
+     Result := ResultClass.Create(fSubHeight, fSubWidth);
      MatrixTranspose(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight);
 end;
 
@@ -1794,26 +1915,8 @@ end;
 
 function TDoubleMatrix.Clone: TDoubleMatrix;
 begin
-     Result := TDoubleMatrix.Create(Width, Height);
+     Result := ResultClass.Create(Width, Height);
      Result.Assign(Self);
-end;
-
-constructor TDoubleMatrix.Create(data: PDouble; aLineWidth, aWidth,
-  aHeight: integer);
-begin
-     inherited Create;
-
-     fWidth := aWidth;
-     fHeight := aHeight;
-     fMemory := data;
-     fData := PConstDoubleArr(data);
-     fLineWidth := aLineWidth;
-
-     fOffsetX := 0;
-     fOffsetY := 0;
-     fSubWidth := fWidth;
-     fSubHeight := fHeight;
-     CheckAndRaiseError(width*sizeof(double) <= LineWidth, 'Dimension error');
 end;
 
 procedure TDoubleMatrix.SetRow(row: integer; Values: IMatrix; ValRow: integer);
@@ -1899,25 +2002,6 @@ var outEigVals : TDoubleMatrix;
 begin
      Result := Eig(outEigVals);
      EigVals := outEigVals;
-end;
-
-constructor TDoubleMatrix.Create(const Data: TDoubleDynArray; aWidth,
-  aHeight: integer);
-begin
-     inherited Create;
-
-     Assign(Data, aWidth, aHeight);
-end;
-
-constructor TDoubleMatrix.CreateEye(aWidth: integer);
-var i : integer;
-begin
-     inherited Create;
-
-     SetWidthHeight(aWidth, aWidth);
-
-     for i := 0 to width - 1 do
-         Items[i, i] := 1;
 end;
 
 initialization

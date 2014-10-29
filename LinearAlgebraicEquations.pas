@@ -112,6 +112,12 @@ procedure MatrixQRSolveLinEq(A : PDouble; const LineWidthA : integer; width : in
 function MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; progress : TLinEquProgress = nil) : TQRResult; overload;
 function MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; work : PDouble; pnlSize : integer; progress : TLinEquProgress = nil) : TQRResult; overload;
 
+// implementation of Lapacks dorgqr function: On start the matrix A and Tau contains the result of
+// the MatrixQRDecompInPlace2 function (economy size QR Decomposition). On output A is replaced by the full Q
+// matrix with orthonormal columns.
+procedure MatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; progress : TLinEquProgress = nil); overload;
+procedure MatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; BlockSize : integer; work : PDouble; progress : TLinEquProgress = nil); overload;
+
 // Pseudoinversion - implementation taken from matlab
 // X = pinv(A) produces a matrix X of the same dimensions
 //  as A' so that A*X*A = A, X*A*X = X and A*X and X*A
@@ -154,8 +160,7 @@ type
   end;
 
 function InternalMatrixQRDecompInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; qrData : TRecMtxQRDecompData) : boolean;
-
-
+procedure InternalBlkMatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; qrData : TRecMtxQRDecompData);
 
 implementation
 
@@ -468,139 +473,6 @@ begin
         progress(100);
 end;
 
-(*
-function InternalMatrixLUDecompInPlace(A : PDouble; const LineWidthA : Integer; width, height : integer; indx : PIntegerArray; var parity : double; progress : TLinEquProgress) : TLinEquResult;
-var i, imax, j, k : integer;
-    big, dum, sum : double;
-    vv : Array of double;
-    pVal : PDouble;
-    pSum1, PSum2 : PDouble;
-    pA : PDouble;
-begin
-     assert(LineWidthA*sizeof(double) >= width, 'Dimension Error');
-
-     if Assigned(progress) then
-        progress(0);
-     Result := leSingular;
-
-     SetLength(vv, width);
-     parity := 1;
-     imax := 0;
-
-     // check implicit scaling for each row
-     pA := A;
-     for i := 0 to width - 1 do
-     begin
-          big := 0;
-          pVal := pA;
-
-          for j := 0 to width - 1 do
-          begin
-               big := Max(big, Abs(pVal^));
-               inc(pVal);
-          end;
-
-          if big = 0 then
-             exit;
-
-          vv[i] := 1/big;
-
-          inc(PByte(pA), LineWidthA);
-     end;
-
-     // ############################################
-     // #### main loop
-     for j := 0 to width - 1 do
-     begin
-          if Assigned(progress) then
-             progress(Int64(j)*100 div Int64(width));
-
-          pVal := A;
-          inc(pVal, j);
-
-          for i := 0 to j - 1 do
-          begin
-               sum := pVal^;
-               pSum1 := A;
-               inc(PByte(pSum1), LineWidthA*i);
-               pSum2 := A;
-               inc(pSum2, j);
-               for k := 0 to i - 1 do
-               begin
-                    sum := sum - pSum1^*pSum2^;
-                    inc(pSum1);
-                    inc(PByte(pSum2), LineWidthA);
-               end;
-
-               pVal^ := sum;
-               inc(PByte(pVal), LineWidthA);
-          end;
-
-          big := 0;
-          for i := j to width - 1 do
-          begin
-               pVal := A;
-               inc(PByte(pVal), i*LineWidthA);
-               inc(pVal, j);
-               sum := pVal^;
-               pSum1 := A;
-               inc(PByte(pSum1), i*LineWidthA);
-               pSum2 := A;
-               inc(pSum2, j);
-               for k := 0 to j - 1 do
-               begin
-                    sum := sum - pSum1^*pSum2^;
-                    inc(pSum1);
-                    inc(PByte(pSum2), LineWidthA);
-               end;
-
-               pVal^ := sum;
-               dum := vv[i]*abs(sum);
-               if dum >= big then
-               begin
-                    big := dum;
-                    imax := i;
-               end;
-          end;
-
-          if j <> imax then
-          begin
-               pSum1 := PDouble(PByte(A) + imax*LineWidthA);
-               pSum2 := PDouble(PByte(A) + j*LineWidthA);
-               MatrixRowSwap(pSum1, pSum2, width);
-
-               parity := -parity;
-               vv[imax] := vv[j];
-          end;
-
-          indx[j] := imax;
-          // if the pivot element is zero the matrix is singular (at least to the precission
-          // of the algorithm). For some applications on singular matrices, it is desirable to substitute a small
-          // number for zero
-          pVal := A;
-          inc(PByte(pVal), j*LineWidthA);
-          inc(pVal, j);
-          if pVal^ = 0 then
-             pVal^ := cDefEpsilon;
-
-          if j <> width - 1 then
-          begin
-               dum := 1/pVal^;
-               for i := j + 1 to height - 1 do
-               begin
-                    inc(PByte(pVal), LineWidthA);
-                    pVal^ := pVal^*dum;
-               end;
-          end;
-     end;
-
-     if Assigned(progress) then
-        progress(100);
-
-     Result := leOk;
-end;
-*)
-
 // LUSWAP performs a series of row interchanges on the matrix A.
 // One row interchange is initiated for each of rows K1 through K2 of A.
 procedure LUSwap(A : PDouble; const LineWidthA : Integer; width : integer; k1, k2 : integer; indx : PIntegerArray; var parity : integer);
@@ -631,58 +503,37 @@ var j, i, k : integer;
     pB, pBj : PDouble;
     pBDest, pBDestj, pBDesti : PDouble;
 begin
- (*  original part of dtrsm.f
-     for (j = 1; j <= *n; ++j) {
-     i__2 = *m;
-		    for (k = 1; k <= *m; ++k) {
-			if (B(k,j) != 0.) {
-			    if (nounit) {
-				B(k,j) /= A(k,k);
-			    }
-			    i__3 = *m;
-			    for (i = k + 1; i <= *m; ++i) {
-				B(i,j) -= B(k,j) * A(i,k);
-   *)
+     pA := A;
+     inc(PByte(pA), LineWidth);
 
-  // for k := 1 to height do
-//       for i := k + 1 to height do
-//           for j := 1 to width do
-//               Bij(i,j)^ := Bij(i,j)^ - Bkj(k,j)*Aik(i,k);
-//
-//
-//   exit;
+     pB := B;
+     pBDest := B;
+     inc(PByte(pBDest), LineWidth);
+     for k := 0 to height - 1 do
+     begin
+          pAi := pA;
+          pBDesti := pBDest;
 
-   pA := A;
-   inc(PByte(pA), LineWidth);
+          for i := k + 1 to height - 1 do
+          begin
+               pBj := pB;
+               pBDestj := pBDesti;
+               for j := 0 to width - 1 do
+               begin
+                    pBDestj^ := pBDestj^ - pBj^*pAi^;
 
-   pB := B;
-   pBDest := B;
-   inc(PByte(pBDest), LineWidth);
-   for k := 0 to height - 1 do
-   begin
-        pAi := pA;
-        pBDesti := pBDest;
+                    inc(pBj);
+                    inc(pBDestj);
+               end;
 
-        for i := k + 1 to height - 1 do
-        begin
-             pBj := pB;
-             pBDestj := pBDesti;
-             for j := 0 to width - 1 do
-             begin
-                  pBDestj^ := pBDestj^ - pBj^*pAi^;
-
-                  inc(pBj);
-                  inc(pBDestj);
-             end;
-
-             inc(PByte(pAi), LineWidth);
-             inc(PByte(pBDesti), LineWidth);
-        end;
-        inc(pA);
-        inc(PByte(pA), LineWidth);
-        inc(PByte(pB), LineWidth);
-        inc(PByte(pBDest), LineWidth);
-   end;
+               inc(PByte(pAi), LineWidth);
+               inc(PByte(pBDesti), LineWidth);
+          end;
+          inc(pA);
+          inc(PByte(pA), LineWidth);
+          inc(PByte(pB), LineWidth);
+          inc(PByte(pBDest), LineWidth);
+     end;
 end;
 
 const cBlkMultSize = 48;
@@ -1006,10 +857,9 @@ end;
 
 procedure TLinearEQProgress.LUDecompSolveProgress(Progress: Integer);
 begin
-     if numRefinenmentSteps > 0 then
-     begin
-          refProgress(progress*8 div 10);
-     end
+     if numRefinenmentSteps > 0 
+     then
+         refProgress(progress*8 div 10)
      else
          refProgress(progress);
 end;
@@ -1045,6 +895,9 @@ begin
           progRef := {$IFDEF FPC}@{$ENDIF}progObj.LUDecompSolveProgress;
      end;
 
+
+     // ###########################################
+     // #### Standard LU Decomposition
      SetLength(LUDecomp, width*width);
      SetLength(indx, width);
      Result := MatrixLUDecomp(A, LineWidthA, @LUDecomp[0], width*sizeof(double), width, @indx[0], progRef);
@@ -1075,6 +928,8 @@ begin
           MatrixLUBackSubst(@LUDecomp[0], width*sizeof(double), width, @indx[0], pX, LineWidthX);
      end;
 
+     // ###########################################
+     // #### Iterative refinements
      if NumRefinments > 0 then
      begin
           SetLength(row, width);
@@ -2106,7 +1961,7 @@ begin
      if height < 1 then
      begin
           Tau^ := 0;
-          exit;
+          exit(true);
      end;
 
      xNorm := MatrixElementwiseNorm2(A, LineWidthA, 1, height);
@@ -2221,123 +2076,6 @@ begin
      end;
 end;
 
-// note the result is stored in mt2 again!
-// dest = mt1'*mt2; where mt2 is a lower triangular matrix and the operation is transposition
-// the function assumes a unit diagonal (does not touch the real middle elements)
-// width and height values are assumed to be the "original" (non transposed) ones
-procedure MtxMultTria2T1(dest : PDouble; LineWidthDest : integer; mt1 : PDouble; LineWidth1 : integer; mt2 : PDouble; LineWidth2 : integer;
-  width1, height1, width2, height2 : integer);
-var x, y, idx : TASMNativeInt;
-    valCounter1 : PDouble;
-    valCounter2 : PDouble;
-    tmp : double;
-    pMt2 : PDouble;
-    pDest : PDouble;
-begin
-     assert((width1 > 0) and (height1 > 0) and (height1 = height2), 'Dimension error');
-
-     for x := 0 to width1 - 1 do
-     begin
-          pMT2 := mt2;
-          pDest := dest;
-          for y := 0 to width2 - 1 do
-          begin
-               valCounter1 := mt1;
-               valCounter2 := pMT2;
-               inc(PByte(valCounter2), (y + 1)*LineWidth2);
-               inc(PByte(valCounter1), (y)*LineWidth1);
-               tmp := valCounter1^;
-               inc(PByte(valCounter1), LineWidth1);
-               for idx := 1 to height2 - y - 1 do
-               begin
-                    tmp := tmp + valCounter1^*valCounter2^;
-                    inc(PByte(valCounter1), LineWidth1);
-                    inc(PByte(valCounter2), LineWidth2);
-               end;
-
-               pDest^ := tmp;
-               inc(pDest);
-               inc(pMT2);
-          end;
-          inc(mt1);
-          inc(PByte(dest), LineWidthDest);
-     end;
-end;
-
-// note the result is stored in mt1 again!
-// mt1 = mt1*mt2; where mt2 is an upper triangular matrix
-procedure MtxMultTria2(mt1 : PDouble; LineWidth1 : integer; mt2 : PDouble; LineWidth2 : integer;
-  width1, height1, width2, height2 : integer);
-var x, y, idx : TASMNativeInt;
-    valCounter1 : PDouble;
-    valCounter2 : PDouble;
-    tmp : double;
-    pMt1 : PDouble;
-begin
-     assert((width1 > 0) and (height1 > 0) and (width1 = height2), 'Dimension error');
-
-     // start from the back
-     inc(mt2, width2 - 1);
-     for x := 0 to width2 - 1 do
-     begin
-          pmt1 := mt1;
-          for y := 0 to height1 - 1 do
-          begin
-               tmp := 0;
-               valCounter1 := pmt1;
-               valCounter2 := MT2;
-
-               for idx := 0 to width1 - x - 1 do
-               begin
-                    tmp := tmp + valCounter1^*valCounter2^;
-                    inc(valCounter1);
-                    inc(PByte(valCounter2), LineWidth2);
-               end;
-
-               PConstDoubleArr(pmt1)^[width2 - 1 - x] := tmp;
-               inc(PByte(pmT1), LineWidth1);
-          end;
-
-          dec(mt2);
-     end;
-end;
-
-// calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be 1!
-procedure MtxMultTria2T2(mt1 : PDouble; LineWidth1 : integer; mt2 : PDouble; LineWidth2 : integer;
-  width1, height1, width2, height2 : integer);
-var x, y, idx : TASMNativeInt;
-    valCounter1 : PDouble;
-    valCounter2 : PDouble;
-    tmp : double;
-    pMT1 : PDouble;
-begin
-     assert((width1 > 0) and (height1 > 0) and (width1 = height2), 'Dimension error');
-
-     inc(PByte(mt2),(height2 - 1)*LineWidth2);
-
-     for x := 0 to width2 - 1 do
-     begin
-          pMt1 := mt1;
-          for y := 0 to height1 - 1 do
-          begin
-               tmp := 0;
-               valCounter1 := pMt1;
-               valCounter2 := mt2;
-               for idx := 0 to width2 - x - 2 do
-               begin
-                    tmp := tmp + valCounter1^*valCounter2^;
-                    inc(valCounter1);
-                    inc(valCounter2);
-               end;
-
-               PConstDoubleArr(pMt1)^[width2 - x - 1] := tmp + valCounter1^;
-
-               inc(PByte(pMt1), LineWidth1);
-          end;
-
-          dec(PByte(mt2), LineWidth2);
-     end;
-end;
 
 // original DLARFT in Lapack
 procedure CreateTMtx(n, k : integer; A : PDouble; LineWidthA : TASMNativeInt; Tau : PDouble; const qrData : TRecMtxQRDecompData);
@@ -2461,16 +2199,17 @@ end;
 // apply block reflector to a matrix
 // original DLARFB in Lapack
 procedure ApplyBlockReflector(A : PDouble; LineWidthA : integer; const qrData : TRecMtxQRDecompData;
-  width, height : integer; widthT : integer);
+  width, height : integer; widthT : integer; Transposed : boolean);
 var pC1, pC2 : PDouble;
     pY1, pY2 : PDouble;
     T : PDouble;
     LineWidthT : TASMNativeInt;
     mem : PDouble;
     LineWidthMem : TASMNativeInt;
+    heightW : integer;
 begin
      mem := qrData.work;
-     inc(PByte(mem), widthT*qrData.LineWidthWork);  // upper part (nb x nb) is dedicated to T, lower port to W in dlarfb
+     inc(PByte(mem), widthT*qrData.LineWidthWork);  // upper part (nb x nb) is dedicated to T, lower part to W in dlarfb
      LineWidthMem := qrData.LineWidthWork;
 
      T := qrData.work;
@@ -2486,21 +2225,27 @@ begin
      inc(PByte(pC2), widthT*LineWidthA);
 
      // W = C1'*Y1
-     MtxMultTria2T1(mem, LineWidthMem, pC1, LineWidthA, pY1, LineWidthA, width - widthT, widthT, widthT, widthT);
+     GenericMtxMultTria2T1(mem, LineWidthMem, pC1, LineWidthA, pY1, LineWidthA, width - widthT, widthT, widthT, widthT);
+     heightW := width - widthT;
 
      // W = W + C2'*Y2
      qrData.MatrixMultT1(mem, LineWidthMem, pC2, pY2, Width - WidthT, height - widthT, WidthT, height - widthT, LineWidthA, LineWidthA, QRMultBlockSize, doAdd, qrData.BlkMultMem);
-     //MatrixMultT1Ex(mem, LineWidthMem, pC2, pY2, Width - WidthT, height - widthT, WidthT, height - widthT, LineWidthA, LineWidthA, QRMultBlockSize, doAdd, qrData.BlkMultMem);
 
-     // W = W * T (using dtrm)
-     MtxMultTria2(mem, LineWidthMem, T, LineWidthT, widthT, height - WidthT, WidthT, WidthT);
+     // W = W * T (using dtrm)  or W = W*T'
+     if height > widthT then
+     begin
+          if transposed
+          then
+              GenericMtxMultTria2T1StoreT1(mem, LineWidthMem, T, LineWidthT, widthT, heightW, WidthT, WidthT)
+          else
+              GenericMtxMultTria2Store1(mem, LineWidthMem, T, LineWidthT, widthT, heightW, WidthT, WidthT);
 
-     // C2 = C2 - Y2*W'
-     qrData.MatrixMultT2(pC2, LineWidthA, pY2, mem, widthT, height - widthT, widthT, height - widthT, LineWidthA, LineWidthMem, QRMultBlockSize, doSub, qrData.BlkMultMem);
-     //MatrixMultT2Ex(pC2, LineWidthA, pY2, mem, widthT, height - widthT, widthT, height - widthT, LineWidthA, LineWidthMem, QRMultBlockSize, doSub, qrData.BlkMultMem);
+          // C2 = C2 - Y2*W'
+          qrData.MatrixMultT2(pC2, LineWidthA, pY2, mem, widthT, height - widthT, widthT, heightW, LineWidthA, LineWidthMem, QRMultBlockSize, doSub, qrData.BlkMultMem);
 
-     // W = W*Y1' (lower left part of Y1! -> V1)
-     MtxMultTria2T2(mem, LineWidthMem, A, LineWidthA, WidthT, height - widthT, widthT, widthT);
+          // W = W*Y1' (lower left part of Y1! -> V1)
+          GenericMtxMultLowTria2T2Store1(mem, LineWidthMem, A, LineWidthA, WidthT, heightW, widthT, widthT);
+     end;
 
      // C1 = C1 - W'
      MatrixSubT(pC1, LineWidthA, mem, LineWidthMem, width - widthT, widthT);
@@ -2529,28 +2274,28 @@ begin
      if (qrdata.pnlSize >= 2) and (qrdata.pnlSize < k) then
      begin
           // calculate the qr decomposition for the current panel
-          while idx < width - qrdata.pnlSize do
+          while idx < k - qrdata.pnlSize - 2 do
           begin
                ib := min(width - idx, qrdata.pnlSize);
 
-               pnlRes := MtxQRUnblocked(pA, LineWidthA, qrdata.pnlSize, height - idx, Tau, qrData);
+               pnlRes := MtxQRUnblocked(pA, LineWidthA, ib, height - idx, Tau, qrData);
                Result := Result and pnlRes;
 
                // calculate T matrix
-               if idx + ib <= width then
+               if idx + ib <= height then
                begin
                     CreateTMtx(height - idx, ib, pA, LineWidthA, Tau, qrData);
 
                     // apply H to A from the left
-                    ApplyBlockReflector(pA, LineWidthA, qrData, width - idx, height - idx, qrdata.pnlSize);
+                    ApplyBlockReflector(pA, LineWidthA, qrData, width - idx, height - idx, ib, False);
                end;
 
-               inc(qrData.actIdx, qrdata.pnlSize);
+               inc(qrData.actIdx, ib);
 
-               inc(pA, qrdata.pnlSize);
-               inc(PByte(pA), qrdata.pnlSize*LineWidthA);
-               inc(idx, qrdata.pnlSize);
-               inc(Tau, qrdata.pnlSize);
+               inc(pA, ib);
+               inc(PByte(pA),ib*LineWidthA);
+               inc(idx, ib);
+               inc(Tau, ib);
           end;
      end;
 
@@ -2602,6 +2347,233 @@ begin
          Result := qrOK
      else
          Result := qrSingular;
+end;
+
+// generates an m by n real matrix Q with orthonormal columns,
+//  which is defined as the first n columns of a product of k elementary
+//  reflectors of order m
+// k: the number of elemetary reflectors whose product defines the matrix Q. width >= K >= 0.
+// original dorg2r from netlib
+procedure InternalMatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height, k : TASMNativeInt; tau : PDouble; const qrData : TRecMtxQRDecompData);
+var pA : PDouble;
+    pAii : PDouble;
+    i, j : integer;
+begin
+     if width <= 0 then
+        exit;
+
+     // Initialise columns k+1:n to columns of the unit matrix
+     for j := k to width - 1 do
+     begin
+          pA := A;
+          inc(pA, j);
+
+          for i := 0 to height - 1 do
+          begin
+               pA^ := 0;
+               inc(PByte(pA), LineWidthA);
+          end;
+
+          pA := A;
+          inc(pA, j);
+          inc(PByte(pA), j*LineWidthA);
+          pA^ := 1;
+     end;
+
+     // Apply H(i) to A(i:m,i:n) from the left
+     inc(tau, k - 1);
+     for i := k - 1 downto 0 do
+     begin
+          if i < width - 1 then
+          begin
+               pAii := A;
+               inc(pAii, i);
+               inc(PByte(pAii), i*LineWidthA);
+
+               pAii^ := 1;
+               ApplyElemHousholderRefl(pAii, LineWidthA, width - i, height - i, tau, qrData.work);
+          end;
+
+          // unscaling
+          if i < height - 1 then
+          begin
+               pAii := A;
+               inc(pAii, i);
+               inc(PByte(pAii), (i+1)*LineWidthA);
+
+               MatrixScaleAndAdd(pAii, LineWidthA, 1, height - i - 1, 0, -tau^);
+          end;
+
+          pAii := A;
+          inc(pAii, i);
+          inc(PByte(pAii), i*LineWidthA);
+          pAii^ := 1 - tau^;
+
+          // Set A(1:i-1,i) to zero
+          pA := A;
+          inc(pA, i);
+          for j := 0 to i - 1 do
+          begin
+               pA^ := 0;
+               inc(PByte(pA), LineWidthA);
+          end;
+
+          dec(tau);
+
+          // ###########################################
+          // #### Progress
+          if Assigned(qrData.Progress) then
+             qrData.Progress((qrData.actIdx + i)*100 div qrData.qrWidth);
+     end;
+end;
+
+procedure InternalBlkMatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; qrData : TRecMtxQRDecompData);
+var pA : PDouble;
+    x, y : integer;
+    numIter : integer;
+    pTau : PDouble;
+    counter: Integer;
+    idx : integer;
+begin
+     // check for quick return ???
+     if width <= 0 then
+     begin
+          qrData.work^ := 1;
+          exit;
+     end;
+
+     // restrict block size...
+     qrData.pnlSize := min(height, min(width, qrData.pnlSize));
+
+     // zero out block not used by Q
+     if height < width then
+     begin
+          for y := 0 to height - 1 do
+          begin
+               pA := A;
+               inc(pA, height);
+               inc(PByte(pA), y*LineWidthA);
+
+               for x := height to width - 1 do
+               begin
+                    pA^ := 0;
+                    inc(pA);
+               end;
+          end;
+
+          // from here on we can do a normal q factorization
+          width := height;
+     end;
+
+     if qrData.pnlSize = width then
+     begin
+          // unblocked code
+          InternalMatrixQFromQRDecomp(A, LineWidthA, width, height, width, tau, qrData);
+     end
+     else
+     begin
+          numIter := (width div qrData.pnlSize);
+          // apply unblocked code to the last block
+          if numIter*qrData.pnlSize < width then
+          begin
+               idx := numIter*qrData.pnlSize;
+               pA := A;
+               inc(pA, idx);
+               inc(PByte(pA), LineWidthA*idx);
+               pTau := tau;
+               inc(pTau, idx);
+               InternalMatrixQFromQRDecomp(pA, LineWidthA, width - idx, height - idx, width - idx, pTau, qrData);
+
+               // Set upper rows of current block to zero
+               for y := 0 to idx - 1 do
+               begin
+                    pA := A;
+                    inc(pA, idx);
+                    inc(PByte(pA), LineWidthA*y);
+                    for x := 0 to width - idx - 1 do
+                    begin
+                         pA^ := 0;
+                         inc(pA);
+                    end;
+               end;
+          end;
+
+          // blocked code:
+          for counter := numIter - 1 downto 0 do
+          begin
+               idx := counter*qrdata.pnlSize;
+               pA := A;
+               inc(pA, idx);
+               inc(PByte(pA), idx*LineWidthA);
+               pTau := tau;
+               inc(pTau, idx);
+
+               if (counter + 1)*qrdata.pnlSize < width then
+               begin
+                    // form triangular factor of the block reflector
+                    // H = H(i) H(i+1) . . . H(i+ib-1)
+                    // calculate T matrix
+                    CreateTMtx(height - idx, qrData.pnlSize, pA, LineWidthA, pTau, qrData);
+                    // apply H to A from the left
+                    ApplyBlockReflector(pA, LineWidthA, qrData, width - idx, height - idx, qrdata.pnlSize, True);
+               end;
+
+               InternalMatrixQFromQRDecomp(pA, LineWidthA, qrData.pnlSize, height - idx, qrData.pnlSize, pTau, qrData);
+
+               // Set upper rows of current block to zero
+               for y := 0 to idx - 1 do
+               begin
+                    pA := A;
+                    inc(pA, idx);
+                    inc(PByte(pA), LineWidthA*y);
+                    for x := 0 to qrData.pnlSize - 1 do
+                    begin
+                         pA^ := 0;
+                         inc(pA);
+                    end;
+               end;
+          end;
+     end;
+end;
+
+procedure MatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; 
+  tau : PDouble; progress : TLinEquProgress = nil); overload;
+begin
+     MatrixQFromQRDecomp(A, LineWidthA, width, height, tau, QRBlockSize, nil, progress);
+end;
+
+procedure MatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; 
+ tau : PDouble; BlockSize : integer; work : PDouble; progress : TLinEquProgress = nil);
+var qrData : TRecMtxQRDecompData;
+begin
+     qrData.pWorkMem := nil;
+     qrData.work := work;
+     qrData.BlkMultMem := nil;
+     qrData.Progress := progress;
+     qrData.qrWidth := width;
+     qrData.qrHeight := height;
+     qrData.actIdx := 0;
+     qrData.pnlSize := BlockSize;
+     qrData.LineWidthWork := sizeof(double)*qrdata.pnlSize;
+     qrData.MatrixMultT1 := {$IFDEF FPC}@{$ENDIF}MatrixMultT1Ex;
+     qrData.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}MatrixMultT2Ex;
+
+     if work = nil then
+     begin
+          qrData.pWorkMem := GetMemory(qrData.pnlSize*sizeof(double)*height + 64 + BlockMultMemSize(QRMultBlockSize) );
+          qrData.work := PDouble(qrData.pWorkMem);
+          if (NativeUInt(qrData.pWorkMem) and $0000000F) <> 0 then
+             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 16 - NativeUInt(qrData.pWorkMem) and $0F);
+     end;
+
+     // it's assumed that the work memory block may also be used
+     // as blocked multiplication memory storage!
+     qrData.BlkMultMem := qrData.work;
+     inc(qrData.BlkMultMem, qrData.pnlSize*height);
+
+     InternalBlkMatrixQFromQRDecomp(A, LineWidthA, width, height, tau, qrData);
+     if not Assigned(work) then
+        freeMem(qrData.pWorkMem);
 end;
 
 end.
