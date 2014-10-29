@@ -46,6 +46,13 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: 29.10.2014
+* Blocked and threaded QR decomposition
+* Introduced full QR decomposition (from economysize QR to full economysize Q and R matrices)
+* Threaded version of the full QR decomposition
+* The resulting matrices are now always in the form of the calling type
+* changed nnmf test case so no floating point exception occurs.
+
 Date: 16.10.2014
 New global subspace method: Non-Negative Matrix Transformation including 3 different
 calculations schemes: divergence update, eukledian update and alternating least squares.
