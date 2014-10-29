@@ -671,7 +671,7 @@ begin
      // zero out the parts occupied by Q
      for y := 1 to cBlkHeight - 1 do
      begin
-          for x := 0 to y - 1 do
+          for x := 0 to Min(cBlkWidth, y) - 1 do
               R[x + y*cBlkWidth] := 0;
      end;
 
