@@ -30,6 +30,7 @@ uses Matrix, MatrixConst;
 type
   TThreadedMatrix = class(TDoubleMatrix)
   protected
+    class function ResultClass : TDoubleMatrixClass; override;
     class function ClassIdentifier : String; override;
   public
     procedure MultInPlace(Value : TDoubleMatrix); override;
@@ -65,6 +66,7 @@ type
     procedure SolveLinEQInPlace(Value : TDoubleMatrix; numRefinements : integer = 0); override;
     function Determinant: double; override;
     function QR(out ecosizeR : TDoubleMatrix; out tau : TDoubleMatrix) : TQRResult; override;
+    function QRFull(out Q, R : TDoubleMatrix) : TQRResult; override;
 
     class procedure InitThreadPool;
     class procedure FinalizeThreadPool;
@@ -72,30 +74,36 @@ type
 
 implementation
 
-uses SysUtils, ThreadedMatrixOperations, MtxThreadPool, ThreadedLinAlg, BlockSizeSetup;
-
-// never realy understood why I can't access protected members from the base class if
-// I want to access a member in from a parameter. So I need this "hack" class definition.
-type
-  THackMtx = class(TDoubleMatrix);
+uses SysUtils, ThreadedMatrixOperations, MtxThreadPool, ThreadedLinAlg, BlockSizeSetup,
+     Math;
 
 { TThreadedMatrix }
+
+class function TThreadedMatrix.ClassIdentifier: String;
+begin
+     Result := 'TMTX';
+end;
+
+class function TThreadedMatrix.ResultClass: TDoubleMatrixClass;
+begin
+     Result := TThreadedMatrix;
+end;
 
 function TThreadedMatrix.Add(Value: TDoubleMatrix): TDoubleMatrix;
 begin
      assert((Width > 0) and (Height > 0), 'No data assigned');
-     assert((THackMtx(Value).fSubWidth = fSubWidth) and (THackMtx(Value).fSubHeight = fSubHeight), 'Dimension error');
+     assert((Value.Width = fSubWidth) and (Value.Height = fSubHeight), 'Dimension error');
 
-     Result := TThreadedMatrix.Create;
-     THackMtx(Result).SetWidthHeight(fSubWidth, fSubHeight);
-     ThrMatrixAdd(THackMtx(Result).StartElement, THackMtx(Result).LineWidth, StartElement, THackMtx(Value).StartElement, fSubWidth, fSubHeight, LineWidth, THackMtx(Value).LineWidth);
+     Result := ResultClass.Create;
+     Result.SetWidthHeight(fSubWidth, fSubHeight);
+     ThrMatrixAdd(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight, LineWidth, Value.LineWidth);
 end;
 
 function TThreadedMatrix.AddAndScale(const aOffset,
   aScale: double): TDoubleMatrix;
 begin
      assert((width > 0) and (Height > 0), 'No data assigned');
-     Result := TThreadedMatrix.Create;
+     Result := ResultClass.Create;
      Result.Assign(self, True);
 
      Result.AddAndScaleInPlace(aOffset, aScale);
@@ -112,22 +120,17 @@ procedure TThreadedMatrix.AddInplace(Value: TDoubleMatrix);
 begin
      assert((Width > 0) and (Height > 0), 'No data assigned');
      // inplace matrix addition
-     assert((fSubWidth = THackMtx(Value).fSubWidth) and (fSubHeight = THackMtx(Value).fSubHeight), 'Matrix dimensions do not match');
-     ThrMatrixAdd(StartElement, LineWidth, StartElement, THackMtx(Value).StartElement, fSubWidth, fSubHeight, LineWidth, THackMtx(Value).LineWidth);
-end;
-
-class function TThreadedMatrix.ClassIdentifier: String;
-begin
-     Result := 'TMTX';
+     assert((fSubWidth = Value.Width) and (fSubHeight = Value.Height), 'Matrix dimensions do not match');
+     ThrMatrixAdd(StartElement, LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight, LineWidth, Value.LineWidth);
 end;
 
 function TThreadedMatrix.ElementwiseFunc(func: TMatrixFunc): TDoubleMatrix;
 begin
      assert((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
-     Result := TDoubleMatrix.Create;
-     THackMtx(Result).Assign(self);
+     Result := ResultClass.Create;
+     Result.Assign(self);
 
-     ThrMatrixFunc(THackMtx(Result).StartElement, THackMtx(Result).LineWidth, THackMtx(Result).Width, THackMtx(Result).Height, func);
+     ThrMatrixFunc(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, func);
 end;
 
 procedure TThreadedMatrix.ElementwiseFuncInPlace(func: TMatrixFunc);
@@ -140,10 +143,10 @@ end;
 function TThreadedMatrix.ElementwiseFunc(func: TMatrixObjFunc): TDoubleMatrix;
 begin
      assert((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
-     Result := TDoubleMatrix.Create;
-     THackMtx(Result).Assign(self);
+     Result := ResultClass.Create;
+     Result.Assign(self);
 
-     ThrMatrixFunc(THackMtx(Result).StartElement, THackMtx(Result).LineWidth, THackMtx(Result).Width, THackMtx(Result).Height, func);
+     ThrMatrixFunc(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, func);
 end;
 
 procedure TThreadedMatrix.ElementwiseFuncInPlace(func: TMatrixObjFunc);
@@ -156,19 +159,19 @@ end;
 function TThreadedMatrix.ElementwiseFunc(func: TMatrixMtxRefFunc): TDoubleMatrix;
 begin
      assert((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
-     Result := TDoubleMatrix.Create;
-     THackMtx(Result).Assign(self);
+     Result := ResultClass.Create;
+     Result.Assign(self);
 
-     ThrMatrixFunc(THackMtx(Result).StartElement, THackMtx(Result).LineWidth, THackMtx(Result).Width, THackMtx(Result).Height, func);
+     ThrMatrixFunc(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, func);
 end;
 
 function TThreadedMatrix.ElementwiseFunc(func: TMatrixMtxRefObjFunc): TDoubleMatrix;
 begin
      assert((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
-     Result := TDoubleMatrix.Create;
-     THackMtx(Result).Assign(self);
+     Result := ResultClass.Create;
+     Result.Assign(self);
 
-     ThrMatrixFunc(THackMtx(Result).StartElement, THackMtx(Result).LineWidth, THackMtx(Result).Width, THackMtx(Result).Height, func);
+     ThrMatrixFunc(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, func);
 end;
 
 procedure TThreadedMatrix.ElementwiseFuncInPlace(func: TMatrixMtxRefFunc);
@@ -200,11 +203,11 @@ begin
      assert((Width > 0) and (Height > 0), 'No data assigned');
      assert(fSubWidth = fSubHeight, 'Operation only allowed on square matrices');
 
-     Result := TDoubleMatrix.Create;
+     Result := ResultClass.Create;
      try
         Result.Assign(Self, True);
 
-        if ThrMatrixInverse(THackMtx(Result).StartElement, THackMtx(Result).LineWidth, fSubWidth, fLinEQProgress) = leSingular then
+        if ThrMatrixInverse(Result.StartElement, Result.LineWidth, fSubWidth, fLinEQProgress) = leSingular then
            raise ELinEQSingularException.Create('Singular matrix');
      except
            Result.Free;
@@ -214,12 +217,12 @@ end;
 
 
 function TThreadedMatrix.InvertInPlace: TLinEquResult;
-var dt : TThreadedMatrix;
+var dt : TDoubleMatrix;
 begin
      assert((Width > 0) and (Height > 0), 'No data assigned');
      assert(fSubWidth = fSubHeight, 'Operation only allowed on square matrices');
 
-     dt := TThreadedMatrix.Create(Width, Height);
+     dt := ResultClass.Create(Width, Height);
      try
         dt.Assign(self, True);
         Result := ThrMatrixInverse(dt.StartElement, dt.LineWidth, fSubWidth, fLinEQProgress);
@@ -236,30 +239,30 @@ end;
 function TThreadedMatrix.Mult(Value: TDoubleMatrix): TDoubleMatrix;
 begin
      assert((Width > 0) and (Height > 0), 'No data assigned');
-     Result := TThreadedMatrix.Create(Value.Width, fSubHeight);
+     Result := ResultClass.Create(Value.Width, fSubHeight);
 
-     if (Value.Width = 1) and (THackMtx(Value).LineWidth = sizeof(double))
+     if (Value.Width = 1) and (Value.LineWidth = sizeof(double))
      then
-         ThrMatrixVecMult(THackMtx(Result).StartElement, THackMtx(Result).LineWidth, StartElement, THackMtx(Value).StartElement, Width, Height, Value.Height, LineWidth)
+         ThrMatrixVecMult(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, Width, Height, Value.Height, LineWidth)
      else
-         ThrMatrixMult(THackMtx(Result).StartElement, THackMtx(Result).LineWidth, StartElement, THackMtx(Value).StartElement, Width, Height, Value.Width, Value.Height, LineWidth, THackMtx(Value).LineWidth);
+         ThrMatrixMult(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, Width, Height, Value.Width, Value.Height, LineWidth, Value.LineWidth);
 end;
 
 procedure TThreadedMatrix.MultInPlace(Value: TDoubleMatrix);
-var res : TThreadedMatrix;
+var res : TDoubleMatrix;
 begin
      assert((Width > 0) and (Height > 0), 'No data assigned');
      assert((fOffsetX = 0) and (fOffsetY = 0) and (Width = fSubWidth) and (Height = fSubHeight), 'Operation only allowed on full matrices');
-     assert((fSubWidth = THackMtx(Value).fSubHeight), 'Dimension error');
+     assert((fSubWidth = Value.Height), 'Dimension error');
 
-     res := TThreadedMatrix.Create(Value.Width, fSubHeight);
+     res := ResultClass.Create(Value.Width, fSubHeight);
 
      try
-        if (Value.Width = 1) and (THackMtx(Value).LineWidth = sizeof(double))
+        if (Value.Width = 1) and (Value.LineWidth = sizeof(double))
         then
-            ThrMatrixVecMult(res.StartElement, res.LineWidth, StartElement, THackMtx(Value).StartElement, Width, Height, Value.Height, LineWidth)
+            ThrMatrixVecMult(res.StartElement, res.LineWidth, StartElement, Value.StartElement, Width, Height, Value.Height, LineWidth)
         else
-            ThrMatrixMult(res.StartElement, res.LineWidth, StartElement, THackMtx(Value).StartElement, Width, Height, Value.Width, Value.Height, LineWidth, THackMtx(Value).LineWidth);
+            ThrMatrixMult(res.StartElement, res.LineWidth, StartElement, Value.StartElement, Width, Height, Value.Width, Value.Height, LineWidth, Value.LineWidth);
 
         Assign(res);
      except
@@ -269,16 +272,16 @@ begin
 end;
 
 procedure TThreadedMatrix.MultInPlaceT1(Value: TDoubleMatrix);
-var res : TThreadedMatrix;
+var res : TDoubleMatrix;
 begin
      assert((Width > 0) and (Height > 0), 'No data assigned');
      assert((fOffsetX = 0) and (fOffsetY = 0) and (Width = fSubWidth) and (Height = fSubHeight), 'Operation only allowed on full matrices');
-     assert((fSubHeight = THackMtx(Value).fSubHeight), 'Dimension error');
+     assert((fSubHeight = Value.Height), 'Dimension error');
 
-     res := TThreadedMatrix.Create(Value.Width, fSubWidth);
+     res := ResultClass.Create(Value.Width, fSubWidth);
 
      try
-        ThrMatrixMultT1(res.StartElement, res.LineWidth, StartElement, THackMtx(Value).StartElement, Width, Height, Value.Width, Value.Height, LineWidth, THackMtx(Value).LineWidth);
+        ThrMatrixMultT1(res.StartElement, res.LineWidth, StartElement, Value.StartElement, Width, Height, Value.Width, Value.Height, LineWidth, Value.LineWidth);
 
         Assign(res);
      except
@@ -288,15 +291,15 @@ begin
 end;
 
 procedure TThreadedMatrix.MultInPlaceT2(Value: TDoubleMatrix);
-var res : TThreadedMatrix;
+var res : TDoubleMatrix;
 begin
      assert((Width > 0) and (Height > 0), 'No data assigned');
      assert((fOffsetX = 0) and (fOffsetY = 0) and (Width = fSubWidth) and (Height = fSubHeight), 'Operation only allowed on full matrices');
-     assert((fSubWidth = THackMtx(Value).fSubWidth), 'Dimension error');
+     assert((fSubWidth = Value.Width), 'Dimension error');
 
-     res := TThreadedMatrix.Create(Value.Height, fSubHeight);
+     res := ResultClass.Create(Value.Height, fSubHeight);
      try
-        ThrMatrixMultT2(res.StartElement, res.LineWidth, StartElement, THackMtx(Value).StartElement, Width, Height, Value.Width, Value.Height, LineWidth, THackMtx(Value).LineWidth);
+        ThrMatrixMultT2(res.StartElement, res.LineWidth, StartElement, Value.StartElement, Width, Height, Value.Width, Value.Height, LineWidth, Value.LineWidth);
 
         Assign(res);
      except
@@ -308,23 +311,23 @@ end;
 function TThreadedMatrix.MultT1(Value: TDoubleMatrix): TDoubleMatrix;
 begin
      assert((Width > 0) and (Height > 0), 'No data assigned');
-     Result := TThreadedMatrix.Create(Value.Width, fSubWidth);
+     Result := ResultClass.Create(Value.Width, fSubWidth);
 
-     ThrMatrixMultT1(THackMtx(Result).StartElement, THackMtx(Result).LineWidth, StartElement, THackMtx(Value).StartElement, Width, Height, Value.Width, Value.Height, LineWidth, THackMtx(Value).LineWidth);
+     ThrMatrixMultT1(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, Width, Height, Value.Width, Value.Height, LineWidth, Value.LineWidth);
 end;
 
 function TThreadedMatrix.MultT2(Value: TDoubleMatrix): TDoubleMatrix;
 begin
      assert((Width > 0) and (Height > 0), 'No data assigned');
-     Result := TThreadedMatrix.Create(Value.Height, fSubHeight);
+     Result := ResultClass.Create(Value.Height, fSubHeight);
 
-     ThrMatrixMultT2(THackMtx(Result).StartElement, THackMtx(Result).LineWidth, StartElement, THackMtx(Value).StartElement, Width, Height, Value.Width, Value.Height, LineWidth, THackMtx(Value).LineWidth);
+     ThrMatrixMultT2(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, Width, Height, Value.Width, Value.Height, LineWidth, Value.LineWidth);
 end;
 
 function TThreadedMatrix.QR(out ecosizeR, tau: TDoubleMatrix): TQRResult;
 begin
-     ecosizeR := TThreadedMatrix.Create;
-     tau := TThreadedMatrix.Create(width, 1);
+     ecosizeR := ResultClass.Create;
+     tau := ResultClass.Create(width, 1);
      try
         ecosizeR.Assign(self);
         Result := ThrMatrixQRDecomp(ecosizeR.StartElement, ecosizeR.LineWidth, width, height, tau.StartElement, nil, QRBlockSize, fLinEQProgress);
@@ -336,6 +339,67 @@ begin
      end;
 end;
 
+function TThreadedMatrix.QRFull(out Q, R: TDoubleMatrix): TQRResult;
+var tau : TDoubleMatrix;
+    tmp : TDoubleMatrix;
+    x, y : integer;
+    pdata : PConstDoubleArr;
+begin
+     Q := nil;
+     R := nil;
+
+     // ###########################################
+     // #### First create a compact QR decomposition
+     Result := QR(R, Tau);
+
+     if Result <> qrOK then
+     begin
+          FreeAndNil(R);
+          exit;
+     end;
+
+     // ###########################################
+     // #### Calculation Q from the previous operation
+     tmp := ResultClass.Create;
+     try
+        tmp.Assign(R);
+     
+        ThrMatrixQFromQRDecomp(tmp.StartElement, tmp.LineWidth, Width, Height, tau.StartElement, QRBlockSize, nil, fLinEQProgress);
+
+        // now assign only the relevant parts of Q (or just copy it if we have a square matrix)
+        if Width = height 
+        then
+            Q := tmp
+        else
+        begin
+             // economy size Q:
+             tmp.SetSubMatrix(0, 0, Math.min(tmp.Width, tmp.Height), tmp.Height);
+          
+             Q := ResultClass.Create;
+             Q.Assign(tmp, True);
+             tmp.Free;
+             
+             tmp := R;
+             tmp.SetSubMatrix(0, 0, tmp.Width, Math.Min(tmp.Width, tmp.Height));
+             R := ResultClass.Create;
+             R.Assign(tmp, True);
+             tmp.Free;
+        end;       
+
+        // clear R so we only have un upper triangle matrix
+        // zero out the parts occupied by Q
+        for y := 1 to R.Height - 1 do
+        begin
+             pData := PConstDoubleArr( R.StartElement );
+             inc(PByte(pData), y*R.LineWidth);
+             for x := 0 to Math.Min(r.Width, y) - 1 do
+                 pData^[x] := 0;
+        end;
+     finally
+            Tau.Free;
+     end;
+end;
+
 function TThreadedMatrix.SolveLinEQ(Value: TDoubleMatrix;
   numRefinements: integer): TDoubleMatrix;
 begin
@@ -343,13 +407,13 @@ begin
      // whereas A is the matrix stored in self, and be is the matrix in Value
      // The result is a matrix having the size of Value.
      assert((Width > 0) and (Height > 0), 'No data assigned');
-     assert((fSubWidth = fSubHeight) and (THackMtx(Value).fSubHeight = fSubHeight), 'Dimension error');
+     assert((fSubWidth = fSubHeight) and (Value.Height = fSubHeight), 'Dimension error');
 
-     Result := TDoubleMatrix.Create(THackMtx(Value).fSubWidth, fSubHeight);
+     Result := ResultClass.Create(Value.Width, fSubHeight);
      try
-        if ThrMatrixLinEQSolve(StartElement, LineWidth, fSubWidth, THackMtx(Value).StartElement,
-                               THackMtx(Value).LineWidth, THackMtx(Result).StartElement,
-                               THackMtx(Result).LineWidth, THackMtx(Value).fSubWidth, numRefinements, fLinEQProgress) = leSingular
+        if ThrMatrixLinEQSolve(StartElement, LineWidth, fSubWidth, Value.StartElement,
+                               Value.LineWidth, Result.StartElement,
+                               Result.LineWidth, Value.Width, numRefinements, fLinEQProgress) = leSingular
      then
          raise ELinEQSingularException.Create('Matrix is singular');
 
@@ -367,12 +431,12 @@ begin
      // whereas A is the matrix stored in self, and be is the matrix in Value
      // The result is a matrix having the size of Value.
      assert((Width > 0) and (Height > 0), 'No data assigned');
-     assert((fSubWidth = fSubHeight) and (THackMtx(Value).fSubHeight = fSubHeight), 'Dimension error');
+     assert((fSubWidth = fSubHeight) and (Value.Height = fSubHeight), 'Dimension error');
 
-     dt := TDoubleMatrix.Create(THackMtx(Value).fSubWidth, fSubHeight);
+     dt := ResultClass.Create(Value.Width, fSubHeight);
      try
-        if ThrMatrixLinEQSolve(StartElement, LineWidth, fSubWidth, THackMtx(Value).StartElement, THackMtx(Value).LineWidth,
-                               THackMtx(dt).StartElement, THackMtx(dt).LineWidth, THackMtx(Value).fSubWidth,
+        if ThrMatrixLinEQSolve(StartElement, LineWidth, fSubWidth, Value.StartElement, Value.LineWidth,
+                               dt.StartElement, dt.LineWidth, Value.Width,
                                numRefinements, fLinEQProgress) = leSingular
         then
             raise ELinEQSingularException.Create('Matrix is singular');
@@ -392,11 +456,11 @@ end;
 function TThreadedMatrix.Sub(Value: TDoubleMatrix): TDoubleMatrix;
 begin
      assert((Width > 0) and (Height > 0), 'No data assigned');
-     assert((THackMtx(Value).fSubWidth = fSubWidth) and (THackMtx(Value).fSubHeight = fSubHeight), 'Dimension error');
+     assert((Value.Width = fSubWidth) and (Value.Height = fSubHeight), 'Dimension error');
 
-     Result := TThreadedMatrix.Create(fSubWidth, fSubHeight);
-     ThrMatrixSub(THackMtx(Result).StartElement, THackMtx(Result).LineWidth, StartElement, THackMtx(Value).StartElement, fSubWidth, fSubHeight,
-                  Width*sizeof(double), THackMtx(Value).LineWidth);
+     Result := ResultClass.Create(fSubWidth, fSubHeight);
+     ThrMatrixSub(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight,
+                  Width*sizeof(double), Value.LineWidth);
 end;
 
 procedure TThreadedMatrix.SubInPlace(Value: TDoubleMatrix);
@@ -405,7 +469,7 @@ begin
      
      // inplace matrix substraction
      assert((fSubWidth = Value.Width) and (fSubHeight = Value.Height), 'Matrix dimensions do not match');
-     ThrMatrixSub(StartElement, LineWidth, StartElement, THackMtx(Value).StartElement, fSubWidth, fSubHeight, LineWidth, THackMtx(Value).LineWidth);
+     ThrMatrixSub(StartElement, LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight, LineWidth, Value.LineWidth);
 end;
 
 end.

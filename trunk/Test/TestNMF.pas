@@ -100,11 +100,21 @@ procedure TTestNMF.TestNMFPersistence;
 var V : IMatrix;
     nmf : TNNMF;
     nmfLoad : TNNMF;
+    params : TNNMFProps;
 begin
      // just check if an object can be stored and loaded again
      V := TDoubleMatrix.CreateEye(10);
      nmf := TNNMF.Create;
      try
+        FillChar(params, sizeof(params), 0);
+        params.MaxIter := 100;
+        params.tolUpdate := 1e-4;
+        params.method := nnmfAlternateLeastSquare;
+        params.RankOfBasis := 8;
+        params.UseLastResIfFail := True;
+        params.DoUpdateWithEPSMtx := True;
+
+        nmf.SetProperties(params);
         RandSeed := 331;
 
         Check( nmf.CalcNMF(V.GetObjRef) <> nmFailed, 'NMF Failed');

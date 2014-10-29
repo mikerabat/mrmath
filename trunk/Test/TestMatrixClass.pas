@@ -53,6 +53,7 @@ type
    procedure TestCovariance;
    procedure TestApplyFunc;
    procedure TestSumInPlace;
+   procedure TestQR;
   end;
 
 type
@@ -368,6 +369,43 @@ begin
 
      mx.Free;
      my.Free;
+end;
+
+procedure TestTDoubleMatrix.TestQR;
+var mtx, dest, Q, R : TDoubleMatrix;
+    x, y : integer;
+const cBlkWidth = 12;
+      cBlkHeight = 7;
+begin
+     mtx := TDoubleMatrix.Create(cBlkWidth, cBlkHeight);
+     RandSeed := 15;
+     for y := 0 to cBlkHeight - 1 do
+         for x := 0 to cBlkWidth - 1 do
+             mtx[x, y] := Random - 0.5;
+
+     check( mtx.QRFull(Q, R) = qrOK, 'Error QR decomposition failed');
+
+     // simple test: Q*R = mtx
+     dest := Q.Mult(R);
+
+     check(CheckMtx(dest.SubMatrix, mtx.SubMatrix), 'Error matrix class QR decomposition failed');
+
+     q.Free;
+     R.Free;
+     dest.Free;
+     
+     // 2nd asymetric case:
+     mtx.TransposeInPlace;
+     check( mtx.QRFull(Q, R) = qrOK, 'Error QR decomposition failed');
+
+     // simple test: Q*R = mtx
+     dest := Q.Mult(R);
+
+     check(CheckMtx(dest.SubMatrix, mtx.SubMatrix), 'Error matrix class QR decomposition failed');
+     mtx.Free;
+     q.Free;
+     R.Free;
+     dest.Free;
 end;
 
 procedure TestTDoubleMatrix.TestSub;
