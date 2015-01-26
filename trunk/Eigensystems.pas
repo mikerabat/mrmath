@@ -50,7 +50,7 @@ procedure MatrixHessenbergInPlace(A : PDouble; const LineWidthA : integer; width
 procedure MatrixHessenberg(dest : PDouble; const LineWidthDest : integer; A : PDouble; const LineWidthA : integer; width : integer);
 // copies the hessenberg matrix to dest using the permutation vector from the hessenberg transformation. Initializes the destination matrix for the eigenvector
 // finding routine for unsymmetric matrices
-procedure MatrixCopyHessenberg(hess : PDouble; const LineWidthHess : integer; width : integer; dest : PDouble; const LineWidthDest : integer; perm : PInteger; const LineWidthPerm : integer);
+procedure MatrixInitEivecHess(hess : PDouble; const LineWidthHess : integer; width : integer; dest : PDouble; const LineWidthDest : integer; perm : PInteger; const LineWidthPerm : integer);
 
 // Finds all eigenvalues of an upper Hessenberg matrix A. On input a can be exactly as output from MatrixHessenberg, on output
 // A is destroyed. The real and imaginary parts of the eigenvalues are returned in wr[0..width-1] and wi[0..width-1], respectively
@@ -626,7 +626,8 @@ begin
           pPerm^ := 0;
           inc(PByte(pPerm), LineWidthPerm);
      end;
-     for m := 1 to width - 1 do
+     m := 1;
+     while m < width - 1 do
      begin
           inc(PByte(pAm), LineWidthA);
           x := 0;
@@ -685,7 +686,8 @@ begin
                pA := pAm;
                inc(PByte(pA), LineWidthA);
                inc(pA, m - 1);
-               for i := m + 1 to width - 1 do
+               i := m + 1;
+               while i < width do
                begin
                     y := pA^;
                     if y <> 0 then
@@ -719,8 +721,11 @@ begin
                     end;
 
                     inc(PByte(pA), LineWidthA);
+                    inc(i);
                end;
           end;
+
+          inc(m);
      end;
 end;
 
@@ -734,9 +739,10 @@ begin
      Assert(LineWidthA >= width*sizeof(double), 'Dimension error');
 
      setLength(dest, width*width);
+
      pDest := @dest[0];
 
-     // copy data -> now we can perform an inline LU decomposition
+     // copy data 
      for i := 0 to width - 1 do
      begin
           Move(A^, pDest^, sizeof(double)*width);
@@ -1084,71 +1090,58 @@ begin
      Result := qlOk;
 end;
 
-procedure MatrixCopyHessenberg(hess : PDouble; const LineWidthHess : integer; width : integer; dest : PDouble; const LineWidthDest : integer; perm : PInteger; const LineWidthPerm : integer);
+procedure MatrixInitEivecHess(hess : PDouble; const LineWidthHess : integer; width : integer; dest : PDouble; const LineWidthDest : integer; perm : PInteger; const LineWidthPerm : integer);
 var i, j, k : integer;
     pDest, pDesti, pDestj : PDouble;
     pPerm : PInteger;
-    pHess, pHessi : PDouble;
+    pHess : PDouble;
+    mp : integer;
 begin
-     // init destination matrix with unity matrix
-     pDest := dest;
-     for i := 0 to width - 1 do
-     begin
-          FillChar(pDest^, width*sizeof(double), 0);
-          inc(pDest, i);
-          pDest^ := 1;
-          dec(pDest, i);
-
-          inc(PByte(pDest), LineWidthDest);
-     end;
-
-     // copy matrix
      pPerm := Perm;
      inc(PByte(pPerm), (width - 2)*LineWidthPerm);
-     pHessi := hess;
-     inc(PByte(pHessi), (width - 2)*LineWidthHess);
-     pDesti := dest;
-     inc(PByte(pDesti), (width - 2)*LineWidthDest);
-     for i := width - 2 downto 1 do
+     for mp := width - 2 downto 1 do
      begin
-          j := pPerm^;
-          pDest := pDesti;
-          inc(PByte(pDest), LineWidthDest);
-          pHess := pHessi;
-          inc(PByte(pHess), LineWidthHess);
-          inc(pDest, i);
-          inc(pHess, i - 1);
-          for k := i + 1 to width - 1 do
+          pDest := dest;
+          inc(PByte(pDest), (mp + 1)*LineWidthDest);
+          inc(pDest, mp);
+
+          pHess := hess;
+          inc(PByte(pHess), (mp + 1)*LineWidthHess);
+          inc(pHess, mp - 1);
+          
+          
+          for k := mp + 1 to width - 1 do
           begin
                pDest^ := pHess^;
-               inc(PByte(pHess), LineWidthHess);
                inc(PByte(pDest), LineWidthDest);
+               inc(PByte(pHess), LineWidthHess);
           end;
 
-          if i <> j then
+          i := pPerm^;
+
+          if i <> mp then
           begin
-               pDestj := dest;
-               inc(PByte(pDestj), j*LineWidthDest);
-               inc(pDestj, i);
-               pDest := pDesti;
-               inc(pDest, i);
-               for k := i to width - 1 do
-               begin
-                    pDest^ := pDestj^;
-                    pDestj^ := 0;
+               pDestj := Dest;
+               inc(PByte(PDestj), mp*LineWidthDest);
+               inc(pDestj, mp);
 
-                    inc(pDest);
+               pDesti := Dest;
+               inc(PByte(PDesti), i*LineWidthDest);
+               inc(pDesti, mp);
+               for j := mp to width - 1 do
+               begin
+                    pDestj^ := pDesti^;
+                    pDesti^ := 0;
                     inc(pDestj);
+                    inc(pDesti);
                end;
-               pDestj := dest;
-               inc(PByte(pDestj), j*LineWidthDest);
-               inc(pDestj, i);
-               pDestj^ := 1;
+               pDesti := Dest;
+               inc(PByte(PDesti), i*LineWidthDest);
+               inc(pDesti, mp);
+               pDesti^ := 1;
           end;
 
-          dec(PByte(pDesti), LineWidthDest);
-          dec(PByte(pHessi), LineWidthHess);
-          dec(PByte(perm), LineWidthPerm);
+          dec(PByte(pPerm), LineWidthPerm);
      end;
 end;
 
@@ -1208,7 +1201,7 @@ var i, j : integer;
     tr, ti : double;
 begin
      assert(width > 0, 'Dimension error');
-     assert(width*sizeof(Double) >= LineWidthEivec, 'Dimension error');
+     assert(width*sizeof(Double) <= LineWidthEivec, 'Dimension error');
      assert(LineWidthWI >= sizeof(double), 'Dimension error');
 
      pWi := WI;
@@ -1303,6 +1296,7 @@ var nn, m, l, k : integer;
     pWi, pWii : PDouble;
     vr : double;
     vi : double;
+    na : integer;
 const cMaxEigHessenbergIter = 30;
       cEPS = 2.22e-16;
 begin
@@ -1316,15 +1310,14 @@ begin
      p := 0;
      q := 0;
      Result := qlNoConverge;
-     anorm := abs(A^);
+     anorm := 0;
      pAi := A;
-     inc(PByte(pAi), LineWidthA);
      // compute matrix norm for possible use in locating single small subdiagonal element
-     for i := 1 to width - 1 do
+     for i := 0 to width - 1 do
      begin
           pAj := pAi;
-          inc(pAj, i - 1);
-          for j := i - 1 to width - 1 do
+          inc(pAj, max(0, i - 1));
+          for j := Max(0, i - 1) to width - 1 do
           begin
                anorm := anorm + abs(pAj^);
 
@@ -1334,6 +1327,12 @@ begin
           inc(PByte(pAi), LineWidthA);
      end;
 
+     if anorm = 0 then
+     begin
+          Result := qlMatrixError;
+          exit;
+     end;
+     
      nn := width - 1;
      t := 0;
      // gets changed only by an exceptional shift.
@@ -1360,7 +1359,10 @@ begin
                      inc(PByte(pAl), LineWidthA);
 
                      if abs(pAl^) <= cEPS*s then
-                        break;
+                     begin
+                          pAl^ := 0;
+                          break;
+                     end;
 
                      dec(PByte(pAl), LineWidthA);
                      dec(l);
@@ -1403,7 +1405,7 @@ begin
                           pA := A;
                           inc(pA, nn);
                           inc(PByte(pA), nn*LineWidthA);
-                          pA^ := x + t;
+                          pA^ := x;
                           dec(pA);
                           dec(PByte(pA), LineWidthA);
                           pA^ := y + t;
@@ -1412,14 +1414,11 @@ begin
                           inc(PByte(pWr), (nn - 1)*LineWidthWR);
                           pWi := WI;
                           inc(PByte(pWi), (nn - 1)*LineWidthWI);
+
                           // ... a real pair
                           if q >= 0 then
                           begin
-                               if p < 0
-                               then
-                                   z := p - z
-                               else
-                                   z := p + z;
+                               z := p + sign(z, p);
 
                                pWr^ := x + z;
                                inc(PByte(pWr), LineWidthWR);
@@ -1434,11 +1433,15 @@ begin
                                // update eigenvectors
                                inc(PByte(pA), LineWidthA);
                                x := pA^;
-                               r := sqrt(sqr(x) + sqr(z));
-                               p := x/r;
-                               q := z/r;
+                               s := abs(x) + abs(z); 
+                               p := x/s;
+                               q := z/s;
+                               r := sqrt(sqr(p) + sqr(q));
 
-                               pAk := pA;
+                               q := q/r;
+                               p := p/r;
+                               
+                               pAk := pA;     // pA := @a[nn][nn-1]
                                pAj := pA;
                                dec(PByte(pAj), LineWidthA);
 
@@ -1606,22 +1609,17 @@ begin
 
                                     x := abs(p) + abs(q) + abs(r);
 
-                                    if x = 0 then
+                                    if x <> 0 then
                                     begin
-                                         inc(pAk);
-                                         continue;
+                                         p := p/x;
+                                         q := q/x;
+                                         r := r/x;
                                     end;
-
-                                    p := p/x;
-                                    q := q/x;
-                                    r := r/x;
 
                                     dec(PByte(pAk), LineWidthA);
                                end;
 
-                               s := sqrt(p * p + q * q + r * r);
-                               if p < 0 then
-                                  s := -s;
+                               s := sign(sqrt(p * p + q * q + r * r), p);
 
                                if s <> 0 then
                                begin
@@ -1650,7 +1648,7 @@ begin
                                          inc(PByte(pAj), LineWidthA);
                                          p := p + q*pAj^;
 
-                                         if k <> nn - 1 then
+                                         if k + 1 <> nn then
                                          begin
                                               inc(PByte(pAj), LineWidthA);
                                               p := p + r*pAj^;
@@ -1722,29 +1720,7 @@ begin
 
      // #########################################
      // #### All roots found. Backsubstitute to find vectors of upper triangular form.
-     anorm := 0;
-
-     pAi := A;
-     for i := 0 to width - 1 do                        {find norm of h}
-     begin
-          pAj := pAi;
-          inc(pAj, i);
-          for j := i to width - 1 do
-          begin
-               anorm := anorm + ABS(pAj^);
-               inc(pAj);
-          end;
-          inc(PByte(pAi), LineWidthA);
-     end;
-
-     if anorm = 0 then
-     begin
-          Result := qlMatrixError;
-          exit;
-     end;
-
      Result := qlOk;
-
      r := 0;
      s := 0;
      z := 0;
@@ -1757,6 +1733,8 @@ begin
           p := pWr^;
           q := pWi^;
 
+          na := nn - 1;
+          
           if q = 0 then
           begin
                m := nn;
@@ -1764,8 +1742,6 @@ begin
                inc(PByte(pAi), nn*LineWidthA);
                inc(pAi, nn);
                pAi^ := 1;
-               dec(pAi, nn);
-               dec(PByte(pAi), LineWidthA);
 
                pWii := pWi;
                dec(PByte(pWii), LineWidthWI);
@@ -1773,19 +1749,20 @@ begin
                dec(PByte(pWri), LineWidthWR);
                for i := nn - 1 downto 0 do
                begin
-                    pA := pAi;
-                    inc(pA, i);
-                    w := pA^ - p;
-                    pAj := pAi;
-                    inc(pAj, nn);
-                    r := pAj^;
+                    pAi := A;
+                    inc(PByte(pAi), i*LineWidthA);
+                    inc(pAi, i);
+                    r := 0;
+                    w := pAi^ - p;
 
-                    pAj := pAi;
+                    pAj := A;
+                    inc(PByte(pAj), i*LineWidthA);
                     inc(pAj, m);
+
                     pAk := A;
                     inc(PByte(pAk), m*LineWidthA);
                     inc(pAk, nn);
-                    for j := m to nn - 1 do
+                    for j := m to nn do
                     begin
                          r := r + pAj^*pAk^;
                          inc(pAj);
@@ -1806,7 +1783,8 @@ begin
                               t := w;
                               if t = 0 then
                                  t := cEPS*anorm;
-                              pA := pAi;
+                              pA := A;
+                              inc(PByte(pA), i*LineWidthA);
                               inc(pA, nn);
                               pA^ := -r/t;
                          end
@@ -1816,14 +1794,16 @@ begin
                               | w   x |  | h[i][nn]   |   | -r |
                               |       |  |            | = |    |
                               | y   z |  | h[i+1][nn] |   | -s |  }
-                              pA := pAi;
+                              pA := A;
+                              inc(PByte(pA), i*LineWidthA);
                               inc(pA, i + 1);
                               x := pA^;
                               dec(pA);
                               inc(PByte(pA), LineWidthA);
                               y := pA^;
                               q := sqr(pWri^ - p) + sqr(pWii^);
-                              pA := pAi;
+                              pA := A;
+                              inc(PByte(pA), i*LineWidthA);
                               inc(pA, nn);
                               pA^ := (x*s - z*r)/q;
                               t := pA^;
@@ -1836,7 +1816,8 @@ begin
                          end;
 
                          // overflow control
-                         pA := pAi;
+                         pA := A;
+                         inc(PByte(pA), i*LineWidthA);
                          inc(pA, nn);
                          t := abs(pA^);
 
@@ -1850,25 +1831,26 @@ begin
                          end;
                     end;
 
-                    dec(PByte(pAi), LineWidthA);
                     dec(PByte(pWii), LineWidthWI);
                     dec(PByte(pWri), LineWidthWR);
                end;
           end // if q = 0
           else if q < 0 then    // complex vector, only do one case. Last vector chosen imaginary so that eigenvector matrix is triangular
           begin
-               m := nn - 1;
+               m := na;
 
                pAk := A;
                inc(pAk, nn);
-               inc(PByte(pAk), (nn - 1)*LineWidthA);
+               inc(PByte(pAk), na*LineWidthA);
                pA := A;
-               inc(pA, nn - 1);
+               inc(pA, na);
+               pAi := pA;
                inc(PByte(pA), (nn)*LineWidthA);
-               pAi := pAk;
-               dec(pAi);
-               pAj := pA;
-               inc(pAj);
+               inc(PByte(pAi), na*LineWidthA);
+
+               pAj := A;
+               inc(PByte(pAj), nn*LineWidthA);
+               inc(pAj, nn);
 
                if abs(pA^) > abs(pAk^) then
                begin
@@ -1876,10 +1858,10 @@ begin
                     pAk^ := -(pAj^ - p)/pA^;
                end
                else
-                   Cdiv(-pAk^, 0, pAi^ - p, q, pAi^, pAk^);
+                   Cdiv(0, -pAk^, pAi^ - p, q, pAi^, pAk^);
 
-               pA^ := 1;
-               pAj^ := 0;
+               pA^ := 0;
+               pAj^ := 1;
 
                pAi := A;
                inc(PByte(pAi), (nn - 2)*LineWidthA);
@@ -1893,27 +1875,27 @@ begin
                     pA := pAi;
                     inc(pA, i);
                     w := pA^ - p;
-                    pA := pAi;
-                    inc(pA, nn);
-                    ra := pA^;
-                    sa := 0;
 
+                    ra := 0;
+                    sa := 0;
+                    
                     pA := A;
                     inc(PByte(pA), m*LineWidthA);
-                    inc(pA, nn - 1);
                     pAk := pA;
-                    inc(pAk);
+                    inc(pA, na);
+                    inc(pAk, nn);
+                    
                     pAm := pAi;
                     inc(pAm, m);
 
-                    for j := m to nn - 1 do
+                    for j := m to nn do
                     begin
                          ra := ra + pAm^*pA^;
                          sa := sa + pAm^*pAk^;
 
                          inc(pAm);
                          inc(PByte(pA), LineWidthA);
-                         inc(PByte(pAj), LineWidthA);
+                         inc(PByte(pAk), LineWidthA);
                     end;
 
                     if pWii^ < 0 then
@@ -1927,7 +1909,7 @@ begin
                          m := i;
 
                          pA := pAi;
-                         inc(pA, nn-1);
+                         inc(pA, na);
                          pAk := pAi;
                          inc(pAk, nn);
 
@@ -1956,7 +1938,7 @@ begin
                               pAk := pAi;
                               inc(pAk, nn);
                               pAm := pAi;
-                              inc(pAm, nn - 1);
+                              inc(pAm, na);
                               CDiv(x*r - z*ra + q*sa, x*s - z*sa - q*ra, vr, vi, pAm^, pAk^);
 
                               pAl := pAm;
@@ -1976,9 +1958,9 @@ begin
 
                     // overflow control
                     pAm := pAi;
-                    inc(pAm, nn - 1);
-                    pAl := pAm;
-                    inc(pAl);
+                    inc(pAm, na);
+                    pAl := pAi;
+                    inc(pAl, nn);
                     t := max(Abs(pAm^), Abs(pAl^));
 
                     if cEps*sqr(t) > 1 then
@@ -2002,68 +1984,32 @@ begin
           dec(PByte(pWi), LineWidthWI);
      end;
 
-     pWi := WI;
-     inc(PByte(pWi), (width - 1)*LineWidthWI);
 
+     // multiply by transformation matrix to give vectors of original full matrix
      for j := width - 1 downto 0 do
      begin
           pEiveci := Eivec;
-
-          if pWi^ < 0 then
+          for i := 0 to width - 1 do
           begin
-               for i := 0 to width - 1 do
+               z := 0;
+
+               pEivecj := pEiveci;
+
+               pAj := A;
+               inc(pAj, j);
+               for k := 0 to j do
                begin
-                    y := 0;
-                    z := 0;
-
-                    pEiveck := pEiveci;
-                    pA := A;
-                    inc(pA, j);
-                    pAk := A;
-                    inc(pAk, j - 1);
-
-                    for k := 0 to j do
-                    begin
-                         y := y + pEiveck^*pAk^;
-                         z := z + pEiveck^*pA^;
-
-                         inc(pEiveck);
-                         inc(PByte(pA), LineWidthA);
-                         inc(PByte(pAk), LineWidthA);
-                    end;
-
-                    pEiveck := pEiveci;
-                    inc(pEiveck, j - 1);
-                    pEiveck^ := y;
-                    inc(pEiveck);
-                    pEiveck^ := z;
-                    inc(PByte(pEiveci), LineWidthEivec);
-               end
-          end
-          else if pWi^ = 0 then
-          begin
-               for i := 0 to width - 1 do
-               begin
-                    z := 0;
-
-                    pEiveck := pEiveci;
-                    pA := A;
-                    inc(pA, j);
-                    for k := 0 to j do
-                    begin
-                         z := z + pEiveck^*pA^;
-                         inc(pEiveck);
-                         inc(PByte(pA), LineWidthA);
-                    end;
-
-                    pEiveck := pEiveci;
-                    inc(pEiveck, j);
-                    pEiveck^ := z;
-                    inc(PByte(pEiveci), LineWidthEivec);
+                    z := z + pEivecj^*pAj^;
+                    inc(PByte(pAj), LineWidthA);
+                    inc(pEivecj);
                end;
-          end;
+               
+               pEivecj := pEiveci;
+               inc(pEivecj, j);
+               pEivecj^ := z;
 
-          dec(PByte(pWi), LineWidthWI);
+               inc(PByte(pEiveci), LineWidthEivec);
+          end;
      end;
 end;
 
@@ -2081,6 +2027,8 @@ function MatrixUnsymEigVecInPlace(A : PDouble; const LineWidthA : integer; width
  const LineWidthWR : integer; WI : PDouble; const LineWidthWI : integer; Eivec : PDouble; const LineWidthEivec : integer; balance : boolean) : TEigenvalueConvergence;
 var perm : array of integer;
     scale : Array of double;
+    pDest : PDouble;
+    i: Integer;
 begin
      setLength(perm, width);
      setLength(scale, width);
@@ -2091,7 +2039,17 @@ begin
 
      // determine upper hessenberg matrix
      MatrixHessenbergPermInPlace(A, LineWidthA, width, @perm[0], sizeof(integer));
-     MatrixCopyHessenberg(A, LineWidthA, width, Eivec, LineWidthEivec, @perm[0], sizeof(integer));
+
+     // initialize to unit matrix -> it's assumed that the eigenvector matrix is already zeroed out!
+     pDest := Eivec;
+     for i := 0 to width - 1 do
+     begin
+          pDest^ := 1;
+          inc(pDest);
+          inc(PByte(pDest), LineWidthEivec);
+     end;
+     
+     MatrixInitEivecHess(A, LineWidthA, width, Eivec, LineWidthEivec, @perm[0], sizeof(integer));
 
      // calculate eigenvalues and eigenvectors from the hessenberg matrix
      Result := MatrixEigVecHessenbergInPlace(A, LineWidthA, width, Wr, LineWidthWR, Wi, LineWidthWI, Eivec, LineWidthEivec);
@@ -2101,9 +2059,6 @@ begin
 
      if Balance then
         MatrixBalanceBackInPlace(Eivec, LineWidthEivec, width, @scale[0], sizeof(double));
-
-     // norm eigenvectors to create determined vectors
-     MatrixNormEivecInPlace(Eivec, LineWidthEivec, width, WI, LineWidthWI);
 end;
 
 function MatrixUnsymEigVec(const A : PDouble; const LineWidthA : integer; width : integer; WR : PDouble;

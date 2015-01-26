@@ -54,6 +54,9 @@ type
    procedure TestApplyFunc;
    procedure TestSumInPlace;
    procedure TestQR;
+   procedure TestSymEig;
+   procedure TestEig;
+   procedure TestNormalize;
   end;
 
 type
@@ -97,7 +100,7 @@ type
 implementation
 
 uses BaseMathPersistence, binaryReaderWriter,
-     math, MatrixConst, mtxTimer, Dialogs, MathUtilFunc;
+     math, MatrixConst, mtxTimer, Dialogs, MathUtilFunc, Eigensystems;
 
 { TestTDoubleMatrix }
 
@@ -236,6 +239,60 @@ begin
      meanMtx.Free;
 end;
 
+procedure TestTDoubleMatrix.TestEig;
+var mtx : TDoubleMatrix;
+    eigvals : TDoubleMatrix;
+    eigVec : TDoubleMatrix;
+    leftSide : TDoubleMatrix;
+    rightSide : TDoubleMatrix;
+    counter: Integer;
+const cEigs : Array[0..7] of double = ( 2.6701862, 0, 0.126526, 0, 0.311542, 0, -0.873255, 0 );  // from matlab
+      cMtx : Array[0..15] of double = ( 1.0000,    0.5000,    0.3333,    0.2500,
+                                        2.0000,    0.1100,    0.2500,    1.1100,
+                                        0.3333,    0.6667,    1.0000,    0.7500,
+                                        2.0000,    0.9222,    0.2500,    0.1250 );
+begin
+     mtx := TDoubleMatrix.Create;
+     try
+        mtx.Assign(cMtx, 4, 4);
+        
+        Check( mtx.Eig(eigvals, EigVec) = qlOk, 'Error no convergence');
+
+        Status(WriteMtx(mtx.SubMatrix, mtx.Width, 6));
+        
+        Status(WriteMtx(eigVals.SubMatrix, eigVals.width, 6));
+        Status(WriteMtx(eigVec.SubMatrix, eigVec.width, 6));
+
+        Check( CheckMtx(cEigs, eigVals.SubMatrix), 'Eigenvalue calculation failed');
+
+        // check if it serves A*x = eigval * x
+        leftSide := mtx.Mult(eigVec);
+        for counter := 0 to 3 do
+        begin
+             eigVec.SetSubMatrix(counter, 0, 1, eigVec.Height);
+             leftSide.SetSubMatrix(counter, 0, 1, leftSide.Height);
+             rightSide := eigVec.Scale(eigVals[0, counter]); // only real part!
+
+             Check(CheckMtx(leftSide.SubMatrix, rightSide.SubMatrix), 'Eigenvector failed');
+
+             rightside.Free;
+        end;
+
+        leftSide.Free;
+        
+        eigvals.Free;
+        eigVec.Free;
+
+        Check( mtx.Eig(eigVals) = qlOk, 'Error no convergence');
+        Status(WriteMtx(eigVals.SubMatrix, eigVals.Width));
+
+        Check( CheckMtx(cEigs, eigVals.SubMatrix), 'Eigenvalue calculation failed');
+        eigVals.Free;
+     finally
+            mtx.Free;
+     end;
+end;
+
 procedure TestTDoubleMatrix.TestMult;
 var mtx : TDoubleMatrix;
     mtx1 : TDoubleMatrix;
@@ -332,6 +389,35 @@ begin
      end;
 end;
 
+
+procedure TestTDoubleMatrix.TestNormalize;
+const cA : Array[0..15] of double = (2, 1, 4, 2, 
+                                     4, 5, 3, 2, 
+                                     32, 8, 16, 8,
+                                     5, 3, 1, 7 );
+      cNorm1 : Array[0..15] of double = (2/5, 1/5, 4/5, 2/5, 
+                                         0.5443, 0.6804, 0.4082, 0.2722, 
+                                         0.8528, 0.2132, 0.4264, 0.2132,
+                                         0.5455, 0.3273, 0.1091, 0.7638 );
+var mtx : TDoubleMatrix;
+begin
+     mtx := TDoubleMatrix.Create;
+     try
+        mtx.Assign(cA, 4, 4);
+        mtx.Normalize(True);
+
+        Check(CheckMtx( mtx.SubMatrix, cNorm1), 'Normalized failed');
+
+        mtx.Assign(cA, 4, 4);
+        mtx.TransposeInPlace;
+        mtx.Normalize(False);
+        mtx.TransposeInPlace;
+
+        Check(CheckMtx(mtx.SubMatrix, cNorm1), 'Normalized failed');
+     finally
+            mtx.Free;
+     end;
+end;
 
 procedure TestTDoubleMatrix.TestPersistence;
 var dx, dy : Array[0..49] of double;
@@ -482,6 +568,28 @@ begin
      U.Free;
      V.Free;
      w.Free;
+end;
+
+procedure TestTDoubleMatrix.TestSymEig;
+var mtx : TDoubleMatrix;
+    eigvals : TDoubleMatrix;
+const cEigs : Array[0..3] of double = ( 0.407837, 0.207753, 0.848242, 2.536168 );
+// testcase from a. mauri
+begin
+     mtx := TDoubleMatrix.Create(4, 4);
+     try
+        mtx.SetRow(0, [1.0000,    0.5000,    0.3333,    0.2500]);
+        mtx.SetRow(1, [0.5000,    1.0000,    0.6667,    0.5000]);
+        mtx.SetRow(2, [0.3333,    0.6667,    1.0000,    0.7500]);
+        mtx.SetRow(3, [0.2500,    0.5000,    0.7500,    1.0000]);
+
+        mtx.SymEig(eigvals);
+
+        Check(CheckMtx(eigvals.SubMatrix, cEigs), 'Error calculating eigenvalues');
+        eigvals.Free;
+     finally
+            mtx.Free;
+     end;
 end;
 
 procedure TestTDoubleMatrix.TestTranspose;

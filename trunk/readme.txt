@@ -46,6 +46,12 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: 26.01.2014
+* Fixed SymEig initialization -> the wrong initial matrix dimension have been used.
+* Revised unsymmetric eigenvalue calculation and fixed the implementaion.
+* Added new testcases
+* Fixed wrong destination matrix size in the normalization function.
+
 Date: 29.10.2014
 * Blocked and threaded QR decomposition
 * Introduced full QR decomposition (from economysize QR to full economysize Q and R matrices)

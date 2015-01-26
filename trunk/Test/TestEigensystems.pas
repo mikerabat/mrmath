@@ -26,6 +26,7 @@ type
   procedure TestTridiagonalHousholderMethod;
   procedure TestQLImplicitShift;
   procedure TestHessenberg;
+  procedure TestHessenberg2;
   procedure TestHessenbergCmplx;
   procedure TestEigVec1;
   procedure TestEigVecComplex;
@@ -47,17 +48,12 @@ var dest : Array[0..8] of double;
     Eivec : Array[0..8] of double;
     Wr : Array[0..2] of double;
     Wi : Array[0..2] of double;
-    perm : Array[0..2] of integer;
-    scale : Array[0..2] of double;
 begin
      FillChar(Eivec[0], sizeof(Eivec), 0);
      
      Move(B, dest, sizeof(B));
-     MatrixBalanceInPlace(@dest[0], 3*sizeof(double), 3, @scale[0], sizeof(double));
-     MatrixHessenbergPermInPlace(@dest[0], 3*sizeof(double), 3, @perm[0], sizeof(integer));
-     MatrixCopyHessenberg(@dest[0], 3*sizeof(double), 3, @Eivec[0], 3*sizeof(double), @perm[0], sizeof(integer));
-     Check(qlOk = MatrixEigVecHessenbergInPlace(@Dest[0], 3*sizeof(double), 3, @Wr[0], sizeof(double), @Wi[0], sizeof(double), @Eivec[0], 3*sizeof(double)), 'error no convergence');
-     MatrixBalanceBackInPlace(@Eivec[0], 3*sizeof(double), 3, @scale[0], sizeof(double));
+     Check(qlOk = MatrixUnsymEigVecInPlace(@dest[0], 3*sizeof(double), 3, @Wr[0], sizeof(double), @wi[0], sizeof(double), 
+                              @eivec[0], 3*sizeof(double), True), 'Error no convergence');
      MatrixNormEivecInPlace(@Eivec[0], 3*SizeOf(double), 3, @WI[0], sizeof(double));
 
      Check(CheckMtx(EigVals, Wr, -1, -1, 0.001), 'Error wrong eigenvalues');
@@ -73,12 +69,15 @@ var dest : Array[0..8] of double;
     Eivec : Array[0..8] of double;
     Wr : Array[0..2] of double;
     Wi : Array[0..2] of double;
-    perm : Array[0..2] of integer;
 begin
+     FillChar(wr, sizeof(wr), 0);
+     FillChar(wi, sizeof(wi), 0);
      FillChar(Eivec[0], sizeof(Eivec), 0);
-     MatrixHessenbergPerm(@dest[0], 3*sizeof(double), @B[0], 3*sizeof(double), 3, @perm[0], sizeof(integer));
-     MatrixCopyHessenberg(@dest[0], 3*sizeof(double), 3, @Eivec[0], 3*sizeof(double), @perm[0], sizeof(integer));
-     Check(qlOk = MatrixEigVecHessenbergInPlace(@Dest[0], 3*sizeof(double), 3, @Wr[0], sizeof(double), @Wi[0], sizeof(double), @Eivec[0], 3*sizeof(double)), 'Error no convergence');
+     Move(B, dest, sizeof(dest));
+     
+     checK(qlOk = MatrixUnsymEigVecInPlace(@dest[0], 3*sizeof(double), 3, @wr[0], sizeof(double), @wi[0], sizeof(double), 
+                                           @eivec[0], 3*sizeof(double), false), 'Error no convergence');
+
      MatrixNormEivecInPlace(@Eivec[0], 3*SizeOf(double), 3, @WI[0], sizeof(double));
 
      Check(CheckMtx(EigVals, Wr, -1, -1, 0.001), 'Error wrong eigenvalues');
@@ -89,16 +88,19 @@ procedure TTestEigensystems.TestEigVecComplex;
 const A : Array[0..15] of double = (10, 9, 8, 9, 2, 8, 4, 7, 6, 5, 6, 2, 5, 0, 8, 4);
       EigValsR : Array[0..3] of double = (23.2603, 0.9905, 0.9905, 2.7587);
       EigValsI : Array[0..3] of double = (0, 4.5063, -4.5063, 0);
-      EigVec : Array[0..15] of double = (1, -0.358, -0.170, -0.921, 0.498, -0.421, -0.604, 1, 0.548, -0.152, 0.669, 0.715, 0.487, 1, 0, -0.894);
+      EigVec : Array[0..15] of double = (1, -0.358, -0.1699, -0.921, 0.498, -0.421, -0.604, 1, 0.548, -0.152, 0.669, 0.715, 0.487, 1, 0, -0.894);
 var dest : Array[0..15] of double;
     Eivec : Array[0..15] of double;
     Wr : Array[0..3] of double;
     Wi : Array[0..3] of double;
-    perm : Array[0..3] of integer;
 begin
-     MatrixHessenbergPerm(@dest[0], 4*sizeof(double), @A[0], 4*sizeof(double), 4, @perm[0], sizeof(integer));
-     MatrixCopyHessenberg(@dest[0], 4*sizeof(double), 4, @Eivec[0], 4*sizeof(double), @perm[0], sizeof(integer));
-     MatrixEigVecHessenbergInPlace(@Dest[0], 4*sizeof(double), 4, @Wr[0], sizeof(double), @Wi[0], sizeof(double), @Eivec[0], 4*sizeof(double));
+     FillChar(wr, sizeof(wr), 0);
+     FillChar(wi, sizeof(wi), 0);
+     FillChar(Eivec[0], sizeof(Eivec), 0);
+     Move(A, dest, sizeof(dest));
+     checK(qlOk = MatrixUnsymEigVecInPlace(@dest[0], 4*sizeof(double), 4, @wr[0], sizeof(double), @wi[0], sizeof(double), 
+                                           @eivec[0], 4*sizeof(double), false), 'Error no convergence');
+
      MatrixNormEivecInPlace(@Eivec[0], 4*SizeOf(double), 4, @WI[0], sizeof(double));
 
      Check(CheckMtx(EigValsR, WR, -1, -1, 0.001), 'Error wrong real Eigenvalue part');
@@ -135,6 +137,18 @@ begin
      Check(CheckEig, 'Error wrong eigenvalues: ' + WriteMtx(WR, 3) + #13#10 + WriteMtx(WI, 3));
 end;
 
+procedure TTestEigensystems.TestHessenberg2;
+const A : Array[0..15] of double = (    1.0000,    0.5000,    0.3333,    0.2500,
+                                        2.0000,    0.1100,    0.2500,    1.1100,
+                                        0.3333,    0.6667,    1.0000,    0.7500,
+                                        2.0000,    0.9222,    0.2500,    0.1250 );
+var dest : Array[0..15] of double;
+begin
+     move(a, dest, sizeof(dest));
+     MatrixHessenbergPermInPlace(@dest[0], 4*sizeof(double), 4, nil, 0);
+     Status(WriteMtx(dest, 4));
+end;
+
 procedure TTestEigensystems.TestHessenbergCmplx;
 const A : Array[0..15] of double = (10, 9, 8, 9, 2, 8, 4, 7, 6, 5, 6, 2, 5, 0, 8, 4);
       EigVals : Array[0..3,0..1] of double = ( (23.2603, 0), (0.9905, -4.5063), (0.9905, 4.5063), (2.7587, 0));
@@ -167,7 +181,8 @@ var Eivec : Array[0..8] of double;
     Wi : Array[0..2] of double;
 begin
      Check(qlOk = MatrixUnsymEigVec(@B[0], 3*sizeof(double), 3, @Wr[0], sizeof(double), @Wi[0], sizeof(double), @Eivec[0], 3*sizeof(double), True), 'error in convergence of eigenvector routine');
-
+     MatrixNormEivecInPlace(@Eivec[0], 3*sizeof(double), 3, @wi[0], sizeof(double));
+     
      Check(CheckMtx(EigVals, Wr, -1, -1, 0.001), 'Error wrong eigenvalues');
      Check(CheckMtx(EigVec, Eivec, -1, -1, 0.001), 'Error wrong eigenvectors');
 end;
