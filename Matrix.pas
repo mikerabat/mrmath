@@ -173,9 +173,9 @@ type
     function SymEig(out EigVals : TDoubleMatrix) : TEigenvalueConvergence; overload;
     function SymEig(out EigVals : IMatrix; out EigVect : IMatrix) : TEigenvalueConvergence; overload;
     function SymEig(out EigVals : IMatrix) : TEigenvalueConvergence; overload;
-    function Eig(out EigVals : TDoublematrix; out EigVect : TDoubleMatrix)  : TEigenvalueConvergence; overload;
+    function Eig(out EigVals : TDoublematrix; out EigVect : TDoubleMatrix; normEigVecs : boolean = False)  : TEigenvalueConvergence; overload;
     function Eig(out EigVals : TDoublematrix)  : TEigenvalueConvergence; overload;
-    function Eig(out EigVals : IMatrix; out EigVect : IMatrix) : TEigenvalueConvergence; overload;
+    function Eig(out EigVals : IMatrix; out EigVect : IMatrix; normEigVecs : boolean = False) : TEigenvalueConvergence; overload;
     function Eig(out EigVals : IMatrix)  : TEigenvalueConvergence; overload;
     function Cholesky(out Chol : TDoubleMatrix) : TCholeskyResult; overload;
     function Cholesky(out Chol : IMatrix) : TCholeskyResult; overload;
@@ -379,9 +379,9 @@ type
     function SymEig(out EigVals : TDoubleMatrix) : TEigenvalueConvergence; overload;
     function SymEig(out EigVals : IMatrix; out EigVect : IMatrix) : TEigenvalueConvergence; overload;
     function SymEig(out EigVals : IMatrix) : TEigenvalueConvergence; overload;
-    function Eig(out EigVals : TDoublematrix; out EigVect : TDoubleMatrix)  : TEigenvalueConvergence; overload;
+    function Eig(out EigVals : TDoublematrix; out EigVect : TDoubleMatrix; normEigVecs : boolean = False)  : TEigenvalueConvergence; overload;
     function Eig(out EigVals : TDoublematrix)  : TEigenvalueConvergence; overload;
-    function Eig(out EigVals : IMatrix; out EigVect : IMatrix) : TEigenvalueConvergence; overload;
+    function Eig(out EigVals : IMatrix; out EigVect : IMatrix; normEigVecs : boolean = False) : TEigenvalueConvergence; overload;
     function Eig(out EigVals : IMatrix)  : TEigenvalueConvergence; overload;
     function Cholesky(out Chol : TDoubleMatrix) : TCholeskyResult; overload;
     function Cholesky(out Chol : IMatrix) : TCholeskyResult; overload;
@@ -737,18 +737,43 @@ begin
      MatrixSQRT(StartElement, LineWidth, fSubWidth, fSubHeight);
 end;
 
+function TDoubleMatrix.Eig(out EigVals, EigVect: IMatrix; normEigVecs : boolean = False): TEigenvalueConvergence;
+var outEigVals, outEigVect : TDoubleMatrix;
+begin
+     Result := Eig(outEigVals, outEigVect, normEigVecs);
+     EigVals := outEigVals;
+     EigVect := outEigVect;
+end;
+
+function TDoubleMatrix.Eig(out EigVals: IMatrix): TEigenvalueConvergence;
+var outEigVals : TDoubleMatrix;
+begin
+     Result := Eig(outEigVals);
+     EigVals := outEigVals;
+end;
+
 function TDoubleMatrix.Eig(out EigVals: TDoublematrix): TEigenvalueConvergence;
 var dt : TDoubleMatrix;
     pReal, pImag : PDouble;
+    dummy : TDoubleMatrix;
+    perm : TIntegerDynArray;
 begin
      CheckAndRaiseError((fSubWidth > 0) and (fSubHeight = fSubWidth), 'Eigenvalues are only defined for square matrices');
 
      EigVals := nil;
-     dt := ResultClass.Create(fSubWidth, 2);
+     dt := ResultClass.Create(2, fSubHeight);
      pReal := dt.StartElement;
      pImag := pReal;
      inc(pImag);
-     Result := MatrixEigHessenberg(StartElement, LineWidth, fSubWidth, pReal, dt.LineWidth, pImag, dt.LineWidth);
+
+     dummy := TDoubleMatrix.Create;
+     dummy.Assign(self);
+     
+     SetLength(perm, fSubWidth);
+     MatrixHessenbergPerm(dummy.StartElement, dummy.LineWidth, StartElement, LineWidth, fSubWidth, @perm[0], sizeof(integer));
+     Result := MatrixEigHessenbergInPlace(dummy.StartElement, dummy.LineWidth, fSubWidth, pReal, dt.LineWidth, pImag, dt.LineWidth);
+     dummy.Free;
+     
      if Result = qlOk
      then
          EigVals := dt
@@ -756,10 +781,11 @@ begin
          dt.Free;
 end;
 
-function TDoubleMatrix.Eig(out EigVals, EigVect: TDoubleMatrix): TEigenvalueConvergence;
+function TDoubleMatrix.Eig(out EigVals, EigVect: TDoubleMatrix; normEigVecs : boolean = False): TEigenvalueConvergence;
 var dt : TDoubleMatrix;
     vec : TDoubleMatrix;
     pReal, pImag : PDouble;
+    dummy : TDoubleMatrix;
 begin
      CheckAndRaiseError((fSubWidth > 0) and (fSubHeight = fSubWidth), 'Eigenvalues are only defined for square matrices');
 
@@ -768,16 +794,31 @@ begin
      dt := nil;
      vec := nil;
      try
-        dt := ResultClass.Create(fSubWidth, 2);
+        dt := ResultClass.Create(2, fSubHeight);
         pReal := dt.StartElement;
         pImag := pReal;
         inc(pImag);
 
         vec := ResultClass.Create(fSubWidth, fSubHeight);
-        Result := MatrixEigVecHessenbergInPlace(StartElement, LineWidth, fSubWidth, pReal, dt.LineWidth, pImag, dt.LineWidth,
-                                                vec.StartElement, vec.LineWidth);
+        
+        // create a copy since the original content is destroyed!
+        dummy := TDoubleMatrix.Create;
+        try
+           dummy.Assign(self);
+           Result := MatrixUnsymEigVecInPlace(dummy.StartElement, dummy.LineWidth,
+                                              fSubWidth, 
+                                              pReal, dt.LineWidth, pImag, dt.LineWidth, 
+                                              vec.StartElement, vec.LineWidth,
+                                              True);
+        finally
+               dummy.Free;
+        end;
+
         if Result = qlOk then
         begin
+             if normEigVecs then
+                MatrixNormEivecInPlace(vec.StartElement, vec.LineWidth, fSubWidth, pImag, dt.LineWidth);
+             
              EigVals := dt;
              EigVect := vec;
         end
@@ -1207,12 +1248,7 @@ var dt : TDoubleMatrix;
 begin
      CheckAndRaiseError((width > 0) and (height > 0), 'Dimension error');
 
-     if RowWise
-     then
-         dt := ResultClass.Create(Width, 1)
-     else
-         dt := ResultClass.Create(1, Height);
-
+     dt := ResultClass.Create(Width, Height);
      try
         MatrixNormalize(dt.StartElement, dt.LineWidth, StartElement, LineWidth, Width, Height, RowWise);
         Assign(dt);
@@ -1727,7 +1763,7 @@ begin
 
      EigVals := nil;
 
-     dt := ResultClass.Create(fSubWidth, 1);
+     dt := ResultClass.Create(1, fSubHeight);
      vec := ResultClass.Create(fSubWidth, fSubWidth);
      try
         Result := MatrixEigTridiagonalMatrix(vec.StartElement, vec.LineWidth, StartElement, LineWidth, fSubWidth, dt.StartElement, dt.LineWidth);
@@ -1758,7 +1794,7 @@ begin
      EigVals := nil;
      EigVect := nil;
 
-     dt := ResultClass.Create(fSubWidth, 1);
+     dt := ResultClass.Create(1, fSubHeight);
      vec := ResultClass.Create(fSubWidth, fSubWidth);
      try
         Result := MatrixEigTridiagonalMatrix(vec.StartElement, vec.LineWidth, StartElement, LineWidth, fSubWidth, dt.StartElement, dt.LineWidth);
@@ -1986,21 +2022,6 @@ function TDoubleMatrix.SymEig(out EigVals: IMatrix): TEigenvalueConvergence;
 var outEigVals : TDoubleMatrix;
 begin
      Result := SymEig(outEigVals);
-     EigVals := outEigVals;
-end;
-
-function TDoubleMatrix.Eig(out EigVals, EigVect: IMatrix): TEigenvalueConvergence;
-var outEigVals, outEigVect : TDoubleMatrix;
-begin
-     Result := Eig(outEigVals, outEigVect);
-     EigVals := outEigVals;
-     EigVect := outEigVect;
-end;
-
-function TDoubleMatrix.Eig(out EigVals: IMatrix): TEigenvalueConvergence;
-var outEigVals : TDoubleMatrix;
-begin
-     Result := Eig(outEigVals);
      EigVals := outEigVals;
 end;
 

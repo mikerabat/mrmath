@@ -92,7 +92,7 @@ var i : integer;
     miss : integer;
     x, y : integer;
 begin
-     idx := -1;
+     idx := 0;
      if (w < 0) and (h < 0) then
      begin
           w := Length(data1);
