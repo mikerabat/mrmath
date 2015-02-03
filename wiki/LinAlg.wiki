@@ -21,4 +21,4 @@ We then apply transformations on the right part (solve A,,12,, = L^-1^A,,12,, an
 
 In the library itself the matrix inversion and matrix determinant calculation are based on the LU decomposition.
 
-more tbd
+In addition the QR Algorithm has now been updated such that it's cache oblivious and uses a panel based approach similar to the one used in linpack (netlib.org). The matrix multiplications used in that algorithm make use of multiple cores meaning that most of the new implementation can benifit from that.
