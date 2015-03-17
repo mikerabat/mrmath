@@ -16,7 +16,7 @@ You may find quite a few examples in "Test\MathUtilsTests.dpr" - it's a unit tes
 program which shows the usage of the library nicely.
 
 Also check out
-http://code.google.com/p/mrmath/wiki/mrMathIntroduction
+https://github.com/mikerabat/mrmath
 for a deeper description.
 
 Platforms:
@@ -45,6 +45,9 @@ William Cantrall - special thanks for making the library MacOs compatible.
 
 // ###################################################################
 changelog:
+
+Date: 17.03.2015
+* Moved to github
 
 Date: 26.01.2014
 * Fixed SymEig initialization -> the wrong initial matrix dimension have been used.
