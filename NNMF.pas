@@ -260,12 +260,18 @@ begin
                   // w = max(0, a/h);
 
                   if fW.PseudoInversion(temp1) = srNoConvergence then
-                      exit(nmFloatingPointPrecReached);
+                  begin
+                       Result := nmFloatingPointPrecReached;
+                       exit;
+                  end;
                   temp1.MultInPlace(V);
                   temp1.ElementwiseFuncInPlace(maxFunc);
 
                   if temp1.PseudoInversion(temp2) = srNoConvergence then
-                     exit(nmFloatingPointPrecReached);
+                  begin
+                       Result := nmFloatingPointPrecReached;
+                       exit;
+                  end;
 
                   temp2 := V.Mult(temp2);
                   temp2.ElementwiseFuncInPlace(maxFunc);

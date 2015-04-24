@@ -180,6 +180,9 @@ var Eivec : Array[0..8] of double;
     Wr : Array[0..2] of double;
     Wi : Array[0..2] of double;
 begin
+     FillChar(EiVec, sizeof(EiVec), 0);
+     FillChar(wr, sizeof(wr), 0);
+     FillChar(wi, sizeof(wi), 0);
      Check(qlOk = MatrixUnsymEigVec(@B[0], 3*sizeof(double), 3, @Wr[0], sizeof(double), @Wi[0], sizeof(double), @Eivec[0], 3*sizeof(double), True), 'error in convergence of eigenvector routine');
      MatrixNormEivecInPlace(@Eivec[0], 3*sizeof(double), 3, @wi[0], sizeof(double));
      

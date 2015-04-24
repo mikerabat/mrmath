@@ -1961,7 +1961,8 @@ begin
      if height < 1 then
      begin
           Tau^ := 0;
-          exit(true);
+          Result := true;
+          exit;
      end;
 
      xNorm := MatrixElementwiseNorm2(A, LineWidthA, 1, height);

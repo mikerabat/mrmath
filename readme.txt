@@ -46,6 +46,10 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: 24.04.2015
+* Project was not compilable under Delphi 2007 -> fixed exit statements
+* The linear dependent vector testcase did not properly work since the eigenvector array was not initialized
+
 Date: 17.03.2015
 * Moved to github
 
