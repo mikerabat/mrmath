@@ -96,6 +96,7 @@ type
     procedure TestInvert;
     procedure TestDeterminant;
     procedure TestMatrixSolve;
+    procedure TestMedian;
   end;
 
 implementation
@@ -773,6 +774,35 @@ begin
 
      index := 0;
      Check(CheckMtxIdx(m1.SubMatrix, m2.SubMatrix, index), Format('error Lin equation solve. Error at x[%d] = %.5f, y[%d] = %.5f', [index, x1[index], index, x2[index]]));
+end;
+
+procedure TestTThreadedMatrix.TestMedian;
+const cBlkWidth = 2048;
+      cBlkSize = cBlkWidth*cBlkWidth;
+var a : TDoubleDynArray;
+    i : integer;
+    start, stop : int64;
+    m1, m2 : IMatrix;
+begin
+     SetLength(a, cBlkSize);
+
+     RandSeed := 15;
+     for i := 0 to cBlkSize - 1 do
+         a[i] := Random - 0.5;
+
+     m1 := TDoubleMatrix.Create(a, cBlkWidth, cBlkWidth);
+     start := MtxGetTime;
+     m1.MedianInPlace(True);
+     stop := MtxGetTime;
+     Status(Format('Single Thr Median: %.2fms', [(stop - start)/mtxfreq*1000]));
+
+     m2 := TThreadedMatrix.Create(a, cBlkWidth, cBlkWidth);
+     start := MtxGetTime;
+     m2.MedianInPlace(True);
+     stop := MtxGetTime;
+     Status(Format('Multi Thr Median: %.2fms', [(stop - start)/mtxfreq*1000]));
+
+     Check(CheckMtx(m1.SubMatrix, m2.SubMatrix), 'Error calculating threaded median');
 end;
 
 procedure TestTThreadedMatrix.TestThreadMult;

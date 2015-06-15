@@ -36,6 +36,8 @@ procedure ThrMatrixAddAndScale(Dest : PDouble; const LineWidth, Width, Height : 
 procedure ThrMatrixAdd(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 procedure ThrMatrixSub(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 
+procedure ThrMatrixMedian(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+
 procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixFunc); overload;
 procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixObjFunc); overload;
 procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFunc); overload;
@@ -44,7 +46,7 @@ procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; wid
 
 implementation
 
-uses  MtxThreadPool, ASMMatrixOperations, OptimizedFuncs, BlockSizeSetup;
+uses  MtxThreadPool, ASMMatrixOperations, OptimizedFuncs, BlockSizeSetup, Math;
 
 type
   TMatrixAddSubFunc = procedure(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
@@ -108,6 +110,19 @@ type
     func : TMatrixAddSubFunc;
 
     constructor Create(aDest : PDouble; aDestLineWidth : TASMNativeInt; aMt1, aMt2 : PDouble; aWidth, aHeight : TASMNativeInt; aLineWidth1, aLineWidth2 : TASMNativeInt);
+  end;
+type
+  TAsyncMatrixMedianObj = class(TObject)
+    dest : PDouble;
+    destLineWidth : TASMNativeInt;
+    Src : PDouble;
+    srcLineWidth : TASMNativeInt;
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+    rowWise : boolean;
+    hlpMem : PDouble;
+
+    constructor Create(aDest : PDouble; aDestLineWidth : TASMNativeInt; aSrc : PDouble; aSrcLineWidth : TASMNativeInt; aWidth, aHeight : TASMNativeInt; aRowWise : boolean; aHelpMem : PDouble);
   end;
 
 type
@@ -297,6 +312,20 @@ begin
                        TAsyncMatrixAddAndSclaObj(obj).Height,
                        TAsyncMatrixAddAndSclaObj(obj).Offset,
                        TAsyncMatrixAddAndSclaObj(obj).Scale);
+
+     Result := 0;
+end;
+
+function MatrixMedianFunc(obj : TObject) : integer;
+begin
+     MatrixMedian(TAsyncMatrixMedianObj(obj).dest,
+                  TAsyncMatrixMedianObj(obj).destLineWidth,
+                  TAsyncMatrixMedianObj(obj).Src,
+                  TAsyncMatrixMedianObj(obj).srcLineWidth,
+                  TAsyncMatrixMedianObj(obj).width,
+                  TAsyncMatrixMedianObj(obj).height,
+                  TAsyncMatrixMedianObj(obj).rowWise,
+                  TAsyncMatrixMedianObj(obj).hlpMem);
 
      Result := 0;
 end;
@@ -1055,6 +1084,77 @@ begin
      ThrMatrixAddSub(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2, {$IFDEF FPC}@{$ENDIF}MatrixAdd);
 end;
 
+
+procedure ThrMatrixMedian(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+var i: TASMNativeInt;
+    obj : TAsyncMatrixMedianObj;
+    calls : IMtxAsyncCallGroup;
+    sizeFits : boolean;
+    thrSize : TASMNativeInt;
+    maxNumCores : integer;
+    hlpMem : PDouble;
+    mem : Pointer;
+begin
+     // check if it is really necessary to thread the call:
+     if (width < numCPUCores) and (height < numCPUCores) then
+     begin
+          MatrixMedian(Dest, destLineWidth, Src, srcLineWidth, Width, height, RowWise, nil);
+          exit;
+     end;
+
+     calls := MtxInitTaskGroup;
+
+     if not RowWise then
+     begin
+          maxNumCores := Min(width, numCPUCores);
+          
+          sizeFits := (width mod maxNumCores) = 0;
+          thrSize := width div maxNumCores + TASMNativeInt(not sizeFits);
+          GetMem(mem, maxNumCores*height*sizeof(double));
+          hlpMem := mem;
+
+          for i := 0 to maxNumCores - 1 do
+          begin
+               obj := TAsyncMatrixMedianObj.Create(dest, destLineWidth, src, srcLineWidth, thrSize, height, RowWise, hlpMem);
+
+               inc(obj.dest, i*thrSize);
+               inc(obj.src, i*thrSize);
+               if width < (i + 1)*thrSize then
+                  obj.Width := width - i*thrSize;
+
+               calls.AddTask(@MatrixMedianFunc, obj);
+               inc(hlpMem, height);
+          end;
+     end
+     else
+     begin
+          maxNumCores := Min(height, numCPUCores);
+
+          GetMem(mem, maxNumCores*width*sizeof(double));
+          hlpMem := mem;
+          
+          sizeFits := (height mod maxNumCores) = 0;
+          thrSize := height div maxNumCores + TASMNativeInt(not sizeFits);
+
+          for i := 0 to maxNumCores - 1 do
+          begin
+               obj := TAsyncMatrixMedianObj.Create(dest, destLineWidth, src, srcLineWidth, width, thrSize, RowWise, hlpMem);
+
+               inc(PByte(obj.dest), i*thrSize*destLineWidth);
+               inc(PByte(obj.src), i*thrSize*srcLineWidth);
+               if height < (i + 1)*thrSize then
+                  obj.Height := height - i*thrSize;
+
+              calls.AddTask(@MatrixMedianFunc, obj);
+              inc(hlpMem, width);
+          end;
+     end;
+
+     calls.SyncAll;
+
+     FreeMem(mem);
+end;
+
 { TAsyncMultObj }
 
 constructor TAsyncMultObj.Create(adest: PDouble; const adestLineWidth: TASMNativeInt;
@@ -1120,6 +1220,22 @@ begin
      height := aheight;
      LineWidth1 := aLineWidth1;
      LineWidth2 := aLineWidth2;
+end;
+
+{ TAsyncMatrixMedianObj }
+
+constructor TAsyncMatrixMedianObj.Create(aDest: PDouble;
+  aDestLineWidth: TASMNativeInt; aSrc: PDouble; aSrcLineWidth, aWidth,
+  aHeight: TASMNativeInt; aRowWise : boolean; aHelpMem : PDouble);
+begin
+     dest := aDest;
+     destLineWidth := aDestLineWidth;
+     src := aSrc;
+     srcLineWidth := aSrcLineWidth;
+     width := aWidth;
+     height := aHeight;
+     rowWise := aRowWise;
+     hlpMem := aHelpMem;
 end;
 
 end.

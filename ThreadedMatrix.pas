@@ -59,6 +59,8 @@ type
     procedure SubInPlace(Value : TDoubleMatrix); override;
     function Sub(Value : TDoubleMatrix) : TDoubleMatrix; override;
 
+    function Median(RowWise : boolean) : TDoubleMatrix; override;
+
     // threaded lin alg functions
     function InvertInPlace : TLinEquResult; override;
     function Invert : TDoubleMatrix; override;
@@ -233,6 +235,24 @@ begin
      except
            dt.Free;
            raise;
+     end;
+end;
+
+function TThreadedMatrix.Median(RowWise: boolean): TDoubleMatrix;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+
+     if RowWise then
+     begin
+          Result := ResultClass.Create(1, fSubHeight);
+
+          ThrMatrixMedian(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise);
+     end
+     else
+     begin
+          Result := ResultClass.Create(fSubWidth, 1);
+
+          ThrMatrixMedian(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise);
      end;
 end;
 

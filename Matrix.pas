@@ -348,7 +348,7 @@ type
     function Std(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
     procedure StdInPlace(RowWise : boolean; unbiased : boolean = True);
 
-    function Median(RowWise : boolean) : TDoubleMatrix;
+    function Median(RowWise : boolean) : TDoubleMatrix; virtual;
     procedure MedianInPlace(RowWise : boolean);
     
     function Sum(RowWise : boolean) : TDoubleMatrix;
@@ -1122,13 +1122,13 @@ begin
      begin
           Result := ResultClass.Create(1, fSubHeight);
 
-          MatrixMedian(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise);
+          MatrixMedian(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise, nil);
      end
      else
      begin
           Result := ResultClass.Create(fSubWidth, 1);
 
-          MatrixMedian(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise);
+          MatrixMedian(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise, nil);
      end;
 end;
 
@@ -1137,7 +1137,7 @@ var dl : TDoubleMatrix;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
 
-     dl := Mean(RowWise);
+     dl := Median(RowWise);
      try
         Assign(dl);
      finally

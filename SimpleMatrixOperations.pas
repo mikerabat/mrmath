@@ -52,11 +52,11 @@ procedure GenericMtxMultTransp(dest : PDouble; const destLineWidth : TASMNativeI
 
 procedure GenericTranspMtxMultAdd(dest : PDouble; const destLineWidth : TASMNativeInt;
   mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-  const LineWidth1, LineWidth2 : TASMNativeInt; C : PDouble; LineWidthC : integer);
+  const LineWidth1, LineWidth2 : TASMNativeInt; C : PDouble; LineWidthC : TASMNativeInt);
 // calculates dest = alpha*mt1*mt2' + C
 procedure GenericMtxMultTranspAdd(dest : PDouble; const destLineWidth : TASMNativeInt; const alpha : double;
   mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-  const LineWidth1, LineWidth2 : TASMNativeInt; C : PDouble; LineWidthC : integer);
+  const LineWidth1, LineWidth2 : TASMNativeInt; C : PDouble; LineWidthC : TASMNativeInt);
 
 
 procedure GenericMtxElemMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt); overload;
@@ -123,14 +123,14 @@ procedure GenericMtxFunc(dest : PDouble; const destLineWidth : TASMNativeInt; wi
 
 // ###########################################
 // #### Matrix multiplications used in QR Decomposition
-procedure GenericMtxMultTria2T1(dest : PDouble; LineWidthDest : integer; mt1 : PDouble; LineWidth1 : integer; mt2 : PDouble; LineWidth2 : integer;
-  width1, height1, width2, height2 : integer);
-procedure GenericMtxMultTria2Store1(mt1 : PDouble; LineWidth1 : integer; mt2 : PDouble; LineWidth2 : integer;
-  width1, height1, width2, height2 : integer);
-procedure GenericMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : integer; mt2 : PDouble; LineWidth2 : integer;
-  width1, height1, width2, height2 : integer);
-procedure GenericMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : integer; mt2 : PDouble; LineWidth2 : integer;
-  width1, height1, width2, height2 : integer);
+procedure GenericMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+procedure GenericMtxMultTria2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+procedure GenericMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+procedure GenericMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
 
 implementation
 
@@ -824,7 +824,7 @@ end;
 
 procedure GenericTranspMtxMultAdd(dest : PDouble; const destLineWidth : TASMNativeInt;
   mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-  const LineWidth1, LineWidth2 : TASMNativeInt; C : PDouble; LineWidthC : integer);
+  const LineWidth1, LineWidth2 : TASMNativeInt; C : PDouble; LineWidthC : TASMNativeInt);
 var x, y, idx : TASMNativeInt;
     valCounter1 : PDouble;
     valCounter2 : PDouble;
@@ -873,7 +873,7 @@ end;
 // performs dest = alpha*A*B' + C
 procedure GenericMtxMultTranspAdd(dest : PDouble; const destLineWidth : TASMNativeInt; const alpha : double;
   mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-  const LineWidth1, LineWidth2 : TASMNativeInt; C : PDouble; LineWidthC : integer);
+  const LineWidth1, LineWidth2 : TASMNativeInt; C : PDouble; LineWidthC : TASMNativeInt);
 var x, y, idx : TASMNativeInt;
     valCounter1 : PDouble;
     valCounter2 : PDouble;
@@ -1241,9 +1241,9 @@ var a11, a12, a21, a22 : PDouble;
     P1, P2, P3, P4, P5, P6, P7 : PDouble;
     U1, U2, U3, U4, U5, U6, U7 : PDouble;
     c11, c12, c21, c22 : PDouble;
-    k, m, n : integer;
-    lineK : integer;
-    lineN : integer;
+    k, m, n : TASMNativeInt;
+    lineK : TASMNativeInt;
+    lineN : TASMNativeInt;
     x, y : PDouble;
 begin
      if (width1 <= cStrassenMinSize) or (height1 <= cStrassenMinSize) or (width2 <= cStrassenMinSize)
@@ -1439,9 +1439,9 @@ end;
 
 procedure GenericStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var mem : PDouble;
-    memSize : integer;
-    m, k, n : integer;
-    lev : integer;
+    memSize : TASMNativeInt;
+    m, k, n : TASMNativeInt;
+    lev : TASMNativeInt;
 begin
      // check the cutoff criterion:
      if (width1 <= cStrassenMinSize) or (height1 <= cStrassenMinSize) or (height2 <= cStrassenMinSize)
@@ -1789,8 +1789,8 @@ end;
 // dest = mt1'*mt2; where mt2 is a lower triangular matrix and the operation is transposition
 // the function assumes a unit diagonal (does not touch the real middle elements)
 // width and height values are assumed to be the "original" (non transposed) ones
-procedure GenericMtxMultTria2T1(dest : PDouble; LineWidthDest : integer; mt1 : PDouble; LineWidth1 : integer; mt2 : PDouble; LineWidth2 : integer;
-  width1, height1, width2, height2 : integer);
+procedure GenericMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
 var x, y, idx : TASMNativeInt;
     valCounter1 : PDouble;
     valCounter2 : PDouble;
@@ -1830,8 +1830,8 @@ end;
 
 // note the result is stored in mt1 again!
 // mt1 = mt1*mt2; where mt2 is an upper triangular matrix
-procedure GenericMtxMultTria2Store1(mt1 : PDouble; LineWidth1 : integer; mt2 : PDouble; LineWidth2 : integer;
-  width1, height1, width2, height2 : integer);
+procedure GenericMtxMultTria2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
 var x, y, idx : TASMNativeInt;
     valCounter1 : PDouble;
     valCounter2 : PDouble;
@@ -1868,8 +1868,8 @@ end;
 
 // note the result is stored in mt1 again!
 // mt1 = mt1*mt2'; where mt2 is an upper triangular matrix
-procedure GenericMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : integer; mt2 : PDouble; LineWidth2 : integer;
-  width1, height1, width2, height2 : integer);
+procedure GenericMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
 var x, y, idx : TASMNativeInt;
     valCounter1 : PDouble;
     valCounter2 : PDouble;
@@ -1908,8 +1908,8 @@ end;
 
 
 // calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be 1!
-procedure GenericMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : integer; mt2 : PDouble; LineWidth2 : integer;
-  width1, height1, width2, height2 : integer);
+procedure GenericMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
 var x, y, idx : TASMNativeInt;
     valCounter1 : PDouble;
     valCounter2 : PDouble;
