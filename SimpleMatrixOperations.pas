@@ -87,6 +87,10 @@ procedure GenericMtxMean(dest : PDouble; destLineWidth : TASMNativeInt; Src : PD
 procedure GenericMtxVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
 procedure GenericMtxSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
 
+// matrix median (row or column wise). For the calculation of the median at least width (for rowwise) or height (for columnwise) extra
+// memory is needed. The memory is either allocated on the fly or can be provided in the function.
+procedure GenericMtxMedian(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; tmp : PDouble = nil);
+
 procedure GenericMtxAddAndScale(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
 procedure GenericMtxScaleAndAdd(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
 
@@ -128,10 +132,9 @@ procedure GenericMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : integer; mt2 
 procedure GenericMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : integer; mt2 : PDouble; LineWidth2 : integer;
   width1, height1, width2, height2 : integer);
 
-
 implementation
 
-uses Math, BlockSizeSetup;
+uses Math, BlockSizeSetup, Utilities;
 
 function GenericMtxNormalize(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray;
 begin
@@ -264,6 +267,70 @@ begin
                inc(dest);
           end;
      end;
+end;
+
+procedure GenericMtxMedian(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; 
+  width, height : TASMNativeInt; RowWise : boolean; tmp : PDouble = nil);
+var x, y : TASMNativeInt;
+    pVal1 : PByte;
+    pVal : PDouble;
+    tmpMem : PDouble;
+begin
+     assert((Width > 0) and (Height > 0), 'No data assigned');
+
+     if (Width = 0) or (height = 0) then
+        exit;
+
+     tmpMem := tmp;
+     
+     pVal1 := PByte(Src);
+     if RowWise then
+     begin
+          if tmp = nil then
+             tmpMem := GetMemory(width*sizeof(double));
+          
+          for y := 0 to Height - 1 do
+          begin
+               // copy since we destroy the array when calculating the median
+               Move(pVal1^, tmpMem^, Width*sizeof(double));
+               
+               if Width and 1 = 1 
+               then
+                   dest^ := KthLargest(tmpMem, width, width div 2)
+               else
+                   dest^ := (KthLargest(tmpMem, width, width div 2) + KthLargest(tmpMem, width, Max(0, width div 2 - 1)))/2;
+                   
+               inc(pVal1, srcLineWidth);
+               inc(PByte(dest), destLineWidth);
+          end;
+     end
+     else
+     begin
+          if tmp = nil then
+             tmpMem := GetMemory(height*sizeof(double));
+          
+          for x := 0 to Width - 1 do
+          begin
+               pVal := PDouble(pVal1);
+               for y := 0 to Height - 1 do
+               begin
+                    PConstDoubleArr(tmpMem)^[y] := pVal^;
+                    inc(PByte(pVal), srcLineWidth);
+               end;
+
+               if height and 1 = 1 
+               then
+                   dest^ := KthLargest(tmpMem, height, height div 2)
+               else
+                   dest^ := (KthLargest(tmpMem, height, height div 2) + KthLargest(tmpMem, height, Max(0, height div 2 - 1)))/2;
+
+               inc(pVal1, sizeof(double));
+               inc(dest);
+          end;
+     end;
+
+     if tmp = nil then
+        FreeMemory(tmpMem);
 end;
 
 // note: this function calculates the unbiased version of the matrix variance!

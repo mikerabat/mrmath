@@ -20,6 +20,8 @@ unit Utilities;
 
 interface
 
+uses Types;
+
 type
   TQuickSortFunc = function(const Item1, Item2) : integer; 
 
@@ -27,9 +29,13 @@ type
 function DoubleSortFunc(const Item1, Item2) : integer;
 procedure QuickSort(var A; ItemSize : integer; ItemCount : integer; ItemSort : TQuickSortFunc);
 
+// for median - note: the content (sort order) of the array is destroyed!
+function KthLargest(var vals : TDoubleDynArray; elemNum : Cardinal) : double; overload;
+function KthLargest(valsArr : PDouble; numElem : integer; elemNum : Cardinal) : double; overload;
+
 implementation
 
-uses SysUtils, Math;
+uses SysUtils, Math, MatrixConst;
 
 function DoubleSortFunc(const Item1, Item2) : integer;
 begin
@@ -76,6 +82,77 @@ begin
      SetLength(P, ItemSize);
      SetLength(Help, ItemSize);
      Qs(0, ItemCount - 1);
+end;
+
+procedure SwapD(var elem1, elem2 : double); inline;
+var help : double;
+begin
+     help := elem1;
+     elem1 := elem2;
+     elem2 := help;
+end;
+
+function KthLargest(var vals : TDoubleDynArray; elemNum : Cardinal) : double;
+begin
+     Result := KthLargest(@vals[0], Length(vals), elemNum);
+end;
+
+function KthLargest(valsArr : PDouble; numElem : integer; elemNum : Cardinal) : double; overload;
+var i, ir, j, l, mid : Cardinal;
+    a : double;
+    vals : PConstDoubleArr;    
+begin
+     vals := PConstDoubleArr(valsArr);
+     
+     Result := 0;
+     l := 0;
+     if numElem = 0 then
+        exit;
+     ir := numElem - 1;
+
+     while True do
+     begin
+          if ir <= l + 1 then
+          begin
+               if (ir = l + 1) and (vals^[ir] < vals^[l]) then
+                  swapD(vals^[l], vals^[ir]);
+               Result := vals^[elemNum];
+               exit;
+          end;
+
+          mid := (l + ir) div 2;
+          swapD(vals^[mid], vals^[l + 1]);
+          if vals^[l] > vals^[ir] then
+             SwapD(vals^[l], vals^[ir]);
+          if vals^[l + 1] > vals^[ir] then
+             SwapD(vals^[l + 1], vals^[ir]);
+          if vals^[l] > vals^[l + 1] then
+             SwapD(vals^[l], vals^[l + 1]);
+
+          i := l + 1;
+          j := ir;
+          a := vals^[l + 1];
+          while True do
+          begin
+               repeat
+                     inc(i);
+               until vals^[i] >= a;
+               repeat
+                     dec(j);
+               until vals^[j] <= a;
+
+               if j < i then
+                  break;
+
+               SwapD(vals^[i], vals^[j]);
+          end;
+          vals^[l + 1] := vals^[j];
+          vals^[j] := a;
+          if j >= elemNum then
+             ir := j - 1;
+          if j <= elemNum then
+             l := i;
+     end;
 end;
 
 end.

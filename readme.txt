@@ -46,6 +46,10 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: 15.6.2015
+* New Median functions (row and column wise)
+* New property to have vector like access to the matrix.
+
 Date: 24.04.2015
 * Project was not compilable under Delphi 2007 -> fixed exit statements
 * The linear dependent vector testcase did not properly work since the eigenvector array was not initialized

@@ -13,15 +13,6 @@
 // ###################################################################
 
 unit TestSimpleMatrixOperations;
-{
-
-  Delphi DUnit Testfall
-  ----------------------
-  Diese Unit enthält ein Codegerüst einer Testfallklasse, das vom Testfall-Experten
-  erzeugt wurde. Ändern Sie den erzeugten Code, damit die Methoden aus der 
-  getesteten Unit korrekt eingerichtet und aufgerufen werden.
-
-}
 
 interface
 
@@ -41,6 +32,7 @@ type
    procedure TestNormalize;
    procedure TestApplyfunc;
    procedure TestAbs;
+   procedure TestMedian;
   end;
 
   TASMMatrixOperations = class(TBaseMatrixTestCase)
@@ -1170,6 +1162,21 @@ begin
      res := GenericMtxCopy(mt1, 3, 2);
 
      CheckEqualsMem(@mt1, @res[0], sizeof(mt1), 'Error matrix copy: ' + #13#10 + WriteMtxDyn(res, 3));
+end;
+
+procedure TestMatrixOperations.TestMedian;
+const mt1 : Array[0..5] of double = (0, 1, 2, 3, 4, 5);
+var hlp : TDoubleDynArray;
+begin
+     SetLength(hlp, Length(mt1));
+     GenericMtxMedian(@hlp[0], sizeof(double), @mt1[0], Length(mt1)*sizeof(double), length(mt1), 1, true);
+
+     CheckEquals(2.5, hlp[0], 'Error median is not 2.5');
+     GenericMtxMedian(@hlp[0], sizeof(double), @mt1[0], Length(mt1)*sizeof(double), length(mt1) - 1, 1, true);
+     CheckEquals(2, hlp[0], 'Error median is not 2');
+
+     GenericMtxMedian(@hlp[0], sizeof(double), @mt1[0], sizeof(double), 1, length(mt1), True);
+     Check(CheckMtx(mt1, hlp), 'Median should be the input');
 end;
 
 procedure TestMatrixOperations.TestMult;

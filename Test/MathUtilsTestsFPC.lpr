@@ -63,7 +63,8 @@ uses
   SimpleWinThreadPool in '..\win\SimpleWinThreadPool.pas',
   WinThreadPool in '..\win\WinThreadPool.pas',
   CCA in '..\CCA.pas',
-  TestCCA in 'TestCCA.pas';
+  TestCCA in 'TestCCA.pas',
+  Utilities in '..\Utilities.pas';
 
 {$R *.res}
 

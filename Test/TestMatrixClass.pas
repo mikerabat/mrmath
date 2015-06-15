@@ -77,6 +77,7 @@ type
    procedure TestCovariance;
    procedure TestElementWiseMult;
    procedure TestElementWiseDiv;
+   procedure TesMedian;
   end;
 
 type
@@ -807,6 +808,19 @@ procedure TestIMatrix.TearDown;
 begin
      fRefMatrix2 := nil;
      fRefMatrix1 := Nil;
+end;
+
+procedure TestIMatrix.TesMedian;
+var mtx1 : IMatrix;
+    mtx2 : IMatrix;
+begin
+     mtx1 := fRefMatrix1.Median(True);
+
+     mtx2 := fRefmatrix1.Clone;
+     mtx2.TransposeInPlace;
+     mtx2.MedianInPlace(False);
+
+     Check( CheckMtx(mtx1.SubMatrix, mtx2.SubMatrix), 'Median failed');
 end;
 
 procedure TestIMatrix.TestAdd;

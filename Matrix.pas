@@ -36,6 +36,9 @@ type
     function GetItems(x, y: integer): double; register;
     procedure SetItems(x, y: integer; const Value: double); register;
 
+    function GetVecItem(idx: integer): double; register;
+    procedure SetVecItem(idx: integer; const Value: double); register;
+
     function GetSubWidth : integer;
     function GetSubHeight : integer;
     procedure SetWidth(const Value : integer);
@@ -49,6 +52,7 @@ type
 
     // general access
     property Items[x, y : integer] : double read GetItems write SetItems; default;
+    property Vec[idx : integer] : double read GetVecItem write SetVecItem; // matrix as vector
 
     procedure Clear;
     function GetObjRef : TDoubleMatrix;
@@ -63,6 +67,8 @@ type
     procedure SetColumn(col : integer; const Values : Array of Double); overload;
     procedure SetColumn(col : integer; Values : TDoubleMatrix; ValCols : integer = 0); overload;
     procedure SetColumn(col : integer; Values : IMatrix; ValCols : integer = 0); overload;
+
+    procedure SetValue(const initVal : double);
 
     function Reshape(newWidth, newHeight : integer) : TDoubleMatrix;
     procedure ReshapeInPlace(newWidth, newHeight : integer);
@@ -126,6 +132,10 @@ type
     procedure VarianceInPlace(RowWise : boolean; unbiased : boolean = True);
     function Std(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
     procedure StdInPlace(RowWise : boolean; unbiased : boolean = True);
+
+    function Median(RowWise : boolean) : TDoubleMatrix;
+    procedure MedianInPlace(RowWise : boolean);
+    
     function Sum(RowWise : boolean) : TDoubleMatrix;
     procedure SumInPlace(RowWise : boolean);
 
@@ -207,10 +217,13 @@ type
     // the resulting class type shall always be the threaded class!
     class function ResultClass : TDoubleMatrixClass; virtual;
   
-    // matrix persistence functions
     function GetItems(x, y: integer): double; register;
     procedure SetItems(x, y: integer; const Value: double); register;
+    // Access as vector -> same as GetItem(idx mod width, idx div width)
+    function GetVecItem(idx: integer): double; register;
+    procedure SetVecItem(idx: integer; const Value: double); register;
 
+    // matrix persistence functions
     procedure DefineProps; override;
     class function ClassIdentifier : String; override;
     procedure OnLoadStringProperty(const Name : String; const Value : String); overload; override;
@@ -262,6 +275,7 @@ type
     function LineWidth : integer; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 
     property Items[x, y : integer] : double read GetItems write SetItems; default;
+    property Vec[idx : integer] : double read GetVecItem write SetVecItem; // matrix as vector
     function SubMatrix : TDoubleDynArray;
     procedure SetSubMatrix(x, y, Subwidth, Subheight : integer);
     procedure UseFullMatrix;
@@ -273,6 +287,8 @@ type
     procedure SetColumn(col : integer; Values : TDoubleMatrix; ValCols : integer = 0); overload;
     procedure SetColumn(col : integer; Values : IMatrix; ValCols : integer = 0); overload;
 
+    procedure SetValue(const initVal : double);
+    
     function Reshape(newWidth, newHeight : integer) : TDoubleMatrix;
     procedure ReshapeInPlace(newWidth, newHeight : integer);
 
@@ -331,6 +347,9 @@ type
     procedure VarianceInPlace(RowWise : boolean; unbiased : boolean = True);
     function Std(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
     procedure StdInPlace(RowWise : boolean; unbiased : boolean = True);
+
+    function Median(RowWise : boolean) : TDoubleMatrix;
+    procedure MedianInPlace(RowWise : boolean);
     
     function Sum(RowWise : boolean) : TDoubleMatrix;
     procedure SumInPlace(RowWise : boolean);
@@ -783,7 +802,7 @@ end;
 
 function TDoubleMatrix.Eig(out EigVals, EigVect: TDoubleMatrix; normEigVecs : boolean = False): TEigenvalueConvergence;
 var dt : TDoubleMatrix;
-    vec : TDoubleMatrix;
+    vecs : TDoubleMatrix;
     pReal, pImag : PDouble;
     dummy : TDoubleMatrix;
 begin
@@ -792,14 +811,14 @@ begin
      EigVals := nil;
      EigVect := nil;
      dt := nil;
-     vec := nil;
+     vecs := nil;
      try
         dt := ResultClass.Create(2, fSubHeight);
         pReal := dt.StartElement;
         pImag := pReal;
         inc(pImag);
 
-        vec := ResultClass.Create(fSubWidth, fSubHeight);
+        vecs := ResultClass.Create(fSubWidth, fSubHeight);
         
         // create a copy since the original content is destroyed!
         dummy := TDoubleMatrix.Create;
@@ -808,7 +827,7 @@ begin
            Result := MatrixUnsymEigVecInPlace(dummy.StartElement, dummy.LineWidth,
                                               fSubWidth, 
                                               pReal, dt.LineWidth, pImag, dt.LineWidth, 
-                                              vec.StartElement, vec.LineWidth,
+                                              vecs.StartElement, vecs.LineWidth,
                                               True);
         finally
                dummy.Free;
@@ -817,19 +836,19 @@ begin
         if Result = qlOk then
         begin
              if normEigVecs then
-                MatrixNormEivecInPlace(vec.StartElement, vec.LineWidth, fSubWidth, pImag, dt.LineWidth);
+                MatrixNormEivecInPlace(vecs.StartElement, vecs.LineWidth, fSubWidth, pImag, dt.LineWidth);
              
              EigVals := dt;
-             EigVect := vec;
+             EigVect := vecs;
         end
         else
         begin
              dt.Free;
-             vec.Free;
+             vecs.Free;
         end;
      except
            dt.Free;
-           vec.Free;
+           vecs.Free;
 
            raise;
      end;
@@ -979,6 +998,15 @@ begin
      Result := fSubWidth;
 end;
 
+function TDoubleMatrix.GetVecItem(idx: integer): double;
+begin
+     if idx < fSubWidth 
+     then
+         Result := GetItems(idx, 0)
+     else
+         Result := GetItems(idx mod fSubWidth, idx div fSubWidth);
+end;
+
 function TDoubleMatrix.Invert: TDoubleMatrix;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
@@ -1074,6 +1102,37 @@ begin
 end;
 
 procedure TDoubleMatrix.MeanInPlace(RowWise: boolean);
+var dl : TDoubleMatrix;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+
+     dl := Mean(RowWise);
+     try
+        Assign(dl);
+     finally
+            dl.Free;
+     end;
+end;
+
+function TDoubleMatrix.Median(RowWise: boolean): TDoubleMatrix;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+
+     if RowWise then
+     begin
+          Result := ResultClass.Create(1, fSubHeight);
+
+          MatrixMedian(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise);
+     end
+     else
+     begin
+          Result := ResultClass.Create(fSubWidth, 1);
+
+          MatrixMedian(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise);
+     end;
+end;
+
+procedure TDoubleMatrix.MedianInPlace(RowWise: boolean);
 var dl : TDoubleMatrix;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
@@ -1613,6 +1672,31 @@ begin
      fSubHeight := Subheight;
 end;
 
+procedure TDoubleMatrix.SetValue(const initVal: double);
+var x, y : integer;
+    pData : PConstDoubleArr;
+begin
+     // ###########################################
+     // #### Initialize the matrix with the given value
+     for y := 0 to height - 1 do
+     begin
+          pData := PConstDoubleArr( StartElement );
+          inc(PByte(pData), y*LineWidth);
+
+          for x := 0 to Width - 1 do
+              pData^[x] := initVal;
+     end;
+end;
+
+procedure TDoubleMatrix.SetVecItem(idx: integer; const Value: double);
+begin
+     if idx < fSubWidth 
+     then
+         SetItems(idx, 0, Value)
+     else
+         SetItems(idx mod fSubWidth, idx div fSubWidth, Value);
+end;
+
 procedure TDoubleMatrix.SetWidth(const Value: integer);
 begin
      SetWidthHeight(Value, fHeight);
@@ -1757,29 +1841,29 @@ end;
 
 function TDoubleMatrix.SymEig(out EigVals: TDoubleMatrix): TEigenvalueConvergence;
 var dt : TDoubleMatrix;
-    vec : TDoubleMatrix;
+    vecs : TDoubleMatrix;
 begin
      CheckAndRaiseError((fSubWidth > 0) and (fSubWidth = fSubHeight), 'Eigenvalue calculation only allowed on square matrices');
 
      EigVals := nil;
 
      dt := ResultClass.Create(1, fSubHeight);
-     vec := ResultClass.Create(fSubWidth, fSubWidth);
+     vecs := ResultClass.Create(fSubWidth, fSubWidth);
      try
-        Result := MatrixEigTridiagonalMatrix(vec.StartElement, vec.LineWidth, StartElement, LineWidth, fSubWidth, dt.StartElement, dt.LineWidth);
+        Result := MatrixEigTridiagonalMatrix(vecs.StartElement, vecs.LineWidth, StartElement, LineWidth, fSubWidth, dt.StartElement, dt.LineWidth);
         if Result = qlOk then
         begin
              EigVals := dt;
-             vec.Free;
+             vecs.Free;
         end
         else
         begin
              dt.Free;
-             vec.Free;
+             vecs.Free;
         end;
      except
            FreeAndNil(dt);
-           FreeAndNil(vec);
+           FreeAndNil(vecs);
            raise;
      end;
 end;
@@ -1787,7 +1871,7 @@ end;
 function TDoubleMatrix.SymEig(out EigVals,
   EigVect: TDoubleMatrix): TEigenvalueConvergence;
 var dt : TDoubleMatrix;
-    vec : TDoubleMatrix;
+    vecs : TDoubleMatrix;
 begin
      CheckAndRaiseError((fSubWidth > 0) and (fSubWidth = fSubHeight), 'Eigenvalue calculation only allowed on square matrices');
 
@@ -1795,22 +1879,22 @@ begin
      EigVect := nil;
 
      dt := ResultClass.Create(1, fSubHeight);
-     vec := ResultClass.Create(fSubWidth, fSubWidth);
+     vecs := ResultClass.Create(fSubWidth, fSubWidth);
      try
-        Result := MatrixEigTridiagonalMatrix(vec.StartElement, vec.LineWidth, StartElement, LineWidth, fSubWidth, dt.StartElement, dt.LineWidth);
+        Result := MatrixEigTridiagonalMatrix(vecs.StartElement, vecs.LineWidth, StartElement, LineWidth, fSubWidth, dt.StartElement, dt.LineWidth);
         if Result = qlOk then
         begin
              EigVals := dt;
-             EigVect := vec;
+             EigVect := vecs;
         end
         else
         begin
              dt.Free;
-             vec.Free;
+             vecs.Free;
         end;
      except
            FreeAndNil(dt);
-           FreeAndNil(vec);
+           FreeAndNil(vecs);
 
            raise;
      end;
