@@ -161,6 +161,11 @@ initialization
   cpuInfo := TNSProcessInfo.Create;
 
   numCPUCores := cpuInfo.processorCount;
+  numRealCores := numCPUCores;
+
+  numCoresForSimpleFuncs := numRealCores;
+  if numCoresForSimpleFuncs > 3 then
+     numCoresForSimpleFuncs := 3;
 
 finalization
   cpuInfo.release; 

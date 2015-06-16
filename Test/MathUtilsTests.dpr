@@ -24,6 +24,7 @@ program MathUtilsTests;
 {$ENDIF}
 
 uses
+  madExcept,
   Forms,
   TestFramework,
   GUITestRunner,
@@ -91,7 +92,8 @@ uses
   MtxTimer in '..\MtxTimer.pas',
   TestCCA in 'TestCCA.pas',
   NNMF in '..\NNMF.pas',
-  TestNMF in 'TestNMF.pas';
+  TestNMF in 'TestNMF.pas',
+  winCPUInfo in '..\win\winCPUInfo.pas';
 
 {$R *.RES}
 

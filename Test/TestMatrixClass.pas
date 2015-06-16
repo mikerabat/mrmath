@@ -102,7 +102,7 @@ type
 implementation
 
 uses BaseMathPersistence, binaryReaderWriter,
-     math, MatrixConst, mtxTimer, Dialogs, MathUtilFunc, Eigensystems;
+     math, MatrixConst, mtxTimer, Dialogs, MathUtilFunc;
 
 { TestTDoubleMatrix }
 

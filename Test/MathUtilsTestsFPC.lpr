@@ -60,7 +60,9 @@ uses
   ThreadedMatrixOperations in '..\ThreadedMatrixOperations.pas',
   GCDDispatch in '..\mac\GCDDispatch.pas',
   MacOsThreadPool in '..\mac\MacOsThreadPool.pas',
+  winCPUInfo in '..\win\winCPUInfo.pas',
   SimpleWinThreadPool in '..\win\SimpleWinThreadPool.pas',
+
   WinThreadPool in '..\win\WinThreadPool.pas',
   CCA in '..\CCA.pas',
   TestCCA in 'TestCCA.pas',

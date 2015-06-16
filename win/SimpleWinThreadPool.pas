@@ -29,7 +29,7 @@ function InitWinThreadGroup : IMtxAsyncCallGroup;
 implementation
 
 {$IFDEF MSWINDOWS}
-uses Windows, Classes;
+uses Windows, Classes, winCPUInfo;
 
 {$IF Defined(FPC) or (CompilerVersion <= 20)}
 type
@@ -174,16 +174,6 @@ begin
      fEvt.WaitFor(INFINITE);
      Result := fResult;
 end;
-
-var SysInfo : TSystemInfo;
-
-// todo: eventually only use real cpu's (check for hyperthreading)
-
-initialization
-  GetSystemInfo(SysInfo);
-  numCPUCores := SysInfo.dwNumberOfProcessors;
-
-finalization
 
 {$ENDIF}
 

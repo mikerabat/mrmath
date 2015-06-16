@@ -49,6 +49,8 @@ procedure FinalizeMtxThreadPool;
 function MtxInitTaskGroup : IMtxAsyncCallGroup;
 
 var numCPUCores : TASMNativeInt = 0;
+    numRealCores : TASMNativeInt = 0;             // cores without hyperthreading
+    numCoresForSimpleFuncs : TASMNativeInt = 0;   // for median and scaling operations
 
 implementation
 

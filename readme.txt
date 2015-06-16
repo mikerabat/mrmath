@@ -46,6 +46,10 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: 16.6.2015
+* Reduced the number of threads for simple operations -> there the thread handling overhead is higher than the
+  benefit.
+
 Date: 15.6.2015
 * New Median functions (row and column wise)
 * New property to have vector like access to the matrix.

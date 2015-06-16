@@ -68,6 +68,7 @@ contains
   IncrementalPCA in 'IncrementalPCA.pas',
   MacOsThreadPool in 'mac\MacOsThreadPool.pas',
   WinThreadPool in 'win\WinThreadPool.pas',
+  winCPUInfo in 'win\winCPUInfo.pas',
   GCDDispatch in 'mac\GCDDispatch.pas',
   MtxTimer in 'MtxTimer.pas',
   ASMMatrixAbsOperations in 'ASMMatrixAbsOperations.pas',

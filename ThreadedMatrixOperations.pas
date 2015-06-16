@@ -734,10 +734,10 @@ begin
 
      if width > height then
      begin
-          sizeFits := (width mod numCPUCores) = 0;
-          thrSize := width div numCPUCores + TASMNativeInt(not sizeFits);
+          sizeFits := (width mod numCoresForSimpleFuncs) = 0;
+          thrSize := width div numCoresForSimpleFuncs + TASMNativeInt(not sizeFits);
 
-          for i := 0 to numCPUCores - 1 do
+          for i := 0 to numCoresForSimpleFuncs - 1 do
           begin
                obj := TAsyncMatrixAddAndSclaObj.Create(dest, LineWidth, thrSize, height, Offset, Scale);
 
@@ -750,10 +750,10 @@ begin
      end
      else
      begin
-          sizeFits := (height mod numCPUCores) = 0;
-          thrSize := height div numCPUCores + TASMNativeInt(not sizeFits);
+          sizeFits := (height mod numCoresForSimpleFuncs) = 0;
+          thrSize := height div numCoresForSimpleFuncs + TASMNativeInt(not sizeFits);
 
-          for i := 0 to numCPUCores - 1 do
+          for i := 0 to numCoresForSimpleFuncs - 1 do
           begin
                obj := TAsyncMatrixAddAndSclaObj.Create(dest, LineWidth, width, thrSize, Offset, Scale);
 
@@ -1106,7 +1106,7 @@ begin
 
      if not RowWise then
      begin
-          maxNumCores := Min(width, numCPUCores);
+          maxNumCores := Min(width, numCoresForSimpleFuncs);
           
           sizeFits := (width mod maxNumCores) = 0;
           thrSize := width div maxNumCores + TASMNativeInt(not sizeFits);
@@ -1128,7 +1128,7 @@ begin
      end
      else
      begin
-          maxNumCores := Min(height, numCPUCores);
+          maxNumCores := Min(height, numCoresForSimpleFuncs);
 
           GetMem(mem, maxNumCores*width*sizeof(double));
           hlpMem := mem;

@@ -1338,6 +1338,7 @@ const cMtxWidth = 5010;
       cMtxSize = (cMtxWidth)*cMtxHeight;
       cMtxLinewidth = (cMtxWidth)*sizeof(double);
 begin
+     
      randomize;
      FillMatrix(cMtxSize, x, y, xa, ya);
      dest1 := Copy(x, 0, Length(x));

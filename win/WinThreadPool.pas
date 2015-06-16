@@ -32,9 +32,7 @@ function InitWinThreadGroup : IMtxAsyncCallGroup;
 {$ENDIF}
 implementation
 {$IFDEF MSWINDOWS}
-uses Classes, Windows, SyncObjs;
-
-var sysInfo : TSystemInfo;
+uses Classes, Windows, SyncObjs, winCPUInfo;
 
 type
   TWinMtxAsyncCall = class(TInterfacedObject, IMtxAsyncCall)
@@ -510,9 +508,7 @@ begin
      Result := fProc(fData);
 end;
 
-initialization
-  GetSystemInfo(SysInfo);
-  numCPUCores := SysInfo.dwNumberOfProcessors;
-finalization
+
 {$ENDIF}
+
 end.
