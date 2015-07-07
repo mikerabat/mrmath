@@ -58,7 +58,7 @@ begin
      // create nmf with standard properties
      nmf := TNNMF.Create;
      try
-        nmf.OnProgress := OnNMFProgress;
+        nmf.OnProgress := {$IFDEF FPC}@{$ENDIF}OnNMFProgress;
         nmfProps.MaxIter := 400;
         nmfProps.tolUpdate := 0;
         nmfProps.method := nnmfDivergence;

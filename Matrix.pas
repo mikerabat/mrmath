@@ -81,6 +81,9 @@ type
     function Abs : TDoubleMatrix;
     procedure AbsInPlace;
 
+    procedure DiagInPlace(createDiagMtx : boolean); 
+    function Diag(createDiagMtx : boolean) : TDoubleMatrix;
+    
     procedure Normalize(RowWise : boolean);
     function ElementwiseNorm2 : double;
 
@@ -240,6 +243,8 @@ type
     fData : PConstDoubleArr;       // 16 byte aligned pointer:
     fLineWidth : integer;
     fWidth : integer;
+
+    procedure MtxRand(var value : double);
   protected
     fHeight : integer;
     fName : String;
@@ -300,6 +305,9 @@ type
     function Abs : TDoubleMatrix;
     procedure AbsInPlace;
 
+    procedure DiagInPlace(createDiagMtx : boolean);
+    function Diag(createDiagMtx : boolean) : TDoubleMatrix;
+    
     procedure Normalize(RowWise : boolean);
     function ElementwiseNorm2 : double;
 
@@ -426,6 +434,7 @@ type
     constructor CreateEye(aWidth : integer);
     constructor Create(data : PDouble; aLineWidth : integer; aWidth, aHeight : integer); overload;
     constructor Create(const Data : TDoubleDynArray; aWidth, aHeight : integer); overload;
+    constructor CreateRand(aWidth, aHeight : integer); 
     destructor Destroy; override;
   end;
 
@@ -680,10 +689,65 @@ begin
          Items[i, i] := 1;
 end;
 
+procedure TDoubleMatrix.MtxRand(var value: double);
+begin
+     value := Random;
+end;
+
+constructor TDoubleMatrix.CreateRand(aWidth, aHeight: integer);
+begin
+     inherited Create;
+
+     SetWidthHeight(aWidth, aHeight);
+     ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}MtxRand);
+end;
+
 function TDoubleMatrix.Determinant: double;
 begin
      CheckAndRaiseError((Width > 0) and (Height = Width), 'Determinant only allowed on square matrices');
      Result := MatrixDeterminant(StartElement, LineWidth, fSubWidth);
+end;
+
+function TDoubleMatrix.Diag(createDiagMtx : boolean): TDoubleMatrix;
+var x : integer;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+
+     if createDiagMtx then
+     begin
+          if (width = 1) then
+          begin
+               Result := TDoubleMatrix.Create(height, height);
+               for x := 0 to Height - 1 do
+                   Result[x, x] := Vec[x];
+          end
+          else if height = 1 then
+          begin
+               Result := TDoubleMatrix.Create(width, width);
+               for x := 0 to width - 1 do
+                   Result[x, x] := Vec[x];
+          end
+          else
+          begin
+               Result := TDoubleMatrix.Create(Math.Min(Width, Height), Math.Min(Width, Height));
+               for x := 0 to Math.Min(Width, Height) - 1 do
+                   Result[x, x] := Items[x, x];
+          end;
+     end
+     else
+     begin
+          Result := TDoubleMatrix.Create(1, Math.Min(Width, Height));
+          for x := 0 to Result.Height - 1 do
+              Result[Math.Min(x, Result.width - 1), x] := Items[x, x];
+     end;
+end;
+
+procedure TDoubleMatrix.DiagInPlace(createDiagMtx : boolean);
+var dl : IMatrix;
+begin
+     dl := Diag(createDiagMtx);
+
+     Assign(dl, True);     
 end;
 
 function TDoubleMatrix.SolveLinEQ(Value: TDoubleMatrix; numRefinements : integer) : TDoubleMatrix;
@@ -1429,7 +1493,7 @@ end;
 function TDoubleMatrix.QRFull(out Q, R: IMatrix): TQRResult;
 var outR, outQ : TDoubleMatrix;
 begin
-     Result := QRFull(outR, outQ);
+     Result := QRFull(outQ, outR);
      Q := outQ;
      R := outR;
 end;

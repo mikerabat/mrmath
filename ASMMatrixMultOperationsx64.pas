@@ -43,6 +43,16 @@ procedure ASMMatrixMultUnAlignedOddW1EvenW2(dest : PDouble; const destLineWidth 
 procedure ASMMatrixMultAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 procedure ASMMatrixMultUnAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 
+// som special types of multiplications used e.g. in QR Decomposition
+// note the result is stored in mt2 again!
+// dest = mt1'*mt2; where mt2 is a lower triangular matrix and the operation is transposition
+// the function assumes a unit diagonal (does not touch the real middle elements)
+// width and height values are assumed to be the "original" (non transposed) ones
+procedure ASMMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt;
+  mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+
+
 {$ENDIF}
 
 implementation
@@ -1313,7 +1323,7 @@ var dXMM4, dXMM5, dXMM6, dXMM7, dXMM8 : Array[0..1] of double;
 
 {$IFDEF FPC}
 begin
-  {$ENDIF}
+{$ENDIF}
 
 asm
     // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
@@ -1506,6 +1516,204 @@ asm
     movupd xmm6, dXMM6;
     movupd xmm7, dXMM7;
     movupd xmm8, dXMM8;
+end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
+
+// ###########################################
+// #### Special multiplication routines (for now only used in QR Decomposition)
+// ###########################################
+
+// note the result is stored in mt2 again!
+// dest = mt1'*mt2; where mt2 is a lower triangular matrix and the operation is transposition
+// the function assumes a unit diagonal (does not touch the real middle elements)
+// width and height values are assumed to be the "original" (non transposed) ones
+procedure ASMMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt;
+  mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+var pMt2 : PDouble;
+
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : NativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
+     // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = LineWidth1
+     // prolog - simulate stack
+     asm
+        mov iR12, r12;
+        mov iR13, r13;
+        mov iR14, r14;
+        mov iR15, r15;
+        mov iRSI, rsi;
+        mov iRDI, rdi;
+        mov iRBX, rbx;
+
+        mov r15, LineWidth2;   // Linewidth2 is on the stack -> use it in local register
+
+        // width2D2 := width2 div 2;
+        mov r14, width2;
+        shr r14, 1;
+
+        // for x := 0 to width1 - 1 do
+        mov rax, width1;
+
+        @@forxloop:
+
+          // pMT2 := mt2;
+          // pDest := dest;
+
+          mov rbx, mt2;
+          mov pMT2, rbx;
+
+          mov r13, rcx;   // r13 is pDest
+
+
+          // for y := 0 to width2D2 - 1 do
+          mov r12, r14;
+          test r12, r12;
+          jz @@foryloopend;
+
+          xor r12, r12;
+          @@foryloop:
+
+               // valCounter1 := PConstDoubleArr(mt1);
+               // inc(PByte(valCounter1), 2*y*LineWidth1);
+               mov rsi, mt1;
+               mov rbx, r12;
+               add rbx, rbx;
+               imul rbx, LineWidth1;
+               add rsi, rbx;
+
+               // valCounter2 := PConstDoubleArr(pMT2);
+               // inc(PByte(valCounter2), (2*y + 1)*LineWidth2);
+               mov rdi, pMt2;
+               mov rbx, r12;
+               add rbx, rbx;
+               imul rbx, r15;
+               add rbx, r15;
+               add rdi, rbx;
+
+               // tmp[0] := valCounter1^[0];
+               // inc(PByte(valCounter1), LineWidth1);
+               movsd xmm0, [rsi];
+               add rsi, LineWidth1;
+
+               // if height2 - 2*y - 1 > 0 then
+               mov rbx, r12;
+               add rbx, rbx;
+               inc rbx;
+
+               cmp rbx, height2;
+               jnl @@PreInnerLoop;
+                   // tmp[0] := tmp[0] + valCounter1^[0]*valCounter2^[0];
+                   // tmp[1] := valCounter1^[0];
+                   movsd xmm1, [rsi];
+                   movlhps xmm0, xmm1;
+
+                   mulsd xmm1, [rdi];
+                   addsd xmm0, xmm1;
+
+                   //inc(PByte(valCounter1), LineWidth1);
+                   //inc(PByte(valCounter2), LineWidth2);
+
+                   add rsi, LineWidth1;
+                   add rdi, r15;
+
+               @@PreInnerLoop:
+
+               // rest is a double column!
+
+               // prepare loop
+               mov rbx, height2;
+               sub rbx, r12;
+               sub rbx, r12;
+               sub rbx, 2;
+
+               test rbx, rbx;
+               jle @@InnerLoopEnd;
+
+               @@InnerLoop:
+                  // tmp[0] := tmp[0] + valCounter1^[0]*valCounter2^[0];
+                  // tmp[1] := tmp[1] + valCounter1^[0]*valCounter2^[1];
+                  movddup xmm1, [rsi];
+                  movupd xmm2, [rdi];
+
+                  mulpd xmm2, xmm1;
+                  addpd xmm0, xmm2;
+
+                  //inc(PByte(valCounter1), LineWidth1);
+                  //inc(PByte(valCounter2), LineWidth2);
+
+                  add rsi, LineWidth1;
+                  add rdi, r15;
+
+               dec rbx;
+               jnz @@InnerLoop;
+
+               @@InnerLoopEnd:
+
+
+               // write back result
+
+               // pDest^ := tmp[0];
+               // PDouble(PAnsiChar(pDest) + sizeof(double))^ := tmp[1];
+
+               movupd [r13], xmm0;
+
+               // inc(pDest, 2);
+               // inc(pMT2, 2);
+               add r13, 16;
+               add pMT2, 16;
+
+          // end foryloop
+          inc r12;
+          cmp r12, r14;
+          jne @@foryloop;
+
+          @@foryloopend:
+
+
+          //if (width2 and $01) = 1 then
+          mov r12, width2;
+          and r12, 1;
+
+          jz @@ifend1;
+
+            // special handling of last column (just copy the value)
+
+            // valCounter1 := PConstDoubleArr(mt1);
+            mov r12, mt1;
+
+            //inc(PByte(valCounter1), LineWidth1*(height1 - 1));
+            mov rbx, height1;
+            dec rbx;
+            imul rbx, LineWidth1;
+
+            // pDest^ := valCounter1^[0];
+            movsd xmm0, [r12 + rbx];
+            movsd [r13], xmm0;
+          @@ifend1:
+
+
+          //inc(mt1);
+          //inc(PByte(dest), LineWidthDest);
+          add mt1, 8;
+          add rcx, rdx;    // note: this can be done since dest is rcx
+
+       // end for loop
+       dec rax;
+       jnz @@forxloop;
+
+       // epilog
+       mov r12, iR12;
+       mov r13, iR13;
+       mov r14, iR14;
+       mov r15, iR15;
+       mov rsi, iRSI;
+       mov rdi, iRDI;
+       mov rbx, iRBX;
 end;
 {$IFDEF FPC}
 end;

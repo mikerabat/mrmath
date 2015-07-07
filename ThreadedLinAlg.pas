@@ -112,15 +112,15 @@ type
   end;
 
 function InternalThrMatrixLUDecomp(A : PDouble; width, height : integer;
- indx : PIntegerArray; parity : integer; var data : TRecMtxLUDecompData) : TLinEquResult;
+ indx : PIntegerArray; parity : TASMNativeInt; var data : TRecMtxLUDecompData) : TLinEquResult;
 // this is basically a copy of the unthreaded LU decomposition but with threaded parts (LU Backsup and Multiplication)!
 const cMinThrMultSize = 64;
-var mn : integer;
+var mn : TASMNativeInt;
     pA : PDouble;
-    idx : integer;
+    idx : TASMNativeInt;
     maxVal : double;
-    nleft, nright : integer;
-    i : integer;
+    nleft, nright : TASMNativeInt;
+    i : TASMNativeInt;
     pB, a12, a21 : PDouble;
     absMaxVal : double;
 begin

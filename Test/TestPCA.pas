@@ -16,7 +16,8 @@ unit TestPCA;
 
 interface
 
-uses TestFramework, Classes, SysUtils, BaseMatrixTestCase, Matrix;
+uses {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF}, 
+     Classes, SysUtils, BaseMatrixTestCase, Matrix;
 
 type
  TTestPCA = class(TBaseImgTestCase)
@@ -34,9 +35,46 @@ implementation
 
 uses PCA, 
      {$IFDEF MSWINDOWS}Windows, {$ENDIF} {$IFDEF MACOS} FMX.Types, {$ENDIF}
-     Graphics, JPeg, Math, BinaryReaderWriter, BaseMathPersistence, IncrementalPCA;
+     Graphics, Math, BinaryReaderWriter, BaseMathPersistence, IncrementalPCA;
 
 { TTestEigensystems }
+
+procedure TTestPCA.TestPCASimple;
+const cData : Array[0..19] of double =
+  ( 2.5000e+001,  2.5000e+001,  2.5000e+001,  2.5300e+001,  2.5200e+001,  2.5200e+001,  2.4800e+001,  2.4700e+001,  2.5100e+001,  2.4700e+001,
+    1.0100e+001,  9.9000e+000,  1.0000e+001,  9.8000e+000,  9.9000e+000,  9.8000e+000,  1.0100e+001,  1.0300e+001,  1.0000e+001,  1.0100e+001);
+var Examples : TDoubleMatrix;
+    pca1, pca2 : TMatrixPCA;
+    writer : TBinaryReaderWriter;
+begin
+     Examples := TDoubleMatrix.Create;
+     try
+        Examples.Assign(cData, 10, 2);
+        Examples.TransposeInPlace;
+
+        pca2 := nil;
+        pca1 := TMatrixPCA.Create([pcaEigVals, pcaMeanNormalizedData, pcaTransposedEigVec]);
+
+        try
+           pca1.PCA(Examples, 0.80, True);
+
+           writer := TBinaryReaderWriter.Create;
+           writer.SaveToFile(pca1, 'pca.dat');
+           writer.Free;
+
+           pca2 := ReadObjFromFile('pca.dat') as TMatrixPCA;
+
+           Check(assigned(pca2), 'Error loading failed');
+           Check( CheckMtx(pca2.EigVecs.SubMatrix, pca1.EigVecs.SubMatrix), 'Error loading failed');
+           Check( CheckMtx(pca2.Mean.SubMatrix, pca1.Mean.SubMatrix), 'Error loading failed');
+        finally
+               pca1.free;
+               pca2.Free;
+        end;
+     finally
+            Examples.Free;
+     end;
+end;
 
 procedure TTestPCA.TestFastRobustPCA;
 var Examples : TDoubleMatrix;
@@ -73,7 +111,6 @@ begin
         end;
 
         // create a few examples along the first mode
-    //    start := GetTickCount;
         for i := 0 to 5 do
         begin
              Examples.SetSubMatrix(i, 0, 1, Examples.Height);
@@ -103,9 +140,6 @@ begin
                     feature.Free;
              end;
         end;
-     //   stop := GetTickCount;
-
-        //ShowMessage(IntToStr(stop - start));
      finally
             Free;
      end;
@@ -157,7 +191,6 @@ begin
         end;
 
         // create a few examples along the first mode
-        //start := GetTickCount;
         for i := 0 to 5 do
         begin
              Examples.SetSubMatrix(i, 0, 1, Examples.Height);
@@ -187,9 +220,6 @@ begin
                     feature.Free;
              end;
         end;
-        //stop := GetTickCount;
-
-        //ShowMessage(IntToStr(stop - start));
      finally
             Free;
      end;
@@ -279,42 +309,6 @@ begin
      FreeAndNil(examples);
 end;
 
-procedure TTestPCA.TestPCASimple;
-const cData : Array[0..19] of double =
-  ( 2.5000e+001,  2.5000e+001,  2.5000e+001,  2.5300e+001,  2.5200e+001,  2.5200e+001,  2.4800e+001,  2.4700e+001,  2.5100e+001,  2.4700e+001,
-    1.0100e+001,  9.9000e+000,  1.0000e+001,  9.8000e+000,  9.9000e+000,  9.8000e+000,  1.0100e+001,  1.0300e+001,  1.0000e+001,  1.0100e+001);
-var Examples : TDoubleMatrix;
-    pca1, pca2 : TMatrixPCA;
-    writer : TBinaryReaderWriter;
-begin
-     Examples := TDoubleMatrix.Create;
-     try
-        Examples.Assign(cData, 10, 2);
-        Examples.TransposeInPlace;
-
-        pca2 := nil;
-        pca1 := TMatrixPCA.Create([pcaEigVals, pcaMeanNormalizedData, pcaTransposedEigVec]);
-
-        try
-           pca1.PCA(Examples, 0.80, True);
-
-           writer := TBinaryReaderWriter.Create;
-           writer.SaveToFile(pca1, 'pca.dat');
-           writer.Free;
-
-           pca2 := ReadObjFromFile('pca.dat') as TMatrixPCA;
-
-           Check(assigned(pca2), 'Error loading failed');
-           Check( CheckMtx(pca2.EigVecs.SubMatrix, pca1.EigVecs.SubMatrix), 'Error loading failed');
-           Check( CheckMtx(pca2.Mean.SubMatrix, pca1.Mean.SubMatrix), 'Error loading failed');
-        finally
-               pca1.free;
-               pca2.Free;
-        end;
-     finally
-            Examples.Free;
-     end;
-end;
 
 procedure TTestPCA.TestPCAWeighted;
 var Examples : TDoubleMatrix;
@@ -402,7 +396,6 @@ begin
 end;
 
 initialization
-  // Alle Testfälle beim Test-Runner registrieren
-  RegisterTest(TTestPCA.Suite);
+  RegisterTest(TTestPCA{$IFNDEF FPC}.Suite{$ENDIF});
 
 end.

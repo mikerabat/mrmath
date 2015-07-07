@@ -35,9 +35,7 @@ var BlockedMatrixMultSize : integer = 512;
     QRBlockSize : integer = 24;
     QRMultBlockSize : integer = 64;
 
-   
 // checks when first applying a transpose operation is better for the multiplication
-//procedure SetupNumCoresForSimpleFuncs;
 procedure SetupOptBlockMatrixSize;
 procedure SetupBlockedMatrixMultSize;
 

@@ -125,6 +125,11 @@ procedure GenericMtxFunc(dest : PDouble; const destLineWidth : TASMNativeInt; wi
 // #### Matrix multiplications used in QR Decomposition
 procedure GenericMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
+// same as above but works on 2 columns on mt2 at the same time
+procedure GenericMtxMultTria2T1_2(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt;
+  mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+
 procedure GenericMtxMultTria2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 procedure GenericMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
@@ -134,7 +139,7 @@ procedure GenericMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeI
 
 implementation
 
-uses Math, BlockSizeSetup, Utilities;
+uses Math, BlockSizeSetup, MathUtilFunc;
 
 function GenericMtxNormalize(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray;
 begin
@@ -1823,6 +1828,74 @@ begin
                inc(pDest);
                inc(pMT2);
           end;
+          inc(mt1);
+          inc(PByte(dest), LineWidthDest);
+     end;
+end;
+
+// same as the above function but utilizes lines better (2 double values written in a line)
+procedure GenericMtxMultTria2T1_2(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt;
+  mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+var x, y, idx : TASMNativeInt;
+    valCounter1 : PConstDoubleArr;
+    valCounter2 : PConstDoubleArr;
+    tmp : Array[0..1] of double;
+    pMt2 : PDouble;
+    pDest : PDouble;
+    width2D2 : TASMNativeInt;
+begin
+     assert((width1 > 0) and (height1 > 0) and (height1 = height2), 'Dimension error');
+
+     width2D2 := width2 div 2;
+
+     for x := 0 to width1 - 1 do
+     begin
+          pMT2 := mt2;
+          pDest := dest;
+          for y := 0 to width2D2 - 1 do
+          begin
+               valCounter1 := PConstDoubleArr(mt1);
+               valCounter2 := PConstDoubleArr(pMT2);
+               inc(PByte(valCounter2), (2*y + 1)*LineWidth2);
+               inc(PByte(valCounter1), 2*y*LineWidth1);
+
+               tmp[0] := valCounter1^[0];
+               inc(PByte(valCounter1), LineWidth1);
+
+               // second line: second element of mt2 is 1!
+               if height2 > 2*y + 1 then
+               begin
+                    tmp[0] := tmp[0] + valCounter1^[0]*valCounter2^[0];
+                    tmp[1] := valCounter1^[0];
+
+                    inc(PByte(valCounter1), LineWidth1);
+                    inc(PByte(valCounter2), LineWidth2);
+               end;
+
+               // rest is a double column!
+               for idx := 2 to height2 - 2*y - 1 do
+               begin
+                    tmp[0] := tmp[0] + valCounter1^[0]*valCounter2^[0];
+                    tmp[1] := tmp[1] + valCounter1^[0]*valCounter2^[1];
+                    inc(PByte(valCounter1), LineWidth1);
+                    inc(PByte(valCounter2), LineWidth2);
+               end;
+
+               pDest^ := tmp[0];
+               PDouble(PAnsiChar(pDest) + sizeof(double))^ := tmp[1];
+               inc(pDest, 2);
+               inc(pMT2, 2);
+          end;
+
+          if (width2 and $01) = 1 then
+          begin
+               // special handling of last column (just copy the value)
+               valCounter1 := PConstDoubleArr(mt1);
+               inc(PByte(valCounter1), LineWidth1*(height1 - 1));
+               pDest^ := valCounter1^[0];
+          end;
+
           inc(mt1);
           inc(PByte(dest), LineWidthDest);
      end;

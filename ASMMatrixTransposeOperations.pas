@@ -27,17 +27,17 @@ interface
 
 uses MatrixConst;
 
-procedure ASMMatrixTransposeAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : integer; width : TASMNativeInt; height : TASMNativeInt);
-procedure ASMMatrixTransposeUnAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : integer; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeUnAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 
-procedure ASMMatrixTransposeAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : integer; width : TASMNativeInt; height : TASMNativeInt);
-procedure ASMMatrixTransposeUnAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : integer; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeUnAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 
-procedure ASMMatrixTransposeAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : integer; width : TASMNativeInt; height : TASMNativeInt);
-procedure ASMMatrixTransposeUnAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : integer; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeUnAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 
-procedure ASMMatrixTransposeAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : integer; width : TASMNativeInt; height : TASMNativeInt);
-procedure ASMMatrixTransposeUnAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : integer; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeUnAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 
 {$ENDIF}
 
@@ -48,9 +48,9 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 procedure ASMMatrixTransposeAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-var iters : integer;
-    destLineWidth2 : integer;
-    y : integer;
+var iters : TASMNativeInt;
+    destLineWidth2 : TASMNativeInt;
+    y : TASMNativeInt;
 begin
      Assert((Cardinal(dest) and $0000000F = 0) and (Cardinal(mt) and $0000000F = 0), 'Error non aligned data');
      assert((width > 1) and (height > 1) and (LineWidth >= width*sizeof(double)), 'Dimension error');
@@ -226,9 +226,9 @@ begin
 end;
 
 procedure ASMMatrixTransposeUnAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-var iters : integer;
-    destLineWidth2 : integer;
-    y : integer;
+var iters : TASMNativeInt;
+    destLineWidth2 : TASMNativeInt;
+    y : TASMNativeInt;
 begin
      assert((width > 1) and (height > 1) and (LineWidth >= width*sizeof(double)), 'Dimension error');
      assert(((width and 1) = 0) and ((height and 1) = 0), 'Error width and height must be even');
@@ -400,9 +400,9 @@ begin
 end;
 
 procedure ASMMatrixTransposeAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-var iters : integer;
-    destLineWidth2 : integer;
-    y : integer;
+var iters : TASMNativeInt;
+    destLineWidth2 : TASMNativeInt;
+    y : TASMNativeInt;
 begin
      Assert((Cardinal(dest) and $0000000F = 0) and (Cardinal(mt) and $0000000F = 0), 'Error non aligned data');
      assert((width > 1) and (height > 1) and (LineWidth >= width*sizeof(double)), 'Dimension error');
@@ -585,9 +585,9 @@ begin
 end;
 
 procedure ASMMatrixTransposeUnAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-var iters : integer;
-    destLineWidth2 : integer;
-    y : integer;
+var iters : TASMNativeInt;
+    destLineWidth2 : TASMNativeInt;
+    y : TASMNativeInt;
 begin
      assert((width > 1) and (height > 1) and (LineWidth >= width*sizeof(double)), 'Dimension error');
      assert(((width and 1) = 1) and ((height and 1) = 0), 'Error width and height must be even');
@@ -766,9 +766,9 @@ begin
 end;
 
 procedure ASMMatrixTransposeAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-var iters : integer;
-    destLineWidth2 : integer;
-    y : integer;
+var iters : TASMNativeInt;
+    destLineWidth2 : TASMNativeInt;
+    y : TASMNativeInt;
 begin
      Assert((Cardinal(dest) and $0000000F = 0) and (Cardinal(mt) and $0000000F = 0), 'Error non aligned data');
      assert((width > 1) and (height > 1) and (LineWidth >= width*sizeof(double)), 'Dimension error');
@@ -962,9 +962,9 @@ begin
 end;
 
 procedure ASMMatrixTransposeUnAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-var iters : integer;
-    destLineWidth2 : integer;
-    y : integer;
+var iters : TASMNativeInt;
+    destLineWidth2 : TASMNativeInt;
+    y : TASMNativeInt;
 begin
      assert((width > 1) and (height > 1) and (LineWidth >= width*sizeof(double)), 'Dimension error');
      assert(((width and 1) = 0) and ((height and 1) = 1), 'Error width and height must be even');
@@ -1154,9 +1154,9 @@ begin
 end;
 
 procedure ASMMatrixTransposeAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-var iters : integer;
-    destLineWidth2 : integer;
-    y : integer;
+var iters : TASMNativeInt;
+    destLineWidth2 : TASMNativeInt;
+    y : TASMNativeInt;
 begin
      Assert((Cardinal(dest) and $0000000F = 0) and (Cardinal(mt) and $0000000F = 0), 'Error non aligned data');
      assert((width > 1) and (height > 1) and (LineWidth >= width*sizeof(double)), 'Dimension error');
@@ -1361,9 +1361,9 @@ begin
 end;
 
 procedure ASMMatrixTransposeUnAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-var iters : integer;
-    destLineWidth2 : integer;
-    y : integer;
+var iters : TASMNativeInt;
+    destLineWidth2 : TASMNativeInt;
+    y : TASMNativeInt;
 begin
      assert((width > 1) and (height > 1) and (LineWidth >= width*sizeof(double)), 'Dimension error');
      assert(((width and 1) = 1) and ((height and 1) = 1), 'Error width and height must be even');

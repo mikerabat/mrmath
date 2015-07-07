@@ -80,6 +80,7 @@ type
     procedure TestThreadMatrixMult;
     procedure TestThreadMatrixAddSub;
     procedure TestThreadMatrixAddAndScale;
+    procedure TestMatrixMultTria2T1;
     procedure TestThreadedMatrixMultT1;
     procedure TestThreadedMatrixMultT2;
     procedure TestStrassenMult;
@@ -1904,6 +1905,29 @@ begin
 end;
 
 
+procedure TASMMatrixOperations.TestMatrixMultTria2T1;
+const mt1 : Array[0..15] of double = (-4, 1, 2, -2, 3, 4, 5, 2, 6, 7, -1, 2, -3, 1, -1, -1);
+var res1 : Array[0..15] of double;
+    res2 : Array[0..15] of double;
+begin
+     // test matrix multiplication of mt1'*mt1 where the second mt1 is handled as
+     // lower triangular matrix with ones in the diagonaly
+     // test is always against the reference implementation of the generic version ;)
+     GenericMtxMultTria2T1(@res1[0], 4*sizeof(double), @mt1[0], 4*sizeof(double), @mt1[0], 4*sizeof(double), 4, 4, 4, 4);
+     GenericMtxMultTria2T1_2(@res2[0], 4*sizeof(double), @mt1[0], 4*sizeof(double), @mt1[0], 4*sizeof(double), 4, 4, 4, 4);
+
+     Check(CheckMtx(res2, res1), 'Error generic MultTria2T1 failed 1');
+     ASMMtxMultTria2T1(@res2[0], 4*sizeof(double), @mt1[0], 4*sizeof(double), @mt1[0], 4*sizeof(double), 4, 4, 4, 4);
+     Check(CheckMtx(res2, res1), 'Error asm MultTria2T1 failed 1');
+
+     GenericMtxMultTria2T1(@res1[0], 4*sizeof(double), @mt1[0], 4*sizeof(double), @mt1[0], 4*sizeof(double), 3, 3, 3, 3);
+     GenericMtxMultTria2T1_2(@res2[0], 4*sizeof(double), @mt1[0], 4*sizeof(double), @mt1[0], 4*sizeof(double), 3, 3, 3, 3);
+
+     Check(CheckMtx(res2, res1, 3, 3), 'Error generic MultTria2T1 failed 2');
+     ASMMtxMultTria2T1(@res2[0], 4*sizeof(double), @mt1[0], 4*sizeof(double), @mt1[0], 4*sizeof(double), 3, 3, 3, 3);
+     Check(CheckMtx(res2, res1, 3, 3), 'Error asm MultTria2T1 failed 2');
+end;
+
 procedure TASMMatrixOperations.TestMinMaxASM;
 const mt1 : Array[0..15] of double = (0, 1, 2, -2, 3, 4, 5, 0, 6, 7, -1, 0, 0, 0, 0, 0);
       mt5 : Array[0..15] of double = (-1, 0, 1, 1, 2, 3, 4, 2, 5, 6, 7, 3, 4, 5, 6, 7);
@@ -2928,7 +2952,6 @@ begin
 end;
 
 initialization
-  // Alle Testfälle beim Test-Runner registrieren
   RegisterTest(TestMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});
   RegisterTest(TASMMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});
   RegisterTest(TASMatrixBlockSizeSetup{$IFNDEF FPC}.Suite{$ENDIF});

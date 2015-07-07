@@ -26,59 +26,59 @@ uses SysUtils, Types, MatrixConst, OptimizedFuncs;
 // solves the matrix A*X = B where A*x1=b1, A*x2=b2, ... A*xm=bm
 // The function stores in A the inverse of A and B stores the result vectors
 // A must be a square matrix (width*width) and B must be m*width.
-function MatrixGaussJordanInPlace(A : PDouble; const LineWidthA : integer; B : PDouble; const LineWidthB : integer; width : integer;
-                                  m : integer; const epsilon : double = 1e-20; progress : TLinEquProgress = nil) : TLinEquResult;
+function MatrixGaussJordanInPlace(A : PDouble; const LineWidthA : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt; width : TASMNativeInt;
+                                  m : TASMNativeInt; const epsilon : double = 1e-20; progress : TLinEquProgress = nil) : TLinEquResult;
 
-function MatrixGaussJordan(A : PDouble; const LineWidthA : integer; B : PDouble; const LineWidthB : integer;
-                           invA : PDouble; const LineWidthInvA : integer; X : PDouble; const LineWidthX : integer;
-                           width : integer; m : integer; const epsilon : double = 1e-20; progress : TLinEquProgress = nil) : TLinEquResult;
+function MatrixGaussJordan(A : PDouble; const LineWidthA : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt;
+                           invA : PDouble; const LineWidthInvA : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
+                           width : TASMNativeInt; m : TASMNativeInt; const epsilon : double = 1e-20; progress : TLinEquProgress = nil) : TLinEquResult;
 
 // interface functions (used in different parts - don't call them directly)
-procedure LUSwap(A : PDouble; const LineWidthA : Integer; width : integer; k1, k2 : integer; indx : PIntegerArray; var parity : integer);
-procedure LUBacksup(A : PDouble; width, height : integer; B : PDouble; const LineWidth : integer);
+procedure LUSwap(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; k1, k2 : TASMNativeInt; indx : PIntegerArray; var parity : TASMNativeInt);
+procedure LUBacksup(A : PDouble; width, height : TASMNativeInt; B : PDouble; const LineWidth : TASMNativeInt);
 
 // inplace LU decomposition of the matrix A. Diagonal elements of the lower triangular matrix are set to one
 // thus the diagonal elements of the resulting matrix A are composed from the upper diagonal elements only.
 // The index records the row permutation effected by the partial pivoting.
-function MatrixLUDecompInPlace(A : PDouble; const LineWidthA : Integer; width : integer; indx : PIntegerArray; progress : TLinEquProgress = nil) : TLinEquResult;
-function MatrixLUDecomp(A : PDouble; const LineWidthA : integer; LUDecomp : PDouble; const LineWidthLU : integer; width : integer; indx : PIntegerArray; progress : TLinEquProgress = nil) : TLinEquResult; overload;
-function MatrixLUDecomp(A : PDouble; const LineWidthA : integer; LUDecomp : PDouble; const LineWidthLU : integer; width : integer; progress : TLinEquProgress = nil) : TLinEquResult; overload;
-procedure MatrixLUBackSubst(LUDecomp : PDouble; const LineWidthLU : integer; width : integer; const  indx : PIntegerArray; B : PDouble; const LineWidthB : integer; progress : TLinEquProgress = nil);
+function MatrixLUDecompInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; indx : PIntegerArray; progress : TLinEquProgress = nil) : TLinEquResult;
+function MatrixLUDecomp(A : PDouble; const LineWidthA : TASMNativeInt; LUDecomp : PDouble; const LineWidthLU : TASMNativeInt; width : TASMNativeInt; indx : PIntegerArray; progress : TLinEquProgress = nil) : TLinEquResult; overload;
+function MatrixLUDecomp(A : PDouble; const LineWidthA : TASMNativeInt; LUDecomp : PDouble; const LineWidthLU : TASMNativeInt; width : TASMNativeInt; progress : TLinEquProgress = nil) : TLinEquResult; overload;
+procedure MatrixLUBackSubst(LUDecomp : PDouble; const LineWidthLU : TASMNativeInt; width : TASMNativeInt; const  indx : PIntegerArray; B : PDouble; const LineWidthB : TASMNativeInt; progress : TLinEquProgress = nil);
 
 // inverse of a matrix by using the LU decomposition
-function MatrixInverseInPlace(A : PDouble; const LineWidthA : integer; width : integer; progress : TLinEquProgress = nil) : TLinEquResult;
+function MatrixInverseInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; progress : TLinEquProgress = nil) : TLinEquResult;
 
 // Matrix determinant calculated from the LU decomposition. Returns zero in case of a singular matrix. Drawback is a double
 // memory usage since the LU decomposition must be stored in a temporary matrix.
-function MatrixDeterminant(A : PDouble; const LineWidthA : integer; width : integer; progress : TLinEquProgress = nil) : double;
+function MatrixDeterminant(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; progress : TLinEquProgress = nil) : double;
 
 
 // Matrix Line Equation Solver routines which are based on LU decomposition.
 // note these functions use temporarily double the size of A memory.
 // The result is stored in X. B and X must have the same size, also B may have
 // more than one column.
-function MatrixLinEQSolve(A : PDouble; const LineWidthA : integer; width : integer; B : PDouble; const LineWidthB : integer; X : PDouble; const LineWidthX : integer;
-   Width2 : integer; const NumRefinments : integer = 0; progress : TLinEquProgress = nil) : TLinEquResult;
+function MatrixLinEQSolve(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
+   Width2 : TASMNativeInt; const NumRefinments : TASMNativeInt = 0; progress : TLinEquProgress = nil) : TLinEquResult;
 
 
 // Inplace svd decomposition of a Matrix A
 // The output is the computation of A= U*W*V' whereas U is stored in A, and W is a vector 0..Width-1. The matrix V (not V') must be as large as Width*Width!
-function MatrixSVDInPlace(A : PDouble; const LineWidthA : integer; width : integer; Height : integer; W : PDouble; const LineWidthW : integer;
-                           V : PDouble; const LineWidthV : integer; progress : TLinEquProgress = nil) : TSVDResult;
-function MatrixSVD(A : PDouble; const LineWidthA : integer; width : integer; Height : integer;
-                   U : PDouble; const LineWidthU : integer; W : PDouble; const LineWidthW : integer;
-                   V : PDouble; const LineWidthV : integer; progress : TLinEquProgress = nil) : TSVDResult;
+function MatrixSVDInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt; W : PDouble; const LineWidthW : TASMNativeInt;
+                           V : PDouble; const LineWidthV : TASMNativeInt; progress : TLinEquProgress = nil) : TSVDResult;
+function MatrixSVD(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt;
+                   U : PDouble; const LineWidthU : TASMNativeInt; W : PDouble; const LineWidthW : TASMNativeInt;
+                   V : PDouble; const LineWidthV : TASMNativeInt; progress : TLinEquProgress = nil) : TSVDResult;
 
 // Inplace Cholesky decomposition of the matrix A (A=L*L'). A must be a positive-definite symmetric matrix.
 // The cholesky factor L is returned in the lower triangle of a, except for its diagonal elements which are returned in p
-function MatrixCholeskyInPlace(A : PDouble; const LineWidthA : integer; width : integer; P : PDouble; LineWidthP : integer; progress : TLinEquProgress = nil) : TCholeskyResult;
-function MatrixCholesky(dest : PDouble; const LineWidthDest : integer; A : PDouble; const LineWidthA : integer; width : integer;
-  P : PDouble; const LineWidthP : integer; progress : TLinEquProgress = nil) : TCholeskyResult;
+function MatrixCholeskyInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; P : PDouble; LineWidthP : TASMNativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
+function MatrixCholesky(dest : PDouble; const LineWidthDest : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt;
+  P : PDouble; const LineWidthP : TASMNativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
 // solves the set of linear equations Ax = b where A is a positive-definite symmetric matrix. A and P are input as the output of
 // MatrixCholeskyInPlace. Only the lower triangle is accessed. The result is stored in X, thus the routine can be called multiple
 // times. B and X can point to the same memory!
-procedure MatrixCholeskySolveLinEq(A : PDouble; const LineWidthA : integer; width : integer; P : PDouble;
-  const LineWidthP : integer; B : PDouble; const LineWidthB : integer; X : PDouble; const LineWidthX : integer; progress : TLinEquProgress = nil);
+procedure MatrixCholeskySolveLinEq(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; P : PDouble;
+  const LineWidthP : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt; progress : TLinEquProgress = nil);
 
 
 // original functions from Numerical Recipies:
@@ -87,14 +87,14 @@ procedure MatrixCholeskySolveLinEq(A : PDouble; const LineWidthA : integer; widt
 // d. The orthogonal matrix Q is represented as a product of n-1 Householder matrices Q1...Qn-1, where
 // Qj = 1 - uj*(uj/cj). The ith component of uj is zero for i = 1..j-1 while the nonzero components are returned
 // in a[i][j] for i = j...n . False is returned if no singularity was detected
-function MatrixQRDecompInPlace(A : PDouble; const LineWidthA : integer; width : integer; C : PDouble; const LineWidthC : integer;
-  D : PDouble; const LineWidthD : integer; progress : TLinEquProgress = nil) : TQRResult;
-function MatrixQRDecomp(dest : PDouble; const LineWidthDest : integer; A : PDouble; const LineWidthA : integer; width : integer;
-  C : PDouble; const LineWidthC : integer; D : PDouble; const LineWidthD : integer; progress : TLinEquProgress = nil) : TQRResult;
+function MatrixQRDecompInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; C : PDouble; const LineWidthC : TASMNativeInt;
+  D : PDouble; const LineWidthD : TASMNativeInt; progress : TLinEquProgress = nil) : TQRResult;
+function MatrixQRDecomp(dest : PDouble; const LineWidthDest : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt;
+  C : PDouble; const LineWidthC : TASMNativeInt; D : PDouble; const LineWidthD : TASMNativeInt; progress : TLinEquProgress = nil) : TQRResult;
 // solves the System A*x = b. The input paramaters are the output parameters from the QR decomposition.
 // b is the matrix right hand side and will be overwritten by the result x.
-procedure MatrixQRSolveLinEq(A : PDouble; const LineWidthA : integer; width : integer; C : PDouble; const LineWidthC : integer;
-  D : PDouble; const LineWidthD : integer; B : PDouble; const LineWidthB : integer; progress : TLinEquProgress = nil);
+procedure MatrixQRSolveLinEq(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; C : PDouble; const LineWidthC : TASMNativeInt;
+  D : PDouble; const LineWidthD : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt; progress : TLinEquProgress = nil);
 
 
 // implementation of Lapack's blocked QR decomposition
@@ -110,13 +110,13 @@ procedure MatrixQRSolveLinEq(A : PDouble; const LineWidthA : integer; width : in
 // note the matrix above starts with index 1 instead of 0.
 // the output is the same as the matlab economy size output on a QR decomposition e.g. dcmp = qr(A, 0);
 function MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; progress : TLinEquProgress = nil) : TQRResult; overload;
-function MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; work : PDouble; pnlSize : integer; progress : TLinEquProgress = nil) : TQRResult; overload;
+function MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; work : PDouble; pnlSize : TASMNativeInt; progress : TLinEquProgress = nil) : TQRResult; overload;
 
 // implementation of Lapacks dorgqr function: On start the matrix A and Tau contains the result of
 // the MatrixQRDecompInPlace2 function (economy size QR Decomposition). On output A is replaced by the full Q
 // matrix with orthonormal columns.
 procedure MatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; progress : TLinEquProgress = nil); overload;
-procedure MatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; BlockSize : integer; work : PDouble; progress : TLinEquProgress = nil); overload;
+procedure MatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; BlockSize : TASMNativeInt; work : PDouble; progress : TLinEquProgress = nil); overload;
 
 // Pseudoinversion - implementation taken from matlab
 // X = pinv(A) produces a matrix X of the same dimensions
@@ -126,8 +126,8 @@ procedure MatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; wid
 //  The default tolerance is MAX(SIZE(A)) * NORM(A) * EPS(class(A))
 // Note the Matrix in X is also used in the calculations, thus it's content is destroyed!
 // dest must be at least as big as the transposed of X
-function MatrixPseudoinverse(dest : PDouble; const LineWidthDest : integer; X : PDouble; const LineWidthX : integer;
-  width, height : integer; progress : TLinEquProgress = nil) : TSVDResult;
+function MatrixPseudoinverse(dest : PDouble; const LineWidthDest : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
+  width, height : TASMNativeInt; progress : TLinEquProgress = nil) : TSVDResult;
 
 
 // ######################################################
@@ -136,9 +136,9 @@ type
   TLinearEQProgress = class(TObject)
   public
     refProgress : TLinEquProgress;
-    numRefinenmentSteps : integer;
+    numRefinenmentSteps : TASMNativeInt;
 
-    procedure LUDecompSolveProgress(Progress : Integer);
+    procedure LUDecompSolveProgress(Progress : integer);
     procedure RefinementProgress(Progress : integer);
   end;
 
@@ -151,9 +151,9 @@ type
     LineWidthWork : TASMNativeInt;
     BlkMultMem : PDouble;
     Progress : TLinEquProgress;
-    qrWidth, qrHeight : integer;
-    actIdx : integer;
-    pnlSize : integer;
+    qrWidth, qrHeight : TASMNativeInt;
+    actIdx : TASMNativeInt;
+    pnlSize : TASMNativeInt;
 
     MatrixMultT1 : TMatrixBlockedMultfunc;
     MatrixMultT2 : TMatrixBlockedMultfunc;
@@ -167,23 +167,23 @@ implementation
 uses Math, MathUtilFunc, ASMMatrixOperations,
      SimpleMatrixOperations, BlockSizeSetup;
 
-function MatrixPseudoinverse(dest : PDouble; const LineWidthDest : integer; X : PDouble; const LineWidthX : integer;
-  width, height : integer; progress : TLinEquProgress) : TSVDResult;
+function MatrixPseudoinverse(dest : PDouble; const LineWidthDest : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
+  width, height : TASMNativeInt; progress : TLinEquProgress) : TSVDResult;
 var doTranspose : boolean;
     data : TDoubleDynArray;
     UTranspose : TDoubleDynArray;
     pData : PDouble;
-    lineWidthData : integer;
+    lineWidthData : TASMNativeInt;
     S, V : TDoubleDynArray;
-    lineWidthV : integer;
+    lineWidthV : TASMNativeInt;
     tolerance : double;
-    r : integer;
-    i : integer;
-    k, l : integer;
+    r : TASMNativeInt;
+    i : TASMNativeInt;
+    k, l : TASMNativeInt;
     pUTranspose : PDouble;
     res : TDoubleDynArray;
     pRes : PDouble;
-    destOffset : integer;
+    destOffset : TASMNativeInt;
 begin
      // pseudo inversion of a matrix: pinv(x) = x'*(x*x')^-1
      // based on the matlab implementation:
@@ -280,10 +280,10 @@ begin
      end;
 end;
 
-function MatrixGaussJordan(A : PDouble; const LineWidthA : integer; B : PDouble; const LineWidthB : integer;
-                           invA : PDouble; const LineWidthInvA : integer; X : PDouble; const LineWidthX : integer;
-                           width : integer; m : integer; const epsilon : double; progress : TLinEquProgress) : TLinEquResult;
-var i: Integer;
+function MatrixGaussJordan(A : PDouble; const LineWidthA : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt;
+                           invA : PDouble; const LineWidthInvA : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
+                           width : TASMNativeInt; m : TASMNativeInt; const epsilon : double; progress : TLinEquProgress) : TLinEquResult;
+var i: TASMNativeInt;
     pInvA : PDouble;
     PX : PDouble;
 begin
@@ -307,9 +307,9 @@ begin
      Result := MatrixGaussJordaninPlace(invA, lineWidthInvA, X, LineWidthX, width, m, epsilon, progress);
 end;
 
-function MatrixGaussJordanInPlace(A : PDouble; const LineWidthA : integer; B : PDouble; const LineWidthB : integer;
-  width : integer; m : integer; const epsilon : double; progress : TLinEquProgress) : TLinEquResult;
-var i, icol, irow, j, k, l, ll : integer;
+function MatrixGaussJordanInPlace(A : PDouble; const LineWidthA : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt;
+  width : TASMNativeInt; m : TASMNativeInt; const epsilon : double; progress : TLinEquProgress) : TLinEquResult;
+var i, icol, irow, j, k, l, ll : TASMNativeInt;
     big, dum, pivinv : double;
     indxc, indxr, ipiv : Array of integer;
     pVal1 : PDouble;
@@ -475,8 +475,8 @@ end;
 
 // LUSWAP performs a series of row interchanges on the matrix A.
 // One row interchange is initiated for each of rows K1 through K2 of A.
-procedure LUSwap(A : PDouble; const LineWidthA : Integer; width : integer; k1, k2 : integer; indx : PIntegerArray; var parity : integer);
-var i : integer;
+procedure LUSwap(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; k1, k2 : TASMNativeInt; indx : PIntegerArray; var parity : TASMNativeInt);
+var i : TASMNativeInt;
     pA1, pA2 : PDouble;
 begin
      for i := k1 to k2 do
@@ -497,8 +497,8 @@ begin
      end;
 end;
 
-procedure LUBacksup(A : PDouble; width, height : integer; B : PDouble; const LineWidth : integer);
-var j, i, k : integer;
+procedure LUBacksup(A : PDouble; width, height : TASMNativeInt; B : PDouble; const LineWidth : TASMNativeInt);
+var j, i, k : TASMNativeInt;
     pA, pAi : PDouble;
     pB, pBj : PDouble;
     pBDest, pBDestj, pBDesti : PDouble;
@@ -541,19 +541,19 @@ type
   TRecMtxLUDecompData = record
     progress : TLinEquProgress;
     numCols,
-    numCalc : integer;
+    numCalc : TASMNativeInt;
     blkMultMem : Pdouble;
     LineWidth : TASMNativeInt;
   end;
 
-function InternalRecursiveMatrixLUDecompInPlace(A : PDouble;  width, height : integer;
- indx : PIntegerArray; var parity : integer; var data : TRecMtxLUDecompData) : TLinEquResult;
-var mn : integer;
+function InternalRecursiveMatrixLUDecompInPlace(A : PDouble;  width, height : TASMNativeInt;
+ indx : PIntegerArray; var parity : TASMNativeInt; var data : TRecMtxLUDecompData) : TLinEquResult;
+var mn : TASMNativeInt;
     pA : PDouble;
-    idx : integer;
+    idx : TASMNativeInt;
     maxVal : double;
-    nleft, nright : integer;
-    i : integer;
+    nleft, nright : TASMNativeInt;
+    i : TASMNativeInt;
     pB, a12, a21 : PDouble;
     absMaxVal : double;
 begin
@@ -651,8 +651,8 @@ begin
      end;
 end;
 
-function MatrixLUDecompInPlace(A : PDouble; const LineWidthA : Integer; width : integer; indx : PIntegerArray; progress : TLinEquProgress) : TLinEquResult;
-var parity : integer;
+function MatrixLUDecompInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; indx : PIntegerArray; progress : TLinEquProgress) : TLinEquResult;
+var parity : TASMNativeInt;
     mem : Array[0..(4+4*cBlkMultSize*cBlkMultSize)] of double;
     rc : TRecMtxLUDecompData;
 begin
@@ -666,7 +666,7 @@ begin
      Result := InternalRecursiveMatrixLUDecompInPlace(A, width, width, indx, parity, rc);
 end;
 
-function MatrixLUDecomp(A : PDouble; const LineWidthA : integer; LUDecomp : PDouble; const LineWidthLU : integer; width : integer; indx : PIntegerArray; progress : TLinEquProgress) : TLinEquResult;
+function MatrixLUDecomp(A : PDouble; const LineWidthA : TASMNativeInt; LUDecomp : PDouble; const LineWidthLU : TASMNativeInt; width : TASMNativeInt; indx : PIntegerArray; progress : TLinEquProgress) : TLinEquResult;
 begin
      Assert(width > 0, 'Dimension Error');
 
@@ -675,7 +675,7 @@ begin
      Result := MatrixLUDecompInPlace(LUDecomp, lineWidthLU, width, indx, progress);
 end;
 
-function MatrixLUDecomp(A : PDouble; const LineWidthA : integer; LUDecomp : PDouble; const LineWidthLU : integer; width : integer; progress : TLinEquProgress) : TLinEquResult;
+function MatrixLUDecomp(A : PDouble; const LineWidthA : TASMNativeInt; LUDecomp : PDouble; const LineWidthLU : TASMNativeInt; width : TASMNativeInt; progress : TLinEquProgress) : TLinEquResult;
 var indx : array of integer;
 begin
      Assert(width > 0, 'Dimension Error');
@@ -684,12 +684,12 @@ begin
      Result := MatrixLUDecomp(A, LineWidthA, LUDecomp, LineWidthLU, width, @indx[0], progress);
 end;
 
-procedure MatrixLUBackSubst(LUDecomp : PDouble; const LineWidthLU : integer; width : integer; const  indx : PIntegerArray;
-  B : PDouble; const LineWidthB : integer; progress : TLinEquProgress);
-var i : Integer;
-    ii : integer;
-    ip : integer;
-    j : integer;
+procedure MatrixLUBackSubst(LUDecomp : PDouble; const LineWidthLU : TASMNativeInt; width : TASMNativeInt; const  indx : PIntegerArray;
+  B : PDouble; const LineWidthB : TASMNativeInt; progress : TLinEquProgress);
+var i : TASMNativeInt;
+    ii : TASMNativeInt;
+    ip : TASMNativeInt;
+    j : TASMNativeInt;
     sum : double;
     pB : PDouble;
     pB2 : PDouble;
@@ -765,13 +765,13 @@ begin
         progress(100);
 end;
 
-function MatrixInverseInPlace(A : PDouble; const LineWidthA : integer; width : integer; progress : TLinEquProgress) : TLinEquResult;
+function MatrixInverseInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; progress : TLinEquProgress) : TLinEquResult;
 var Y : PDouble;
     indx : array of integer;
-    i, j : Integer;
+    i, j : TASMNativeInt;
     pVal : PDouble;
     col : TDoubleDynArray;
-    w : integer;
+    w : TASMNativeInt;
 begin
      Assert(lineWidthA >= width*sizeof(double), 'Dimension Error');
      Assert(width > 0, 'Dimension error');
@@ -810,14 +810,14 @@ begin
      FreeMem(Y);
 end;
 
-function MatrixDeterminant(A : PDouble; const LineWidthA : integer; width : integer; progress : TLinEquProgress) : double;
+function MatrixDeterminant(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; progress : TLinEquProgress) : double;
 var LUDecomp : PDouble;
     indx : Array of Integer;
-    i : integer;
+    i : TASMNativeInt;
     pVal : PDouble;
-    parity : integer;
+    parity : TASMNativeInt;
     rc : TRecMtxLUDecompData;
-    w : integer;
+    w : TASMNativeInt;
     mem : Array[0..(4+4*cBlkMultSize*cBlkMultSize)] of double;
 begin
      assert(width > 0, 'Dimension error');
@@ -855,7 +855,7 @@ end;
 
 { TLinearEQProgress }
 
-procedure TLinearEQProgress.LUDecompSolveProgress(Progress: Integer);
+procedure TLinearEQProgress.LUDecompSolveProgress(Progress: integer);
 begin
      if numRefinenmentSteps > 0 
      then
@@ -869,19 +869,19 @@ begin
      refProgress(80 + 2*progress div 10);
 end;
 
-function MatrixLinEQSolve(A : PDouble; const LineWidthA : integer; width : integer; B : PDouble; const LineWidthB : integer; X : PDouble;
- const LineWidthX : integer;  Width2 : integer; const NumRefinments : integer; progress : TLinEquProgress) : TLinEquResult;
+function MatrixLinEQSolve(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt; X : PDouble;
+ const LineWidthX : TASMNativeInt;  Width2 : TASMNativeInt; const NumRefinments : TASMNativeInt; progress : TLinEquProgress) : TLinEquResult;
 var indx : Array of Integer;
     LUDecomp : TDoubleDynArray;
     sdp : double;
     row : TDoubleDynArray;
     pB : PDouble;
-    i : Integer;
+    i : TASMNativeInt;
     pA : PDouble;
-    j, k : Integer;
+    j, k : TASMNativeInt;
     pX : PDouble;
     pVal : PDouble;
-    refinementCounter : integer;
+    refinementCounter : TASMNativeInt;
     progObj : TLinearEQProgress;
     progRef : TLinEquProgress;
 begin
@@ -982,13 +982,13 @@ begin
         progress(100);
 end;
 
-function MatrixSVDInPlace(A : PDouble; const LineWidthA : integer; width : integer; Height : integer; W : PDouble; const LineWidthW : integer;
-  V : PDouble; const LineWidthV : integer; progress : TLinEquProgress) : TSVDResult;
+function MatrixSVDInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt; W : PDouble; const LineWidthW : TASMNativeInt;
+  V : PDouble; const LineWidthV : TASMNativeInt; progress : TLinEquProgress) : TSVDResult;
 const cMaxNumSVDIter = 75;
 var flag : boolean;
-    i, j, jj, k, l : integer;
-    its : integer;
-    nm : integer;
+    i, j, jj, k, l : TASMNativeInt;
+    its : TASMNativeInt;
+    nm : TASMNativeInt;
     anorm : double;
     c, f, g, h : double;
     s, scale, x, y, z : double;
@@ -1531,9 +1531,9 @@ begin
      Result := srOk;
 end;
 
-function MatrixSVD(A : PDouble; const LineWidthA : integer; width : integer; Height : integer;
-                   U : PDouble; const LineWidthU : integer; W : PDouble; const LineWidthW : integer;
-                   V : PDouble; const LineWidthV : integer; progress : TLinEquProgress) : TSVDResult;
+function MatrixSVD(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt;
+                   U : PDouble; const LineWidthU : TASMNativeInt; W : PDouble; const LineWidthW : TASMNativeInt;
+                   V : PDouble; const LineWidthV : TASMNativeInt; progress : TLinEquProgress) : TSVDResult;
 begin
      assert(LineWidthA >= width*sizeof(double), 'Dimension error');
      assert(LineWidthV >= width*sizeof(double), 'Dimension error');
@@ -1542,9 +1542,9 @@ begin
      Result := MatrixSVDInPlace(U, LineWidthU, width, Height, W, LineWidthW, V, LineWidthV, progress);
 end;
 
-function MatrixCholeskyInPlace(A : PDouble; const LineWidthA : integer; width : integer; P : PDouble;
-  LineWidthP : integer; progress : TLinEquProgress) : TCholeskyResult;
-var i, j, k : integer;
+function MatrixCholeskyInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; P : PDouble;
+  LineWidthP : TASMNativeInt; progress : TLinEquProgress) : TCholeskyResult;
+var i, j, k : TASMNativeInt;
     sum : double;
     pA : PDouble;
     pA1 : PDouble;
@@ -1612,11 +1612,11 @@ begin
      Result := crOk;
 end;
 
-function MatrixCholesky(dest : PDouble; const LineWidthDest : integer; A : PDouble; const LineWidthA : integer;
-  width : integer; P : PDouble; const LineWidthP : integer; progress : TLinEquProgress) : TCholeskyResult;
+function MatrixCholesky(dest : PDouble; const LineWidthDest : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt;
+  width : TASMNativeInt; P : PDouble; const LineWidthP : TASMNativeInt; progress : TLinEquProgress) : TCholeskyResult;
 var pDest : PDouble;
     pA : PDouble;
-    i : integer;
+    i : TASMNativeInt;
 begin
      // copy A to dest
      pA := A;
@@ -1631,10 +1631,10 @@ begin
      Result := MatrixCholeskyInPlace(dest, LineWidthDest, width, P, LineWidthP, progress);
 end;
 
-procedure MatrixCholeskySolveLinEq(A : PDouble; const LineWidthA : integer; width : integer; P : PDouble;
-  const LineWidthP : integer; B : PDouble; const LineWidthB : integer; X : PDouble; const LineWidthX : integer;
+procedure MatrixCholeskySolveLinEq(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; P : PDouble;
+  const LineWidthP : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
   progress : TLinEquProgress);
-var i, k : integer;
+var i, k : TASMNativeInt;
     sum : double;
     pX : PDouble;
     pXi : PDouble;
@@ -1713,9 +1713,9 @@ begin
         progress(100);
 end;
 
-function MatrixQRDecompInPlace(A : PDouble; const LineWidthA : integer; width : integer; C : PDouble; const LineWidthC : integer;
-  D : PDouble; const LineWidthD : integer; progress : TLinEquProgress) : TQRResult;
-var i, j, k : integer;
+function MatrixQRDecompInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; C : PDouble; const LineWidthC : TASMNativeInt;
+  D : PDouble; const LineWidthD : TASMNativeInt; progress : TLinEquProgress) : TQRResult;
+var i, j, k : TASMNativeInt;
     scale, sigma, sum, tau : double;
     pA, pAj : PDouble;
     pC : PDouble;
@@ -1822,11 +1822,11 @@ begin
         progress(100);
 end;
 
-function MatrixQRDecomp(dest : PDouble; const LineWidthDest : integer; A : PDouble; const LineWidthA : integer; width : integer;
-  C : PDouble; const LineWidthC : integer; D : PDouble; const LineWidthD : integer; progress : TLinEquProgress) : TQRResult;
+function MatrixQRDecomp(dest : PDouble; const LineWidthDest : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt;
+  C : PDouble; const LineWidthC : TASMNativeInt; D : PDouble; const LineWidthD : TASMNativeInt; progress : TLinEquProgress) : TQRResult;
 var pDest : PDouble;
     pA : PDouble;
-    i : integer;
+    i : TASMNativeInt;
 begin
      assert(LineWidthA >= width*sizeof(double), 'Dimension error');
      assert(LineWidthDest >= width*sizeof(double), 'Dimension error');
@@ -1847,9 +1847,9 @@ begin
 end;
 
 
-procedure MatrixRSolve(A : PDouble; const LineWidthA : integer; width : integer; C : PDouble; const LineWidthC;
-  D : PDouble; const LineWidthD : integer; B : PDouble; const LineWidthB : integer; progress : TLinEquProgress);
-var i, j : integer;
+procedure MatrixRSolve(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; C : PDouble; const LineWidthC;
+  D : PDouble; const LineWidthD : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt; progress : TLinEquProgress);
+var i, j : TASMNativeInt;
     pA : PDouble;
     pAj : PDouble;
     pB : PDouble;
@@ -1894,9 +1894,9 @@ begin
         progress(100);
 end;
 
-procedure MatrixQRSolveLinEq(A : PDouble; const LineWidthA : integer; width : integer; C : PDouble; const LineWidthC : integer;
-  D : PDouble; const LineWidthD : integer; B : PDouble; const LineWidthB : integer; progress : TLinEquProgress);
-var i, j : integer;
+procedure MatrixQRSolveLinEq(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; C : PDouble; const LineWidthC : TASMNativeInt;
+  D : PDouble; const LineWidthD : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt; progress : TLinEquProgress);
+var i, j : TASMNativeInt;
     sum, tau : double;
     pA : PDouble;
     pAj : PDouble;
@@ -1952,7 +1952,7 @@ end;
 
 // apply householder transformation to A (one column)
 // original DLARFG in Lapack
-function GenElemHousholderRefl(A : PDouble; LineWidthA : integer; Height : integer; var Alpha : double; Tau : PDouble) : boolean;
+function GenElemHousholderRefl(A : PDouble; LineWidthA : TASMNativeInt; Height : TASMNativeInt; var Alpha : double; Tau : PDouble) : boolean;
 var beta : double;
     xNorm : double;
     //saveMin : double;
@@ -1961,7 +1961,7 @@ begin
      if height < 1 then
      begin
           Tau^ := 0;
-          Result := true;
+          Result := True;
           exit;
      end;
 
@@ -1994,9 +1994,9 @@ end;
 
 
 // original Dlarf in lapack
-procedure ApplyElemHousholderRefl(A : PDouble; LineWidthA : integer; width, height : integer; Tau : PDouble; Work : PDouble);
+procedure ApplyElemHousholderRefl(A : PDouble; LineWidthA : TASMNativeInt; width, height : TASMNativeInt; Tau : PDouble; Work : PDouble);
 var pA1 : PDouble;
-    x, y : Integer;
+    x, y : TASMNativeInt;
     pDest : PDouble;
     pWork : PDouble;
     pA : PDouble;
@@ -2035,8 +2035,8 @@ end;
 
 // implementation of lapack's DGEQR2
 function MtxQRUnblocked(A : PDouble; LineWidthA : TASMNativeInt; width, height : TASMNativeInt; Tau : PDouble; const qrData : TRecMtxQRDecompData) : boolean;
-var k : integer;
-    i : integer;
+var k : TASMNativeInt;
+    i : TASMNativeInt;
     pA : PDouble;
     pTau : PDouble;
     aii : double;
@@ -2079,13 +2079,13 @@ end;
 
 
 // original DLARFT in Lapack
-procedure CreateTMtx(n, k : integer; A : PDouble; LineWidthA : TASMNativeInt; Tau : PDouble; const qrData : TRecMtxQRDecompData);
-var i, j : Integer;
+procedure CreateTMtx(n, k : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt; Tau : PDouble; const qrData : TRecMtxQRDecompData);
+var i, j : TASMNativeInt;
     pT, pA : PDouble;
     pA1 : PDouble;
     pDest : PDouble;
     pT1, pt2 : PDouble;
-    x, y : integer;
+    x, y : TASMNativeInt;
     tmp : Double;
     pMem : PDouble;
     pResVec : PDouble;
@@ -2199,15 +2199,15 @@ end;
 
 // apply block reflector to a matrix
 // original DLARFB in Lapack
-procedure ApplyBlockReflector(A : PDouble; LineWidthA : integer; const qrData : TRecMtxQRDecompData;
-  width, height : integer; widthT : integer; Transposed : boolean);
+procedure ApplyBlockReflector(A : PDouble; LineWidthA : TASMNativeInt; const qrData : TRecMtxQRDecompData;
+  width, height : TASMNativeInt; widthT : TASMNativeInt; Transposed : boolean);
 var pC1, pC2 : PDouble;
     pY1, pY2 : PDouble;
     T : PDouble;
     LineWidthT : TASMNativeInt;
     mem : PDouble;
     LineWidthMem : TASMNativeInt;
-    heightW : integer;
+    heightW : TASMNativeInt;
 begin
      mem := qrData.work;
      inc(PByte(mem), widthT*qrData.LineWidthWork);  // upper part (nb x nb) is dedicated to T, lower part to W in dlarfb
@@ -2226,7 +2226,7 @@ begin
      inc(PByte(pC2), widthT*LineWidthA);
 
      // W = C1'*Y1
-     GenericMtxMultTria2T1(mem, LineWidthMem, pC1, LineWidthA, pY1, LineWidthA, width - widthT, widthT, widthT, widthT);
+     MatrixMultTria2T1(mem, LineWidthMem, pC1, LineWidthA, pY1, LineWidthA, width - widthT, widthT, widthT, widthT);
      heightW := width - widthT;
 
      // W = W + C2'*Y2
@@ -2310,7 +2310,7 @@ begin
      Result := MatrixQRDecompInPlace2(A, LineWidthA, width, height, tau, nil, QRBlockSize, Progress);
 end;
 
-function MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; work : PDouble; pnlSize : integer; progress : TLinEquProgress = nil) : TQRResult; overload;
+function MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; work : PDouble; pnlSize : TASMNativeInt; progress : TLinEquProgress = nil) : TQRResult; overload;
 var res : boolean;
     qrData : TRecMtxQRDecompData;
 begin
@@ -2358,7 +2358,7 @@ end;
 procedure InternalMatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height, k : TASMNativeInt; tau : PDouble; const qrData : TRecMtxQRDecompData);
 var pA : PDouble;
     pAii : PDouble;
-    i, j : integer;
+    i, j : TASMNativeInt;
 begin
      if width <= 0 then
         exit;
@@ -2430,11 +2430,11 @@ end;
 
 procedure InternalBlkMatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; qrData : TRecMtxQRDecompData);
 var pA : PDouble;
-    x, y : integer;
-    numIter : integer;
+    x, y : TASMNativeInt;
+    numIter : TASMNativeInt;
     pTau : PDouble;
-    counter: Integer;
-    idx : integer;
+    counter: TASMNativeInt;
+    idx : TASMNativeInt;
 begin
      // check for quick return ???
      if width <= 0 then
@@ -2544,7 +2544,7 @@ begin
 end;
 
 procedure MatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; 
- tau : PDouble; BlockSize : integer; work : PDouble; progress : TLinEquProgress = nil);
+ tau : PDouble; BlockSize : TASMNativeInt; work : PDouble; progress : TLinEquProgress = nil);
 var qrData : TRecMtxQRDecompData;
 begin
      qrData.pWorkMem := nil;

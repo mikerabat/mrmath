@@ -1109,7 +1109,6 @@ begin
 end;
 
 initialization
-  // Alle Testfälle beim Test-Runner registrieren
   RegisterTest(TestTDoubleMatrix{$IFNDEF FPC}.Suite{$ENDIF});
   RegisterTest(TestTDoubleMatrixPersistence{$IFNDEF FPC}.Suite{$ENDIF});
   RegisterTest(TestIMatrix{$IFNDEF FPC}.Suite{$ENDIF});

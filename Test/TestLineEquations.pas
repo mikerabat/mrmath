@@ -764,7 +764,6 @@ begin
 end;
 
 initialization
-  // Alle Testfälle beim Test-Runner registrieren
   RegisterTest(TTestLinearEquations{$IFNDEF FPC}.Suite{$ENDIF});
 
 end.

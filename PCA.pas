@@ -1256,7 +1256,7 @@ begin
 
               // reduce the number of points according to the error distribution
               data := X.SubMatrix;
-              QuickSort(data[0], sizeof(double), Length(data), @DoubleSortFunc);
+              QuickSort(data);
 
               numNewElements := Max(fEigVecs.Width, Min(numElements - 1, Round(numElements*fProps.ReductionFactor)));
               if numNewElements <= 0 then

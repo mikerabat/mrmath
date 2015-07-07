@@ -61,7 +61,7 @@ var u, v, w : IMatrix;
     i, j : Integer;
 begin
      // compute invCxx = inversion of the principal square root of matrix mtx
-     // -> note since A is a covariance matrix the principal square root
+     // -> since A is a covariance matrix the principal square root
      // (which is numerically most stable calculated from the schur decomposition)
      // can be calculated with the SVD since both are the same in that case
      // -> use that same decomposition as well for the inverting process!

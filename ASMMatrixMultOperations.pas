@@ -43,6 +43,14 @@ procedure ASMMatrixMultUnAlignedOddW1EvenW2(dest : PDouble; const destLineWidth 
 procedure ASMMatrixMultAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 procedure ASMMatrixMultUnAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 
+// som special types of multiplications used e.g. in QR Decomposition
+// note the result is stored in mt2 again!
+// dest = mt1'*mt2; where mt2 is a lower triangular matrix and the operation is transposition
+// the function assumes a unit diagonal (does not touch the real middle elements)
+// width and height values are assumed to be the "original" (non transposed) ones
+procedure ASMMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+
 {$ENDIF}
 
 implementation
@@ -50,11 +58,11 @@ implementation
 {$IFNDEF x64}
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 procedure ASMMatrixMultAlignedEvenW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var destOffset : integer;
-    iters1, iters2 : integer;
-    bytesWidth2 : integer;
-    Linewidth2_2 : integer;
-    y : integer;
+var destOffset : TASMNativeInt;
+    iters1, iters2 : TASMNativeInt;
+    bytesWidth2 : TASMNativeInt;
+    Linewidth2_2 : TASMNativeInt;
+    y : TASMNativeInt;
 begin
      assert(((LineWidth1 and $0000000F) = 0) and ((destLineWidth and $0000000F) = 0) and ((LineWidth2 and $0000000F) = 0), 'Error line widths must be aligned');
      assert(((Cardinal(dest) and $0000000F) = 0) and ((Cardinal(mt1) and $0000000F) = 0) and ((Cardinal(mt2) and $0000000F) = 0), 'Error aligned operations cannot be performed');
@@ -191,11 +199,11 @@ begin
 end;
 
 procedure ASMMatrixMultUnAlignedEvenW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var destOffset : integer;
-    iters1, iters2 : integer;
-    bytesWidth2 : integer;
-    Linewidth2_2 : integer;
-    y : integer;
+var destOffset : TASMNativeInt;
+    iters1, iters2 : TASMNativeInt;
+    bytesWidth2 : TASMNativeInt;
+    Linewidth2_2 : TASMNativeInt;
+    y : TASMNativeInt;
 begin
      assert((width1 and $00000001 = 0) and (width2 and $00000001 = 0), 'Error widths are not even');
 
@@ -306,10 +314,10 @@ begin
 end;
 
 procedure ASMMatrixMultUnAlignedOddW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var destOffset : integer;
-    iters1, iters2 : integer;
-    Linewidth2_2 : integer;
-    y : integer;
+var destOffset : TASMNativeInt;
+    iters1, iters2 : TASMNativeInt;
+    Linewidth2_2 : TASMNativeInt;
+    y : TASMNativeInt;
 begin
      assert((width2 and $00000001) = 0, 'Error there is no odd width2');
      assert((width1 and $00000001) = 1, 'Error width1 is not even');
@@ -434,10 +442,10 @@ begin
 end;
 
 procedure ASMMatrixMultAlignedOddW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var destOffset : integer;
-    iters1, iters2 : integer;
-    Linewidth2_2 : integer;
-    y : integer;
+var destOffset : TASMNativeInt;
+    iters1, iters2 : TASMNativeInt;
+    Linewidth2_2 : TASMNativeInt;
+    y : TASMNativeInt;
 begin
      assert(((Cardinal(dest) and $0000000F) = 0) and ((Cardinal(mt1) and $0000000F) = 0) and ((Cardinal(mt2) and $0000000F) = 0), 'Error aligned operations cannot be performed');
      assert(((LineWidth1 and $0000000F) = 0) and ((destLineWidth and $0000000F) = 0) and ((LineWidth2 and $0000000F) = 0), 'Error line widths must be aligned');
@@ -563,11 +571,11 @@ begin
 end;
 
 procedure ASMMatrixMultAlignedEvenW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var destOffset : integer;
-    iters1, iters2 : integer;
-    bytesWidth2 : integer;
-    Linewidth2_2 : integer;
-    y : integer;
+var destOffset : TASMNativeInt;
+    iters1, iters2 : TASMNativeInt;
+    bytesWidth2 : TASMNativeInt;
+    Linewidth2_2 : TASMNativeInt;
+    y : TASMNativeInt;
 begin
      assert(((Cardinal(dest) and $0000000F) = 0) and ((Cardinal(mt1) and $0000000F) = 0) and ((Cardinal(mt2) and $0000000F) = 0), 'Error aligned operations cannot be performed');
      assert(((LineWidth1 and $0000000F) = 0) and ((destLineWidth and $0000000F) = 0) and ((LineWidth2 and $0000000F) = 0), 'Error line widths must be aligned');
@@ -703,11 +711,11 @@ begin
 end;
 
 procedure ASMMatrixMultUnAlignedEvenW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var destOffset : integer;
-    iters1, iters2 : integer;
-    bytesWidth2 : integer;
-    Linewidth2_2 : integer;
-    y : integer;
+var destOffset : TASMNativeInt;
+    iters1, iters2 : TASMNativeInt;
+    bytesWidth2 : TASMNativeInt;
+    Linewidth2_2 : TASMNativeInt;
+    y : TASMNativeInt;
 begin
      assert((width2 and $00000001) = 1, 'Error there is no odd width2');
      assert((width1 and $00000001) = 0, 'Error width1 is not even');
@@ -840,10 +848,10 @@ begin
 end;
 
 procedure ASMMatrixMultAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var destOffset : integer;
-    iters1, iters2, iters3 : integer;
-    Linewidth2_2 : integer;
-    y : integer;
+var destOffset : TASMNativeInt;
+    iters1, iters2, iters3 : TASMNativeInt;
+    Linewidth2_2 : TASMNativeInt;
+    y : TASMNativeInt;
 begin
      assert(((Cardinal(dest) and $0000000F) = 0) and ((Cardinal(mt1) and $0000000F) = 0) and ((Cardinal(mt2) and $0000000F) = 0), 'Error aligned operations cannot be performed');
      assert(((LineWidth1 and $0000000F) = 0) and ((destLineWidth and $0000000F) = 0) and ((LineWidth2 and $0000000F) = 0), 'Error line widths must be aligned');
@@ -993,10 +1001,10 @@ begin
 end;
 
 procedure ASMMatrixMultUnAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var destOffset : integer;
-    iters1, iters2, iters3 : integer;
-    Linewidth2_2 : integer;
-    y : integer;
+var destOffset : TASMNativeInt;
+    iters1, iters2, iters3 : TASMNativeInt;
+    Linewidth2_2 : TASMNativeInt;
+    y : TASMNativeInt;
 begin
      assert((width2 and $00000001) = 1, 'Error there is no odd width2');
      assert((width1 and $00000001) = 1, 'Error width1 is not even');
@@ -1139,6 +1147,195 @@ begin
         pop edi;
         pop esi;
         pop ebx;
+     end;
+end;
+
+
+// ###########################################
+// #### Special multiplication routines (for now only used in QR Decomposition)
+// ###########################################
+
+// note the result is stored in mt2 again!
+// dest = mt1'*mt2; where mt2 is a lower triangular matrix and the operation is transposition
+// the function assumes a unit diagonal (does not touch the real middle elements)
+// width and height values are assumed to be the "original" (non transposed) ones
+procedure ASMMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt;
+  mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+var pMt2 : PDouble;
+    width2D2 : TASMNativeInt;
+begin
+     assert((width1 > 0) and (height1 > 0) and (height1 = height2), 'Dimension error');
+
+     asm
+        push eax;
+        push edx;
+        push ebx;
+        push esi;
+        push edi;
+
+        // width2D2 := width2 div 2;
+        mov eax, width2;
+        shr eax, 1;
+        mov width2D2, eax;
+
+        // for x := 0 to width1 - 1 do
+        mov eax, width1;
+
+        @@forxloop:
+
+          // pMT2 := mt2;
+          // pDest := dest;
+
+          mov ebx, mt2;
+          mov pMT2, ebx;
+
+          mov edx, dest;   // edx is pDest
+
+
+          // for y := 0 to width2D2 - 1 do
+          mov ecx, width2D2;
+          test ecx, ecx;
+          jz @@foryloopend;
+
+          xor ecx, ecx;
+          @@foryloop:
+
+               // valCounter1 := PConstDoubleArr(mt1);
+               // inc(PByte(valCounter1), 2*y*LineWidth1);
+               mov esi, mt1;
+               mov ebx, ecx;
+               add ebx, ebx;
+               imul ebx, LineWidth1;
+               add esi, ebx;
+
+               // valCounter2 := PConstDoubleArr(pMT2);
+               // inc(PByte(valCounter2), (2*y + 1)*LineWidth2);
+               mov edi, pMt2;
+               mov ebx, ecx;
+               add ebx, ebx;
+               imul ebx, LineWidth2;
+               add ebx, LineWidth2;
+               add edi, ebx;
+
+               // tmp[0] := valCounter1^[0];
+               // inc(PByte(valCounter1), LineWidth1);
+               movsd xmm0, [esi];
+               add esi, LineWidth1;
+
+               // if height2 - 2*y - 1 > 0 then
+               mov ebx, ecx;
+               add ebx, ebx;
+               inc ebx;
+
+               cmp ebx, height2;
+               jnl @@PreInnerLoop;
+                   // tmp[0] := tmp[0] + valCounter1^[0]*valCounter2^[0];
+                   // tmp[1] := valCounter1^[0];
+                   movsd xmm1, [esi];
+                   movlhps xmm0, xmm1;
+
+                   mulsd xmm1, [edi];
+                   addsd xmm0, xmm1;
+
+                   //inc(PByte(valCounter1), LineWidth1);
+                   //inc(PByte(valCounter2), LineWidth2);
+
+                   add esi, LineWidth1;
+                   add edi, LineWidth2;
+
+               @@PreInnerLoop:
+
+               // rest is a double column!
+
+               // prepare loop
+               mov ebx, height2;
+               sub ebx, ecx;
+               sub ebx, ecx;
+               sub ebx, 2;
+
+               test ebx, ebx;
+               jle @@InnerLoopEnd;
+
+               @@InnerLoop:
+                  // tmp[0] := tmp[0] + valCounter1^[0]*valCounter2^[0];
+                  // tmp[1] := tmp[1] + valCounter1^[0]*valCounter2^[1];
+                  movddup xmm1, [esi];
+                  movupd xmm2, [edi];
+
+                  mulpd xmm2, xmm1;
+                  addpd xmm0, xmm2;
+
+                  //inc(PByte(valCounter1), LineWidth1);
+                  //inc(PByte(valCounter2), LineWidth2);
+
+                  add esi, LineWidth1;
+                  add edi, LineWidth2;
+
+               dec ebx;
+               jnz @@InnerLoop;
+
+               @@InnerLoopEnd:
+
+
+               // write back result
+
+               // pDest^ := tmp[0];
+               // PDouble(PAnsiChar(pDest) + sizeof(double))^ := tmp[1];
+
+               movupd [edx], xmm0;
+
+               // inc(pDest, 2);
+               // inc(pMT2, 2);
+               add edx, 16;
+               add pMT2, 16;
+
+          // end foryloop
+          inc ecx;
+          cmp ecx, width2D2;
+          jne @@foryloop;
+
+          @@foryloopend:
+
+
+          //if (width2 and $01) = 1 then
+          mov ecx, width2;
+          and ecx, 1;
+
+          jz @@ifend1;
+
+            // special handling of last column (just copy the value)
+
+            // valCounter1 := PConstDoubleArr(mt1);
+            mov ecx, mt1;
+
+            //inc(PByte(valCounter1), LineWidth1*(height1 - 1));
+            mov ebx, height1;
+            dec ebx;
+            imul ebx, LineWidth1;
+
+            // pDest^ := valCounter1^[0];
+            movsd xmm0, [ecx + ebx];
+            movsd [edx], xmm0;
+          @@ifend1:
+
+
+          //inc(mt1);
+          //inc(PByte(dest), LineWidthDest);
+          add mt1, 8;
+          mov ebx, LineWidthDest;
+          add dest, ebx;
+
+       // end for loop
+       dec eax;
+       jnz @@forxloop;
+
+       // epilog
+       pop edi;
+       pop esi;
+       pop ebx;
+       pop edx;
+       pop eax;
      end;
 end;
 

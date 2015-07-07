@@ -1,0 +1,108 @@
+unit TestICA;
+
+// ###################################################################
+// #### This file is part of the mathematics library project, and is
+// #### offered under the licence agreement described on
+// #### http://www.mrsoft.org/
+// ####
+// #### Copyright:(c) 2015, Michael R. . All rights reserved.
+// ####
+// #### Unless required by applicable law or agreed to in writing, software
+// #### distributed under the License is distributed on an "AS IS" BASIS,
+// #### WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// #### See the License for the specific language governing permissions and
+// #### limitations under the License.
+// ###################################################################
+
+interface
+
+uses {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF},
+     Classes, SysUtils, Types, Matrix, BaseMatrixTestCase;
+
+type
+  TTestICA = class(TBaseImgTestCase)
+  published
+    procedure TestSimpleICA;
+    procedure TestICAImages;
+  end;
+
+implementation
+
+uses ICA;
+
+{ TestNonLinFitOptimization }
+
+procedure TTestICA.TestICAImages;
+var examples : TDoubleMatrix;
+    ica : TMatrixICA;
+    w, h : integer;
+    counter: integer;
+    projMtx : IMatrix;
+    reconMtx : IMatrix;
+    props : TICAProps;
+begin
+     Examples := LoadImages(w, h);
+
+     ica := TMatrixICA.Create;
+     try
+        props := TMatrixICA.DefProps;
+        props.NumIC := 10;
+        ica.ICA(examples, props);
+
+        for counter := 0 to Examples.Width - 1 do
+        begin
+             Examples.SetSubMatrix(counter, 0, 1, Examples.Height);
+             projMtx := ica.ProjectToFeatureSpace(Examples);
+             reconMtx := ica.Reconstruct(projMtx.GetObjRef);
+
+             ImageFromMatrix(reconMtx.GetObjRef, w, h, Format('%s\ica_%d.bmp', [ExtractFilePath(ParamStr(0)), counter]));
+        end;
+     finally
+            ica.Free;
+     end;
+
+     Examples.Free;
+end;
+
+procedure TTestICA.TestSimpleICA;
+var data : TDoubleDynArray;
+    counter: Integer;
+    lastX : integer;
+    props : TICAProps;
+    examples : TDoubleMatrix;
+begin
+     SetLength(data, 500);
+     lastX := 0;
+     for counter := 0 to length(data) - 1 do
+     begin
+          data[counter] := sin(counter*2*pi/200) + lastX/21 - 0.5;
+          
+          lastX := lastX + 1;
+          if lastX = 21 then
+             lastX := 0;
+             
+     end;
+
+     examples := TDoubleMatrix.Create(data, 100, 5);
+     with TMatrixICA.Create do
+     try
+        examples.TransposeInPlace;
+        
+        props := TMatrixICA.DefProps;
+        props.nonLin := ieSkew;
+        props.myy := 0.1;
+        props.NumIter := 500;
+        props.NumIC := 2;
+        props.stabilization := False;
+
+        ICA(Examples, props);
+     finally
+            Free;
+     end;
+     examples.Free;
+end;
+
+initialization
+  RegisterTest(TTestICA{$IFNDEF FPC}.Suite{$ENDIF});
+
+end.

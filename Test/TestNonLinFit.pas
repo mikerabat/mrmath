@@ -16,8 +16,8 @@ unit TestNonLinFit;
 
 interface
 
-uses
-  TestFramework, Classes, SysUtils, Types, SimpleMatrixOperations, Matrix, BaseMatrixTestCase;
+uses {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF} ,
+     Classes, SysUtils, Matrix, BaseMatrixTestCase;
 
 type
   TestNonLinFitOptimization = class(TBaseMatrixTestCase)
@@ -29,7 +29,7 @@ type
 
 implementation
 
-uses NonLinearFit, math, OptimizedFuncs;
+uses NonLinearFit, OptimizedFuncs;
 
 { TestTDoubleMatrix }
 
@@ -63,7 +63,7 @@ begin
 
      with TNonLinFitOptimizer.Create do
      try
-        OnIterateObj := OnAtanIterate;
+        OnIterateObj := {$IFDEF FPC}@{$ENDIF}OnAtanIterate;
         a := Optimize(x, y, a1);
      finally
             Free;
@@ -73,6 +73,6 @@ begin
 end;
 
 initialization
-  RegisterTest(TestNonLinFitOptimization.Suite);
+  RegisterTest(TestNonLinFitOptimization{$IFNDEF FPC}.Suite{$ENDIF});
 
 end.

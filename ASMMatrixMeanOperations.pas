@@ -57,7 +57,7 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 procedure ASMMatrixMeanRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
             (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
@@ -144,7 +144,7 @@ begin
 end;
 
 procedure ASMMatrixMeanRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((width and 1) = 0, 'Error width must be even');
 
@@ -233,7 +233,7 @@ begin
 end;
 
 procedure ASMMatrixMeanRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
             (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
@@ -324,7 +324,7 @@ begin
 end;
 
 procedure ASMMatrixMeanRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((width and 1) = 1, 'Error width must be odd');
 
@@ -419,7 +419,7 @@ begin
 end;
 
 procedure ASMMatrixMeanColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
             (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
@@ -471,7 +471,7 @@ begin
 end;
 
 procedure ASMMatrixMeanColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((width and 1) = 0, 'Error width must be even');
 
@@ -522,7 +522,7 @@ begin
 end;
 
 procedure ASMMatrixMeanColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
             (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
@@ -593,7 +593,7 @@ begin
 end;
 
 procedure ASMMatrixMeanColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((width and 1) = 1, 'Error width must be even');
 
@@ -671,7 +671,7 @@ const cOnes : Array[0..1] of double = (1, 1);
       
 
 procedure ASMMatrixVarRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
             (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
@@ -849,7 +849,7 @@ begin
 end;
 
 procedure ASMMatrixVarRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((width and 1) = 0, 'Error width must be even');
 
@@ -1030,7 +1030,7 @@ begin
 end;
 
 procedure ASMMatrixVarRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
             (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
@@ -1220,7 +1220,7 @@ begin
 end;
 
 procedure ASMMatrixVarRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((width and 1) = 1, 'Error width must be odd');
 
@@ -1414,7 +1414,7 @@ begin
 end;
 
 procedure ASMMatrixVarColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
             (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
@@ -1501,7 +1501,7 @@ begin
 end;
 
 procedure ASMMatrixVarColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((width and 1) = 0, 'Error width must be even');
 
@@ -1585,7 +1585,7 @@ begin
 end;
 
 procedure ASMMatrixVarColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
             (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
@@ -1719,7 +1719,7 @@ begin
 end;
 
 procedure ASMMatrixVarColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((width and 1) = 1, 'Error width must be even');
 

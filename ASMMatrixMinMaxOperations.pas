@@ -53,7 +53,7 @@ const cNegMaxDouble : double = -MaxDouble;
       cMaxDouble : double = MaxDouble;
 
 function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((Cardinal(mt) and $0000000F = 0), 'Error non aligned data');
      Assert((width and 1) = 0, 'Error width must be even');
@@ -127,7 +127,7 @@ begin
 end;
 
 function ASMMatrixMaxUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((width and 1) = 0, 'Error width must be even');
      assert((width > 0) and (height > 0) and (LineWidth >= width*sizeof(double)), 'Dimension error');
@@ -201,7 +201,7 @@ begin
 end;
 
 function ASMMatrixMaxAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((Cardinal(mt) and $0000000F = 0), 'Error non aligned data');
      Assert((width and 1) = 1, 'Error width must be even');
@@ -279,7 +279,7 @@ begin
 end;
 
 function ASMMatrixMaxUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((width and 1) = 1, 'Error width must be even');
      assert((width > 0) and (height > 0) and (LineWidth >= width*sizeof(double)), 'Dimension error');
@@ -357,7 +357,7 @@ begin
 end;
 
 function ASMMatrixMinAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((Cardinal(mt) and $0000000F = 0), 'Error non aligned data');
      Assert((width and 1) = 0, 'Error width must be even');
@@ -431,7 +431,7 @@ begin
 end;
 
 function ASMMatrixMinUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((width and 1) = 0, 'Error width must be even');
      assert((width > 0) and (height > 0) and (LineWidth >= width*sizeof(double)), 'Dimension error');
@@ -505,7 +505,7 @@ begin
 end;
 
 function ASMMatrixMinAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((Cardinal(mt) and $0000000F = 0), 'Error non aligned data');
      Assert((width and 1) = 1, 'Error width must be even');
@@ -583,7 +583,7 @@ begin
 end;
 
 function ASMMatrixMinUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-var iters : integer;
+var iters : TASMNativeInt;
 begin
      Assert((width and 1) = 1, 'Error width must be odd');
      assert((width > 0) and (height > 0) and (LineWidth >= width*sizeof(double)), 'Dimension error');

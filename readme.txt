@@ -32,7 +32,8 @@ the compiled code parts.
 
 The library has been extendend to be compatible with MacOS. There is a new
 unit test project - MathUtilsTestsMac.dpr - which can be used on this
-operating system.
+operating system. However has a Mac can extend the project so the latest
+things work as well.
 
 FreePascal support has been added for both x86 and x64 windows platforms.
 You find a unit test project in the "Test" folder called MathUtilsTestsFPC.lpr
@@ -45,6 +46,10 @@ William Cantrall - special thanks for making the library MacOs compatible.
 
 // ###################################################################
 changelog:
+
+Date: 7.7.2015
+* Optimizations for QR - decomposition: Assembler optimized multiplication used only there.
+* New global subspace method: Independent component analysis. 
 
 Date: 16.6.2015
 * Reduced the number of threads for simple operations -> there the thread handling overhead is higher than the

@@ -20,7 +20,7 @@ interface
 // #### Non-Negative Matrix factorization
 // ###########################################
 
-uses SysUtils, Classes, Matrix, Types, MatrixConst, BaseMathPersistence;
+uses SysUtils, Classes, Matrix, MatrixConst, BaseMathPersistence;
 
 type
   TNNMFPropsMethod = (nnmfDivergence, nnmfEukledian, nnmfAlternateLeastSquare);
@@ -164,7 +164,7 @@ begin
      // #### Randomly initialize matrices
      try
         fW := TDoubleMatrix.Create(RankOfBasis, lenOfEigVec);
-        fW.ElementwiseFuncInPlace(randFunc);
+        fW.ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}randFunc);
 
         sumW := fW.Sum(False);
         for counter := 0 to fW.Height - 1 do
@@ -176,7 +176,7 @@ begin
         sumW := nil;
 
         fH := TDoubleMatrix.Create(NumOfEigVec, RankOfBasis);
-        fH.ElementwiseFuncInPlace(randFunc);
+        fH.ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}randFunc);
 
         if ( fProps.UseLastResIfFail ) and (fProps.method <> nnmfAlternateLeastSquare ) then
         begin
@@ -195,7 +195,7 @@ begin
                   wh := fW.Mult(fH);
                   if fProps.DoUpdateWithEPSMtx then
                   begin
-                       epsMtx := wh.ElementwiseFunc(epsFunc);
+                       epsMtx := wh.ElementwiseFunc({$IFDEF FPC}@{$ENDIF}epsFunc);
                        wh.AddInPlace(epsMtx);
                   end;
                   temp1 := V.ElementWiseDiv(wh);
@@ -207,7 +207,7 @@ begin
                   wh := fW.Mult(fH);
                   if fProps.DoUpdateWithEPSMtx then
                   begin
-                       epsMtx := wh.ElementwiseFunc(epsFunc);
+                       epsMtx := wh.ElementwiseFunc({$IFDEF FPC}@{$ENDIF}epsFunc);
                        wh.AddInPlace(epsMtx);
                   end;
                   temp1 := V.ElementWiseDiv(wh);
@@ -234,7 +234,7 @@ begin
                   temp1 := V.MultT2(fH);
                   if fProps.DoUpdateWithEPSMtx then
                   begin
-                       epsMtx := temp1.ElementwiseFunc(epsFunc);
+                       epsMtx := temp1.ElementwiseFunc({$IFDEF FPC}@{$ENDIF}epsFunc);
                        wh.AddInplace(epsMtx);
                   end;
                   
@@ -247,7 +247,7 @@ begin
                   temp1 := fW.MultT1(V);
                   if fProps.DoUpdateWithEPSMtx then
                   begin
-                       epsMtx := temp1.ElementwiseFunc(epsFunc);
+                       epsMtx := temp1.ElementwiseFunc({$IFDEF FPC}@{$ENDIF}epsFunc);
                        wh.AddInplace(epsMtx);
                   end;
                   temp1.ElementWiseDivInPlace(wh);
@@ -265,7 +265,7 @@ begin
                        exit;
                   end;
                   temp1.MultInPlace(V);
-                  temp1.ElementwiseFuncInPlace(maxFunc);
+                  temp1.ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}maxFunc);
 
                   if temp1.PseudoInversion(temp2) = srNoConvergence then
                   begin
@@ -274,7 +274,7 @@ begin
                   end;
 
                   temp2 := V.Mult(temp2);
-                  temp2.ElementwiseFuncInPlace(maxFunc);
+                  temp2.ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}maxFunc);
                   
                   fH.Assign(temp1);
                   fW.Assign(temp2);
