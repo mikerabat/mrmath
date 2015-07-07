@@ -75,6 +75,7 @@ contains
   ASMMatrixAbsOperationsx64 in 'ASMMatrixAbsOperationsx64.pas',
   Utilities in 'Utilities.pas',
   CCA in 'CCA.pas',
-  NNMF in 'NNMF.pas';
+  NNMF in 'NNMF.pas',
+  ICA in 'ICA.pas';
 
 end.
