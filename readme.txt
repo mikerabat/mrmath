@@ -47,6 +47,9 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: 8.8.2015
+* Fixes for FPC 2.7.1 - Typhon IDE is now able to compile the code.
+
 Date: 7.7.2015
 * Optimizations for QR - decomposition: Assembler optimized multiplication used only there.
 * New global subspace method: Independent component analysis. 

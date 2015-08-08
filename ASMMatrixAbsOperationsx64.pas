@@ -30,10 +30,13 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
+{$IFNDEF FPC}
 const cSignBits : Array[0..1] of int64 = ($7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF);
+{$ENDIF}
 
 procedure ASMMatrixAbsAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
 {$IFDEF FPC}
+var cSignBits : Array[0..1] of int64 = ($7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF);
 begin
   {$ENDIF}
 asm
@@ -123,6 +126,7 @@ end;
 
 procedure ASMMatrixAbsUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
 {$IFDEF FPC}
+var cSignBits : Array[0..1] of int64 = ($7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF);
 begin
   {$ENDIF}
 asm
@@ -210,6 +214,7 @@ end;
 
 procedure ASMMatrixAbsAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
 {$IFDEF FPC}
+var cSignBits : Array[0..1] of int64 = ($7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF);
 begin
   {$ENDIF}
 asm
@@ -306,6 +311,7 @@ end;
 
 procedure ASMMatrixAbsUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
 {$IFDEF FPC}
+var cSignBits : Array[0..1] of int64 = ($7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF);
 begin
   {$ENDIF}
 asm

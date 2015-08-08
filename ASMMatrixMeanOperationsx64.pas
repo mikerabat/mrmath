@@ -78,7 +78,13 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
+   // fpc seems to have a problem with this opcode
+   {$IFDEF FPC}
+   mov rax, width;
+   cvtsi2sd xmm5, rax;
+   {$ELSE}
    cvtsi2sd xmm5, width;
+   {$ENDIF}
 
    // for y := 0 to height - 1:
    mov r11, Height;
@@ -173,7 +179,13 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
+   // fpc seems to have a problem with this opcode
+   {$IFDEF FPC}
+   mov rax, width;
+   cvtsi2sd xmm5, rax;
+   {$ELSE}
    cvtsi2sd xmm5, width;
+   {$ENDIF}
 
    // for y := 0 to height - 1:
    mov r11, Height;
@@ -275,7 +287,13 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
+   // fpc seems to have a problem with this opcode
+   {$IFDEF FPC}
+   mov rax, width;
+   cvtsi2sd xmm5, rax;
+   {$ELSE}
    cvtsi2sd xmm5, width;
+   {$ENDIF}
 
    // for y := 0 to height - 1:
    mov r11, Height;
@@ -375,7 +393,13 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
+   // fpc seems to have a problem with this opcode
+   {$IFDEF FPC}
+   mov rax, width;
+   cvtsi2sd xmm5, rax;
+   {$ELSE}
    cvtsi2sd xmm5, width;
+   {$ENDIF}
 
    // for y := 0 to height - 1:
    mov r11, Height;
@@ -471,7 +495,13 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
+   // fpc seems to have a problem with this opcode
+   {$IFDEF FPC}
+   mov rax, height;
+   cvtsi2sd xmm0, rax;
+   {$ELSE}
    cvtsi2sd xmm0, height;
+   {$ENDIF}
    movddup xmm2, xmm0;
 
    // for x := 0 to width - 1:
@@ -517,7 +547,13 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
+   // fpc seems to have a problem with this opcode
+   {$IFDEF FPC}
+   mov rax, height;
+   cvtsi2sd xmm0, rax;
+   {$ELSE}
    cvtsi2sd xmm0, height;
+   {$ENDIF}
    movddup xmm2, xmm0;
 
    // for x := 0 to width - 1:
@@ -564,7 +600,13 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
+   // fpc seems to have a problem with this opcode
+   {$IFDEF FPC}
+   mov rax, height;
+   cvtsi2sd xmm0, rax;
+   {$ELSE}
    cvtsi2sd xmm0, height;
+   {$ENDIF}
    movddup xmm2, xmm0;
 
    // for x := 0 to width - 1:
@@ -629,7 +671,13 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
+   // fpc seems to have a problem with this opcode
+   {$IFDEF FPC}
+   mov rax, height;
+   cvtsi2sd xmm0, rax;
+   {$ELSE}
    cvtsi2sd xmm0, height;
+   {$ENDIF}
    movddup xmm2, xmm0;
 
    // for x := 0 to width - 1:
@@ -692,13 +740,17 @@ end;
 // #### Variance calculation
 // ###########################################
 
+{$IFNDEF FPC}
 const cOnes : Array[0..1] of double = (1, 1);
       cOne : double = 1;
+{$ENDIF}
       
 
 procedure ASMMatrixVarRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 var dXMM5 : Array[0..1] of double;
 {$IFDEF FPC}
+    cOnes : Array[0..1] of double = (1, 1);
+    cOne : double = 1;
 begin
 {$ENDIF}
 asm
@@ -718,7 +770,13 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
+   // fpc seems to have a problem with this opcode
+   {$IFDEF FPC}
+   mov rax, width;
+   cvtsi2sd xmm5, rax;
+   {$ELSE}
    cvtsi2sd xmm5, width;
+   {$ENDIF}
 
    // for y := 0 to height - 1:
    mov r11, Height;
@@ -851,6 +909,7 @@ asm
        jz @@dobiased;
 
        movsd xmm4, xmm5;
+
        subsd xmm4, cOne;
        maxsd xmm4, cOne;
 
@@ -883,6 +942,8 @@ end;
 procedure ASMMatrixVarRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 var dXMM5 : Array[0..1] of double;
 {$IFDEF FPC}
+    cOnes : Array[0..1] of double = (1, 1);
+    cOne : double = 1;
 begin
 {$ENDIF}
 asm
@@ -902,7 +963,13 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
+   // fpc seems to have a problem with this opcode
+   {$IFDEF FPC}
+   mov rax, width;
+   cvtsi2sd xmm5, rax;
+   {$ELSE}
    cvtsi2sd xmm5, width;
+   {$ENDIF}
 
    // for y := 0 to height - 1:
    mov r11, Height;
@@ -1076,6 +1143,8 @@ end;
 procedure ASMMatrixVarRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 var dXMM5 : Array[0..1] of double;
 {$IFDEF FPC}
+    cOnes : Array[0..1] of double = (1, 1);
+    cOne : double = 1;
 begin
   {$ENDIF}
 asm
@@ -1096,7 +1165,13 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
+   // fpc seems to have a problem with this opcode
+   {$IFDEF FPC}
+   mov rax, width;
+   cvtsi2sd xmm5, rax;
+   {$ELSE}
    cvtsi2sd xmm5, width;
+   {$ENDIF}
 
    // for y := 0 to height - 1:
    mov r11, Height;
@@ -1272,6 +1347,8 @@ end;
 procedure ASMMatrixVarRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 var dXMM5, dXMM4 : Array[0..1] of double;
 {$IFDEF FPC}
+    cOnes : Array[0..1] of double = (1, 1);
+    cOne : double = 1;
 begin
   {$ENDIF}
 asm
@@ -1294,7 +1371,13 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
+   // fpc seems to have a problem with this opcode
+   {$IFDEF FPC}
+   mov rax, width;
+   cvtsi2sd xmm5, rax;
+   {$ELSE}
    cvtsi2sd xmm5, width;
+   {$ENDIF}
 
    // for y := 0 to height - 1:
    mov r11, Height;
@@ -1476,6 +1559,7 @@ end;
 
 procedure ASMMatrixVarColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 {$IFDEF FPC}
+var cOnes : Array[0..1] of double = (1, 1);
 begin
   {$ENDIF}
 asm
@@ -1490,7 +1574,13 @@ asm
    // according to microsoft the xmm5 does not need to be saved (volatile!)
    movupd xmm5, cOnes;
 
+   // fpc seems to have a problem with this opcode
+   {$IFDEF FPC}
+   mov rax, height;
+   cvtsi2sd xmm0, rax;
+   {$ELSE}
    cvtsi2sd xmm0, height;
+   {$ENDIF}
    movddup xmm2, xmm0;
 
    // for x := 0 to width - 1:
@@ -1556,6 +1646,7 @@ end;
 
 procedure ASMMatrixVarColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 {$IFDEF FPC}
+var cOnes : Array[0..1] of double = (1, 1);
 begin
   {$ENDIF}
 asm
@@ -1568,7 +1659,13 @@ asm
    sub r8, r10;
 
    movupd xmm5, cOnes;
+   // fpc seems to have a problem with this opcode
+   {$IFDEF FPC}
+   mov rax, height;
+   cvtsi2sd xmm0, rax;
+   {$ELSE}
    cvtsi2sd xmm0, height;
+   {$ENDIF}
    movddup xmm2, xmm0;
 
    // for x := 0 to width - 1:
@@ -1635,6 +1732,8 @@ end;
 
 procedure ASMMatrixVarColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 {$IFDEF FPC}
+var cOnes : Array[0..1] of double = (1, 1);
+    cOne : double = 1;
 begin
   {$ENDIF}
 asm
@@ -1647,7 +1746,13 @@ asm
    sub r8, r10;
 
    movupd xmm5, cOnes;
+   // fpc seems to have a problem with this opcode
+   {$IFDEF FPC}
+   mov rax, height;
+   cvtsi2sd xmm0, rax;
+   {$ELSE}
    cvtsi2sd xmm0, height;
+   {$ENDIF}
    movddup xmm2, xmm0;
 
    // for x := 0 to width - 1:
@@ -1763,8 +1868,10 @@ end;
 
 procedure ASMMatrixVarColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 {$IFDEF FPC}
+var cOnes : Array[0..1] of double = (1, 1);
+    cOne : double = 1;
 begin
-  {$ENDIF}
+{$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    xor r10, r10;
@@ -1775,7 +1882,13 @@ asm
    sub r8, r10;
 
    movupd xmm5, cOnes;
+   // fpc seems to have a problem with this opcode
+   {$IFDEF FPC}
+   mov rax, height;
+   cvtsi2sd xmm0, rax;
+   {$ELSE}
    cvtsi2sd xmm0, height;
+   {$ENDIF}
    movddup xmm2, xmm0;
 
    // for x := 0 to width - 1:

@@ -75,7 +75,12 @@ begin
 
         mov ebx, dest;
 
+        {$IFDEF FPC}
+        mov eax, width;
+        cvtsi2sd xmm5, eax;
+        {$ELSE}
         cvtsi2sd xmm5, width;
+        {$ENDIF}
 
         // for y := 0 to height - 1:
         mov edx, Height;
@@ -159,7 +164,12 @@ begin
 
         mov ebx, dest;
 
+        {$IFDEF FPC}
+        mov eax, width;
+        cvtsi2sd xmm5, eax;
+        {$ELSE}
         cvtsi2sd xmm5, width;
+        {$ENDIF}
 
         // for y := 0 to height - 1:
         mov edx, Height;
@@ -251,7 +261,12 @@ begin
 
         mov ebx, dest;
 
+        {$IFDEF FPC}
+        mov eax, width;
+        cvtsi2sd xmm5, eax;
+        {$ELSE}
         cvtsi2sd xmm5, width;
+        {$ENDIF}
 
         // for y := 0 to height - 1:
         mov edx, Height;
@@ -340,7 +355,12 @@ begin
 
         mov ebx, dest;
 
+        {$IFDEF FPC}
+        mov eax, width;
+        cvtsi2sd xmm5, eax;
+        {$ELSE}
         cvtsi2sd xmm5, width;
+        {$ENDIF}
 
         // for y := 0 to height - 1:
         mov edx, Height;
@@ -437,7 +457,12 @@ begin
         sub ecx, iters;
         mov ebx, dest;
 
+        {$IFDEF FPC}
+        mov eax, height;
+        cvtsi2sd xmm5, eax;
+        {$ELSE}
         cvtsi2sd xmm5, height;
+        {$ENDIF}
         movddup xmm6, xmm5;
 
         // for x := 0 to width - 1:
@@ -487,7 +512,12 @@ begin
         sub ecx, iters;
         mov ebx, dest;
 
+        {$IFDEF FPC}
+        mov eax, height;
+        cvtsi2sd xmm5, eax;
+        {$ELSE}
         cvtsi2sd xmm5, height;
+        {$ENDIF}
         movddup xmm6, xmm5;
 
         // for x := 0 to width - 1:
@@ -540,7 +570,12 @@ begin
         sub ecx, iters;
         mov ebx, dest;
 
+        {$IFDEF FPC}
+        mov eax, height;
+        cvtsi2sd xmm5, eax;
+        {$ELSE}
         cvtsi2sd xmm5, height;
+        {$ENDIF}
         movddup xmm6, xmm5;
 
         // for x := 0 to width - 1:
@@ -609,7 +644,12 @@ begin
         sub ecx, iters;
         mov ebx, dest;
 
+        {$IFDEF FPC}
+        mov eax, height;
+        cvtsi2sd xmm5, eax;
+        {$ELSE}
         cvtsi2sd xmm5, height;
+        {$ENDIF}
         movddup xmm6, xmm5;
 
         // for x := 0 to width - 1:
@@ -689,7 +729,12 @@ begin
 
         mov ebx, dest;
 
+        {$IFDEF FPC}
+        mov eax, width;
+        cvtsi2sd xmm5, eax;
+        {$ELSE}
         cvtsi2sd xmm5, width;
+        {$ENDIF}
 
         // for y := 0 to height - 1:
         mov edx, Height;
@@ -864,7 +909,12 @@ begin
 
         mov ebx, dest;
 
+        {$IFDEF FPC}
+        mov eax, width;
+        cvtsi2sd xmm5, eax;
+        {$ELSE}
         cvtsi2sd xmm5, width;
+        {$ENDIF}
 
         // for y := 0 to height - 1:
         mov edx, Height;
@@ -1048,7 +1098,12 @@ begin
 
         mov ebx, dest;
 
+        {$IFDEF FPC}
+        mov eax, width;
+        cvtsi2sd xmm5, eax;
+        {$ELSE}
         cvtsi2sd xmm5, width;
+        {$ENDIF}
 
         // for y := 0 to height - 1:
         mov edx, Height;
@@ -1236,7 +1291,12 @@ begin
 
         mov ebx, dest;
 
+        {$IFDEF FPC}
+        mov eax, width;
+        cvtsi2sd xmm5, eax;
+        {$ELSE}
         cvtsi2sd xmm5, width;
+        {$ENDIF}
 
         // for y := 0 to height - 1:
         mov edx, Height;
@@ -1434,7 +1494,12 @@ begin
 
         movupd xmm2, cOnes;
 
+        {$IFDEF FPC}
+        mov eax, height;
+        cvtsi2sd xmm5, eax;
+        {$ELSE}
         cvtsi2sd xmm5, height;
+        {$ENDIF}
         movddup xmm6, xmm5;
 
         // for x := 0 to width - 1:
@@ -1519,7 +1584,12 @@ begin
 
         movupd xmm2, cOnes;
 
+        {$IFDEF FPC}
+        mov eax, height;
+        cvtsi2sd xmm5, eax;
+        {$ELSE}
         cvtsi2sd xmm5, height;
+        {$ENDIF}
         movddup xmm6, xmm5;
 
         // for x := 0 to width - 1:
@@ -1605,7 +1675,12 @@ begin
 
         movupd xmm2, cOnes;
 
+        {$IFDEF FPC}
+        mov eax, height;
+        cvtsi2sd xmm5, eax;
+        {$ELSE}
         cvtsi2sd xmm5, height;
+        {$ENDIF}
         movddup xmm6, xmm5;
 
         // for x := 0 to width - 1:
@@ -1737,7 +1812,12 @@ begin
 
         movupd xmm2, cOnes;
 
+        {$IFDEF FPC}
+        mov eax, height;
+        cvtsi2sd xmm5, eax;
+        {$ELSE}
         cvtsi2sd xmm5, height;
+        {$ENDIF}
         movddup xmm6, xmm5;
 
         // for x := 0 to width - 1:

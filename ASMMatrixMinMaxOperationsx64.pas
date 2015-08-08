@@ -49,12 +49,15 @@ implementation
 
 uses Math;
 
-const cNegMaxDouble : double = -MaxDouble;
-      cMaxDouble : double = MaxDouble;
+{$IFNDEF FPC}
+const cNegMaxDouble : Array[0..1] of double = (-MaxDouble, -MaxDouble);
+      cMaxDouble : Array[0..1] of double = (MaxDouble, MaxDouble);
+{$ENDIF}
 
 function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 var iRBX : NativeInt;
 {$IFDEF FPC}
+    cNegMaxDouble : Array[0..1] of double = (-MaxDouble, -MaxDouble);
 begin
   {$ENDIF}
 asm
@@ -71,7 +74,7 @@ asm
    sub rcx, rdx;
 
 	  // init result
-   movddup xmm0, cNegMaxDouble;
+   movupd xmm0, cNegMaxDouble;
    movapd xmm1, xmm0;
    movapd xmm2, xmm0;
    movapd xmm3, xmm0;
@@ -137,6 +140,7 @@ end;
 function ASMMatrixMaxUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 var iRBX : NativeInt;
 {$IFDEF FPC}
+    cNegMaxDouble : Array[0..1] of double = (-MaxDouble, -MaxDouble);
 begin
   {$ENDIF}
 asm
@@ -153,7 +157,7 @@ asm
    sub rcx, rdx;
 
 	  // init result
-   movddup xmm0, cNegMaxDouble;
+   movupd xmm0, cNegMaxDouble;
    movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:
@@ -222,6 +226,7 @@ end;
 function ASMMatrixMaxAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 var iRBX : NativeInt;
 {$IFDEF FPC}
+    cNegMaxDouble : Array[0..1] of double = (-MaxDouble, -MaxDouble);
 begin
   {$ENDIF}
 asm
@@ -238,8 +243,8 @@ asm
 
    sub rcx, rdx;
 
-	  // init result
-   movddup xmm0, cNegMaxDouble;
+   // init result
+   movupd xmm0, cNegMaxDouble;
    movapd xmm1, xmm0;
    movapd xmm2, xmm0;
    movapd xmm3, xmm0;
@@ -309,6 +314,7 @@ end;
 function ASMMatrixMaxUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 var iRBX : NativeInt;
 {$IFDEF FPC}
+    cNegMaxDouble : Array[0..1] of double = (-MaxDouble, -MaxDouble);
 begin
   {$ENDIF}
 asm
@@ -325,8 +331,8 @@ asm
 
    sub rcx, rdx;
 
-	  // init result
-   movddup xmm0, cNegMaxDouble;
+   // init result
+   movupd xmm0, cNegMaxDouble;
    movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:
@@ -399,6 +405,7 @@ end;
 function ASMMatrixMinAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 var iRBX : NativeInt;
 {$IFDEF FPC}
+    cMaxDouble : Array[0..1] of double = (MaxDouble, MaxDouble);
 begin
   {$ENDIF}
 asm
@@ -415,7 +422,7 @@ asm
    sub rcx, rdx;
 
 	  // init result
-   movddup xmm0, cMaxDouble;
+   movupd xmm0, cMaxDouble;
    movapd xmm1, xmm0;
    movapd xmm2, xmm0;
    movapd xmm3, xmm0;
@@ -481,6 +488,7 @@ end;
 function ASMMatrixMinUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 var iRBX : NativeInt;
 {$IFDEF FPC}
+    cMaxDouble : Array[0..1] of double = (MaxDouble, MaxDouble);
 begin
   {$ENDIF}
 asm
@@ -497,7 +505,7 @@ asm
    sub rcx, rdx;
 
 	  // init result
-   movddup xmm0, cMaxDouble;
+   movupd xmm0, cMaxDouble;
    movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:
@@ -566,6 +574,7 @@ end;
 function ASMMatrixMinAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 var iRBX : NativeInt;
 {$IFDEF FPC}
+    cMaxDouble : Array[0..1] of double = (MaxDouble, MaxDouble);
 begin
   {$ENDIF}
 asm
@@ -582,8 +591,8 @@ asm
 
    sub rcx, rdx;
 
-	  // init result
-   movddup xmm0, cMaxDouble;
+   // init result
+   movupd xmm0, cMaxDouble;
    movapd xmm1, xmm0;
    movapd xmm2, xmm0;
    movapd xmm3, xmm0;
@@ -653,6 +662,7 @@ end;
 function ASMMatrixMinUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 var iRBX : NativeInt;
 {$IFDEF FPC}
+    cMaxDouble : Array[0..1] of double = (MaxDouble, MaxDouble);
 begin
   {$ENDIF}
 asm
@@ -670,7 +680,7 @@ asm
    sub rcx, rdx;
 
 	  // init result
-   movddup xmm0, cMaxDouble;
+   movupd xmm0, cMaxDouble;
    movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:

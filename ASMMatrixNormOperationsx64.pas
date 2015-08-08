@@ -52,7 +52,9 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
+{$IFNDEF FPC}
 const cOne : double = 1.0;
+{$ENDIF}
 
 function ASMMatrixElementwiseNorm2AlignedEvenW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
 var dXMM4, dXMM7 : Array[0..1] of double;
@@ -487,6 +489,7 @@ end;
 procedure ASMMatrixNormalizeRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var dXMM4, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
+    cOne : double = 1.0;
 begin
   {$ENDIF}
 asm
@@ -658,8 +661,8 @@ end;
 
 procedure ASMMatrixNormalizeRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var dXMM4, dXMM7 : Array[0..1] of double;
-
 {$IFDEF FPC}
+    cOne : double = 1.0;
 begin
   {$ENDIF}
 asm
@@ -826,6 +829,7 @@ end;
 procedure ASMMatrixNormalizeRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var dXMM4, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
+    cOne : double = 1.0;
 begin
   {$ENDIF}
 asm
@@ -1009,8 +1013,9 @@ end;
 procedure ASMMatrixNormalizeRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var dXMM4, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
+    cOne : double = 1.0;
 begin
-  {$ENDIF}
+{$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = widh, R9 = height
    // prolog - simulate stack
@@ -1185,8 +1190,9 @@ end;
 procedure ASMMatrixNormalizeColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iRBX, iRSI : NativeInt;
 {$IFDEF FPC}
+    cOne : double = 1.0;
 begin
-  {$ENDIF}
+{$ENDIF}
 asm
    // rcx = dest, rdx = destlinewidth, r8 = src, r9 = srclinewidth
    // prolog - simulate stack
@@ -1263,8 +1269,9 @@ end;
 procedure ASMMatrixNormalizeColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iRBX, iRSI : NativeInt;
 {$IFDEF FPC}
+    cOne : double = 1.0;
 begin
-  {$ENDIF}
+{$ENDIF}
 asm
    // rcx = dest, rdx = destlinewidth, r8 = src, r9 = srclinewidth
    // prolog - simulate stack
@@ -1342,6 +1349,7 @@ end;
 procedure ASMMatrixNormalizeColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iRBX, iRSI : NativeInt;
 {$IFDEF FPC}
+    cOne : double = 1.0;
 begin
   {$ENDIF}
 asm
@@ -1454,6 +1462,7 @@ end;
 procedure ASMMatrixNormalizeColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iRBX, iRSI : NativeInt;
 {$IFDEF FPC}
+    cOne : double = 1.0;
 begin
   {$ENDIF}
 asm
