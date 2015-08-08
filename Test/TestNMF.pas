@@ -33,7 +33,7 @@ type
 
 implementation
 
-uses NNMF, Math, Matrix, OptimizedFuncs, BinaryReaderWriter, 
+uses NNMF, Matrix, OptimizedFuncs, BinaryReaderWriter,
   BaseMathPersistence;
 
 { TTestNMF }
@@ -138,6 +138,7 @@ var V : IMatrix;
     nmf : TNNMF;
     params : TNNMFProps;
     res : TNMFRes;
+{$IFNDEF FPC}
 const cExpectedW : Array[0..79] of double = 
    ( 0, 0, 0, 0, 0, 0.3249, 0, 0,
      0, 0.2142, 0, 0, 0, 0, 0, 0, 
@@ -149,6 +150,7 @@ const cExpectedW : Array[0..79] of double =
      0, 0, 0, 0, 0, 0, 0, 0.1482,
      0, 0, 0, 0, 0.3559, 0, 0, 0, 
      0.12453, 0, 0, 0.0058, 0, 0.0037, 0.00079, 0.00098 );
+{$ENDIF}
 begin
      V := TDoubleMatrix.CreateEye(10);
      nmf := TNNMF.Create;
@@ -183,6 +185,7 @@ var V : IMatrix;
     nmf : TNNMF;
     params : TNNMFProps;
     res : TNMFRes;
+{$IFNDEF FPC}
 const cExpectedW : Array[0..79] of double = 
    ( 0, 0, 0, 0, 0, 1, 0, 0,
      0, 1, 0, 0, 0, 0, 0, 0, 
@@ -194,6 +197,7 @@ const cExpectedW : Array[0..79] of double =
      0, 0, 0, 0.5, 0, 0, 0, 0,
      0, 0, 0, 0, 1, 0, 0, 0, 
      0, 0, 0, 0.5, 0, 0, 0, 0 );
+{$ENDIF}
 begin
      V := TDoubleMatrix.CreateEye(10);
      nmf := TNNMF.Create;
@@ -228,6 +232,7 @@ var V : IMatrix;
     nmf : TNNMF;
     params : TNNMFProps;
     res : TNMFRes;
+{$IFNDEF FPC}
 const cExpectedW : Array[0..79] of double = 
    ( 0.2285, 0, 0, 0, 0, 0.0005, 0, 0,
      0, 0.2378, 0, 0.0001, 0, 0, 0, 0, 
@@ -239,6 +244,7 @@ const cExpectedW : Array[0..79] of double =
      0, 0, 0.0406, 0.0556, 0, 0, 0.0010, 0,
      0, 0, 0, 0, 0.1503, 0.0034, 0, 0.0009, 
      0.0002, 0, 0, 0.2514, 0, 0, 0, 0 );
+{$ENDIF}
 begin
      V := TDoubleMatrix.CreateEye(10);
      nmf := TNNMF.Create;

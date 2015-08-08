@@ -19,7 +19,7 @@ interface
 
 uses
   Windows,
-  {$IFDEF FPC} fpcunit, testutils, testregistry, {$ELSE} TestFramework, {$ENDIF}
+  {$IFDEF FPC} fpcunit, testregistry, {$ELSE} TestFramework, {$ENDIF}
   Classes, SysUtils, Types, Matrix;
 
 type

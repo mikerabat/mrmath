@@ -34,8 +34,8 @@ type
 implementation
 
 uses PCA, 
-     {$IFDEF MSWINDOWS}Windows, {$ENDIF} {$IFDEF MACOS} FMX.Types, {$ENDIF}
-     Graphics, Math, BinaryReaderWriter, BaseMathPersistence, IncrementalPCA;
+     {$IFDEF MACOS} FMX.Types, {$ENDIF}
+     Graphics, BinaryReaderWriter, BaseMathPersistence, IncrementalPCA;
 
 { TTestEigensystems }
 

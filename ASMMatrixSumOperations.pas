@@ -307,7 +307,6 @@ end;
 
 procedure ASMMatrixSumRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iters : TASMNativeInt;
-const cOne : double = 1;
 begin
      Assert((width and 1) = 1, 'Error width must be odd');
 

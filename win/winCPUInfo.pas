@@ -28,7 +28,7 @@ uses Windows;
 
 implementation
 
-uses MtxThreadPool, SysUtils, BlockSizeSetup;
+uses MtxThreadPool, SysUtils;
 
 {$IFDEF MSWINDOWS}
 

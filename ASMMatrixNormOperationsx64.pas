@@ -52,9 +52,7 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
-{$IFNDEF FPC}
 const cOne : double = 1.0;
-{$ENDIF}
 
 function ASMMatrixElementwiseNorm2AlignedEvenW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
 var dXMM4, dXMM7 : Array[0..1] of double;
@@ -489,7 +487,6 @@ end;
 procedure ASMMatrixNormalizeRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var dXMM4, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
-    cOne : double = 1.0;
 begin
   {$ENDIF}
 asm
@@ -579,7 +576,7 @@ asm
    				addsd xmm0, xmm1;
    				sqrtsd xmm0, xmm0;
 
-       movsd xmm1, cOne;
+       movsd xmm1, [rip + cOne];
        divsd xmm1, xmm0;
 
        movddup xmm2, xmm1;
@@ -662,7 +659,6 @@ end;
 procedure ASMMatrixNormalizeRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var dXMM4, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
-    cOne : double = 1.0;
 begin
   {$ENDIF}
 asm
@@ -749,7 +745,7 @@ asm
        addsd xmm0, xmm1;
        sqrtsd xmm0, xmm0;
 
-       movsd xmm1, cOne;
+       movsd xmm1, [rip + cOne];
        divsd xmm1, xmm0;
 
        movddup xmm2, xmm1;
@@ -829,7 +825,6 @@ end;
 procedure ASMMatrixNormalizeRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var dXMM4, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
-    cOne : double = 1.0;
 begin
   {$ENDIF}
 asm
@@ -925,7 +920,7 @@ asm
        addsd xmm0, xmm1;
        sqrtsd xmm0, xmm0;
 
-       movsd xmm1, cOne;
+       movsd xmm1, [rip + cOne];
        divsd xmm1, xmm0;
 
        movddup xmm4, xmm1;
@@ -1013,7 +1008,6 @@ end;
 procedure ASMMatrixNormalizeRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var dXMM4, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
-    cOne : double = 1.0;
 begin
 {$ENDIF}
 asm
@@ -1106,7 +1100,7 @@ asm
    				addsd xmm0, xmm1;
    				sqrtsd xmm0, xmm0;
 
-       movsd xmm1, cOne;
+       movsd xmm1, [rip + cOne];
        divsd xmm1, xmm0;
 
        movddup xmm4, xmm1;
@@ -1190,7 +1184,6 @@ end;
 procedure ASMMatrixNormalizeColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iRBX, iRSI : NativeInt;
 {$IFDEF FPC}
-    cOne : double = 1.0;
 begin
 {$ENDIF}
 asm
@@ -1233,7 +1226,7 @@ asm
 
        // build result
        sqrtpd xmm2, xmm2;
-       movddup xmm3, cOne;
+       movddup xmm3, [rip + cOne];
        divpd xmm3, xmm2;
 
        // multiply the result and build the result
@@ -1269,7 +1262,6 @@ end;
 procedure ASMMatrixNormalizeColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iRBX, iRSI : NativeInt;
 {$IFDEF FPC}
-    cOne : double = 1.0;
 begin
 {$ENDIF}
 asm
@@ -1312,7 +1304,7 @@ asm
 
        // build result
        sqrtpd xmm2, xmm2;
-       movddup xmm3, cOne;
+       movddup xmm3, [rip + cOne];
        divpd xmm3, xmm2;
 
        // multiply the result and build the result
@@ -1349,7 +1341,6 @@ end;
 procedure ASMMatrixNormalizeColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iRBX, iRSI : NativeInt;
 {$IFDEF FPC}
-    cOne : double = 1.0;
 begin
   {$ENDIF}
 asm
@@ -1393,7 +1384,7 @@ asm
 
        // build result
        sqrtpd xmm2, xmm2;
-       movddup xmm3, cOne;
+       movddup xmm3, [rip + cOne];
        divpd xmm3, xmm2;
 
        // multiply the result and build the result
@@ -1434,7 +1425,7 @@ asm
 
    // build result
    sqrtsd xmm2, xmm2;
-   movsd xmm3, cOne;
+   movsd xmm3, [rip + cOne];
    divsd xmm3, xmm2;
 
    // multiply the result and build the result
@@ -1462,7 +1453,6 @@ end;
 procedure ASMMatrixNormalizeColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iRBX, iRSI : NativeInt;
 {$IFDEF FPC}
-    cOne : double = 1.0;
 begin
   {$ENDIF}
 asm
@@ -1506,7 +1496,7 @@ asm
 
        // build result
        sqrtpd xmm2, xmm2;
-       movddup xmm3, cOne;
+       movddup xmm3, [rip + cOne];
        divpd xmm3, xmm2;
 
        // multiply the result and build the result
@@ -1547,7 +1537,7 @@ asm
 
    // build result
    sqrtsd xmm2, xmm2;
-   movsd xmm3, cOne;
+   movsd xmm3, [rip + cOne];
    divsd xmm3, xmm2;
 
    // multiply the result and build the result

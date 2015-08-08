@@ -21,7 +21,7 @@ interface
 
 // Independent component analysis using the informax algorithm:
 
-uses SysUtils, Classes, Matrix, Types, MatrixConst, BaseMathPersistence, PCA;
+uses SysUtils, Classes, Matrix, MatrixConst, BaseMathPersistence, PCA;
 
 type
   TFastICANonLinEstimator = (iePow3, ieTanh, ieGauss, ieSkew);
@@ -59,7 +59,7 @@ type
     fMeanVec : IMatrix;
 
     procedure Clear;
-    function WhitenData(examples : TDoubleMatrix; var wz : IMatrix) : IMatrix;
+    function WhitenData(examples : TDoubleMatrix; out wz : IMatrix) : IMatrix;
     function InvertAndSQRT(mtx: IMatrix): IMatrix;
 
     procedure LocPow3(var value : double);
@@ -710,7 +710,7 @@ begin
      Result.AddInplace(fMeanVec);
 end;
 
-function TMatrixICA.WhitenData(examples: TDoubleMatrix; var wz : IMatrix): IMatrix;
+function TMatrixICA.WhitenData(examples: TDoubleMatrix; out wz : IMatrix): IMatrix;
 var mean : IMatrix;
     mWz : IMatrix;
     meanCentData : IMatrix;

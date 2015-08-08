@@ -30,13 +30,10 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
-{$IFNDEF FPC}
 const cSignBits : Array[0..1] of int64 = ($7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF);
-{$ENDIF}
 
 procedure ASMMatrixAbsAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
 {$IFDEF FPC}
-var cSignBits : Array[0..1] of int64 = ($7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF);
 begin
   {$ENDIF}
 asm
@@ -49,7 +46,7 @@ asm
    // helper registers for the dest pointer
    sub rcx, r10;
 
-   movupd xmm0, cSignBits;
+   movupd xmm0, [rip + cSignBits];
 
    // for y := 0 to height - 1:
    mov r11, Height;
@@ -126,7 +123,6 @@ end;
 
 procedure ASMMatrixAbsUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
 {$IFDEF FPC}
-var cSignBits : Array[0..1] of int64 = ($7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF);
 begin
   {$ENDIF}
 asm
@@ -139,7 +135,7 @@ asm
    // helper registers for the dest pointer
    sub rcx, r10;
 
-   movupd xmm0, cSignBits;
+   movupd xmm0, [rip + cSignBits];
 
    // for y := 0 to height - 1:
    mov r11, Height;
@@ -214,7 +210,6 @@ end;
 
 procedure ASMMatrixAbsAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
 {$IFDEF FPC}
-var cSignBits : Array[0..1] of int64 = ($7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF);
 begin
   {$ENDIF}
 asm
@@ -228,7 +223,7 @@ asm
    // helper registers for the dest pointer
    sub rcx, r10;
 
-   movupd xmm0, cSignBits;
+   movupd xmm0, [rip + cSignBits];
 
    // for y := 0 to height - 1:
    mov r11, Height;
@@ -311,7 +306,6 @@ end;
 
 procedure ASMMatrixAbsUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
 {$IFDEF FPC}
-var cSignBits : Array[0..1] of int64 = ($7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF);
 begin
   {$ENDIF}
 asm
@@ -325,7 +319,7 @@ asm
    // helper registers for the dest pointer
    sub rcx, r10;
 
-   movupd xmm0, cSignBits;
+   movupd xmm0, [rip + cSignBits];
 
    // for y := 0 to height - 1:
    mov r11, Height;

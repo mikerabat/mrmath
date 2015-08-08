@@ -740,17 +740,12 @@ end;
 // #### Variance calculation
 // ###########################################
 
-{$IFNDEF FPC}
 const cOnes : Array[0..1] of double = (1, 1);
       cOne : double = 1;
-{$ENDIF}
-      
 
 procedure ASMMatrixVarRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 var dXMM5 : Array[0..1] of double;
 {$IFDEF FPC}
-    cOnes : Array[0..1] of double = (1, 1);
-    cOne : double = 1;
 begin
 {$ENDIF}
 asm
@@ -910,8 +905,8 @@ asm
 
        movsd xmm4, xmm5;
 
-       subsd xmm4, cOne;
-       maxsd xmm4, cOne;
+       subsd xmm4, [rip + cOne];
+       maxsd xmm4, [rip + cOne];
 
        divsd xmm0, xmm4;
 
@@ -942,8 +937,6 @@ end;
 procedure ASMMatrixVarRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 var dXMM5 : Array[0..1] of double;
 {$IFDEF FPC}
-    cOnes : Array[0..1] of double = (1, 1);
-    cOne : double = 1;
 begin
 {$ENDIF}
 asm
@@ -1111,8 +1104,8 @@ asm
        jz @@dobiased;
 
        movsd xmm4, xmm5;
-       subsd xmm4, cOne;
-       maxsd xmm4, cOne;
+       subsd xmm4, [rip + cOne];
+       maxsd xmm4, [rip + cOne];
 
        divsd xmm0, xmm4;
 
@@ -1143,8 +1136,6 @@ end;
 procedure ASMMatrixVarRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 var dXMM5 : Array[0..1] of double;
 {$IFDEF FPC}
-    cOnes : Array[0..1] of double = (1, 1);
-    cOne : double = 1;
 begin
   {$ENDIF}
 asm
@@ -1314,8 +1305,8 @@ asm
        jz @@dobiased;
 
        movsd xmm4, xmm5;
-       subsd xmm4, cOne;
-       maxsd xmm4, cOne;
+       subsd xmm4, [rip + cOne];
+       maxsd xmm4, [rip + cOne];
 
        divsd xmm0, xmm4;
 
@@ -1347,8 +1338,6 @@ end;
 procedure ASMMatrixVarRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 var dXMM5, dXMM4 : Array[0..1] of double;
 {$IFDEF FPC}
-    cOnes : Array[0..1] of double = (1, 1);
-    cOne : double = 1;
 begin
   {$ENDIF}
 asm
@@ -1527,8 +1516,8 @@ asm
        jz @@dobiased;
 
        movsd xmm4, xmm5;
-       subsd xmm4, cOne;
-       maxsd xmm4, cOne;
+       subsd xmm4, [rip + cOne];
+       maxsd xmm4, [rip + cOne];
 
        divsd xmm0, xmm4;
 
@@ -1559,7 +1548,6 @@ end;
 
 procedure ASMMatrixVarColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 {$IFDEF FPC}
-var cOnes : Array[0..1] of double = (1, 1);
 begin
   {$ENDIF}
 asm
@@ -1572,7 +1560,7 @@ asm
    sub r8, r10;
 
    // according to microsoft the xmm5 does not need to be saved (volatile!)
-   movupd xmm5, cOnes;
+   movupd xmm5, [rip + cOnes];
 
    // fpc seems to have a problem with this opcode
    {$IFDEF FPC}
@@ -1646,7 +1634,6 @@ end;
 
 procedure ASMMatrixVarColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 {$IFDEF FPC}
-var cOnes : Array[0..1] of double = (1, 1);
 begin
   {$ENDIF}
 asm
@@ -1658,7 +1645,7 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
-   movupd xmm5, cOnes;
+   movupd xmm5, [rip + cOnes];
    // fpc seems to have a problem with this opcode
    {$IFDEF FPC}
    mov rax, height;
@@ -1732,8 +1719,6 @@ end;
 
 procedure ASMMatrixVarColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 {$IFDEF FPC}
-var cOnes : Array[0..1] of double = (1, 1);
-    cOne : double = 1;
 begin
   {$ENDIF}
 asm
@@ -1745,7 +1730,7 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
-   movupd xmm5, cOnes;
+   movupd xmm5, [rip + cOnes];
    // fpc seems to have a problem with this opcode
    {$IFDEF FPC}
    mov rax, height;
@@ -1848,8 +1833,8 @@ asm
    jz @@dobiased2;
 
    movapd xmm1, xmm2;
-   subsd xmm1, cOne;
-   maxsd xmm1, cOne;
+   subsd xmm1, [rip + cOne];
+   maxsd xmm1, [rip + cOne];
 
    divsd xmm4, xmm1;
 
@@ -1868,8 +1853,6 @@ end;
 
 procedure ASMMatrixVarColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 {$IFDEF FPC}
-var cOnes : Array[0..1] of double = (1, 1);
-    cOne : double = 1;
 begin
 {$ENDIF}
 asm
@@ -1881,7 +1864,7 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
-   movupd xmm5, cOnes;
+   movupd xmm5, [rip + cOnes];
    // fpc seems to have a problem with this opcode
    {$IFDEF FPC}
    mov rax, height;
@@ -1985,8 +1968,8 @@ asm
    jz @@dobiased2;
 
    movapd xmm1, xmm2;
-   subsd xmm1, cOne;
-   maxsd xmm1, cOne;
+   subsd xmm1, [rip + cOne];
+   maxsd xmm1, [rip + cOne];
 
    divsd xmm4, xmm1;
 
