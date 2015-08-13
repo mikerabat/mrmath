@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <PathDelim Value="\"/>
+    <Version Value="9"/>
+    <BuildModes Active="Default"/>
+    <Units Count="5">
+      <Unit0>
+        <Filename Value="MathUtilsTestsFPC.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
+        <CursorPos X="110" Y="33"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="C:\codetyphon\typhon\components\fpcunit\console\consoletestrunner.pas"/>
+        <UnitName Value="consoletestrunner"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="10"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="BaseMatrixTestCase.pas"/>
+        <UnitName Value="BaseMatrixTestCase"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="24" Y="29"/>
+        <UsageCount Value="10"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="..\win\WinThreadPool.pas"/>
+        <UnitName Value="WinThreadPool"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos Y="337"/>
+        <UsageCount Value="10"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="MathUtilsTestsFPC.lpi"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="103" Y="27"/>
+        <UsageCount Value="10"/>
+        <DefaultSyntaxHighlighter Value="XML"/>
+      </Unit4>
+    </Units>
+    <JumpHistory Count="2" HistoryIndex="1">
+      <Position1>
+        <Filename Value="MathUtilsTestsFPC.lpr"/>
+      </Position1>
+      <Position2>
+        <Filename Value="MathUtilsTestsFPC.lpr"/>
+        <Caret Line="23" Column="44"/>
+      </Position2>
+    </JumpHistory>
+  </ProjectSession>
+  <Debugging>
+    <Watches Count="1">
+      <Item1>
+        <Expression Value="Kunde_ID"/>
+      </Item1>
+    </Watches>
+  </Debugging>
+</CONFIG>
