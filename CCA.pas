@@ -19,7 +19,7 @@ interface
 uses SysUtils, Classes, Matrix, MatrixConst, BaseMathPersistence;
 
 // ########################################################
-// #### Implementation of the Cononical Correlation Analysis based on
+// #### Implementation of the Canonical Correlation Analysis based on
 // #### Singular Value Decomposition
 
 // based on: Melzer T., Reiter M., Bischof H., "Appearance models based on
