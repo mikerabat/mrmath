@@ -75,6 +75,9 @@ contains
   ASMMatrixAbsOperationsx64 in 'ASMMatrixAbsOperationsx64.pas',
   CCA in 'CCA.pas',
   NNMF in 'NNMF.pas',
-  ICA in 'ICA.pas';
+  ICA in 'ICA.pas',
+  RandomEng in 'RandomEng.pas',
+  winRandomGen in 'win\winRandomGen.pas',
+  MacOsRandomGen in 'mac\MacOsRandomGen.pas';
 
 end.

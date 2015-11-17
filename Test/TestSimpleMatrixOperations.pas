@@ -115,7 +115,7 @@ uses ASMMatrixOperations, ThreadedMatrixOperations, MtxThreadPool, mtxTimer,
      ASMMatrixTransposeOperations, ASMMatrixNormOperations,
      ASMMatrixMeanOperations, ASMMatrixSumOperations,
      {$ENDIF}
-     MatrixConst;
+     MatrixConst, MathUtilFunc;
 
 procedure TestMatrixOperations.TestAbs;
 const mt1 : Array[0..5] of double = (-1, 2, 2, -2, 3, -3);

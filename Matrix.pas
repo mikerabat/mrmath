@@ -21,7 +21,7 @@ unit Matrix;
 
 interface
 
-uses SysUtils, Classes, Types, MatrixConst, BaseMathPersistence;
+uses SysUtils, Classes, Types, MatrixConst, BaseMathPersistence, RandomEng;
 
 type
   TDoubleMatrix = class;
@@ -243,7 +243,9 @@ type
     fData : PConstDoubleArr;       // 16 byte aligned pointer:
     fLineWidth : integer;
     fWidth : integer;
+    fObj : TObject;                // arbitrary object
 
+    procedure MtxRandWithEng(var value : double);
     procedure MtxRand(var value : double);
   protected
     fHeight : integer;
@@ -434,7 +436,8 @@ type
     constructor CreateEye(aWidth : integer);
     constructor Create(data : PDouble; aLineWidth : integer; aWidth, aHeight : integer); overload;
     constructor Create(const Data : TDoubleDynArray; aWidth, aHeight : integer); overload;
-    constructor CreateRand(aWidth, aHeight : integer); 
+    constructor CreateRand(aWidth, aHeight : integer; method : TRandomAlgorithm; seed : LongInt); // uses random engine
+    constructor CreateRand(aWidth, aHeight : integer); // uses system default random
     destructor Destroy; override;
   end;
 
@@ -689,9 +692,28 @@ begin
          Items[i, i] := 1;
 end;
 
+constructor TDoubleMatrix.CreateRand(aWidth, aHeight: integer;
+  method: TRandomAlgorithm; seed: LongInt);
+begin
+     inherited Create;
+
+     SetWidthHeight(aWidth, aHeight);
+
+     fObj := TRandomGenerator.Create;
+     TRandomGenerator(fObj).RandMethod := method;
+     TRandomGenerator(fObj).Init(seed);
+     ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}MtxRandWithEng);
+     FreeAndNil(fObj);
+end;
+
 procedure TDoubleMatrix.MtxRand(var value: double);
 begin
      value := Random;
+end;
+
+procedure TDoubleMatrix.MtxRandWithEng(var value: double);
+begin
+     value := TRandomGenerator(fObj).Random;
 end;
 
 constructor TDoubleMatrix.CreateRand(aWidth, aHeight: integer);

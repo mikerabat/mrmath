@@ -47,6 +47,14 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: 17.11.2015
+* New random number engine which supports the creation of Mersenne Twister PRNG.
+* Encapsulated the Delphi random generator into an object (thread safety)
+* Access to the windows crypto random number generator.
+* Various random distribution functions (gauss, exponential, poission, erlang)
+* Untested but there: interface to the Intel RDRAND assembler instruction
+* Added utility functions: greatest common divisor and least common multiple
+
 Date: 8.8.2015
 * Fixes for FPC 2.7.1 - Typhon IDE is now able to compile the code.
 

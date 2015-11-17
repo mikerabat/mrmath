@@ -20,6 +20,8 @@ unit CPUFeatures;
 interface
 
 function IsSSE3Present : boolean;
+function IsHardwareRNDSupport : boolean;
+function IsHardwareRDSeed : boolean;
 
 implementation
 
@@ -133,6 +135,31 @@ begin
           GetCPUID($00000001, reg);
 
           Result := (reg.ECX and $00000001) <> 0;
+     end;
+end;
+
+
+function IsHardwareRNDSupport : boolean;
+var reg : TRegisters;
+begin
+     Result := False;
+     if IsCPUID_Available then
+     begin
+          GetCPUID($00000001, reg);
+
+          Result := (reg.ECX and $40000000) = $40000000;
+     end;
+end;
+
+function IsHardwareRDSeed : boolean;
+var reg : TRegisters;
+begin
+     Result := False;
+     if IsCPUID_Available then
+     begin
+          GetCPUID($00000007, reg);
+
+          Result := (reg.EBX and $40000) = $40000;
      end;
 end;
 

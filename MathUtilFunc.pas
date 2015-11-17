@@ -33,6 +33,9 @@ function sign(a : double; b : double) : double; {$IFNDEF FPC} {$IF CompilerVersi
 procedure DoubleSwap(var a, b : Double); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function binom(n, k : integer) : int64;
 
+function lcm(a, b : NativeInt) : NativeInt;  // least common multiple
+function gcm(a, b : NativeInt) : NativeInt; // greatest common divisior
+
 function eps(const val : double) : double;
 function MinDblDiv : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 
@@ -159,7 +162,8 @@ begin
 end;
 
 // implements "n over k" -> binominal koefficients.
-// see: http://de.wikipedia.org/wiki/Binomialkoeffizient
+// see: https://en.wikipedia.org/wiki/Binomial_coefficient
+// or german: http://de.wikipedia.org/wiki/Binomialkoeffizient
 function binom(n, k : integer) : int64;
 var tmp : integer;
     i : integer;
@@ -180,6 +184,25 @@ begin
           Result := Result*(tmp - i);
           Result := Result div i;
      end;
+end;
+
+function lcm(a, b : NativeInt) : NativeInt;  // least common multiple
+begin
+     Result := (abs(a) div gcm(a, b)) * abs(b);
+end;
+
+// from https://en.wikipedia.org/wiki/Euclidean_algorithm
+function gcm(a, b : NativeInt) : NativeInt; // greatest common divisior
+var t : NativeInt;
+begin
+     while b <> 0 do
+     begin
+          t := b;
+          b := a mod b;
+          a := t;
+     end;
+
+     Result := a;
 end;
 
 procedure DoubleSwap(var a, b : Double); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}

@@ -57,6 +57,7 @@ type
    procedure TestSymEig;
    procedure TestEig;
    procedure TestNormalize;
+   procedure TestRandomInit;
   end;
 
 type
@@ -102,7 +103,7 @@ type
 implementation
 
 uses BaseMathPersistence, binaryReaderWriter,
-     math, MatrixConst, mtxTimer, Dialogs, MathUtilFunc;
+     math, MatrixConst, mtxTimer, Dialogs, MathUtilFunc, RandomEng;
 
 { TestTDoubleMatrix }
 
@@ -494,6 +495,24 @@ begin
      q.Free;
      R.Free;
      dest.Free;
+end;
+
+procedure TestTDoubleMatrix.TestRandomInit;
+var mtx1, mtx2 : TDoubleMatrix;
+begin
+     RandSeed := 301;
+     mtx1 := TDoubleMatrix.CreateRand(100, 100);
+     mtx2 := TDoubleMatrix.CreateRand(100, 100, raSystem, 301);
+     try
+        {$IFNDEF FPC}
+        // FPC note: the default random function is different than the delphi one -> so a check
+        // here is meaningless but we have at least a functional test
+        Check(CheckMtx(mtx1.SubMatrix, mtx2.SubMatrix, -1, -1, 0.0000001), 'Random init failed');
+        {$ENDIF}
+     finally
+            mtx1.Free;
+            mtx2.Free;
+     end;
 end;
 
 procedure TestTDoubleMatrix.TestSub;
