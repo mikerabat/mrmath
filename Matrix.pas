@@ -436,8 +436,8 @@ type
     constructor CreateEye(aWidth : integer);
     constructor Create(data : PDouble; aLineWidth : integer; aWidth, aHeight : integer); overload;
     constructor Create(const Data : TDoubleDynArray; aWidth, aHeight : integer); overload;
-    constructor CreateRand(aWidth, aHeight : integer; method : TRandomAlgorithm; seed : LongInt); // uses random engine
-    constructor CreateRand(aWidth, aHeight : integer); // uses system default random
+    constructor CreateRand(aWidth, aHeight : integer; method : TRandomAlgorithm; seed : LongInt); overload; // uses random engine
+    constructor CreateRand(aWidth, aHeight : integer); overload; // uses system default random
     destructor Destroy; override;
   end;
 

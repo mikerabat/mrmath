@@ -73,7 +73,7 @@ var gen : TRandomGenerator;
     cnt : integer;
 begin
      gen := TRandomGenerator.Create;
-     gen.RandMethod := raSystem;
+     gen.RandMethod := raMersenneTwister;
 
      start := MtxGetTime;
      for cnt := 0 to cNumRandNum - 1 do
