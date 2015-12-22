@@ -382,6 +382,7 @@ end;
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 // from http://stackoverflow.com/questions/28538370/using-intels-rdrand-opcode-in-delphi-6-7
+{$IFNDEF x64}
 function TryRdRand(out Value: LongWord): Boolean;
 {$IFDEF FPC}
 begin
@@ -389,21 +390,41 @@ begin
 asm
    db   $0f
    db   $c7
-   db   $f1
-   jc   @success
+   db   $f1           // store random value in ecx
+   jb   @success
    xor  eax,eax
    ret
 @success:
-{$IFNDEF x64}
    mov  [eax],ecx
-{$ELSE}
-   mov [rax], ecx
-{$ENDIF}
-   mov  eax,1
+   mov eax, 1
 {$IFDEF FPC}
 end;
 {$ENDIF}
 end;
+{$ENDIF}
+
+{$IFDEF x64}
+function TryRdRand(out Value: LongWord): Boolean;
+{$IFDEF FPC}
+begin
+{$ENDIF}
+asm
+   db   $0f
+   db   $c7
+   db   $f0            // store value in eax
+   jb   @success
+   xor rax,rax
+   ret
+@success:
+   mov [rcx], eax
+   mov rax, 1
+{$IFDEF FPC}
+end;
+{$ENDIF}
+end;
+{$ENDIF}
+
+
 
 function TRandomGenerator.RDRandInt(const aRange : LongInt) : LongInt;
 var cnt : integer;
