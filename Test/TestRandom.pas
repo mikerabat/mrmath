@@ -52,13 +52,19 @@ begin
           gen := TRandomGenerator.Create;
           gen.RandMethod := raIntelRAND;
 
+          for cnt := 0 to 10 do
+          begin
+               Status(IntToStr(cnt) + ': ' + IntToStr(gen.RandInt(20)));
+          end;
+
+
           start := MtxGetTime;
           for cnt := 0 to cNumRandNum - 1 do
               gen.Random;
           stop := MtxGetTime;
 
           gen.Free;
-          Status(Format('Hardware random 1 milliont times: %.2f', [(stop - start)/mtxFreq*1000]));
+          Status(Format('Hardware random 1 million times: %.2f', [(stop - start)/mtxFreq*1000]));
      end
      else
      begin

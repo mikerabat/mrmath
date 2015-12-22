@@ -439,7 +439,7 @@ begin
              inc(cnt);
      end;
 
-     Result := LongInt(y) mod aRange;
+     Result := LongInt(y and $7FFFFFFF) mod aRange;
 end;
 
 function TRandomGenerator.RDRandLW(const aRange: LongWord): LongWord;
