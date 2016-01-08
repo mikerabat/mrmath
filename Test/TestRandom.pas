@@ -70,7 +70,6 @@ begin
      begin
           Status('No hardware random support detected' );
      end;
-     
 end;
 
 procedure TestRandomOperations.TestMersenneTwister;

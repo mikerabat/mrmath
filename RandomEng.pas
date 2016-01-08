@@ -66,6 +66,8 @@ type
     function RDRandDbl: double;
 
   private
+    const cRDRAND_RETRIES = 10;
+
     // Mersenne twister functions - Implementation of mt19937ar.c -> Mersenne  Twister with improved initilaization
     const cN = 624;
           cM = 397;
@@ -431,13 +433,19 @@ var cnt : integer;
     y : LongWord;
 begin
      cnt := 0;
-     // according to the manual we shall create 10 numbers to ensure that
-     // the value is a true random number...
-     while cnt < 10 do
+     // according to the manual we shall try 10 times -> otherwise the cpu seems to
+     // have some serious issues
+     // see: https://software.intel.com/sites/default/files/managed/4d/91/DRNG_Software_Implementation_Guide_2.0.pdf
+     while cnt < cRDRAND_RETRIES do
      begin
           if TryRdRand(y) then
-             inc(cnt);
+             break;
+
+          inc(cnt);
      end;
+
+     if cnt = cRDRAND_RETRIES then
+        raise Exception.Create('Error - RDRAND failed too often');
 
      Result := LongInt(y and $7FFFFFFF) mod aRange;
 end;
@@ -447,13 +455,19 @@ var cnt : integer;
     y : LongWord;
 begin
      cnt := 0;
-     // according to the manual we shall create 10 numbers to ensure that
-     // the value is a true random number...
-     while cnt < 10 do
+     // according to the manual we shall try 10 times -
+     // if it fails then the CPPU seems to have some serious issues...
+     // see: https://software.intel.com/sites/default/files/managed/4d/91/DRNG_Software_Implementation_Guide_2.0.pdf
+     while cnt < cRDRAND_RETRIES do
      begin
           if TryRdRand(y) then
-             inc(cnt);
+             break;
+
+          inc(cnt);
      end;
+
+     if cnt = cRDRAND_RETRIES then
+        raise Exception.Create('Error - RDRAND failed too often');
 
      Result := y mod aRange;
 end;
