@@ -541,9 +541,10 @@ end;
 procedure ASMMatrixScaleAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
 var iters : TASMNativeInt;
 begin
-     Assert((width and 1) = 1, 'Error width must be odd');
+     Assert((width and 1) = 0, 'Error width must be even');
+     Assert((width > 0) and (height > 0) and (LineWidth >= width*sizeof(double)), 'Dimension error');
 
-     iters := -(width - 1)*sizeof(double);
+     iters := -width*sizeof(double);
 
      asm
         // helper registers for the mt1, mt2 and dest pointers
