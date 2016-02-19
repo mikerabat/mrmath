@@ -86,7 +86,7 @@ begin
      stop := MtxGetTime;
 
      gen.Free;
-     Status(Format('Mersenne Twister random 1 milliont times: %.2f', [(stop - start)/mtxFreq*1000]));
+     Status(Format('Mersenne Twister random 1 million times: %.2f', [(stop - start)/mtxFreq*1000]));
 end;
 
 
@@ -171,7 +171,7 @@ begin
      stop := MtxGetTime;
 
      gen.Free;
-     Status(Format('System random 1 milliont times: %.2f', [(stop - start)/mtxFreq*1000]));
+     Status(Format('System random 1 million times: %.2f', [(stop - start)/mtxFreq*1000]));
 end;
 
 procedure TestRandomOperations.TestSystemRandom;
@@ -209,7 +209,7 @@ begin
      stop := MtxGetTime;
 
      gen.Free;
-     Status(Format('System random 1 milliont times: %.2f', [(stop - start)/mtxFreq*1000]));
+     Status(Format('System random 1 million times: %.2f', [(stop - start)/mtxFreq*1000]));
 end;
 
 initialization
