@@ -20,7 +20,6 @@ uses {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF}
      , Classes, SysUtils, Types, SimpleMatrixOperations, Matrix, BaseMatrixTestCase;
 
 type
-  // testmethoden für die matrix funktionen
   TestMatrixOperations = class(TBaseMatrixTestCase)
   published
    procedure TestAdd;
@@ -39,8 +38,6 @@ type
   public
     procedure SetUp; override;
     procedure TearDown; override;
-
-    procedure FillMatrix(mtxSize : integer; out x, y : TDoubleDynArray; out p1, p2 : PDouble);
   published
     procedure TestMatrixASMCopy;
     procedure TestASMAdd;
@@ -148,41 +145,6 @@ begin
      CheckEqualsMem(@mt4, @res[0], sizeof(mt4), 'Error Matrix addition: ' + #13#10 + WriteMtxDyn(res, 2));
 end;
 
-
-procedure TASMMatrixOperations.FillMatrix(mtxSize: integer; out x,
-  y: TDoubleDynArray; out p1, p2: PDouble);
-var px : PDouble;
-    py : PDouble;
-    idx : integer;
-begin
-     SetLength(x, mtxSize);
-     SetLength(y, mtxSize);
-
-     p1 := GetMemory(mtxSize*sizeof(double));
-     p2 := GetMemory(mtxSize*sizeof(double));
-
-     // fill randomly:
-     px := @x[0];
-     py := @y[0];
-     for Idx := 0 to mtxSize - 1 do
-     begin
-          px^ := random;
-          py^ := random;
-          inc(px);
-          inc(py);
-     end;
-
-     px := p1;
-     py := p2;
-     for Idx := 0 to mtxSize - 1 do
-     begin
-          px^ := x[idx];
-          py^ := y[idx];
-          inc(px);
-          inc(py);
-     end;
-end;
-
 procedure TASMMatrixOperations.SetUp;
 begin
      MtxThreadPool.InitMtxThreadPool;
@@ -208,14 +170,14 @@ begin
      CheckEqualsMem(@mtx[0], @mtdest[0], sizeof(mtdest), 'Error Matrix abs: ' + #13#10 + WriteMtxDyn(mtx, 3));
 
      Move(mt1[0], mtx[0], sizeof(mt1));
-     
+
      SetLength(mt2, 1022);
      for cnt := 0 to Length(mt2) - 1 do
          mt2[cnt] := Random(10)*sign[random(2)];
 
      ASMMatrixAbs(@mt2[0], (length(mt2) div 14)*sizeof(double), (length(mt2) div 14), 14);
      for cnt := 0 to Length(mt2) - 1 do
-         Check(mt2[cnt] >= 0, 'Error matrix abs - negative value found'); 
+         Check(mt2[cnt] >= 0, 'Error matrix abs - negative value found');
 
      SetLength(mt2, 1022);
      for cnt := 0 to Length(mt2) - 1 do

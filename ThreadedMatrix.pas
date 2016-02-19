@@ -69,7 +69,8 @@ type
     function Determinant: double; override;
     function QR(out ecosizeR : TDoubleMatrix; out tau : TDoubleMatrix) : TQRResult; override;
     function QRFull(out Q, R : TDoubleMatrix) : TQRResult; override;
-
+    function Cholesky(out Chol : TDoubleMatrix) : TCholeskyResult; overload; override;
+    
     class procedure InitThreadPool;
     class procedure FinalizeThreadPool;
   end;
@@ -285,6 +286,7 @@ begin
             ThrMatrixMult(res.StartElement, res.LineWidth, StartElement, Value.StartElement, Width, Height, Value.Width, Value.Height, LineWidth, Value.LineWidth);
 
         Assign(res);
+        res.Free;
      except
            res.Free;
            raise;
@@ -304,6 +306,7 @@ begin
         ThrMatrixMultT1(res.StartElement, res.LineWidth, StartElement, Value.StartElement, Width, Height, Value.Width, Value.Height, LineWidth, Value.LineWidth);
 
         Assign(res);
+        res.Free;
      except
            res.Free;
            raise;
@@ -322,6 +325,7 @@ begin
         ThrMatrixMultT2(res.StartElement, res.LineWidth, StartElement, Value.StartElement, Width, Height, Value.Width, Value.Height, LineWidth, Value.LineWidth);
 
         Assign(res);
+        res.Free;
      except
            res.Free;
            raise;
@@ -417,6 +421,33 @@ begin
         end;
      finally
             Tau.Free;
+     end;
+end;
+
+function TThreadedMatrix.Cholesky(out Chol: TDoubleMatrix): TCholeskyResult;
+var x, y : integer;
+begin
+     CheckAndRaiseError((fSubWidth > 0) and (fSubWidth = fSubHeight), 'Cholesky decomposition is only allowed on square matrices');
+     chol := ResultClass.Create;
+     try
+        chol.Assign(Self);
+        // block wise cholesky decomposition
+        Result := ThrMatrixCholeskyDecomp(chol.StartElement, chol.LineWidth, chol.Width, 0, nil, fLinEQProgress);
+
+        if Result = crOk then
+        begin
+             // zero out the upper elements
+             for y := 0 to fSubWidth - 1 do
+             begin
+                  for x := y + 1 to fSubWidth - 1 do
+                      Chol[x, y] := 0;
+             end;
+        end
+        else
+            FreeAndNil(chol);
+     except
+           FreeAndNil(chol);
+           Result := crNoPositiveDefinite;
      end;
 end;
 

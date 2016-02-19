@@ -39,6 +39,8 @@ type
   procedure TestSVD2;
   procedure TestSVD3;
   procedure TestCholesky;
+  procedure TestCholesky2;
+  procedure TestCholesky3;
   procedure TestQRDecomp;
   procedure TestQRDecomp2;
   procedure TestQRDecomp3;
@@ -145,6 +147,115 @@ begin
      MatrixCholeskySolveLinEq(@X[0], 3*sizeof(double), 3, @P[0], 4*sizeof(double), @B[0], sizeof(double), @ResX[0], sizeof(double));
 
      Check(CheckMtx(ResX, cResX), 'Cholesky error');
+end;
+
+procedure TTestLinearEquations.TestCholesky2;
+const cA : Array[0..8] of double = (1, 2, 2, -1, 4, -2, 2, 2, -1);
+      cA2 : Array[0..15] of double = (1, 2, 2, 0.5,
+                                   -1, 4, -2, -0.1,
+                                   2, 2, -1, 1.2,
+                                   3, 2, -1, -1.1);
+var A : Array[0..8] of double;
+    AL, X, X1 : TDoubleDynArray;
+    res : TCholeskyResult;
+begin
+     AL := MatrixTranspose(@cA[0], 3*sizeof(double), 3, 3);
+     X := MatrixMult(@cA[0], @AL[0], 3, 3, 3, 3, 3*sizeof(double), 3*sizeof(double));
+     X1 := copy(X, 0, Length(x));
+
+     res := MatrixCholeskyInPlace4(@X1[0], 3*sizeof(double), 3, 2);
+
+     Check(res = crOk, 'Cholesky failed');
+     
+     Status(WriteMtx(x1, 3));
+     
+     res := MatrixCholeskyInPlace2(@X[0], 3*sizeof(double), 3);
+
+     Status(WriteMtx(X, 3));
+     Check(res = crOk, WriteMtx(x, 3));
+
+
+     AL := MatrixTranspose(@cA2[0], 4*sizeof(double), 4, 4);
+     X := MatrixMult(@cA2[0], @AL[0], 4, 4, 4, 4, 4*sizeof(double), 4*sizeof(double));
+
+     res := MatrixCholeskyInPlace2(@X[0], 4*sizeof(double), 4);
+
+     Status(WriteMtx(X, 4));
+     Check(res = crOk, WriteMtx(x, 4));
+
+     AL := MatrixTranspose(@cA2[0], 4*sizeof(double), 4, 4);
+     X := MatrixMult(@cA2[0], @AL[0], 4, 4, 4, 4, 4*sizeof(double), 4*sizeof(double));
+
+     res := MatrixCholeskyInPlace4(@X[0], 4*sizeof(double), 4, 2);
+
+     Status(WriteMtx(X, 4));
+     Check(res = crOk, WriteMtx(x, 4));
+     
+     Move(cA, A[0], sizeof(cA));
+     res := MatrixCholeskyInPlace2(@A[0], 3*sizeof(double), 3, nil);
+     Check(res = crNoPositiveDefinite, WriteMtx(A, 3));
+end;
+
+procedure TTestLinearEquations.TestCholesky3;
+const cLargeCholSize = 2048;
+var x, y : TDoubleDynArray;
+    p1, p2 : PDouble;
+    a, a1, a2, a3 : TDoubleDynArray;
+    res : TCholeskyResult;
+    start, stop : Int64;
+begin
+     InitMtxThreadPool;
+
+     FillMatrix(cLargeCholSize*cLargeCholSize, x, y, p1, p2);
+     FreeMem(p1);
+     FreeMem(p2);
+
+     y := MatrixTranspose(@x[0], cLargeCholSize*sizeof(double), cLargeCholSize, cLargeCholSize);
+
+     a := MatrixMult(x, y, cLargeCholSize, cLargeCholSize, cLargeCholSize, cLargeCholSize);
+
+//     WriteMatlabData('D:\cholIn.txt', a, cLargeCholSize);
+     a1 := Copy(a, 0, Length(a));
+     a2 := Copy(a, 0, Length(a));
+     a3 := Copy(a, 0, Length(a));
+
+     start := MtxGetTime;
+     res := MatrixCholeskyInPlace2(@a[0], cLargeCholSize*sizeof(double), cLargeCholSize);
+     stop := MtxGetTime;
+     Status(Format('Cholesky large %d: %.2fms', [cLargeCholSize, (stop - start)/mtxfreq*1000]));
+
+     Check(res = crOk, 'Error large cholesky failed');
+
+     start := MtxGetTime;
+     res := MatrixCholeskyInPlace3(@a1[0], cLargeCholSize*sizeof(double), cLargeCholSize);
+     stop := MtxGetTime;                            
+     Status(Format('Cholesky large recursive %d: %.2fms', [cLargeCholSize, (stop - start)/mtxfreq*1000]));
+
+     Check(res = crOk, 'Error large cholesky failed');
+
+     start := MtxGetTime;
+     res := MatrixCholeskyInPlace4(@a2[0], cLargeCholSize*sizeof(double), cLargeCholSize, 24);
+     stop := MtxGetTime;                            
+     Status(Format('Cholesky large panel: %.2fms', [(stop - start)/mtxfreq*1000]));
+
+     Check(res = crOk, 'Error large cholesky failed');
+
+     start := MtxGetTime;
+     res := ThrMatrixCholeskyDecomp(@a3[0], cLargeCholSize*sizeof(double), cLargeCholSize, 24, nil, nil);
+     stop := MtxGetTime;                            
+     Status(Format('Cholesky threaded: %.2fms', [(stop - start)/mtxfreq*1000]));
+
+     Check(res = crOk, 'Error in threaded cholesky decomp');
+     
+     Check(CheckMtx(a, a2), 'Panel implementation of Cholesky decomposition failed');
+     Check(CheckMtx(a, a1), 'Recursive implementation of Cholesky decomposition failed');
+     Check(CheckMtx(a, a3), 'Threaded implementation of Cholesky decomposition failed');
+     
+//     WriteMatlabData('D:\cholOut.txt', a, cLargeCholSize);
+//     WriteMatlabData('D:\cholOut1.txt', a1, cLargeCholSize);
+//     WriteMatlabData('D:\cholOut2.txt', a2, cLargeCholSize);
+
+     FinalizeMtxThreadPool;
 end;
 
 procedure TTestLinearEquations.TestDeterminant1;

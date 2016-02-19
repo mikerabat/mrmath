@@ -59,6 +59,9 @@ procedure GenericMtxMultTranspAdd(dest : PDouble; const destLineWidth : TASMNati
   const LineWidth1, LineWidth2 : TASMNativeInt; C : PDouble; LineWidthC : TASMNativeInt);
 
 
+// performs matrix vector multiplication in the form: dest := alpha*mt1*v + beta*y
+procedure GenericMtxVecMult(dest : PDouble; desetLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+
 procedure GenericMtxElemMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt); overload;
 function GenericMtxElemMult(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
 procedure GenericMtxElemMult(var dest : Array of Double; const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt); overload;
@@ -68,6 +71,8 @@ procedure GenericMtxElemDiv(dest : PDouble; destLineWidth : TASMNativeInt; mt1, 
 function GenericMtxElemDiv(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
 procedure GenericMtxElemDiv(var dest : Array of Double; const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt); overload;
 function GenericMtxElemDiv(const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
+
+function GenericMtxDotProd(v1, v2 : PDouble; ByteInc1, ByteInc2 : TASMNativeInt; n :integer) : double;
 
 // GenericMtx transposition functions. Note the there is no inplace GenericMtx transpose - this will result in an unspecified end GenericMtx.
 function GenericMtxTranspose(mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
@@ -136,6 +141,11 @@ procedure GenericMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt
   width1, height1, width2, height2 : TASMNativeInt);
 procedure GenericMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
+
+// performs a symmetric rank update in the form dest = alpha* A*AT + Beta*C
+// Assumes a lower triangualr matrix
+procedure GenericSymRankKUpd(dest : PDouble; LineWidthDest: TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt; k, height : TASMNativeInt; const Alpha, Beta : double);
+procedure GenericSolveLoTriMtxTranspNoUnit(A : PDouble; const LineWidthA : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
 
 implementation
 
@@ -944,6 +954,32 @@ begin
      GenericMtxMult(@dest[0], width2*sizeof(double), @mt1[0], @mt2[0], width1, height1, width2, height2, width1*sizeof(double), width2*sizeof(double));
 end;
 
+procedure GenericMtxVecMult(dest : PDouble; desetLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+var pMt1 : PDouble;
+    pV : PDouble;
+    i, j : TASMNativeInt;
+    res : double;
+begin
+     for i := 0 to Height - 1 do
+     begin
+          res := 0;
+
+          pMt1 := mt1;
+          inc(PByte(mt1), i*LineWidthMT);
+          pV := v;
+          for j := 0 to Width - 1 do
+          begin
+               res := res + pV^*pMt1^;
+               inc(PByte(pV), LineWidthV);
+               inc(pMt1);
+          end;
+
+          dest^ := beta*dest^ + alpha*res;
+          inc(PByte(dest), desetLineWidth);
+     end;
+end;
+
+
 procedure GenericMtxElemMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
 var incDest : TASMNativeInt;
     incMt1 : TASMNativeInt;
@@ -1058,6 +1094,19 @@ begin
      assert(High(mt1) = High(mt2), 'Dimension Error');
 
      Result := GenericMtxElemMult(@mt1[0], @mt2[0], width, height, width*sizeof(double), width*sizeof(double));
+end;
+
+function GenericMtxDotProd(v1, v2 : PDouble; ByteInc1, Byteinc2 : TASMNativeInt; n :integer) : double;
+var i : Integer;
+begin
+     Result := 0;
+
+     for i := 0 to n - 1 do
+     begin
+          Result := Result + v1^*v2^;
+          inc(PByte(v1), ByteInc1);
+          inc(PByte(v2), Byteinc2);
+     end;
 end;
 
 function GenericMtxTranspose(mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray;
@@ -2016,5 +2065,138 @@ begin
           dec(PByte(mt2), LineWidth2);
      end;
 end;
+
+// ###########################################
+// #### Procedures used in cholesky decomposition
+// ###########################################
+
+// performs a symmetric rank k update in the form dest = alpha* A*AT + Beta*C
+// A is height x height
+// originaly SSYRK.f 'Lower', 'No Transpose'
+procedure GenericSymRankKUpd(dest : PDouble; LineWidthDest: TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt; k, height : TASMNativeInt; const Alpha, Beta : double);
+var i, j : TASMNativeInt;
+    pCij : PDouble;
+    pAil, pAjl : PDouble;
+    temp : double;
+    l : TASMNativeInt;
+begin
+     if (k <= 0) or (height <= 0) then
+        exit;
+
+     for j := 0 to height - 1 do
+     begin
+          pCij := dest;
+          inc(pCij, j);
+          inc(PByte(pCij), j*LineWidthDest);
+          if beta = 0 then
+          begin
+               for i := j to height - 1 do
+               begin
+                    pCij^ := 0;
+                    inc(PByte(pCij), LineWidthDest);
+               end;
+          end
+          else
+          begin 
+               if beta <> 1 then
+               begin
+                    for i := j to height - 1 do
+                    begin
+                         pCij^ := beta*pCij^;
+                         inc(PByte(pCij), LineWidthDest);
+                    end;
+               end;
+          end;
+
+          pAjl := PDouble(A);
+          inc(PByte(pAjl), j*LineWidthA);
+          for l := 0 to k - 1 do
+          begin
+               if pAjl^ <> 0 then
+               begin
+                    temp := alpha*pAjl^;
+
+                    pAil := A;
+                    inc(PByte(pAil), j*LineWidthA);
+                    inc(pAil, l);
+
+                    pCij := dest;
+                    inc(PByte(pCij), LineWidthDest*j);
+                    inc(pCij, j);
+
+                    for i := j to height - 1 do
+                    begin
+                         pCij^ := pCij^ + temp*pAil^;
+
+                         inc(PByte(pCij), LineWidthDest);
+                         inc(PByte(pAil), LineWidthA);
+                    end;
+               end;
+
+               inc(pAjl);
+          end;
+     end;
+end;
+
+// originaly: STRSM with 'Right', 'Lower', 'Transpose', 'Non-unit'
+// which solves one of the matrix equations
+//    op( A )*X = alpha*B,   or   X*op( A ) = alpha*B,
+// alpha is set to one
+//  where alpha is a scalar, X and B are m by n matrices, A is a unit, or
+//    non-unit,  upper or lower triangular matrix  and  op( A )  is one  of
+//    op( A ) = A   or   op( A ) = A**T
+procedure GenericSolveLoTriMtxTranspNoUnit(A : PDouble; const LineWidthA : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
+var j, i, k : TASMNativeInt;
+    pAjk : PDouble;
+    pBij, pBik : PDouble;
+    pAkk : PDouble;
+    temp : double;
+begin
+     if (width = 0) or (height = 0) then
+        exit;
+
+     pAkk := A;
+     for k := 0 to width - 1 do
+     begin
+          temp := 1/pAkk^;
+          
+          pBik := B;
+          inc(pBik, k);
+          for i := 0 to height - 1 do
+          begin
+               pBik^ := temp*pBik^;
+               inc(PByte(pBik), LineWidthB);
+          end;
+
+          pAjk := pAkk;
+          inc(PByte(pAjk), LineWidthA);
+          
+          for j := k + 1 to width - 1 do
+          begin
+               if pAjk^ <> 0 then
+               begin
+                    temp := pAjk^;
+ 
+                    pBij := B;
+                    inc(pBij, j);
+                    pBik := B;
+                    inc(pBik, k);
+                    
+                    for i := 0 to height - 1 do
+                    begin
+                         pBij^ := pBij^ - temp*pBik^;
+                         inc(PByte(pBij), LineWidthB);
+                         inc(PByte(pBik), LineWidthB);
+                    end;
+               end;
+
+               inc(PByte(pAjk), LineWidthA);
+          end;
+
+          inc(pAkk);
+          inc(PByte(pAkk), LineWidthA);
+     end;
+end;
+
 
 end.

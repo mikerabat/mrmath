@@ -34,6 +34,7 @@ var BlockedMatrixMultSize : integer = 512;
     BlockedVectorMatrixMultSize : integer = cDefCacheBlkSize*cDefCacheBlkSize;
     QRBlockSize : integer = 24;
     QRMultBlockSize : integer = 64;
+    CholBlockSize : integer = 24;
 
 // checks when first applying a transpose operation is better for the multiplication
 procedure SetupOptBlockMatrixSize;

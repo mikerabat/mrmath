@@ -54,6 +54,7 @@ type
    procedure TestApplyFunc;
    procedure TestSumInPlace;
    procedure TestQR;
+   procedure TestCholesky;
    procedure TestSymEig;
    procedure TestEig;
    procedure TestNormalize;
@@ -98,6 +99,7 @@ type
     procedure TestDeterminant;
     procedure TestMatrixSolve;
     procedure TestMedian;
+    procedure TestCholesky;
   end;
 
 implementation
@@ -171,6 +173,29 @@ begin
      finally
             mtx.Free;
      end;
+end;
+
+procedure TestTDoubleMatrix.TestCholesky;
+var a, b, c : TDoubleMatrix;
+    res : TCholeskyResult;
+begin
+     a := TDoubleMatrix.CreateRand(123, 123);
+     b := a.Transpose;
+     a.MultInPlace(b);
+     b.Free;
+
+     res := a.Cholesky(b);
+
+     check(res = crOk, 'Error cholesky decomposition failed');
+
+     c := b.Transpose;
+     b.MultInPlace(c);
+     c.Free;
+
+     check( CheckMtx(a.SubMatrix, b.SubMatrix), 'Cholesky error L*LT does not result in the original matrix');
+
+     a.Free;
+     b.Free;
 end;
 
 procedure TestTDoubleMatrix.TestConstructors;
@@ -686,6 +711,30 @@ begin
 
      Check(CheckMtx(dest1.SubMatrix, dest2.SubMatrix));
 end;
+
+procedure TestTThreadedMatrix.TestCholesky;
+var a, b, c : IMatrix;
+    res : TCholeskyResult;
+    startTime, endTime : Int64;
+begin
+     a := TThreadedMatrix.CreateRand(2047, 2047);
+     b := a.Transpose;
+     a.MultInPlace(b);
+     
+     startTime := MtxGetTime;
+     res := a.Cholesky(b);
+     endTime := MtxGetTime;
+
+     status(Format('Cholesky decomp of 2047x2047 matrix: %.2f', [(endTime - startTime)/mtxFreq*1000]));
+     
+     check(res = crOk, 'Error cholesky decomposition failed');
+
+     c := b.Transpose;
+     b.MultInPlace(c);
+
+     check( CheckMtx(a.SubMatrix, b.SubMatrix), 'Cholesky error L*LT does not result in the original matrix');
+end;
+
 
 procedure TestTThreadedMatrix.TestDeterminant;
 const cBlkWidth = 1024;

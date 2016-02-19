@@ -81,6 +81,12 @@ procedure MatrixCholeskySolveLinEq(A : PDouble; const LineWidthA : TASMNativeInt
   const LineWidthP : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt; progress : TLinEquProgress = nil);
 
 
+// Linpack version of cholesky decomposition
+function MatrixCholeskyInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
+function MatrixCholeskyInPlace3(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
+function MatrixCholeskyInPlace4(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; pnlSize : TASMNativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
+
+
 // original functions from Numerical Recipies:
 // In place QR decomposition. Constructs the QR decomposition of A (n*n). The upper triangle matrix R is returned
 // in the upper triangle of a, except for the diagonal elements of R which are returned in
@@ -143,7 +149,9 @@ type
   end;
 
 
-// only for internal use
+// ###########################################
+// #### only for internal use
+// ###########################################
 type
   TRecMtxQRDecompData = record
     pWorkMem : PByte;
@@ -162,6 +170,9 @@ type
 function InternalMatrixQRDecompInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; qrData : TRecMtxQRDecompData) : boolean;
 procedure InternalBlkMatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; qrData : TRecMtxQRDecompData);
 
+function InternalBlkCholeskyInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; pnlSize : TASMNativeInt; 
+   aMatrixMultT2Ex : TMatrixBlockedMultfunc; multMem : PDouble; progress : TLinEquProgress = nil) : TCholeskyResult;
+   
 implementation
 
 uses Math, MathUtilFunc, ASMMatrixOperations,
@@ -1565,7 +1576,7 @@ begin
              progress(int64(i)*100 div width);
 
           pAj := pA;
-          
+
           for j := i to width - 1 do
           begin
                sum := PDouble(PAnsiChar(pA) + j*sizeof(double))^;
@@ -1712,6 +1723,208 @@ begin
      if Assigned(progress) then
         progress(100);
 end;
+
+
+// ##########################################################
+// #### Cholesky routines
+// ##########################################################
+
+function InternalBlkCholeskyInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; pnlSize : TASMNativeInt; 
+   aMatrixMultT2Ex : TMatrixBlockedMultfunc; multMem : PDouble; progress : TLinEquProgress = nil) : TCholeskyResult;
+var j : integer;
+    jb : integer;
+    pAjj : PDouble;
+    pA1 : PDouble;
+    pAjb, pAj, pAjjb : PDouble;
+begin
+     Result := crOk;
+     
+     j := 0;
+     pAjj := A;
+     pA1 := A;
+     while j < width do
+     begin
+          jb := min(pnlSize, width - j);
+
+          GenericSymRankKUpd(pAjj, LineWidthA, pA1, LineWidthA, j, jb, -1, 1);
+
+          Result := MatrixCholeskyInPlace2(pAjj, LineWidthA, jb, nil);
+
+          if result <> crOk then
+             exit;
+          
+          // compute the current block column
+          if j + jb < width then
+          begin
+               pAjb := A;
+               inc(PByte(pAjb), (j + jb)*LineWidthA);
+               pAj := A;
+               inc(PByte(pAj), j*LineWidthA);
+               pAjjb := pAjb;
+               inc(pAjjb, j);
+               
+               aMatrixMultT2Ex(pAjjb, LineWidthA, pAjb, pAj, j, width - j - jb, j, jb,
+                              LineWidthA, LineWidthA, jb, doSub, multMem);
+
+               GenericSolveLoTriMtxTranspNoUnit(pAjj, LineWidthA, pAjjb, LineWidthA, jb, width - j - jb);
+          end;
+
+          inc(pAjj, pnlSize);
+          inc(PByte(pAjj), pnlSize*LineWidthA);
+          inc(PByte(pA1), pnlSize*LineWidthA);
+          inc(j, pnlSize);
+
+          if assigned(progress) then
+             progress(Int64(j)*100 div Int64(width));
+     end;
+end;
+
+function MatrixCholeskyInPlace4(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; pnlSize : TASMNativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
+var 
+    multMem : PDouble;
+begin
+     if pnlSize = 0 then
+        pnlSize := CholBlockSize;
+     
+     // single line version 
+     if width <= pnlSize then
+     begin
+          Result := MatrixCholeskyInPlace2(A, LineWidthA, width, progress);
+          exit;
+     end;
+
+     // ###########################################
+     // #### Blocked code
+     // ###########################################
+     multMem := GetMemory(BlockMultMemSize(pnlSize));
+     Result := InternalBlkCholeskyInPlace(A, LineWidthA, width, pnlSize, {$IFDEF FPC}@{$ENDIF}MatrixMultT2Ex, multMem, progress);
+     FreeMem(multMem);
+end;
+
+
+// recursive cholesky decomposition:
+// This is the recursive version of the algorithm. It divides
+// the matrix into four submatrices:
+//
+//        [  A11 | A12  ]  where A11 is n1 by n1 and A22 is n2 by n2
+//    A = [ -----|----- ]  with n1 = n/2
+//        [  A21 | A22  ]       n2 = n-n1
+//
+// The subroutine calls itself to factor A11. Update and scale A21
+// or A12, update A22 then call itself to factor A22.
+
+
+
+function InternaRecursivelCholeskyInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt) : TCholeskyResult;
+var n1, n2 : TASMNativeInt;
+    A21, A22 : PDouble;
+begin
+     Result := crNoPositiveDefinite;
+
+     if width = 1 then
+     begin
+          if (A^ <= 0) or IsNan(A^) then
+             exit;
+
+          A^ := Sqrt(A^);
+     end
+     else
+     begin
+          n1 := width div 2;
+          n2 := width - n1;
+
+          if n1 > 0 then
+          begin
+               Result := InternaRecursivelCholeskyInPlace(A, LineWidthA, n1);
+
+               if Result <> crOk then
+                  exit;
+          end;
+
+          // lower triangualar cholesky:
+          A21 := A;
+          inc(PByte(A21), n1*LineWidthA); 
+          GenericSolveLoTriMtxTranspNoUnit(A, LineWidthA, A21, LineWidthA, n1, n2);
+          
+          // Update and factor A22
+          A22 := A;
+          inc(PByte(A22), n1*LineWidthA);
+          inc(A22, n1);
+          GenericSymRankKUpd(A22, LineWidthA, A21, LineWidthA, n1, n2, -1, 1);
+
+          Result := InternaRecursivelCholeskyInPlace(A22, LineWidthA, n2);
+
+          if Result <> crOk then
+             exit;
+     end;
+
+     Result := crOk;
+end;
+
+
+function MatrixCholeskyInPlace3(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
+begin
+     Result := InternaRecursivelCholeskyInPlace(A, LineWidthA, width)
+end;
+
+// single line but memory access optimal version of the cholesky decomposition 
+function MatrixCholeskyInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
+var i : TASMNativeInt;
+    j, k : TASMNativeInt;
+    pAi : PDouble;
+    sum : double;
+    pAij : PDouble;
+    pAik, pAjk : PDouble;
+    pAjj : PDouble;
+begin
+     Result := crNoPositiveDefinite;
+
+     // lower triangular cholesky decomposition
+     for i := 0 to width - 1 do
+     begin
+          pAi := A;
+          inc(PByte(pAi), i*LineWidthA);
+          pAij := PAi;
+          pAjj := A;
+          for j := 0 to i do
+          begin
+               sum := pAij^;
+
+               pAik := pAi;
+               pAjk := A;
+               inc(PByte(pAjk), j*LineWidthA);
+               for k := 0 to j - 1 do
+               begin
+                    sum := sum - pAik^*pAjk^;
+                    inc(pAik);
+                    inc(pAjk);
+               end;
+
+               if i > j
+               then
+                   pAij^ := sum/pAjj^
+               else if sum > 0 then
+               begin
+                    pAik := pAi;
+                    inc(pAik, i);
+                    pAik^ := sqrt(sum);
+               end
+               else
+                   exit;   // not positive definite
+
+               inc(pAij);
+               inc(pAjj);
+               inc(PByte(pAjj), LineWidthA);
+          end;
+
+          if Assigned(progress) then
+             Progress(i*100 div (width - 1));
+     end;
+
+     Result := crOk;
+end;
+
+
 
 function MatrixQRDecompInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; C : PDouble; const LineWidthC : TASMNativeInt;
   D : PDouble; const LineWidthD : TASMNativeInt; progress : TLinEquProgress) : TQRResult;

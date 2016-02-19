@@ -42,6 +42,9 @@ function ThrMatrixQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width,
 procedure ThrMatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; 
        tau : PDouble; BlockSize : integer; work : PDouble; progress : TLinEquProgress = nil);
  
+// threaded version of Cholesky decomposition which makes use of the threaded matrix multiplication routine
+function ThrMatrixCholeskyDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; pnlSize : integer; work : PDouble; progress : TLinEquProgress) : TCholeskyResult;
+ 
 implementation
 
 uses MtxThreadPool, LinearAlgebraicEquations, Math, ThreadedMatrixOperations, OptimizedFuncs,
@@ -616,5 +619,29 @@ begin
      FreeMem(qrData.BlkMultMem);
 end;
 
+// ###########################################
+// #### Cholesky decomposition
+// ###########################################
+
+function ThrMatrixCholeskyDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; pnlSize : integer; work : PDouble; progress : TLinEquProgress) : TCholeskyResult;
+var data : PDouble;
+    multMem : PDouble;
+begin
+     if pnlSize = 0 then
+        pnlSize := CholBlockSize;
+        
+     data := work;
+     if work = nil then
+        data := GetMemory(numCPUCores*( 4 + BlockMultMemSize(pnlSize) ) );
+
+     multMem := data;
+     if (NativeUInt(data) and $0000000F) <> 0 then
+        multMem := PDouble(NativeUInt(data) + 16 - NativeUInt(data) and $0F); 
+
+     Result := InternalBlkCholeskyInPlace(A, LineWidthA, width, pnlSize, {$IFDEF FPC}@{$ENDIF}ThrMatrixMultT2Ex, multMem, progress);
+
+     if work = nil then
+        FreeMem(data);
+end;
 
 end.

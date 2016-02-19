@@ -33,6 +33,7 @@ type
    procedure Status(const msg : string);
    {$ENDIF}
 
+   procedure FillMatrix(mtxSize : integer; out x, y : TDoubleDynArray; out p1, p2 : PDouble);
    procedure WriteMatlabData(const fileName : string; const data : Array of double; width : integer);
    procedure TryClearCache;
    function WriteMtx(const data : Array of Double; width : integer; prec : integer = 3) : string; overload;
@@ -170,6 +171,40 @@ begin
         SaveToFile(FileName {$IF not Defined(FPC) and (CompilerVersion >= 20)} , TEncoding.ASCII {$IFEND});
      finally
             Free;
+     end;
+end;
+
+procedure TBaseMatrixTestCase.FillMatrix(mtxSize: integer; out x,
+  y: TDoubleDynArray; out p1, p2: PDouble);
+var px : PDouble;
+    py : PDouble;
+    idx : integer;
+begin
+     SetLength(x, mtxSize);
+     SetLength(y, mtxSize);
+
+     p1 := GetMemory(mtxSize*sizeof(double));
+     p2 := GetMemory(mtxSize*sizeof(double));
+
+     // fill randomly:
+     px := @x[0];
+     py := @y[0];
+     for Idx := 0 to mtxSize - 1 do
+     begin
+          px^ := random;
+          py^ := random;
+          inc(px);
+          inc(py);
+     end;
+
+     px := p1;
+     py := p2;
+     for Idx := 0 to mtxSize - 1 do
+     begin
+          px^ := x[idx];
+          py^ := y[idx];
+          inc(px);
+          inc(py);
      end;
 end;
 

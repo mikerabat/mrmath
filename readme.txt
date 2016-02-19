@@ -47,6 +47,13 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: 19.2.2016
+* New blocked based implementation of the cholesky decomposition.
+* Threaded cholesky version which makes use of threaded multiplication routines.
+* Fix: a scale function checked for the wrong params (assertion was raised)
+* Updated RDRAND calls for 32 and 64 bit - rdrand is now working.
+* Fix: the hardware random number generator routine returned negative values as well.
+
 Date: 17.11.2015
 * New random number engine which supports the creation of Mersenne Twister PRNG.
 * Encapsulated the Delphi random generator into an object (thread safety)

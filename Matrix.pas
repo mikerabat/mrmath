@@ -411,8 +411,8 @@ type
     function Eig(out EigVals : TDoublematrix; out EigVect : TDoubleMatrix; normEigVecs : boolean = False)  : TEigenvalueConvergence; overload;
     function Eig(out EigVals : TDoublematrix)  : TEigenvalueConvergence; overload;
     function Eig(out EigVals : IMatrix; out EigVect : IMatrix; normEigVecs : boolean = False) : TEigenvalueConvergence; overload;
-    function Eig(out EigVals : IMatrix)  : TEigenvalueConvergence; overload;
-    function Cholesky(out Chol : TDoubleMatrix) : TCholeskyResult; overload;
+    function Eig(out EigVals : IMatrix)  : TEigenvalueConvergence; overload; 
+    function Cholesky(out Chol : TDoubleMatrix) : TCholeskyResult; overload; virtual;
     function Cholesky(out Chol : IMatrix) : TCholeskyResult; overload;
     function QR(out ecosizeR : TDoubleMatrix; out tau : TDoubleMatrix) : TQRResult; overload; virtual;
     function QR(out ecosizeR : IMatrix; out tau : IMatrix) : TQRResult; overload;
@@ -595,23 +595,20 @@ begin
 end;
 
 function TDoubleMatrix.Cholesky(out Chol: TDoubleMatrix): TCholeskyResult;
-var p : TDoubleDynArray;
-    x, y : integer;
+var x, y : integer;
 begin
      CheckAndRaiseError((fSubWidth > 0) and (fSubWidth = fSubHeight), 'Cholesky decomposition is only allowed on square matrices');
-     chol := ResultClass.Create(fSubWidth, fSubHeight);
+     chol := ResultClass.Create;
      try
-        SetLength(p, fSubWidth);
-
-        Result := MatrixCholesky(chol.StartElement, chol.LineWidth, StartElement, LineWidth, fSubWidth, @p[0], sizeof(double), fLinEQProgress);
+        chol.Assign(Self);
+        // block wise cholesky decomposition
+        Result := MatrixCholeskyInPlace4(chol.StartElement, chol.LineWidth, chol.Width, 0, fLinEQProgress);
 
         if Result = crOk then
         begin
-             // copy diagonal elements which are stored in p
+             // zero out the upper elements
              for y := 0 to fSubWidth - 1 do
              begin
-                  Chol[y, y] := p[y];
-
                   for x := y + 1 to fSubWidth - 1 do
                       Chol[x, y] := 0;
              end;
