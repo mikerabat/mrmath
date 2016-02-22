@@ -371,10 +371,8 @@ begin
                    meanVal := meanVal + pVal2^[x];
 
                if Width > 0 then
-                  meanVal := meanVal/Width;
-
-               if meanVal <> 0 then
                begin
+                    meanVal := meanVal/Width;
                     dest^ := 0;
                     for x := 0 to Width - 1 do
                         dest^ := dest^ + sqr( pVal2^[x] - meanVal );
@@ -406,10 +404,9 @@ begin
                end;
 
                if Height > 0 then
-                  meanVal := meanVal/Height;
-
-               if meanVal <> 0 then
                begin
+                    meanVal := meanVal/Height;
+
                     pVal := PDouble(pVal1);
                     dest^ := 0;
                     for y := 0 to Height - 1 do
