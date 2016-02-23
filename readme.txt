@@ -47,6 +47,11 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: 23.2.2016
+* New auxilary function to sort a matrix (column and row wise)
+* Threaded version of sort
+* New TakeOver routine that grabs the memory of another matrix (instead of copying it)
+
 Date: 19.2.2016
 * New blocked based implementation of the cholesky decomposition.
 * Threaded cholesky version which makes use of threaded multiplication routines.
