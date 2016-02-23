@@ -96,6 +96,8 @@ procedure GenericMtxSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDo
 // memory is needed. The memory is either allocated on the fly or can be provided in the function.
 procedure GenericMtxMedian(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; tmp : PDouble = nil);
 
+procedure GenericMtxSort(dest : PDouble; destLineWidth : TASMNativeInt; width, height : integer; RowWise : boolean; tmp : PDouble = nil);
+
 procedure GenericMtxAddAndScale(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
 procedure GenericMtxScaleAndAdd(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
 
@@ -346,6 +348,57 @@ begin
 
      if tmp = nil then
         FreeMemory(tmpMem);
+end;
+
+procedure GenericMtxSort(dest : PDouble; destLineWidth : TASMNativeInt; width, height : integer; RowWise : boolean; tmp : PDouble = nil);
+var x, y : TASMNativeInt;
+    pDest : PDouble;
+    tmpMem : PDouble;
+begin
+     assert((Width > 0) and (Height > 0), 'No data assigned');
+
+     if (Width = 0) or (height = 0) then
+        exit;
+
+     if RowWise then
+     begin
+          for y := 0 to Height - 1 do
+          begin
+               QuickSort(PConstDoubleArr(Dest), width);
+               inc(PByte(dest), destLineWidth);
+          end;
+     end
+     else
+     begin
+          tmpMem := tmp;
+          if tmp = nil then
+             tmpMem := GetMemory(height*sizeof(double));
+          
+          for x := 0 to Width - 1 do
+          begin
+               pDest := dest;
+               
+               for y := 0 to Height - 1 do
+               begin
+                    PConstDoubleArr(tmpMem)^[y] := pDest^;
+                    inc(PByte(pDest), destLineWidth);
+               end;
+
+               QuickSort(PConstDoubleArr(tmpMem), height);
+               
+               pDest := dest;
+               for y := 0 to Height - 1 do
+               begin
+                    pDest^ := PConstDoubleArr(tmpMem)^[y];
+                    inc(PByte(pDest), destLineWidth);
+               end;
+
+               inc(dest);
+          end;
+
+          if tmp = nil then
+             FreeMemory(tmpMem);
+     end;
 end;
 
 // note: this function calculates the unbiased version of the matrix variance!

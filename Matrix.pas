@@ -27,8 +27,8 @@ type
   TDoubleMatrix = class;
   IMatrix = interface(IMathPersistence)
     ['{8B76CD12-4314-41EB-BD98-302A024AA0EC}']
-    function StartElement : PDouble; 
-    function LineWidth : integer; 
+    function StartElement : PDouble;
+    function LineWidth : integer;
 
     procedure SetLinEQProgress(value : TLinEquProgress);
     function GetLinEQProgress : TLinEquProgress;
@@ -81,9 +81,9 @@ type
     function Abs : TDoubleMatrix;
     procedure AbsInPlace;
 
-    procedure DiagInPlace(createDiagMtx : boolean); 
+    procedure DiagInPlace(createDiagMtx : boolean);
     function Diag(createDiagMtx : boolean) : TDoubleMatrix;
-    
+
     procedure Normalize(RowWise : boolean);
     function ElementwiseNorm2 : double;
 
@@ -129,8 +129,8 @@ type
     procedure AddAndScaleInPlace(const Offset, Scale : double);
     function AddAndScale(const Offset, Scale : double) : TDoubleMatrix;
 
-    function Mean(RowWise : boolean) : TDoubleMatrix; 
-    procedure MeanInPlace(RowWise : boolean); 
+    function Mean(RowWise : boolean) : TDoubleMatrix;
+    procedure MeanInPlace(RowWise : boolean);
     function Variance(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
     procedure VarianceInPlace(RowWise : boolean; unbiased : boolean = True);
     function Std(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
@@ -138,7 +138,10 @@ type
 
     function Median(RowWise : boolean) : TDoubleMatrix;
     procedure MedianInPlace(RowWise : boolean);
-    
+
+    procedure SortInPlace(RowWise : boolean);
+    function Sort(RowWise : boolean) : TDoubleMatrix;
+
     function Sum(RowWise : boolean) : TDoubleMatrix;
     procedure SumInPlace(RowWise : boolean);
 
@@ -207,6 +210,10 @@ type
     procedure AssignSubMatrix(Value : TDoubleMatrix; X : integer = 0; Y : integer = 0); overload;
     procedure AssignSubMatrix(Value : IMatrix; X : integer = 0; Y : integer = 0); overload;
 
+    // moves data from Value to self and clears original object
+    procedure TakeOver(Value : TDoubleMatrix); overload;
+    procedure TakeOver(Value : IMatrix); overload;
+
     function Clone : TDoubleMatrix;
   end;
 
@@ -219,7 +226,7 @@ type
     // e.g. the threaded class does not override all standard functions but
     // the resulting class type shall always be the threaded class!
     class function ResultClass : TDoubleMatrixClass; virtual;
-  
+
     function GetItems(x, y: integer): double; register;
     procedure SetItems(x, y: integer; const Value: double); register;
     // Access as vector -> same as GetItem(idx mod width, idx div width)
@@ -295,7 +302,7 @@ type
     procedure SetColumn(col : integer; Values : IMatrix; ValCols : integer = 0); overload;
 
     procedure SetValue(const initVal : double);
-    
+
     function Reshape(newWidth, newHeight : integer) : TDoubleMatrix;
     procedure ReshapeInPlace(newWidth, newHeight : integer);
 
@@ -309,7 +316,7 @@ type
 
     procedure DiagInPlace(createDiagMtx : boolean);
     function Diag(createDiagMtx : boolean) : TDoubleMatrix;
-    
+
     procedure Normalize(RowWise : boolean);
     function ElementwiseNorm2 : double;
 
@@ -351,8 +358,8 @@ type
     procedure AddAndScaleInPlace(const Offset, Scale : double); virtual;
     function AddAndScale(const Offset, Scale : double) : TDoubleMatrix; virtual;
 
-    function Mean(RowWise : boolean) : TDoubleMatrix; 
-    procedure MeanInPlace(RowWise : boolean); 
+    function Mean(RowWise : boolean) : TDoubleMatrix;
+    procedure MeanInPlace(RowWise : boolean);
     function Variance(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
     procedure VarianceInPlace(RowWise : boolean; unbiased : boolean = True);
     function Std(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
@@ -360,7 +367,10 @@ type
 
     function Median(RowWise : boolean) : TDoubleMatrix; virtual;
     procedure MedianInPlace(RowWise : boolean);
-    
+
+    procedure SortInPlace(RowWise : boolean); virtual;
+    function Sort(RowWise : boolean) : TDoubleMatrix;
+
     function Sum(RowWise : boolean) : TDoubleMatrix;
     procedure SumInPlace(RowWise : boolean);
 
@@ -411,7 +421,7 @@ type
     function Eig(out EigVals : TDoublematrix; out EigVect : TDoubleMatrix; normEigVecs : boolean = False)  : TEigenvalueConvergence; overload;
     function Eig(out EigVals : TDoublematrix)  : TEigenvalueConvergence; overload;
     function Eig(out EigVals : IMatrix; out EigVect : IMatrix; normEigVecs : boolean = False) : TEigenvalueConvergence; overload;
-    function Eig(out EigVals : IMatrix)  : TEigenvalueConvergence; overload; 
+    function Eig(out EigVals : IMatrix)  : TEigenvalueConvergence; overload;
     function Cholesky(out Chol : TDoubleMatrix) : TCholeskyResult; overload; virtual;
     function Cholesky(out Chol : IMatrix) : TCholeskyResult; overload;
     function QR(out ecosizeR : TDoubleMatrix; out tau : TDoubleMatrix) : TQRResult; overload; virtual;
@@ -428,6 +438,10 @@ type
     procedure Assign(const Mtx : Array of double; W, H : integer); overload;
     procedure AssignSubMatrix(Value : TDoubleMatrix; X : integer = 0; Y : integer = 0); overload;
     procedure AssignSubMatrix(Value : IMatrix; X : integer = 0; Y : integer = 0); overload;
+
+    procedure TakeOver(Value : TDoubleMatrix); overload;
+    procedure TakeOver(Value : IMatrix); overload;
+
 
     function Clone : TDoubleMatrix;
 
@@ -766,7 +780,7 @@ var dl : IMatrix;
 begin
      dl := Diag(createDiagMtx);
 
-     Assign(dl, True);     
+     TakeOver(dl);
 end;
 
 function TDoubleMatrix.SolveLinEQ(Value: TDoubleMatrix; numRefinements : integer) : TDoubleMatrix;
@@ -818,7 +832,7 @@ begin
         then
             raise ELinEQSingularException.Create('Matrix is singular');
 
-        Assign(dt, False);
+        TakeOver(dt);
      finally
             dt.Free;
      end;
@@ -1118,7 +1132,7 @@ begin
         dt.Assign(self, True);
         Result := MatrixInverseInPlace(dt.StartElement, dt.LineWidth, fSubWidth, fLinEQProgress);
         if Result = leOk then
-           Assign(dt);
+           TakeOver(dt);
 
         FreeAndNil(dt);
      except
@@ -1191,7 +1205,7 @@ begin
 
      dl := Mean(RowWise);
      try
-        Assign(dl);
+        TakeOver(dl);
      finally
             dl.Free;
      end;
@@ -1222,10 +1236,26 @@ begin
 
      dl := Median(RowWise);
      try
-        Assign(dl);
+        TakeOver(dl);
      finally
             dl.Free;
      end;
+end;
+
+function TDoubleMatrix.Sort(RowWise: boolean): TDoubleMatrix;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+     Result := ResultClass.Create;
+     Result.Assign(self);
+
+     Result.SortInPlace(RowWise);
+end;
+
+procedure TDoubleMatrix.SortInPlace(RowWise: boolean);
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+
+     MatrixSort(StartElement, LineWidth, width, Height, RowWise, nil);
 end;
 
 function TDoubleMatrix.Std(RowWise: boolean; unbiased : boolean = True): TDoubleMatrix;
@@ -1241,7 +1271,7 @@ begin
 
      dl := Std(RowWise, unbiased);
      try
-        Assign(dl);
+        TakeOver(dl);
      finally
             dl.Free;
      end;
@@ -1272,7 +1302,7 @@ begin
 
      dl := Variance(RowWise, unbiased);
      try
-        Assign(dl);
+        TakeOver(dl);
      finally
             dl.Free;
      end;
@@ -1303,7 +1333,7 @@ begin
 
      dl := Mult(Value);
      try
-        Assign(dl);
+        TakeOver(dl);
      finally
             dl.Free;
      end;
@@ -1317,7 +1347,7 @@ begin
 
      dl := MultT1(Value);
      try
-        Assign(dl);
+        TakeOver(dl);
      finally
             dl.Free;
      end;
@@ -1331,7 +1361,7 @@ begin
 
      dl := MultT2(Value);
      try
-        Assign(dl);
+        TakeOver(dl);
      finally
             dl.Free;
      end;
@@ -1393,7 +1423,7 @@ begin
      dt := ResultClass.Create(Width, Height);
      try
         MatrixNormalize(dt.StartElement, dt.LineWidth, StartElement, LineWidth, Width, Height, RowWise);
-        Assign(dt);
+        TakeOver(dt);
      finally
             dt.Free;
      end;
@@ -1433,7 +1463,7 @@ begin
         Result := MatrixPseudoinverse(mtx.StartElement, mtx.LineWidth, StartElement, LineWidth, Width, Height, fLinEQProgress);
 
         if Result = srOk then
-           Assign(mtx);
+           TakeOver(mtx);
      finally
             mtx.Free;
      end;
@@ -1875,7 +1905,7 @@ begin
 
      dl := Sum(RowWise);
      try
-        Assign(dl);
+        TakeOver(dl);
      finally
             dl.Free;
      end;
@@ -1983,6 +2013,39 @@ begin
      end;
 end;
 
+procedure TDoubleMatrix.TakeOver(Value: TDoubleMatrix);
+begin
+     // free memory from self
+     Clear;
+
+     // move properties to self
+     fSubWidth := Value.fSubWidth;
+     fSubHeight := Value.fSubHeight;
+     fMemory := Value.fMemory;
+     fData := Value.fData;
+     fLineWidth := Value.fLineWidth;
+     fWidth := Value.fWidth;
+     fHeight := Value.fHeight;
+     fOffsetX := Value.fOffsetX;
+     fOffsetY := Value.fOffsetY;
+
+     // since this is a hostile takeover we need to clear the other object
+     value.fSubWidth := 0;
+     value.fSubHeight := 0;
+     Value.fMemory := nil;
+     value.fData := nil;
+     value.fLineWidth := 0;
+     value.fWidth := 0;
+     value.fHeight := 0;
+     value.fOffsetX := 0;
+     value.fOffsetY := 0;
+end;
+
+procedure TDoubleMatrix.TakeOver(Value: IMatrix);
+begin
+     TakeOver(Value.GetObjRef);
+end;
+
 function TDoubleMatrix.Transpose : TDoubleMatrix;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
@@ -1999,7 +2062,7 @@ begin
 
      dt := Transpose;
      try
-        Assign(dt);
+        TakeOver(dt);
      finally
             dt.Free;
      end;
@@ -2109,7 +2172,7 @@ end;
 procedure TDoubleMatrix.Clear;
 begin
      ReserveMem(0, 0);
-     
+
      fWidth := 0;
      fHeight := 0;
      fSubWidth := 0;

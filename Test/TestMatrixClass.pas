@@ -59,6 +59,7 @@ type
    procedure TestEig;
    procedure TestNormalize;
    procedure TestRandomInit;
+   procedure TestSort;
   end;
 
 type
@@ -99,6 +100,7 @@ type
     procedure TestDeterminant;
     procedure TestMatrixSolve;
     procedure TestMedian;
+    procedure TestSort;
     procedure TestCholesky;
   end;
 
@@ -540,6 +542,31 @@ begin
      end;
 end;
 
+procedure TestTDoubleMatrix.TestSort;
+var mtx, mtx1 : TDoubleMatrix;
+    x, y : integer;
+begin
+     mtx := TDoubleMatrix.CreateRand(20, 20);
+     mtx1 := mtx.Sort(True);
+
+     for y := 0 to mtx1.Height - 1 do
+     begin
+          for x := 1 to mtx1.Width - 1 do
+              Check( mtx1[x - 1, y] <= mtx1[x, y], 'Error wrong sort order');
+     end;
+
+     mtx.SortInPlace(False);
+
+     for x := 0 to mtx.Width - 1 do
+     begin
+          for y := 1 to mtx.Height - 1 do
+              Check( mtx[x, y - 1] <= mtx[x, y], 'Error wrong sort order');
+     end;
+
+     mtx1.Free;
+     mtx.Free;
+end;
+
 procedure TestTDoubleMatrix.TestSub;
 var mtx : TDoubleMatrix;
     dx : Array[0..49] of double;
@@ -872,6 +899,50 @@ begin
 
      Check(CheckMtx(m1.SubMatrix, m2.SubMatrix), 'Error calculating threaded median');
 end;
+
+procedure TestTThreadedMatrix.TestSort;
+const cBlkWidth = 2048;
+      cBlkSize = cBlkWidth*cBlkWidth;
+var a : TDoubleDynArray;
+    i : integer;
+    start, stop : int64;
+    m1, m2 : IMatrix;
+begin
+     SetLength(a, cBlkSize);
+
+     RandSeed := 15;
+     for i := 0 to cBlkSize - 1 do
+         a[i] := Random - 0.5;
+
+     m1 := TDoubleMatrix.Create(a, cBlkWidth, cBlkWidth);
+     start := MtxGetTime;
+     m1.SortInPlace(True);
+     stop := MtxGetTime;
+     Status(Format('Single Thr Sort: %.2fms', [(stop - start)/mtxfreq*1000]));
+
+     m2 := TThreadedMatrix.Create(a, cBlkWidth, cBlkWidth);
+     start := MtxGetTime;
+     m2.SortInPlace(True);
+     stop := MtxGetTime;
+     Status(Format('Multi Thr Sort: %.2fms', [(stop - start)/mtxfreq*1000]));
+
+     Check(CheckMtx(m1.SubMatrix, m2.SubMatrix), 'Error calculating threaded sorted matrix');
+
+     m1 := TDoubleMatrix.Create(a, cBlkWidth, cBlkWidth);
+     start := MtxGetTime;
+     m1.SortInPlace(False);
+     stop := MtxGetTime;
+     Status(Format('Single Thr Sort: %.2fms', [(stop - start)/mtxfreq*1000]));
+
+     m2 := TThreadedMatrix.Create(a, cBlkWidth, cBlkWidth);
+     start := MtxGetTime;
+     m2.SortInPlace(False);
+     stop := MtxGetTime;
+     Status(Format('Multi Thr Sort: %.2fms', [(stop - start)/mtxfreq*1000]));
+
+     Check(CheckMtx(m1.SubMatrix, m2.SubMatrix), 'Error calculating threaded sorted matrix');
+end;
+
 
 procedure TestTThreadedMatrix.TestThreadMult;
 var dest1, dest2 : IMatrix;

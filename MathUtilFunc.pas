@@ -21,7 +21,7 @@ unit MathUtilFunc;
 
 interface
 
-uses Types;
+uses Types, MatrixConst;
 
 {$WRITEABLECONST ON}
 
@@ -48,6 +48,7 @@ type
 function DoubleSortFunc(const Item1, Item2) : integer;
 procedure QuickSort(var A; ItemSize : integer; ItemCount : integer; ItemSort : TQuickSortFunc); overload;
 procedure QuickSort(var A: array of double; StartIdx : integer = 0; EndIdx : integer = -1); overload;
+procedure QuickSort(A : PConstDoubleArr; Width : integer); overload;
 
 // for median - note: the content (sort order) of the array is destroyed!
 function KthLargest(var vals : TDoubleDynArray; elemNum : Cardinal) : double; overload;
@@ -55,7 +56,7 @@ function KthLargest(valsArr : PDouble; numElem : integer; elemNum : Cardinal) : 
 
 implementation
 
-uses SysUtils, Math, Classes, MatrixConst;
+uses SysUtils, Math, Classes;
 
 // ##########################################
 // #### utility function implementation
@@ -143,6 +144,38 @@ begin
         exit;
 
      QS(A, startIdx, EndIdx);
+end;
+
+procedure QuickSort(A : PConstDoubleArr; Width : integer); overload;
+procedure QS(A: PConstDoubleArr; iLo, iHi: Integer);
+var Lo, Hi : Integer;
+    MidVal, T: double;
+begin
+     Lo := iLo;
+     Hi := iHi;
+     MidVal := A^[(Lo + Hi) div 2];
+     repeat
+           while A^[Lo] < MidVal do Inc(Lo);
+           while A^[Hi] > MidVal do Dec(Hi);
+           if Lo <= Hi then
+           begin
+                // Swap values
+                T := A^[Lo];
+                A^[Lo] := A^[Hi];
+                A^[Hi] := T;
+                Inc(Lo);
+                Dec(Hi);
+           end;
+    until Lo > Hi;
+
+    if Hi > iLo then QS(A, iLo, Hi);
+    if Lo < iHi then QS(A, Lo, iHi);
+end;
+begin
+     if width <= 1 then
+        exit;
+
+     QS(A, 0, width - 1);
 end;
 
 function eps(const val : double) : double;

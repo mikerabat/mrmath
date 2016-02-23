@@ -102,6 +102,8 @@ function MatrixMedian(const Src : Array of double; width, height : TASMNativeInt
 procedure MatrixMedian(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; hlpMem : PDouble); overload;
 procedure MatrixMedian(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean); overload;
 
+procedure MatrixSort(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; hlpMem : PDouble = nil);
+
 function MatrixVar(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean) : TDoubleDynArray; overload;
 function Matrixvar(const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean) : TDoubleDynArray; overload;
 procedure MatrixVar(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean); overload;
@@ -153,7 +155,8 @@ type
   TMatrixVarianceFunc = procedure(dest : PDouble; destLineWidth : TASMNativeInt; src : PDouble; srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; RowWise : Boolean; unbiased : boolean);
   TMatrixRowSwapFunc = procedure (A, B : PDouble; width : TASMNativeInt);
   TMatrixMedianFunc = procedure (dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; tmp : PDouble = nil);
-
+  TMatrixSortFunc = procedure (dest : PDouble; destLineWidth : TASMNativeInt; width, height : integer; RowWise : boolean; tmp : PDouble = nil);
+  
 
 implementation
 
@@ -184,6 +187,7 @@ var multFunc : TMatrixMultFunc;
     matrixNormalizeFunc : TMatrixNormalizeFunc;
     matrixMeanFunc : TMatrixNormalizeFunc;
     matrixMedianFunc : TMatrixMedianFunc;
+    matrixSortFunc : TMatrixSortFunc;
     matrixVarFunc : TMatrixVarianceFunc;
     matrixSumFunc : TMatrixNormalizeFunc;
     rowSwapFunc : TMatrixRowSwapFunc;
@@ -601,6 +605,13 @@ begin
      MatrixMedian(@dest[0], width*sizeof(double), @src[0], width*sizeof(double), width, height, RowWise, nil);
 end;
 
+procedure MatrixSort(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; hlpMem : PDouble = nil);
+begin
+     if (width <= 0) or (height <= 0) then
+        exit;
+
+     matrixSortFunc(dest, destLineWidth, width, height, RowWise, hlpMem);
+end;
 
 function MatrixVar(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean) : TDoubleDynArray; overload;
 begin
@@ -794,6 +805,7 @@ begin
      end;
 
      matrixMedianFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMedian;
+     matrixSortFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxSort;
      
      actUseSSEoptions := IsSSE3Present;
      actUseStrassenMult := useStrassenMult;

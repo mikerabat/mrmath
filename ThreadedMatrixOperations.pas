@@ -37,6 +37,7 @@ procedure ThrMatrixAdd(dest : PDouble; const destLineWidth : TASMNativeInt; mt1,
 procedure ThrMatrixSub(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 
 procedure ThrMatrixMedian(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure ThrMatrixSort(dest : PDouble; destLineWidth : TASMNativeInt; width, height : integer; RowWise : boolean);
 
 procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixFunc); overload;
 procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixObjFunc); overload;
@@ -124,6 +125,18 @@ type
 
     constructor Create(aDest : PDouble; aDestLineWidth : TASMNativeInt; aSrc : PDouble; aSrcLineWidth : TASMNativeInt; aWidth, aHeight : TASMNativeInt; aRowWise : boolean; aHelpMem : PDouble);
   end;
+type
+  TAsyncMatrixSortObj = class(TObject)
+    dest : PDouble;
+    destLineWidth : TASMNativeInt;
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+    rowWise : boolean;
+    hlpMem : PDouble;
+
+    constructor Create(aDest : PDouble; aDestLineWidth : TASMNativeInt; aWidth, aHeight : TASMNativeInt; aRowWise : boolean; aHelpMem : PDouble);
+  end;
+
 
 type
   TAsyncMatrixFuncObj = class(TObject)
@@ -329,6 +342,19 @@ begin
 
      Result := 0;
 end;
+
+function MatrixSortFunc(obj : TObject) : integer;
+begin
+     MatrixSort(TAsyncMatrixSortObj(obj).dest,
+                TAsyncMatrixSortObj(obj).destLineWidth,
+                TAsyncMatrixSortObj(obj).width,
+                TAsyncMatrixSortObj(obj).height,
+                TAsyncMatrixSortObj(obj).rowWise,
+                TAsyncMatrixSortObj(obj).hlpMem);
+
+     Result := 0;
+end;
+
 
 function MatrixAddSubFunc(obj : TObject) : integer;
 begin
@@ -1084,6 +1110,70 @@ begin
      ThrMatrixAddSub(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2, {$IFDEF FPC}@{$ENDIF}MatrixAdd);
 end;
 
+procedure ThrMatrixSort(dest : PDouble; destLineWidth : TASMNativeInt; width, height : integer; RowWise : boolean);
+var i: TASMNativeInt;
+    obj : TAsyncMatrixSortObj;
+    calls : IMtxAsyncCallGroup;
+    sizeFits : boolean;
+    thrSize : TASMNativeInt;
+    maxNumCores : integer;
+    hlpMem : PDouble;
+    mem : Pointer;
+begin
+     // check if it is really necessary to thread the call:
+     if (width < numCPUCores) and (height < numCPUCores) then
+     begin
+          MatrixSort(Dest, destLineWidth, Width, height, RowWise, nil);
+          exit;
+     end;
+
+     calls := MtxInitTaskGroup;
+     mem := nil;
+     if not RowWise then
+     begin
+          maxNumCores := Min(width, numCPUCores);
+
+          sizeFits := (width mod maxNumCores) = 0;
+          thrSize := width div maxNumCores + TASMNativeInt(not sizeFits);
+          GetMem(mem, maxNumCores*height*sizeof(double));
+          hlpMem := mem;
+
+          for i := 0 to maxNumCores - 1 do
+          begin
+               obj := TAsyncMatrixSortObj.Create(dest, destLineWidth, thrSize, height, RowWise, hlpMem);
+
+               inc(obj.dest, i*thrSize);
+               if width < (i + 1)*thrSize then
+                  obj.Width := width - i*thrSize;
+
+               calls.AddTask(@MatrixSortFunc, obj);
+               inc(hlpMem, height);
+          end;
+     end
+     else
+     begin
+          maxNumCores := Min(height, numCPUCores);
+
+          sizeFits := (height mod maxNumCores) = 0;
+          thrSize := height div maxNumCores + TASMNativeInt(not sizeFits);
+
+          for i := 0 to maxNumCores - 1 do
+          begin
+               obj := TAsyncMatrixSortObj.Create(dest, destLineWidth, width, thrSize, RowWise, nil);
+
+               inc(PByte(obj.dest), i*thrSize*destLineWidth);
+               if height < (i + 1)*thrSize then
+                  obj.Height := height - i*thrSize;
+
+              calls.AddTask(@MatrixSortFunc, obj);
+          end;
+     end;
+
+     calls.SyncAll;
+
+     if Assigned(mem) then
+        FreeMem(mem);
+end;
 
 procedure ThrMatrixMedian(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
 var i: TASMNativeInt;
@@ -1107,7 +1197,7 @@ begin
      if not RowWise then
      begin
           maxNumCores := Min(width, numCoresForSimpleFuncs);
-          
+
           sizeFits := (width mod maxNumCores) = 0;
           thrSize := width div maxNumCores + TASMNativeInt(not sizeFits);
           GetMem(mem, maxNumCores*height*sizeof(double));
@@ -1132,7 +1222,7 @@ begin
 
           GetMem(mem, maxNumCores*width*sizeof(double));
           hlpMem := mem;
-          
+
           sizeFits := (height mod maxNumCores) = 0;
           thrSize := height div maxNumCores + TASMNativeInt(not sizeFits);
 
@@ -1232,6 +1322,19 @@ begin
      destLineWidth := aDestLineWidth;
      src := aSrc;
      srcLineWidth := aSrcLineWidth;
+     width := aWidth;
+     height := aHeight;
+     rowWise := aRowWise;
+     hlpMem := aHelpMem;
+end;
+
+{ TAsyncMatrixSortObj }
+
+constructor TAsyncMatrixSortObj.Create(aDest: PDouble; aDestLineWidth, aWidth,
+  aHeight: TASMNativeInt; aRowWise: boolean; aHelpMem: PDouble);
+begin
+     dest := aDest;
+     destLineWidth := aDestLineWidth;
      width := aWidth;
      height := aHeight;
      rowWise := aRowWise;

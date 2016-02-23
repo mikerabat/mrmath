@@ -60,6 +60,7 @@ type
     function Sub(Value : TDoubleMatrix) : TDoubleMatrix; override;
 
     function Median(RowWise : boolean) : TDoubleMatrix; override;
+    procedure SortInPlace(RowWise : boolean); override;
 
     // threaded lin alg functions
     function InvertInPlace : TLinEquResult; override;
@@ -496,6 +497,13 @@ begin
      finally
             dt.Free;
      end;
+end;
+
+procedure TThreadedMatrix.SortInPlace(RowWise: boolean);
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+
+     ThrMatrixSort(StartElement, LineWidth, width, Height, RowWise);
 end;
 
 function TThreadedMatrix.Determinant: double;

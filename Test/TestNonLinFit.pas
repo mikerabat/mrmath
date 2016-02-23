@@ -25,11 +25,12 @@ type
     procedure OnAtanIterate(Sender : TObject; a, x, y : IMatrix);
   published
     procedure TestArctanOpt;
+    procedure TestPolynomFit;
   end;
 
 implementation
 
-uses NonLinearFit, OptimizedFuncs;
+uses Types, NonLinearFit, OptimizedFuncs;
 
 { TestTDoubleMatrix }
 
@@ -70,6 +71,35 @@ begin
      end;
 
      Check(CheckMtx(a0.SubMatrix, a.SubMatrix, -1, -1, 0.02), 'Differences too high');
+end;
+
+procedure TestNonLinFitOptimization.TestPolynomFit;
+const cNumPts : integer = 20;
+var x, y : TDoubleDynArray;
+    idx : integer;
+    a : IMatrix;
+    val : double;
+begin
+     SetLength(x, cNumPts);
+     SetLength(y, cNumPts);
+     // create polynome 4 order from [-4, 4]
+
+     for idx := 0 to cNumPts - 1 do
+     begin
+          val := -4 + 8/cNumPts*idx;;
+          x[idx] := val;
+          y[idx] := 1 + 0.2*val - 0.8*sqr(val) + 0.25*sqr(val)*val + 0.1*sqr(val)*sqr(val);
+     end;
+
+     with TNonLinFitOptimizer.Create do
+     try
+        a := PolynomFit(x, y, 4);
+     finally
+            Free;
+     end;
+
+     Status(WriteMtx(a.SubMatrix, a.Width));
+     Check(CheckMtx(a.SubMatrix, [0.1, 0.25, -0.8, 0.2, 1]), 'Error polynom fit failed');
 end;
 
 initialization
