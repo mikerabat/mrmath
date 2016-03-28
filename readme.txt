@@ -46,6 +46,9 @@ William Cantrall - special thanks for making the library MacOs compatible.
 
 // ###################################################################
 changelog:
+Date: 28.3.2016
+* Updated sym rank update in cholesky decomposition for row major matrix memory access.
+* -> around 10% faster cholesky decomp.
 
 Date: 23.2.2016
 * New auxilary function to sort a matrix (column and row wise)
