@@ -1729,7 +1729,7 @@ end;
 // #### Cholesky routines
 // ##########################################################
 
-function InternalBlkCholeskyInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; pnlSize : TASMNativeInt; 
+function InternalBlkCholeskyInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; pnlSize : TASMNativeInt;
    aMatrixMultT2Ex : TMatrixBlockedMultfunc; multMem : PDouble; progress : TLinEquProgress = nil) : TCholeskyResult;
 var j : integer;
     jb : integer;
@@ -1738,7 +1738,7 @@ var j : integer;
     pAjb, pAj, pAjjb : PDouble;
 begin
      Result := crOk;
-     
+
      j := 0;
      pAjj := A;
      pA1 := A;
@@ -1752,7 +1752,7 @@ begin
 
           if result <> crOk then
              exit;
-          
+
           // compute the current block column
           if j + jb < width then
           begin
@@ -1762,7 +1762,7 @@ begin
                inc(PByte(pAj), j*LineWidthA);
                pAjjb := pAjb;
                inc(pAjjb, j);
-               
+
                aMatrixMultT2Ex(pAjjb, LineWidthA, pAjb, pAj, j, width - j - jb, j, jb,
                               LineWidthA, LineWidthA, jb, doSub, multMem);
 
@@ -1780,13 +1780,12 @@ begin
 end;
 
 function MatrixCholeskyInPlace4(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; pnlSize : TASMNativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
-var 
-    multMem : PDouble;
+var multMem : PDouble;
 begin
      if pnlSize = 0 then
         pnlSize := CholBlockSize;
-     
-     // single line version 
+
+     // single line version
      if width <= pnlSize then
      begin
           Result := MatrixCholeskyInPlace2(A, LineWidthA, width, progress);
@@ -1843,9 +1842,9 @@ begin
 
           // lower triangualar cholesky:
           A21 := A;
-          inc(PByte(A21), n1*LineWidthA); 
+          inc(PByte(A21), n1*LineWidthA);
           GenericSolveLoTriMtxTranspNoUnit(A, LineWidthA, A21, LineWidthA, n1, n2);
-          
+
           // Update and factor A22
           A22 := A;
           inc(PByte(A22), n1*LineWidthA);

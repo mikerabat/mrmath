@@ -2123,10 +2123,11 @@ end;
 // performs a symmetric rank k update in the form dest = alpha* A*AT + Beta*C
 // A is height x height
 // originaly SSYRK.f 'Lower', 'No Transpose'
+// -> updated memory access for row major matrices
 procedure GenericSymRankKUpd(dest : PDouble; LineWidthDest: TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt; k, height : TASMNativeInt; const Alpha, Beta : double);
 var i, j : TASMNativeInt;
     pCij : PDouble;
-    pAil, pAjl : PDouble;
+    pAil, pAjl : PConstDoubleArr;
     temp : double;
     l : TASMNativeInt;
 begin
@@ -2136,57 +2137,27 @@ begin
      for j := 0 to height - 1 do
      begin
           pCij := dest;
-          inc(pCij, j);
           inc(PByte(pCij), j*LineWidthDest);
-          if beta = 0 then
-          begin
-               for i := j to height - 1 do
-               begin
-                    pCij^ := 0;
-                    inc(PByte(pCij), LineWidthDest);
-               end;
-          end
-          else
-          begin 
-               if beta <> 1 then
-               begin
-                    for i := j to height - 1 do
-                    begin
-                         pCij^ := beta*pCij^;
-                         inc(PByte(pCij), LineWidthDest);
-                    end;
-               end;
-          end;
 
-          pAjl := PDouble(A);
+          pAil := PConstDoubleArr(A);
+          pAjl := PConstDoubleArr(A);
           inc(PByte(pAjl), j*LineWidthA);
-          for l := 0 to k - 1 do
+
+          // perform on lower diagonal part of C
+          for i := 0 to j do
           begin
-               if pAjl^ <> 0 then
-               begin
-                    temp := alpha*pAjl^;
+               temp := 0;
+               for l := 0 to k - 1 do
+                   temp := temp + pAil^[l]*pAjl^[l];
 
-                    pAil := A;
-                    inc(PByte(pAil), j*LineWidthA);
-                    inc(pAil, l);
+               pCij^ := Beta*pCij^ + alpha*temp;
 
-                    pCij := dest;
-                    inc(PByte(pCij), LineWidthDest*j);
-                    inc(pCij, j);
-
-                    for i := j to height - 1 do
-                    begin
-                         pCij^ := pCij^ + temp*pAil^;
-
-                         inc(PByte(pCij), LineWidthDest);
-                         inc(PByte(pAil), LineWidthA);
-                    end;
-               end;
-
-               inc(pAjl);
+               inc(pCij);
+               inc(PByte(pAil), LineWidthA);
           end;
      end;
 end;
+
 
 // originaly: STRSM with 'Right', 'Lower', 'Transpose', 'Non-unit'
 // which solves one of the matrix equations
