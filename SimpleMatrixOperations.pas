@@ -171,8 +171,9 @@ end;
 
 procedure GenericMtxNormalize(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
 var normVal : double;
-    pSrc : PDouble;
-    pDest : PDouble;
+    pSrc1 : PConstDoubleArr;
+    pDest1 : PConstDoubleArr;
+    pSrc, pDest : PDouble;
     x, y : TASMNativeInt;
 begin
      assert((destLineWidth >= width*sizeof(double)) and (srcLineWidth >= width*sizeof(double)) and (width > 0) and (height > 0), 'Dimension error');
@@ -181,23 +182,15 @@ begin
      begin
           for y := 0 to height - 1 do
           begin
-               pSrc := Src;
-               pDest := dest;
+               pSrc1 := PConstDoubleArr(Src);
+               pDest1 := PConstDoubleArr(dest);
                normVal := 0;
                for x := 0 to width - 1 do
-               begin
-                    normVal := normVal + sqr(pSrc^);
-                    inc(pSrc);
-               end;
+                   normVal := normVal + sqr(pSrc1^[x]);
                normVal := 1/sqrt(normVal);
 
-               pSrc := Src;
                for x := 0 to width - 1 do
-               begin
-                    pDest^ := pSrc^*normVal;
-                    inc(pDest);
-                    inc(pSrc);
-               end;
+                   pDest1^[x] := pSrc1^[x]*normVal;
 
                inc(PByte(dest), destLineWidth);
                inc(PByte(src), srcLineWidth);
@@ -527,24 +520,20 @@ begin
 end;
 
 function GenericMtxElementwiseNorm2(Src : PDouble; srcLineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
-var pSrc : PDouble;
+var pSrc : PConstDoubleArr;
     x, y : TASMNativeInt;
 begin
      assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
 
      Result := 0;
 
+     pSrc := PConstDoubleArr(Src);
      for y := 0 to Height - 1 do
      begin
-          pSrc := Src;
-
           for x := 0 to Width - 1 do
-          begin
-              	Result := Result + Sqr(pSrc^);
-               inc(pSrc);
-          end;
+              Result := Result + Sqr(pSrc^[x]);
 
-          inc(PByte(Src), srcLineWidth);
+          inc(PByte(pSrc), srcLineWidth);
      end;
 
      Result := Sqrt(Result);
@@ -668,29 +657,17 @@ end;
 
 procedure GenericMtxAdd(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
 var x, y : TASMNativeInt;
-    resOffset : TASMNativeInt;
-    mt1Offset : TASMNativeInt;
-    mt2Offset : TASMNativeInt;
 begin
      assert((width > 0) and (height > 0), 'Dimension error');
-     resOffset := destLineWidth - sizeof(double)*width;
-     mt1Offset := LineWidth1 - sizeof(double)*width;
-     mt2Offset := LineWidth2 - sizeof(double)*width;
-     assert((resOffset >= 0) and (mt1Offset >= 0) and (mt2Offset >= 0), 'Result dimension error');
 
      for y := 0 to Height - 1 do
      begin
           for x := 0 to Width - 1 do
-          begin
-               dest^ := mt1^ + mt2^;
-               inc(dest);
-               inc(mt1);
-               inc(mt2);
-          end;
+              PConstDoubleArr(dest)^[x] := PConstDoubleArr(mt1)^[x] + PConstDoubleArr(mt2)^[x];
 
-          inc(PByte(dest), resOffset);
-          inc(PByte(mt1), mt1Offset);
-          inc(PByte(mt2), mt2Offset);
+          inc(PByte(dest), destLineWidth);
+          inc(PByte(mt1), LineWidth1);
+          inc(PByte(mt2), LineWidth2);
      end;
 end;
 
@@ -724,29 +701,17 @@ end;
 
 procedure GenericMtxSub(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
 var x, y : TASMNativeInt;
-    destOffset : TASMNativeInt;
-    mt1Offset : TASMNativeInt;
-    mt2Offset : TASMNativeInt;
 begin
      assert((width > 0) and (height > 0), 'Dimension error');
-     destOffset := destLineWidth - sizeof(double)*width;
-     mt1Offset := LineWidth1 - sizeof(double)*width;
-     mt2Offset := LineWidth2 - sizeof(double)*width;
-     assert((destOffset >= 0) and (mt1Offset >= 0) and (mt2Offset >= 0), 'Result dimension error');
 
      for y := 0 to Height - 1 do
      begin
           for x := 0 to Width - 1 do
-          begin
-               dest^ := mt1^ - mt2^;
-               inc(dest);
-               inc(mt1);
-               inc(mt2);
-          end;
+              PConstDoubleArr(dest)^[x] := PConstDoubleArr(mt1)^[x] - PConstDoubleArr(mt2)^[x];
 
-          inc(PByte(dest), destOffset);
-          inc(PByte(mt1), mt1Offset);
-          inc(PByte(mt2), mt2Offset);
+          inc(PByte(dest), destLineWidth);
+          inc(PByte(mt1), LineWidth1);
+          inc(PByte(mt2), LineWidth2);
      end;
 end;
 
@@ -820,8 +785,6 @@ end;
 
 procedure GenericMtxMultTransp(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
 var x, y, idx : TASMNativeInt;
-    valCounter1 : PDouble;
-    valCounter2 : PDouble;
     pMt2 : PDouble;
     pDest : PDouble;
 begin
@@ -835,14 +798,8 @@ begin
           for x := 0 to height2 - 1 do
           begin
                pDest^ := 0;
-               valCounter1 := mt1;
-               valCounter2 := pMt2;
                for idx := 0 to width1 - 1 do
-               begin
-                    pDest^ := pDest^ + valCounter1^*valCounter2^;
-                    inc(valCounter1);
-                    inc(valCounter2);
-               end;
+                   pDest^ := pDest^ + PConstDoubleArr(mt1)^[idx]*PConstDoubleArr(pMt2)^[idx];
 
                inc(PByte(pMt2), LineWidth2);
                inc(pDest);
@@ -940,8 +897,6 @@ procedure GenericMtxMultTranspAdd(dest : PDouble; const destLineWidth : TASMNati
   mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
   const LineWidth1, LineWidth2 : TASMNativeInt; C : PDouble; LineWidthC : TASMNativeInt);
 var x, y, idx : TASMNativeInt;
-    valCounter1 : PDouble;
-    valCounter2 : PDouble;
     pDest : PDouble;
     pC : PDouble;
     addVal : Double;
@@ -959,14 +914,8 @@ begin
                addVal := pC^;
 
                pDest^ := 0;
-               valCounter1 := mt1;
-               valCounter2 := pMt2;
                for idx := 0 to width2 - 1 do
-               begin
-                    pDest^ := pDest^ + valCounter1^*valCounter2^;
-                    inc(valCounter1);
-                    inc(valCounter2);
-               end;
+                   pDest^ := pDest^ + PConstDoubleArr(mt1)^[idx]*PConstDoublearr(pMt2)^[idx];
 
                pDest^ := alpha*pDest^ + addVal;
                inc(PByte(PMt2), LineWidth2);
@@ -974,7 +923,6 @@ begin
                inc(pC);
           end;
 
-          //inc(mt2, Width2);
           inc(PByte(mt1), LineWidth1);
 
           inc(PByte(dest), destLineWidth);
@@ -1031,32 +979,20 @@ end;
 
 
 procedure GenericMtxElemMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
-var incDest : TASMNativeInt;
-    incMt1 : TASMNativeInt;
-    incMt2 : TASMNativeInt;
-    x, y : TASMNativeInt;
+var x, y : TASMNativeInt;
 begin
      assert((width > 0) and (height > 0), 'Dimension error');
      assert((width*sizeof(double) <= LineWidth1) and (width*sizeof(double) <= LineWidth2), 'Dimension error');
      assert((width*sizeof(double) <= destLineWidth), 'Dimension error');
 
-     incDest := destLineWidth - width*sizeof(double);
-     incMt1 := LineWidth1 - width*sizeof(double);
-     incMt2 := LineWidth2 - width*sizeof(double);
-
      for y := 0 to Height - 1 do
      begin
           for x := 0 to Width - 1 do
-          begin
-               dest^ := mt1^*mt2^;
-               inc(mt1);
-               inc(mt2);
-               inc(dest);
-          end;
+              PConstDoubleArr(dest)^[x] := PConstDoubleArr(mt1)^[x]*PConstDoubleArr(mt2)^[x];
 
-          inc(PByte(dest), incDest);
-          inc(PByte(mt1), incMt1);
-          inc(PByte(mt2), incMt2);
+          inc(PByte(dest), destLineWidth);
+          inc(PByte(mt1), LineWidth1);
+          inc(PByte(mt2), LineWidth2);
      end;
 end;
 
@@ -1089,32 +1025,20 @@ begin
 end;
 
 procedure GenericMtxElemDiv(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt); overload;
-var incDest : TASMNativeInt;
-    incMt1 : TASMNativeInt;
-    incMt2 : TASMNativeInt;
-    x, y : TASMNativeInt;
+var x, y : TASMNativeInt;
 begin
      assert((width > 0) and (height > 0), 'Dimension error');
      assert((width*sizeof(double) <= LineWidth1) and (width*sizeof(double) <= LineWidth2), 'Dimension error');
      assert((width*sizeof(double) <= destLineWidth), 'Dimension error');
 
-     incDest := destLineWidth - width*sizeof(double);
-     incMt1 := LineWidth1 - width*sizeof(double);
-     incMt2 := LineWidth2 - width*sizeof(double);
-
      for y := 0 to Height - 1 do
      begin
           for x := 0 to Width - 1 do
-          begin
-               dest^ := mt1^/mt2^;
-               inc(mt1);
-               inc(mt2);
-               inc(dest);
-          end;
+              PConstDoubleArr(dest)^[x] := PConstDoubleArr(mt1)^[x]/PConstDoubleArr(mt2)^[x];
 
-          inc(PByte(dest), incDest);
-          inc(PByte(mt1), incMt1);
-          inc(PByte(mt2), incMt2);
+          inc(PByte(dest), destLineWidth);
+          inc(PByte(mt1), LineWidth1);
+          inc(PByte(mt2), LineWidth2);
      end;
 end;
 
@@ -2166,6 +2090,7 @@ end;
 //  where alpha is a scalar, X and B are m by n matrices, A is a unit, or
 //    non-unit,  upper or lower triangular matrix  and  op( A )  is one  of
 //    op( A ) = A   or   op( A ) = A**T
+// operation is: B := alpha * inv( opA) )*B
 procedure GenericSolveLoTriMtxTranspNoUnit(A : PDouble; const LineWidthA : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
 var j, i, k : TASMNativeInt;
     pAjk : PDouble;

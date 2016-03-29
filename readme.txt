@@ -46,6 +46,10 @@ William Cantrall - special thanks for making the library MacOs compatible.
 
 // ###################################################################
 changelog:
+Date: 29.3.2016:
+* Some speed optimizations for the generic (Pascal) implementations: Whera applicable the pointer
+  arithmetic was changed to array access (PConstDoubleArr)
+
 Date: 28.3.2016
 * Updated sym rank update in cholesky decomposition for row major matrix memory access.
 * -> around 10% faster cholesky decomp.
