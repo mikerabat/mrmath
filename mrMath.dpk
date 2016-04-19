@@ -62,6 +62,7 @@ contains
   ThreadedMatrixOperations in 'ThreadedMatrixOperations.pas',
   BaseMathPersistence in 'BaseMathPersistence.pas',
   BinaryReaderWriter in 'BinaryReaderWriter.pas',
+  JSONReaderWriter in 'JSONReaderWriter.pas',
   PCA in 'PCA.pas',
   NonLinearFit in 'NonLinearFit.pas',
   ThreadedLinAlg in 'ThreadedLinAlg.pas',

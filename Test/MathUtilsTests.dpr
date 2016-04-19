@@ -98,7 +98,8 @@ uses
   RandomEng in '..\RandomEng.pas',
   TestRandom in 'TestRandom.pas',
   winRandomGen in '..\win\winRandomGen.pas',
-  MacOsRandomGen in '..\mac\MacOsRandomGen.pas';
+  MacOsRandomGen in '..\mac\MacOsRandomGen.pas',
+  JSONReaderWriter in '..\JSONReaderWriter.pas';
 
 {$R *.RES}
 

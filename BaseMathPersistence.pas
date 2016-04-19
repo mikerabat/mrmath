@@ -91,6 +91,7 @@ type
     procedure WriteStreamHeader; virtual; abstract;
     procedure FinalizeStream; virtual; abstract;
 
+    procedure WriteVersion(ver : integer); virtual;
     procedure WriteObjDescriptor(const Name : String; const Value : String); virtual; abstract;
     procedure WriteListBegin(const Name : String; count : integer); virtual; abstract;
     procedure WriteListEnd; virtual; abstract;
@@ -119,7 +120,7 @@ function CreateMathIOReader(const FileName : TFileName) : TCustomMathPersistence
 function CreateMathIOReader(Stream : TStream) : TCustomMathPersistenceIOClass; overload;
 
 function ReadObjFromFile(const FileName : TFileName) : TBaseMathPersistence;
-function ReadObjFromStream(stream : TStream) : TBaseMathPersistence;
+function ReadObjFromStream(aStream : TStream) : TBaseMathPersistence;
 
 // every math IO file type must be registered here to be recognized
 procedure RegisterMathIOReader(reader : TCustomMathPersistenceIOClass);
@@ -202,14 +203,13 @@ begin
      begin
           try
              if TCustomMathPersistenceIOClass(GetIOObjects[i]).CanReadStream(stream) then
-             begin
-                  Result := TCustomMathPersistenceIOClass(GetIOObjects[i]);
-                  break;
-             end;
+                Result := TCustomMathPersistenceIOClass(GetIOObjects[i]);
           except
           end;
 
           stream.Position := startPos;
+          if Assigned(Result) then
+             break;
      end;
 end;
 
@@ -235,18 +235,18 @@ begin
      end;
 end;
 
-function ReadObjFromStream(stream : TStream) : TBaseMathPersistence;
+function ReadObjFromStream(aStream : TStream) : TBaseMathPersistence;
 var readerClass : TCustomMathPersistenceIOClass;
 begin
      Result := nil;
 
-     readerClass := CreateMathIOReader(stream);
+     readerClass := CreateMathIOReader(aStream);
      if not Assigned(readerClass) then
         exit;
 
      with readerClass.Create do
      try
-        Result := LoadFromStream(stream);
+        Result := LoadFromStream(aStream);
      finally
             Free;
      end;
@@ -312,6 +312,11 @@ begin
      finally
             Free;
      end;
+end;
+
+procedure TCustomMathPersistenceIO.WriteVersion(ver: integer);
+begin
+     // do nothing here
 end;
 
 { TBaseMathPersistence }

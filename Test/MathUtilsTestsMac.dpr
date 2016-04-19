@@ -95,10 +95,11 @@ uses
   winCPUInfo in '..\win\winCPUInfo.pas',
   ICA in '..\ICA.pas',
   TestICA in 'TestICA.pas',
+  RandomEng in '..\RandomEng.pas',
+  TestRandom in 'TestRandom.pas',
   winRandomGen in '..\win\winRandomGen.pas',
   MacOsRandomGen in '..\mac\MacOsRandomGen.pas',
-  RandomEng in '..\RandomEng.pas',
-  TestRandom in 'TestRandom.pas';
+  JSONReaderWriter in '..\JSONReaderWriter.pas';
 
 {$R *.res}
 

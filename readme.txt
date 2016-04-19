@@ -46,6 +46,9 @@ William Cantrall - special thanks for making the library MacOs compatible.
 
 // ###################################################################
 changelog:
+Date: 19.042016:
+* New persistence reader class TJSONReaderWriter. The library is now able to read and write JSON encoded objects.
+
 Date: 29.3.2016:
 * Some speed optimizations for the generic (Pascal) implementations: Whera applicable the pointer
   arithmetic was changed to array access (PConstDoubleArr)

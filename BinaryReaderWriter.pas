@@ -149,6 +149,7 @@ begin
      // ####################################################
      // #### Read version -> take actions according to the new version
      aStream.ReadBuffer(version, sizeof(version));
+     WriteVersion(version);
 
      // ####################################################
      // #### Read data

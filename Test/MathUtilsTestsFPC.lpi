@@ -61,7 +61,6 @@
       <CompilerMessages>
         <IgnoredMessages idx5057="True"/>
       </CompilerMessages>
-      <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
   <Debugging>

@@ -35,7 +35,8 @@ implementation
 
 uses PCA, 
      {$IFDEF MACOS} FMX.Types, {$ENDIF}
-     Graphics, BinaryReaderWriter, BaseMathPersistence, IncrementalPCA;
+     Graphics, BinaryReaderWriter, BaseMathPersistence, IncrementalPCA,
+  JSONReaderWriter;
 
 { TTestEigensystems }
 
@@ -46,6 +47,7 @@ const cData : Array[0..19] of double =
 var Examples : TDoubleMatrix;
     pca1, pca2 : TMatrixPCA;
     writer : TBinaryReaderWriter;
+    jsonWrite : TJsonReaderWriter;
 begin
      Examples := TDoubleMatrix.Create;
      try
@@ -62,8 +64,18 @@ begin
            writer.SaveToFile(pca1, 'pca.dat');
            writer.Free;
 
+           jsonWrite := TJsonReaderWriter.Create;
+           jsonWrite.SaveToFile(pca1, 'pca.json');
+           jsonWrite.Free;
+
            pca2 := ReadObjFromFile('pca.dat') as TMatrixPCA;
 
+           Check(assigned(pca2), 'Error loading failed');
+           Check( CheckMtx(pca2.EigVecs.SubMatrix, pca1.EigVecs.SubMatrix), 'Error loading failed');
+           Check( CheckMtx(pca2.Mean.SubMatrix, pca1.Mean.SubMatrix), 'Error loading failed');
+
+           pca2.Free;
+           pca2 := ReadObjFromFile('pca.json') as TMatrixPCA;
            Check(assigned(pca2), 'Error loading failed');
            Check( CheckMtx(pca2.EigVecs.SubMatrix, pca1.EigVecs.SubMatrix), 'Error loading failed');
            Check( CheckMtx(pca2.Mean.SubMatrix, pca1.Mean.SubMatrix), 'Error loading failed');

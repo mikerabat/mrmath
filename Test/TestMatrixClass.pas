@@ -26,6 +26,9 @@ type
   published
     procedure TestWrite;
     procedure TestRead;
+
+    procedure TestJSONWriteRead;
+    procedure TestJSONRead;
   end;
 
 type
@@ -107,7 +110,8 @@ type
 implementation
 
 uses BaseMathPersistence, binaryReaderWriter,
-     math, MatrixConst, mtxTimer, Dialogs, MathUtilFunc, RandomEng;
+     math, MatrixConst, mtxTimer, Dialogs, MathUtilFunc, RandomEng,
+     JSONReaderWriter;
 
 { TestTDoubleMatrix }
 
@@ -1245,6 +1249,68 @@ begin
      finally
             mtx.Free;
      end;
+end;
+
+procedure TestTDoubleMatrixPersistence.TestJSONWriteRead;
+var mtx : TDoubleMatrix;
+    dx : TDoubleDynArray;
+    i : Integer;
+begin
+     SetLength(dx, 5*10);
+
+     for i := 0 to Length(dx) - 1 do
+         dx[i] := 2 + i;
+
+     mtx := TDoubleMatrix.Create(dx, 5, 10);
+     try
+        TJsonReaderWriter.StaticSaveToFile(mtx, 'matrixData1.json');
+     finally
+            mtx.Free;
+     end;
+
+     for i := 0 to Length(dx) - 1 do
+         dx[i] := 1 + i;
+
+     mtx := TDoubleMatrix.Create(dx, 5, 10);
+     try
+        TJsonReaderWriter.StaticSaveToFile(mtx, 'matrixData2.json');
+     finally
+            mtx.Free;
+     end;
+
+     mtx := ReadObjFromFile('matrixData2.json') as  TDoubleMatrix;
+
+     Check((mtx.Width = 5) and (mtx.Height = 10), 'JSON Reading failed');
+     for i := 0 to mtx.Width*mtx.Height - 1 do
+         Check( dx[i] = mtx.Vec[i], 'JSON Reading failed');
+     mtx.Free;
+end;
+
+
+procedure TestTDoubleMatrixPersistence.TestJSONRead;
+// test to check the correct reading of numeric values
+const sJSNMtx : utf8String =
+                '{"Lib":"mrMath","obj":"MTX","width_i":5,"height_i":2,"data":' + #13#10 +
+                '[0.34,1e-5,-12.44e+3 , 4, -9.1e-1,' + #13#10 +
+                '1, 2, 3, 44, 55 ]' + #13#10 +
+                '}';
+const jsnData : Array[0..9] of double = (0.34, 1e-5, -12.44e+3 , 4, -9.1e-1, 1, 2, 3, 44, 55);
+var stream : TMemoryStream;
+    obj : TDoubleMatrix;
+begin
+     stream := TMemoryStream.Create;
+     try
+        stream.Write(sJSNMtx[1], Length(sJSNMtx));
+        stream.Position := 0;
+
+        obj := ReadObjFromStream(stream) as TDoubleMatrix;
+     finally
+            stream.Free;
+     end;
+
+     Check(Assigned(obj), 'Error in json reader');
+     Check(CheckMtx(obj.SubMatrix, jsnData, -1, -1, 1e-8), 'Error reading numerics from JSON string');
+     obj.Free;
 end;
 
 initialization

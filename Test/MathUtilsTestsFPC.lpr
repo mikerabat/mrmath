@@ -67,6 +67,7 @@ uses
   ThreadedMatrixOperations in '..\ThreadedMatrixOperations.pas',
   BaseMathPersistence in '..\BaseMathPersistence.pas',
   BinaryReaderWriter in '..\BinaryReaderWriter.pas',
+  JSONReaderWriter in '..\JSONReaderWriter.pas',
   BufferedStream in '..\BufferedStream.pas',
   ThreadedLinAlg in '..\ThreadedLinAlg.pas',
   TestPCA in 'TestPCA.pas',

@@ -589,7 +589,7 @@ end;
 
 procedure TTestLinearEquations.TestQRDecomp3;
 var a : TDoubleDynArray;
-    tau, work : TDoubleDynArray;
+    tau : TDoubleDynArray;
 const cSize = 6;
       cA : Array[0..cSize*cSize - 1] of double = (1, 2, 2, 0.5, -1, -2,
                                    -1, 4, -2, -0.1, 0.1, -1,
@@ -606,7 +606,6 @@ const cSize = 6;
                                                  0.189681, 0.002066, -0.316509, -0.502364, 0.442936, -2.360871);
 begin
      SetLength(tau, cSize*cSize);
-     SetLength(work, cSize*cSize);  // should be cSize*nb
 
      SetLength(a, cSize*cSize);
      Move(ca, a[0], sizeof(ca));
