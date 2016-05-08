@@ -235,6 +235,8 @@ type
 
     // matrix persistence functions
     procedure DefineProps; override;
+    function PropTypeOfName(const Name : string) : TPropType; override;
+
     class function ClassIdentifier : String; override;
     procedure OnLoadStringProperty(const Name : String; const Value : String); overload; override;
     procedure OnLoadIntProperty(const Name : String; Value : integer); overload; override;
@@ -2101,10 +2103,41 @@ begin
      AddIntProperty('OffsetY', fOffsetY);
 end;
 
+function TDoubleMatrix.PropTypeOfName(const Name: string): TPropType;
+begin
+     if CompareText(Name, 'Name') = 0
+     then
+         Result := ptString
+     else if CompareText(Name, 'Width') = 0
+     then
+         Result := ptInteger
+     else if CompareText(Name, 'Height') = 0
+     then
+         Result := ptInteger
+     else if CompareText(Name, 'data') = 0
+     then
+         Result := ptDouble
+     else if CompareText(Name, 'SubWidth') = 0
+     then
+         Result := ptInteger
+     else if CompareText(Name, 'SubHeight') = 0
+     then
+         Result := ptInteger
+     else if CompareText(Name, 'OffsetX') = 0
+     then
+         Result := ptInteger
+     else if CompareText(Name, 'OffsetY') = 0
+     then
+         Result := ptInteger
+     else
+         Result := inherited PropTypeOfName(Name);
+end;
+
+
 destructor TDoubleMatrix.Destroy;
 begin
      Clear;
-     
+
      inherited;
 end;
 

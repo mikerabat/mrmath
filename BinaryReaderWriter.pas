@@ -66,9 +66,6 @@ implementation
 
 uses Contnrs;
 
-type
-  THackMathPersistence = class(TBaseMathPersistence);
-
 const cBinaryReaderHeader : Array[0..4] of AnsiChar = 'RMCLS';
       cBinaryReaderVersion : LongWord = 1;
 
@@ -189,7 +186,7 @@ begin
                 bsListDoubleArr: ReadListDoubleArrData(sect.Len, obj.MathIOObj, aStream);
                 bsInteger: ReadIntegerData(sectName, sect.Len, obj.MathIOObj, aStream);
                 bsBeginList: ReadListBeginData(sectName, sect.len, obj.MathIOObj, aStream);
-                bsEndList: THackMathPersistence(obj.MathIOObj).OnLoadEndList;
+                bsEndList: ReadEndList(obj.MathIOObj);
                 bsObjectBegin: objs.Push(TSectObj.Create(sectName, ReadObjFromStream(aStream)));
                 bsObjectEnd: begin
                                   // append loaded object to the previous object
@@ -199,9 +196,9 @@ begin
                                        obj := TSectObj(objs.Pop);
                                        if obj.ObjName = ''
                                        then
-                                           res := THackMathPersistence(TSectObj(objs.Peek).MathIOObj).OnLoadObject(obj.MathIOObj)
+                                           res := ReadObject(TSectObj(objs.Peek).MathIOObj, obj.MathIOObj)
                                        else
-                                           res := THackMathPersistence(TSectObj(objs.Peek).MathIOObj).OnLoadObject(obj.ObjName, obj.MathIOObj);
+                                           res := ReadObject(TSectObj(objs.Peek).MathIOObj, obj.ObjName, obj.MathIOObj);
 
                                        if not res then
                                           obj.MathIOObj.Free;
@@ -222,7 +219,7 @@ begin
      end;
 
      // inform the object that it has been finally initalized
-     THackMathPersistence(Result).FinishReading;
+     ReadFinalize(Result);
 end;
 
 procedure TBinaryReaderWriter.ReadBinaryData(sectName : String; Len : LongInt; obj: TBaseMathPersistence;
@@ -237,7 +234,7 @@ begin
      assert(Len > Length(sSect) + sizeof(TBinarySectionRec), 'Error no data');
      SetLength(value, len - Length(sSect) - sizeof(TBinarySectionRec));
      aStream.ReadBuffer(value[0], Length(value));
-     THackMathPersistence(obj).OnLoadBinaryProperty(sectName, Value[0], Length(value));
+     ReadBinaryProperty(obj, sectName, Value[0], Length(value));
 end;
 
 procedure TBinaryReaderWriter.ReadDoubleArrData(sectName: String;
@@ -251,7 +248,7 @@ begin
      SetLength(value, (len - length(sSect) - sizeof(TBinarySectionRec)) div sizeof(double));
      if Length(value) > 0 then
         aStream.ReadBuffer(value[0], sizeof(double)*Length(value));
-     THackMathPersistence(obj).OnLoadDoubleArr(sectName, Value);
+     ReadDoubleArr(obj, sectName, Value);
 end;
 
 procedure TBinaryReaderWriter.ReadDoubleData(sectName : String; Len : LongInt; obj: TBaseMathPersistence;
@@ -263,7 +260,7 @@ begin
 
      assert(len - Length(sSect) - sizeof(TBinarySectionRec) = sizeof(double), 'Error wrong initialized section');
      aStream.ReadBuffer(value, sizeof(double));
-     THackMathPersistence(obj).OnLoadDoubleProperty(sectName, Value);
+     ReadDoubleProperty(obj, sectName, Value);
 end;
 
 procedure TBinaryReaderWriter.ReadIntArrData(sectName: String; Len: Integer;
@@ -277,7 +274,7 @@ begin
      SetLength(value, (len - length(sSect) - sizeof(TBinarySectionRec)) div sizeof(integer));
      if Length(value) > 0 then
         aStream.ReadBuffer(value[0], sizeof(integer)*Length(value));
-     THackMathPersistence(obj).OnLoadIntArr(sectName, Value);
+     ReadIntArr(obj, sectName, Value);
 end;
 
 procedure TBinaryReaderWriter.ReadIntegerData(sectName : String; Len : LongInt; obj: TBaseMathPersistence;
@@ -289,7 +286,7 @@ begin
 
      assert((len - Length(sSect) - sizeof(TBinarySectionRec)) = sizeof(longint), 'Error wrong initialized section');
      aStream.ReadBuffer(value, sizeof(longint));
-     THackMathPersistence(obj).OnLoadIntProperty(sectName, value);
+     ReadIntProperty(obj, sectName, value);
 end;
 
 procedure TBinaryReaderWriter.ReadListBeginData(sectName: String;
@@ -301,7 +298,7 @@ begin
 
      assert((len - Length(sSect) - sizeof(TBinarySectionRec)) = sizeof(longint), 'Error wrong initialized section');
      aStream.ReadBuffer(value, sizeof(longint));
-     THackMathPersistence(obj).OnLoadBeginList(sectName, value);
+     ReadBeginList(obj, sectName, value);
 end;
 
 procedure TBinaryReaderWriter.ReadListDoubleArrData(Len: Integer; obj: TBaseMathPersistence; aStream: TStream);
@@ -311,7 +308,7 @@ begin
      SetLength(value, (len - sizeof(TBinarySectionRec)) div sizeof(double));
      if Length(value) > 0 then
         aStream.ReadBuffer(value[0], sizeof(double)*Length(value));
-     THackMathPersistence(obj).OnLoadListDoubleArr(Value);
+     ReadListDoubleArr(obj, Value);
 end;
 
 procedure TBinaryReaderWriter.ReadListIntArrData(Len: Integer; obj: TBaseMathPersistence; aStream: TStream);
@@ -321,7 +318,7 @@ begin
      SetLength(value, (len - sizeof(TBinarySectionRec)) div sizeof(integer));
      if Length(value) > 0 then
         aStream.ReadBuffer(value[0], sizeof(integer)*Length(value));
-     THackMathPersistence(obj).OnLoadListIntArr(Value);
+     ReadListIntArr(obj, Value);
 end;
 
 procedure TBinaryReaderWriter.ReadStringData(sectName : String; Len : LongInt; obj: TBaseMathPersistence;
@@ -337,7 +334,7 @@ begin
      assert(Len > Length(sSect) + sizeof(TBinarySectionRec), 'Error no data');
      SetLength(value, len - Length(sectName) - sizeof(TBinarySectionRec));
      aStream.ReadBuffer(value, Length(value));
-     THackMathPersistence(obj).OnLoadStringProperty(sectName, Value);
+     ReadStringProperty(obj, sectName, Value);
 end;
 
 procedure TBinaryReaderWriter.WriteBinaryProperty(const Name: String;

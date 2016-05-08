@@ -46,6 +46,7 @@ type
     function GetA: TDoubleMatrix;
   protected
     procedure DefineProps; override;
+    function PropTypeOfName(const Name: string): TPropType; override;
     class function ClassIdentifier : String; override;
     function OnLoadObject(const Name : String; obj : TBaseMathPersistence) : boolean; override;
     procedure OnLoadIntProperty(const Name : String; Value : integer); override;
@@ -106,6 +107,8 @@ type
     fListType : TListLoadType;
   protected
     procedure DefineProps; override;
+    function PropTypeOfName(const Name : string) : TPropType; override;
+
     class function ClassIdentifier : String; override;
     procedure OnLoadBeginList(const Name : String; count : integer); override;
     procedure OnLoadEndList; override;
@@ -558,6 +561,20 @@ begin
      AddDoubleArr('IncrWeights', fWeights);
 end;
 
+function TIncrementalPCA.PropTypeOfName(const Name: string): TPropType;
+begin
+     if CompareText(Name, 'A') = 0
+     then
+         Result := ptObject
+     else if CompareText(Name, 'NumEigenvectorsToKeep') = 0
+     then
+         Result := ptInteger
+     else if CompareText(Name, 'IncrWeights') = 0
+     then
+         Result := ptDouble
+     else
+         Result := inherited PropTypeOfName(Name);
+end;
 
 procedure TIncrementalPCA.OnLoadDoubleArr(const Name: String;
   const Value: TDoubleDynArray);
@@ -911,6 +928,24 @@ begin
           EndList;
      end;
 end;
+
+function TFastRobustIncrementalPCA.PropTypeOfName(
+  const Name: string): TPropType;
+begin
+     if (CompareText(Name, 'IPCASUBEIGVALS') = 0) or (CompareText(Name, 'IPCASUBA') = 0) or
+        (CompareText(Name, 'A') = 0)
+     then
+         Result := ptObject
+     else if CompareText(Name, 'IPCAWeights') = 0
+     then
+         Result := ptObject
+     else if CompareText(Name, 'NumEigenvectorsToKeep') = 0
+     then
+         Result := ptInteger
+     else
+         Result := inherited PropTypeOfName(Name);
+end;
+
 
 class function TFastRobustIncrementalPCA.ClassIdentifier: String;
 begin

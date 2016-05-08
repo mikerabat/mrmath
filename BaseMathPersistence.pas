@@ -34,6 +34,8 @@ type
     procedure SaveToStream(stream : TStream; Writer : TCustomMathPersistenceIOClass);
   end;
 
+  TPropType = (ptUnknown, ptDouble, ptInteger, ptString, ptObject, ptBinary);
+
   TBaseMathPersistence = class(TInterfacedObject, IMathPersistence)
   private
     fWriter : TCustomMathPersistenceIO;
@@ -71,6 +73,7 @@ type
     procedure InitWriter(Writer : TCustomMathPersistenceIO);
     class function ClassIdentifier : String; virtual;
     procedure DefineProps; virtual; abstract;
+    function PropTypeOfName(const Name : string) : TPropType; virtual; //
     procedure CleanupWriter;
   public
     procedure SaveToFile(const FileName : string; WriterClass : TCustomMathPersistenceIOClass);
@@ -88,6 +91,27 @@ type
 
     class function CanReadStream(aStream : TStream) : boolean; virtual; abstract;
 
+    function PropTypeOfName(readObj : TBaseMathPersistence; const Name : string) : TPropType;
+
+    // ###########################################################
+    // #### Reading routines - these call the onLoad xx routines
+    procedure ReadDoubleProperty(readObj : TBaseMathPersistence; const Name : String; const Value : double);
+    procedure ReadStringProperty(readObj : TBaseMathPersistence; const Name : String; const Value : String);
+    procedure ReadIntProperty(readObj : TBaseMathPersistence; const Name : String; Value : integer);
+    procedure ReadBinaryProperty(readObj : TBaseMathPersistence; const Name : String; const Value; size : integer);
+    function ReadObject(readObj : TBaseMathPersistence; Obj : TBaseMathPersistence) : boolean; overload;
+    function ReadObject(readObj : TBaseMathPersistence; const Name : String; Obj : TBaseMathPersistence) : boolean; overload;
+    procedure ReadBeginList(readObj : TBaseMathPersistence; const Name : String; count : integer);
+    procedure ReadEndList(readObj : TBaseMathPersistence);
+    procedure ReadDoubleArr(readObj : TBaseMathPersistence; const Name : String; const Value : TDoubleDynArray);
+    procedure ReadIntArr(readObj : TBaseMathPersistence; const Name : String; const Value : TIntegerDynArray);
+    procedure ReadListDoubleArr(readObj : TBaseMathPersistence; const Value : TDoubleDynArray);
+    procedure ReadListIntArr(readObj : TBaseMathPersistence; const Value : TIntegerDynArray);
+
+    procedure ReadFinalize(readObj : TBaseMathPersistence);
+
+    // ###########################################################
+    // #### Writing routines - called from the TBaseMathPersistence objects
     procedure WriteStreamHeader; virtual; abstract;
     procedure FinalizeStream; virtual; abstract;
 
@@ -319,7 +343,99 @@ begin
      // do nothing here
 end;
 
-{ TBaseMathPersistence }
+// ################################################
+// #### writing propertyies - called from the reader classes
+// and serve as surrogates between the reader classes and the objects themself
+
+procedure TCustomMathPersistenceIO.ReadDoubleProperty(
+  readObj: TBaseMathPersistence; const Name: String; const Value: double);
+begin
+     assert(assigned(readObj), 'Error: tried write a property on a nil object');
+     readObj.OnLoadDoubleProperty(Name, Value);
+end;
+
+procedure TCustomMathPersistenceIO.ReadStringProperty(
+  readObj: TBaseMathPersistence; const Name, Value: String);
+begin
+     assert(assigned(readObj), 'Error: tried write a property on a nil object');
+     readObj.OnLoadStringProperty(Name, value);
+end;
+
+procedure TCustomMathPersistenceIO.ReadIntProperty(
+  readObj: TBaseMathPersistence; const Name: String; Value: integer);
+begin
+     assert(assigned(readObj), 'Error: tried write a property on a nil object');
+     readObj.OnLoadIntProperty(Name, Value);
+end;
+
+procedure TCustomMathPersistenceIO.ReadBinaryProperty(
+  readObj: TBaseMathPersistence; const Name: String; const Value;
+  size: integer);
+begin
+     assert(assigned(readObj), 'Error: tried write a property on a nil object');
+     readObj.OnLoadBinaryProperty(Name, Value, Size);
+end;
+
+function TCustomMathPersistenceIO.ReadObject(readObj: TBaseMathPersistence;
+  const Name: String; Obj: TBaseMathPersistence): boolean;
+begin
+     assert(assigned(readObj), 'Error: tried write a property on a nil object');
+     Result := readObj.OnLoadObject(Name, Obj);
+end;
+
+function TCustomMathPersistenceIO.ReadObject(readObj,
+  Obj: TBaseMathPersistence): boolean;
+begin
+     assert(assigned(readObj), 'Error: tried write a property on a nil object');
+     Result := readObj.OnLoadObject(Obj);
+end;
+
+procedure TCustomMathPersistenceIO.ReadBeginList(readObj: TBaseMathPersistence;
+  const Name: String; count: integer);
+begin
+     assert(assigned(readObj), 'Error: tried write a property on a nil object');
+     readObj.OnLoadBeginList(Name, Count);
+end;
+
+procedure TCustomMathPersistenceIO.ReadEndList(readObj: TBaseMathPersistence);
+begin
+     assert(assigned(readObj), 'Error: tried write a property on a nil object');
+     readObj.OnLoadEndList;
+end;
+
+procedure TCustomMathPersistenceIO.ReadDoubleArr(readObj: TBaseMathPersistence;
+  const Name: String; const Value: TDoubleDynArray);
+begin
+     assert(assigned(readObj), 'Error: tried write a property on a nil object');
+     readObj.OnLoadDoubleArr(Name, Value);
+end;
+
+procedure TCustomMathPersistenceIO.ReadIntArr(readObj: TBaseMathPersistence;
+  const Name: String; const Value: TIntegerDynArray);
+begin
+     assert(assigned(readObj), 'Error: tried write a property on a nil object');
+     readObj.OnLoadIntArr(Name, Value);
+end;
+
+procedure TCustomMathPersistenceIO.ReadListDoubleArr(
+  readObj: TBaseMathPersistence; const Value: TDoubleDynArray);
+begin
+     assert(assigned(readObj), 'Error: tried write a property on a nil object');
+     readObj.OnLoadListDoubleArr(Value);
+end;
+
+procedure TCustomMathPersistenceIO.ReadListIntArr(readObj: TBaseMathPersistence;
+  const Value: TIntegerDynArray);
+begin
+     assert(assigned(readObj), 'Error: tried write a property on a nil object');
+     readObj.OnLoadListIntArr(Value);
+end;
+
+procedure TCustomMathPersistenceIO.ReadFinalize(readObj: TBaseMathPersistence);
+begin
+     assert(assigned(readObj), 'Error: tried write a property on a nil object');
+     readObj.FinishReading;
+end;
 
 procedure TBaseMathPersistence.AddBinaryProperty(const Name: String;
   const Value; size: integer);
@@ -535,6 +651,17 @@ begin
         raise EWriteError.Create('Error call "addlist x" function without call of BeginList');
         
      fWriter.WriteListIntArr(Value);
+end;
+
+function TBaseMathPersistence.PropTypeOfName(const Name: string): TPropType;
+begin
+     Result := ptUnknown;
+end;
+
+function TCustomMathPersistenceIO.PropTypeOfName(
+  readObj: TBaseMathPersistence; const Name : string): TPropType;
+begin
+     Result := readObj.PropTypeOfName(Name);
 end;
 
 initialization

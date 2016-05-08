@@ -50,6 +50,8 @@ type
     function GetMeanElem: TDoubleMatrix;
   protected
     procedure DefineProps; override;
+    function PropTypeOfName(const Name: string): TPropType; override;
+
     class function ClassIdentifier : String; override;
     function OnLoadObject(const Name : String; obj : TBaseMathPersistence) : boolean; override;
 
@@ -146,6 +148,8 @@ type
     fIdx : integer;
   protected
     procedure DefineProps; override;
+    function PropTypeOfName(const Name : string) : TPropType; override;
+
     class function ClassIdentifier : String; override;
     function OnLoadObject(const Name : String; obj : TBaseMathPersistence) : boolean; overload; override;
     procedure OnLoadDoubleProperty(const Name : String; const Value : double); override;
@@ -822,6 +826,25 @@ begin
      end;
 end;
 
+function TFastRobustPCA.PropTypeOfName(const Name: string): TPropType;
+begin
+     if (CompareText(Name, 'SubMeanElem') = 0) or (CompareText(Name, 'SubEigVecsT') = 0) or
+        (CompareText(Name, 'SubEigVecs') = 0)
+     then
+         Result := ptObject
+     else if (CompareText(Name, 'SubItemIdx') = 0) or (CompareText(Name, 'NumSubSubSpaces') = 0) or
+          (CompareText(Name, 'SubSpaceExclList') = 0)
+     then
+         Result := ptInteger
+     else if (CompareText(Name, 'SubspaceSizes') = 0) or (CompareText(Name, 'SubSpaceCutEPS') = 0) or
+          (CompareText(Name, 'Start') = 0) or (CompareText(Name, 'Stop') = 0) or
+          (CompareText(Name, 'ReductFact') = 0)
+     then
+         Result := ptDouble
+     else
+         Result := inherited PropTypeOfName(Name);
+end;
+
 procedure TFastRobustPCA.OnLoadBeginList(const Name: String;
   count: integer);
 begin
@@ -879,6 +902,7 @@ begin
      else
          Result := inherited OnLoadObject(Obj);
      end;
+     inc(fIdx);
 end;
 
 function TFastRobustPCA.OnLoadObject(const Name: String;
@@ -1414,6 +1438,18 @@ begin
      if (pcaTransposedEigVec in fKeepFlags) and Assigned(fEigVecsT) then
         AddObject('pcavect', fEigVecsT);
 end;
+
+function TMatrixPCA.PropTypeOfName(const Name: string): TPropType;
+begin
+     if (CompareText(Name, 'mean') = 0) or (CompareText(Name, 'pcavec') = 0) or
+        (CompareText(Name, 'eigvals') = 0) or (CompareText(Name, 'meannormdata') = 0) or
+        (CompareText(Name, 'pcavect') = 0)
+     then
+         Result := ptObject
+     else
+         Result := inherited PropTypeOfName(Name);
+end;
+
 
 procedure TMatrixPCA.OnLineEQProgress(Progress: integer);
 begin

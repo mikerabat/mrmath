@@ -77,6 +77,8 @@ type
     procedure FastICA(Examples : TDoubleMatrix);
   protected
     procedure DefineProps; override;
+    function PropTypeOfName(const Name : string) : TPropType; override;
+
     class function ClassIdentifier : String; override;
     function OnLoadObject(const Name : String; obj : TBaseMathPersistence) : boolean; override;
   public
@@ -760,6 +762,16 @@ begin
      AddObject(cWInv, fWInv.GetObjRef);
 end;
 
+function TMatrixICA.PropTypeOfName(const Name: string): TPropType;
+begin
+     if (CompareText(Name, cMean) = 0) or (CompareText(Name, cW) = 0) or (CompareText(Name, cWInv) = 0)
+     then
+         Result := ptObject
+     else
+         Result := inherited PropTypeOfName(Name);
+end;
+
+
 function TMatrixICA.OnLoadObject(const Name: String;
   obj: TBaseMathPersistence): boolean;
 begin
@@ -778,5 +790,7 @@ begin
          Result := inherited OnLoadObject(Name, obj);
 end;
 
+initialization
+   RegisterMathIO(TMatrixICA);
 
 end.

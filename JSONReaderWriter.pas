@@ -28,14 +28,11 @@ interface
 //     without this header.
 // 2.) each Object and thus also the library have a version property. If it is missing
 //     Version 1 is assumed.
-// 3.) The read is handled as a stream thus the object description needs to be
+// 3.) Reading a file is done in one pass and character by character thus the object description needs to be
 //     the first property of an object. Before that property only the lib header
 //     and the version are allowed to be placed. Ensure that your JSON writer
 //     can handle this.
-// 4.) It is not clear if a value is simply an integer or a double - json handles only numeric values -
-//     value but there is a difference in this library. Values are treated as doubles by default
-//     but one can optionaly "cast" the value to an integer by adding the suffix "_i" to a name.
-// 5.) Binary properties are simply strings with the prefix 0x .
+// 4.) Binary properties are simply strings with the prefix 0x .
 //     Each byte in the binary stream is simply encoded as hex value of that byte (00-FF)
 //     meaing that every byte is encoded into 2 characters.
 //     e.g. the byte streams $54$FA$11 is encoded into the string: 0x54FA11
@@ -139,8 +136,7 @@ end;
 procedure TJsonReaderWriter.WriteListBegin(const Name: String; count: integer);
 var s : UTF8String;
 begin
-     s := ',"' + EncodeJSONString(Name) + '_count":' + UTF8String( IntToStr(count) ) +
-          ',"' + EncodeJSONString(Name) + '":[';
+     s := ',"' + EncodeJSONString(Name) + '":[';
      Stream.WriteBuffer(s[1], Length(s));
      fIsFirst := True;
 end;
@@ -176,7 +172,7 @@ procedure TJsonReaderWriter.WriteProperty(const Name: String;
   const Value: integer);
 var s : utf8String;
 begin
-     s := UTF8String(Format(',"%s_i":%d', [EncodeJSONString(Name), Value]));
+     s := UTF8String(Format(',"%s":%d', [EncodeJSONString(Name), Value]));
 
      Stream.WriteBuffer(s[1], Length(s));
 end;
@@ -237,6 +233,10 @@ procedure TJsonReaderWriter.WriteListDoubleArr(const Value: array of double);
 var s : UTF8String;
     counter: Integer;
 begin
+     s := '';
+     if not fIsFirst then
+        s := ',';
+     s := s + '[';
      for counter := 0 to Length(Value) - 1 do
      begin
           s := s + UTF8String( Format('%g', [Value[counter]], fFmt) );
@@ -244,6 +244,9 @@ begin
              s := s + ',';
      end;
 
+     s := s + ']';
+
+     fIsFirst := False;
      if Length(s) > 0 then
         Stream.WriteBuffer(s[1], Length(s));
 end;
@@ -253,7 +256,7 @@ procedure TJsonReaderWriter.WriteIntArr(const Name: String;
 var s : UTF8String;
     counter: Integer;
 begin
-     s := ',"' + EncodeJSONString(Name) + '_i":[';
+     s := ',"' + EncodeJSONString(Name) + '":[';
      for counter := 0 to Length(Value) - 1 do
      begin
           s := s + UTF8String( Format('%d', [Value[counter]], fFmt) );
@@ -271,12 +274,19 @@ procedure TJsonReaderWriter.WriteListIntArr(const Value: array of Integer);
 var s : UTF8String;
     counter: Integer;
 begin
+     s := '';
+     if not fIsFirst then
+        s := ',';
+     s := s + '[';
      for counter := 0 to Length(Value) - 1 do
      begin
           s := s + UTF8String( Format('%d', [Value[counter]], fFmt) );
           if counter <> Length(Value) - 1 then
              s := s + ',';
      end;
+
+     fIsFirst := False;
+     s := s + ']';
 
      if Length(s) > 0 then
         Stream.WriteBuffer(s[1], Length(s));
@@ -380,8 +390,7 @@ type
                 sValueBegin, sValueEnd, sListBegin, slistValue, slistNextValue, sListEnd,
                 sNumericBegin, sNumericNum, sNumericFrac, sNumericExp,
                 sNumericExpSign, sNumericExpVal);
-  TJSONListType = (jlNone, jlDouble, jlString, jlInt, jlDoubleInt, jlObject);
-  THackMathPersistence = class(TBaseMathPersistence);
+  TJSONListType = (jlNone, jlDouble, jlString, jlInt, jlObject, jlDoubleArr, jlIntArr);
 
 
 function TJsonReaderWriter.InternalLoadFromStream(
@@ -396,10 +405,13 @@ var c : Ansichar;
     dVal : double;
     iVal : integer;
     intIdx : integer;
+    numType : TPropType;
 
     binDat : TByteDynArray;
     listD : TDoubleDynArray;
+    listDD : Array of TDoubleDynArray;
     listI : TIntegerDynArray;
+    listII : Array of TIntegerDynArray;
     listS : TStringDynArray;
     listO : Array of TBaseMathPersistence;
     listCnt : integer;
@@ -648,6 +660,85 @@ begin
      end;
 end;
 
+function ReadList(readIntVal : boolean) : TDoubleDynArray;
+var c : AnsiChar;
+    retCnt : integer;
+begin
+     PushState(slistNextValue);
+     Result := nil;
+     retCnt := 0;
+
+     while stateIdx > 0 do
+     begin
+          aStream.ReadBuffer(c, sizeof(c));
+
+          case PeekState of
+            slistValue: begin
+                             if IsWhiteSpace(c) then
+                                continue;
+
+                             if c = ',' then
+                             begin
+                                  PopState;
+                                  PushState(slistNextValue);
+                             end
+                             else if c = ']' then
+                             begin
+                                  // ###################################
+                                  // #### Break the loop here!
+                                  break;
+                             end
+                             else
+                                 raise EReadError.Create('Error unrecognized character when reading the list');
+                        end;
+            slistNextValue: begin
+                                 if IsWhiteSpace(c) then
+                                    continue;
+
+                                 if c in ['+', '-', '0'..'9'] then
+                                 begin
+                                      if retCnt >= Length(Result) then
+                                         SetLength(Result, Min(Length(Result) + 100, 1 + 2*Length(Result)));
+
+                                      if readIntVal
+                                      then
+                                          Result[retCnt] := ReadInt(c)
+                                      else
+                                          Result[retCnt] := ReadNumeric(c);
+
+                                      inc(retCnt);
+
+                                      PopState;
+                                      PushState(slistValue);
+                                 end;
+                            end;
+
+          else
+              raise EReadError.Create('Error state not recognized in reading a list');
+          end;
+     end;
+
+     PopState;
+
+     SetLength(Result, retCnt);
+end;
+
+function ReadListDouble : TDoubleDynArray;
+begin
+     Result := ReadList(False);
+end;
+
+function ReadListInt : TIntegerDynArray;
+var dblArr : TDoubleDynArray;
+    counter : integer;
+begin
+     dblArr := ReadList(True);
+
+     SetLength(Result, Length(dblArr));
+     for counter := 0 to Length(Result) - 1 do
+         Result[counter] := round(dblArr[counter]);
+end;
+
 begin
      states := nil;
      stateIdx := 0;
@@ -658,6 +749,8 @@ begin
      listO := nil;
      listI := nil;
      listS := nil;
+     listdd := nil;
+     listii := nil;
 
      PushState(sObj);
 
@@ -727,10 +820,11 @@ begin
                                              binDat := DecodeStringToBinary(sVal);
                                              if Length(binDat) = 0 then
                                                 raise EReadError.Create('Error: No binary data decoded');
-                                             THackMathPersistence(Result).OnLoadBinaryProperty(sProp, binDat[0], Length(binDat));
+
+                                             ReadBinaryProperty(Result, sProp, binDat[0], Length(binDat));
                                         end
                                         else
-                                            THackMathPersistence(Result).OnLoadStringProperty(sProp, sVal);
+                                            ReadStringProperty(Result, sProp, sVal);
                                    end;
                                    sProp := '';
                                    sVal := '';
@@ -754,23 +848,31 @@ begin
                                         continue;
                                    end;
 
+                                   if not Assigned(Result) then
+                                      raise EReadError.Create('Error no object type given before a value has been read.');
+
+                                   numType := PropTypeOfName(Result, sProp);
                                    intIdx := Pos('_i', sProp);
-                                   if (intIdx > 0) and (intIdx = Length(sProp) - 1)
+                                   if (IntIdx > 0) and (intIdx = Length(sProp) - 1) then
+                                   begin
+                                        SetLength(sProp, Length(sProp) - 2);
+                                        numType := ptInteger;
+                                   end;
+
+                                   if numType = ptInteger
                                    then
                                        iVal := ReadInt(c)
                                    else
                                        dVal := ReadNumeric(c);
 
-                                   if not Assigned(Result) then
-                                      raise EReadError.Create('Error no object type given before a value has been read.');
                                    if sProp = '' then
                                       raise EReadError.Create('Error - no object name given');
 
-                                   if (intIdx > 0) and (intIdx = Length(sProp) - 1)
+                                   if numType = ptInteger
                                    then
-                                       THackMathPersistence(Result).OnLoadIntProperty(Copy(sProp, 1, Length(sProp) - 2), iVal)
+                                       ReadIntProperty(Result, sProp, iVal)
                                    else
-                                       THackMathPersistence(Result).OnLoadDoubleProperty(sProp, dVal);
+                                       ReadDoubleProperty(Result, sProp, dVal);
                                    sProp := '';
                                    sVal := '';
                                    PopState;
@@ -792,7 +894,7 @@ begin
                                    if sProp = '' then
                                       raise EReadError.Create('Error - no object name given');
 
-                                   if not THackMathPersistence(Result).OnLoadObject(sProp, aObj) then
+                                   if not ReadObject( Result, sProp, aObj ) then
                                       aObj.Free;
 
                                    sProp := '';
@@ -851,14 +953,50 @@ begin
                                   PopState;
                                   PushState(slistValue);
                              end
+                             else if c = '[' then
+                             begin
+                                  if listType <> jlNone then
+                                     raise EReadError.Create('Error list already initalized');
+
+                                  intIdx := Pos('_i', sProp);
+                                  numType := PropTypeOfName(Result, sProp);
+                                  if (numType = ptInteger) or ((intIdx > 0) and (intIdx = Length(sProp) - 1)) then
+                                  begin
+                                       if numType <> ptInteger then
+                                          SetLength(sProp, Length(sProp) - 2);
+                                       listType := jlIntArr;
+                                       if listCnt >= Length(listII) then
+                                          SetLength(listII, Min(length(listII) + 100, 1 + 2*Length(listII)));
+                                  end
+                                  else
+                                  begin
+                                       listType := jlDoubleArr;
+                                       if listCnt >= Length(listDD) then
+                                          SetLength(listDD, Min(length(listDD) + 100, 1 + 2*Length(listDD)));
+                                  end;
+
+                                  if listType = jlDoubleArr
+                                  then
+                                      listDD[listCnt] := ReadListDouble
+                                  else
+                                      listII[listCnt] := ReadListInt;
+
+                                  inc(listCnt);
+                                  PopState;
+                                  PushState(slistValue);
+
+                             end
                              else if c in ['0'..'9', '+', '-'] then
                              begin
                                   if listType <> jlNone then
                                      raise EReadError.Create('Error list already initalized');
 
                                   intIdx := Pos('_i', sProp);
-                                  if (intIdx > 0) and (intIdx = Length(sProp) - 1) then
+                                  numType := PropTypeOfName(Result, sProp);
+                                  if (numType = ptInteger) or ((intIdx > 0) and (intIdx = Length(sProp) - 1)) then
                                   begin
+                                       if numType <> ptInteger then
+                                          SetLength(sProp, Length(sProp) - 2);
                                        listType := jlInt;
                                        if listCnt >= Length(listI) then
                                           SetLength(listI, Min(length(listI) + 100, 1 + 2*Length(listI)));
@@ -898,25 +1036,38 @@ begin
                                   case listType of
                                    jlDouble: begin
                                                   SetLength(listD, listCnt);
-                                                  THackMathPersistence(Result).OnLoadDoubleArr(sProp, listD);
+                                                  ReadDoubleArr(Result, sProp, listD);
                                              end;
                                    jlString: begin
-                                                  THackMathPersistence(Result).OnLoadBeginList(sProp, listCnt);
+                                                  ReadBeginList(Result, sProp, listCnt);
                                                   for counter := 0 to listCnt - 1 do
-                                                      THackMathPersistence(Result).OnLoadStringProperty('', listS[counter]);
-                                                  THackMathPersistence(Result).OnLoadEndList;
+                                                      ReadStringProperty(Result, '', listS[counter]);
+                                                  ReadEndList(Result);
                                              end;
                                    jlInt: begin
                                                SetLength(listI, listCnt);
-                                               THackMathPersistence(Result).OnLoadIntArr(Copy(sProp, 1, Length(sProp) - 2), listI);
+                                               ReadIntArr(Result, sProp, listI);
                                           end;
                                    jlObject: begin
-                                                  THackMathPersistence(Result).OnLoadBeginList(sProp, listCnt);
+                                                  ReadBeginList(Result, sProp, listCnt);
                                                   for counter := 0 to listCnt - 1 do
-                                                      if not THackMathPersistence(Result).OnLoadObject(listO[counter]) then
+                                                      if not ReadObject(Result, listO[counter])  then
                                                          listO[counter].Free;
-                                                  THackMathPersistence(Result).OnLoadEndList;
+                                                  ReadEndList(Result);
                                              end;
+                                   jlDoubleArr: begin
+                                                     ReadBeginList(Result, sProp, listCnt);
+                                                     for counter := 0 to listCnt - 1 do
+                                                         ReadListDoubleArr(Result, listDD[counter]);
+                                                     ReadEndList(Result);
+                                                end;
+                                   jlIntArr: begin
+                                                  ReadBeginList(Result, sProp, listCnt);
+                                                  for counter := 0 to listCnt - 1 do
+                                                      ReadListIntArr(Result, listII[counter]);
+                                                  ReadEndList(Result);
+                                             end;
+
                                   else
                                       raise EReadError.Create('Error non recognized array type');
                                   end;
@@ -926,6 +1077,8 @@ begin
                              listI := nil;
                              listD := nil;
                              listS := nil;
+                             listDD := nil;
+                             listII := nil;
                              listCnt := 0;
                              PopState;
                              PushState(sValueEnd);
@@ -986,6 +1139,30 @@ begin
                                       PopState;
                                       PushState(slistValue);
                                  end
+                                 else if c = '[' then
+                                 begin
+                                      if (listType <> jlDoubleArr) and (listType <> jlIntArr) then
+                                         raise EReadError.Create('Error unrecognized list found in a list');
+
+                                      if listType = jlDoubleArr then
+                                      begin
+                                           if listCnt >= Length(listD) then
+                                              SetLength(listDD, Min(length(listDD) + 100, 1 + 2*Length(listDD)));
+
+                                           listDD[listCnt] := ReadListDouble;
+                                      end
+                                      else if listType = jlIntArr then
+                                      begin
+                                           if listCnt >= Length(listII) then
+                                              SetLength(listII, Min(length(listII) + 100, 1 + 2*Length(listII)));
+
+                                           listII[listCnt] := ReadListInt;
+                                      end;
+
+                                      inc(listCnt);
+                                      PopState;
+                                      PushState(slistValue);
+                                 end
                                  else
                                      raise EReadError.Create('Error illegal character');
                          end;
@@ -1019,7 +1196,7 @@ begin
      end;
 
      if Assigned(Result) then
-        THackMathPersistence(Result).FinishReading;
+        ReadFinalize(Result);
 end;
 
 

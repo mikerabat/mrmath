@@ -31,13 +31,14 @@ type
     fWxT : IMatrix;
     fWyT : IMatrix;
     fR : IMatrix;
-    
+
     function InvertAndSQRT(mtx : IMatrix) : IMatrix;
     procedure CCA(X, Y: TDoubleMatrix; doRegularization: Boolean;
       Lamda: double);
   protected
     class function ClassIdentifier : String; override;
     procedure DefineProps; override;
+    function PropTypeOfName(const Name : string) : TPropType; override;
 
     function OnLoadObject(const Name : String; Obj : TBaseMathPersistence) : boolean; override;
   public
@@ -238,6 +239,15 @@ begin
         AddObject(cCCAWy, fWyT.GetObjRef);
 end;
 
+function TMatrixCCA.PropTypeOfName(const Name: string): TPropType;
+begin
+     if (CompareText(Name, cCCAR) = 0) or (CompareText(Name, cCCAWx) = 0) or (CompareText(Name, cCCAWy) = 0)
+     then
+         Result := ptObject
+     else
+         Result := inherited PropTypeOfName(Name);
+end;
+
 function TMatrixCCA.OnLoadObject(const Name: String;
   Obj: TBaseMathPersistence): boolean;
 begin
@@ -259,5 +269,9 @@ destructor TMatrixCCA.Destroy;
 begin
      inherited;
 end;
+
+initialization
+   RegisterMathIO(TMatrixCCA);
+
 
 end.

@@ -46,7 +46,10 @@ William Cantrall - special thanks for making the library MacOs compatible.
 
 // ###################################################################
 changelog:
-Date: 19.042016:
+Date: 08.05.2016:
+* Updated persistence model so the reader knows which type to read (needed for JSON reader).
+
+Date: 19.04.2016:
 * New persistence reader class TJSONReaderWriter. The library is now able to read and write JSON encoded objects.
 
 Date: 29.3.2016:

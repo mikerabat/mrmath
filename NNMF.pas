@@ -54,6 +54,7 @@ type
     procedure maxFunc(var value : double);
   protected
     procedure DefineProps; override;
+    function PropTypeOfName(const Name : string) : TPropType; override;
 
     procedure OnLoadIntProperty(const Name : String; Value : integer); override;
     procedure OnLoadDoubleProperty(const Name : String; const Value : double); override;
@@ -64,13 +65,13 @@ type
     property H : TDoubleMatrix read fH;
     property W : TDoubleMatrix read fW;
     property WInv : TDoubleMatrix read fWInv;
-    
+
     function CalcNMF(V : TDoubleMatrix) : TNMFRes;
     procedure InitProjectionmatrix; // calculates pseudoinverse of W
 
     function ProjectToFeatureSpace(Example: TDoubleMatrix): TDoubleMatrix;
     function Reconstruct(Features: TDoubleMatrix): TDoubleMatrix;
-    
+
     procedure SetProperties(const props : TNNMFProps);
     
     constructor Create;
@@ -433,6 +434,25 @@ begin
      if Assigned(fWInv) then
         AddObject(cNNMFWInv, fWInv);
 end;
+
+function TNNMF.PropTypeOfName(const Name: string): TPropType;
+begin
+     if (CompareText(Name, cNNMFMaxIter) = 0) or (CompareText(Name, cNNMFMethod) = 0) or
+        (CompareText(Name, cNNMFRank) = 0) or (CompareText(Name, cNNMFUpdateEPS) = 0) or
+        (CompareText(Name, cNNMFUseLastRes) = 0)
+     then
+         Result := ptInteger
+     else if CompareText(Name, cNNMFTolerance) = 0
+     then
+         Result := ptDouble
+     else if (CompareText(Name, cNNMFW) = 0) or (CompareText(Name, cNNMFH) = 0) or
+             (CompareText(Name, cNNMFWInv) = 0)
+     then
+         Result := ptObject
+     else
+         Result := inherited PropTypeOfName(Name);
+end;
+
 
 procedure TNNMF.OnLoadDoubleProperty(const Name: String; const Value: double);
 begin

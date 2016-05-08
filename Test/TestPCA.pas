@@ -169,6 +169,8 @@ var Examples : TDoubleMatrix;
     //stop : Cardinal;
     x : integer;
     props : TFastRobustPCAProps;
+    incpca : TFastRobustIncrementalPCA;
+    json : TJsonReaderWriter;
 begin
      Examples := LoadImages(w, h);
 
@@ -181,7 +183,8 @@ begin
      props.ReductionFactor := 0.75;
      props.SubSpaceCutEPS := 0;
 
-     with TFastRobustIncrementalPCA.Create([pcaEigVals]) do
+     incpca := TFastRobustIncrementalPCA.Create([pcaEigVals]);
+     with incpca do
      try
         NumEigenvectorsToKeep := 6;
 
@@ -232,6 +235,14 @@ begin
                     feature.Free;
              end;
         end;
+
+        json := TJsonReaderWriter.Create;
+        json.SaveToFile(incpca, 'incpca.json');
+
+        incpca.Free;
+        incpca := json.LoadFromFile('incpca.json') as TFastRobustIncrementalPCA;
+        json.Free;
+
      finally
             Free;
      end;
