@@ -31,11 +31,22 @@ interface
 
 uses MatrixConst;
 
+// used in the matrx multiplication routine
+// note these functions assume to have a vector in row major stored!
 procedure ASMMatrixVectorMultAlignedEvenW1(dest : PDouble; const destLineWidth : TaSMNativeInt; mt1, mt2 : PDouble; width1 : TaSMNativeInt; height1 : TaSMNativeInt; height2 : TaSMNativeInt; const LineWidth1 : TaSMNativeInt);
 procedure ASMMatrixVectorMultUnAlignedEvenW1(dest : PDouble; const destLineWidth : TaSMNativeInt; mt1, mt2 : PDouble; width1 : TaSMNativeInt; height1 : TaSMNativeInt; height2 : TaSMNativeInt; const LineWidth1 : TaSMNativeInt);
 
 procedure ASMMatrixVectorMultAlignedOddW1(dest : PDouble; const destLineWidth : TaSMNativeInt; mt1, mt2 : PDouble; width1 : TaSMNativeInt; height1 : TaSMNativeInt; height2 : TaSMNativeInt; const LineWidth1 : TaSMNativeInt);
 procedure ASMMatrixVectorMultUnAlignedOddW1(dest : PDouble; const destLineWidth : TaSMNativeInt; mt1, mt2 : PDouble; width1 : TaSMNativeInt; height1 : TaSMNativeInt; height2 : TaSMNativeInt; const LineWidth1 : TaSMNativeInt);
+
+// assembler function for the matrix to vector multiplication with additional operation
+// LineWidthV is not sizeof(double) --> special care for loading values!
+procedure ASMMatrixVectMultAlignedOddW(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure ASMMatrixVectMultUnalignedOddW(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure ASMMatrixVectMultAlignedEvenW(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure ASMMatrixVectMultUnalignedEvenW(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+
+procedure ASMMatrixVectMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 
 {$ENDIF}
 
@@ -289,6 +300,411 @@ begin
         pop ebx;
      end;
 end;
+
+
+procedure ASMMatrixVectMultAlignedOddW(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+var iter : TASMNativeInt;
+begin
+     assert(((Cardinal(mt1) and $0000000F) = 0), 'Error aligned operations cannot be performed');
+     assert(((Cardinal(LineWidthMT) and $0000000F) = 0), 'Error cannot perform aligned operations');
+     assert( (width and $01) = 1, 'Odd width expected');
+     assert(Width > 1, 'Error at least a vector with two elements expected');
+
+     iter := -(width - 1)*sizeof(double);
+
+     asm
+        push eax;
+        push edx;
+        push ebx;
+        push esi;
+        push edi;
+
+        xorpd xmm7, xmm7;
+        mov edi, dest;
+
+        // for the final multiplication
+        movhpd xmm6, beta;
+        movlpd xmm6, alpha;
+
+        // prepare for "Reverse loop indexing"
+
+        mov eax, mt1;
+        sub eax, iter;
+
+        mov edx, LineWidthV;
+
+        // init for y := 0 to height - 1:
+        mov esi, height;
+        @@foryloop:
+
+            // init values:
+            xorpd xmm0, xmm0;  // dest^ := 0;
+            mov ebx, v;        // ebx = first vector element
+
+            mov ecx, iter;
+
+            @@forxloop:
+                movlpd xmm1, [ebx]
+                movhpd xmm1, [ebx + edx];
+
+                mulpd xmm1, [eax + ecx];
+                addpd xmm0, xmm1;
+            add ebx, edx;
+            add ebx, edx;
+
+            add ecx, 16;
+            jnz @@forxloop;
+
+            // special treatment for the last value:
+            movlpd xmm1, [eax];
+            movlpd xmm2, [ebx];
+
+            mulsd xmm1, xmm2;
+            addsd xmm0, xmm1;
+
+            // result building
+            // write back result (final addition and compactation)
+            haddpd xmm0, xmm7;
+
+            // calculate dest = beta*dest + alpha*xmm0
+            movhpd xmm0, [edi];
+            mulpd xmm0, xmm6;
+            haddpd xmm0, xmm7;
+
+            movlpd [edi], xmm0;
+
+            // next results:
+            add edi, destLineWidth;
+            add eax, LineWidthMT;
+
+        dec esi;
+        jnz @@foryloop;
+
+        // epilog
+        pop edi;
+        pop esi;
+        pop ebx;
+        pop edx;
+        pop eax;
+     end;
+end;
+
+procedure ASMMatrixVectMultUnalignedOddW(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+var iter : TaSMNativeInt;
+begin
+     assert( (width and $01) = 1, 'Odd width expected');
+     assert(Width > 1, 'Error at least a vector with two elements expected');
+
+     iter := -(width - 1)*sizeof(double);
+
+     asm
+        push eax;
+        push edx;
+        push ebx;
+        push esi;
+        push edi;
+
+        xorpd xmm7, xmm7;
+        mov edi, dest;
+
+        // for the final multiplication
+        movhpd xmm6, beta;
+        movlpd xmm6, alpha;
+
+        // prepare for "Reverse loop indexing"
+
+        mov eax, mt1;
+        sub eax, iter;
+
+        mov edx, LineWidthV;
+
+        // init for y := 0 to height - 1:
+        mov esi, height;
+        @@foryloop:
+
+            // init values:
+            xorpd xmm0, xmm0;  // dest^ := 0;
+            mov ebx, v;        // ebx = first vector element
+
+            mov ecx, iter;
+
+            @@forxloop:
+                movupd xmm1, [eax + ecx];
+                movlpd xmm2, [ebx]
+                movhpd xmm2, [ebx + edx];
+
+                mulpd xmm1, xmm2;
+                addpd xmm0, xmm1;
+            add ebx, edx;
+            add ebx, edx;
+
+            add ecx, 16;
+            jnz @@forxloop;
+
+            // special treatment for the last value:
+            movlpd xmm1, [eax];
+            movlpd xmm2, [ebx];
+
+            mulsd xmm1, xmm2;
+            addsd xmm0, xmm1;
+
+            // result building
+            // write back result (final addition and compactation)
+            haddpd xmm0, xmm7;
+
+            // calculate dest = beta*dest + alpha*xmm0
+            movhpd xmm0, [edi];
+            mulpd xmm0, xmm6;
+            haddpd xmm0, xmm7;
+
+            movlpd [edi], xmm0;
+
+            // next results:
+            add edi, destLineWidth;
+            add eax, LineWidthMT;
+
+        dec esi;
+        jnz @@foryloop;
+
+        // epilog
+        pop edi;
+        pop esi;
+        pop ebx;
+        pop edx;
+        pop eax;
+     end;
+end;
+
+procedure ASMMatrixVectMultUnalignedEvenW(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+var iter : TaSMNativeInt;
+begin
+     assert( (width and $01) = 0, 'Even width expected');
+     assert(Width > 1, 'Error at least a vector with two elements expected');
+
+     iter := -width*sizeof(double);
+
+     asm
+        push eax;
+        push edx;
+        push ebx;
+        push esi;
+        push edi;
+
+        xorpd xmm7, xmm7;
+        mov edi, dest;
+
+        // for the final multiplication
+        movhpd xmm6, beta;
+        movlpd xmm6, alpha;
+
+        // prepare for "Reverse loop indexing"
+
+        mov eax, mt1;
+        sub eax, iter;
+
+        mov edx, LineWidthV;
+
+        // init for y := 0 to height - 1:
+        mov esi, height;
+        @@foryloop:
+
+            // init values:
+            xorpd xmm0, xmm0;  // res := 0;
+            mov ebx, v;        // ebx = first vector element
+
+            mov ecx, iter;
+
+            @@forxloop:
+                movupd xmm1, [eax + ecx];
+                movlpd xmm2, [ebx]
+                movhpd xmm2, [ebx + edx];
+
+                mulpd xmm1, xmm2;
+                addpd xmm0, xmm1;
+            add ebx, edx;
+            add ebx, edx;
+
+            add ecx, 16;
+            jnz @@forxloop;
+
+            // result building
+            // write back result (final addition and compactation)
+            haddpd xmm0, xmm7;
+
+            // calculate dest = beta*dest + alpha*xmm0
+            movhpd xmm0, [edi];
+            mulpd xmm0, xmm6;
+            haddpd xmm0, xmm7;
+
+            movlpd [edi], xmm0;
+
+            // next results:
+            add edi, destLineWidth;
+            add eax, LineWidthMT;
+
+        dec esi;
+        jnz @@foryloop;
+
+        // epilog
+        pop edi;
+        pop esi;
+        pop ebx;
+        pop edx;
+        pop eax;
+     end;
+end;
+
+procedure ASMMatrixVectMultAlignedEvenW(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+var iter : TaSMNativeInt;
+begin
+     assert( (width and $01) = 0, 'Even width expected');
+     assert((Cardinal(mt1) and $0000000F) = 0, 'Error aligned operations cannot be performed');
+     assert(((Cardinal(LineWidthMT) and $0000000F) = 0), 'Error cannot perform aligned operations');
+     assert(Width > 1, 'Error at least a vector with two elements expected');
+
+     iter := -width*sizeof(double);
+
+     asm
+        push eax;
+        push edx;
+        push ebx;
+        push esi;
+        push edi;
+
+        xorpd xmm7, xmm7;
+        mov edi, dest;
+
+        // for the final multiplication
+        movhpd xmm6, beta;
+        movlpd xmm6, alpha;
+
+        // prepare for "Reverse loop indexing"
+
+        mov eax, mt1;
+        sub eax, iter;
+
+        mov edx, LineWidthV;
+
+        // init for y := 0 to height - 1:
+        mov esi, height;
+        @@foryloop:
+
+            // init values:
+            xorpd xmm0, xmm0;  // dest^ := 0;
+            mov ebx, v;        // ebx = first vector element
+
+            mov ecx, iter;
+
+            @@forxloop:
+                movlpd xmm1, [ebx]
+                movhpd xmm1, [ebx + edx];
+
+                mulpd xmm1, [eax + ecx];
+                addpd xmm0, xmm1;
+            add ebx, edx;
+            add ebx, edx;
+
+            add ecx, 16;
+            jnz @@forxloop;
+
+            // result building
+            // write back result (final addition and compactation)
+            haddpd xmm0, xmm7;
+
+            // calculate dest = beta*dest + alpha*xmm0
+            movhpd xmm0, [edi];
+            mulpd xmm0, xmm6;
+            haddpd xmm0, xmm7;
+
+            movlpd [edi], xmm0;
+
+            // next results:
+            add edi, destLineWidth;
+            add eax, LineWidthMT;
+
+        dec esi;
+        jnz @@foryloop;
+
+        // epilog
+        pop edi;
+        pop esi;
+        pop ebx;
+        pop edx;
+        pop eax;
+     end;
+end;
+
+
+// this function is not that well suited for use of simd instructions...
+// so only this version exists
+procedure ASMMatrixVectMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+begin
+     asm
+        push eax;
+        push edx;
+        push ebx;
+        push esi;
+        push edi;
+
+        xorpd xmm7, xmm7;
+        mov edi, dest;
+
+        // for the final multiplication
+        movhpd xmm6, beta;
+        movlpd xmm6, alpha;
+
+        // prepare for loop
+        mov esi, LineWidthMT;
+        mov edx, LineWidthV;
+
+        // init for x := 0 to width - 1:
+        @@forxloop:
+
+            // init values:
+            xorpd xmm0, xmm0;  // res := 0;
+            mov ebx, v;        // ebx = first vector element
+            mov eax, mt1;
+
+            mov ecx, height;
+            @@foryloop:
+                movlpd xmm1, [eax];
+                movlpd xmm2, [ebx];
+
+                mulsd xmm1, xmm2;
+                addsd xmm0, xmm1;
+
+                add eax, esi;
+                add ebx, edx;
+
+            dec ecx;
+            jnz @@foryloop;
+
+            // result building
+            // write back result (final addition and compactation)
+
+            // calculate dest = beta*dest + alpha*xmm0
+            movhpd xmm0, [edi];
+
+            mulpd xmm0, xmm6;
+            haddpd xmm0, xmm7;
+
+            movlpd [edi], xmm0;
+
+            // next results:
+            add edi, destLineWidth;
+            add mt1, 8;
+        dec width;
+        jnz @@forxloop;
+
+        // epilog
+        pop edi;
+        pop esi;
+        pop ebx;
+        pop edx;
+        pop eax;
+     end;
+end;
+
 {$ENDIF}
 
 end.

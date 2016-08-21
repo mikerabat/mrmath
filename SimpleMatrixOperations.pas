@@ -60,7 +60,9 @@ procedure GenericMtxMultTranspAdd(dest : PDouble; const destLineWidth : TASMNati
 
 
 // performs matrix vector multiplication in the form: dest := alpha*mt1*v + beta*y
-procedure GenericMtxVecMult(dest : PDouble; desetLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure GenericMtxVecMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+// performs matrix vector multiplication in the form: dest := alpha*mt1'*v + beta*y
+procedure GenericMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 
 procedure GenericMtxElemMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt); overload;
 function GenericMtxElemMult(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
@@ -952,8 +954,8 @@ begin
      GenericMtxMult(@dest[0], width2*sizeof(double), @mt1[0], @mt2[0], width1, height1, width2, height2, width1*sizeof(double), width2*sizeof(double));
 end;
 
-procedure GenericMtxVecMult(dest : PDouble; desetLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-var pMt1 : PDouble;
+procedure GenericMtxVecMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+var pMt1 : PConstDoubleArr;
     pV : PDouble;
     i, j : TASMNativeInt;
     res : double;
@@ -962,21 +964,45 @@ begin
      begin
           res := 0;
 
-          pMt1 := mt1;
-          inc(PByte(mt1), i*LineWidthMT);
+          pMt1 := PConstDoubleArr(mt1);
+          inc(PByte(Mt1), LineWidthMT);
           pV := v;
           for j := 0 to Width - 1 do
           begin
-               res := res + pV^*pMt1^;
+               res := res + pV^*pMt1^[j];
                inc(PByte(pV), LineWidthV);
-               inc(pMt1);
           end;
 
           dest^ := beta*dest^ + alpha*res;
-          inc(PByte(dest), desetLineWidth);
+          inc(PByte(dest), destLineWidth);
      end;
 end;
 
+procedure GenericMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+var pMt1 : PDouble;
+    pV : PDouble;
+    i, j : TASMNativeInt;
+    res : double;
+begin
+     for i := 0 to Width - 1 do
+     begin
+          res := 0;
+
+          pMt1 := mt1;
+          inc(Mt1);
+          pV := v; 
+          
+          for j := 0 to Height - 1 do
+          begin
+               res := res + pV^*pMt1^;
+               inc(PByte(pV), LineWidthV);
+               inc(PByte(pMt1), LineWidthMT);
+          end;
+
+          dest^ := beta*dest^ + alpha*res;
+          inc(PByte(dest), destLineWidth);
+     end;
+end;
 
 procedure GenericMtxElemMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
 var x, y : TASMNativeInt;

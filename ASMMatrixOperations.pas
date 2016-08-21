@@ -36,6 +36,8 @@ procedure ASMMatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1
 procedure ASMMatrixMultTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
 procedure ASMMatrixMultDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
 
+procedure ASMMtxVecMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+
 // note: the matrix add routine tries to add two values at once and does not carry out any range checks thus the line widhts must
 // be multiple of 16.
 procedure ASMMatrixAdd(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
@@ -1912,6 +1914,36 @@ begin
                         ASMMatrixMultUnAlignedOddW1OddW2(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2)
                end;
           end;
+     end;
+end;
+
+procedure ASMMtxVecMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+begin
+     if (width = 0) or (height = 0) then
+        exit;
+
+     if (width < 24) or (height < 24) then
+     begin
+          GenericMtxVecMult(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta);
+          exit;
+     end;
+
+     if (TASMNativeUInt(mt1) and $0000000F = 0) and (destLineWidth and $0000000F = 0)
+     then
+     begin
+          if (width and 1) = 0
+          then
+              ASMMatrixVectMultAlignedEvenW(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta)
+          else
+              ASMMatrixVectMultAlignedOddW(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta);
+     end
+     else
+     begin
+          if (width and 1) = 0
+          then
+              ASMMatrixVectMultUnalignedEvenW(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta)
+          else
+              ASMMatrixVectMultUnalignedOddW(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta);
      end;
 end;
 

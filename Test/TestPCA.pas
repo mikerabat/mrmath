@@ -213,7 +213,7 @@ begin
              try
                 img := Reconstruct(feature);
                 try
-                   ImageFromMatrix(img, w, h, Format('%s\bmpr_%d.bmp', [ExtractFilePath(ParamStr(0)), i - 2]));
+                   ImageFromMatrix(img, w, h, Format('%s\incrBmpr_%d.bmp', [ExtractFilePath(ParamStr(0)), i - 2]));
                 finally
                        img.Free;
                 end;
@@ -227,7 +227,7 @@ begin
              try
                 img := Reconstruct(feature);
                 try
-                   ImageFromMatrix(img, w, h, Format('%s\bmpnr_%d.bmp', [ExtractFilePath(ParamStr(0)), i - 2]));
+                   ImageFromMatrix(img, w, h, Format('%s\incrBmpnr_%d.bmp', [ExtractFilePath(ParamStr(0)), i - 2]));
                 finally
                        img.Free;
                 end;

@@ -66,6 +66,12 @@ procedure MatrixMultT2Ex(dest : PDouble; const destLineWidth : TASMNativeInt; mt
 procedure MatrixMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 
+// performs dest = alpha*dest + beta*mt1*v
+// wheras dest is a vector, mt1 a width x height matrix and v again a vector
+procedure MatrixMtxVecMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+// performs matrix vector multiplication in the form: dest := alpha*mt1'*v + beta*dest
+procedure MatrixMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+
 
 procedure MatrixElemMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
 function MatrixElemMult(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
@@ -156,11 +162,12 @@ type
   TMatrixRowSwapFunc = procedure (A, B : PDouble; width : TASMNativeInt);
   TMatrixMedianFunc = procedure (dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; tmp : PDouble = nil);
   TMatrixSortFunc = procedure (dest : PDouble; destLineWidth : TASMNativeInt; width, height : integer; RowWise : boolean; tmp : PDouble = nil);
-  
+  TMatrixVecMultFunc = procedure (dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 
 implementation
 
-uses BlockSizeSetup, SimpleMatrixOperations, ASMMatrixOperations, ASMMatrixMultOperations, ASMMatrixMultOperationsx64,
+uses BlockSizeSetup, SimpleMatrixOperations, ASMMatrixOperations, ASMMatrixMultOperations,
+     ASMMatrixMultOperationsx64, ASMMatrixVectorMultOperations, ASMMatrixVectorMultOperationsx64,
      CPUFeatures;
 
 var actUseSSEoptions : boolean;
@@ -171,6 +178,8 @@ var multFunc : TMatrixMultFunc;
     blockedMultT1Func : TMatrixBlockedMultfunc;
     blockedMultT2Func : TMatrixBlockedMultfunc;
     multTria2T1 : TMatrixMultTria2T1;
+    MtxVecMultFunc : TMatrixVecMultFunc;
+    MtxVecMultTFunc : TMatrixVecMultFunc;
     addFunc : TMatrixAddFunc;
     subFunc : TMatrixSubFunc;
     elemWiseFunc : TMatrixElemWiseFunc;
@@ -421,6 +430,16 @@ procedure MatrixMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 :
   width1, height1, width2, height2 : TASMNativeInt);
 begin
      multTria2T1(dest, LineWidthDest, mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
+end;
+
+procedure MatrixMtxVecMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+begin
+     MtxVecMultFunc(dest, destLineWidth, mt1, V, LineWidthMT, LineWidthV, width, height, alpha, beta);
+end;
+
+procedure MatrixMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+begin
+     MtxVecMultTFunc(dest, destLineWidth, mt1, V, LineWidthMT, LineWidthV, width, height, alpha, beta);
 end;
 
 procedure MatrixElemMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
@@ -772,6 +791,8 @@ begin
           absFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixAbs;
           elemWiseDivFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixElemDiv;
           multTria2T1 := {$IFDEF FPC}@{$ENDIF}ASMMtxMultTria2T1;
+          MtxVecMultFunc := {$IFDEF FPC}@{$ENDIF}ASMMtxVecMult;
+          MtxVecMultTFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixVectMultT;
      end
      else
      begin
@@ -802,6 +823,8 @@ begin
           absFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxAbs;
           elemWiseDivFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxElemDiv;
           multTria2T1 := {$IFDEF FPC}@{$ENDIF}GenericMtxMultTria2T1;
+          MtxVecMultFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxVecMult;
+          MtxVecMultTFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxVecMultT;
      end;
 
      matrixMedianFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMedian;
