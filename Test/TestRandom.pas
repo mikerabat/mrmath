@@ -32,6 +32,7 @@ type
     procedure TestMersenneTwister;
     procedure TestMersenneTwisterStdTest;
     procedure TestOSRandom;
+    procedure TestInt64Rnd;
   end;
 
 implementation
@@ -164,7 +165,7 @@ var gen : TRandomGenerator;
 begin
      gen := TRandomGenerator.Create;
      gen.RandMethod := raOS;
-     
+
      start := MtxGetTime;
      for cnt := 0 to cNumRandNum - 1 do
          gen.Random;
@@ -185,9 +186,9 @@ begin
      gen := TRandomGenerator.Create;
      gen.RandMethod := raSystem;
 
-     {$IFNDEF FPC} // note: the linear congruent random number generator is only implemented in delphi 
+     {$IFNDEF FPC} // note: the linear congruent random number generator is only implemented in delphi
                    // afaik  FPC uses mersenne twister.
-     
+
      gen.Init(301);
      RandSeed := 301;
 
@@ -202,7 +203,7 @@ begin
      end;
 
      {$ENDIF}
-     
+
      start := MtxGetTime;
      for cnt := 0 to cNumRandNum - 1 do
          gen.Random;
@@ -210,6 +211,25 @@ begin
 
      gen.Free;
      Status(Format('System random 1 million times: %.2f', [(stop - start)/mtxFreq*1000]));
+end;
+
+procedure TestRandomOperations.TestInt64Rnd;
+var gen : TRandomGenerator;
+    i: Integer;
+    val1 : Int64;
+    val2 : UInt64;
+begin
+     gen := TRandomGenerator.Create;
+     gen.Init;
+
+     for i := 0 to 100 - 1 do
+     begin
+          val1 := gen.RandInt64($7fffffffffffffff);
+          val2 := gen.RandUint64($000FFFFFFFFFFFFF);
+          Status(IntToStr(i) + ': ' + intToStr(val1) + ', ' + IntToStr(val2));
+     end;
+
+     gen.Free;
 end;
 
 initialization

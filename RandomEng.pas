@@ -88,12 +88,14 @@ type
   public
     property RandMethod : TRandomAlgorithm read fRandMethod write SetRandMethod;
 
-    procedure Init(Seed : LongInt);
+    procedure Init(Seed : LongInt = 0);
 
     function Random : double;  // from [0 - 1)
     function RandInt : longInt; overload;  // integer to maxint
     function RandInt(const ARange: LongInt) : LongInt; overload;
     function RandLW(const aRange : LongWord) : LongWord;
+    function RandInt64(const aRange : Int64) : Int64;
+    function RandUint64(const aRange : UInt64) : UInt64;
 
     // ###########################################
     // #### Special distributed random numbers:
@@ -105,6 +107,7 @@ type
     // special initialization 
     procedure InitMersenneByArr(const initKey: array of LongWord);
 
+    constructor Create(aRandMethod : TRandomAlgorithm = raSystem);
     destructor Destroy; override;
   end;
   
@@ -138,7 +141,7 @@ begin
      inherited;
 end;
 
-procedure TRandomGenerator.Init(Seed: Integer);
+procedure TRandomGenerator.Init(Seed: Integer = 0);
 begin
      case fRandMethod of
       raSystem: if Seed = 0 
@@ -236,6 +239,24 @@ end;
 function TRandomGenerator.RandLW(const aRange: LongWord): LongWord;
 begin
      Result := fRandLW(aRange);
+end;
+
+function TRandomGenerator.RandInt64(const aRange: Int64): Int64;
+var val1, val2 : LongWord;
+begin
+     val1 := fRandLW($8FFFFFFF);
+     val2 := fRandLW($FFFFFFFF);
+
+     Result := ( ( Int64(val1) shl 32) + Int64(val2) ) mod aRange;
+end;
+
+function TRandomGenerator.RandUint64(const aRange: UInt64): UInt64;
+var val1, val2 : LongWord;
+begin
+     val1 := fRandLW($FFFFFFFF);
+     val2 := fRandLW($FFFFFFFF);
+
+     Result := ( ( Int64(val1) shl 32) + Int64(val2) ) mod aRange;
 end;
 
 function TRandomGenerator.Random: double;
@@ -614,6 +635,13 @@ begin
      y := b shr 6;
      
      Result := (x*cMultA+y)*cMultB;
+end;
+
+constructor TRandomGenerator.Create(aRandMethod: TRandomAlgorithm);
+begin
+     SetRandMethod(aRandMethod);
+
+     inherited Create;
 end;
 
 end.
