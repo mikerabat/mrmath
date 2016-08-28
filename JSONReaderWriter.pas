@@ -367,7 +367,15 @@ constructor TJsonReaderWriter.Create;
 begin
      inherited Create;
 
+     {$IFDEF FPC}
+     fFmt := TFormatSettings.Create(0);
+     {$ELSE}
+     {$IF CompilerVersion >= 15}
+     fFmt := TFormatSettings.Create(0);
+     {$ELSE}
      GetLocaleFormatSettings(0, fFmt);
+     {$ENDIF}
+     {$ENDIF}
      fFmt.DecimalSeparator := '.';
 end;
 

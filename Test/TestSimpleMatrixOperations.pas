@@ -2934,6 +2934,15 @@ begin
      dest[2] := 1;
      Move(dest, dest1, sizeof(dest));
 
+     GenericMtxVecMult(@dest1[0], sizeof(double), @cMtx[0], @cV[0], 3*sizeof(double), sizeof(double), 2, 2, 0.1, -1);
+     ASMMatrixVectMultUnalignedEvenW(@dest[0], sizeof(double), @cMtx[0], @cV[0], 3*sizeof(double), sizeof(double), 2, 2, 0.1, -1);
+     Check(CheckMtx(dest1, dest), 'Error matrix vector multiplication failed');
+
+     dest[0] := 1;
+     dest[1] := 1;
+     dest[2] := 1;
+     Move(dest, dest1, sizeof(dest));
+
      GenericMtxVecMultT(@dest1[0], sizeof(double), @cMtx[0], @cV[0], 3*sizeof(double), sizeof(double), 3, 3, 0.1, -1);
      ASMMatrixVectMultT(@dest[0], sizeof(double), @cMtx[0], @cV[0], 3*sizeof(double), sizeof(double), 3, 3, 0.1, -1);
 
@@ -2967,15 +2976,43 @@ begin
      Check(CheckMtx(dest1, dest2), 'Error Matrix vector multiplication failed');
 
      startTime1 := MtxGetTime;
-     GenericMtxVecMult(@dest1[1], cMtxSize*sizeof(double), @x[0], @y[0], cMtxSize*sizeof(double), cMtxSize*sizeof(double), cMtxSize, cMtxSize, 2, -0.2);
+     GenericMtxVecMult(@dest1[0], cMtxSize*sizeof(double), @x[0], @y[0], cMtxSize*sizeof(double), cMtxSize*sizeof(double), cMtxSize, cMtxSize, 2, -0.2);
      endTime1 := MtxGetTime;
 
      startTime2 := MtxGetTime;
-     ASMMatrixVectMultAlignedEvenW(@dest2[1], cMtxSize*sizeof(double), xa, ya, cMtxSize*sizeof(double), cMtxSize*sizeof(double), cMtxSize, cMtxSize, 2, -0.2);
+     ASMMatrixVectMultAlignedEvenW(@dest2[0], cMtxSize*sizeof(double), xa, ya, cMtxSize*sizeof(double), cMtxSize*sizeof(double), cMtxSize, cMtxSize, 2, -0.2);
      endTime2 := MtxGetTime;
 
      Status(Format('%.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000]));
      Check(CheckMtx(dest1, dest2), 'Error Matrix vector multiplication failed');
+
+     // odd functions
+
+     dest1 := Copy(x, 0, Length(x));
+     dest2 := Copy(x, 0, Length(x));
+
+     startTime1 := MtxGetTime;
+     GenericMtxVecMult(@dest1[0], cMtxSize*sizeof(double), @x[0], @y[0], cMtxSize*sizeof(double), cMtxSize*sizeof(double), cMtxSize - 1, cMtxSize - 1, 2, -0.2);
+     endTime1 := MtxGetTime;
+
+     startTime2 := MtxGetTime;
+     ASMMatrixVectMultUnalignedOddW(@dest2[0], cMtxSize*sizeof(double), @x[0], @y[0], cMtxSize*sizeof(double), cMtxSize*sizeof(double), cMtxSize - 1, cMtxSize - 1, 2, -0.2);
+     endTime2 := MtxGetTime;
+
+     Status(Format('%.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000]));
+
+     Check(CheckMtx(dest1, dest2), 'Error odd len matrix vector multiplication failed');
+
+     startTime1 := MtxGetTime;
+     GenericMtxVecMult(@dest1[0], cMtxSize*sizeof(double), @x[0], @y[0], cMtxSize*sizeof(double), cMtxSize*sizeof(double), cMtxSize - 1, cMtxSize - 1, 2, -0.2);
+     endTime1 := MtxGetTime;
+
+     startTime2 := MtxGetTime;
+     ASMMatrixVectMultAlignedOddW(@dest2[0], cMtxSize*sizeof(double), xa, ya, cMtxSize*sizeof(double), cMtxSize*sizeof(double), cMtxSize - 1, cMtxSize - 1, 2, -0.2);
+     endTime2 := MtxGetTime;
+
+     Status(Format('%.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000]));
+     Check(CheckMtx(dest1, dest2), 'Error odd len matrix vector multiplication failed');
 
      FreeMem(xa);
      FreeMem(ya);
