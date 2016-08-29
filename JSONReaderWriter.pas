@@ -370,11 +370,11 @@ begin
      {$IFDEF FPC}
      fFmt := TFormatSettings.Create(0);
      {$ELSE}
-     {$IF CompilerVersion >= 15}
+     {$IF CompilerVersion >= 22}
      fFmt := TFormatSettings.Create(0);
      {$ELSE}
      GetLocaleFormatSettings(0, fFmt);
-     {$ENDIF}
+     {$IFEND}
      {$ENDIF}
      fFmt.DecimalSeparator := '.';
 end;
