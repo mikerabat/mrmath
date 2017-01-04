@@ -1027,32 +1027,32 @@ begin
      else if (width1 < 2) or (width2 < 2) then
      begin
           // matrix/vector multiplication
-          if width2 = 1 then
-          begin
-               if LineWidth2 = sizeof(double) then
-               begin
-                    if ((TASMNativeUInt(dest) and $0000000F) = 0) and ((TASMNativeUInt(mt1) and $0000000F) = 0) and ((TASMNativeUInt(mt2) and $0000000F) = 0) and
-                       ((LineWidth1 and $0000000F) = 0) then
-                    begin
-                         if (width1 and $00000001 = 0)
-                         then
-                             ASMMatrixVectorMultAlignedEvenW1(dest, destLineWidth, mt1, mt2, width1, height1, height2, LineWidth1)
-                         else
-                             ASMMatrixVectorMultAlignedOddW1(dest, destLineWidth, mt1, mt2, width1, height1, height2, LineWidth1)
-                    end
-                    else
-                    begin
-                         if (width1 and $00000001 = 0)
-                         then
-                             ASMMatrixVectorMultUnAlignedEvenW1(dest, destLineWidth, mt1, mt2, width1, height1, height2, LineWidth1)
-                         else
-                             ASMMatrixVectorMultUnAlignedOddW1(dest, destLineWidth, mt1, mt2, width1, height1, height2, LineWidth1)
-                    end;
-               end
-               else
-                   GenericMtxMultTransp(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2)
-          end
-          else // todo: create special routines for that case too!
+          //if width2 = 1 then
+//          begin
+//               if LineWidth2 = sizeof(double) then
+//               begin
+//                    if ((TASMNativeUInt(dest) and $0000000F) = 0) and ((TASMNativeUInt(mt1) and $0000000F) = 0) and ((TASMNativeUInt(mt2) and $0000000F) = 0) and
+//                       ((LineWidth1 and $0000000F) = 0) then
+//                    begin
+//                         if (width1 and $00000001 = 0)
+//                         then
+//                             ASMMatrixVectorMultAlignedEvenW1(dest, destLineWidth, mt1, mt2, width1, height1, height2, LineWidth1)
+//                         else
+//                             ASMMatrixVectorMultAlignedOddW1(dest, destLineWidth, mt1, mt2, width1, height1, height2, LineWidth1)
+//                    end
+//                    else
+//                    begin
+//                         if (width1 and $00000001 = 0)
+//                         then
+//                             ASMMatrixVectorMultUnAlignedEvenW1(dest, destLineWidth, mt1, mt2, width1, height1, height2, LineWidth1)
+//                         else
+//                             ASMMatrixVectorMultUnAlignedOddW1(dest, destLineWidth, mt1, mt2, width1, height1, height2, LineWidth1)
+//                    end;
+//               end
+//               else
+//                   GenericMtxMultTransp(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2)
+//          end
+//          else // todo: create special routines for that case too!
               GenericMtxMultTransp(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2);
      end
      else
@@ -1125,32 +1125,10 @@ begin
      else if (width1 < 2) or (width2 < 2) then
      begin
           // matrix/vector multiplication
-          if (width2 > 1) and (width1 >= 3) then
-          begin
-               if LineWidth2 = sizeof(double) then
-               begin
-                    if ((TASMNativeUInt(dest) and $0000000F) = 0) and ((TASMNativeUInt(mt1) and $0000000F) = 0) and ((TASMNativeUInt(mt2) and $0000000F) = 0) and
-                       ((LineWidth1 and $0000000F) = 0) then
-                    begin
-                         if (width1 and $00000001 = 0)
-                         then
-                             ASMMatrixVectorMultAlignedEvenW1(dest, destLineWidth, mt1, mt2, width1, height1, height2, LineWidth1)
-                         else
-                             ASMMatrixVectorMultAlignedOddW1(dest, destLineWidth, mt1, mt2, width1, height1, height2, LineWidth1)
-                    end
-                    else
-                    begin
-                         if (width1 and $00000001 = 0)
-                         then
-                             ASMMatrixVectorMultUnAlignedEvenW1(dest, destLineWidth, mt1, mt2, width1, height1, height2, LineWidth1)
-                         else
-                             ASMMatrixVectorMultUnAlignedOddW1(dest, destLineWidth, mt1, mt2, width1, height1, height2, LineWidth1)
-                    end;
-               end
-               else
-                   GenericMtxMult(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2)
-          end
-          else // todo: create special routines for that case too!
+          if width2 = 1 
+          then
+              ASMMtxVecMult(dest, destLineWidth, mt1, mt2, LineWidth1, LineWidth2,  width1, height1, 1, 0)
+          else
               GenericMtxMult(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2);
      end
      else
@@ -1844,32 +1822,10 @@ begin
      else if (width1 < 2) or (width2 < 2) then
      begin
           // matrix/vector multiplication
-          if width2 = 1 then
-          begin
-               if LineWidth2 = sizeof(double) then
-               begin
-                    if ((TASMNativeUInt(dest) and $0000000F) = 0) and ((TASMNativeUInt(mt1) and $0000000F) = 0) and ((TASMNativeUInt(mt2) and $0000000F) = 0) and
-                       ((LineWidth1 and $0000000F) = 0) then
-                    begin
-                         if (width1 and $00000001 = 0)
-                         then
-                             ASMMatrixVectorMultAlignedEvenW1(dest, destLineWidth, mt1, mt2, width1, height1, height2, LineWidth1)
-                         else
-                             ASMMatrixVectorMultAlignedOddW1(dest, destLineWidth, mt1, mt2, width1, height1, height2, LineWidth1)
-                    end
-                    else
-                    begin
-                         if (width1 and $00000001 = 0)
-                         then
-                             ASMMatrixVectorMultUnAlignedEvenW1(dest, destLineWidth, mt1, mt2, width1, height1, height2, LineWidth1)
-                         else
-                             ASMMatrixVectorMultUnAlignedOddW1(dest, destLineWidth, mt1, mt2, width1, height1, height2, LineWidth1)
-                    end;
-               end
-               else
-                   GenericMtxMult(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2)
-          end
-          else // todo: create special routines for that case too!
+          if width2 = 1
+          then
+              ASMMtxVecMult(dest, destLineWidth, mt1, mt2, LineWidth1, LineWidth2, width1, height1, 1, 0)
+          else
               GenericMtxMult(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2);
      end
      else
@@ -1922,29 +1878,21 @@ begin
      if (width = 0) or (height = 0) then
         exit;
 
-     if (width < 24) or (height < 24) then
+     if LineWidthV = sizeof(double) then
      begin
-          GenericMtxVecMult(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta);
-          exit;
-     end;
-
-     if (TASMNativeUInt(mt1) and $0000000F = 0) and (destLineWidth and $0000000F = 0)
-     then
-     begin
-          if (width and 1) = 0
-          then
-              ASMMatrixVectMultAlignedEvenW(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta)
+          if (width and $01 = 0) then
+          begin
+               if ((TASMNativeUInt(mt1) and $0000000F) = 0) and ((TASMNativeUInt(v) and $0000000F) = 0)
+               then
+                   ASMMatrixVectMultEvenAlignedVAligned(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta)
+               else
+                   ASMMatrixVectMultEvenUnAlignedVAligned(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta);
+          end
           else
-              ASMMatrixVectMultAlignedOddW(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta);
+              ASMMatrixVectMultOddUnAlignedVAligned(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta);
      end
      else
-     begin
-          if (width and 1) = 0
-          then
-              ASMMatrixVectMultUnalignedEvenW(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta)
-          else
-              ASMMatrixVectMultUnalignedOddW(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta);
-     end;
+         ASMMatrixVectMult(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta);
 end;
 
 end.

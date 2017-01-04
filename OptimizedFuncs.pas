@@ -822,7 +822,7 @@ begin
           rowSwapFunc := {$IFDEF FPC}@{$ENDIF}GenericRowSwap;
           absFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxAbs;
           elemWiseDivFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxElemDiv;
-          multTria2T1 := {$IFDEF FPC}@{$ENDIF}GenericMtxMultTria2T1;
+          multTria2T1 := {$IFDEF FPC}@{$ENDIF}GenericMtxMultTria2T1Lower;
           MtxVecMultFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxVecMult;
           MtxVecMultTFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxVecMultT;
      end;

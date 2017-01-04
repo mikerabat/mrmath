@@ -132,18 +132,28 @@ procedure GenericMtxFunc(dest : PDouble; const destLineWidth : TASMNativeInt; wi
 
 // ###########################################
 // #### Matrix multiplications used in QR Decomposition
-procedure GenericMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure GenericMtxMultTria2T1Lower(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
+
 // same as above but works on 2 columns on mt2 at the same time
 procedure GenericMtxMultTria2T1_2(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt;
   mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 
+
+// dtrm right upper transpose unit
+procedure GenericMtxMultTria2TUpper(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+
+  
 procedure GenericMtxMultTria2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 procedure GenericMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 procedure GenericMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+
+procedure GenericMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 
 // performs a symmetric rank update in the form dest = alpha* A*AT + Beta*C
@@ -955,52 +965,129 @@ begin
 end;
 
 procedure GenericMtxVecMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-var pMt1 : PConstDoubleArr;
+var pMt1, pMt11, pMt12, pMt13 : PConstDoubleArr;
     pV : PDouble;
     i, j : TASMNativeInt;
-    res : double;
+    res1, res2, res3, res4 : double;
 begin
-     for i := 0 to Height - 1 do
+     // loop unrolled 4 times
+     if (width = 0) or (height = 0) or ( (alpha = 0) and (beta = 1)) then
+        exit;
+     for i := 0 to Height div 4 - 1 do
      begin
-          res := 0;
+          res1 := 0;
+          res2 := 0;
+          res3 := 0;
+          res4 := 0;
 
           pMt1 := PConstDoubleArr(mt1);
           inc(PByte(Mt1), LineWidthMT);
+          pMt11 := PConstDoubleArr(mt1);
+          inc(pByte(MT1), LineWidthMT);
+          pMt12 := PConstDoubleArr(mt1);
+          inc(pByte(MT1), LineWidthMT);
+          pMt13 := PConstDoubleArr(mt1);
+          inc(pByte(MT1), LineWidthMT);
+
           pV := v;
           for j := 0 to Width - 1 do
           begin
-               res := res + pV^*pMt1^[j];
+               res1 := res1 + pV^*pMt1^[j];
+               res2 := res2 + pV^*pMt11^[j];
+               res3 := res3 + pV^*pMt12^[j];
+               res4 := res4 + pV^*pMt13^[j];
+
                inc(PByte(pV), LineWidthV);
           end;
 
-          dest^ := beta*dest^ + alpha*res;
+          dest^ := beta*dest^ + alpha*res1;
+          inc(PByte(dest), destLineWidth);
+          dest^ := beta*dest^ + alpha*res2;
+          inc(PByte(dest), destLineWidth);
+          dest^ := beta*dest^ + alpha*res3;
+          inc(PByte(dest), destLineWidth);
+          dest^ := beta*dest^ + alpha*res4;
+          inc(PByte(dest), destLineWidth);
+     end;
+
+     // do the rest
+     for i := (height div 4)*4 to Height - 1 do
+     begin
+          pMt1 := PConstDoubleArr(mt1);
+          inc(pByte(MT1), LineWidthMT);
+
+          res1 := 0;
+          pV := v;
+          for j := 0 to Width - 1 do
+          begin
+               res1 := res1 + pV^*pMt1^[j];
+               inc(PByte(pV), LineWidthV);
+          end;
+
+          dest^ := beta*dest^ + alpha*res1;
           inc(PByte(dest), destLineWidth);
      end;
 end;
 
 procedure GenericMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-var pMt1 : PDouble;
+var pMt1 : PConstDoubleArr;
     pV : PDouble;
     i, j : TASMNativeInt;
-    res : double;
+    res1, res2, res3, res4 : double;
 begin
-     for i := 0 to Width - 1 do
+     if (width = 0) or (height = 0) or ( (alpha = 0) and (beta = 1)) then
+        exit;
+        
+     for i := 0 to Width div 4 - 1 do
      begin
-          res := 0;
+          res1 := 0;
+          res2 := 0;
+          res3 := 0;
+          res4 := 0;
+          
+          pMt1 := PConstDoubleArr(mt1);
+          inc(Mt1, 4);
+          pV := v; 
+          
+          for j := 0 to Height - 1 do
+          begin
+               res1 := res1 + pV^*pMt1^[0];
+               res2 := res2 + pV^*pMt1^[1];
+               res3 := res3 + pV^*pMt1^[2];
+               res4 := res4 + pV^*pMt1^[3];
+               
+               inc(PByte(pV), LineWidthV);
+               inc(PByte(pMt1), LineWidthMT);
+          end;
 
-          pMt1 := mt1;
+          Dest^ := beta*Dest^ + alpha*res1;
+          inc(PByte(Dest), destLineWidth);
+          Dest^ := beta*Dest^ + alpha*res2;
+          inc(PByte(Dest), destLineWidth);
+          Dest^ := beta*Dest^ + alpha*res3;
+          inc(PByte(Dest), destLineWidth);
+          Dest^ := beta*Dest^ + alpha*res4;
+          inc(PByte(Dest), destLineWidth);
+     end;
+
+     for i := (width div 4)*4 to Width - 1 do
+     begin
+          res1 := 0;
+          
+          pMt1 := PConstDoubleArr( mt1 );
           inc(Mt1);
           pV := v; 
           
           for j := 0 to Height - 1 do
           begin
-               res := res + pV^*pMt1^;
+               res1 := res1 + pV^*pMt1^[0];
+               
                inc(PByte(pV), LineWidthV);
                inc(PByte(pMt1), LineWidthMT);
           end;
 
-          dest^ := beta*dest^ + alpha*res;
-          inc(PByte(dest), destLineWidth);
+          Dest^ := beta*Dest^ + alpha*res1;
+          inc(PByte(Dest), destLineWidth);
      end;
 end;
 
@@ -1621,7 +1708,7 @@ begin
                case op of
                  doNone: GenericMtxCopy(pDest, destLineWidth, ActBlk, blockSize*sizeof(double), blkWidth, blkHeight);
                  doAdd:  GenericMtxAdd(pDest, destLineWidth, ActBlk, pDest, blkWidth, blkHeight, blockSize*sizeof(double), destLineWidth);
-                 doSub:  GenericMtxSub(pDest, destLineWidth, ActBlk, pDest, blkWidth, blkHeight, blockSize*sizeof(double), destLineWidth);
+                 doSub:  GenericMtxSub(pDest, destLineWidth, pDest, ActBlk, blkWidth, blkHeight, destLineWidth, blockSize*sizeof(double));
                end;
 
                inc(pDest, blockSize);
@@ -1839,11 +1926,36 @@ end;
 // #### Special multiplication routines (for now only used in QR Decomposition)
 // ###########################################
 
+// W = C1*V1*T -> V1 is an upper triangular matrix with assumed unit diagonal entries. Operation on V1 transposition
+procedure GenericMtxMultTria2TUpper(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+var y: Integer;
+    x : Integer;
+    i : integer;
+    pDest : PConstDoubleArr;
+    pMt1 : PConstDoubleArr;
+    pMt2 : PConstDoubleArr;
+begin
+     assert((width1 > 0) and (height1 > 0) and (width1 = width2), 'Dimension error'); 
+     for y := 0 to height1 - 1 do
+     begin
+          pDest := PConstDoubleArr( GenPtr(dest, 0, y, LineWidthDest ) );
+          pMt1 :=  PConstDoubleArr( GenPtr(mt1, 0, y, LineWidth1 ) );
+          for x := 0 to height2 - 1 do
+          begin
+               pMt2 := PConstDoubleArr( GenPtr(mt2, 0, x, LineWidth2 ) );
+               pDest^[x] := pMt1^[x];
+               for i := x + 1 to width1 - 1 do
+                   pDest^[x] := pDest^[x] + pMt1^[i]*pMt2^[i];
+          end;
+     end;
+end;
+
 // note the result is stored in mt2 again!
 // dest = mt1'*mt2; where mt2 is a lower triangular matrix and the operation is transposition
 // the function assumes a unit diagonal (does not touch the real middle elements)
 // width and height values are assumed to be the "original" (non transposed) ones
-procedure GenericMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure GenericMtxMultTria2T1Lower(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 var x, y, idx : TASMNativeInt;
     valCounter1 : PDouble;
@@ -1867,6 +1979,49 @@ begin
                tmp := valCounter1^;
                inc(PByte(valCounter1), LineWidth1);
                for idx := 1 to height2 - y - 1 do
+               begin
+                    tmp := tmp + valCounter1^*valCounter2^;
+                    inc(PByte(valCounter1), LineWidth1);
+                    inc(PByte(valCounter2), LineWidth2);
+               end;
+
+               pDest^ := tmp;
+               inc(pDest);
+               inc(pMT2);
+          end;
+          inc(mt1);
+          inc(PByte(dest), LineWidthDest);
+     end;
+end;
+
+// note the result is stored in mt2 again!
+// dest = mt1*mt2; where mt2 is a upper triangular matrix and the operation is transposition
+// the function assumes a unit diagonal (does not touch the real middle elements)
+// width and height values are assumed to be the "original" (non transposed) ones
+procedure GenericMtxMultTria2_1Upper(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+var x, y, idx : TASMNativeInt;
+    valCounter1 : PDouble;
+    valCounter2 : PDouble;
+    tmp : double;
+    pMt2 : PDouble;
+    pDest : PDouble;
+begin
+     assert((width1 > 0) and (height1 > 0) and (height1 = height2), 'Dimension error');
+
+     for x := 0 to width1 - 1 do
+     begin
+          pMT2 := mt2;
+          pDest := dest;
+          for y := 0 to width2 - 1 do
+          begin
+               valCounter1 := mt1;
+               valCounter2 := pMT2;
+               inc(PByte(valCounter2), (y + 1)*LineWidth2);
+               inc(PByte(valCounter1), (y)*LineWidth1);
+               tmp := valCounter1^;
+               inc(PByte(valCounter1), LineWidth1);
+               for idx := 1 to height2 - 1 do
                begin
                     tmp := tmp + valCounter1^*valCounter2^;
                     inc(PByte(valCounter1), LineWidth1);
@@ -1989,45 +2144,61 @@ begin
 end;
 
 // note the result is stored in mt1 again!
-// mt1 = mt1*mt2'; where mt2 is an upper triangular matrix
-procedure GenericMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+// mt1 = mt1*mt2; where mt2 is an upper triangular matrix - diagonal elements are unit
+procedure GenericMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
-var x, y, idx : TASMNativeInt;
-    valCounter1 : PDouble;
-    valCounter2 : PDouble;
-    tmp : double;
-    pMt1 : PDouble;
+var y: Integer;
+    x : Integer;
+    i : integer;
+    pMt1 : PConstDoubleArr;
     pMt2 : PDouble;
+    tmp : double;
 begin
-     assert((width1 > 0) and (height1 > 0) and (width1 = width2), 'Dimension error');
-
-     pMt2 := mt2;
-     for x := 0 to height2 - 1 do
+     assert((width1 > 0) and (height1 > 0) and (width1 = height2), 'Dimension error'); 
+     for y := 0 to height1 - 1 do
      begin
-          pMt1 := mt1;
-          for y := 0 to height1 - 1 do
+          pMt1 :=  PConstDoubleArr( GenPtr(mt1, 0, y, LineWidth1 ) );
+          for x := width2 - 1 downto 0 do
           begin
+               pMt2 := GenPtr(mt2, x, 0, LineWidth2 );
                tmp := 0;
-               valCounter1 := pMt1;
-               valCounter2 := pMt2;
-
-               for idx := x to width1 - 1 do
+               for i := 0 to x - 1 do
                begin
-                    tmp := tmp + valCounter1^*valCounter2^;
-                    inc(valCounter1);
-                    inc(valCounter2);
+                    tmp := tmp + pMt1^[i]*pMt2^;
+                    inc(PByte(pMt2), LineWidth2);
                end;
 
-               pMt1^ := tmp;
-               inc(PByte(pMt1), LineWidth1);
+               pMt1^[x] := tmp + pMt1^[x]; // pMt2 is unit at that point
           end;
-
-          inc(mt1);
-          inc(PByte(pMt2), LineWidth2);
-          inc(pMt2);
      end;
 end;
 
+// note the result is stored in mt1 again!
+// mt1 = mt1*mt2'; where mt2 is an upper triangular matrix
+procedure GenericMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+var y: Integer;
+    x : Integer;
+    i : integer;
+    pMt1 : PConstDoubleArr;
+    pMt2 : PConstDoubleArr;
+    tmp : double;
+begin
+     assert((width1 > 0) and (height1 > 0) and (width1 = width2), 'Dimension error'); 
+     for y := 0 to height1 - 1 do
+     begin
+          pMt1 :=  PConstDoubleArr( GenPtr(mt1, 0, y, LineWidth1 ) );
+          for x := 0 to height2 - 1 do
+          begin
+               pMt2 := PConstDoubleArr( GenPtr(mt2, 0, x, LineWidth2 ) );
+               tmp := 0;
+               for i := x to width1 - 1 do
+                   tmp := tmp + pMt1^[i]*pMt2^[i];
+
+               pMt1^[x] := tmp;
+          end;
+     end;
+end;
 
 // calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be 1!
 procedure GenericMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;

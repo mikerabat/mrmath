@@ -83,7 +83,19 @@ type
 type
   TMatrixMultDestOperation = (doNone, doAdd, doSub);
 
+
+// ###########################################
+// #### Creates a pointer to the x, y element of the given matrix (row major)
+function GenPtr(const A : PDouble; incX, incY : TASMNativeInt; const LineWidthA : TASMNativeInt) : PDouble; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+  
 implementation
+
+function GenPtr(const A : PDouble; incX, incY : TASMNativeInt; const LineWidthA : TASMNativeInt) : PDouble; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+begin
+     Result := A;
+     inc(Result, incX);
+     inc(PByte(Result), incY*LineWidthA);
+end;
 
 function ConvEQUProgress(value : TLinEquProgressWOObj) : TLinEquProgress;
 var meth : TMethod;
