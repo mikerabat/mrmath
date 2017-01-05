@@ -835,7 +835,7 @@ begin
             movsd [edi], xmm0;
 
             // next row
-            add edi, ebx;
+            add edi, destLineWidth;
             add mt1, 8;
 
         dec width;
