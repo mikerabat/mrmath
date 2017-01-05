@@ -265,7 +265,7 @@ begin
 
      if (Value.Width = 1) and (Value.LineWidth = sizeof(double))
      then
-         ThrMatrixVecMult(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, Width, Height, Value.Height, LineWidth)
+         ThrMatrixVecMult(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, Width, Height, LineWidth, Value.LineWidth, 1, 0)
      else
          ThrMatrixMult(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, Width, Height, Value.Width, Value.Height, LineWidth, Value.LineWidth);
 end;
@@ -282,7 +282,7 @@ begin
      try
         if (Value.Width = 1) and (Value.LineWidth = sizeof(double))
         then
-            ThrMatrixVecMult(res.StartElement, res.LineWidth, StartElement, Value.StartElement, Width, Height, Value.Height, LineWidth)
+            ThrMatrixVecMult(res.StartElement, res.LineWidth, StartElement, Value.StartElement, Width, Height, LineWidth, Value.LineWidth, 1, 0)
         else
             ThrMatrixMult(res.StartElement, res.LineWidth, StartElement, Value.StartElement, Width, Height, Value.Width, Value.Height, LineWidth, Value.LineWidth);
 

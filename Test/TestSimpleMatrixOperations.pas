@@ -1440,15 +1440,15 @@ begin
 
      // matrix vector operations:
      vecstartTime3 := MtxGetTime;
-     ASMMatrixMult(@dest1[0], sizeof(double), @x[0], @y[0], 1024*1024, 20, 1, 1024*1024, 1024*1024*sizeof(double), sizeof(double));
+     ASMMtxVecMult(@dest1[0], sizeof(double), @x[0], @y[0], 1024*128*sizeof(double), sizeof(double), 1024*128, 8*20, 1, 0);
      vecendTime3 := MtxGetTime;
-     
+
      vecstartTime1 := MtxGetTime;
-     ThrMatrixVecMult(dest2a, sizeof(double), xa, ya, 1024*1024, 20, 1024*1024, 1024*1024*sizeof(double));
+     ThrMatrixVecMult(dest2a, sizeof(double), xa, ya, 1024*128, 8*20, 128*1024*sizeof(double), sizeof(double), 1, 0);
      vecendTime1 := MtxGetTime;
 
      vecstartTime2 := MtxGetTime;
-     ThrMatrixVecMult(@dest2[0], sizeof(double), @x[0], @y[0], 1024*1024, 20, 1024*1024, 1024*1024*sizeof(double));
+     ThrMatrixVecMult(@dest2[0], sizeof(double), @x[0], @y[0], 1024*128, 8*20, 128*1024*sizeof(double), sizeof(double), 1, 0);
      vecendTime2 := MtxGetTime;
 
      Status(Format('%.2f, %.2f, %.2f',
@@ -2922,7 +2922,7 @@ begin
 end;
 
 procedure TASMMatrixOperations.TestBigMtxVecMult;
-const cMtxSize = 2050;
+const cMtxSize = 1350;
 var x, y : TDoubleDynArray;
     xa, ya : PDouble;
     dest1 : TDoubleDynArray;
@@ -3018,7 +3018,6 @@ begin
      Status(Format('%.2f,  %.2f', [(endTime1 - startTime1)/mtxFreq*1000,  (endTime2 - startTime2)/mtxFreq*1000]));
      Check(CheckMtx(dest1, dest2), 'Error odd len matrix vector multiplication failed');
 
-
      startTime1 := MtxGetTime;
      GenericMtxVecMultT(@dest1[0], cMtxSize*sizeof(double), @x[0], @y[0], cMtxSize*sizeof(double), cMtxSize*sizeof(double), cMtxSize - 1, cMtxSize - 1, 2, -0.2);
      endTime1 := MtxGetTime;
@@ -3026,10 +3025,29 @@ begin
      startTime2 := MtxGetTime;
      ASMMatrixVectMultT(@dest2[0], cMtxSize*sizeof(double), @x[0], @y[0], cMtxSize*sizeof(double), cMtxSize*sizeof(double), cMtxSize - 1, cMtxSize - 1, 2, -0.2);
      endTime2 := MtxGetTime;
-     
+
      Status(Format('%.2f,  %.2f', [(endTime1 - startTime1)/mtxFreq*1000,  (endTime2 - startTime2)/mtxFreq*1000]));
      Check(CheckMtx(dest1, dest2), 'Error transposed vector multiplication failed');
-     
+
+     dest3 := Copy(dest2, 0, Length(dest2));
+
+     startTime1 := MtxGetTime;
+     GenericMtxVecMultT(@dest1[0], sizeof(double), @x[0], @y[0], cMtxSize*sizeof(double), cMtxSize*sizeof(double), cMtxSize - 1, cMtxSize - 1, 2, -0.2);
+     endTime1 := MtxGetTime;
+
+     startTime2 := MtxGetTime;
+     ASMMatrixVectMultT(@dest2[0], sizeof(double), @x[0], @y[0], cMtxSize*sizeof(double), cMtxSize*sizeof(double), cMtxSize - 1, cMtxSize - 1, 2, -0.2);
+     endTime2 := MtxGetTime;
+
+     startTime3 := MtxGetTime;
+     ASMMatrixVectMultTDestVec(@dest3[0], sizeof(double), @x[0], @y[0], cMtxSize*sizeof(double), cMtxSize*sizeof(double), cMtxSize - 1, cMtxSize - 1, 2, -0.2);
+     endTime3:= MtxGetTime;
+
+     Status(Format('%.2f,  %.2f,    %.2f', [(endTime1 - startTime1)/mtxFreq*1000,  (endTime2 - startTime2)/mtxFreq*1000, (endTime3 - startTime3)/mtxFreq*1000]));
+     Check(CheckMtx(dest1, dest2), 'Error transposed vector multiplication failed');
+     Check(CheckMtx(dest1, dest3), 'Error transposed vector multiplication failed');
+
+
      FreeMem(xa);
      FreeMem(ya);
 end;

@@ -37,6 +37,7 @@ procedure ASMMatrixMultTransposed(dest : PDouble; const destLineWidth : TASMNati
 procedure ASMMatrixMultDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
 
 procedure ASMMtxVecMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure ASMMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 
 // note: the matrix add routine tries to add two values at once and does not carry out any range checks thus the line widhts must
 // be multiple of 16.
@@ -1893,6 +1894,19 @@ begin
      end
      else
          ASMMatrixVectMult(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta);
+end;
+
+// performs dest = beta*dest + mt1**T*v * alpha
+procedure ASMMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+begin
+     if (width = 0) or (height = 0) then
+        exit;
+
+     if LineWidthV = sizeof(double)
+     then
+         ASMMatrixVectMultTDestVec(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta)
+     else
+         ASMMatrixVectMultT(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta);
 end;
 
 end.

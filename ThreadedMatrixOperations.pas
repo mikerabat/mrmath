@@ -31,7 +31,7 @@ procedure ThrMatrixMultT2(dest : PDouble; const destLineWidth : TASMNativeInt; m
 procedure ThrMatrixMultT2Ex(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1,
   LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble);
 
-procedure ThrMatrixVecMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt);
+procedure ThrMatrixVecMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, v : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidthMt, LineWidthV : TASMNativeInt; const Alpha, Beta : double);
 procedure ThrMatrixAddAndScale(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
 procedure ThrMatrixAdd(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 procedure ThrMatrixSub(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
@@ -80,14 +80,15 @@ type
 
     dest : PDouble;
     destLineWidth : TASMNativeInt;
-    mt1, mt2 : PDouble;
-    width1 : TASMNativeInt;
-    height1 : TASMNativeInt;
-    height2 : TASMNativeInt;
-    LineWidth1 : TASMNativeInt;
+    mt1, V : PDouble;
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+    LineWidthMt : TASMNativeInt;
+    LineWidthV : TASMNativeInt;
+    Alpha, Beta : double;
 
-    constructor Create(adest : PDouble; const adestLineWidth : TASMNativeInt; amt1, amt2 : PDouble; awidth1 : TASMNativeInt; aheight1 : TASMNativeInt;
-                       aheight2 : TASMNativeInt; const aLineWidth1 : TASMNativeInt);
+    constructor Create(adest : PDouble; const adestLineWidth : TASMNativeInt; amt1, aV : PDouble; awidth : TASMNativeInt; aheight : TASMNativeInt;
+                       const aLineWidthMT, aLineWidthV : TASMNativeInt; const aAlpha, aBeta : double);
   end;
 
 type
@@ -291,28 +292,16 @@ end;
 
 function MatrixVectorMultFunc(obj : TObject) : integer;
 begin
-     if TAsyncMatrixVectorMultObj(obj).width1 > 10*cCacheMtxSize*cCacheMtxSize
-     then
-         BlockedMatrixVectorMultiplication(TAsyncMatrixVectorMultObj(obj).dest,
-                                           TAsyncMatrixVectorMultObj(obj).destLineWidth,
-                                           TAsyncMatrixVectorMultObj(obj).mt1,
-                                           TAsyncMatrixVectorMultObj(obj).mt2,
-                                           TAsyncMatrixVectorMultObj(obj).width1,
-                                           TAsyncMatrixVectorMultObj(obj).height1,
-                                           TAsyncMatrixVectorMultObj(obj).height2,
-                                           TAsyncMatrixVectorMultObj(obj).LineWidth1,
-                                           BlockedVectorMatrixMultSize)
-     else
-         MatrixMult(TAsyncMatrixVectorMultObj(obj).dest,
-                    TAsyncMatrixVectorMultObj(obj).destLineWidth,
-                    TAsyncMatrixVectorMultObj(obj).mt1,
-                    TAsyncMatrixVectorMultObj(obj).mt2,
-                    TAsyncMatrixVectorMultObj(obj).width1,
-                    TAsyncMatrixVectorMultObj(obj).height1,
-                    1,
-                    TAsyncMatrixVectorMultObj(obj).height2,
-                    TAsyncMatrixVectorMultObj(obj).LineWidth1,
-                    sizeof(double));
+     MatrixMtxVecMult(TAsyncMatrixVectorMultObj(obj).dest,
+                      TAsyncMatrixVectorMultObj(obj).destLineWidth,
+                      TAsyncMatrixVectorMultObj(obj).mt1,
+                      TAsyncMatrixVectorMultObj(obj).v,
+                      TAsyncMatrixVectorMultObj(obj).LineWidthMt,
+                      TAsyncMatrixVectorMultObj(obj).LineWidthV,
+                      TAsyncMatrixVectorMultObj(obj).width,
+                      TAsyncMatrixVectorMultObj(obj).height,
+                      TAsyncMatrixVectorMultObj(obj).Alpha,
+                      TAsyncMatrixVectorMultObj(obj).Beta);
 
      Result := 0;
 end;
@@ -710,32 +699,37 @@ begin
 end;
 
 
-procedure ThrMatrixVecMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt);
-var obj : TAsyncMatrixVectorMultObj;
-    i : TASMNativeInt;
+procedure ThrMatrixVecMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, v : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidthMt, LineWidthV : TASMNativeInt; const Alpha, Beta : double);var obj : TAsyncMatrixVectorMultObj;
+var i : TASMNativeInt;
     thrHeight : TASMNativeInt;
     calls : IMtxAsyncCallGroup;
     heightFits : boolean;
+    numTask : integer;
 begin
      calls := MtxInitTaskGroup;
-     
-     heightFits := (height1 mod numCPUCores) = 0;                                  
-     thrHeight := height1 div numCPUCores + TASMNativeInt(not heightFits);
-     for i := 0 to numCPUCores - 1 do
+
+     heightFits := (height mod numCPUCores) = 0;
+     thrHeight := Max(8, height div numCPUCores + TASMNativeInt(not heightFits) );
+
+     numTask := Min(numCPUCores, height div thrHeight + 1);
+
+
+     for i := 0 to numTask - 1 do
      begin
-          obj := TAsyncMatrixVectorMultObj.Create(dest, destLineWidth, mt1, mt2, width1, height1, height2, LineWidth1);
+          obj := TAsyncMatrixVectorMultObj.Create(dest, destLineWidth, mt1, v, width, height,
+                                                  LineWidthMt, LineWidthV, alpha, beta);
           obj.thrIdx := i;
           inc(PByte(obj.dest), i*thrHeight*destLineWidth);
-          inc(PByte(obj.mt1), i*thrHeight*LineWidth1);
-          if height1 > (i + 1)*thrHeight
+          inc(PByte(obj.mt1), i*thrHeight*LineWidthMt);
+          if height > (i + 1)*thrHeight
           then
-              obj.height1 := thrHeight
+              obj.height := thrHeight
           else
-              obj.height1 := obj.height1 - i*thrHeight;
+              obj.height := obj.height - i*thrHeight;
 
           calls.AddTask(@MatrixVectorMultFunc, obj);
 
-          if height1 <= (i + 1)*thrHeight then
+          if height <= (i + 1)*thrHeight then
              break;
      end;
 
@@ -1268,18 +1262,19 @@ end;
 
 { TAsyncMatrixVectorMultObj }
 
-constructor TAsyncMatrixVectorMultObj.Create(adest: PDouble;
-  const adestLineWidth: TASMNativeInt; amt1, amt2: PDouble; awidth1, aheight1,
-  aheight2: TASMNativeInt; const aLineWidth1: TASMNativeInt);
+constructor TAsyncMatrixVectorMultObj.Create(adest : PDouble; const adestLineWidth : TASMNativeInt; amt1, aV : PDouble; awidth : TASMNativeInt; aheight : TASMNativeInt;
+                       const aLineWidthMT, aLineWidthV : TASMNativeInt; const aAlpha, aBeta : double);
 begin
      dest := adest;
      destLineWidth := adestLineWidth;
      mt1 := amt1;
-     mt2 := amt2;
-     width1 := awidth1;
-     height1 := aheight1;
-     height2 := aheight2;
-     LineWidth1 := aLineWidth1;
+     v := aV;
+     width := awidth;
+     height := aheight;
+     LineWidthMt := aLineWidthMt;
+     LineWidthV := aLineWidthV;
+     alpha := aAlpha;
+     beta := aBeta;
 end;
 
 { TAsyncMatrixAddAndSclaObj }

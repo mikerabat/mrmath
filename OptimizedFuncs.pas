@@ -792,7 +792,7 @@ begin
           elemWiseDivFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixElemDiv;
           multTria2T1 := {$IFDEF FPC}@{$ENDIF}ASMMtxMultTria2T1;
           MtxVecMultFunc := {$IFDEF FPC}@{$ENDIF}ASMMtxVecMult;
-          MtxVecMultTFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixVectMultT;
+          MtxVecMultTFunc := {$IFDEF FPC}@{$ENDIF}ASMMtxVecMultT;
      end
      else
      begin
