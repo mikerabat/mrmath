@@ -40,6 +40,10 @@ procedure ASMMatrixVectMultEvenAlignedVAligned(dest : PDouble; destLineWidth : T
 procedure ASMMatrixVectMultEvenUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 procedure ASMMatrixVectMultOddUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 
+// destlinewidth needs to be sizeof(double)!
+// no speed gain agains amsmatrixVectMultT
+procedure ASMMatrixVectMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+
 
 {$ENDIF}
 
@@ -939,9 +943,91 @@ end;
 
 
 procedure ASMMatrixVectMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+// note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
+var dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
+{$IFDEF FPC}
 begin
-     // todo..
+{$ENDIF}
+asm
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRSI, rsi;
+   mov iRDI, rdi;
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
+
+   // global function inits (for haddpd and alpha, beta handling)
+   xorpd xmm7, xmm7;
+
+   // for the final multiplication
+   movhpd xmm6, beta;
+   movlpd xmm6, alpha;
+
+   // prepare for loop
+   mov rsi, LineWidthMT;
+   mov rdi, LineWidthV;
+   mov r13, height;
+   mov r14, width;
+
+   // init for x := 0 to width - 1:
+   @@forxloop:
+
+       // init values:
+       xorpd xmm3, xmm3;  // res := 0;
+       mov rax, r8;       // rax = first matrix element
+       mov rbx, r9;       // rbx = first vector element
+
+       mov r10, r13;
+       @@foryloop:
+           movsd xmm1, [rax];
+           movsd xmm2, [rbx];
+
+           mulsd xmm1, xmm2;
+           addsd xmm3, xmm1;
+
+           add rax, 8;
+           add rbx, rdi;
+
+       dec r10;
+       jnz @@foryloop;
+
+       // result building
+       // write back result (final addition and compactation)
+
+       // calculate dest = beta*dest + alpha*xmm0
+       movhpd xmm3, [rcx];
+
+       mulpd xmm3, xmm6;
+       haddpd xmm3, xmm7;
+
+       movlpd [rcx], xmm3;
+
+       // next results:
+       add rcx, destLineWidth;   // next dest element
+       add r8, rsi;              // next mt1 element
+   dec r14;
+   jnz @@forxloop;
+
+   // epilog pop "stack"
+   mov rbx, iRBX;
+   mov rsi, iRSI;
+   mov rdi, iRDI;
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+
+   movupd xmm6, dXMM6;
+   movupd xmm7, dXMM7;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
 
 // routines with special input layouts: LineWidthV needs to be sizeof(double)
 procedure ASMMatrixVectMultEvenAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
@@ -1049,6 +1135,11 @@ end;
 end;
 {$ENDIF}
 
+
+procedure ASMMatrixVectMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+begin
+
+end;
 
 {$ENDIF}
 

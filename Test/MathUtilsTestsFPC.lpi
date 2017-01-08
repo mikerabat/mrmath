@@ -30,7 +30,7 @@
     </RunParams>
     <RequiredPackages Count="2">
       <Item1>
-        <PackageName Value="fpcunittestrunner"/>
+        <PackageName Value="lz_fpcunitrunner"/>
       </Item1>
       <Item2>
         <PackageName Value="LCL"/>

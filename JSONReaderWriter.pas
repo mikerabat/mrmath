@@ -368,7 +368,8 @@ begin
      inherited Create;
 
      {$IFDEF FPC}
-     fFmt := TFormatSettings.Create(0);
+     //fFmt := TFormatSettings.Create(0);
+     GetLocaleFormatSettings(0, fFmt);
      {$ELSE}
      {$IF CompilerVersion >= 22}
      fFmt := TFormatSettings.Create(0);

@@ -80,6 +80,7 @@ var sysInfo : TSystemInfo;
     
 initialization
 
+  ReturnLength := 0;
   Buffer := nil;
   if not GetLogicalProcessorInformation(nil, ReturnLength) then
   begin

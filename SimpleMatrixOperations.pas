@@ -1033,44 +1033,80 @@ procedure GenericMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1,
 var pMt1 : PConstDoubleArr;
     pV : PDouble;
     i, j : TASMNativeInt;
-    res1, res2, res3, res4 : double;
+    res : Array[0..15] of double;
+    res1 : double;
 begin
      if (width = 0) or (height = 0) or ( (alpha = 0) and (beta = 1)) then
         exit;
-        
-     for i := 0 to Width div 4 - 1 do
+
+     for i := 0 to Width div Length(res) - 1 do
      begin
-          res1 := 0;
-          res2 := 0;
-          res3 := 0;
-          res4 := 0;
-          
+          for j := 0 to High(res) do
+              res[j] := 0;
+
           pMt1 := PConstDoubleArr(mt1);
-          inc(Mt1, 4);
-          pV := v; 
-          
+          inc(Mt1, Length(res));
+          pV := v;
+
           for j := 0 to Height - 1 do
           begin
-               res1 := res1 + pV^*pMt1^[0];
-               res2 := res2 + pV^*pMt1^[1];
-               res3 := res3 + pV^*pMt1^[2];
-               res4 := res4 + pV^*pMt1^[3];
-               
+               res[0] := res[0] + pV^*pMt1^[0];
+               res[1] := res[1] + pV^*pMt1^[1];
+               res[2] := res[2] + pV^*pMt1^[2];
+               res[3] := res[3] + pV^*pMt1^[3];
+               res[4] := res[4] + pV^*pMt1^[4];
+               res[5] := res[5] + pV^*pMt1^[5];
+               res[6] := res[6] + pV^*pMt1^[6];
+               res[7] := res[7] + pV^*pMt1^[7];
+               res[8] := res[8] + pV^*pMt1^[8];
+               res[9] := res[9] + pV^*pMt1^[9];
+               res[10] := res[10] + pV^*pMt1^[10];
+               res[11] := res[11] + pV^*pMt1^[11];
+               res[12] := res[12] + pV^*pMt1^[12];
+               res[13] := res[13] + pV^*pMt1^[13];
+               res[14] := res[14] + pV^*pMt1^[14];
+               res[15] := res[15] + pV^*pMt1^[15];
+
                inc(PByte(pV), LineWidthV);
                inc(PByte(pMt1), LineWidthMT);
           end;
 
-          Dest^ := beta*Dest^ + alpha*res1;
-          inc(PByte(Dest), destLineWidth);
-          Dest^ := beta*Dest^ + alpha*res2;
-          inc(PByte(Dest), destLineWidth);
-          Dest^ := beta*Dest^ + alpha*res3;
-          inc(PByte(Dest), destLineWidth);
-          Dest^ := beta*Dest^ + alpha*res4;
-          inc(PByte(Dest), destLineWidth);
+          dest^ := beta*dest^ + alpha*res[0];
+          inc(PByte(dest), destLineWidth);
+          dest^ := beta*dest^ + alpha*res[1];
+          inc(PByte(dest), destLineWidth);
+          dest^ := beta*dest^ + alpha*res[2];
+          inc(PByte(dest), destLineWidth);
+          dest^ := beta*dest^ + alpha*res[3];
+          inc(PByte(dest), destLineWidth);
+          dest^ := beta*dest^ + alpha*res[4];
+          inc(PByte(dest), destLineWidth);
+          dest^ := beta*dest^ + alpha*res[5];
+          inc(PByte(dest), destLineWidth);
+          dest^ := beta*dest^ + alpha*res[6];
+          inc(PByte(dest), destLineWidth);
+          dest^ := beta*dest^ + alpha*res[7];
+          inc(PByte(dest), destLineWidth);
+          dest^ := beta*dest^ + alpha*res[8];
+          inc(PByte(dest), destLineWidth);
+          dest^ := beta*dest^ + alpha*res[9];
+          inc(PByte(dest), destLineWidth);
+          dest^ := beta*dest^ + alpha*res[10];
+          inc(PByte(dest), destLineWidth);
+          dest^ := beta*dest^ + alpha*res[11];
+          inc(PByte(dest), destLineWidth);
+          dest^ := beta*dest^ + alpha*res[12];
+          inc(PByte(dest), destLineWidth);
+          dest^ := beta*dest^ + alpha*res[13];
+          inc(PByte(dest), destLineWidth);
+          dest^ := beta*dest^ + alpha*res[14];
+          inc(PByte(dest), destLineWidth);
+          dest^ := beta*dest^ + alpha*res[15];
+          inc(PByte(dest), destLineWidth);
      end;
 
-     for i := (width div 4)*4 to Width - 1 do
+     // remainding columns
+     for i := (width div Length(res))*Length(res) to Width - 1 do
      begin
           res1 := 0;
           

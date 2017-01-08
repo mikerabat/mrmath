@@ -166,6 +166,7 @@ end;
 
 function TBufferedStream.Write(const Buffer; Count: Integer): Longint;
 begin
+     Result := -1;
      raise Exception.Create('Writes not implemented');
 end;
 

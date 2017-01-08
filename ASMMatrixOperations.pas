@@ -1902,10 +1902,11 @@ begin
      if (width = 0) or (height = 0) then
         exit;
 
-     if LineWidthV = sizeof(double)
-     then
-         ASMMatrixVectMultTDestVec(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta)
-     else
+     // no speed gain agains the standard vect mul
+     //if LineWidthV = sizeof(double)
+//     then
+//         ASMMatrixVectMultTDestVec(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta)
+//     else
          ASMMatrixVectMultT(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta);
 end;
 
