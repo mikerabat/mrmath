@@ -719,10 +719,10 @@ begin
             @nextLine:
 
             // special care of the last column:
-            movlpd xmm0, [ecx];
+            movsd xmm0, [ecx];
             mulsd xmm0, xmm7;
             addsd xmm0, xmm6;
-            movlpd [ecx], xmm0;
+            movsd [ecx], xmm0;
 
             // next line:
             add ecx, LineWidth;
@@ -816,10 +816,10 @@ begin
 
             @nextLine:
             // special care of the last column:
-            movlpd xmm0, [ecx];
+            movsd xmm0, [ecx];
             mulsd xmm0, xmm7;
             addsd xmm0, xmm6;
-            movlpd [ecx], xmm0;
+            movsd [ecx], xmm0;
 
             // next line:
             add ecx, LineWidth;

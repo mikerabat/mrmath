@@ -33,6 +33,8 @@ procedure ThrMatrixMultT2Ex(dest : PDouble; const destLineWidth : TASMNativeInt;
 
 procedure ThrMatrixVecMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, v : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidthMt, LineWidthV : TASMNativeInt; const Alpha, Beta : double);
 procedure ThrMatrixAddAndScale(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
+procedure ThrMatrixScaleAndAdd(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
+
 procedure ThrMatrixAdd(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 procedure ThrMatrixSub(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 
@@ -317,6 +319,19 @@ begin
 
      Result := 0;
 end;
+
+function MatrixScaleAndAddFunc(obj : TObject) : integer;
+begin
+     MatrixScaleAndAdd(TAsyncMatrixAddAndSclaObj(obj).dest,
+                       TAsyncMatrixAddAndSclaObj(obj).destLineWidth,
+                       TAsyncMatrixAddAndSclaObj(obj).Width,
+                       TAsyncMatrixAddAndSclaObj(obj).Height,
+                       TAsyncMatrixAddAndSclaObj(obj).Offset,
+                       TAsyncMatrixAddAndSclaObj(obj).Scale);
+
+     Result := 0;
+end;
+
 
 function MatrixMedianFunc(obj : TObject) : integer;
 begin
@@ -735,6 +750,59 @@ begin
 
      calls.SyncAll;
 end;
+
+procedure ThrMatrixScaleAndAdd(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
+var i: TASMNativeInt;
+    obj : TAsyncMatrixAddAndSclaObj;
+    calls : IMtxAsyncCallGroup;
+    sizeFits : boolean;
+    thrSize : TASMNativeInt;
+begin
+     // check if it is really necessary to thread the call:
+     if (width < numCPUCores) and (height < numCPUCores) then
+     begin
+          MatrixScaleAndAdd(Dest, LineWidth, Width, height, offset, scale);
+          exit;
+     end;
+
+     calls := MtxInitTaskGroup;
+
+     if width > height then
+     begin
+          sizeFits := (width mod numCoresForSimpleFuncs) = 0;
+          thrSize := width div numCoresForSimpleFuncs + TASMNativeInt(not sizeFits);
+
+          for i := 0 to numCoresForSimpleFuncs - 1 do
+          begin
+               obj := TAsyncMatrixAddAndSclaObj.Create(dest, LineWidth, thrSize, height, Offset, Scale);
+
+               inc(obj.dest, i*thrSize);
+               if width < (i + 1)*thrSize then
+                  obj.Width := width - i*thrSize;
+
+               calls.AddTask(@MatrixScaleAndAddFunc, obj);
+          end;
+     end
+     else
+     begin
+          sizeFits := (height mod numCoresForSimpleFuncs) = 0;
+          thrSize := height div numCoresForSimpleFuncs + TASMNativeInt(not sizeFits);
+
+          for i := 0 to numCoresForSimpleFuncs - 1 do
+          begin
+               obj := TAsyncMatrixAddAndSclaObj.Create(dest, LineWidth, width, thrSize, Offset, Scale);
+
+               inc(PByte(obj.dest), i*thrSize*LineWidth);
+               if height < (i + 1)*thrSize then
+                  obj.Height := height - i*thrSize;
+
+               calls.AddTask(@MatrixScaleAndAddFunc, obj);
+          end;
+     end;
+
+     calls.SyncAll;
+end;
+
 
 procedure ThrMatrixAddAndScale(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
 var i: TASMNativeInt;

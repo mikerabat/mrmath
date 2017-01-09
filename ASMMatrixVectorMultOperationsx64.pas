@@ -974,44 +974,123 @@ asm
    mov r13, height;
    mov r14, width;
 
+   sub r13, 4;
+   js @@foryloopend;
+
    // init for x := 0 to width - 1:
-   @@forxloop:
+   @@foryloop:
 
        // init values:
+       xorpd xmm0, xmm0;
+       xorpd xmm1, xmm1;
+       xorpd xmm2, xmm2;
        xorpd xmm3, xmm3;  // res := 0;
        mov rax, r8;       // rax = first matrix element
        mov rbx, r9;       // rbx = first vector element
 
-       mov r10, r13;
-       @@foryloop:
-           movsd xmm1, [rax];
-           movsd xmm2, [rbx];
+       mov r10, r14;      // r10 = width
+       @@forxloop:
+           movsd xmm4, [rbx];
 
-           mulsd xmm1, xmm2;
-           addsd xmm3, xmm1;
+           movsd xmm5, [rax];
+           mulsd xmm5, xmm4;
+           addsd xmm0, xmm5;
+
+           movsd xmm5, [rax + rsi];
+           mulsd xmm5, xmm4;
+           addsd xmm1, xmm5;
+
+           movsd xmm5, [rax + 2*rsi];
+           mulsd xmm5, xmm4;
+           addsd xmm2, xmm5;
+
+           add rax, rsi;
+           movsd xmm5, [rax + 2*rsi];
+           mulsd xmm5, xmm4;
+           addsd xmm3, xmm5;
+           sub rax, rsi;
 
            add rax, 8;
            add rbx, rdi;
 
        dec r10;
-       jnz @@foryloop;
+       jnz @@forxloop;
 
        // result building
        // write back result (final addition and compactation)
 
        // calculate dest = beta*dest + alpha*xmm0
-       movhpd xmm3, [rcx];
+       movhpd xmm0, [rcx];
+       mulpd xmm0, xmm6;
+       haddpd xmm0, xmm7;
+       movsd [rcx], xmm0;
+       add rcx, destLineWidth;
+       add r8, rsi;              // next mt1 element
 
+       movhpd xmm1, [rcx];
+       mulpd xmm1, xmm6;
+       haddpd xmm1, xmm7;
+       movsd [rcx], xmm0;
+       add rcx, destLineWidth;
+       add r8, rsi;              // next mt1 element
+
+       movhpd xmm2, [rcx];
+       mulpd xmm2, xmm6;
+       haddpd xmm2, xmm7;
+       movsd [rcx], xmm2;
+       add rcx, destLineWidth;
+       add r8, rsi;              // next mt1 element
+
+       movhpd xmm3, [rcx];
        mulpd xmm3, xmm6;
        haddpd xmm3, xmm7;
-
-       movlpd [rcx], xmm3;
-
-       // next results:
+       movsd [rcx], xmm3;
        add rcx, destLineWidth;   // next dest element
        add r8, rsi;              // next mt1 element
-   dec r14;
-   jnz @@forxloop;
+
+       // next rseult
+   sub r13, 4;
+   jns @@foryloop;
+
+   // ###########################################
+   // #### Remaining rows (max 4):
+   @@foryloopend:
+   add r13, 4;
+   jz @@vecend;
+
+   @@foryshortloop:
+       // init values:
+       xorpd xmm0, xmm0;
+       mov rax, r8;       // rax = first matrix element
+       mov rbx, r9;       // rbx = first vector element
+
+       mov r10, r14;      // r10 = width
+       @@forxshortloop:
+           movsd xmm4, [rbx];
+
+           movsd xmm5, [rax];
+           mulsd xmm5, xmm4;
+           addsd xmm0, xmm5;
+
+           add rax, 8;
+           add rbx, rdi;
+       dec r10;
+       jnz @@forxshortloop;
+
+       // build result
+
+       // calculate dest = beta*dest + alpha*xmm0
+       movhpd xmm0, [rcx];
+       mulpd xmm0, xmm6;
+       haddpd xmm0, xmm7;
+       movsd [rcx], xmm0;
+       add rcx, destLineWidth;
+       add r8, rsi;
+
+   sub r13, 1;
+   jnz @@foryshortloop;
+
+   @@vecend:
 
    // epilog pop "stack"
    mov rbx, iRBX;
