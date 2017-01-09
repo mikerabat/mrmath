@@ -372,7 +372,7 @@ begin
      GetLocaleFormatSettings(0, fFmt);
      {$ELSE}
      {$IF CompilerVersion >= 22}
-     fFmt := TFormatSettings.Create(0);
+     fFmt := TFormatSettings.Create;
      {$ELSE}
      GetLocaleFormatSettings(0, fFmt);
      {$IFEND}
@@ -474,6 +474,7 @@ begin
 end;
 
 function ReadValue(ch : AnsiChar; readInt : boolean) : double;
+const cBase : double = 10;
 var sign : double;
     c : AnsiChar;
     fracFact : double;
@@ -575,7 +576,7 @@ begin
      // calculate the result
      Result := sign*Result;
      if expVal <> 0 then
-        Result := Result*Power(10, expSign*expVal);
+        Result := Result*IntPower(cBase, expSign*expVal);
 
      // undo the last read -> it is not part of the value
      aStream.Seek(-sizeof(c), soFromCurrent);

@@ -1024,28 +1024,28 @@ asm
        mulpd xmm0, xmm6;
        haddpd xmm0, xmm7;
        movsd [rcx], xmm0;
-       add rcx, destLineWidth;
+       add rcx, rdx;
        add r8, rsi;              // next mt1 element
 
        movhpd xmm1, [rcx];
        mulpd xmm1, xmm6;
        haddpd xmm1, xmm7;
-       movsd [rcx], xmm0;
-       add rcx, destLineWidth;
+       movsd [rcx], xmm1;
+       add rcx, rdx;
        add r8, rsi;              // next mt1 element
 
        movhpd xmm2, [rcx];
        mulpd xmm2, xmm6;
        haddpd xmm2, xmm7;
        movsd [rcx], xmm2;
-       add rcx, destLineWidth;
+       add rcx, rdx;
        add r8, rsi;              // next mt1 element
 
        movhpd xmm3, [rcx];
        mulpd xmm3, xmm6;
        haddpd xmm3, xmm7;
        movsd [rcx], xmm3;
-       add rcx, destLineWidth;   // next dest element
+       add rcx, rdx;             // next dest element
        add r8, rsi;              // next mt1 element
 
        // next rseult
@@ -1084,7 +1084,7 @@ asm
        mulpd xmm0, xmm6;
        haddpd xmm0, xmm7;
        movsd [rcx], xmm0;
-       add rcx, destLineWidth;
+       add rcx, rdx;
        add r8, rsi;
 
    sub r13, 1;
@@ -1110,26 +1110,869 @@ end;
 
 // routines with special input layouts: LineWidthV needs to be sizeof(double)
 procedure ASMMatrixVectMultEvenAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+// note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
+var dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
+{$IFDEF FPC}
 begin
-     // todo..
+{$ENDIF}
+asm
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRSI, rsi;
+   mov iRDI, rdi;
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
+
+   // global function inits (for haddpd and alpha, beta handling)
+   xorpd xmm7, xmm7;
+
+   // for the final multiplication
+   movhpd xmm6, beta;
+   movlpd xmm6, alpha;
+
+   // prepare for loop
+   mov rsi, LineWidthMT;
+   mov rdi, LineWidthV;
+   mov r13, height;
+   mov r14, width;
+
+   sub r13, 4;
+   js @@foryloopend;
+
+   // init for x := 0 to width - 1:
+   @@foryloop:
+
+       // init values:
+       xorpd xmm0, xmm0;
+       xorpd xmm1, xmm1;
+       xorpd xmm2, xmm2;
+       xorpd xmm3, xmm3;  // res := 0;
+       mov rax, r8;       // rax = first matrix element
+       mov rbx, r9;       // rbx = first vector element
+
+       mov r10, r14;      // r10 = width
+       @@forxloop:
+           movapd xmm4, [rbx];
+
+           movapd xmm5, [rax];
+           mulpd xmm5, xmm4;
+           addpd xmm0, xmm5;
+
+           movapd xmm5, [rax + rsi];
+           mulpd xmm5, xmm4;
+           addpd xmm1, xmm5;
+
+           movapd xmm5, [rax + 2*rsi];
+           mulpd xmm5, xmm4;
+           addpd xmm2, xmm5;
+
+           add rax, rsi;
+           movapd xmm5, [rax + 2*rsi];
+           mulpd xmm5, xmm4;
+           addpd xmm3, xmm5;
+           sub rax, rsi;
+
+           add rax, 16;
+           add rbx, 16;
+
+       sub r10, 2;
+       jnz @@forxloop;
+
+       // result building
+       // write back result (final addition and compactation)
+
+       // calculate dest = beta*dest + alpha*xmm0
+       movsd xmm5, [rcx];              // first element
+       haddpd xmm0, xmm5;              // calculate xmm0_1 + xmm0_2 (store low) xmm5_1 + xmm5_2 (store high)
+       mulpd xmm0, xmm6;               // beta * dest + alpha*xmm0
+       haddpd xmm0, xmm7;              // final add
+       movsd [rcx], xmm0;              // store back
+       add rcx, rdx;
+       add r8, rsi;
+
+       movsd xmm5, [rcx];
+       haddpd xmm1, xmm5;
+       mulpd xmm1, xmm6;
+       haddpd xmm1, xmm7;
+       movsd [rcx], xmm1;
+       add rcx, rdx;
+       add r8, rsi;
+
+       movsd xmm5, [rcx];
+       haddpd xmm2, xmm5;
+       mulpd xmm2, xmm6;
+       haddpd xmm2, xmm7;
+       movsd [rcx], xmm2;
+       add rcx, rdx;
+       add r8, rsi;
+
+       movsd xmm5, [rcx];
+       haddpd xmm3, xmm5;
+       mulpd xmm3, xmm6;
+       haddpd xmm3, xmm7;
+       movsd [rcx], xmm3;
+       add rcx, rdx;
+       add r8, rsi;
+
+       // next rseult
+   sub r13, 4;
+   jns @@foryloop;
+
+   // ###########################################
+   // #### Remaining rows (max 4):
+   @@foryloopend:
+   add r13, 4;
+   jz @@vecend;
+
+   @@foryshortloop:
+       // init values:
+       xorpd xmm0, xmm0;
+       mov rax, r8;       // rax = first matrix element
+       mov rbx, r9;       // rbx = first vector element
+
+       mov r10, r14;      // r10 = width
+       @@forxshortloop:
+           movapd xmm4, [rbx];
+           movapd xmm5, [rax];
+           mulpd xmm5, xmm4;
+           addpd xmm0, xmm5;
+
+           add rax, 16;
+           add rbx, 16;
+       sub r10, 2;
+       jnz @@forxshortloop;
+
+       // build result
+
+       // calculate dest = beta*dest + alpha*xmm0
+       movsd xmm5, [rcx];
+       haddpd xmm0, xmm5;
+       mulpd xmm0, xmm6;
+       haddpd xmm0, xmm7;
+       movsd [rcx], xmm0;
+
+       add rcx, rdx;
+       add r8, rsi;
+
+   dec r13;
+   jnz @@foryshortloop;
+
+   @@vecend:
+
+   // epilog pop "stack"
+   mov rbx, iRBX;
+   mov rsi, iRSI;
+   mov rdi, iRDI;
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+
+   movupd xmm6, dXMM6;
+   movupd xmm7, dXMM7;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 procedure ASMMatrixVectMultEvenUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+// note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
+var dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
+{$IFDEF FPC}
 begin
-     // todo..
+{$ENDIF}
+asm
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRSI, rsi;
+   mov iRDI, rdi;
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
+
+   // global function inits (for haddpd and alpha, beta handling)
+   xorpd xmm7, xmm7;
+
+   // for the final multiplication
+   movhpd xmm6, beta;
+   movlpd xmm6, alpha;
+
+   // prepare for loop
+   mov rsi, LineWidthMT;
+   mov rdi, LineWidthV;
+   mov r13, height;
+   mov r14, width;
+
+   sub r13, 4;
+   js @@foryloopend;
+
+   // init for x := 0 to width - 1:
+   @@foryloop:
+
+       // init values:
+       xorpd xmm0, xmm0;
+       xorpd xmm1, xmm1;
+       xorpd xmm2, xmm2;
+       xorpd xmm3, xmm3;  // res := 0;
+       mov rax, r8;       // rax = first matrix element
+       mov rbx, r9;       // rbx = first vector element
+
+       mov r10, r14;      // r10 = width
+       @@forxloop:
+           movupd xmm4, [rbx];
+
+           movupd xmm5, [rax];
+           mulpd xmm5, xmm4;
+           addpd xmm0, xmm5;
+
+           movupd xmm5, [rax + rsi];
+           mulpd xmm5, xmm4;
+           addpd xmm1, xmm5;
+
+           movupd xmm5, [rax + 2*rsi];
+           mulpd xmm5, xmm4;
+           addpd xmm2, xmm5;
+
+           add rax, rsi;
+           movupd xmm5, [rax + 2*rsi];
+           mulpd xmm5, xmm4;
+           addpd xmm3, xmm5;
+           sub rax, rsi;
+
+           add rax, 16;
+           add rbx, 16;
+
+       sub r10, 2;
+       jnz @@forxloop;
+
+       // result building
+       // write back result (final addition and compactation)
+
+       // calculate dest = beta*dest + alpha*xmm0
+       movsd xmm5, [rcx];              // first element
+       haddpd xmm0, xmm5;              // calculate xmm0_1 + xmm0_2 (store low) xmm5_1 + xmm5_2 (store high)
+       mulpd xmm0, xmm6;               // beta * dest + alpha*xmm0
+       haddpd xmm0, xmm7;              // final add
+       movsd [rcx], xmm0;              // store back
+       add rcx, destLineWidth;
+       add r8, rsi;
+
+       movsd xmm5, [rcx];
+       haddpd xmm1, xmm5;
+       mulpd xmm1, xmm6;
+       haddpd xmm1, xmm7;
+       movsd [rcx], xmm1;
+       add rcx, destLineWidth;
+       add r8, rsi;
+
+       movsd xmm5, [rcx];
+       haddpd xmm2, xmm5;
+       mulpd xmm2, xmm6;
+       haddpd xmm2, xmm7;
+       movsd [rcx], xmm2;
+       add rcx, destLineWidth;
+       add r8, rsi;
+
+       movsd xmm5, [rcx];
+       haddpd xmm3, xmm5;
+       mulpd xmm3, xmm6;
+       haddpd xmm3, xmm7;
+       movsd [rcx], xmm3;
+       add rcx, destLineWidth;
+       add r8, rsi;
+
+       // next rseult
+   sub r13, 4;
+   jns @@foryloop;
+
+   // ###########################################
+   // #### Remaining rows (max 4):
+   @@foryloopend:
+   add r13, 4;
+   jz @@vecend;
+
+   @@foryshortloop:
+       // init values:
+       xorpd xmm0, xmm0;
+       mov rax, r8;       // rax = first matrix element
+       mov rbx, r9;       // rbx = first vector element
+
+       mov r10, r14;      // r10 = width
+       @@forxshortloop:
+           movupd xmm4, [rbx];
+           movupd xmm5, [rax];
+           mulpd xmm5, xmm4;
+           addpd xmm0, xmm5;
+
+           add rax, 16;
+           add rbx, 16;
+       sub r10, 2;
+       jnz @@forxshortloop;
+
+       // build result
+
+       // calculate dest = beta*dest + alpha*xmm0
+       movsd xmm5, [rcx];
+       haddpd xmm0, xmm5;
+       mulpd xmm0, xmm6;
+       haddpd xmm0, xmm7;
+       movsd [rcx], xmm0;
+
+       add rcx, destLineWidth;
+       add r8, rsi;
+
+   dec r13;
+   jnz @@foryshortloop;
+
+   @@vecend:
+
+   // epilog pop "stack"
+   mov rbx, iRBX;
+   mov rsi, iRSI;
+   mov rdi, iRDI;
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+
+   movupd xmm6, dXMM6;
+   movupd xmm7, dXMM7;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 procedure ASMMatrixVectMultOddUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+// note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
+var dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
+{$IFDEF FPC}
 begin
-     // todo..
+{$ENDIF}
+asm
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRSI, rsi;
+   mov iRDI, rdi;
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
+
+   // global function inits (for haddpd and alpha, beta handling)
+   xorpd xmm7, xmm7;
+
+   // for the final multiplication
+   movhpd xmm6, beta;
+   movlpd xmm6, alpha;
+
+   // prepare for loop
+   mov rsi, LineWidthMT;
+   mov rdi, LineWidthV;
+   mov r13, height;
+   mov r14, width;
+
+   sub r13, 4;
+   js @@foryloopend;
+
+   // init for x := 0 to width - 1:
+   @@foryloop:
+
+       // init values:
+       xorpd xmm0, xmm0;
+       xorpd xmm1, xmm1;
+       xorpd xmm2, xmm2;
+       xorpd xmm3, xmm3;  // res := 0;
+       mov rax, r8;       // rax = first matrix element
+       mov rbx, r9;       // rbx = first vector element
+
+       mov r10, r14;      // r10 = width
+       dec r10;
+       @@forxloop:
+           movupd xmm4, [rbx];
+
+           movupd xmm5, [rax];
+           mulpd xmm5, xmm4;
+           addpd xmm0, xmm5;
+
+           movupd xmm5, [rax + rsi];
+           mulpd xmm5, xmm4;
+           addpd xmm1, xmm5;
+
+           movupd xmm5, [rax + 2*rsi];
+           mulpd xmm5, xmm4;
+           addpd xmm2, xmm5;
+
+           add rax, rsi;
+           movupd xmm5, [rax + 2*rsi];
+           mulpd xmm5, xmm4;
+           addpd xmm3, xmm5;
+           sub rax, rsi;
+
+           add rax, 16;
+           add rbx, 16;
+
+       sub r10, 2;
+       jnz @@forxloop;
+
+       // last element handling
+       movsd xmm4, [rbx];
+
+       movsd xmm5, [rax];
+       mulsd xmm5, xmm4;
+       addsd xmm0, xmm5;
+
+       movsd xmm5, [rax + rsi];
+       mulsd xmm5, xmm4;
+       addsd xmm1, xmm5;
+
+       movsd xmm5, [rax + 2*rsi];
+       mulsd xmm5, xmm4;
+       addsd xmm2, xmm5;
+
+       add rax, rsi;
+       movsd xmm5, [rax + 2*rsi];
+       mulsd xmm5, xmm4;
+       addsd xmm3, xmm5;
+       sub rax, rsi;
+
+       // result building
+       // write back result (final addition and compactation)
+
+       // undo increment
+
+
+       // calculate dest = beta*dest + alpha*xmm0
+       movsd xmm5, [rcx];              // first element
+       haddpd xmm0, xmm5;              // calculate xmm0_1 + xmm0_2 (store low) xmm5_1 + xmm5_2 (store high)
+       mulpd xmm0, xmm6;               // beta * dest + alpha*xmm0
+       haddpd xmm0, xmm7;              // final add
+       movsd [rcx], xmm0;              // store back
+       add rcx, destLineWidth;
+       add r8, rsi;
+
+       movsd xmm5, [rcx];
+       haddpd xmm1, xmm5;
+       mulpd xmm1, xmm6;
+       haddpd xmm1, xmm7;
+       movsd [rcx], xmm1;
+       add rcx, destLineWidth;
+       add r8, rsi;
+
+       movsd xmm5, [rcx];
+       haddpd xmm2, xmm5;
+       mulpd xmm2, xmm6;
+       haddpd xmm2, xmm7;
+       movsd [rcx], xmm2;
+       add rcx, destLineWidth;
+       add r8, rsi;
+
+       movsd xmm5, [rcx];
+       haddpd xmm3, xmm5;
+       mulpd xmm3, xmm6;
+       haddpd xmm3, xmm7;
+       movsd [rcx], xmm3;
+       add rcx, destLineWidth;
+       add r8, rsi;
+
+       // next rseult
+   sub r13, 4;
+   jns @@foryloop;
+
+   // ###########################################
+   // #### Remaining rows (max 4):
+   @@foryloopend:
+   add r13, 4;
+   jz @@vecend;
+
+   @@foryshortloop:
+       // init values:
+       xorpd xmm0, xmm0;
+       mov rax, r8;       // rax = first matrix element
+       mov rbx, r9;       // rbx = first vector element
+
+       mov r10, r14;      // r10 = width
+       dec r10;
+       @@forxshortloop:
+           movupd xmm4, [rbx];
+           movupd xmm5, [rax];
+           mulpd xmm5, xmm4;
+           addpd xmm0, xmm5;
+
+           add rax, 16;
+           add rbx, 16;
+       sub r10, 2;
+       jnz @@forxshortloop;
+
+       // last element
+       movsd xmm4, [rbx];
+       movsd xmm5, [rax];
+       mulsd xmm5, xmm4;
+       addsd xmm0, xmm5;
+
+       // build result
+
+       // calculate dest = beta*dest + alpha*xmm0
+       movsd xmm5, [rcx];
+       haddpd xmm0, xmm5;
+       mulpd xmm0, xmm6;
+       haddpd xmm0, xmm7;
+       movsd [rcx], xmm0;
+
+       add rcx, destLineWidth;
+       add r8, rsi;
+
+   dec r13;
+   jnz @@foryshortloop;
+
+   @@vecend:
+
+   // epilog pop "stack"
+   mov rbx, iRBX;
+   mov rsi, iRSI;
+   mov rdi, iRDI;
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+
+   movupd xmm6, dXMM6;
+   movupd xmm7, dXMM7;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 
 // this function is not that well suited for use of simd instructions...
 // so only this version exists
 
-// note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
 procedure ASMMatrixVectMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+var dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
+
+    res0, res1, res2, res3,
+    res4, res5, res6, res7 : Array[0..1] of  double;
+{$IFDEF FPC}
+begin
+{$ENDIF}
+asm
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRSI, rsi;
+   mov iRDI, rdi;
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+
+   // for the final multiplication
+   movddup xmm6, alpha;
+   movddup xmm7, beta;
+
+   // prepare for loop
+   mov rsi, LineWidthMT;
+   mov rdi, LineWidthV;
+   mov r13, height;
+   mov r14, width;
+
+   // ###################################
+   // #### unrolled loop (4 times)
+
+   sub r14, 16;
+   js @@forxloopend;
+
+   // init for x := 0 to width - 1:
+   @@forxloop:
+
+       // init values:
+       xorpd xmm0, xmm0;  // two elements
+       // clear out res
+       movupd res0, xmm0;
+       movupd res1, xmm0;
+       movupd res2, xmm0;
+       movupd res3, xmm0;
+       movupd res4, xmm0;
+       movupd res5, xmm0;
+       movupd res6, xmm0;
+       movupd res7, xmm0;
+
+       mov rax, r8;       // rax = first matrix element
+       mov rbx, r9;       // rbx = first vector element
+
+       mov r10, r13;
+       @@foryloop:
+           movddup xmm3, [rbx];
+
+           movupd xmm4, [rax];
+           movupd xmm0, res0;
+           mulpd xmm4, xmm3;
+           addpd xmm0, xmm4;
+           movupd res0, xmm0;
+
+           movupd xmm4, [rax + 16];
+           movupd xmm0, res1;
+           mulpd xmm4, xmm3;
+           addpd xmm0, xmm4;
+           movupd res1, xmm0;
+
+           movupd xmm4, [rax + 32];
+           movupd xmm0, res2;
+           mulpd xmm4, xmm3;
+           addpd xmm0, xmm4;
+           movupd res2, xmm0;
+
+           movupd xmm4, [rax + 48];
+           movupd xmm0, res3;
+           mulpd xmm4, xmm3;
+           addpd xmm0, xmm4;
+           movupd res3, xmm0;
+
+           movupd xmm4, [rax + 64];
+           movupd xmm0, res4;
+           mulpd xmm4, xmm3;
+           addpd xmm0, xmm4;
+           movupd res4, xmm0;
+
+           movupd xmm4, [rax + 80];
+           movupd xmm0, res5;
+           mulpd xmm4, xmm3;
+           addpd xmm0, xmm4;
+           movupd res5, xmm0;
+
+           movupd xmm4, [rax + 96];
+           movupd xmm0, res6;
+           mulpd xmm4, xmm3;
+           addpd xmm0, xmm4;
+           movupd res6, xmm0;
+
+           movupd xmm4, [rax + 112];
+           movupd xmm0, res7;
+           mulpd xmm4, xmm3;
+           addpd xmm0, xmm4;
+           movupd res7, xmm0;
+
+           add rax, rsi;
+           add rbx, rdi;
+
+       dec r10;
+       jnz @@foryloop;
+
+       // result building
+       // write back result (final addition and compactation)
+
+       // calculate dest = beta*dest + alpha*xmm0
+       // first two
+       movsd xmm3, [rcx];
+       movsd xmm4, [rcx + rdx];
+       movlhps xmm3, xmm4;
+
+       movupd xmm0, res0;
+       mulpd xmm0, xmm6;   // alpha*res
+       mulpd xmm3, xmm7;   // dest*beta
+
+       addpd xmm3, xmm0;
+       movhlps xmm4, xmm3;
+       movsd [rcx], xmm3;
+       movsd [rcx + rdx], xmm4;
+       add rcx, rdx;
+       add rcx, rdx;
+
+       // second two
+       movsd xmm3, [rcx];
+       movsd xmm4, [rcx + rdx];
+       movlhps xmm3, xmm4;
+
+       movupd xmm0, res1;
+       mulpd xmm0, xmm6;   // alpha*res
+       mulpd xmm3, xmm7;   // dest*beta
+
+       addpd xmm3, xmm0;
+       movhlps xmm4, xmm3;
+       movsd [rcx], xmm3;
+       movsd [rcx + rdx], xmm4;
+
+       add rcx, rdx;
+       add rcx, rdx;
+
+       // third two
+       movsd xmm3, [rcx];
+       movsd xmm4, [rcx + rdx];
+       movlhps xmm3, xmm4;
+
+       movupd xmm0, res2;
+       mulpd xmm0, xmm6;   // alpha*res
+       mulpd xmm3, xmm7;   // dest*beta
+
+       addpd xmm3, xmm0;
+       movhlps xmm4, xmm3;
+       movsd [rcx], xmm3;
+       movsd [rcx + rdx], xmm4;
+
+       add rcx, rdx;
+       add rcx, rdx;
+
+       // forth two
+       movsd xmm3, [rcx];
+       movsd xmm4, [rcx + rdx];
+       movlhps xmm3, xmm4;
+
+       movupd xmm0, res3;
+       mulpd xmm0, xmm6;   // alpha*res
+       mulpd xmm3, xmm7;   // dest*beta
+
+       addpd xmm3, xmm0;
+       movhlps xmm4, xmm3;
+       movsd [rcx], xmm3;
+       movsd [rcx + rdx], xmm4;
+
+       add rcx, rdx;
+       add rcx, rdx;
+
+       // fith two
+       movsd xmm3, [rcx];
+       movsd xmm4, [rcx + rdx];
+       movlhps xmm3, xmm4;
+
+       movupd xmm0, res4;
+       mulpd xmm0, xmm6;   // alpha*res
+       mulpd xmm3, xmm7;   // dest*beta
+
+       addpd xmm3, xmm0;
+       movhlps xmm4, xmm3;
+       movsd [rcx], xmm3;
+       movsd [rcx + rdx], xmm4;
+
+       add rcx, rdx;
+       add rcx, rdx;
+
+       // sixth two
+       movsd xmm3, [rcx];
+       movsd xmm4, [rcx + rdx];
+       movlhps xmm3, xmm4;
+
+       movupd xmm0, res5;
+       mulpd xmm0, xmm6;   // alpha*res
+       mulpd xmm3, xmm7;   // dest*beta
+
+       addpd xmm3, xmm0;
+       movhlps xmm4, xmm3;
+       movsd [rcx], xmm3;
+       movsd [rcx + rdx], xmm4;
+
+       add rcx, rdx;
+       add rcx, rdx;
+
+       // seventh two
+       movsd xmm3, [rcx];
+       movsd xmm4, [rcx + rdx];
+       movlhps xmm3, xmm4;
+
+       movupd xmm0, res6;
+       mulpd xmm0, xmm6;   // alpha*res
+       mulpd xmm3, xmm7;   // dest*beta
+
+       addpd xmm3, xmm0;
+       movhlps xmm4, xmm3;
+       movsd [rcx], xmm3;
+       movsd [rcx + rdx], xmm4;
+
+       add rcx, rdx;
+       add rcx, rdx;
+
+       // eighth two
+       movsd xmm3, [rcx];
+       movsd xmm4, [rcx + rdx];
+       movlhps xmm3, xmm4;
+
+       movupd xmm0, res7;
+       mulpd xmm0, xmm6;   // alpha*res
+       mulpd xmm3, xmm7;   // dest*beta
+
+       addpd xmm3, xmm0;
+       movhlps xmm4, xmm3;
+       movsd [rcx], xmm3;
+       movsd [rcx + rdx], xmm4;
+
+       add rcx, rdx;
+       add rcx, rdx;
+
+       // next results:
+       add r8, 8*16;      // next mt1 element
+   sub r14, 16;
+   jns @@forxloop;
+
+   @@forxloopend:
+
+   // ###########################################
+   // elements that not fit into mod 16
+   add r14, 16;
+   jz @@vecaddend;
+
+   @@forxshortloop:
+       xorpd xmm0, xmm0;  // first two elements
+
+       mov rax, r8;       // rax = first matrix element
+       mov rbx, r9;       // rbx = first vector element
+
+       mov r10, r13;
+
+       @@forshortyloop:
+           movsd xmm1, [rax];
+           movsd xmm2, [rbx];
+
+           mulsd xmm1, xmm2;
+           addsd xmm0, xmm1;
+
+           add rax, rsi;
+           add rbx, rdi;
+
+       dec r10;
+       jnz @@forshortyloop;
+
+       mulsd xmm0, xmm6;  // alpha*res
+
+       movsd xmm3, [rcx];
+       mulsd xmm3, xmm7;  //dest*beta
+       addsd xmm0, xmm3;
+       movsd [rcx], xmm0;
+
+       // next row
+       add rcx, rdx;
+       add r8, 8;
+
+   dec r14;
+   jnz @@forxshortloop;
+
+
+   @@vecaddend:
+
+   // epilog pop "stack"
+   mov rbx, iRBX;
+   mov rsi, iRSI;
+   mov rdi, iRDI;
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+
+   movupd xmm6, dXMM6;
+   movupd xmm7, dXMM7;
+end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
+
+// simple routine... not used any more
+// note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
+procedure ASMMatrixVectMultT1(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
 {$IFDEF FPC}
@@ -1216,9 +2059,269 @@ end;
 
 
 procedure ASMMatrixVectMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-begin
+var dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
 
+    res0, res1, res2, res3,
+    res4, res5, res6, res7 : Array[0..1] of  double;
+{$IFDEF FPC}
+begin
+{$ENDIF}
+asm
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRSI, rsi;
+   mov iRDI, rdi;
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+
+   // for the final multiplication
+   movddup xmm6, alpha;
+   movddup xmm7, beta;
+
+   // prepare for loop
+   mov rsi, LineWidthMT;
+   mov rdi, LineWidthV;
+   mov r13, height;
+   mov r14, width;
+
+   // ###################################
+   // #### unrolled loop (4 times)
+
+   sub r14, 16;
+   js @@forxloopend;
+
+   // init for x := 0 to width - 1:
+   @@forxloop:
+
+       // init values:
+       xorpd xmm0, xmm0;  // two elements
+       // clear out res
+       movupd res0, xmm0;
+       movupd res1, xmm0;
+       movupd res2, xmm0;
+       movupd res3, xmm0;
+       movupd res4, xmm0;
+       movupd res5, xmm0;
+       movupd res6, xmm0;
+       movupd res7, xmm0;
+
+       mov rax, r8;       // rax = first matrix element
+       mov rbx, r9;       // rbx = first vector element
+
+       mov r10, r13;
+       @@foryloop:
+           movddup xmm3, [rbx];
+
+           movupd xmm4, [rax];
+           movupd xmm0, res0;
+           mulpd xmm4, xmm3;
+           addpd xmm0, xmm4;
+           movupd res0, xmm0;
+
+           movupd xmm4, [rax + 16];
+           movupd xmm0, res1;
+           mulpd xmm4, xmm3;
+           addpd xmm0, xmm4;
+           movupd res1, xmm0;
+
+           movupd xmm4, [rax + 32];
+           movupd xmm0, res2;
+           mulpd xmm4, xmm3;
+           addpd xmm0, xmm4;
+           movupd res2, xmm0;
+
+           movupd xmm4, [rax + 48];
+           movupd xmm0, res3;
+           mulpd xmm4, xmm3;
+           addpd xmm0, xmm4;
+           movupd res3, xmm0;
+
+           movupd xmm4, [rax + 64];
+           movupd xmm0, res4;
+           mulpd xmm4, xmm3;
+           addpd xmm0, xmm4;
+           movupd res4, xmm0;
+
+           movupd xmm4, [rax + 80];
+           movupd xmm0, res5;
+           mulpd xmm4, xmm3;
+           addpd xmm0, xmm4;
+           movupd res5, xmm0;
+
+           movupd xmm4, [rax + 96];
+           movupd xmm0, res6;
+           mulpd xmm4, xmm3;
+           addpd xmm0, xmm4;
+           movupd res6, xmm0;
+
+           movupd xmm4, [rax + 112];
+           movupd xmm0, res7;
+           mulpd xmm4, xmm3;
+           addpd xmm0, xmm4;
+           movupd res7, xmm0;
+
+           add rax, rsi;
+           add rbx, rdi;
+
+       dec r10;
+       jnz @@foryloop;
+
+       // result building
+       // write back result (final addition and compactation)
+
+       // calculate dest = beta*dest + alpha*xmm0
+       // first two
+       movupd xmm3, [rcx];
+
+       movupd xmm0, res0;
+       mulpd xmm0, xmm6;   // alpha*res
+       mulpd xmm3, xmm7;   // dest*beta
+
+       addpd xmm3, xmm0;
+       movupd [rcx], xmm3;
+       add rcx, 16;
+
+       // second two
+       movupd xmm3, [rcx];
+
+       movupd xmm0, res1;
+       mulpd xmm0, xmm6;   // alpha*res
+       mulpd xmm3, xmm7;   // dest*beta
+
+       addpd xmm3, xmm0;
+       movupd [rcx], xmm3;
+       add rcx, 16;
+
+       // third two
+       movupd xmm3, [rcx];
+
+       movupd xmm0, res2;
+       mulpd xmm0, xmm6;   // alpha*res
+       mulpd xmm3, xmm7;   // dest*beta
+
+       addpd xmm3, xmm0;
+       movupd [rcx], xmm3;
+       add rcx, 16;
+
+       // forth two
+       movupd xmm3, [rcx];
+
+       movupd xmm0, res3;
+       mulpd xmm0, xmm6;   // alpha*res
+       mulpd xmm3, xmm7;   // dest*beta
+
+       addpd xmm3, xmm0;
+       movupd [rcx], xmm3;
+       add rcx, 16;
+
+       // fith two
+       movupd xmm3, [rcx];
+
+       movupd xmm0, res4;
+       mulpd xmm0, xmm6;   // alpha*res
+       mulpd xmm3, xmm7;   // dest*beta
+
+       addpd xmm3, xmm0;
+       movupd [rcx], xmm3;
+       add rcx, 16;
+
+       // sixth two
+       movupd xmm3, [rcx];
+       movupd xmm0, res5;
+       mulpd xmm0, xmm6;   // alpha*res
+       mulpd xmm3, xmm7;   // dest*beta
+
+       addpd xmm3, xmm0;
+       movupd [rcx], xmm3;
+       add rcx, 16;
+
+       // seventh two
+       movupd xmm3, [rcx];
+       movupd xmm0, res6;
+       mulpd xmm0, xmm6;   // alpha*res
+       mulpd xmm3, xmm7;   // dest*beta
+
+       addpd xmm3, xmm0;
+       movupd [rcx], xmm3;
+       add rcx, 16;
+
+       // eighth two
+       movupd xmm3, [rcx];
+
+       movupd xmm0, res7;
+       mulpd xmm0, xmm6;   // alpha*res
+       mulpd xmm3, xmm7;   // dest*beta
+
+       addpd xmm3, xmm0;
+       movupd [rcx], xmm3;
+       add rcx, 16;
+
+       // next results:
+       add r8, 8*16;      // next mt1 element
+   sub r14, 16;
+   jns @@forxloop;
+
+   @@forxloopend:
+
+   // ###########################################
+   // elements that not fit into mod 16
+   add r14, 16;
+   jz @@vecaddend;
+
+   @@forxshortloop:
+       xorpd xmm0, xmm0;  // first two elements
+
+       mov rax, r8;       // rax = first matrix element
+       mov rbx, r9;       // rbx = first vector element
+
+       mov r10, r13;
+
+       @@forshortyloop:
+           movsd xmm1, [rax];
+           movsd xmm2, [rbx];
+
+           mulsd xmm1, xmm2;
+           addsd xmm0, xmm1;
+
+           add rax, rsi;
+           add rbx, rdi;
+
+       dec r10;
+       jnz @@forshortyloop;
+
+       mulsd xmm0, xmm6;  // alpha*res
+
+       movsd xmm3, [rcx];
+       mulsd xmm3, xmm7;  //dest*beta
+       addsd xmm0, xmm3;
+       movsd [rcx], xmm0;
+
+       // next column
+       add rcx, rdx;
+       add r8, 8;
+
+   dec r14;
+   jnz @@forxshortloop;
+
+
+   @@vecaddend:
+
+   // epilog pop "stack"
+   mov rbx, iRBX;
+   mov rsi, iRSI;
+   mov rdi, iRDI;
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+
+   movupd xmm6, dXMM6;
+   movupd xmm7, dXMM7;
+   end;
+{$IFDEF FPC}
 end;
+{$ENDIF}
 
 {$ENDIF}
 

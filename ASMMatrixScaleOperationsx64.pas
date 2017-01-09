@@ -847,8 +847,8 @@ asm
 
        // special care of the last column:
        movlpd xmm0, [rcx];
-       addsd xmm0, xmm6;
        mulsd xmm0, xmm7;
+       addsd xmm0, xmm6;
        movlpd [rcx], xmm0;
 
        // next line:
@@ -882,7 +882,7 @@ asm
    .savenv xmm7;
    }
 
-   //iters := -width*sizeof(double);
+   //iters := -(width - 1)*sizeof(double);
    mov r10, width;
    dec r10;
    shl r10, 3;
@@ -965,10 +965,10 @@ asm
        @nextLine:
 
        // special care of the last column:
-       movlpd xmm0, [rcx];
-       addsd xmm0, xmm6;
+       movsd xmm0, [rcx];
        mulsd xmm0, xmm7;
-       movlpd [rcx], xmm0;
+       addsd xmm0, xmm6;
+       movsd [rcx], xmm0;
 
        // next line:
        add rcx, rdx;

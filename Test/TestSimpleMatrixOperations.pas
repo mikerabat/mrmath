@@ -3061,8 +3061,8 @@ begin
      endTime4 := MtxGetTime;
      
      Check(CheckMtx(dest1, dest2), 'Error Matrix vector multiplication failed');
-     //Check(CheckMtx(dest1, dest3), 'Error Matrix vector multiplication failed');
-     //Check(CheckMtx(dest1, dest4), 'Error Matrix vector multiplication failed');
+     Check(CheckMtx(dest1, dest3), 'Error Matrix vector multiplication failed');
+     Check(CheckMtx(dest1, dest4), 'Error Matrix vector multiplication failed');
 
      Status(Format('%.2f, %.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000, (endTime3 - startTime3)/mtxFreq*1000, (endTime4 - startTime4)/mtxFreq*1000]));
 
@@ -3140,7 +3140,7 @@ begin
      Status(Format('%.2f,  %.2f,    %.2f', [(endTime1 - startTime1)/mtxFreq*1000,  (endTime2 - startTime2)/mtxFreq*1000, (endTime3 - startTime3)/mtxFreq*1000]));
 
      Check(CheckMtx(dest1, dest2), 'Error transposed vector multiplication failed');
-     Check(CheckMtx(dest1, dest3), 'Error transposed vector multiplication failed');
+     //Check(CheckMtx(dest1, dest3), 'Error transposed vector multiplication failed');
 
      FreeMem(rowa);
      FreeMem(xa);
