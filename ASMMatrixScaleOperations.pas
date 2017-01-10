@@ -656,49 +656,46 @@ begin
                 add eax, 128;
                 jg @loopEnd;
 
-                // prefetch data...
-                // prefetch [ecx + eax];
-
-                // mul add:
+                // mul add
                 movapd xmm0, [ecx + eax - 128];
                 mulpd xmm0, xmm7;
                 addpd xmm0, xmm6;
-                movntdq [ecx + eax - 128], xmm0;
+                movapd [ecx + eax - 128], xmm0;
 
                 movapd xmm1, [ecx + eax - 112];
                 mulpd xmm1, xmm7;
                 addpd xmm1, xmm6;
-                movntdq [ecx + eax - 112], xmm1;
+                movapd [ecx + eax - 112], xmm1;
 
                 movapd xmm2, [ecx + eax - 96];
                 mulpd xmm2, xmm7;
                 addpd xmm2, xmm6;
-                movntdq [ecx + eax - 96], xmm2;
+                movapd [ecx + eax - 96], xmm2;
 
                 movapd xmm3, [ecx + eax - 80];
                 mulpd xmm3, xmm7;
                 addpd xmm3, xmm6;
-                movntdq [ecx + eax - 80], xmm3;
+                movapd [ecx + eax - 80], xmm3;
 
                 movapd xmm0, [ecx + eax - 64];
-                mulpd xmm3, xmm7;
+                mulpd xmm0, xmm7;
                 addpd xmm0, xmm6;
-                movntdq [ecx + eax - 64], xmm0;
+                movapd [ecx + eax - 64], xmm0;
 
                 movapd xmm1, [ecx + eax - 48];
                 mulpd xmm1, xmm7;
                 addpd xmm1, xmm6;
-                movntdq [ecx + eax - 48], xmm1;
+                movapd [ecx + eax - 48], xmm1;
 
                 movapd xmm2, [ecx + eax - 32];
                 mulpd xmm2, xmm7;
                 addpd xmm2, xmm6;
-                movntdq [ecx + eax - 32], xmm2;
+                movapd [ecx + eax - 32], xmm2;
 
                 movapd xmm3, [ecx + eax - 16];
                 mulpd xmm3, xmm7;
                 addpd xmm3, xmm6;
-                movntdq [ecx + eax - 16], xmm3;
+                movapd [ecx + eax - 16], xmm3;
             jmp @addforxloop
 
             @loopEnd:
@@ -711,12 +708,11 @@ begin
                 movapd xmm0, [ecx + eax];
                 mulpd xmm0, xmm7;
                 addpd xmm0, xmm6;
-                movntdq [ecx + eax], xmm0;
+                movapd [ecx + eax], xmm0;
             add eax, 16;
             jnz @addforxloop2;
 
             @nextLine:
-
             // special care of the last column:
             movsd xmm0, [ecx];
             mulsd xmm0, xmm7;
