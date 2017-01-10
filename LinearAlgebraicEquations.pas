@@ -21,7 +21,7 @@ unit LinearAlgebraicEquations;
 
 interface
 
-uses SysUtils, Types, MatrixConst, OptimizedFuncs;
+uses SysUtils, Types, MatrixConst, OptimizedFuncs, Math, MathUtilFunc;
 
 // solves the matrix A*X = B where A*x1=b1, A*x2=b2, ... A*xm=bm
 // The function stores in A the inverse of A and B stores the result vectors
@@ -69,6 +69,10 @@ function MatrixSVD(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNa
                    U : PDouble; const LineWidthU : TASMNativeInt; W : PDouble; const LineWidthW : TASMNativeInt;
                    V : PDouble; const LineWidthV : TASMNativeInt; progress : TLinEquProgress = nil) : TSVDResult;
 
+function dgesvd( A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt; 
+                 W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt; SVDBlockSize : TASMNativeInt = 32; aWork : PByte = nil;
+                 progress : TLinEquProgress = nil) : TSVDResult;
+                 
 // Inplace Cholesky decomposition of the matrix A (A=L*L'). A must be a positive-definite symmetric matrix.
 // The cholesky factor L is returned in the lower triangle of a, except for its diagonal elements which are returned in p
 function MatrixCholeskyInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; P : PDouble; LineWidthP : TASMNativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
@@ -118,6 +122,9 @@ procedure MatrixQRSolveLinEq(A : PDouble; const LineWidthA : TASMNativeInt; widt
 function MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; progress : TLinEquProgress = nil) : TQRResult; overload;
 function MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; work : PDouble; pnlSize : TASMNativeInt; progress : TLinEquProgress = nil) : TQRResult; overload;
 
+// according to the panel size and the global QRBlockmultsize we calculate here the needed memory (including some alignment buffer)
+function QRDecompMemSize( pnlSize, width : TASMNativeInt) : TASMNativeInt;
+
 // implementation of Lapacks dorgqr function: On start the matrix A and Tau contains the result of
 // the MatrixQRDecompInPlace2 function (economy size QR Decomposition). On output A is replaced by the full Q
 // matrix with orthonormal columns.
@@ -135,6 +142,14 @@ procedure MatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; wid
 function MatrixPseudoinverse(dest : PDouble; const LineWidthDest : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
   width, height : TASMNativeInt; progress : TLinEquProgress = nil) : TSVDResult;
 
+// ###########################################
+// #### SVD
+// ###########################################
+  
+procedure dgebd2(A : PDouble; const LineWidthA : TASMNativeInt; Width, Height : TASMNativeInt; 
+                 D, E, TauQ, TauP : PConstDoubleArr; work : PDouble);
+
+  
 
 // ######################################################
 // #### internaly used objects and definitions
@@ -175,8 +190,7 @@ function InternalBlkCholeskyInPlace(A : PDouble; const LineWidthA : TASMNativeIn
    
 implementation
 
-uses Math, MathUtilFunc, ASMMatrixOperations,
-     SimpleMatrixOperations, BlockSizeSetup;
+uses ASMMatrixOperations, SimpleMatrixOperations, BlockSizeSetup, Classes;
 
 function MatrixPseudoinverse(dest : PDouble; const LineWidthDest : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
   width, height : TASMNativeInt; progress : TLinEquProgress) : TSVDResult;
@@ -2167,10 +2181,14 @@ end;
 function GenElemHousholderRefl(A : PDouble; LineWidthA : TASMNativeInt; Height : TASMNativeInt; var Alpha : double; Tau : PDouble) : boolean;
 var beta : double;
     xNorm : double;
-    //saveMin : double;
+    saveMin : double;
+    rsafmn : double;
+    cnt : integer;
 begin
      Result := False;
-     if height < 1 then
+     dec(height);
+     
+     if height <= 0 then
      begin
           Tau^ := 0;
           Result := True;
@@ -2187,61 +2205,100 @@ begin
 
      beta := -sign( pythag(alpha, xnorm), alpha);
 
+     cnt := 0;
      // todo: apply under/overflow code here as lapack does
      // check for possible under/overflow -> rescale
-     //saveMin := cMinDblDivEps;
+     saveMin := cMinDblDivEps;
 //     // note this is not the original code
-//     if Abs(beta) < saveMin then
-//     begin
-//          // todo:
-//     end;
+     if Abs(beta) < saveMin then
+     begin
+          rsafmn := 1/saveMin;
+
+          repeat
+                inc(cnt);
+                MatrixScaleAndAdd(A, LineWidthA, 1, Height, 0, rsafmn); 
+                beta := beta*rsafmn;
+                alpha := alpha*rsafmn;
+          until abs(beta) >= saveMin;
+          
+          xnorm := MatrixElementwiseNorm2(A, LineWidthA, 1, height);
+          beta := -sign( pythag(alpha, xnorm), alpha ); 
+     end;
 
      Tau^ := (beta - alpha)/beta;
      MatrixScaleAndAdd(A, LineWidthA, 1, Height, 0, 1/(alpha - beta));
 
+     while cnt > 0 do
+     begin
+          beta := beta*saveMin;
+          dec(cnt);
+     end;
+     
      alpha := beta;
 
      Result := True;
 end;
 
+// original dger
+// X, Y are vectors, incX, incY is the iteration in bytes from one to the next vector element
+// A is a matrix
+procedure Rank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; 
+  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt); // {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+var i : TASMNativeInt;
+    j : TASMNativeInt;
+    tmp : double;
+    pX, pY : PDouble;
+    pA : PConstDoubleArr;
+begin
+     // performs A = A + alpha*X*Y' in row major form
+     pX := X;
+     for i := 0 to Height - 1 do
+     begin
+          tmp := alpha*pX^;
+     
+          pA := PConstDoubleArr(GenPtr(A, 0, i, LineWidthA));
+          pY := Y;
+          for j := 0 to Width - 1 do
+          begin
+               pA^[j] := pA^[j] + tmp*pY^;
+               inc(PByte(pY), incY);
+          end;
+
+          inc(PByte(pX), incX);
+     end;
+end;
+
 
 // original Dlarf in lapack
-procedure ApplyElemHousholderRefl(A : PDouble; LineWidthA : TASMNativeInt; width, height : TASMNativeInt; Tau : PDouble; Work : PDouble);
-var pA1 : PDouble;
-    x, y : TASMNativeInt;
-    pDest : PDouble;
-    pWork : PDouble;
-    pA : PDouble;
-    tmp : double;
+procedure ApplyElemHousholderReflLeft(V : PDouble; LineWidthV : TASMNativeInt; C : PDouble; const LineWidthC : TASMNativeInt; width, height : TASMNativeInt; 
+  Tau : PDouble; Work : PDouble);
 begin
      // work = A(1:m, 2:n)T*A(1:m, 1)
      if tau^ <> 0 then
      begin
-          pA1 := A;
-          inc(pA1);
-
           // todo: there is some other scanning going on for non zero columns...
           // do the basic operation here...
-          GenericTranspMtxMult(work, sizeof(double), pA1, A, width - 1, height, 1, height, LineWidthA,
-                                                   LineWidthA);
+          //GenericTranspMtxMult(work, sizeof(double), pA1, A, width, height, 1, height, LineWidthA, LineWidthA);
+          GenericMtxVecMultT(work, sizeof(double), C, V, LineWidthC, LineWidthV, width, height, 1, 0);
+          Rank1Update(C, LineWidthC, width, height, -tau^, V, work, LineWidthV, sizeof(double));
+     end;
+end;
 
-          // dger: A - tau*A(1:m,1)*work -> do not touch first column
-          pA := A;
-          for y := 0 to height - 1 do
-          begin
-               pDest := pA1;
-               pWork := work;
-               tmp := tau^*pA^;
-               for x := 1 to width - 1 do
-               begin
-                    pDest^ := pDest^ - tmp*pwork^;
-                    inc(pDest);
-                    inc(pWork);
-               end;
-
-               inc(PByte(pA1), LineWidthA);
-               inc(PByte(pA), LineWidthA);
-          end;
+// "right" part of dlarf
+procedure ApplyElemHousholderReflRight(V : PDouble; LineWidthV : TASMNativeInt; C : PDouble; const LineWidthC : TASMNativeInt; width, height : TASMNativeInt; 
+  Tau : PDouble; Work : PDouble);
+begin
+     // work = A(1:m, 2:n)T*A(1:m, 1)
+     if tau^ <> 0 then
+     begin
+          // note: the original routine has here an option C -> but in all cases it's
+          // A + 1
+          
+          // todo: there is some other scanning going on for non zero columns...
+          // do the basic operation here...
+          //GenericMtxMult(work, sizeof(double), pA1, A, width, height, 1, width, LineWidthA, LineWidthA);
+          GenericMtxVecMult(work, sizeof(double), C, V, LineWidthC, LineWidthV, width, height, 1, 0);
+          Rank1Update(C, LineWidthC, width, height, -Tau^, work, V, sizeof(double), LineWidthV);
      end;
 end;
 
@@ -2254,20 +2311,19 @@ var k : TASMNativeInt;
     aii : double;
     pAlpha : PDouble;
     lineRes : boolean;
+    pC : PDouble;
 begin
      Result := true;
      k := min(width, height);
 
-     pA := A;
      pTau := Tau;
      for i := 0 to k - 1 do
      begin
           // Generate elemetary reflector H(i) to annihilate A(1+i:height-1,i);
-          pAlpha := pA;
-          if i < height - 1 then
-             inc(PByte(pA), LineWidthA);
-
-          lineRes := GenElemHousholderRefl(pA, LineWidthA, height - i - 1, pAlpha^, pTau);
+          pAlpha := GenPtr(A, i, i, LineWidthA);
+          pA := GenPtr(A, i, min(i + 1, height - 1), LineWidthA);
+          
+          lineRes := GenElemHousholderRefl(pA, LineWidthA, height - i, pAlpha^, pTau);
           Result := Result and lineRes;
 
           // Apply H(i) to A(i:m,i+1:n) from the left
@@ -2275,8 +2331,10 @@ begin
           begin
                aii := pAlpha^;
                pAlpha^ := 1;
+               pC := pAlpha;
+               inc(pC);
 
-               ApplyElemHousholderRefl(pAlpha, LineWidthA, width - i, height - i, pTau, qrData.work);
+               ApplyElemHousholderReflLeft(pAlpha, LineWidthA, pC, LineWidthA, width - i - 1, height - i, pTau, qrData.work);
 
                pAlpha^ := aii;
           end;
@@ -2285,30 +2343,29 @@ begin
              qrData.Progress((qrData.actIdx + i)*100 div qrData.qrWidth);
 
           inc(pTau);
-          inc(pA);
      end;
 end;
 
-
-// original DLARFT in Lapack
+// original DLARFT in Lapack - forward columnwise
 procedure CreateTMtx(n, k : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt; Tau : PDouble; const qrData : TRecMtxQRDecompData);
 var i, j : TASMNativeInt;
     pT, pA : PDouble;
     pA1 : PDouble;
     pDest : PDouble;
-    pT1, pt2 : PDouble;
+    pT1 : PConstDoublearr;
+    pT2 : PDouble;
     x, y : TASMNativeInt;
     tmp : Double;
     pMem : PDouble;
     pResVec : PDouble;
     T : PDouble;
+    pAij : PDouble;
+    pcAIJ : PConstDoubleArr;
 begin
      assert(k <= n, 'Error k needs to be smaller than n');
 
      // it is assumed that mem is a memory block of at least (n, k) where the first (k, k) elements are reserved for T
      T := qrData.work;
-     pMem := T;
-     inc(PByte(pMem), k*qrData.LineWidthWork);
 
      for i := 0 to k - 1 do
      begin
@@ -2330,28 +2387,18 @@ begin
 
                // T(1:i-1,i) := - tau(i) * V(i:n,1:i-1)' * V(i:n,i) */
 
-               pA1 := A;
-               inc(PByte(pA1), LineWidthA*i); // i + 1);
-
-               // precalculate -tau*v for the vector T
-               pA := A;
-               inc(pA, i);
-               inc(PByte(pA), (i+1)*LineWidthA);
-               pResVec := pMem;
-               pResVec^ := -Tau^;   // first element of V is 1!
-               inc(pResVec);
-               for j := i + 1 to n - 1 do   // do not calculate the rest they are gona be multiplied with 0
+               pT := GenPtr(T, i, 0, qrData.LineWidthWork );
+               pcAIJ := PConstDoubleArr( GenPtr(A, 0, i, LineWidthA) );
+               for j := 0 to i - 1 do
                begin
-                    pResVec^ := -Tau^*pA^;
-                    inc(pResVec);
-                    inc(PByte(pA), LineWidthA);
+                    pT^ := -tau^*pcAij^[j];
+                    inc(PByte(pT), qrData.LineWidthWork); 
                end;
-               pT := T;
-               inc(pT, i);
 
-               // final -tau * Y' * v  ->
-               // todo: Implement an optimized matrix vector operator for mt1'mt2
-               GenericTranspMtxMult(pT, qrData.LineWidthWork, pA1, pMem, k, n - i, 1, n - i, LineWidthA, sizeof(double));
+               pA1 := GenPtr(A, 0, i + 1, LineWidthA);
+               pAij := GenPtr(A, i, i + 1, LineWidthA);
+               pT := GenPtr(T, i, 0, qrData.LineWidthWork );
+               GenericMtxVecMultT(pT, qrData.LineWidthWork, pA1, pAij, LineWidthA, LineWidthA, i, n - i - 1, -tau^, 1 );
           end;
 
           // dtrmv: upper triangle matrix mult T(1:i-1,i) := T(1:i-1, 1:i-1)*T(1:i-1,i)
@@ -2361,16 +2408,12 @@ begin
                inc(pDest, i);
                for y := 0 to i - 1 do
                begin
-                    pT1 := T;
-                    inc(pT1, y);
-                    inc(PByte(pT1), y*qrData.LineWidthWork);
-
+                    pT1 := PConstdoubleArr(GenPtr(T, 0, y, qrData.LineWidthWork));
                     pT2 := pDest;
                     tmp := 0;
                     for x := y to i - 1 do
                     begin
-                         tmp := tmp + pT1^*pT2^;
-                         inc(pT1);
+                         tmp := tmp + pT1^[x]*pT2^;
                          inc(PByte(pT2), qrData.LineWidthWork);
                     end;
 
@@ -2379,9 +2422,90 @@ begin
                end;
           end;
 
-          pT := T;
-          inc(pT, i);
-          inc(PByte(pT), i*qrData.LineWidthWork);
+          pT := GenPtr(T, i, i, qrData.LineWidthWork);
+          pT^ := Tau^;  // fill in last Tau
+
+          inc(Tau);
+     end;
+end;
+
+// dlarft forward rowwise
+procedure CreateTMtxR(n, k : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt; Tau : PDouble; const qrData : TRecMtxQRDecompData);
+var i, j : TASMNativeInt;
+    pT, pA : PDouble;
+    pA1 : PDouble;
+    pDest : PDouble;
+    pT1 : PConstdoubleArr;
+    pt2 : PDouble;
+    x, y : TASMNativeInt;
+    tmp : Double;
+    pMem : PDouble;
+    pResVec : PDouble;
+    T : PDouble;
+    pAij : PDouble;
+    pcAIJ : PConstDoubleArr;
+    pA1i1 : PDouble;
+    pAii1 : PDouble;
+begin
+     assert(k <= n, 'Error k needs to be smaller than n');
+
+     // it is assumed that mem is a memory block of at least (n, k) where the first (k, k) elements are reserved for T
+     T := qrData.work;    // kxk
+     pMem := GenPtr(T, 0, k, qrData.LineWidthWork);
+
+     for i := 0 to k - 1 do
+     begin
+          if Tau^ = 0 then
+          begin
+               // H = I
+               pT := T;
+               for j := 0 to i do
+               begin
+                    pT^ := 0;
+                    inc(PByte(pT), qrData.LineWidthWork);
+               end;
+          end
+          else
+          begin
+               // general case
+
+               // T(1:i-1,i) := - tau(i) * V(1:i-1,i:j) * V(i,i:j)**T
+               pT := GenPtr(T, i, 0, qrData.LineWidthWork );
+               pAij := GenPtr(A, i, 0, LineWidthA);
+               for j := 0 to i - 1 do
+               begin
+                    pT^ := -tau^*pAij^;
+                    inc(PByte(pT), qrData.LineWidthWork);
+                    inc(PByte(pAij), LineWidthA);
+               end;
+
+               pA1 := GenPtr(A, i + 1, 0, LineWidthA);
+               pAij := GenPtr(A, i + 1, i, LineWidthA);
+               pT := GenPtr(T, i, 0, qrData.LineWidthWork );
+               GenericMtxVecMult(pT, qrData.LineWidthWork, pA1, pAij, LineWidthA, sizeof(double), n - i - 1, i, -tau^, 1 );
+          end;
+
+          if i > 0 then
+          begin
+               pDest := T;
+               inc(pDest, i);
+               for y := 0 to i - 1 do
+               begin
+                    pT1 := PConstdoubleArr(GenPtr(T, 0, y, qrData.LineWidthWork));
+                    pT2 := pDest;
+                    tmp := 0;
+                    for x := y to i - 1 do
+                    begin
+                         tmp := tmp + pT1^[x]*pT2^;
+                         inc(PByte(pT2), qrData.LineWidthWork);
+                    end;
+
+                    pDest^ := tmp;
+                    inc(PByte(pDest), qrData.LineWidthWork);
+               end;
+          end;
+
+          pT := GenPtr(T, i, i, qrData.LineWidthWork);
           pT^ := Tau^;  // fill in last Tau
 
           inc(Tau);
@@ -2390,17 +2514,17 @@ end;
 
 procedure MatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
 var x, y : TASMNativeInt;
-    pA, pB : PDouble;
+    pA : PConstDoubleArr;
+    pB : PDouble;
 begin
      // calculate A = A - B'
      for y := 0 to height - 1 do
      begin
-          pA := A;
+          pA := PConstDoubleArr( A );
           pB := B;
           for x := 0 to width - 1 do
           begin
-               pA^ := pA^ - pB^;
-               inc(pA);
+               pA^[x] := pA^[x] - pB^;
                inc(PByte(pB), LineWidthB);
           end;
 
@@ -2410,7 +2534,7 @@ begin
 end;
 
 // apply block reflector to a matrix
-// original DLARFB in Lapack
+// original DLARFB in Lapack - Left, Transpose, Forward, Columnwise
 procedure ApplyBlockReflector(A : PDouble; LineWidthA : TASMNativeInt; const qrData : TRecMtxQRDecompData;
   width, height : TASMNativeInt; widthT : TASMNativeInt; Transposed : boolean);
 var pC1, pC2 : PDouble;
@@ -2454,7 +2578,8 @@ begin
               GenericMtxMultTria2Store1(mem, LineWidthMem, T, LineWidthT, widthT, heightW, WidthT, WidthT);
 
           // C2 = C2 - Y2*W'
-          qrData.MatrixMultT2(pC2, LineWidthA, pY2, mem, widthT, height - widthT, widthT, heightW, LineWidthA, LineWidthMem, QRMultBlockSize, doSub, qrData.BlkMultMem);
+          qrData.MatrixMultT2(pC2, LineWidthA, pY2, mem, widthT, height - widthT, widthT, heightW, 
+                              LineWidthA, LineWidthMem, QRMultBlockSize, doSub, qrData.BlkMultMem);
 
           // W = W*Y1' (lower left part of Y1! -> V1)
           GenericMtxMultLowTria2T2Store1(mem, LineWidthMem, A, LineWidthA, WidthT, heightW, widthT, widthT);
@@ -2462,6 +2587,85 @@ begin
 
      // C1 = C1 - W'
      MatrixSubT(pC1, LineWidthA, mem, LineWidthMem, width - widthT, widthT);
+end;
+
+// dlarfb 'Right', 'Transpose', 'Forward', 'Rowwise'
+procedure ApplyBlockReflectorRTFR(A : PDouble; LineWidthA : TASMNativeInt; const qrData : TRecMtxQRDecompData;
+  width, height : TASMNativeInt; widthT : TASMNativeInt; Transposed : boolean);
+var pC1, pC2 : PDouble;
+    pV1, pV2 : PDouble;
+    T : PDouble;
+    LineWidthT : TASMNativeInt;
+    mem : PDouble;
+    LineWidthMem : TASMNativeInt;
+    W : PDouble;
+    heightC1, widthC1 : TASMNativeInt;
+    widthC2, heightC2 : TASMNativeInt;
+
+    widthV1, heightV1 : TASMNativeInt;
+    widthV2, heightV2 : TASMNativeInt;
+
+    widthW, heightW : TASMNativeInt;
+begin
+     // it is assumed that height contains the full height of the input matrix A
+     // we subsect it in this routine
+     widthC1 := widthT;
+     heightC1 := height - widthT;
+     widthC2 := width - widthT;
+     heightC2 := height - widthT;
+
+     widthV1 := widthT;
+     heightV1 := widthT;
+     widthV2 := width - widthT;
+     heightV2 := widthT;
+
+     widthW := widthT;
+     heightW := height - widthT;
+
+     // W := C * V**T  =  (C1*V1**T + C2*V2**T)  (stored in WORK)
+     mem := qrData.work;
+     inc(PByte(mem), widthT*qrData.LineWidthWork);  // upper part (nb x nb) is dedicated to T, lower part to W in dlarfb
+     LineWidthMem := qrData.LineWidthWork; // widthT*sizeof(double);
+
+     T := qrData.work;
+     LineWidthT := qrData.LineWidthWork;
+     
+     pC1 := GenPtr(A, 0, widthT, LineWidthA);
+     pC2 := pC1;
+     inc(pC2, widthT);
+     
+     pV1 := A; // GenPtr(A, 0, 0, LineWidthA);
+     pV2 := GenPtr(pV1, widthT, 0, LineWidthA);
+
+     // W := W * V1**T  // dtrm right upper transpose unit combined with copy
+     W := mem;
+     GenericMtxMultTria2TUpper(W, LineWidthMem, pC1, LineWidthA, pV1, LineWidthA, widthC1, heightC1, widthV1, heightV1);
+
+     if width > widthT then
+     begin
+          //  W := W + C2 * V2**T
+          qrData.MatrixMultT2(W, LineWidthMem, pC2, pV2, 
+                              widthC2, heightC2, widthV2, heightV2,
+                              LineWidthA, LineWidthA, QRMultBlockSize, doAdd, qrData.BlkMultMem);
+     end;
+
+     // W := W * T  or  W * T**T
+     if transposed
+     then
+         GenericMtxMultTria2T1StoreT1(W, LineWidthMem, T, LineWidthT, widthW, heightW, WidthT, WidthT)
+     else
+         GenericMtxMultTria2Store1(W, LineWidthMem, T, LineWidthT, widthW, heightW, WidthT, WidthT);
+     
+     // C2 := C2 - W * V2
+     if width > widthT then
+        MatrixMultEx(pC2, LineWidthA, W, pV2, widthW, heightW, widthV2, heightV2, LineWidthMem, 
+                     LineWidthA, QRMultBlockSize, doSub, qrData.BlkMultMem); 
+
+     // W := W * V1
+     GenericMtxMultTria2Store1Unit(W, LineWidthMem, pV1, LineWidthA, widthW, heightW, widthV1, heightV1);
+
+     // C1 := C1 - W
+     MatrixSub(pC1, LineWidthA, pC1, W, widthC1, heightC1, LineWidthA, LineWidthMem);
 end;
 
 function InternalMatrixQRDecompInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; qrData : TRecMtxQRDecompData) : boolean;
@@ -2517,6 +2721,11 @@ begin
      Result := Result and pnlRes;
 end;
 
+function QRDecompMemSize( pnlSize, width : TASMNativeInt) : TASMNativeInt;
+begin
+     Result := pnlSize*sizeof(double)*width + 64 + BlockMultMemSize(QRMultBlockSize);
+end;
+
 function MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; progress : TLinEquProgress = nil) : TQRResult; overload;
 begin
      Result := MatrixQRDecompInPlace2(A, LineWidthA, width, height, tau, nil, QRBlockSize, Progress);
@@ -2539,7 +2748,7 @@ begin
 
      if work = nil then
      begin
-          qrData.pWorkMem := GetMemory(pnlSize*sizeof(double)*height + 64 + BlockMultMemSize(QRMultBlockSize) );
+          qrData.pWorkMem := GetMemory( QRDecompMemSize(pnlSize, width) );
           qrData.work := PDouble(qrData.pWorkMem);
           if (NativeUInt(qrData.pWorkMem) and $0000000F) <> 0 then
              qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 16 - NativeUInt(qrData.pWorkMem) and $0F);
@@ -2571,6 +2780,7 @@ procedure InternalMatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNative
 var pA : PDouble;
     pAii : PDouble;
     i, j : TASMNativeInt;
+    pAii1 : PDouble;
 begin
      if width <= 0 then
         exit;
@@ -2599,12 +2809,11 @@ begin
      begin
           if i < width - 1 then
           begin
-               pAii := A;
-               inc(pAii, i);
-               inc(PByte(pAii), i*LineWidthA);
+               pAii := GenPtr(A, i, i, LineWidthA);
+               pAii1 := GenPtr(A, i + 1, i, LineWidthA);
 
                pAii^ := 1;
-               ApplyElemHousholderRefl(pAii, LineWidthA, width - i, height - i, tau, qrData.work);
+               ApplyElemHousholderReflLeft(pAii, LineWidthA, pAii1, LineWidthA, width - i - 1, height - i, tau, qrData.work);
           end;
 
           // unscaling
@@ -2648,7 +2857,7 @@ var pA : PDouble;
     counter: TASMNativeInt;
     idx : TASMNativeInt;
 begin
-     // check for quick return ???
+     // check for quick return 
      if width <= 0 then
      begin
           qrData.work^ := 1;
@@ -2690,9 +2899,7 @@ begin
           if numIter*qrData.pnlSize < width then
           begin
                idx := numIter*qrData.pnlSize;
-               pA := A;
-               inc(pA, idx);
-               inc(PByte(pA), LineWidthA*idx);
+               pA := GenPtr(A, idx, idx, LineWidthA);
                pTau := tau;
                inc(pTau, idx);
                InternalMatrixQFromQRDecomp(pA, LineWidthA, width - idx, height - idx, width - idx, pTau, qrData);
@@ -2700,9 +2907,7 @@ begin
                // Set upper rows of current block to zero
                for y := 0 to idx - 1 do
                begin
-                    pA := A;
-                    inc(pA, idx);
-                    inc(PByte(pA), LineWidthA*y);
+                    pA := GenPtr(A, idx, y, LineWidthA);
                     for x := 0 to width - idx - 1 do
                     begin
                          pA^ := 0;
@@ -2715,13 +2920,11 @@ begin
           for counter := numIter - 1 downto 0 do
           begin
                idx := counter*qrdata.pnlSize;
-               pA := A;
-               inc(pA, idx);
-               inc(PByte(pA), idx*LineWidthA);
+               pA := GenPtr(A, idx, idx, LineWidthA);
                pTau := tau;
                inc(pTau, idx);
 
-               if (counter + 1)*qrdata.pnlSize < width then
+               if idx + qrdata.pnlSize < width then
                begin
                     // form triangular factor of the block reflector
                     // H = H(i) H(i+1) . . . H(i+ib-1)
@@ -2736,9 +2939,7 @@ begin
                // Set upper rows of current block to zero
                for y := 0 to idx - 1 do
                begin
-                    pA := A;
-                    inc(pA, idx);
-                    inc(PByte(pA), LineWidthA*y);
+                    pA := GenPtr(A, idx, y, LineWidthA);
                     for x := 0 to qrData.pnlSize - 1 do
                     begin
                          pA^ := 0;
@@ -2773,7 +2974,7 @@ begin
 
      if work = nil then
      begin
-          qrData.pWorkMem := GetMemory(qrData.pnlSize*sizeof(double)*height + 64 + BlockMultMemSize(QRMultBlockSize) );
+          qrData.pWorkMem := GetMemory( QRDecompMemSize(qrData.pnlSize, width) );
           qrData.work := PDouble(qrData.pWorkMem);
           if (NativeUInt(qrData.pWorkMem) and $0000000F) <> 0 then
              qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 16 - NativeUInt(qrData.pWorkMem) and $0F);
@@ -2787,6 +2988,2245 @@ begin
      InternalBlkMatrixQFromQRDecomp(A, LineWidthA, width, height, tau, qrData);
      if not Assigned(work) then
         freeMem(qrData.pWorkMem);
+end;
+
+// ###########################################
+// #### SVD implementation
+// ###########################################
+
+// generates an m by n real matrix Q with orthonormal columns,
+//  which is defined as the first n columns of a product of k elementary
+//  reflectors of order m
+// k: the number of elemetary reflectors whose product defines the matrix Q. width >= K >= 0.
+// original dorgl2 from netlib
+procedure InternalMatrixQLeftFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height, k : TASMNativeInt; tau : PDouble; const qrData : TRecMtxQRDecompData);
+var pA : PDouble;
+    pAii : PDouble;
+    pC : PDouble;
+    i, l, j : TASMNativeInt;
+begin
+     if height <= 0 then
+        exit;
+
+     if k < height then
+     begin
+          // Initialize rows k+1:m to rows of the unit matrix
+          for j := 0 to width - 1 do
+          begin
+               pA := GenPtr(A, j, k, LineWidthA);
+
+               for l := k to height - 1 do
+               begin
+                    pA^ := 0;
+                    inc(PByte(pA), LineWidthA);
+               end;
+
+               if (j > k) and (j < height) then
+               begin
+                    pA := GenPtr(A, j, j, LineWidthA);
+                    pA^ := 1;
+               end;
+          end;
+     end;
+
+     // Apply H(i) to A(i:m,i:n) from the right
+     inc(tau, k - 1);
+     for i := k - 1 downto 0 do
+     begin
+          if i < width - 1 then
+          begin
+               if i < height - 1 then
+               begin
+                    pAii := GenPtr(A, i, i, LineWidthA);
+                    pC := pAii;
+                    inc(PByte(pC), LineWidthA);
+
+                    pAii^ := 1;
+                    ApplyElemHousholderReflRight(pAii, sizeof(double), pC, LineWidthA, width - i, height - i - 1, tau, qrData.work);
+               end;
+
+               pAii := GenPtr(A, i + 1, i, LineWidthA);
+               MatrixScaleAndAdd(pAii, LineWidthA, width - i - 1, 1, 0, -tau^);
+          end;
+
+          pAii := GenPtr(A, i, i, LineWidthA);
+          pAii^ := 1 - tau^;
+
+          // Set A(i,1:i-1) to zero
+          pA := GenPtr(A, 0, i, LineWidthA);
+          for l := 0 to i - 1 do
+          begin
+               pA^ := 0;
+               inc(pA);
+          end;
+
+          dec(tau);
+
+          // ###########################################
+          // #### Progress
+          if Assigned(qrData.Progress) then
+             qrData.Progress((qrData.actIdx + i)*100 div qrData.qrWidth);
+     end;
+end;
+
+// dorglq.f
+procedure InternalBlkMatrixLeftQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; qrData : TRecMtxQRDecompData);
+var pA : PDouble;
+    x, y : TASMNativeInt;
+    numIter : TASMNativeInt;
+    pTau : PDouble;
+    counter: TASMNativeInt;
+    idx : TASMNativeInt;
+begin
+     // check for quick return ???
+     if height <= 0 then
+     begin
+          qrData.work^ := 1;
+          exit;
+     end;
+
+     // restrict block size...
+     qrData.pnlSize := min(height, min(width, qrData.pnlSize));
+
+     // zero out block not used by Q
+     // note this part is never executed in standard svd
+     //if height > width then
+//     begin
+//          for y := width to height - 1 do
+//          begin
+//               pCA := PConstDoubleArr( GenPtr(A, 0, y, LineWidthA) );
+//
+//               for x := 0 to width - 1 do
+//                   pCA^[x] := 0;
+//          end;
+//
+//          // from here on we can do a normal q factorization
+//          height := width;
+//     end;
+
+     if qrData.pnlSize = height then
+     begin
+          // unblocked code
+          InternalMatrixQLeftFromQRDecomp(A, LineWidthA, width, height, width, tau, qrData);
+     end
+     else
+     begin
+          numIter := (height div qrData.pnlSize);
+
+          // apply blocked code to the last block
+          if numIter*qrData.pnlSize < height then
+          begin
+               idx := numIter*qrData.pnlSize;
+               
+               // set Set A(idx+1:m,1:idx) to zero.
+               for x := 0 to idx - 1 do
+               begin
+                    pA := GenPtr(A, x, idx, LineWidthA);
+                    for y := 0 to height - idx - 1 do
+                    begin
+                         pA^ := 0;
+                         inc(PByte(pA), LineWidthA);
+                    end;
+               end;
+               
+               // unblocked code
+               pA := GenPtr(A, idx, idx, LineWidthA);
+               pTau := tau;
+               inc(pTau, idx);
+               InternalMatrixQLeftFromQRDecomp(pA, LineWidthA, width - idx, height - idx, height - idx, pTau, qrData);
+          end;
+
+          // blocked code:
+          for counter := numIter - 1 downto 0 do
+          begin
+               idx := counter*qrdata.pnlSize;
+               pA := GenPtr(A, idx, idx, LineWidthA);
+               pTau := tau;
+               inc(pTau, idx);
+
+               if idx + qrdata.pnlSize < height then
+               begin
+                    // form triangular factor of the block reflector
+                    // H = H(i) H(i+1) . . . H(i+ib-1)
+                    // calculate T matrix
+                    CreateTMtxR(width - idx, qrData.pnlSize, pA, LineWidthA, pTau, qrData);
+                    // apply H to A from the left
+                    ApplyBlockReflectorRTFR(pA, LineWidthA, qrData, width - idx, height - idx, qrdata.pnlSize, True);
+               end;
+
+               InternalMatrixQLeftFromQRDecomp(pA, LineWidthA, width - idx, qrData.pnlSize, qrData.pnlSize, pTau, qrData);
+
+               // Set columns of 1:i-1 of current block to zero
+               for x := 0 to idx - 1 do
+               begin
+                    pA := GenPtr(A, x, idx, LineWidthA);
+                    for y := 0 to qrData.pnlSize - 1 do
+                    begin
+                         pA^ := 0;
+                         inc(PByte(pA), LineWidthA);
+                    end;
+               end;
+          end;
+     end;
+end;
+
+
+// work needs to be at least Max(width, height)
+// the other arrays need to be at least min(width, height)
+procedure dgebd2(A : PDouble; const LineWidthA : TASMNativeInt; Width, Height : TASMNativeInt; 
+                 D, E, TauQ, TauP : PConstDoubleArr; work : PDouble);
+var i : TASMNativeInt;
+    pAii : PDouble;
+    pAmin : PDouble;
+    pC : PDouble;
+begin
+     if (width <= 0) or (height <= 0) then
+        exit;
+        
+     if height >= width then
+     begin
+          // Reduce to upper bidiagonal form
+          
+          for i := 0 to width - 1 do
+          begin
+               pAii := GenPtr(A, i, i, LineWidthA);
+               // Generate elementary reflector H(i) to annihilate A(i+1:m,i)
+               pAmin := GenPtr(A, i, min( i + 1, height - 1), LineWidthA);
+               GenElemHousholderRefl(pAmin, LineWidthA, height - i, pAii^, @tauq^[i]);
+
+               d[i] := pAii^;
+               pAii^ := 1;
+
+               // Apply H(i) to A(i:m,i+1:n) from the left
+               if i < width - 1 then
+               begin
+                    pC := pAii;
+                    inc(pC);
+                    ApplyElemHousholderReflLeft( pAii, LineWidthA, pC, LineWidthA, width - i - 1, height - i, @tauq[i], work);
+               end;
+
+               pAii^ := d[i];
+
+               if i < width - 1 then
+               begin
+                    // Generate elementary reflector G(i) to annihilate A(i,i+2:n)
+                    pAmin := GenPtr(A, min( i + 2, width - 1), i, LineWidthA);
+                    inc(pAii);
+                    GenElemHousholderRefl(pAmin, sizeof(double), width - i - 1, pAii^, @taup[i]);
+                    e[i]:= pAii^;
+                    pAii^ := 1;
+
+                    // Apply G(i) to A(i+1:m,i+1:n) from the right
+                    pC := pAii;
+                    inc(PByte(pC), LineWidthA);
+                    ApplyElemHousholderReflRight(pAii, sizeof(double), pC, LineWidthA,
+                                                 width - i - 1, height - i - 1, @taup[i], work);
+                    pAii^ := e[i];
+               end
+               else
+                   taup[i] := 0;
+          end;
+     end
+     else
+     begin
+          // Reduce to lower bidiagonal form
+          for i := 0 to height - 1 do
+          begin
+               pAii := GenPtr(A, i, i, LineWidthA);
+               
+               pAmin := GenPtr(A, min( i + 1, width - 1), i, LineWidthA);
+               GenElemHousholderRefl(pAmin, sizeof(double), width - i, pAii^, @taup^[i]);
+
+               d[i] := pAii^;
+               pAii^ := 1;
+
+               // Apply G(i) to A(i+1:m,i:n) from the right
+               if i < height - 1 then
+               begin
+                    pC := pAii;
+                    inc(PByte(pC), LineWidthA);
+                    ApplyElemHousholderReflRight(pAii, sizeof(double), pC, LineWidthA, width - i, height - i - 1, @taup[i], work);
+               end;
+
+               pAii^ := d[i];
+
+               if i < height - 1 then
+               begin
+                    inc(PByte(pAii), LineWidthA);
+                    
+                    // Generate elementary reflector H(i) to annihilate
+                    // A(i+2:m,i)
+                    pAmin := GenPtr(A, i, min(i + 2, Height - 1), LineWidthA);
+                    inc(PByte(pAii), LineWidthA);
+                    
+                    GenElemHousholderRefl(pAmin, LineWidthA, height - i - 1, pAii^, @tauq[i]);
+                    e[i]:= pAii^;
+                    pAii^ := 1;
+
+                    // Apply H(i) to A(i+1:m,i+1:n) from the left
+                    pC := pAii;
+                    inc(pC);
+                    
+                    inc(pC);
+                    ApplyElemHousholderReflLeft(pAii, LineWidthA, pC, LineWidthA, width - i - 1, height - i - 1, @tauq[i], work);
+                    pAii^ := e[i];
+               end
+               else
+                   tauq[i] := 0;
+          end;
+     end;
+end;
+
+
+// reduce parts of A to a bidiagonal form
+procedure dlabrd(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; nb : TASMNativeInt;
+                 D, E, TauQ, TauP : PConstDoubleArr; X : PDouble; const LineWidthX : TASMNativeInt;
+                 Y : PDouble; const LineWidthY : TASMNativeInt);
+var i : TASMNativeInt;
+    pAii00 : PDouble;                    // first index y, second x, first 1 -> +1 height, second 1 +1 width
+    pAii01 : PDouble;
+    pAii10 : PDouble;
+    pAii11 : PDouble;
+    pA0i01, pAi010 : PDouble;
+    pAi000, pA0i00 : PDouble;
+
+    pYi000, pY0i00 : PDouble;
+    pYii10 : PDouble;
+    pYi010 : PDouble;
+    pXi000, pX0i00 : PDouble;
+    pXi010 : PDouble;
+    pXii10 : PDouble;
+    pAminIM : PDouble;
+begin
+     if (width <= 0) or (Height <= 0) then
+        exit;
+
+     if height >= Width then
+     begin
+          for i := 0 to nb - 1 do
+          begin
+               // init variables
+               pAii00 := GenPtr(A, i, i, LineWidthA);
+               pAii01 := GenPtr(A, i + 1, i, LineWidthA);
+               pA0i01 := GenPtr(A, i + 1, 0, LineWidthA);
+               pAii11 := GenPtr(A, i + 1, i + 1, LineWidthA);
+               pAi010 := GenPtr(A, 0, i + 1, LineWidthA);
+               pAi000 := GenPtr(A, 0, i, LineWidthA);
+               pA0i00 := GenPtr(A, i, 0, LineWidthA);
+               
+               pYi000 := GenPtr(Y, 0, i, LineWidthY);
+               pY0i00 := GenPtr(Y, i, 0, LineWidthY);
+               pYii10 := GenPtr(Y, i, i + 1, LineWidthY);
+               pYi010 := GenPtr(Y, 0, i + 1, LineWidthY);
+               pXi000 := GenPtr(X, 0, i, LineWidthX); 
+               pXi010 := GenPtr(X, 0, i + 1, LineWidthX); 
+               pXii10 := GenPtr(X, i, i + 1, LineWidthX);
+               pX0i00 := GenPtr(X, i, 0, LineWidthX);
+               
+               // Update A(i:m,i)
+               // CALL dgemv( 'No transpose', m-i+1, i-1, -one, a( i, 1 ),
+               //             lda, y( i, 1 ), ldy, one, a( i, i ), 1 )
+               GenericMtxVecMult(pAii00, LineWidthA, pAi000, pYi000, LineWidthA, sizeof(double), i, height - i, -1, 1);
+               //  CALL dgemv( 'No transpose', m-i+1, i-1, -one, x( i, 1 ),
+               //              ldx, a( 1, i ), 1, one, a( i, i ), 1 )
+               GenericMtxVecMult(pAii00, LineWidthA, pXi000, pA0i00, LineWidthX, LineWidthA, i, height - i, -1, 1);
+
+               // generate reflection Q(i) to annihilate A(i+1:m,i)
+               pAminIM := GenPtr(A, i, Min(i + 1, Height - 1), LineWidthA);
+               GenElemHousholderRefl(pAminIM, LineWidthA, height - i, pAii00^, @tauQ^[i]);
+
+               d[i] := pAii00^;
+               
+               if i < width - 1 then
+               begin
+                    pAii00^ := 1;
+
+                    // Compute Y(i+1:n, i)
+
+                    // CALL dgemv( 'Transpose', m-i+1, n-i, one, a( i, i+1 ),
+                    //             lda, a( i, i ), 1, zero, y( i+1, i ), 1 )
+                    GenericMtxVecMultT(pYii10, LineWidthY, pAii01, pAii00, LineWidthA, LineWidthA, width - i - 1, height - i, 1, 0);
+                    // CALL dgemv( 'Transpose', m-i+1, i-1, one, a( i, 1 ), lda,
+                    //              a( i, i ), 1, zero, y( 1, i ), 1 )
+                    GenericMtxVecMultT(pY0i00, LineWidthY, pAi000, pAii00, LineWidthA, LineWidthA, i, height - i, 1, 0);
+                    // CALL dgemv( 'No transpose', n-i, i-1, -one, y( i+1, 1 ),
+                    //             ldy, y( 1, i ), 1, one, y( i+1, i ), 1 )
+                    GenericMtxVecMult(pYii10, LineWidthY, pYi010, pY0i00, LineWidthY, LineWidthY, i, width - i - 1, -1, 1);
+                    // CALL dgemv( 'Transpose', m-i+1, i-1, one, x( i, 1 ), ldx,
+                    //              a( i, i ), 1, zero, y( 1, i ), 1 )
+                    GenericMtxVecMultT(pY0i00, LineWidthY, pXi000, pAii00, LineWidthX, LineWidthA, i, height - i, 1, 0);
+                    // CALL dgemv( 'Transpose', i-1, n-i, -one, a( 1, i+1 ),
+                    //              lda, y( 1, i ), 1, one, y( i+1, i ), 1 )
+                    GenericMtxVecMultT(pYii10, LineWidthY, pA0i01, pY0i00, LineWidthA, LineWidthY, width - i - 1, i, -1, 1);
+
+                    // CALL dscal( n-i, tauq( i ), y( i+1, i ), 1 )
+                    MatrixScaleAndAdd(pYii10, LineWidthY, 1, Width - i - 1, 0, tauq[i]);
+
+                    // update A(i, i+1:n)
+
+                    // CALL dgemv( 'No transpose', n-i, i, -one, y( i+1, 1 ),
+                    //              ldy, a( i, 1 ), lda, one, a( i, i+1 ), lda )
+                    GenericMtxVecMult(pAii01, sizeof(double), pYi010, pAi000, LineWidthY, sizeof(double), i + 1, width - i - 1, -1, 1);
+                    // CALL dgemv( 'Transpose', i-1, n-i, -one, a( 1, i+1 ),
+                    //             lda, x( i, 1 ), ldx, one, a( i, i+1 ), lda )
+                    GenericMtxVecMultT(pAii01, sizeof(double), pA0i01, pXi000, LineWidthA, sizeof(double), width - i - 1, i, -1, 1);
+
+                    // Generate reflection P(i) to annihilate A(i,i+2:n)
+                    pAminIM := GenPtr(A, min(i + 2, width - 1), i, LineWidthA);
+                    GenElemHousholderRefl(pAminIM, sizeof(double), width - i - 1, pAii01^, @taup^[i]);
+
+                    e[i] := pAii01^;
+                    pAii01^ := 1;
+                    
+                    // Compute X(i+1:m,i)
+
+                    //CALL dgemv( 'No transpose', m-i, n-i, one, a( i+1, i+1 ),
+                    //            lda, a( i, i+1 ), lda, zero, x( i+1, i ), 1 )
+                    GenericMtxVecMult(pXii10, LineWidthX, pAii11, pAii01, LineWidthA, sizeof(double), width - i - 1, height - i - 1, 1, 0);
+                    // CALL dgemv( 'Transpose', n-i, i, one, y( i+1, 1 ), ldy,
+                    //              a( i, i+1 ), lda, zero, x( 1, i ), 1 )
+                    GenericMtxVecMultT(pX0i00, LineWidthX, pYi010, pAii01, LineWidthY, sizeof(double), i + 1, width - i - 1, 1, 0);
+                    // CALL dgemv( 'No transpose', m-i, i, -one, a( i+1, 1 ),
+                    //             da, x( 1, i ), 1, one, x( i+1, i ), 1 )
+                    GenericMtxVecMult(pXii10, LineWidthX, pAi010, pX0i00, LineWidthA, LineWidthX, i + 1, height - i - 1, -1, 1);
+                    // CALL dgemv( 'No transpose', i-1, n-i, one, a( 1, i+1 ),
+                    //             lda, a( i, i+1 ), lda, zero, x( 1, i ), 1 )
+                    GenericMtxVecMult(pX0i00, LineWidthX, pA0i01, pAii01, LineWidthA, sizeof(double), width - i - 1, i, 1, 0);
+                    // CALL dgemv( 'No transpose', m-i, i-1, -one, x( i+1, 1 ),
+                    //             ldx, x( 1, i ), 1, one, x( i+1, i ), 1 )
+                    GenericMtxVecMult(pXii10, LineWidthX, pXi010, pX0i00, LineWidthX, LineWidthX, i, height - i - 1, -1, 1);
+                    // CALL dscal( m-i, taup( i ), x( i+1, i ), 1 )
+                    MatrixScaleAndAdd(pXii10, LineWidthX, 1, height - i - 1, 0, taup[i]);   
+               end;
+          end;
+     end
+     else
+     begin
+          // Reduce to lower bidiagonal form
+          for i := 0 to nb - 1 do
+          begin
+               // init variables
+               pAii00 := GenPtr(A, i, i, LineWidthA);
+               pAii10 := GenPtr(A, i, i + 1, LineWidthA);
+               pA0i01 := GenPtr(A, i + 1, 0, LineWidthA);
+               pAii11 := GenPtr(A, i + 1, i + 1, LineWidthA);
+               pAi010 := GenPtr(A, 0, i + 1, LineWidthA);
+               pAi000 := GenPtr(A, 0, i, LineWidthA);
+               pA0i00 := GenPtr(A, i, 0, LineWidthA);
+               
+               pYi000 := GenPtr(Y, 0, i, LineWidthY);
+               pY0i00 := GenPtr(Y, i, 0, LineWidthY);
+               pYii10 := GenPtr(Y, i, i + 1, LineWidthY);
+               pYi010 := GenPtr(Y, 0, i + 1, LineWidthY);
+               pXi000 := GenPtr(X, 0, i, LineWidthX); 
+               pXi010 := GenPtr(X, 0, i + 1, LineWidthX); 
+               pXii10 := GenPtr(X, i, i + 1, LineWidthX);
+               pX0i00 := GenPtr(X, i, 0, LineWidthX);
+          
+               // Update A(i,i:n)
+
+                // CALL dgemv( 'No transpose', n-i+1, i-1, -one, y( i, 1 ),
+                //              ldy, a( i, 1 ), lda, one, a( i, i ), lda )
+               GenericMtxVecMult(pAii00, sizeof(double), pYi000, pAi000, LineWidthY, sizeof(double), i, width - i, -1, 1); 
+                // CALL dgemv( 'Transpose', i-1, n-i+1, -one, a( 1, i ), lda,
+                //              x( i, 1 ), ldx, one, a( i, i ), lda )
+               GenericMtxVecMultT(pAii00, sizeof(double), pA0i00, pXi000, LineWidthA, sizeof(double), width - i, i, -1, 1);
+
+               // Generate reflection P(i) to annihilate A(i,i+1:n)
+               pAminIM := GenPtr(A, i, Min(i + 1, Width - 1), LineWidthA);
+               GenElemHousholderRefl(pAminIM, sizeof(double), width - i, pAii00^, @tauP^[i]);
+               
+               d^[i] := pAii00^;
+
+               if i < height - 1 then
+               begin
+                    pAii00^ := 1;
+                    
+                    // Compute X(i+1:m,i)
+
+                    // CALL dgemv( 'No transpose', m-i, n-i+1, one, a( i+1, i ),
+                    //              lda, a( i, i ), lda, zero, x( i+1, i ), 1 )
+                    GenericMtxVecMult(pXii10, LineWidthX, pAii10, pAii00, LineWidthA, sizeof(double), width - i, height - i - 1, 1, 0);
+                    // CALL dgemv( 'Transpose', n-i+1, i-1, one, y( i, 1 ), ldy,
+                    //              a( i, i ), lda, zero, x( 1, i ), 1 )
+                    GenericMtxVecMultT(pX0i00, LineWidthX, pYi000, pAii00, LineWidthY, sizeof(double), i, width - i, 1, 0);
+                    // CALL dgemv( 'No transpose', m-i, i-1, -one, a( i+1, 1 ),
+                    //              lda, x( 1, i ), 1, one, x( i+1, i ), 1 )
+                    GenericMtxVecMult(pXii10, LineWidthX, pAi010, pX0i00, LineWidthA, LineWidthX, i, height - i - 1, -1, 1);
+                    // CALL dgemv( 'No transpose', i-1, n-i+1, one, a( 1, i ),
+                    //             lda, a( i, i ), lda, zero, x( 1, i ), 1 )
+                    GenericMtxVecMult(pX0i00, LineWidthX, pA0i00, pAii00, LineWidthA, sizeof(double), width - i, i, 1, 0);
+                    // CALL dgemv( 'No transpose', m-i, i-1, -one, x( i+1, 1 ),
+                    //             ldx, x( 1, i ), 1, one, x( i+1, i ), 1 )
+                    GenericMtxVecMult(pXii10, LineWidthX, pXi010, pX0i00, LineWidthX, LineWidthX, i, height - i - 1, -1, 1);
+                    // CALL dscal( m-i, taup( i ), x( i+1, i ), 1 )
+                    MatrixScaleAndAdd(pXii10, LineWidthX, 1, height - i - 1, 0, taup^[i]);
+
+                    // Update A(i+1:m,i)
+
+                    // CALL dgemv( 'No transpose', m-i, i-1, -one, a( i+1, 1 ),
+                    //             lda, y( i, 1 ), ldy, one, a( i+1, i ), 1 )
+                    GenericMtxVecMult(pAii10, LineWidthA, pAi010, pYi000, LineWidthA, sizeof(double), i, height - i - 1, -1, 1);
+                    // CALL dgemv( 'No transpose', m-i, i, -one, x( i+1, 1 ),
+                    //             ldx, a( 1, i ), 1, one, a( i+1, i ), 1 )
+                    GenericMtxVecMult(pAii10, LineWidthA, pXi010, pA0i00, LineWidthX, LineWidthA, i + 1, height - i - 1, -1, 1);
+
+                    // Generate reflection Q(i) to annihilate A(i+2:m,i)
+                    pAminIM := GenPtr(A, i, min(i + 2, height - 1), LineWidthA);
+                    GenElemHousholderRefl(pAminIM, LineWidthA, height - i - 1, pAii10^, @tauq^[i]);
+                    e^[i] := pAii10^;
+                    pAii10^ := 1;
+                    
+                    // Compute Y(i+1:n,i)
+
+                    //  CALL dgemv( 'Transpose', m-i, n-i, one, a( i+1, i+1 ),
+                    //              lda, a( i+1, i ), 1, zero, y( i+1, i ), 1 )
+                    GenericMtxVecMultT(pYii10, LineWidthY, pAii11, pAii10, LineWidthA, LineWidthA, width - i - 1, height - i - 1, 1, 0);
+                    // CALL dgemv( 'Transpose', m-i, i-1, one, a( i+1, 1 ), lda,
+                    //             a( i+1, i ), 1, zero, y( 1, i ), 1 )
+                    GenericMtxVecMultT(pY0i00, LineWidthY, pAi010, pAii10, LineWidthA, LineWidthA, i, height - i - 1, 1, 0);
+                    // CALL dgemv( 'No transpose', n-i, i-1, -one, y( i+1, 1 ),
+                    //             ldy, y( 1, i ), 1, one, y( i+1, i ), 1 )
+                    GenericMtxVecMult(pYii10, LineWidthY, pYi010, pY0i00, LineWidthY, LineWidthY, i, width - i - 1, -1, 1);
+                    // CALL dgemv( 'Transpose', m-i, i, one, x( i+1, 1 ), ldx,
+                    //             a( i+1, i ), 1, zero, y( 1, i ), 1 )
+                    GenericMtxVecMultT(pY0i00, LineWidthY, pXi010, pAii10, LineWidthX, LineWidthA, i + 1, height - i - 1, 1, 0);
+                    // CALL dgemv( 'Transpose', i, n-i, -one, a( 1, i+1 ), lda,
+                    //             y( 1, i ), 1, one, y( i+1, i ), 1 )
+                    GenericMtxVecMultT(pYii10, LineWidthY, pA0i01, pY0i00, LineWidthA, LineWidthY, width - i - 1, i + 1, -1, 1);
+                    // CALL dscal( n-i, tauq( i ), y( i+1, i ), 1 )
+                    MatrixScaleAndAdd(pYii10, LineWidthY, 1, width - i - 1, 0, tauq^[i]);
+               end;
+          end;
+     end;
+end;
+
+procedure MatrixLeftQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; 
+ tau : PDouble; BlockSize : TASMNativeInt; work : PDouble; progress : TLinEquProgress = nil);
+var qrData : TRecMtxQRDecompData;
+begin
+     qrData.pWorkMem := nil;
+     qrData.work := work;
+     qrData.BlkMultMem := nil;
+     qrData.Progress := progress;
+     qrData.qrWidth := width;
+     qrData.qrHeight := height;
+     qrData.actIdx := 0;
+     qrData.pnlSize := BlockSize;
+     qrData.LineWidthWork := sizeof(double)*qrdata.pnlSize;
+     qrData.MatrixMultT1 := {$IFDEF FPC}@{$ENDIF}MatrixMultT1Ex;
+     qrData.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}MatrixMultT2Ex;
+
+     if work = nil then
+     begin
+          qrData.pWorkMem := GetMemory(qrData.pnlSize*sizeof(double)*height + 64 + BlockMultMemSize(QRMultBlockSize) );
+          qrData.work := PDouble(qrData.pWorkMem);
+          if (NativeUInt(qrData.pWorkMem) and $0000000F) <> 0 then
+             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 16 - NativeUInt(qrData.pWorkMem) and $0F);
+     end;
+
+     // it's assumed that the work memory block may also be used
+     // as blocked multiplication memory storage!
+     qrData.BlkMultMem := qrData.work;
+     inc(qrData.BlkMultMem, qrData.pnlSize*height);
+
+     InternalBlkMatrixLeftQFromQRDecomp(A, LineWidthA, width, height, tau, qrData);
+     if not Assigned(work) then
+        freeMem(qrData.pWorkMem);
+end;
+
+// assumed nxn matrix
+procedure dorglq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; BlockSize : integer; work : PDouble);
+begin  
+     MatrixLeftQFromQRDecomp(A, LineWidthA, width, height, tau, QRBlockSize, work);
+end;
+
+// DORGBR generates one of the real orthogonal matrices Q or P**T
+// determined by DGEBRD when reducing a real matrix A to bidiagonal
+// form: A = Q * B * P**T.  Q and P**T are defined as products of
+// elementary reflectors H(i) or G(i) respectively.
+
+// A is assumed to have been an M-by-K matrix, and Q
+//  is of order M
+
+
+procedure Dorgbr_Q(A : PDouble; const LineWidthA : TASMNativeInt; width, height, k : TASMNativeInt; tau : PDouble; work : PDouble); //; const LineWidthWork : TASMNativeInt);
+begin
+     // boils down essentially to Q from QR Decomp...
+     // k = width = height for svd..
+     MatrixQFromQRDecomp(A, LineWidthA, width, height, tau, QRBlockSize, work);
+end;
+
+procedure Dorgbr_P(A : PDouble; const LineWidthA : TASMNativeInt; width, height, k : TASMNativeInt; tau : PDouble; work : PDouble); //; const LineWidthWork : TASMNativeInt);
+var pA : PDouble;
+    i : Integer;
+    j : Integer;
+    pAij, PAi1j : PDouble;
+begin
+     // Shift the vectors which define the elementary reflectors one
+     // row downward, and set the first row and column of P**T to
+     // those of the unit matrix
+     pA := A;
+     pA^ := 1;
+     inc(PByte(pA), LineWidthA);
+
+     for i := 1 to width - 1 do
+     begin
+          pA^ := 0;
+          inc(PByte(pA), LineWidthA);  
+     end;
+
+     for j := width - 1 downto 1 do   // rows
+     begin     
+          for i := j to width - 1 do // cols
+          begin
+               pAij := GenPtr(A, i, j, LineWidthA);
+               pAi1j := GenPtr(A, i, j - 1, LineWidthA);
+          
+               pAij^ := pAi1j^;
+          end;
+     end;
+
+     pAij := GenPtr(A, 1, 0, LineWidthA);
+     for i := 1 to width - 1 do
+     begin
+          pAij^ := 0;
+          inc(pAij);
+     end;
+         
+
+     if width > 1 then
+     begin
+          pA := GenPtr(A, 1, 1, LineWidthA);
+     
+          // form P_Transposed
+          MatrixLeftQFromQRDecomp(pA, LineWidthA, width - 1, height - 1, tau, QRBlockSize, work);
+     end;
+end;
+
+// DGEBRD reduces a general real M-by-N matrix A to upper or lower
+// bidiagonal form B by an orthogonal transformation: Q**T * A * P = B
+// M : height
+// N : width
+// column major
+// On entry, the M-by-N general matrix to be reduced.
+// On exit,
+// if m >= n, the diagonal and the first superdiagonal are
+//   overwritten with the upper bidiagonal matrix B; the
+//   elements below the diagonal, with the array TAUQ, represent
+//   the orthogonal matrix Q as a product of elementary
+//   reflectors, and the elements above the first superdiagonal,
+//   with the array TAUP, represent the orthogonal matrix P as
+//   a product of elementary reflectors;
+// if m < n, the diagonal and the first subdiagonal are
+//   overwritten with the lower bidiagonal matrix B; the
+//   elements below the first subdiagonal, with the array TAUQ,
+//   represent the orthogonal matrix Q as a product of
+//   elementary reflectors, and the elements above the diagonal,
+//   with the array TAUP, represent the orthogonal matrix P as
+//   a product of elementary reflectors.
+procedure dgebrd(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
+                 D, E, TauQ, TauP : PDouble; work : PDouble; nb : integer = 32);
+var lwkopt : TASMNativeInt;
+    minmn : TASMNativeInt;
+    ws : TASMNativeInt;
+    nx : integer;
+    i, j : TASMNativeInt;
+    pWork : PDouble;
+    ldwrkx, ldwrky : TASMNativeInt;
+    pAinb, pAinbnb : PDouble;
+    pAii : PDouble;
+    pX, pY : PDouble;
+    pXnb, pYnb : PDouble;
+    pWorkMult : PDouble;
+    pD, pE, pTauQ, pTauP : PDouble;
+begin
+     minmn := min(width, height);
+     if minmn = 0 then
+        exit;
+
+     ldwrkx := height;
+     ldwrky := width;
+
+     // determine when to switch from blocked to unblocked code
+     // note: we assume that work is large enough to hold (width + height)*nb elements
+     nx := nb;  
+     nx := Min(nx, minmn);
+     
+     i := 0;
+
+     px := Work;
+     py := Work;
+     inc(py, ldwrkx*nb);   
+     pWorkMult := pY;
+     inc(pWorkMult, ldwrky*nb);  
+
+     pD := D;
+     pE := E;
+     pTauQ := tauQ;
+     pTauP := tauP;
+
+     while i < minmn - nx do
+     begin
+          // Reduce rows and columns i:i+nb-1 to bidiagonal form and return
+          // the matrices X and Y which are needed to update the unreduced
+          // part of the matrix
+          pAii := GenPtr(A, i, i, LineWidthA);
+          dlabrd(pAii, LineWidthA, width - i, height - i, nb,  PConstDoubleArr(pD), PConstDoubleArr(pE), 
+                 PConstDoubleArr(ptauQ), PConstDoubleArr(ptauP), px, nb*sizeof(double), py, nb*sizeof(double) );
+
+          // update the trailing submatir A(i +nb:m, i+nb:n) using an update of the form
+          // A = A - VY**T - X*U**T
+          pAinb := GenPtr(A, i, i + nb, LineWidthA);
+          pAinbnb := GenPtr(A, i + nb, i + nb, LineWidthA);
+
+          //  CALL dgemm( 'No transpose', 'Transpose', m-i-nb+1, n-i-nb+1,
+          //               nb, -one, a( i+nb, i ), lda,
+          //               work( ldwrkx*nb+nb+1 ), ldwrky, one,
+          //               a( i+nb, i+nb ), lda )
+          pYnb := GenPtr(pY, 0, nb, nb*sizeof(double));
+          
+          MatrixMultT2Ex(pAinbnb, LineWidthA, pAinb, pYnb, nb, height - i - nb, nb, width - i - nb,
+                          LineWidthA, nb*sizeof(double), nb, doSub, pWorkMult );
+                          
+          // CALL dgemm( 'No transpose', 'No transpose', m-i-nb+1, n-i-nb+1,
+          //             nb, -one, work( nb+1 ), ldwrkx, a( i, i+nb ), lda,
+          //             one, a( i+nb, i+nb ), lda )
+          pXnb := GenPtr(pX, 0, nb, nb*sizeof(double)); 
+          pAinb := GenPtr(A, i + nb, i, LineWidthA);
+          MatrixMultEx(pAinbnb, LineWidthA, pXnb, pAinb, nb, height - i - nb, width - i - nb, nb,
+                       nb*sizeof(double), LineWidthA, nb, doSub, pWorkMult );
+
+          // Copy diagonal and off-diagonal elements of B back into A
+          if height >= width then
+          begin
+               j := i;
+               while j < i + nb do
+               begin
+                    pAii^ := PConstDoubleArr(d)^[j];
+                    inc(pAii);
+                    pAii^ := PConstDoubleArr(e)^[j];
+                    inc(PByte(pAii), LineWidthA);
+                    inc(j);
+               end;
+          end
+          else
+          begin
+               j := i;
+               while j < i + nb do
+               begin
+                    pAii^ := PConstDoubleArr(d)^[j];
+                    inc(PByte(pAii), LineWidthA);
+                    pAii^ := PConstDoubleArr(e)^[j];
+                    inc(pAii);
+                    inc(j);
+               end;
+          end;
+
+          // counters
+          inc(i, nb);
+          inc(pD, nb);
+          inc(pE, nb);
+          inc(pTauQ, nb);
+          inc(pTauP, nb);
+     end;
+     
+     // ###########################################
+     // #### Use unblocked code to reduce the remainder of the matrix
+     pAii := GenPtr(A, i, i, LineWidthA);
+     dgebd2(pAii, LineWidthA, width - i, height - i, PConstDoubleArr(pD), 
+            PConstDoubleArr(pE), PConstDoubleArr(pTauQ), PConstDoubleArr(pTauP),
+            work);
+end;
+
+// computes the singular value decomposition of a 2-by-2 triangular matrix
+procedure dlasv2(const F, G, H : double; var ssmin, ssmax, snr, csr, snl, csl : double); 
+var ft, fa, ht, ha : double;
+    pmax : integer;
+    swap : boolean;
+    temp : double;
+    ga, gt : double;
+    clt : double;
+    crt : double;
+    slt : double;
+    srt : double;
+    gasmal : boolean;
+    epsilon : double;
+    d : double;
+    l : double;
+    m, t : double;
+    mm, tt : double;
+    a, r, s : double;
+    tsign : double;
+begin
+     srt := 0;
+     crt := 0;
+     clt := 0;
+     slt := 0;
+     
+     ft := f;
+     fa := abs( ft );
+     ht := h;
+     ha := abs( h );
+
+     // PMAX points to the maximum absolute element of matrix
+     // PMAX = 1 if F largest in absolute values
+     // PMAX = 2 if G largest in absolute values
+     // PMAX = 3 if H largest in absolute values
+     pmax := 1;
+     swap := ha > fa;
+
+     if swap then
+     begin
+          pmax := 3;
+          
+          temp := ft;
+          ft := ht;
+          ht := temp;
+          temp := fa;
+          fa := ha;
+          ha := temp;
+     end;
+
+     gt := g;
+     ga := abs( gt );
+     if ga = 0 then
+     begin
+          // diagonal matrix
+          ssmin := ha;
+          ssmax := fa;
+          clt := 1;
+          crt := 1;
+          slt := 0;
+          srt := 0;
+     end
+     else
+     begin
+          gasmal := True;
+
+          if ga > fa then
+          begin
+               pmax := 2;
+               if fa/ga < cDoubleEpsilon then
+               begin
+                    // Case of very large GA
+                    gasmal := False;
+                    ssmax := ga;
+                    if ha > 1 
+                    then
+                        ssmin := fa/(ga/ha)
+                    else
+                        ssmin := (fa/ga)*ha;
+
+                    clt := 1;
+                    slt := ht/gt;
+                    srt := 1;
+                    crt := ft/gt;
+               end;
+          end;
+
+          if gasmal then
+          begin
+               // normal case
+               d := fa - ha;
+               if d = fa 
+               then // copes with infinite F or H
+                   l := 1
+               else
+                   l := d/fa;
+
+               // Note that 0 .le. L .le. 1
+               m := gt/ft;
+
+               // Note that abs(M) .le. 1/macheps
+               t := 2 - l;
+
+               // Note that T .ge. 1
+               mm := sqr(m);
+               tt := sqr(t);
+
+               s := sqrt( tt + mm );
+
+               // Note that 1 .le. S .le. 1 + 1/macheps
+               if l = 0 
+               then
+                   r := abs( m )
+               else
+                   r := sqrt(l*l + mm );
+
+               a := 0.5*(s + r);
+
+               ssmin := ha/a;
+               ssmax := fa*a;
+
+               if mm = 0 then
+               begin
+                    // note tha m is ver tiny
+                    if l = 0 
+                    then
+                        t := sign(2, ft)*sign(1, gt)
+                    else
+                        t := gt/sign(d, ft) + m/t;
+               end
+               else
+                   t := (m/(s + t) + m/(r + l) )*(1 + a);
+
+               l := sqrt(sqr(t) + 4);
+               crt := 2/l;
+               srt := t/l;
+               clt := (crt + srt*m)/a;
+               slt := (ht / ft)*srt/a;
+          end;
+     end;
+
+     if swap then
+     begin
+          csl := srt;
+          snl := crt;
+          csr := slt;
+          snr := clt;
+     end
+     else
+     begin
+          csl := clt;
+          snl := slt;
+          csr := crt;
+          snr := srt;
+     end;
+
+     // Correct signs of SSMAX and SSMIN
+     tsign := 0;
+     if pmax = 1 then
+        tsign := sign(1, csr)*sign(1, csl)*sign(1, f);
+     if pmax = 2 then
+        tsign := sign(1, snr)*sign(1, csl)*sign(1, g);
+     if pmax = 3 then
+        tsign := sign(1, snr)*sign(1, snl)*sign(1, h);
+
+     ssmax := sign(ssmax, tsign);
+     ssmin := sign(ssmin, tsign*sign(1, f)*sign(1, h));
+end;
+
+// apply a plane rotation
+procedure drot(N : TASMNativeInt; DX : PDouble; const LineWidthDX : TASMNativeInt; DY : PDouble; LineWidthDY : TASMNativeInt; const c, s : double); 
+var i: Integer;
+    pX : PConstDoubleArr;
+    pY : PConstDoubleArr;
+    dtemp : double;
+begin 
+     if n <= 0 then
+        exit;
+
+     // faster code if it's in i row...
+     if (LineWidthDX = sizeof(double)) and (LineWidthDY = sizeof(double)) then
+     begin
+          pX := PConstDoubleArr(DX);
+          pY := PConstDoubleArr(DY);
+          for i := 0 to n - 1 do
+          begin
+               dtemp := c*pX[i] + s*pY[i];
+               pY[i] := c*pY[i] - s*pX[i];
+               px[i] := dtemp;
+          end;
+     end
+     else
+     begin
+          for i := 0 to n - 1 do
+          begin
+               dtemp := c*dx^ + s*dy^;
+               dy^ := c*dy^ - s*dx^;
+               dx^ := dtemp;
+
+               inc(PByte(dx), LineWidthDX);
+               inc(PByte(dy), LineWidthDY);
+          end;
+     end;
+end;
+
+// compute singular values of 2 by 2 matrix
+procedure dlas2(const F, G, H : double; var ssmin, ssmax : double); //inline;
+var fa, ga, ha, fhmn, fhmx : double;
+    ass, at, au : double;
+    c : double;
+begin
+     fa := abs(f);
+     ga := abs(g);
+     ha := abs(h);
+     fhmn := min(fa, ha);
+     fhmx := max(fa, ha);
+
+     if fhmn = 0 then
+     begin
+          ssmin := 0;
+          if fhmx = 0 
+          then
+              ssmax := ga
+          else
+              ssmax := max( fhmx, ga )*sqrt( 1 + sqr(min( fhmx, ga ) / max( fhmx, ga ) ) );
+     end
+     else
+     begin
+          if ga < fhmx then
+          begin
+               ass := 1 + fhmn/fhmx;
+               at := ( fhmx-fhmn ) / fhmx;
+               au := sqr(ga/fhmx);
+               c := 2/(sqrt( ass*ass + au) + sqrt( at*at + au ) );
+               ssmin := fhmn*c;
+               ssmax := fhmx/c;
+          end
+          else
+          begin
+               au := fhmx/ga;
+
+               if au = 0 then
+               begin
+                    // Avoid possible harmful underflow if exponent range
+                    // asymmetric (true SSMIN may not underflow even if
+                    // AU underflows)
+                    ssmin := (fhmn*fhmx)/ga;
+                    ssmax := ga;
+               end
+               else
+               begin
+                    ass := 1 + fhmn/fhmx;
+                    at := (fhmx - fhmn)/fhmx;
+                    c := 1/( sqrt(1 + sqr(ass*au) ) + sqrt( 1 + sqr(at*au) ) );
+                    ssmin := (fhmn*c)*au;
+                    ssmin := ssmin + ssmin;
+                    ssmax := ga/(c + c);
+               end;
+          end;
+     end;
+end;
+
+// generates a plane rotation with real cosine and real sine
+procedure dlartg(F, G : double; var CS, SN, R : double);
+var f1, g1, scale : double;
+    count : integer;
+    i: Integer;
+const cSaveMin : double = 6.7180e-138; // sqrt(100*MinDouble)/cDoubleEpsilon
+      cSaveMax : double = 1.4885e+137; // 1/cSaveMin;
+begin
+     if g = 0 then
+     begin
+          cs := 1;
+          sn := 0;
+          r := f;
+     end
+     else if f = 0 then
+     begin
+          cs := 0;
+          sn := 1;
+          r := g;
+     end
+     else
+     begin
+          f1 := f;
+          g1 := g;
+          scale := max( abs(f1), abs(g1));
+          if scale >= cSaveMax then
+          begin
+               count := 0;
+               repeat
+                     inc(count);
+                     f1 := f1*cSaveMin;
+                     g1 := g1*cSaveMin;
+
+                     scale := max( abs(f1 ), abs( g1 ) );
+               until scale >= cSaveMax;
+
+               r := sqrt( sqr(f1) + sqr(g1) );
+               cs := f1/r;
+               sn := g1/r;
+
+               for i := 0 to count - 1 do
+                   r := r*cSaveMax;
+          end
+          else if scale <= cSaveMin then
+          begin
+               count := 0;
+               repeat
+                     inc(count);
+                     f1 := f1*cSaveMax;
+                     g1 := g1*cSaveMax;
+
+                     scale := max( abs(f1 ), abs( g1 ) );
+               until scale <= cSaveMin;
+
+               r := sqrt( sqr(f1) + sqr(g1) );
+               cs := f1/r;
+               sn := g1/r;
+               for i := 0 to count - 1 do
+                   r := r*cSaveMin;
+          end
+          else
+          begin
+               // normal path
+               r := sqrt( sqr(f1) + sqr(g1) );
+               cs := f1/r;
+               sn := g1/r;
+          end;
+
+          if (abs( f ) > abs( g )) and (cs < 0) then
+          begin
+               cs := -cs;
+               sn := -sn;
+               r := -r;
+          end;
+     end;
+end;
+
+procedure dlasr_LVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+var cTemp, stemp, temp : double;
+    x, y : TASMNativeInt;
+    pcAy, pcAy1 : PConstDoubleArr;
+begin
+     for y := 0 to height - 2 do
+     begin
+          ctemp := c[y];
+          stemp := s[y];
+
+          if (ctemp <> 1) or (stemp <> 0) then
+          begin
+               pcAy := PConstDoubleArr(GenPtr(A, 0, y, LineWidthA));
+               pcAy1 := PConstDoubleArr(GenPtr(A, 0, y + 1, LineWidthA));
+               for x := 0 to width - 1 do
+               begin
+                    temp := pcAy1^[x];
+                    pcAy1^[x] := cTemp*temp - stemp*pcAy^[x];
+                    pcAy^[x] := stemp*temp + ctemp*pcAy^[x];
+               end;
+          end;
+     end;
+end;
+
+procedure dlasr_LVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+var cTemp, stemp, temp : double;
+    x, y : TASMNativeInt;
+    pcAy, pcAy1 : PConstDoubleArr;
+begin
+     for y := height - 2 downto 0 do
+     begin
+          ctemp := c[y];
+          stemp := s[y];
+
+          if (ctemp <> 1) or (stemp <> 0) then
+          begin
+               pcAy := PConstDoubleArr(GenPtr(A, 0, y, LineWidthA));
+               pcAy1 := PConstDoubleArr(GenPtr(A, 0, y + 1, LineWidthA));
+               for x := 0 to width - 1 do
+               begin
+                    temp := pcAy1^[x];
+                    pcAy1^[x] := cTemp*temp - stemp*pcAy^[x];
+                    pcAy^[x] := stemp*temp + ctemp*pcAy^[x];
+               end;
+          end;
+     end;
+end;
+
+{
+procedure dlasr_LTF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+var cTemp, stemp, temp : double;
+    x, y : TASMNativeInt;
+    pcAy, pcAy1 : PConstDoubleArr;
+begin
+     for y := 1 to height - 1 do
+     begin
+          ctemp := c[y - 1];
+          stemp := s[y - 1];
+
+          if (ctemp <> 1) or (stemp <> 0) then
+          begin
+               pcAy := PConstDoubleArr(GenPtr(A, 0, y, LineWidthA));
+               pcAy1 := PConstDoubleArr(GenPtr(A, 0, 0, LineWidthA));
+               for x := 0 to width - 1 do
+               begin
+                    temp := pcAy^[x];
+                    pcAy^[x] := cTemp*temp - stemp*pcAy1^[x];
+                    pcAy1^[x] := stemp*temp + ctemp*pcAy1^[x];
+               end;
+          end;
+     end;
+end;
+
+procedure dlasr_LTB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+var cTemp, stemp, temp : double;
+    x, y : TASMNativeInt;
+    pcAy, pcAy1 : PConstDoubleArr;
+begin
+     for y := height - 1 downto 1 do
+     begin
+          ctemp := c[y - 1];
+          stemp := s[y - 1];
+          if (ctemp <> 1) or (stemp <> 0) then
+          begin
+               pcAy := PConstDoubleArr(GenPtr(A, 0, y, LineWidthA));
+               pcAy1 := PConstDoubleArr(GenPtr(A, 0, 0, LineWidthA));
+                              
+               for x := 0 to width - 1 do
+               begin
+                    temp := pcAy^[x];
+                    pcAy^[x] := ctemp*temp - stemp*pcAy1^[x];
+                    pcAy1^[x] := stemp*temp + ctemp*pcAy1^[x];
+               end;
+          end;
+     end;
+end;
+
+procedure dlasr_LBF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+var cTemp, stemp, temp : double;
+    x, y : TASMNativeInt;
+    pcAy, pcAy1 : PConstDoubleArr;
+begin
+     for y := 0 to height - 2 do
+     begin
+          ctemp := c[y];
+          stemp := s[y];
+
+          if (ctemp <> 1) or (stemp <> 0) then
+          begin
+               pcAy := PConstDoubleArr(GenPtr(A, 0, y, LineWidthA));
+               pcAy1 := PConstDoubleArr(GenPtr(A, 0, height - 1, LineWidthA));
+               for x := 0 to width - 1 do
+               begin
+                    temp := pcAy^[x];
+                    pcAy^[x] := stemp*pcAy1^[x] + ctemp*temp;
+                    pcAy1^[x] := ctemp*pcAy1^[x] - stemp*temp;
+               end;
+          end;
+     end;
+end;
+
+procedure dlasr_LBB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+var cTemp, stemp, temp : double;
+    x, y : TASMNativeInt;
+    pcAy, pcAy1 : PConstDoubleArr;
+begin
+     for y := height - 2 downto 0 do
+     begin
+          ctemp := c[y];
+          stemp := s[y];
+
+          if (ctemp <> 1) or (stemp <> 0) then
+          begin
+               pcAy := PConstDoubleArr(GenPtr(A, 0, y, LineWidthA));
+               pcAy1 := PConstDoubleArr(GenPtr(A, 0, height - 1, LineWidthA));
+               for x := 0 to width - 1 do
+               begin
+                    temp := pcAy^[x];
+                    pcAy^[x] := stemp*pcAy1^[x] + ctemp*temp;
+                    pcAy1^[x] := ctemp*pcAy1^[x] - stemp*temp;
+               end;
+          end;
+     end;
+end;
+}
+
+procedure dlasr_RVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+var cTemp, stemp, temp : double;
+    x, y : TASMNativeInt;
+    pAy, pAy1 : PDouble;
+begin
+     for y := 0 to width - 2 do
+     begin
+          ctemp := c[y];
+          stemp := s[y];
+
+          if (ctemp <> 1) or (stemp <> 0) then
+          begin
+               pAy := GenPtr(A, y, 0, LineWidthA);
+               pAy1 := GenPtr(A, y + 1, 0, LineWidthA);
+                               
+               for x := 0 to height - 1 do
+               begin
+                    temp := pAy1^;
+                    pAy1^ := ctemp*temp - stemp*pAy^;
+                    pAy^ := stemp*temp + ctemp*pAy^;
+
+                    inc(PByte(pAy), LineWidthA);
+                    inc(PByte(pAy1), LineWidthA);
+               end;
+          end;
+     end;
+end;
+
+procedure dlasr_RVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+var cTemp, stemp, temp : double;
+    x, y : TASMNativeInt;
+    pAy, pAy1 : PDouble;
+begin
+     for y := width - 2 downto 0 do
+     begin
+          ctemp := c[y];
+          stemp := s[y];
+
+          if (ctemp <> 1) or (stemp <> 0) then
+          begin
+               pAy := GenPtr(A, y, 0, LineWidthA);
+               pAy1 := GenPtr(A, y + 1, 0, LineWidthA);
+                               
+               for x := 0 to height - 1 do
+               begin
+                    temp := pAy1^;
+                    pAy1^ := ctemp*temp - stemp*pAy^;
+                    pAy^ := stemp*temp + ctemp*pAy^;
+
+                    inc(PByte(pAy), LineWidthA);
+                    inc(PByte(pAy1), LineWidthA);
+               end;
+          end;
+     end;
+end;
+
+procedure dlasr_RTF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+var cTemp, stemp, temp : double;
+    x, y : TASMNativeInt;
+    pAy, pAy1 : PDouble;
+begin
+     for y := 1 to width - 1 do
+     begin    
+          ctemp := c[y - 1];
+          stemp := s[y - 1];
+
+          if (ctemp <> 1) or (stemp <> 0) then
+          begin
+               pAy := GenPtr(A, y, 0, LineWidthA);
+               pAy1 := GenPtr(A, 0, 0, LineWidthA);
+                               
+               for x := 0 to height - 1 do
+               begin
+                    temp := pAy^;
+                    pAy^ := ctemp*temp - stemp*pAy1^;
+                    pAy1^ := stemp*temp + ctemp*pAy1^;
+
+                    inc(PByte(pAy), LineWidthA);
+                    inc(PByte(pAy1), LineWidthA);
+               end;
+          end;
+     end;
+end;
+
+procedure dlasr_RTB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+var cTemp, stemp, temp : double;
+    x, y : TASMNativeInt;
+    pAy, pAy1 : PDouble;
+begin
+     for y := width - 1 downto 1 do
+     begin
+          ctemp := c[y - 1];
+          stemp := s[y - 1];
+
+          if (ctemp <> 1) or (stemp <> 0) then
+          begin
+               pAy := GenPtr(A, y, 0, LineWidthA);
+               pAy1 := GenPtr(A, 0, 0, LineWidthA);
+                               
+               for x := 0 to height - 1 do
+               begin
+                    temp := pAy^;
+                    pAy^ := ctemp*temp - stemp*pAy1^;
+                    pAy1^ := stemp*temp + ctemp*pAy1^;
+
+                    inc(PByte(pAy), LineWidthA);
+                    inc(PByte(pAy1), LineWidthA);
+               end;
+          end;
+     end;
+end;
+
+procedure dlasr_RBF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+var cTemp, stemp, temp : double;
+    x, y : TASMNativeInt;
+    pAy, pAy1 : PDouble;
+begin
+     for y := 0 to width - 2 do
+     begin
+          ctemp := c[y];
+          stemp := s[y];
+
+          if (ctemp <> 1) or (stemp <> 0) then
+          begin
+               pAy := GenPtr(A, y, 0, LineWidthA);
+               pAy1 := GenPtr(A, width - 1, 0, LineWidthA);
+                               
+               for x := 0 to height - 1 do
+               begin
+                    temp := pAy^;
+                    pAy^ := stemp*pAy1^ + ctemp*temp;
+                    pAy1^ := ctemp*pAy1^ - stemp*temp;
+
+                    inc(PByte(pAy), LineWidthA);
+                    inc(PByte(pAy1), LineWidthA);
+               end;
+          end;
+     end;
+end;
+
+procedure dlasr_RBB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+var cTemp, stemp, temp : double;
+    x, y : TASMNativeInt;
+    pAy, pAy1 : PDouble;
+begin
+     for y := width - 2 downto 0 do
+     begin
+          ctemp := c[y];
+          stemp := s[y];
+
+          if (ctemp <> 1) or (stemp <> 0) then
+          begin
+               pAy := GenPtr(A, y, 0, LineWidthA);
+               pAy1 := GenPtr(A, width - 1, 0, LineWidthA);
+                               
+               for x := 0 to height - 1 do
+               begin
+                    temp := pAy^;
+                    pAy^ := stemp*pAy1^ + ctemp*temp;
+                    pAy1^ := ctemp*pAy1^ - stemp*temp;
+
+                    inc(PByte(pAy), LineWidthA);
+                    inc(PByte(pAy1), LineWidthA);
+               end;
+          end;
+     end;
+end;
+
+procedure DswapCol(A : PDouble; const LineWidthA : TASMNativeInt; i1, i2, height : TASMNativeInt);
+var temp : double;
+    pAi1, pAi2 : PDouble;
+    y: TASMNativeInt;
+begin
+     pAi1 := A;
+     inc(pAi1, i1);
+     pAi2 := A;
+     inc(pAi2, i2);
+
+     for y := 0 to height - 1 do
+     begin
+          temp := pAi1^;
+          pAi1^ := pAi2^;
+          pAi2^ := temp;
+
+          inc(PByte(pAi1), LineWidthA);
+          inc(PByte(pAi2), LineWidthA);
+     end;
+end;
+
+procedure DswapRow(A : PDouble; const LineWidthA : TASMNativeInt; i1, i2, width : TASMNativeInt);
+var temp : double;
+    pAi1, pAi2 : PConstDoubleArr;
+    x : TASMNativeInt;
+begin
+     pAi1 := PConstDoubleArr(A);
+     inc(PByte(pAi1), i1*LineWidthA);
+     pAi2 := PConstDoubleArr(A);
+     inc(PByte(pAi2), i2*LineWidthA);
+
+     for x := 0 to width - 1 do
+     begin
+          temp := pAi1^[x];
+          pAi1^[x] := pAi2^[x];
+          pAi2^[x] := temp;
+     end;
+end;
+
+// upper diagonal
+// DBDSQR computes the singular values and, optionally, the right and/or
+// left singular vectors from the singular value decomposition (SVD) of
+// a real N-by-N (upper or lower) bidiagonal matrix B using the implicit
+// zero-shift QR algorithm.  The SVD of B has the form
+function dbdsqr_upper(D : PConstDoubleArr; E : PConstDoubleArr;
+                     VT : PDouble; const LineWidthVT : TASMNativeInt; U : PDouble; const LineWidthU : TASMNativeInt;
+                     C : PDouble; const LineWidthC : TASMNativeInt; N, NCVT, NRU, NCC : TASMNativeInt; Work : PDouble) : TSVDResult;
+const maxitr : integer = 6;
+var nm1 : TASMNativeInt;
+    nm12 : TASMNativeInt;
+    nm13 : TASMNativeInt;
+    smax : double;
+    tol : Double;
+    i : TASMNativeInt;
+    thresh : double;
+    sminoa : double;
+    maxIt : TASMNativeInt;
+    oldll : TASMNativeInt;
+    iter : TASMNativeInt;
+    oldm : TASMNativeInt;
+    m : TASMNativeInt;
+    mu : double;
+    sminl : double;
+    lll, ll: Integer;
+    smin : double;
+    abss, abse : double;
+    idir : integer;
+    doCont : boolean;
+    shift, r : double;
+    sll : double;
+    f, g, h : double;
+    cs, oldcs : double;
+    sn, oldsn : double;
+    pwork : PConstDoubleArr;
+    sigmn, sigmx, sinr, cosr, sinl, cosl : double;
+    isub : TASMNativeInt;
+    j : TASMNativeInt;
+    llFound : boolean;
+begin
+     Result := srOk;
+     pwork := PConstDoubleArr(work);
+
+     tol := 2e-14;//cDoubleEpsilon* max(10, min(100, Power(cDoubleEpsilon, -0.125 ) )) ;
+
+     // Compute approximate maximum, minimum singular values
+     smax := 0;
+     for i := 0 to n - 1 do
+         smax := max(smax, abs(d[i]));
+     for i := 0 to n - 2 do
+         smax := max(smax, abs(e[i]) );
+
+     // relative accuracy desired
+     sminl := 0;
+     if tol >= 0 then
+     begin
+          sminoa := abs(d[0]);
+
+          if sminoa <> 0 then
+          begin
+               mu := sminoa;
+               for i := 1 to n - 1 do
+               begin
+                    mu := abs( d[i] )*( mu/(mu + abs(e[i - 1])));
+                    sminoa := min(sminoa, mu);
+                    if sminoa = 0 then
+                       break;
+               end;
+          end;
+
+          sminoa := sminoa/(sqrt(n));
+          thresh := max( tol*sminoa, maxitr*n*n*MinDouble);
+     end
+     else
+         thresh := max(abs(tol)*smax, maxitr*n*n*MinDouble);
+
+     idir := 0;
+     nm1 := n - 1;
+     nm12 := nm1 + nm1;
+     nm13 := nm12 + nm1; 
+
+     // Prepare for main iteration loop for the singular values
+     // MAXIT is the maximum number of passes through the inner
+     // loop permitted before nonconvergence signalled.)
+     maxIt := maxitr*n*n;
+     oldll := -1;
+     iter := 0;
+     oldm := -1;
+
+     // M points to last element of unconverged part of matrix
+     m := n - 1;
+
+     while m > 0 do
+     begin
+          if iter > maxit then
+          begin
+               Result := srNoConvergence;
+               exit;
+          end;
+
+          // Find diagonal block of matrix to work on
+          if (tol < 0) and (abs(d[m]) <= thresh) then
+             d[m] := 0;
+
+          smax := abs(d[m]);
+          smin := smax;
+
+          doCont := False;
+          lll := 0;
+          ll := -1;
+          while lll < m do
+          begin
+               ll := m - lll - 1;
+               abss := abs(d[ll]);
+               abse := abs(e[ll]);
+
+               if (tol < 0) and (abss <= thresh) then
+                  d[ll] := 0;
+               if abse <= thresh then
+               begin
+                    e[ll] := 0;
+                    // matrix splits since e[ll] = 0
+
+                    if ll = m - 1 then
+                    begin
+                         // Convergence of bottom singular value, return to top of loop
+                         dec(m);
+                         doCont := True;
+                         break;
+                    end;
+
+                    break;
+               end;
+
+               smin := min(smin, abss);
+               smax := max(smax, max(abss, abse));
+               inc(lll);
+          end;
+
+          if doCont then
+             continue;
+
+          if lll = m then
+             ll := -1;
+             
+          inc(ll);
+          
+          // E(LL) through E(M-1) are nonzero, E(LL-1) is zero
+          if ll = m - 1 then
+          begin
+               // 2 by 2 block, handle separately
+               dlasv2(d[m - 1], e[m - 1], d[m], sigmn, sigmx, sinr, cosr, sinl, cosl);
+               d[m - 1] := sigmx;
+               e[m - 1] := 0;
+               d[m] := sigmn;
+
+               // Compute singular vectors, if desired
+               if ncvt > 0 then
+                  drot(ncvt, GenPtr(vt, 0, m - 1, LineWidthVT), sizeof(double), GenPtr(vt, 0, m, LineWidthVT), sizeof(double), cosr, sinr);
+               if NRU > 0 then
+                  drot(nru, GenPtr(u, m - 1, 0, LineWidthU), LineWidthU, GenPtr(u, m, 0, LineWidthU), LineWidthU, cosl, sinl);
+               if ncc > 0 then
+                  drot(ncc, GenPtr(C, 0, m - 1, LineWidthC), sizeof(double), GenPtr(c, 0, m, LineWidthC), sizeof(double), cosl, sinl);
+
+               dec(m, 2);
+
+               // next m
+               continue;
+          end;
+          
+          // If working on new submatrix, choose shift direction
+          // from larger end diagonal element towards smaller)
+          if (ll > oldm) or (m < oldll) then
+          begin
+               if abs( d[ll] ) >= abs( d[m] ) 
+               then
+                   // chase bulge from top
+                   idir := 1
+               else // Chase bulge from bottom (big end) to top (small end)
+                   idir := 2;
+          end;
+
+          // apply convergence test
+          if idir = 1 then
+          begin
+               // Run convergence test in forward direction
+               // First apply standard test to bottom of matrix
+               if (abs(e[m - 1]) <= abs(tol)*abs(d[m]) ) or 
+                  ( (tol < 0) and (abs( e[m - 1]) <= thresh ))
+               then
+               begin
+                    e[m - 1] := 0;
+                    continue;
+               end;
+
+               // apply convergence criterion forward
+               if tol >= 0 then
+               begin
+                    mu := abs( d[ll] );
+                    sminl := mu;
+
+                    doCont := False;
+                    for lll := ll to m - 1 do
+                    begin
+                         if abs( e[lll] ) <= tol*mu then
+                         begin
+                              e[lll] := 0;
+                              doCont := True;
+                              break;
+                         end;
+
+                         mu := abs( d[lll + 1]) * (mu / (mu + abs( e[lll] )));
+                         sminl := min(sminl, mu);
+                    end;
+
+                    // check if we need to go all up 
+                    if doCont then
+                       continue;
+               end;
+          end
+          else
+          begin
+               // Run convergence test in backward direction
+               // First apply standard test to top of matrix
+
+               if (abs(e[ll]) < abs(tol)*abs(d[ll]) ) or 
+                  ( (tol < 0) and (abs(e[ll]) <= thresh) )
+               then
+               begin
+                    e[ll] := 0;
+                    // go all up
+                    continue;
+               end;
+
+               if tol >= 0 then
+               begin
+                    // If relative accuracy desired,
+                    // apply convergence criterion backward
+                    mu := abs( d[m] );
+                    sminl := mu;
+
+                    doCont := False;
+                    for lll := m - 1 downto ll do
+                    begin
+                         if abs(e[lll]) <= tol*mu then
+                         begin
+                              e[lll] := 0;
+                              doCont := True;
+                              break;
+                         end;
+
+                         mu := abs(d[lll])*(mu/(mu + abs(e[lll])));
+                         sminl := min (sminl, mu);
+                    end;
+
+                    // all way up
+                    if doCont then
+                       continue; 
+               end;
+          end;
+
+          oldll := ll;
+          oldm := m; 
+
+          // Compute shift.  First, test if shifting would ruin relative
+          // accuracy, and if so set the shift to zero.
+          if (tol >= 0) and  (n*tol*(sminl/smax) <= max(cDoubleEpsilon, 0.01*tol ) )
+          then
+              shift := 0
+          else
+          begin
+               // Compute the shift from 2-by-2 block at end of matrix
+               if idir = 1 then
+               begin
+                    sll := abs(d[ll]);
+                    dlas2(d[m - 1], e[m - 1], d[m], shift, r);
+               end
+               else
+               begin
+                    sll := abs( d[m] );
+                    dlas2(d[ll], e[ll], d[ll + 1], shift, r);
+               end;
+
+               if sll > 0 then
+               begin
+                    if sqr(shift/sll) < cDoubleEpsilon then
+                       shift := 0;
+               end;
+          end;
+          
+          // increment iteration count
+          iter := iter + m - ll;
+
+          // If SHIFT = 0, do simplified QR iteration
+          if shift = 0 then
+          begin
+               if idir = 1 then
+               begin
+                    // Chase bulge from top to bottom
+                    // Save cosines and sines for later singular vector updates
+                    cs := 1;
+                    oldcs := 1;
+                    oldsn := 0;
+
+                    for i := ll to m - 1 do
+                    begin
+                         dlartg( d[i]*cs, e[i], cs, sn, r);
+                         if i > ll then
+                            e[i - 1] := oldsn*r;
+                         dlartg(oldcs*r, d[i + 1]*sn, oldcs, oldsn, d[i]);
+                         
+                         pwork[i - ll] := cs;
+                         pwork[i - ll + nm1] := sn;
+                         pwork[i - ll + nm12] := oldcs;
+                         pwork[i - ll + nm13] := oldsn;
+                    end;
+
+                    h := d[m]*cs;
+                    d[m] := h*oldcs;
+                    e[m - 1] := h*oldsn;
+
+                    // update singular vectors
+                    if ncvt > 0 then
+                       dlasr_LVF(ncvt, m - ll + 1, GenPtr(VT, 0, ll, LineWidthVT), LineWidthVT,
+                                 PConstDoubleArr(GenPtr(work, 0, 0, 0)), PConstDoubleArr(GenPtr(work, n - 1, 0, 0))); 
+                    if nru > 0 then
+                       dlasr_RVF(m - ll + 1, nru, GenPtr(u, ll, 0, LineWidthU), LineWidthU,
+                                 PConstDoubleArr(GenPtr(work, nm12, 0, 0)), PConstDoubleArr(GenPtr(work, nm13, 0, 0)));
+                    if ncc > 0 then
+                       dlasr_LVF(ncc, m - ll + 1, GenPtr(c, 0, ll, LineWidthC), LineWidthC,
+                                 PConstDoubleArr(GenPtr(work, nm12, 0, 0)), PConstDoubleArr(GenPtr(work, nm13, 0, 0))); 
+
+                    // test convergence
+                    if abs( e[m - 1] ) <= thresh then
+                       e[m - 1] := 0;
+               end
+               else
+               begin
+                    // Chase bulge from bottom to top
+                    // Save cosines and sines for later singular vector updates
+                    // Chase bulge from top to bottom
+                    // Save cosines and sines for later singular vector updates
+                    cs := 1;
+                    oldcs := 1;
+                    oldsn := 0;
+
+                    for i := m downto ll + 1 do
+                    begin
+                         dlartg( d[i]*cs, e[i - 1], cs, sn, r);
+                         if i < m then
+                            e[i] := oldsn*r;
+                         dlartg(oldcs*r, d[i - 1]*sn, oldcs, oldsn, d[i]);
+                         
+                         pwork[i - ll - 1] := cs;
+                         pwork[i - ll - 1 + nm1] := -sn;
+                         pwork[i - ll - 1 + nm12] := oldcs;
+                         pwork[i - ll - 1 + nm13] := -oldsn;
+                    end;
+
+                    h := d[ll]*cs;
+                    d[ll] := h*oldcs;
+                    e[ll] := h*oldsn;
+
+                    // update singular vectors
+                    if ncvt > 0 then
+                       dlasr_LVB(ncvt, m - ll + 1, GenPtr(VT, 0, ll, LineWidthVT), LineWidthVT,
+                                 PConstDoubleArr(GenPtr(work, nm12, 0, 0)), PConstDoubleArr(GenPtr(work, nm13, 0, 0))); 
+                    if nru > 0 then
+                       dlasr_RVB(m - ll + 1, nru, GenPtr(u, ll, 0, LineWidthU), LineWidthU,
+                                 PConstDoubleArr(GenPtr(work, 0, 0, 0)), PConstDoubleArr(GenPtr(work, n - 1, 0, 0)));
+                    if ncc > 0 then
+                       dlasr_LVB(ncc, m - ll + 1, GenPtr(c, 0, ll, LineWidthC), LineWidthC,
+                                 PConstDoubleArr(GenPtr(work, 0, 0, 0)), PConstDoubleArr(GenPtr(work, n - 1, 0, 0))); 
+
+                    // test convergence
+                    if abs( e[ll] ) <= thresh then
+                       e[ll] := 0;
+               end;
+          end
+          else
+          begin
+               // use non zero shift
+               if idir = 1 then
+               begin
+                    // Chase bulge from top to bottom
+                    // Save cosines and sines for later singular vector updates
+                    f := ( abs(D[ll] ) - shift)*
+                         ( sign(1, d[ll] ) + shift/d[ll] );
+                    g := e[ll];
+
+                    for i := ll to m - 1 do
+                    begin
+                         dlartg( f, g, cosr, sinr, r);
+                         if i > ll then
+                            e[i - 1] := r;
+
+                         f := cosr*d[i] + sinr*e[i];
+                         e[i] := cosr*e[i] - sinr*d[i];
+                         g := sinr*d[i + 1];
+                         d[i + 1] := cosr*d[i + 1];
+                         dlartg(f, g, cosl, sinl, r);
+                         
+                         d[i] := r;
+                         f := cosl*e[i] + sinl*d[i + 1];
+                         d[i + 1] := cosl*d[i + 1] - sinl*e[i];
+                         if i < m - 1 then
+                         begin
+                              g := sinl*e[i + 1];
+                              e[i + 1] := cosl*e[i + 1];
+                         end;
+                         
+                         pwork[i - ll] := cosr;
+                         pwork[i - ll + nm1] := sinr;
+                         pwork[i - ll + nm12] := cosl;
+                         pwork[i - ll + nm13] := sinl;
+                    end;
+
+                    e[m - 1] := f;
+
+                    // update singular vectors
+                    if ncvt > 0 then
+                       dlasr_LVF(ncvt, m - ll + 1, GenPtr(VT, 0, ll, LineWidthVT), LineWidthVT,
+                                 PConstDoubleArr(GenPtr(work, 0, 0, 0)), PConstDoubleArr(GenPtr(work, n - 1, 0, 0))); 
+                    if nru > 0 then
+                       dlasr_RVF(m - ll + 1, nru, GenPtr(u, ll, 0, LineWidthU), LineWidthU,
+                                 PConstDoubleArr(GenPtr(work, nm12, 0, 0)), PConstDoubleArr(GenPtr(work, nm13, 0, 0)));
+                    if ncc > 0 then
+                       dlasr_LVF(ncc, m - ll + 1, GenPtr(c, 0, ll, LineWidthC), LineWidthC,
+                                 PConstDoubleArr(GenPtr(work, nm12, 0, 0)), PConstDoubleArr(GenPtr(work, nm13, 0, 0))); 
+
+                    // test convergence
+                    if abs( e[m - 1] ) <= thresh then
+                       e[m - 1] := 0;
+               end
+               else
+               begin
+                    // Chase bulge from bottom to top
+                    // Save cosines and sines for later singular vector updates
+                    f := ( abs( d[m] ) - shift)*(sign(1, d[m]) + shift/d[m]);
+                    g := e[m - 1];
+                    
+                    for i := m downto ll + 1 do
+                    begin
+                         dlartg(f, g, cosr, sinr, r);
+                         if i < m then
+                            e[i] := r;
+                         f := cosr*d[i] + sinr*e[i - 1];
+                         e[i - 1] := cosr*e[i - 1] - sinr*d[i];
+                         g := sinr*d[i - 1];
+                         d[i - 1] := cosr*d[i - -1];
+                         dlartg(f, g, cosl, sinl, r);
+                         d[i] := r;
+                         f := cosl*e[i - 1] + sinl*d[i - 1];
+                         d[i - 1] := cosl*d[i - 1] - sinl*e[i - 1];
+                         if i > ll + 1 then
+                         begin
+                              g := sinl*e[i - 2];
+                              e[i - 2] := cosl*e[i - 2];
+                         end;
+                         
+                         pwork[i - ll - 1] := cs;
+                         pwork[i - ll - 1 + nm1] := -sn;
+                         pwork[i - ll - 1 + nm12] := oldcs;
+                         pwork[i - ll - 1 + nm13] := -oldsn;
+                    end;
+
+                    e[ll] := f;
+
+                    // test convergence
+                    if abs( e[ll] ) <= thresh then
+                       e[ll] := 0;
+
+                    // update singular vectors
+                    if ncvt > 0 then
+                       dlasr_LVB(ncvt, m - ll + 1, GenPtr(VT, 0, ll, LineWidthVT), LineWidthVT,
+                                 PConstDoubleArr(GenPtr(work, nm12, 0, 0)), PConstDoubleArr(GenPtr(work, nm13, 0, 0))); 
+                    if nru > 0 then
+                       dlasr_RVB(m - ll + 1, nru, GenPtr(u, ll, 0, LineWidthU), LineWidthU,
+                                 PConstDoubleArr(GenPtr(work, 0, 0, 0)), PConstDoubleArr(GenPtr(work, n - 1, 0, 0)));
+                    if ncc > 0 then
+                       dlasr_LVB(ncc, m - ll + 1, GenPtr(c, 0, ll, LineWidthC), LineWidthC,
+                                 PConstDoubleArr(GenPtr(work, 0, 0, 0)), PConstDoubleArr(GenPtr(work, n - 1, 0, 0))); 
+               end;
+          end;
+     end;
+
+     // All singular values converged, so make them positive
+     for i := 0 to n - 1 do
+     begin
+          if d[i] < 0 then
+          begin
+               d[i] := -d[i];
+
+               // change sign of singular vectors, if desired
+               if ncvt > 0 then
+                  MatrixScaleAndAdd(GenPtr(VT, 0, i, LineWidthVT), LineWidthVT, NCVT, 1, 0, -1); // ???
+          end;
+     end;
+
+     // sort singular values into decreasing order
+     for i := 0 to n - 2 do
+     begin
+          isub := 0;
+          smin := d[0];
+
+          for j := 1 to n - i - 1 do
+          begin
+               if d[j] <= smin then
+               begin
+                    isub := j;
+                    smin := d[j];
+               end;
+          end;
+
+          if isub <> n - i - 1 then
+          begin
+               // swap singular values and vectors
+               d[isub] := d[n - i - 1];
+               d[n - i - 1] := smin;
+               
+               if ncvt > 0 then
+                  DswapRow(vt, LineWidthVT, isub, n - i - 1, ncvt);
+               if nru > 0 then
+                  DswapCol(u, LineWidthU, isub, n - i - 1, nru);
+               if ncc > 0 then
+                  DswapCol(C, LineWidthC, isub, n - i - 1, ncc);
+          end;
+     end;
+end;
+
+procedure WriteMatlData(const fileName: string;
+  const data: PConstDoubleArr; width, height: integer);
+var i : integer;
+    s : string;
+begin
+     DecimalSeparator := '.';
+     // write a file which can be read into matlab using the load command
+     // the procedure is usefull to verify the results against this program.
+     with TStringList.Create do
+     try
+        BeginUpdate;
+        s := '';
+        for i := 0 to width*height - 1 do
+        begin
+             s := s + Format('%.9f,', [data[i]]);
+
+             if i mod width = width - 1 then
+             begin
+                  if width = 1 
+                  then
+                      System.Delete(s, Length(s), 1)
+                  else
+                      s[length(s)] := ';';
+                  Add(s);
+                  s := '';
+             end;
+        end;
+        EndUpdate;
+
+        SaveToFile(FileName {$IF not Defined(FPC) and (CompilerVersion >= 20)} , TEncoding.ASCII {$IFEND});
+     finally
+            Free;
+     end;
+end;
+
+
+// wntuo = true
+// wntvs = true
+// wntuas = false
+// wntvas = true
+//
+// path maxwrk
+
+// jobu = 'o'
+// jobvt = 's'
+// The output is the computation of A= U*W*V' whereas U is stored in A, and W is a vector 0..Width-1. The matrix V (not V') must be as large as Width*Width!
+function dgesvd( A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt; 
+                 W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt; SVDBlockSize : TASMNativeInt = 32;
+                 aWork : PByte = nil;
+                 progress : TLinEquProgress = nil) : TSVDResult;
+var work : PDouble;
+    pMem : PByte;
+    eps1, smallnum , bignum : double;
+    minmn : TASMNativeInt;
+    absMax : double;
+    doScale : boolean;
+    mnthr : TASMNativeInt;
+    pWorkITau : PDouble;
+    pWorkTauQ, pWorkTaup, pWorkI, pWorkIE : PDouble;
+    pWorkU : PDouble;
+    pV, pA : PConstDoubleArr;
+    pWorkIArr : PConstDoubleArr;
+    isScaled : boolean;
+    x, y : TASMNativeInt;
+    pWorkIR : PDouble;
+    LineWidthIR : TASMNativeInt;
+    ldwrku, ldwrkr : TASMNativeInt;
+    itau : TASMNativeInt;
+    chunk : TASMNativeInt;
+    w2, h2 : TASMNativeInt;
+    memNeed : TASMNativeInt;
+    qrMem : TASMNativeInt;
+begin
+     if width > Height then
+        raise Exception.Create('Not implemented');
+
+     // ###########################################
+     // #### Machine constants
+     minmn := Min(Width, Height);
+     eps1 := eps(1);
+     if MinDouble <= 1/MaxDouble
+     then
+         smallnum := 1/MaxDouble * (1 + eps1)
+     else
+         smallnum := MinDouble;
+
+     smallnum := sqrt(smallnum)/eps1;
+     bignum := 1/smallnum;
+     
+     // for factors of 2.. (better aligned memory)
+     w2 := width + width and 1;
+     h2 := height + height and 1;
+
+     mnthr := Trunc( minmn*1.6 );
+
+     // ###########################################
+     // #### Allocate workspace for fast algorithm...
+     if aWork = nil then
+     begin
+          memNeed := 16 + Max(2*w2*w2*sizeof(double) + w2,
+                              sizeof(double)*(w2*w2 + 3*w2) + QRDecompMemSize(QRBlockSize, height)
+                             )  + 
+                     BlockMultMemSize( BlockMatrixCacheSize );
+          //if w2 < Min(QRBlockSize, SVDBlockSize) then
+//             memNeed := 16 + sizeof(double)*(w2*w2 + 3*w2 );
+
+          // no qr decomp -> reduce workspace needed
+          //if (height >= width) and (Height < mnthr) then
+//          begin
+//               // mem for TauP, TauQ, D, E, Bidiagonlaization multiplication memory
+//               memNeed := 16 + sizeof(double)*(  (3 + 5)*w2 + (w2 + height)*SVDBlockSize) + BlockMultMemSize(Max(SVDBlockSize, QRMultBlockSize));
+//          end;
+     
+          pMem := AllocMem(memNeed);
+     end
+     else
+         pMem := aWork;
+
+     work := PDouble(pMem);
+     if (TASMNativeUInt(work) and $0000000F) <> 0 then
+        work := PDouble(TASMNativeUInt(work) + 16 - TASMNativeUInt(work) and $0F);
+
+     
+     // ###########################################
+     // #### Scale A if max element outside range [smallnum,bignum]
+     absMax := abs(MatrixMax(A, width, height, LineWidthA));
+
+     isScaled := (absMax < smallNum) or (absMax > bigNum);
+     
+     if absMax < smallnum
+     then
+         MatrixScaleAndAdd(A, LineWidthA, Width, Height, 0, smallnum/absMax)
+     else if absMax > bigNum 
+     then
+         MatrixScaleAndAdd(A, LineWidthA, Width, Height, 0, bignum/absMax);
+             
+     // ###########################################
+     // #### crossover
+     if Height >= Width then
+     begin
+          if Height >= mnthr then
+          begin
+               // path3 in dgesvd:
+               pWorkIR := work;
+               pWorkITau := work;
+               inc(pWorkITau, w2*w2);
+               pWorkI := pWorkITau;
+               inc(pWorkI, w2);
+               
+               // Compute A=Q*R
+               if MatrixQRDecompInPlace2(A, LineWidthA, width, height, pWorkITau, pWorkI, QRBlockSize) <> qrOK then
+               begin   
+                    Result := srNoConvergence;
+                    if aWork = nil then
+                       FreeMem(pMem);
+                    exit;
+               end;
+
+               // copy R to VT - zeroing out below it
+               MatrixCopy(V, LineWidthV, A, LineWidthA, width, width);
+
+               for y := 1 to width - 1 do
+               begin
+                    pV := PConstDoubleArr( GenPtr(V, 0, y, LineWidthV) );
+                    for x := 0 to  y - 1 do
+                        pV^[x] := 0;
+               end;
+
+               // Generate Q in A
+               MatrixQFromQRDecomp(A, LineWidthA, width, Height, pWorkITau, QRBlockSize, pWorkI);
+
+               // Bidiagonalize R in VT, copying result to WORK(IR)
+               pWorkIE := pWorkITau;
+               pWorkTauQ := pWorkIE;
+               inc(pWorkTauQ, w2);
+               pWorkTauP := pWorkTauQ;
+               inc(pWorkTauP, w2);
+               pWorkI := pWorkTauP;
+               inc(pWorkI, w2);
+                
+               dgebrd(V, LineWidthV, width, width, PDouble(W), pWorkIE, pWorkTauQ, pWorkTauP, pWorkI, SVDBlockSize );
+
+               // copy lower triangle to work 
+               for y := 0 to width - 1 do
+               begin
+                    pV := PConstDoubleArr( GenPtr(v, 0, y, LineWidthV) );
+                    pWorkIArr := PConstDoubleArr( GenPtr(pWorkIR, 0, y, w2*sizeof(double)) );
+                    for x := 0 to y do
+                        pWorkIArr^[x] := pV^[x];
+               end;
+
+               // Generate left vectors bidiagonalizing R in WORK(IR) 
+               Dorgbr_Q(pWorkIR, w2*sizeof(double), width, width, width, pWorkTauq, pWorkI);
+
+               // Generate right vectors bidiangoizaing R in VT
+               Dorgbr_P(V, LineWidthV, width, width, width, pWorkTaup, pWorkI);
+               
+               pWorkI := pWorkIE;
+               inc(pWorkI, width);
+               
+               // Perform bidiagonal QR iteration, computing left
+               // singular vectors of R in WORK(IR) and computing right
+               // singular vectors of R in VT
+               Result := dbdsqr_upper(W, PConstDoubleArr(pWorkIE), V, LineWidthV, pWorkIR, w2*sizeof(double), nil, 0, width, width, width, 0, pworki);
+
+               if Result = srOk then
+               begin
+                    // Q in A by left singular vectors of R...
+
+                    // pworkU = w2 x w2
+                    pWorkU := pWorkIE;
+                    pWorkI := pWorkU;   // w2*w2 
+                    inc(pWorkI, w2*w2);
+               
+                    x := 0;
+                    while x < height do
+                    begin
+                         chunk := min(height - x, width);
+                                                    
+                         MatrixMultEx(pWorkU, w2*sizeof(double), GenPtr(A, 0, x, LineWidthA), pWorkIR, width, chunk, width, width,
+                                      LineWidthA, w2*sizeof(double), BlockMatrixCacheSize, doNone, pWorkI); 
+                         MatrixCopy(GenPtr(A, 0, x, LineWidthA), LineWidthA, pWorkU, w2*sizeof(double), width, chunk);
+
+                         inc(x, chunk);
+                    end;
+               end;
+          end
+          else
+          begin
+               // m at least N but not much larger
+               pWorkIE := work;
+               pWorkTauQ := work;
+               inc(pWorkTauQ, w2);
+               pWorkTaup := pWorkTauQ;
+               inc(pWorkTaup, w2);
+
+               pWorkI := pWorkTaup;
+               inc(pWorkI, w2);
+               
+               // Bidiagonalize A
+               dgebrd(A, LineWidthA, width, height, PDouble(W), pWorkIE, pWorkTauQ, pWorkTauP, pWorkI, SVDBlockSize);
+
+               // right singular vectors on V, copy upper triangle part of A
+               for y := 0 to width - 1 do
+               begin
+                    pV := PConstDoubleArr(GenPtr(V, 0, y, LineWidthV));
+                    pA := PConstDoubleArr(GenPtr(A, 0, y, LineWidthA));
+                    for x := y to width - 1 do
+                        pV^[x] := pA^[x];
+               end;
+
+               dorgbr_P(v, LineWidthV, width, width, width, pWorkTaup, pWorkI);
+               
+               // Left singular vectors in A
+               Dorgbr_Q(A, LineWidthA, width, height, width, pWorkTauq, pWorkI);
+
+               pWorkI := pWorkIE;
+               inc(pWorkI, w2);
+               // bidiagonal QR iteration. if desired, computing
+               // left singular vectors in A and computing right singular
+               // vectors in VT 
+               Result := dbdsqr_upper(W, PConstDoubleArr(pWorkIE), V, LineWidthV, A, LineWidthA, nil, 0, width, width, height, 0, pWorkI)
+          end;
+     end;
+
+     if aWork = nil  then
+        FreeMem(pMem);
 end;
 
 end.

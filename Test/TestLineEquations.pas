@@ -22,8 +22,6 @@ uses
   MatrixConst;
 
 type
- // Testmethoden für Klasse TDoubleMatrix
-
  TTestLinearEquations = class(TBaseMatrixTestCase)
  published
   procedure TestDeterminant1;
@@ -36,8 +34,13 @@ type
   procedure TestInvert2;
   procedure TestInvert3;
   procedure TestSVD1;
+  procedure TestSVD11;
+  procedure TestSVD12;
   procedure TestSVD2;
   procedure TestSVD3;
+  procedure TestBigSVD;
+  procedure TestBigSVD2;
+  
   procedure TestCholesky;
   procedure TestCholesky2;
   procedure TestCholesky3;
@@ -56,7 +59,8 @@ type
 
 implementation
 
-uses LinearAlgebraicEquations, MtxThreadPool, ThreadedLinAlg, math, MtxTimer;
+uses LinearAlgebraicEquations, MtxThreadPool, ThreadedLinAlg, math, MtxTimer, 
+     BlockSizeSetup;
 
 { TestTDoubleMatrix }
 
@@ -115,6 +119,184 @@ begin
      FinalizeMtxThreadPool;
 
      Check(CheckMtxIdx(x, y, index), Format('error LU decomposition. Error at x[%d] = %.5f, y[%d] = %.5f', [index, x[index], index, y[index]]));
+end;
+
+procedure TTestLinearEquations.TestBigSVD;
+const cBlkWidth = 247;
+      cBlkSize = cBlkWidth*cBlkWidth;
+
+var A, A2, W, W2, V, V2 : TDoubleDynArray;
+    i: Integer;
+    start1, stop1 : Int64;
+    start2, stop2 : Int64;
+    j : Integer;
+    A3 : TDoubleDynArray;
+function SVDMult(A, W, V : TDoubleDynArray) : boolean;
+var i, j : integer;
+    x : TDoubleDynArray;
+    v2 : TDoubleDynArray;
+begin
+     //A*W store in A
+     for i := 0 to cBlkWidth - 1 do
+         for j := 0 to cBlkWidth - 1 do
+             A[i*cBlkWidth + j] := A[i*cBlkWidth + j]*W[j];
+
+     // final mutl: A*W*V'
+     v2 := MatrixTranspose(@V[0], cBlkWidth*sizeof(double), cBlkWidth, cBlkWidth);
+     x := MatrixMult(@A[0], @v[0], cBlkWidth, cBlkWidth, cBlkWidth, cBlkWidth, cBlkWidth*sizeof(double), cBlkWidth*sizeof(double));
+
+     Result := CheckMtx(X, A3);
+end;
+begin
+     InitMathFunctions(True, False);
+     SetLength(A, cBlkSize);
+     SetLength(V, cBlkSize);
+     SetLength(W, cBlkWidth);
+     SetLength(V2, cBlkSize);
+     SetLength(W2, cBlkWidth);
+
+     RandSeed := 15;
+     for i := 0 to cBlkWidth - 1 do
+     begin
+          for j := 0 to cBlkWidth - 1 do
+              A[i*cBlkWidth + j] := Random - 0.5;
+     end;
+     
+     A2 := Copy(A, 0, Length(A));
+     A3 := Copy(A, 0, Length(A));
+
+//     WriteMatlabData('D:\svdinp.txt', A3, cBlkWidth);
+     
+     QRBlockSize := cBlkWidth;
+     SVDBlockSize := cBlkWidth;
+     
+     start1 := MtxGetTime;
+     dgesvd(@A2[0], cBlkWidth*sizeof(double), cBlkWidth, cBlkWidth, PConstDoublearr(@W2[0]), @V2[0], cBlkWidth*sizeof(double), SVDBlockSize, nil);
+     stop1 := MtxGetTime;
+     
+     SVDBlockSize := 24;
+     QRBlockSize := 32;
+     
+     start2 := MtxGetTime;     
+     dgesvd(@A[0], cBlkWidth*sizeof(double), cBlkWidth, cBlkWidth, PConstDoublearr(@W[0]), @V[0], cBlkWidth*sizeof(double), SVDBlockSize, nil); 
+     stop2 := MtxGetTime;
+
+     Status(Format('BigSVD took: %.3fms, %.3fms', [(stop1 - start1)/mtxfreq*1000, (stop2 - start2)/mtxfreq*1000]));
+     
+//     WriteMatlabData('D:\U1.txt', A, cBlkWidth);
+//     WriteMatlabData('D:\W1.txt', W, 1);
+//     WriteMatlabData('D:\V1.txt', V, cBlkWidth);
+//
+//     WriteMatlabData('D:\U2.txt', A2, cBlkWidth);
+//     WriteMatlabData('D:\W2.txt', W2, 1);
+//     WriteMatlabData('D:\V2.txt', V2, cBlkWidth);
+
+     // check the back multiplied matrices
+     Check( CheckMtx(W2, W, -1, -1, 1e-6), 'Blocked SVD version failed in W');
+     Check( SVDMult(A2, W2, V2), 'Error non blocked SVD');
+     Check( SVDMult(A, W, V), 'Error blocked SVD');
+end;
+
+procedure TTestLinearEquations.TestBigSVD2;
+const //cBlkWidths : Array[0..8] of integer = (1, 9, 16, 24, 43, 189, 256, 500, 1024);
+      //cBlkHeights : Array[0..8] of integer = (1, 13, 26, 123, 331, 223, 256, 543, 2048);
+      cBlkWidths : Array[0..0] of integer = (1024);
+      cBlkHeights : Array[0..0] of integer = (2048);
+
+var A, A2, W, W2, V, V2 : TDoubleDynArray;
+    i: Integer;
+    blkWidth : integer;
+    blkHeight : integer;
+    blkSize : integer;
+    start1, stop1 : Int64;
+    start2, stop2 : Int64;
+    j : Integer;
+    A3 : TDoubleDynArray;
+    iter : integer;
+function SVDMult(A, W, V : TDoubleDynArray) : boolean;
+var i, j : integer;
+    x : TDoubleDynArray;
+    v2 : TDoubleDynArray;
+begin
+     //A*W store in A
+     for i := 0 to BlkHeight - 1 do
+         for j := 0 to BlkWidth - 1 do
+             A[i*BlkWidth + j] := A[i*BlkWidth + j]*W[j];
+
+     // final mutl: A*W*V'
+     v2 := MatrixTranspose(@V[0], BlkWidth*sizeof(double), BlkWidth, BlkWidth);
+     x := MatrixMult(@A[0], @v[0], BlkWidth, BlkHeight, BlkWidth, BlkWidth, BlkWidth*sizeof(double), BlkWidth*sizeof(double));
+
+     Result := CheckMtx(X, A3);
+end;
+begin
+     for iter := 0 to 2*Length(cBlkWidths) - 1 do
+     begin
+          if iter mod 2 = 0 
+          then
+              InitMathFunctions(False, False)
+          else
+              InitMathFunctions(True, False);
+
+          blkWidth := cBlkWidths[iter div 2];
+          blkHeight := cBlkHeights[iter div 2];
+          blkSize := blkWidth*blkHeight;
+     
+          SetLength(A, BlkSize);
+          SetLength(V, BlkWidth*BlkWidth);
+          SetLength(W, BlkWidth);
+          SetLength(V2, BlkWidth*BlkWidth);
+          SetLength(W2, BlkWidth);
+
+          RandSeed := 15;
+          for i := 0 to BlkHeight - 1 do
+          begin
+               for j := 0 to BlkWidth - 1 do
+                   A[i*BlkWidth + j] := Random - 0.5;
+          end;
+     
+          A2 := Copy(A, 0, Length(A));
+          A3 := Copy(A, 0, Length(A));
+
+          //WriteMatlabData('D:\svdinp.txt', A3, BlkWidth);
+     
+          QRBlockSize := BlkWidth;
+          SVDBlockSize := BlkWidth;
+     
+          start1 := MtxGetTime;
+          dgesvd(@A2[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W2[0]), @V2[0], BlkWidth*sizeof(double), BlkWidth, nil);
+          stop1 := MtxGetTime;
+     
+          SVDBlockSize := 24;
+          QRBlockSize := 32;
+     
+          start2 := MtxGetTime;     
+          dgesvd(@A[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W[0]), @V[0], BlkWidth*sizeof(double), SVDBlockSize, nil); 
+          stop2 := MtxGetTime;
+
+          Status(Format('BigSVD took (%d, %d): %.3fms, %.3fms', [blkWidth, blkHeight, (stop1 - start1)/mtxfreq*1000, (stop2 - start2)/mtxfreq*1000]));
+     
+          //WriteMatlabData('D:\U2.txt', A, BlkWidth);
+//          WriteMatlabData('D:\W2.txt', W, 1);
+//          WriteMatlabData('D:\V2.txt', V, BlkWidth);
+//
+//          WriteMatlabData('D:\U1.txt', A2, BlkWidth);
+//          WriteMatlabData('D:\W1.txt', W2, 1);
+//          WriteMatlabData('D:\V1.txt', V2, BlkWidth);
+
+          // check the back multiplied matrices
+          Check( CheckMtx(W2, W, -1, -1, 1e-6), 'Iter: ' + intToStr(iter) + ' - Blocked SVD version failed in W');
+       //   Check( SVDMult(A2, W2, V2), 'Iter: ' + intToStr(iter) + ' - Error non blocked SVD');
+       //   Check( SVDMult(A, W, V), 'Iter: ' + intToStr(iter) + ' - Error blocked SVD');
+
+          // note: the matrices a and v may have different signs (the final multiplication works though) -> compare the absolute values only
+          MatrixAbs(@A2[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight);
+          MatrixAbs(@A[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight);
+          MatrixAbs(@V2[0], BlkWidth*sizeof(double), BlkWidth, BlkWidth);
+          MatrixAbs(@V[0], BlkWidth*sizeof(double), BlkWidth, BlkWidth);
+          Check( CheckMtx(A2, A, -1, -1, 1e-6), 'Iter: ' + intToStr(iter) + ' - Blocked SVD version failed in A');
+          Check( CheckMtx(V2, V, -1, -1, 1e-6), 'Iter: ' + intToStr(iter) + ' - Blocked SVD version failed in V');
+     end;
 end;
 
 procedure TTestLinearEquations.TestCholesky;
@@ -799,10 +981,17 @@ end;
 
 procedure TTestLinearEquations.TestSVD1;
 const A : Array[0..3] of double = (1, 2, 2, -1);
-var res : TSVDResult;
-    S : Array[0..3] of double;
+
+      // results from matlab
+      cV : Array[0..3] of double = (-1, 0, 0, -1);
+      cS : Array[0..3] of double = (-0.4472, -0.8944, -0.8944, 0.4472);
+      cW : Array[0..1] of double = (2.2361, 2.2361);
+
+var res, res1 : TSVDResult;
+    S, S2 : Array[0..3] of double;
     W : Array[0..3] of double;
-    V : Array[0..3] of double;
+    w2 : Array[0..1] of double;
+    V, V2 :  Array[0..3] of double;
     V1 : TDoubleDynArray;
     X : TDoubleDynArray;
     Dest : Array[0..3] of double;
@@ -811,8 +1000,12 @@ begin
      FillChar(V[0], sizeof(V), 0);
      Move(A, S, sizeof(A));
 
-     res := MatrixSVDInPlace(@S[0], 2*sizeof(double), 2, 2, @W[0], 3*sizeof(double), @V[0], 2*sizeof(double));
+     FillChar(w2[0], sizeof(w2), 0);
+     FillChar(V2[0], sizeof(V2), 0);
+     Move(A, S2, sizeof(A));
 
+     res := MatrixSVDInPlace(@S[0], 2*sizeof(double), 2, 2, @W[0], 3*sizeof(double), @V[0], 2*sizeof(double));
+     
      // S*W*V should be the start matrix
      V1 := MatrixTranspose(@v[0], 2*sizeof(double), 2, 2);
      X := MatrixMult(@W[0], @V1[0], 2, 2, 2, 2, 2*sizeof(double), 2*sizeof(double));
@@ -820,6 +1013,91 @@ begin
 
      Check(res = srOk, 'S = ' + WriteMtx(S, 2) + ', W = ' + WriteMtx(W, 2) + ', V = ' + WriteMtx(V, 2));
      Check(CheckMtx(A, Dest), 'Result Multiplication: ' + WriteMtx(Dest, 2));
+
+     // check results from matlab implementation
+     res1 := dgesvd(@S2[0], 2*sizeof(double), 2, 2, PConstDoubleArr(@W2[0]), @V2[0], 2*sizeof(double));
+     Check(res1 = srOk, 'S = ' + WriteMtx(S2, 2) + ', W = ' + WriteMtx(W2, 2) + ', V = ' + WriteMtx(V2, 2));
+
+     Check(CheckMtx(s2, cS), 'DGSVD failed');
+     Check(CheckMtx(w2, cW), 'DGSVD failed');
+     Check(CheckMtx(V2, cV), 'DGSVD failed');
+end;
+
+procedure TTestLinearEquations.TestSVD11;
+const A : Array[0..8] of double = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+var res : TSVDResult;
+    S, s2 : Array[0..8] of double;
+    W, w2 : Array[0..2] of double;
+    V, v2 : Array[0..8] of double;
+begin
+     FillChar(w[0], sizeof(w), 0);
+     FillChar(V[0], sizeof(V), 0);
+     Move(A, S, sizeof(S));
+
+     FillChar(w2[0], sizeof(w), 0);
+     FillChar(V2[0], sizeof(V), 0);
+     Move(A, S2, sizeof(S));
+     
+     MatrixSVDInPlace(@S2[0], 3*sizeof(double), 3, 3, @W2[0], sizeof(double), @V2[0], 3*sizeof(double));
+     Status( WriteMtx(S2, 3, 5));
+     status( WriteMtx(W2, 1, 5));
+     Status( WriteMtx(V2, 3, 5));
+
+     res := dgesvd(@s[0], 3*sizeof(double), 3, 3, @W[0], @V[0], 3*sizeof(double));
+
+     Check(res = srOk, 'DGSV failed');
+     Status( WriteMtx(S, 3, 5));
+     status( WriteMtx(W, 1, 5));
+     Status( WriteMtx(V, 3, 5));
+end;
+
+procedure TTestLinearEquations.TestSVD12;
+const A : Array[0..15] of double = (0.1, 0.3, -1, -2, 
+                                    2, 2.1, -0.2, 1.4,
+                                    -1, 1.2, 3, 3,
+                                    -1.2, -0.1, -0.3, -0.4);
+
+// from matlab
+const cW : Array[0..3] of double = (5.0897, 3.1466, 1.1928, 0.6494);
+      cS : Array[0..15] of double = (-0.3932, 0.1212, 0.7740, -0.4813,
+                                     0.2934, 0.9052, 0.1677, 0.2578,
+                                     0.8668, -0.2818, 0.3464, -0.2221,
+                                     -0.0897, -0.2942, 0.5029, 0.8078);
+      cV : Array[0..15] of double = (-0.0416,    0.7810,   -0.4503,   -0.4309,
+                                      0.3040,    0.5175,    0.7962,    0.0766,
+                                      0.5819,   -0.3367,    0.0676,   -0.7372,
+                                      0.7532,    0.0944,   -0.3985,    0.5148);
+var res : TSVDResult;
+    S, s2 : Array[0..15] of double;
+    W, w2 : Array[0..3] of double;
+    V, v2 : Array[0..15] of double;
+    vT : Array[0..15] of double;
+begin
+     FillChar(w[0], sizeof(w), 0);
+     FillChar(V[0], sizeof(V), 0);
+     Move(A, S, sizeof(S));
+
+     FillChar(w2[0], sizeof(w), 0);
+     FillChar(V2[0], sizeof(V), 0);
+     Move(A, S2, sizeof(S));
+     
+     MatrixSVDInPlace(@S2[0], 4*sizeof(double), 4, 4, @W2[0], sizeof(double), @V2[0], 4*sizeof(double));
+     Status( WriteMtx(S2, 4, 5));
+     status( WriteMtx(W2, 1, 5));
+     Status( WriteMtx(V2, 4, 5));
+
+     res := dgesvd(@s[0], 4*sizeof(double), 4, 4, @W[0], @vT[0], 4*sizeof(double));
+     MatrixTranspose(@V[0], 4*sizeof(double), @vt[0], 4*sizeof(double), 4, 4);
+     
+     Check(res = srOk, 'dgesvd failed');
+     
+     Status( WriteMtx(S, 4, 5));
+     status( WriteMtx(W, 1, 5));
+     Status( WriteMtx(V, 4, 5));
+
+     Check(CheckMtx(s, cS), 'DGSVD failed');
+     Check(CheckMtx(w, cW), 'DGSVD failed');
+     Check(CheckMtx(V, cV), 'DGSVD failed');
 end;
 
 procedure TTestLinearEquations.TestSVD2;
@@ -851,9 +1129,9 @@ const A : Array[0..19] of double =
   ( 2.5000e+001,  2.5000e+001,  2.5000e+001,  2.5300e+001,  2.5200e+001,  2.5200e+001,  2.4800e+001,  2.4700e+001,  2.5100e+001,  2.4700e+001,
     -2.5000e+001,  -2.5000e+001,  -2.5000e+001,  -2.5300e+001,  -2.5200e+001,  -2.5200e+001,  -2.4800e+001,  -2.4700e+001,  -2.5100e+001,  -2.4700e+001);
 var res : TSVDResult;
-    S : Array[0..19] of double;
-    W : Array[0..3] of double;
-    V : Array[0..3] of double;
+    S, S2 : Array[0..19] of double;
+    W, W2 : Array[0..3] of double;
+    V, V2 : Array[0..3] of double;
     X : TDoubleDynArray;
     V1 : TDoubleDynArray;
     Dest : Array[0..19] of double;
@@ -871,6 +1149,17 @@ begin
 
      Check(res = srOk, 'S = ' + WriteMtx(S, 2) + ', W = ' + WriteMtx(W, 2) + ', V = ' + WriteMtx(V, 2));
      Check(CheckMtx(A, Dest), 'Result Multiplication: ' + WriteMtx(Dest, 2));
+
+     FillChar(w2, sizeof(w2), 0);
+     FillChar(V2, sizeof(v2), 0);
+     Move(A, S2, sizeof(s2));
+     res := dgesvd(@s2[0], 2*sizeof(Double), 2, 10, @W2[0], @V2[0], 2*sizeof(double));
+
+     Check(res = srOk, 'S = ' + WriteMtx(S2, 2) + ', W = ' + WriteMtx(W2, 1) + ', V = ' + WriteMtx(V2, 2));
+
+     Status( WriteMtx(S2, 2, 5));
+     status( WriteMtx(W2, 1, 5));
+     Status( WriteMtx(V2, 2, 5));
 end;
 
 initialization

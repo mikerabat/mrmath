@@ -1740,7 +1740,7 @@ begin
                     inc(PByte(pb), gammaWidth*LineWidth2);
                end;
 
-               // build the result: dest = A*B +- Dest (according to the operator)
+               // build the result: dest = Dest +- A*B  (according to the operator)
                case op of
                  doNone: GenericMtxCopy(pDest, destLineWidth, ActBlk, blockSize*sizeof(double), blkWidth, blkHeight);
                  doAdd:  GenericMtxAdd(pDest, destLineWidth, ActBlk, pDest, blkWidth, blkHeight, blockSize*sizeof(double), destLineWidth);

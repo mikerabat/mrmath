@@ -243,6 +243,8 @@ const cBlkWidth = 24;
 var cMtx : Array[0..cBlkWidth*cBlkHeight - 1] of double;
     i : integer;
     dest : Array[0..cBlkWidth*cBlkHeight - 1] of double;
+    dest1 : Array[0..cBlkWidth*cBlkHeight - 1] of double;
+    aDest : PDouble;
 begin
      for i := 0 to Length(cMtx) - 1 do
          cMtx[i] := i;
@@ -311,6 +313,62 @@ begin
              check( (cMtx[i] + 1)*2 = dest[i], 'Error in scale and add')
          else
              check( cMtx[i] = dest[i], 'error in scale and add');
+
+
+     // ###########################################
+     // #### Scale and add with one width or height element
+     aDest := GetMemory(cBlkWidth*(cBlkheight + 1)*sizeof(double));
+     Move(cMtx, dest, sizeof(cMtx));
+     Move(cMtx, dest1, sizeof(cMtx));
+     Move(cMtx, aDest^, sizeof(cMtx));
+
+     GenericMtxScaleAndAdd(@dest[0], sizeof(double), 1, cBlkWidth - 1, -0.1, 2);
+     ASMMatrixScaleAndAdd(@dest1[0], sizeof(double), 1, cBlkWidth - 1, -0.1, 2);
+     ASMMatrixScaleAndAdd(aDest, sizeof(double), 1, cBlkWidth - 1, -0.1, 2);
+
+     Check(CheckMtx(dest, dest1), 'Error scale and add width=1');
+     Move(aDest^, dest1, sizeof(dest1));
+     Check(CheckMtx(dest, dest1), 'Error scale and add aligned width=1');
+     
+
+     Move(cMtx, dest, sizeof(cMtx));
+     Move(cMtx, dest1, sizeof(cMtx));
+     Move(cMtx, aDest^, sizeof(cMtx));
+
+     GenericMtxAddAndScale(@dest[0], sizeof(double), 1, cBlkWidth, -0.1, 2);
+     ASMMatrixAddAndScale(@dest1[0], sizeof(double), 1, cBlkWidth, -0.1, 2);
+     ASMMatrixAddAndScale(aDest, sizeof(double), 1, cBlkWidth, -0.1, 2);
+
+     Check(CheckMtx(dest, dest1), 'Error add and scale width=1');
+     Move(aDest^, dest1, sizeof(dest1));
+     Check(CheckMtx(dest, dest1), 'Error add and scale aligned width=1');
+
+
+     Move(cMtx, dest, sizeof(cMtx));
+     Move(cMtx, dest1, sizeof(cMtx));
+     Move(cMtx, aDest^, sizeof(cMtx));
+
+     GenericMtxScaleAndAdd(@dest[0], cBlkWidth*sizeof(double), cBlkWidth, 1, -0.1, 2);
+     ASMMatrixScaleAndAdd(@dest1[0], cBlkWidth*sizeof(double), cBlkWidth, 1,  -0.1, 2);
+     ASMMatrixScaleAndAdd(aDest, cBlkWidth*sizeof(double), cBlkWidth, 1,  -0.1, 2);
+     
+     Check(CheckMtx(dest, dest1), 'Error scale and add height=1');
+     Move(aDest^, dest1, sizeof(dest1));
+     Check(CheckMtx(dest, dest1), 'Error scale and add height=1');
+
+     Move(cMtx, dest, sizeof(cMtx));
+     Move(cMtx, dest1, sizeof(cMtx));
+     Move(cMtx, aDest^, sizeof(cMtx));
+
+     GenericMtxAddAndScale(@dest[0], cBlkWidth*sizeof(double), cBlkWidth, 1, -0.1, 2);
+     ASMMatrixAddAndScale(@dest1[0], cBlkWidth*sizeof(double), cBlkWidth, 1, -0.1, 2);
+     ASMMatrixAddAndScale(aDest, cBlkWidth*sizeof(double), cBlkWidth, 1, -0.1, 2);
+     
+     Check(CheckMtx(dest, dest1), 'Error scale and add height=1');
+     Move(aDest^, dest1, sizeof(dest1));
+     Check(CheckMtx(dest, dest1), 'Error scale and add height=1');
+
+     FreeMem(aDest);
 end;
 
 
@@ -3066,6 +3124,8 @@ begin
 
      Status(Format('%.2f, %.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000, (endTime3 - startTime3)/mtxFreq*1000, (endTime4 - startTime4)/mtxFreq*1000]));
 
+     FreeMem(rowa);
+     
      startTime1 := MtxGetTime;
      GenericMtxVecMult(@dest1[0], cMtxSize*sizeof(double), @x[0], @y[0], cMtxSize*sizeof(double), cMtxSize*sizeof(double), cMtxSize, cMtxSize, 2, -0.2);
      endTime1 := MtxGetTime;
