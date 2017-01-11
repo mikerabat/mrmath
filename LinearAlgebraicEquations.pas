@@ -2278,8 +2278,8 @@ begin
      begin
           // todo: there is some other scanning going on for non zero columns...
           // do the basic operation here...
-          //GenericTranspMtxMult(work, sizeof(double), pA1, A, width, height, 1, height, LineWidthA, LineWidthA);
-          GenericMtxVecMultT(work, sizeof(double), C, V, LineWidthC, LineWidthV, width, height, 1, 0);
+          //GenericMtxVecMultT(work, sizeof(double), C, V, LineWidthC, LineWidthV, width, height, 1, 0);
+          MatrixMtxVecMultT(work, sizeof(double), C, V, LineWidthC, LineWidthV, width, height, 1, 0);
           Rank1Update(C, LineWidthC, width, height, -tau^, V, work, LineWidthV, sizeof(double));
      end;
 end;
@@ -2296,8 +2296,8 @@ begin
           
           // todo: there is some other scanning going on for non zero columns...
           // do the basic operation here...
-          //GenericMtxMult(work, sizeof(double), pA1, A, width, height, 1, width, LineWidthA, LineWidthA);
-          GenericMtxVecMult(work, sizeof(double), C, V, LineWidthC, LineWidthV, width, height, 1, 0);
+          //GenericMtxVecMult(work, sizeof(double), C, V, LineWidthC, LineWidthV, width, height, 1, 0);
+          MatrixMtxVecMult(work, sizeof(double), C, V, LineWidthC, LineWidthV, width, height, 1, 0);
           Rank1Update(C, LineWidthC, width, height, -Tau^, work, V, sizeof(double), LineWidthV);
      end;
 end;
@@ -2482,7 +2482,7 @@ begin
                pA1 := GenPtr(A, i + 1, 0, LineWidthA);
                pAij := GenPtr(A, i + 1, i, LineWidthA);
                pT := GenPtr(T, i, 0, qrData.LineWidthWork );
-               GenericMtxVecMult(pT, qrData.LineWidthWork, pA1, pAij, LineWidthA, sizeof(double), n - i - 1, i, -tau^, 1 );
+               MatrixMtxVecMult(pT, qrData.LineWidthWork, pA1, pAij, LineWidthA, sizeof(double), n - i - 1, i, -tau^, 1 );
           end;
 
           if i > 0 then
@@ -3326,10 +3326,10 @@ begin
                // Update A(i:m,i)
                // CALL dgemv( 'No transpose', m-i+1, i-1, -one, a( i, 1 ),
                //             lda, y( i, 1 ), ldy, one, a( i, i ), 1 )
-               GenericMtxVecMult(pAii00, LineWidthA, pAi000, pYi000, LineWidthA, sizeof(double), i, height - i, -1, 1);
+               MatrixMtxVecMult(pAii00, LineWidthA, pAi000, pYi000, LineWidthA, sizeof(double), i, height - i, -1, 1);
                //  CALL dgemv( 'No transpose', m-i+1, i-1, -one, x( i, 1 ),
                //              ldx, a( 1, i ), 1, one, a( i, i ), 1 )
-               GenericMtxVecMult(pAii00, LineWidthA, pXi000, pA0i00, LineWidthX, LineWidthA, i, height - i, -1, 1);
+               MatrixMtxVecMult(pAii00, LineWidthA, pXi000, pA0i00, LineWidthX, LineWidthA, i, height - i, -1, 1);
 
                // generate reflection Q(i) to annihilate A(i+1:m,i)
                pAminIM := GenPtr(A, i, Min(i + 1, Height - 1), LineWidthA);
@@ -3345,19 +3345,19 @@ begin
 
                     // CALL dgemv( 'Transpose', m-i+1, n-i, one, a( i, i+1 ),
                     //             lda, a( i, i ), 1, zero, y( i+1, i ), 1 )
-                    GenericMtxVecMultT(pYii10, LineWidthY, pAii01, pAii00, LineWidthA, LineWidthA, width - i - 1, height - i, 1, 0);
+                    MatrixMtxVecMultT(pYii10, LineWidthY, pAii01, pAii00, LineWidthA, LineWidthA, width - i - 1, height - i, 1, 0);
                     // CALL dgemv( 'Transpose', m-i+1, i-1, one, a( i, 1 ), lda,
                     //              a( i, i ), 1, zero, y( 1, i ), 1 )
-                    GenericMtxVecMultT(pY0i00, LineWidthY, pAi000, pAii00, LineWidthA, LineWidthA, i, height - i, 1, 0);
+                    MatrixMtxVecMultT(pY0i00, LineWidthY, pAi000, pAii00, LineWidthA, LineWidthA, i, height - i, 1, 0);
                     // CALL dgemv( 'No transpose', n-i, i-1, -one, y( i+1, 1 ),
                     //             ldy, y( 1, i ), 1, one, y( i+1, i ), 1 )
-                    GenericMtxVecMult(pYii10, LineWidthY, pYi010, pY0i00, LineWidthY, LineWidthY, i, width - i - 1, -1, 1);
+                    MatrixMtxVecMult(pYii10, LineWidthY, pYi010, pY0i00, LineWidthY, LineWidthY, i, width - i - 1, -1, 1);
                     // CALL dgemv( 'Transpose', m-i+1, i-1, one, x( i, 1 ), ldx,
                     //              a( i, i ), 1, zero, y( 1, i ), 1 )
-                    GenericMtxVecMultT(pY0i00, LineWidthY, pXi000, pAii00, LineWidthX, LineWidthA, i, height - i, 1, 0);
+                    MatrixMtxVecMultT(pY0i00, LineWidthY, pXi000, pAii00, LineWidthX, LineWidthA, i, height - i, 1, 0);
                     // CALL dgemv( 'Transpose', i-1, n-i, -one, a( 1, i+1 ),
                     //              lda, y( 1, i ), 1, one, y( i+1, i ), 1 )
-                    GenericMtxVecMultT(pYii10, LineWidthY, pA0i01, pY0i00, LineWidthA, LineWidthY, width - i - 1, i, -1, 1);
+                    MatrixMtxVecMultT(pYii10, LineWidthY, pA0i01, pY0i00, LineWidthA, LineWidthY, width - i - 1, i, -1, 1);
 
                     // CALL dscal( n-i, tauq( i ), y( i+1, i ), 1 )
                     MatrixScaleAndAdd(pYii10, LineWidthY, 1, Width - i - 1, 0, tauq[i]);
@@ -3366,10 +3366,10 @@ begin
 
                     // CALL dgemv( 'No transpose', n-i, i, -one, y( i+1, 1 ),
                     //              ldy, a( i, 1 ), lda, one, a( i, i+1 ), lda )
-                    GenericMtxVecMult(pAii01, sizeof(double), pYi010, pAi000, LineWidthY, sizeof(double), i + 1, width - i - 1, -1, 1);
+                    MatrixMtxVecMult(pAii01, sizeof(double), pYi010, pAi000, LineWidthY, sizeof(double), i + 1, width - i - 1, -1, 1);
                     // CALL dgemv( 'Transpose', i-1, n-i, -one, a( 1, i+1 ),
                     //             lda, x( i, 1 ), ldx, one, a( i, i+1 ), lda )
-                    GenericMtxVecMultT(pAii01, sizeof(double), pA0i01, pXi000, LineWidthA, sizeof(double), width - i - 1, i, -1, 1);
+                    MatrixMtxVecMultT(pAii01, sizeof(double), pA0i01, pXi000, LineWidthA, sizeof(double), width - i - 1, i, -1, 1);
 
                     // Generate reflection P(i) to annihilate A(i,i+2:n)
                     pAminIM := GenPtr(A, min(i + 2, width - 1), i, LineWidthA);
@@ -3382,19 +3382,19 @@ begin
 
                     //CALL dgemv( 'No transpose', m-i, n-i, one, a( i+1, i+1 ),
                     //            lda, a( i, i+1 ), lda, zero, x( i+1, i ), 1 )
-                    GenericMtxVecMult(pXii10, LineWidthX, pAii11, pAii01, LineWidthA, sizeof(double), width - i - 1, height - i - 1, 1, 0);
+                    MatrixMtxVecMult(pXii10, LineWidthX, pAii11, pAii01, LineWidthA, sizeof(double), width - i - 1, height - i - 1, 1, 0);
                     // CALL dgemv( 'Transpose', n-i, i, one, y( i+1, 1 ), ldy,
                     //              a( i, i+1 ), lda, zero, x( 1, i ), 1 )
-                    GenericMtxVecMultT(pX0i00, LineWidthX, pYi010, pAii01, LineWidthY, sizeof(double), i + 1, width - i - 1, 1, 0);
+                    MatrixMtxVecMultT(pX0i00, LineWidthX, pYi010, pAii01, LineWidthY, sizeof(double), i + 1, width - i - 1, 1, 0);
                     // CALL dgemv( 'No transpose', m-i, i, -one, a( i+1, 1 ),
                     //             da, x( 1, i ), 1, one, x( i+1, i ), 1 )
-                    GenericMtxVecMult(pXii10, LineWidthX, pAi010, pX0i00, LineWidthA, LineWidthX, i + 1, height - i - 1, -1, 1);
+                    MatrixMtxVecMult(pXii10, LineWidthX, pAi010, pX0i00, LineWidthA, LineWidthX, i + 1, height - i - 1, -1, 1);
                     // CALL dgemv( 'No transpose', i-1, n-i, one, a( 1, i+1 ),
                     //             lda, a( i, i+1 ), lda, zero, x( 1, i ), 1 )
-                    GenericMtxVecMult(pX0i00, LineWidthX, pA0i01, pAii01, LineWidthA, sizeof(double), width - i - 1, i, 1, 0);
+                    MatrixMtxVecMult(pX0i00, LineWidthX, pA0i01, pAii01, LineWidthA, sizeof(double), width - i - 1, i, 1, 0);
                     // CALL dgemv( 'No transpose', m-i, i-1, -one, x( i+1, 1 ),
                     //             ldx, x( 1, i ), 1, one, x( i+1, i ), 1 )
-                    GenericMtxVecMult(pXii10, LineWidthX, pXi010, pX0i00, LineWidthX, LineWidthX, i, height - i - 1, -1, 1);
+                    MatrixMtxVecMult(pXii10, LineWidthX, pXi010, pX0i00, LineWidthX, LineWidthX, i, height - i - 1, -1, 1);
                     // CALL dscal( m-i, taup( i ), x( i+1, i ), 1 )
                     MatrixScaleAndAdd(pXii10, LineWidthX, 1, height - i - 1, 0, taup[i]);   
                end;
@@ -4224,57 +4224,37 @@ end;
 }
 
 procedure dlasr_RVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
-var cTemp, stemp, temp : double;
+var temp : double;
     x, y : TASMNativeInt;
-    pAy, pAy1 : PDouble;
+    pAx : PConstDoubleArr;
 begin
-     for y := 0 to width - 2 do
+     for y := 0 to Height - 1 do
      begin
-          ctemp := c[y];
-          stemp := s[y];
-
-          if (ctemp <> 1) or (stemp <> 0) then
+          pAx := PConstDoubleArr( GenPtr( A, 0, y, LineWidthA) );
+          
+          for x := 0 to width - 2 do
           begin
-               pAy := GenPtr(A, y, 0, LineWidthA);
-               pAy1 := GenPtr(A, y + 1, 0, LineWidthA);
-                               
-               for x := 0 to height - 1 do
-               begin
-                    temp := pAy1^;
-                    pAy1^ := ctemp*temp - stemp*pAy^;
-                    pAy^ := stemp*temp + ctemp*pAy^;
-
-                    inc(PByte(pAy), LineWidthA);
-                    inc(PByte(pAy1), LineWidthA);
-               end;
+               temp := pAx^[x + 1];
+               pAx^[x + 1] := c^[x]*temp - s^[x]*pAx^[x];
+               pAx^[x] := s^[x]*temp + c^[x]*pAx^[x];
           end;
      end;
 end;
 
 procedure dlasr_RVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
-var cTemp, stemp, temp : double;
+var temp : double;
     x, y : TASMNativeInt;
-    pAy, pAy1 : PDouble;
+    pAx : PConstDoubleArr;
 begin
-     for y := width - 2 downto 0 do
+     for y := 0 to Height - 1 do
      begin
-          ctemp := c[y];
-          stemp := s[y];
-
-          if (ctemp <> 1) or (stemp <> 0) then
+          pAx := PConstDoubleArr( GenPtr( A, 0, y, LineWidthA) );
+          
+          for x := width - 2 downto 0 do
           begin
-               pAy := GenPtr(A, y, 0, LineWidthA);
-               pAy1 := GenPtr(A, y + 1, 0, LineWidthA);
-                               
-               for x := 0 to height - 1 do
-               begin
-                    temp := pAy1^;
-                    pAy1^ := ctemp*temp - stemp*pAy^;
-                    pAy^ := stemp*temp + ctemp*pAy^;
-
-                    inc(PByte(pAy), LineWidthA);
-                    inc(PByte(pAy1), LineWidthA);
-               end;
+               temp := pAx^[x + 1];
+               pAx^[x + 1] := c^[x]*temp - s^[x]*pAx^[x];
+               pAx^[x] := s^[x]*temp + c^[x]*pAx^[x];
           end;
      end;
 end;
@@ -5063,15 +5043,13 @@ begin
                               sizeof(double)*(w2*w2 + 3*w2) + QRDecompMemSize(QRBlockSize, height)
                              )  + 
                      BlockMultMemSize( BlockMatrixCacheSize );
-          //if w2 < Min(QRBlockSize, SVDBlockSize) then
-//             memNeed := 16 + sizeof(double)*(w2*w2 + 3*w2 );
 
           // no qr decomp -> reduce workspace needed
-          //if (height >= width) and (Height < mnthr) then
-//          begin
-//               // mem for TauP, TauQ, D, E, Bidiagonlaization multiplication memory
-//               memNeed := 16 + sizeof(double)*(  (3 + 5)*w2 + (w2 + height)*SVDBlockSize) + BlockMultMemSize(Max(SVDBlockSize, QRMultBlockSize));
-//          end;
+          if (height >= width) and (Height <= mnthr) then
+          begin
+               // mem for TauP, TauQ, D, E, Bidiagonlaization multiplication memory
+               memNeed := 16 + sizeof(double)*(  (3 + 5)*w2 + (w2 + height)*SVDBlockSize) + BlockMultMemSize(Max(SVDBlockSize, QRMultBlockSize));
+          end;
      
           pMem := AllocMem(memNeed);
      end
@@ -5100,7 +5078,7 @@ begin
      // #### crossover
      if Height >= Width then
      begin
-          if Height >= mnthr then
+          if Height > mnthr then
           begin
                // path3 in dgesvd:
                pWorkIR := work;
@@ -5225,6 +5203,8 @@ begin
           end;
      end;
 
+     // ###########################################
+     // #### Cleanup
      if aWork = nil  then
         FreeMem(pMem);
 end;

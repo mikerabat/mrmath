@@ -1879,11 +1879,11 @@ begin
      if (width = 0) or (height = 0) then
         exit;
 
-     if LineWidthV = sizeof(double) then
+     if (LineWidthV = sizeof(double)) and (width > 1) then
      begin
           if (width and $01 = 0) then
           begin
-               if ((TASMNativeUInt(mt1) and $0000000F) = 0) and ((TASMNativeUInt(v) and $0000000F) = 0)
+               if ((TASMNativeUInt(mt1) and $0000000F) = 0) and ((TASMNativeUInt(v) and $0000000F) = 0) and (LineWidthMT and $F = 0)
                then
                    ASMMatrixVectMultEvenAlignedVAligned(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta)
                else

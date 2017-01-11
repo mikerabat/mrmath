@@ -54,7 +54,7 @@ implementation
 procedure ASMMatrixVectMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 var iter : TASMNativeInt;
 begin
-     assert(Width > 1, 'Error at least a vector with two elements expected');
+     assert(Width > 0, 'Error at least a vector with one elementexpected');
 
      iter := -width*sizeof(double);
 

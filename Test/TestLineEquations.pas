@@ -198,10 +198,8 @@ begin
 end;
 
 procedure TTestLinearEquations.TestBigSVD2;
-const //cBlkWidths : Array[0..8] of integer = (1, 9, 16, 24, 43, 189, 256, 500, 1024);
-      //cBlkHeights : Array[0..8] of integer = (1, 13, 26, 123, 331, 223, 256, 543, 2048);
-      cBlkWidths : Array[0..0] of integer = (1024);
-      cBlkHeights : Array[0..0] of integer = (2048);
+const cBlkWidths : Array[0..7] of integer = (1, 9, 16, 24, 43, 189, 256, 500); //, 1024);
+      cBlkHeights : Array[0..7] of integer = (1, 13, 26, 123, 331, 223, 256, 543); //, 2048);
 
 var A, A2, W, W2, V, V2 : TDoubleDynArray;
     i: Integer;
