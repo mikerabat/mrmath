@@ -161,6 +161,8 @@ initialization
   cpuInfo := TNSProcessInfo.Create;
 
   numCPUCores := cpuInfo.processorCount;
+  if numCpuCores > 64 then
+     numCpuCores := 64;
   numRealCores := numCPUCores;
 
   numCoresForSimpleFuncs := numRealCores;

@@ -156,10 +156,17 @@ procedure GenericMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeI
 procedure GenericMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 
+procedure GenericMatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
+
+
 // performs a symmetric rank update in the form dest = alpha* A*AT + Beta*C
 // Assumes a lower triangualr matrix
 procedure GenericSymRankKUpd(dest : PDouble; LineWidthDest: TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt; k, height : TASMNativeInt; const Alpha, Beta : double);
 procedure GenericSolveLoTriMtxTranspNoUnit(A : PDouble; const LineWidthA : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
+
+procedure GenericRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
+  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt); // {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+
 
 implementation
 
@@ -2273,6 +2280,28 @@ begin
      end;
 end;
 
+procedure GenericMatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
+var x, y : TASMNativeInt;
+    pA : PConstDoubleArr;
+    pB : PDouble;
+begin
+     // calculate A = A - B'
+     for y := 0 to height - 1 do
+     begin
+          pA := PConstDoubleArr( A );
+          pB := B;
+          for x := 0 to width - 1 do
+          begin
+               pA^[x] := pA^[x] - pB^;
+               inc(PByte(pB), LineWidthB);
+          end;
+
+          inc(PByte(A), LineWidthA);
+          inc(B);
+     end;
+end;
+
+
 // ###########################################
 // #### Procedures used in cholesky decomposition
 // ###########################################
@@ -2374,6 +2403,35 @@ begin
 
           inc(pAkk);
           inc(PByte(pAkk), LineWidthA);
+     end;
+end;
+
+// original dger
+// X, Y are vectors, incX, incY is the iteration in bytes from one to the next vector element
+// A is a matrix
+procedure GenericRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
+  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt); // {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+var i : TASMNativeInt;
+    j : TASMNativeInt;
+    tmp : double;
+    pX, pY : PDouble;
+    pA : PConstDoubleArr;
+begin
+     // performs A = A + alpha*X*Y' in row major form
+     pX := X;
+     for i := 0 to Height - 1 do
+     begin
+          tmp := alpha*pX^;
+
+          pA := PConstDoubleArr(GenPtr(A, 0, i, LineWidthA));
+          pY := Y;
+          for j := 0 to Width - 1 do
+          begin
+               pA^[j] := pA^[j] + tmp*pY^;
+               inc(PByte(pY), incY);
+          end;
+
+          inc(PByte(pX), incX);
      end;
 end;
 

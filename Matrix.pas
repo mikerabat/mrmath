@@ -414,7 +414,9 @@ type
 
     // ###################################################
     // #### Matrix transformations
+    function SVD2(out U, V, W : TDoubleMatrix; onlyDiagElements : boolean = False) : TSVDResult; overload;
     function SVD(out U, V, W : TDoubleMatrix; onlyDiagElements : boolean = False) : TSVDResult; overload;
+    function SVD2(out U, V, W : IMatrix; onlyDiagElements : boolean = False) : TSVDResult; overload;
     function SVD(out U, V, W : IMatrix; onlyDiagElements : boolean = False) : TSVDResult; overload;
     function SymEig(out EigVals : TDoubleMatrix; out EigVect : TDoubleMatrix) : TEigenvalueConvergence; overload;
     function SymEig(out EigVals : TDoubleMatrix) : TEigenvalueConvergence; overload;
@@ -463,7 +465,7 @@ type
 implementation
 
 uses Math, OptimizedFuncs, LinearAlgebraicEquations,
-     Eigensystems;
+     Eigensystems, LinAlgSVD, LinAlgQR, BlockSizeSetup;
 
 
 {$IFNDEF CPUX64}
@@ -663,7 +665,7 @@ begin
 end;
 
 constructor TDoubleMatrix.Create(aWidth, aHeight: integer; const initVal : double);
-var pData : PDouble;
+var pData : PConstDoubleArr;
     x, y : integer;
 begin
      inherited Create;
@@ -674,14 +676,11 @@ begin
      begin
           for y := 0 to height - 1 do
           begin
-               pData := StartElement;
+               pData := PConstDoubleArr( StartElement );
                inc(PByte(pData), y*LineWidth);
 
                for x := 0 to Width - 1 do
-               begin
-                    pData^ := initVal;
-                    inc(pData);
-               end;
+                   pData^[x] := initVal;
           end;
      end;
 end;
@@ -1913,6 +1912,82 @@ begin
      end;
 end;
 
+function TDoubleMatrix.SVD2(out U, V, W: IMatrix; onlyDiagElements: boolean): TSVDResult;
+var uObj, vObj, wObj : TDoubleMatrix;
+begin
+     Result := SVD2(uObj, vObj, wObj, onlyDiagElements);
+     U := uObj;
+     V := vObj;
+     W := wObj;
+end;
+
+function TDoubleMatrix.SVD(out U, V, W: TDoubleMatrix; onlyDiagElements : boolean): TSVDResult;
+var pW : PConstDoubleArr;
+    wArr : PByte;
+    minWH : TASMNativeInt;
+  i: Integer;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'Dimension error');
+
+     U := nil;
+     V := nil;
+     W := nil;
+     wArr := nil;
+     try
+        minWH := Math.Min(fSubWidth, fSubHeight);
+
+        W := ResultClass.Create(ifthen(onlyDiagElements, 1, minWH), minWH);
+
+        pW := PConstDoubleArr( W.StartElement );
+        if not onlyDiagElements then
+        begin
+             wArr := AllocMem( minWH*sizeof(double));
+             pW := PConstDoubleArr( @wArr[0] );
+        end;
+
+        if width > height then
+        begin
+             V := Transpose;
+             U := ResultClass.Create( fSubHeight, fSubHeight );
+
+             Result := MatrixSVDInPlace2(V.StartElement, V.LineWidth, Height, Width, pW, U.StartElement, U.LineWidth, SVDBlockSize, nil );
+
+             // we need a final transposition on the matrix U
+             U.TransposeInPlace;
+        end
+        else
+        begin
+             U := Clone;
+             V := ResultClass.Create(fSubWidth, fSubWidth);
+
+             Result := MatrixSVDInPlace2(U.StartElement, U.LineWidth, Width, Height, pW, V.StartElement, V.LineWidth, SVDBlockSize, nil);
+        end;
+
+        if Result <> srOk then
+        begin
+             FreeAndNil(u);
+             FreeAndNil(V);
+             FreeAndNil(W);
+        end
+        else if not onlyDiagElements then
+        begin
+             for i := 0 to minWH - 1 do
+                 W[i, i] := pW^[i];
+        end;
+
+        if Assigned(wArr) then
+           FreeMem(wArr);
+     except
+           FreeAndNil(u);
+           FreeAndNil(V);
+           FreeAndNil(W);
+
+           if Assigned(wArr) then
+              FreeMem(wArr);
+
+           raise;
+     end;
+end;
 function TDoubleMatrix.SVD(out U, V, W: IMatrix; onlyDiagElements: boolean): TSVDResult;
 var uObj, vObj, wObj : TDoubleMatrix;
 begin
@@ -1922,7 +1997,7 @@ begin
      W := wObj;
 end;
 
-function TDoubleMatrix.SVD(out U, V, W: TDoubleMatrix; onlyDiagElements : boolean): TSVDResult;
+function TDoubleMatrix.SVD2(out U, V, W: TDoubleMatrix; onlyDiagElements : boolean): TSVDResult;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'Dimension error');
 

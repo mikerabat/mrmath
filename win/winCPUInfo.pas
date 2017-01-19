@@ -110,6 +110,8 @@ initialization
   
   GetSystemInfo(SysInfo);
   numCPUCores := SysInfo.dwNumberOfProcessors;
+  if numCPUCores > 64 then
+     numCPUCores := 64;
 
   numCoresForSimpleFuncs := numRealCores;
   if numCoresForSimpleFuncs > 3 then

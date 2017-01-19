@@ -16,7 +16,7 @@ unit TestPCA;
 
 interface
 
-uses {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF}, 
+uses {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF},
      Classes, SysUtils, BaseMatrixTestCase, Matrix;
 
 type
@@ -33,10 +33,10 @@ type
 
 implementation
 
-uses PCA, 
+uses PCA,
      {$IFDEF MACOS} FMX.Types, {$ENDIF}
      Graphics, BinaryReaderWriter, BaseMathPersistence, IncrementalPCA,
-  JSONReaderWriter;
+     JSONReaderWriter, MtxTimer;
 
 { TTestEigensystems }
 
@@ -256,6 +256,7 @@ var Examples : TDoubleMatrix;
     feature : TDoubleMatrix;
     w, h : integer;
     i : integer;
+    start, stop : Int64;
 begin
      Examples := LoadImages(w, h);
 
@@ -263,7 +264,11 @@ begin
      // #### Calculate PCA on images
      with TMatrixPCA.Create([pcaEigVals, pcaMeanNormalizedData, pcaTransposedEigVec]) do
      try
+        start := MtxGetTime;
         Check(PCA(Examples, 0.95, True) = True, 'Error in PCA');
+        stop := MtxGetTime;
+
+        Status(Format('PCA images took: %.3fms', [(stop - start)/mtxfreq*1000]));
 
         // create a few examples along the first mode
         feature := TDoubleMatrix.Create(1, NumModes);

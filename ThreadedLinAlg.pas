@@ -35,20 +35,15 @@ function ThrMatrixDeterminant(A : PDouble; const LineWidthA : integer; width : i
 function ThrMatrixLinEQSolve(A : PDouble; const LineWidthA : integer; width : integer; B : PDouble; const LineWidthB : integer; X : PDouble;
  const LineWidthX : integer;  width2 : integer; const NumRefinments : integer = 0; progress : TLinEquProgress = nil) : TLinEquResult;
 
- // Threaded version of the matrix qr decomposition -> makes use of threaded matrix multiplications
-function ThrMatrixQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; work : PDouble; pnlSize : integer; progress : TLinEquProgress = nil) : TQRResult; 
 
-// Threaded version of the full Q creation -> makes use of threaded matrix multiplications
-procedure ThrMatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; 
-       tau : PDouble; BlockSize : integer; work : PDouble; progress : TLinEquProgress = nil);
- 
 // threaded version of Cholesky decomposition which makes use of the threaded matrix multiplication routine
 function ThrMatrixCholeskyDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; pnlSize : integer; work : PDouble; progress : TLinEquProgress) : TCholeskyResult;
- 
+
+
 implementation
 
 uses MtxThreadPool, LinearAlgebraicEquations, Math, ThreadedMatrixOperations, OptimizedFuncs,
-     BlockSizeSetup;
+     BlockSizeSetup, SysUtils, LinAlgSVD, MatrixRotations, LinAlgQR;
 
 type
   TAsyncMatrixUSubst = class(TObject)
@@ -86,7 +81,7 @@ var i: TASMNativeInt;
     thrSize : Integer;
 begin
      calls := MtxInitTaskGroup;
-     
+
      thrSize := width div numCPUCores + Integer((width mod numCPUCores) <> 0);
 
      for i := 0 to numCPUCores - 1 do
@@ -166,10 +161,10 @@ begin
 
           if (height - nleft > cMinThrMultSize) or (nleft > cMinThrMultSize)
           then
-              ThrMatrixMultEx(pB, data.LineWidth, a21, a12, nleft, height - nleft, nright, nleft, data.LineWidth, data.LineWidth, doSub, data.blkMultMem, cBlkMultSize)
+              ThrMatrixMultEx(pB, data.LineWidth, a21, a12, nleft, height - nleft, nright, nleft, data.LineWidth, data.LineWidth, cBlkMultSize, doSub, data.blkMultMem)
           else
           begin
-               // avoid multiple getmems accuring in the blocked version
+               // avoid multiple getmems occuring in the blocked version
                MatrixMult(data.blkMultMem, (nright + nright and $01)*sizeof(double), a21, a12, nleft, height - nleft, nright, nleft, data.LineWidth, data.LineWidth);
                MatrixSub(pB, data.LineWidth, pB, data.blkMultMem, nright, height - nleft, data.LineWidth, (nright + nright and $01)*sizeof(double));
           end;
@@ -543,81 +538,6 @@ begin
      height := aheight;
 end;
 
-// ######################################################
-// ##### Threaded version of matrix QR decomposition
-// ######################################################
-
-function ThrMatrixQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; work : PDouble; pnlSize : integer; progress : TLinEquProgress = nil) : TQRResult;
-var res : boolean;
-    qrData : TRecMtxQRDecompData;
-begin
-     qrData.pWorkMem := nil;
-     qrData.work := work;
-     qrData.BlkMultMem := nil;
-     qrData.Progress := progress;
-     qrData.qrWidth := width;
-     qrData.qrHeight := height;
-     qrData.actIdx := 0;
-     qrData.pnlSize := pnlSize;
-     qrData.MatrixMultT1 := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultT1Ex;
-     qrData.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultT2Ex;
-
-     if work = nil then
-     begin
-          qrData.pWorkMem := GetMemory(pnlSize*sizeof(double)*height + 64 );
-          qrData.work := PDouble(qrData.pWorkMem);
-          if (NativeUInt(qrData.pWorkMem) and $0000000F) <> 0 then
-             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 16 - NativeUInt(qrData.pWorkMem) and $0F);
-     end;
-
-     qrData.BlkMultMem := GetMemory(numCPUCores*(4 + BlockMultMemSize(QRMultBlockSize)));
-
-     res := InternalMatrixQRDecompInPlace2(A, LineWidthA, width, height, tau, qrData);
-
-     if work = nil then
-        FreeMem(qrData.pWorkMem);
-
-     FreeMem(qrData.BlkMultMem);
-
-     if res
-     then
-         Result := qrOK
-     else
-         Result := qrSingular;
-end;
-
-procedure ThrMatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; 
-  tau : PDouble; BlockSize : integer; work : PDouble; progress : TLinEquProgress = nil);
-var qrData : TRecMtxQRDecompData;
-begin
-     qrData.pWorkMem := nil;
-     qrData.work := work;
-     qrData.BlkMultMem := nil;
-     qrData.Progress := progress;
-     qrData.qrWidth := width;
-     qrData.qrHeight := height;
-     qrData.actIdx := 0;
-     qrData.pnlSize := BlockSize;
-     qrData.LineWidthWork := sizeof(double)*qrdata.pnlSize;
-     qrData.MatrixMultT1 := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultT1Ex;
-     qrData.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultT2Ex;
-
-     if work = nil then
-     begin
-          qrData.pWorkMem := GetMemory(BlockSize*sizeof(double)*height + 64 );
-          qrData.work := PDouble(qrData.pWorkMem);
-          if (NativeUInt(qrData.pWorkMem) and $0000000F) <> 0 then
-             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 16 - NativeUInt(qrData.pWorkMem) and $0F);
-     end;
-
-     qrData.BlkMultMem := GetMemory(numCPUCores*(4 + BlockMultMemSize(QRMultBlockSize)));
-
-     InternalBlkMatrixQFromQRDecomp(A, LineWidthA, width, height, tau, qrData);
-     if not Assigned(work) then
-        freeMem(qrData.pWorkMem);
-
-     FreeMem(qrData.BlkMultMem);
-end;
 
 // ###########################################
 // #### Cholesky decomposition

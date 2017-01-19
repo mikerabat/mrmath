@@ -79,7 +79,7 @@ type
 implementation
 
 uses SysUtils, ThreadedMatrixOperations, MtxThreadPool, ThreadedLinAlg, BlockSizeSetup,
-     Math;
+     Math, LinAlgQR;
 
 { TThreadedMatrix }
 

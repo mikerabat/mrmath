@@ -3202,7 +3202,6 @@ begin
      Check(CheckMtx(dest1, dest2), 'Error transposed vector multiplication failed');
      //Check(CheckMtx(dest1, dest3), 'Error transposed vector multiplication failed');
 
-     FreeMem(rowa);
      FreeMem(xa);
      FreeMem(ya);
 end;

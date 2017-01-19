@@ -630,9 +630,13 @@ begin
 
      a.SVD(u, v, w, False);
 
-     Check((u.Width = 4) and (u.Height = 3), 'Error U has the wrong dimension');
-     Check((w.Width = 4) and (w.Height = 4), 'Error W has the wrong dimension');
-     Check((v.Width = 4) and (v.Height = 4), 'Error V has the wrong dimension');
+     Check((u.Width = 3) and (u.Height = 3), 'Error U has the wrong dimension');
+     Check((w.Width = 3) and (w.Height = 3), 'Error W has the wrong dimension');
+     Check((v.Width = 3) and (v.Height = 4), 'Error V has the wrong dimension');
+
+     status(WriteMtx(u.SubMatrix, u.Width));
+     status(WriteMtx(w.SubMatrix, w.Width));
+     status(WriteMtx(v.SubMatrix, v.Width));
 
      // check if U*W*V' = A
      v.TransposeInPlace;

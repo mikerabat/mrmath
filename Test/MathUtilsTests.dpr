@@ -24,6 +24,7 @@ program MathUtilsTests;
 {$ENDIF}
 
 uses
+  FastMM4 in 'D:\Daten\Delphi2010\3rdParty\FastMM4\FastMM4.pas',
   Forms,
   TestFramework,
   GUITestRunner,
@@ -99,16 +100,21 @@ uses
   TestRandom in 'TestRandom.pas',
   winRandomGen in '..\win\winRandomGen.pas',
   MacOsRandomGen in '..\mac\MacOsRandomGen.pas',
-  JSONReaderWriter in '..\JSONReaderWriter.pas';
+  JSONReaderWriter in '..\JSONReaderWriter.pas',
+  FastMM4Messages in 'D:\Daten\Delphi2010\3rdParty\FastMM4\FastMM4Messages.pas',
+  LinAlgSVD in '..\LinAlgSVD.pas',
+  HouseholderReflectors in '..\HouseholderReflectors.pas',
+  MatrixRotations in '..\MatrixRotations.pas';
 
 {$R *.RES}
 
 begin
-  ReportMemoryLeaksOnShutdown := True;
-  Application.Initialize;
-  if IsConsole then
-    TextTestRunner.RunRegisteredTests
-  else
-    GUITestRunner.RunRegisteredTests;
+     ReportMemoryLeaksOnShutdown := True;
+     Application.Initialize;
+     if IsConsole
+     then
+         TextTestRunner.RunRegisteredTests
+     else
+         GUITestRunner.RunRegisteredTests;
 end.
 
