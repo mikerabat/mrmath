@@ -392,15 +392,13 @@ end;
 // original DLARFT in Lapack - forward columnwise
 procedure CreateTMtx(n, k : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt; Tau : PDouble; const qrData : TRecMtxQRDecompData);
 var i, j : TASMNativeInt;
-    pT, pA : PDouble;
+    pT : PDouble;
     pA1 : PDouble;
     pDest : PDouble;
     pT1 : PConstDoublearr;
     pT2 : PDouble;
     x, y : TASMNativeInt;
     tmp : Double;
-    pMem : PDouble;
-    pResVec : PDouble;
     T : PDouble;
     pAij : PDouble;
     pcAIJ : PConstDoubleArr;
@@ -935,26 +933,20 @@ end;
 // dlarft forward rowwise
 procedure CreateTMtxR(n, k : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt; Tau : PDouble; const qrData : TRecMtxQRDecompData);
 var i, j : TASMNativeInt;
-    pT, pA : PDouble;
+    pT : PDouble;
     pA1 : PDouble;
     pDest : PDouble;
     pT1 : PConstdoubleArr;
     pt2 : PDouble;
     x, y : TASMNativeInt;
     tmp : Double;
-    pMem : PDouble;
-    pResVec : PDouble;
     T : PDouble;
     pAij : PDouble;
-    pcAIJ : PConstDoubleArr;
-    pA1i1 : PDouble;
-    pAii1 : PDouble;
 begin
      assert(k <= n, 'Error k needs to be smaller than n');
 
      // it is assumed that mem is a memory block of at least (n, k) where the first (k, k) elements are reserved for T
      T := qrData.work;    // kxk
-     pMem := GenPtr(T, 0, k, qrData.LineWidthWork);
 
      for i := 0 to k - 1 do
      begin

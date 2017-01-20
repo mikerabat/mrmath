@@ -46,6 +46,18 @@ William Cantrall - special thanks for making the library MacOs compatible.
 
 // ###################################################################
 changelog:
+Date: 20.01.2017:
+* Implemented lapacks SVD routine. 
+* Blockwise and Multithreaded SVD
+* Updated thread pool -> no thread suspend but rather signals are used (which seems to be faster)
+* Splitted the linear algebra stuff in different units.
+* New routines for matrix vector multiplication (standard pascal, x64 x86 asm).
+* Fixed a problem in the aligned odd assembler scale and add routine.
+* changed the base as how the threaded functions are using the pool - the current thread is now always 
+  involved in calculations (spares one "thread weakup")
+* Some enhancements on the random engine -> 64 bit (int64) values are now available
+* Quite a few new threaded functions have been added
+
 Date: 08.05.2016:
 * Updated persistence model so the reader knows which type to read (needed for JSON reader).
 

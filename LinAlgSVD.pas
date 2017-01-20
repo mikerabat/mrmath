@@ -787,13 +787,12 @@ end;
 
 
 // reduce parts of A to a bidiagonal form
-procedure dlabrd(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; nb : TASMNativeInt;
+procedure BidiagBlkUpd(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; nb : TASMNativeInt;
                  D, E, TauQ, TauP : PConstDoubleArr; X : PDouble; const LineWidthX : TASMNativeInt;
                  Y : PDouble; const LineWidthY : TASMNativeInt);
 var i : TASMNativeInt;
     pAii00 : PDouble;                    // first index y, second x, first 1 -> +1 height, second 1 +1 width
     pAii01 : PDouble;
-    pAii10 : PDouble;
     pAii11 : PDouble;
     pA0i01, pAi010 : PDouble;
     pAi000, pA0i00 : PDouble;
@@ -809,204 +808,103 @@ begin
      if (width <= 0) or (Height <= 0) then
         exit;
 
-     if height >= Width then
+     assert(width <= height, 'width < height not implemented');
+
+     for i := 0 to nb - 1 do
      begin
-          for i := 0 to nb - 1 do
+          // init variables
+          pAii00 := GenPtr(A, i, i, LineWidthA);
+          pAii01 := GenPtr(A, i + 1, i, LineWidthA);
+          pA0i01 := GenPtr(A, i + 1, 0, LineWidthA);
+          pAii11 := GenPtr(A, i + 1, i + 1, LineWidthA);
+          pAi010 := GenPtr(A, 0, i + 1, LineWidthA);
+          pAi000 := GenPtr(A, 0, i, LineWidthA);
+          pA0i00 := GenPtr(A, i, 0, LineWidthA);
+
+          pYi000 := GenPtr(Y, 0, i, LineWidthY);
+          pY0i00 := GenPtr(Y, i, 0, LineWidthY);
+          pYii10 := GenPtr(Y, i, i + 1, LineWidthY);
+          pYi010 := GenPtr(Y, 0, i + 1, LineWidthY);
+          pXi000 := GenPtr(X, 0, i, LineWidthX);
+          pXi010 := GenPtr(X, 0, i + 1, LineWidthX);
+          pXii10 := GenPtr(X, i, i + 1, LineWidthX);
+          pX0i00 := GenPtr(X, i, 0, LineWidthX);
+
+          // Update A(i:m,i)
+          // CALL dgemv( 'No transpose', m-i+1, i-1, -one, a( i, 1 ),
+          //             lda, y( i, 1 ), ldy, one, a( i, i ), 1 )
+          MatrixMtxVecMult(pAii00, LineWidthA, pAi000, pYi000, LineWidthA, sizeof(double), i, height - i, -1, 1);
+          //  CALL dgemv( 'No transpose', m-i+1, i-1, -one, x( i, 1 ),
+          //              ldx, a( 1, i ), 1, one, a( i, i ), 1 )
+          MatrixMtxVecMult(pAii00, LineWidthA, pXi000, pA0i00, LineWidthX, LineWidthA, i, height - i, -1, 1);
+
+          // generate reflection Q(i) to annihilate A(i+1:m,i)
+          pAminIM := GenPtr(A, i, Min(i + 1, Height - 1), LineWidthA);
+          GenElemHousholderRefl(pAminIM, LineWidthA, height - i, pAii00^, @tauQ^[i]);
+
+          d^[i] := pAii00^;
+
+          if i < width - 1 then
           begin
-               // init variables
-               pAii00 := GenPtr(A, i, i, LineWidthA);
-               pAii01 := GenPtr(A, i + 1, i, LineWidthA);
-               pA0i01 := GenPtr(A, i + 1, 0, LineWidthA);
-               pAii11 := GenPtr(A, i + 1, i + 1, LineWidthA);
-               pAi010 := GenPtr(A, 0, i + 1, LineWidthA);
-               pAi000 := GenPtr(A, 0, i, LineWidthA);
-               pA0i00 := GenPtr(A, i, 0, LineWidthA);
+               pAii00^ := 1;
 
-               pYi000 := GenPtr(Y, 0, i, LineWidthY);
-               pY0i00 := GenPtr(Y, i, 0, LineWidthY);
-               pYii10 := GenPtr(Y, i, i + 1, LineWidthY);
-               pYi010 := GenPtr(Y, 0, i + 1, LineWidthY);
-               pXi000 := GenPtr(X, 0, i, LineWidthX);
-               pXi010 := GenPtr(X, 0, i + 1, LineWidthX);
-               pXii10 := GenPtr(X, i, i + 1, LineWidthX);
-               pX0i00 := GenPtr(X, i, 0, LineWidthX);
+               // Compute Y(i+1:n, i)
 
-               // Update A(i:m,i)
-               // CALL dgemv( 'No transpose', m-i+1, i-1, -one, a( i, 1 ),
-               //             lda, y( i, 1 ), ldy, one, a( i, i ), 1 )
-               MatrixMtxVecMult(pAii00, LineWidthA, pAi000, pYi000, LineWidthA, sizeof(double), i, height - i, -1, 1);
-               //  CALL dgemv( 'No transpose', m-i+1, i-1, -one, x( i, 1 ),
-               //              ldx, a( 1, i ), 1, one, a( i, i ), 1 )
-               MatrixMtxVecMult(pAii00, LineWidthA, pXi000, pA0i00, LineWidthX, LineWidthA, i, height - i, -1, 1);
+               // CALL dgemv( 'Transpose', m-i+1, n-i, one, a( i, i+1 ),
+               //             lda, a( i, i ), 1, zero, y( i+1, i ), 1 )
+               MatrixMtxVecMultT(pYii10, LineWidthY, pAii01, pAii00, LineWidthA, LineWidthA, width - i - 1, height - i, 1, 0);
+               // CALL dgemv( 'Transpose', m-i+1, i-1, one, a( i, 1 ), lda,
+               //              a( i, i ), 1, zero, y( 1, i ), 1 )
+               MatrixMtxVecMultT(pY0i00, LineWidthY, pAi000, pAii00, LineWidthA, LineWidthA, i, height - i, 1, 0);
+               // CALL dgemv( 'No transpose', n-i, i-1, -one, y( i+1, 1 ),
+               //             ldy, y( 1, i ), 1, one, y( i+1, i ), 1 )
+               MatrixMtxVecMult(pYii10, LineWidthY, pYi010, pY0i00, LineWidthY, LineWidthY, i, width - i - 1, -1, 1);
+               // CALL dgemv( 'Transpose', m-i+1, i-1, one, x( i, 1 ), ldx,
+               //              a( i, i ), 1, zero, y( 1, i ), 1 )
+               MatrixMtxVecMultT(pY0i00, LineWidthY, pXi000, pAii00, LineWidthX, LineWidthA, i, height - i, 1, 0);
+               // CALL dgemv( 'Transpose', i-1, n-i, -one, a( 1, i+1 ),
+               //              lda, y( 1, i ), 1, one, y( i+1, i ), 1 )
+               MatrixMtxVecMultT(pYii10, LineWidthY, pA0i01, pY0i00, LineWidthA, LineWidthY, width - i - 1, i, -1, 1);
 
-               // generate reflection Q(i) to annihilate A(i+1:m,i)
-               pAminIM := GenPtr(A, i, Min(i + 1, Height - 1), LineWidthA);
-               GenElemHousholderRefl(pAminIM, LineWidthA, height - i, pAii00^, @tauQ^[i]);
+               // CALL dscal( n-i, tauq( i ), y( i+1, i ), 1 )
+               MatrixScaleAndAdd(pYii10, LineWidthY, 1, Width - i - 1, 0, tauq^[i]);
 
-               d^[i] := pAii00^;
+               // update A(i, i+1:n)
 
-               if i < width - 1 then
-               begin
-                    pAii00^ := 1;
+               // CALL dgemv( 'No transpose', n-i, i, -one, y( i+1, 1 ),
+               //              ldy, a( i, 1 ), lda, one, a( i, i+1 ), lda )
+               MatrixMtxVecMult(pAii01, sizeof(double), pYi010, pAi000, LineWidthY, sizeof(double), i + 1, width - i - 1, -1, 1);
+               // CALL dgemv( 'Transpose', i-1, n-i, -one, a( 1, i+1 ),
+               //             lda, x( i, 1 ), ldx, one, a( i, i+1 ), lda )
+               MatrixMtxVecMultT(pAii01, sizeof(double), pA0i01, pXi000, LineWidthA, sizeof(double), width - i - 1, i, -1, 1);
 
-                    // Compute Y(i+1:n, i)
+               // Generate reflection P(i) to annihilate A(i,i+2:n)
+               pAminIM := GenPtr(A, min(i + 2, width - 1), i, LineWidthA);
+               GenElemHousholderRefl(pAminIM, sizeof(double), width - i - 1, pAii01^, @taup^[i]);
 
-                    // CALL dgemv( 'Transpose', m-i+1, n-i, one, a( i, i+1 ),
-                    //             lda, a( i, i ), 1, zero, y( i+1, i ), 1 )
-                    MatrixMtxVecMultT(pYii10, LineWidthY, pAii01, pAii00, LineWidthA, LineWidthA, width - i - 1, height - i, 1, 0);
-                    // CALL dgemv( 'Transpose', m-i+1, i-1, one, a( i, 1 ), lda,
-                    //              a( i, i ), 1, zero, y( 1, i ), 1 )
-                    MatrixMtxVecMultT(pY0i00, LineWidthY, pAi000, pAii00, LineWidthA, LineWidthA, i, height - i, 1, 0);
-                    // CALL dgemv( 'No transpose', n-i, i-1, -one, y( i+1, 1 ),
-                    //             ldy, y( 1, i ), 1, one, y( i+1, i ), 1 )
-                    MatrixMtxVecMult(pYii10, LineWidthY, pYi010, pY0i00, LineWidthY, LineWidthY, i, width - i - 1, -1, 1);
-                    // CALL dgemv( 'Transpose', m-i+1, i-1, one, x( i, 1 ), ldx,
-                    //              a( i, i ), 1, zero, y( 1, i ), 1 )
-                    MatrixMtxVecMultT(pY0i00, LineWidthY, pXi000, pAii00, LineWidthX, LineWidthA, i, height - i, 1, 0);
-                    // CALL dgemv( 'Transpose', i-1, n-i, -one, a( 1, i+1 ),
-                    //              lda, y( 1, i ), 1, one, y( i+1, i ), 1 )
-                    MatrixMtxVecMultT(pYii10, LineWidthY, pA0i01, pY0i00, LineWidthA, LineWidthY, width - i - 1, i, -1, 1);
+               e^[i] := pAii01^;
+               pAii01^ := 1;
 
-                    // CALL dscal( n-i, tauq( i ), y( i+1, i ), 1 )
-                    MatrixScaleAndAdd(pYii10, LineWidthY, 1, Width - i - 1, 0, tauq^[i]);
+               // Compute X(i+1:m,i)
 
-                    // update A(i, i+1:n)
-
-                    // CALL dgemv( 'No transpose', n-i, i, -one, y( i+1, 1 ),
-                    //              ldy, a( i, 1 ), lda, one, a( i, i+1 ), lda )
-                    MatrixMtxVecMult(pAii01, sizeof(double), pYi010, pAi000, LineWidthY, sizeof(double), i + 1, width - i - 1, -1, 1);
-                    // CALL dgemv( 'Transpose', i-1, n-i, -one, a( 1, i+1 ),
-                    //             lda, x( i, 1 ), ldx, one, a( i, i+1 ), lda )
-                    MatrixMtxVecMultT(pAii01, sizeof(double), pA0i01, pXi000, LineWidthA, sizeof(double), width - i - 1, i, -1, 1);
-
-                    // Generate reflection P(i) to annihilate A(i,i+2:n)
-                    pAminIM := GenPtr(A, min(i + 2, width - 1), i, LineWidthA);
-                    GenElemHousholderRefl(pAminIM, sizeof(double), width - i - 1, pAii01^, @taup^[i]);
-
-                    e^[i] := pAii01^;
-                    pAii01^ := 1;
-
-                    // Compute X(i+1:m,i)
-
-                    //CALL dgemv( 'No transpose', m-i, n-i, one, a( i+1, i+1 ),
-                    //            lda, a( i, i+1 ), lda, zero, x( i+1, i ), 1 )
-                    MatrixMtxVecMult(pXii10, LineWidthX, pAii11, pAii01, LineWidthA, sizeof(double), width - i - 1, height - i - 1, 1, 0);
-                    // CALL dgemv( 'Transpose', n-i, i, one, y( i+1, 1 ), ldy,
-                    //              a( i, i+1 ), lda, zero, x( 1, i ), 1 )
-                    MatrixMtxVecMultT(pX0i00, LineWidthX, pYi010, pAii01, LineWidthY, sizeof(double), i + 1, width - i - 1, 1, 0);
-                    // CALL dgemv( 'No transpose', m-i, i, -one, a( i+1, 1 ),
-                    //             da, x( 1, i ), 1, one, x( i+1, i ), 1 )
-                    MatrixMtxVecMult(pXii10, LineWidthX, pAi010, pX0i00, LineWidthA, LineWidthX, i + 1, height - i - 1, -1, 1);
-                    // CALL dgemv( 'No transpose', i-1, n-i, one, a( 1, i+1 ),
-                    //             lda, a( i, i+1 ), lda, zero, x( 1, i ), 1 )
-                    MatrixMtxVecMult(pX0i00, LineWidthX, pA0i01, pAii01, LineWidthA, sizeof(double), width - i - 1, i, 1, 0);
-                    // CALL dgemv( 'No transpose', m-i, i-1, -one, x( i+1, 1 ),
-                    //             ldx, x( 1, i ), 1, one, x( i+1, i ), 1 )
-                    MatrixMtxVecMult(pXii10, LineWidthX, pXi010, pX0i00, LineWidthX, LineWidthX, i, height - i - 1, -1, 1);
-                    // CALL dscal( m-i, taup( i ), x( i+1, i ), 1 )
-                    MatrixScaleAndAdd(pXii10, LineWidthX, 1, height - i - 1, 0, taup^[i]);
-               end;
+               //CALL dgemv( 'No transpose', m-i, n-i, one, a( i+1, i+1 ),
+               //            lda, a( i, i+1 ), lda, zero, x( i+1, i ), 1 )
+               MatrixMtxVecMult(pXii10, LineWidthX, pAii11, pAii01, LineWidthA, sizeof(double), width - i - 1, height - i - 1, 1, 0);
+               // CALL dgemv( 'Transpose', n-i, i, one, y( i+1, 1 ), ldy,
+               //              a( i, i+1 ), lda, zero, x( 1, i ), 1 )
+               MatrixMtxVecMultT(pX0i00, LineWidthX, pYi010, pAii01, LineWidthY, sizeof(double), i + 1, width - i - 1, 1, 0);
+               // CALL dgemv( 'No transpose', m-i, i, -one, a( i+1, 1 ),
+               //             da, x( 1, i ), 1, one, x( i+1, i ), 1 )
+               MatrixMtxVecMult(pXii10, LineWidthX, pAi010, pX0i00, LineWidthA, LineWidthX, i + 1, height - i - 1, -1, 1);
+               // CALL dgemv( 'No transpose', i-1, n-i, one, a( 1, i+1 ),
+               //             lda, a( i, i+1 ), lda, zero, x( 1, i ), 1 )
+               MatrixMtxVecMult(pX0i00, LineWidthX, pA0i01, pAii01, LineWidthA, sizeof(double), width - i - 1, i, 1, 0);
+               // CALL dgemv( 'No transpose', m-i, i-1, -one, x( i+1, 1 ),
+               //             ldx, x( 1, i ), 1, one, x( i+1, i ), 1 )
+               MatrixMtxVecMult(pXii10, LineWidthX, pXi010, pX0i00, LineWidthX, LineWidthX, i, height - i - 1, -1, 1);
+               // CALL dscal( m-i, taup( i ), x( i+1, i ), 1 )
+               MatrixScaleAndAdd(pXii10, LineWidthX, 1, height - i - 1, 0, taup^[i]);
           end;
-     end
-     else
-     begin
-          raise Exception.Create('Not yet implemented');
-//          // Reduce to lower bidiagonal form
-//          for i := 0 to nb - 1 do
-//          begin
-//               // init variables
-//               pAii00 := GenPtr(A, i, i, LineWidthA);
-//               pAii10 := GenPtr(A, i, i + 1, LineWidthA);
-//               pA0i01 := GenPtr(A, i + 1, 0, LineWidthA);
-//               pAii11 := GenPtr(A, i + 1, i + 1, LineWidthA);
-//               pAi010 := GenPtr(A, 0, i + 1, LineWidthA);
-//               pAi000 := GenPtr(A, 0, i, LineWidthA);
-//               pA0i00 := GenPtr(A, i, 0, LineWidthA);
-//
-//               pYi000 := GenPtr(Y, 0, i, LineWidthY);
-//               pY0i00 := GenPtr(Y, i, 0, LineWidthY);
-//               pYii10 := GenPtr(Y, i, i + 1, LineWidthY);
-//               pYi010 := GenPtr(Y, 0, i + 1, LineWidthY);
-//               pXi000 := GenPtr(X, 0, i, LineWidthX);
-//               pXi010 := GenPtr(X, 0, i + 1, LineWidthX);
-//               pXii10 := GenPtr(X, i, i + 1, LineWidthX);
-//               pX0i00 := GenPtr(X, i, 0, LineWidthX);
-//
-//               // Update A(i,i:n)
-//
-//                // CALL dgemv( 'No transpose', n-i+1, i-1, -one, y( i, 1 ),
-//                //              ldy, a( i, 1 ), lda, one, a( i, i ), lda )
-//               GenericMtxVecMult(pAii00, sizeof(double), pYi000, pAi000, LineWidthY, sizeof(double), i, width - i, -1, 1);
-//                // CALL dgemv( 'Transpose', i-1, n-i+1, -one, a( 1, i ), lda,
-//                //              x( i, 1 ), ldx, one, a( i, i ), lda )
-//               GenericMtxVecMultT(pAii00, sizeof(double), pA0i00, pXi000, LineWidthA, sizeof(double), width - i, i, -1, 1);
-//
-//               // Generate reflection P(i) to annihilate A(i,i+1:n)
-//               pAminIM := GenPtr(A, i, Min(i + 1, Width - 1), LineWidthA);
-//               GenElemHousholderRefl(pAminIM, sizeof(double), width - i, pAii00^, @tauP^[i]);
-//
-//               d^[i] := pAii00^;
-//
-//               if i < height - 1 then
-//               begin
-//                    pAii00^ := 1;
-//
-//                    // Compute X(i+1:m,i)
-//
-//                    // CALL dgemv( 'No transpose', m-i, n-i+1, one, a( i+1, i ),
-//                    //              lda, a( i, i ), lda, zero, x( i+1, i ), 1 )
-//                    GenericMtxVecMult(pXii10, LineWidthX, pAii10, pAii00, LineWidthA, sizeof(double), width - i, height - i - 1, 1, 0);
-//                    // CALL dgemv( 'Transpose', n-i+1, i-1, one, y( i, 1 ), ldy,
-//                    //              a( i, i ), lda, zero, x( 1, i ), 1 )
-//                    GenericMtxVecMultT(pX0i00, LineWidthX, pYi000, pAii00, LineWidthY, sizeof(double), i, width - i, 1, 0);
-//                    // CALL dgemv( 'No transpose', m-i, i-1, -one, a( i+1, 1 ),
-//                    //              lda, x( 1, i ), 1, one, x( i+1, i ), 1 )
-//                    GenericMtxVecMult(pXii10, LineWidthX, pAi010, pX0i00, LineWidthA, LineWidthX, i, height - i - 1, -1, 1);
-//                    // CALL dgemv( 'No transpose', i-1, n-i+1, one, a( 1, i ),
-//                    //             lda, a( i, i ), lda, zero, x( 1, i ), 1 )
-//                    GenericMtxVecMult(pX0i00, LineWidthX, pA0i00, pAii00, LineWidthA, sizeof(double), width - i, i, 1, 0);
-//                    // CALL dgemv( 'No transpose', m-i, i-1, -one, x( i+1, 1 ),
-//                    //             ldx, x( 1, i ), 1, one, x( i+1, i ), 1 )
-//                    GenericMtxVecMult(pXii10, LineWidthX, pXi010, pX0i00, LineWidthX, LineWidthX, i, height - i - 1, -1, 1);
-//                    // CALL dscal( m-i, taup( i ), x( i+1, i ), 1 )
-//                    MatrixScaleAndAdd(pXii10, LineWidthX, 1, height - i - 1, 0, taup^[i]);
-//
-//                    // Update A(i+1:m,i)
-//
-//                    // CALL dgemv( 'No transpose', m-i, i-1, -one, a( i+1, 1 ),
-//                    //             lda, y( i, 1 ), ldy, one, a( i+1, i ), 1 )
-//                    GenericMtxVecMult(pAii10, LineWidthA, pAi010, pYi000, LineWidthA, sizeof(double), i, height - i - 1, -1, 1);
-//                    // CALL dgemv( 'No transpose', m-i, i, -one, x( i+1, 1 ),
-//                    //             ldx, a( 1, i ), 1, one, a( i+1, i ), 1 )
-//                    GenericMtxVecMult(pAii10, LineWidthA, pXi010, pA0i00, LineWidthX, LineWidthA, i + 1, height - i - 1, -1, 1);
-//
-//                    // Generate reflection Q(i) to annihilate A(i+2:m,i)
-//                    pAminIM := GenPtr(A, i, min(i + 2, height - 1), LineWidthA);
-//                    GenElemHousholderRefl(pAminIM, LineWidthA, height - i - 1, pAii10^, @tauq^[i]);
-//                    e^[i] := pAii10^;
-//                    pAii10^ := 1;
-//
-//                    // Compute Y(i+1:n,i)
-//
-//                    //  CALL dgemv( 'Transpose', m-i, n-i, one, a( i+1, i+1 ),
-//                    //              lda, a( i+1, i ), 1, zero, y( i+1, i ), 1 )
-//                    GenericMtxVecMultT(pYii10, LineWidthY, pAii11, pAii10, LineWidthA, LineWidthA, width - i - 1, height - i - 1, 1, 0);
-//                    // CALL dgemv( 'Transpose', m-i, i-1, one, a( i+1, 1 ), lda,
-//                    //             a( i+1, i ), 1, zero, y( 1, i ), 1 )
-//                    GenericMtxVecMultT(pY0i00, LineWidthY, pAi010, pAii10, LineWidthA, LineWidthA, i, height - i - 1, 1, 0);
-//                    // CALL dgemv( 'No transpose', n-i, i-1, -one, y( i+1, 1 ),
-//                    //             ldy, y( 1, i ), 1, one, y( i+1, i ), 1 )
-//                    GenericMtxVecMult(pYii10, LineWidthY, pYi010, pY0i00, LineWidthY, LineWidthY, i, width - i - 1, -1, 1);
-//                    // CALL dgemv( 'Transpose', m-i, i, one, x( i+1, 1 ), ldx,
-//                    //             a( i+1, i ), 1, zero, y( 1, i ), 1 )
-//                    GenericMtxVecMultT(pY0i00, LineWidthY, pXi010, pAii10, LineWidthX, LineWidthA, i + 1, height - i - 1, 1, 0);
-//                    // CALL dgemv( 'Transpose', i, n-i, -one, a( 1, i+1 ), lda,
-//                    //             y( 1, i ), 1, one, y( i+1, i ), 1 )
-//                    GenericMtxVecMultT(pYii10, LineWidthY, pA0i01, pY0i00, LineWidthA, LineWidthY, width - i - 1, i + 1, -1, 1);
-//                    // CALL dscal( n-i, tauq( i ), y( i+1, i ), 1 )
-//                    MatrixScaleAndAdd(pYii10, LineWidthY, 1, width - i - 1, 0, tauq^[i]);
-//               end;
-//          end;
      end;
 end;
 
@@ -1016,10 +914,7 @@ end;
 // form: A = Q * B * P**T.  Q and P**T are defined as products of
 // elementary reflectors H(i) or G(i) respectively.
 
-
-
-
-procedure Dorgbr_P(A : PDouble; const LineWidthA : TASMNativeInt; width, height, k : TASMNativeInt; tau : PDouble;
+procedure InitAndLeftQFromQR(A : PDouble; const LineWidthA : TASMNativeInt; width, height, k : TASMNativeInt; tau : PDouble;
    work : PDouble; const svdData : TMtxSVDDecompData); //; const LineWidthWork : TASMNativeInt);
 var pA : PDouble;
     i : Integer;
@@ -1064,7 +959,6 @@ begin
 
           // form P_Transposed
           svdData.LeftQFromQRDecomp(pA, LineWidthA, width - 1, height - 1, tau, QRBlockSize, work, svdData.Progress);
-          //MatrixLeftQFromQRDecomp(pA, LineWidthA, width - 1, height - 1, tau, QRBlockSize, work);
      end;
 end;
 
@@ -1091,12 +985,9 @@ end;
 //   a product of elementary reflectors.
 procedure MatrixBidiagonalBlocked(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
                  D, E, TauQ, TauP : PDouble; work : PDouble; const svdData : TMtxSVDDecompData);
-var lwkopt : TASMNativeInt;
-    minmn : TASMNativeInt;
-    ws : TASMNativeInt;
+var minmn : TASMNativeInt;
     nx : integer;
     i, j : TASMNativeInt;
-    pWork : PDouble;
     ldwrkx, ldwrky : TASMNativeInt;
     pAinb, pAinbnb : PDouble;
     pAii : PDouble;
@@ -1139,7 +1030,7 @@ begin
           // the matrices X and Y which are needed to update the unreduced
           // part of the matrix
           pAii := GenPtr(A, i, i, LineWidthA);
-          dlabrd(pAii, LineWidthA, width - i, height - i, nb,  PConstDoubleArr(pD), PConstDoubleArr(pE),
+          BidiagBlkUpd(pAii, LineWidthA, width - i, height - i, nb,  PConstDoubleArr(pD), PConstDoubleArr(pE),
                  PConstDoubleArr(ptauQ), PConstDoubleArr(ptauP), px, nb*sizeof(double), py, nb*sizeof(double) );
 
           // update the trailing submatir A(i +nb:m, i+nb:n) using an update of the form
@@ -1147,23 +1038,13 @@ begin
           pAinb := GenPtr(A, i, i + nb, LineWidthA);
           pAinbnb := GenPtr(A, i + nb, i + nb, LineWidthA);
 
-          //  CALL dgemm( 'No transpose', 'Transpose', m-i-nb+1, n-i-nb+1,
-          //               nb, -one, a( i+nb, i ), lda,
-          //               work( ldwrkx*nb+nb+1 ), ldwrky, one,
-          //               a( i+nb, i+nb ), lda )
           pYnb := GenPtr(pY, 0, nb, nb*sizeof(double));
 
           svdData.MatrixMultT2(pAinbnb, LineWidthA, pAinb, pYnb, nb, height - i - nb, nb, width - i - nb,
                                LineWidthA, nb*sizeof(double), nb, doSub, pWorkMult );
-          //MatrixMultT2Ex(pAinbnb, LineWidthA, pAinb, pYnb, nb, height - i - nb, nb, width - i - nb,
-//                          LineWidthA, nb*sizeof(double), nb, doSub, pWorkMult );
 
-          // CALL dgemm( 'No transpose', 'No transpose', m-i-nb+1, n-i-nb+1,
-          //             nb, -one, work( nb+1 ), ldwrkx, a( i, i+nb ), lda,
-          //             one, a( i+nb, i+nb ), lda )
           pXnb := GenPtr(pX, 0, nb, nb*sizeof(double));
           pAinb := GenPtr(A, i + nb, i, LineWidthA);
-          //MatrixMultEx(pAinbnb, LineWidthA, pXnb, pAinb, nb, height - i - nb, width - i - nb, nb,
           svdData.MatrixMultEx(pAinbnb, LineWidthA, pXnb, pAinb, nb, height - i - nb, width - i - nb, nb,
                                nb*sizeof(double), LineWidthA, nb, doSub, pWorkMult );
 
@@ -1210,7 +1091,8 @@ begin
 end;
 
 // computes the singular value decomposition of a 2-by-2 triangular matrix
-procedure dlasv2(const F, G, H : double; var ssmin, ssmax, snr, csr, snl, csl : double);
+// dlasv2
+procedure SingularValuesTriang2x2(const F, G, H : double; var ssmin, ssmax, snr, csr, snl, csl : double);
 var ft, fa, ht, ha : double;
     pmax : integer;
     swap : boolean;
@@ -1221,7 +1103,6 @@ var ft, fa, ht, ha : double;
     slt : double;
     srt : double;
     gasmal : boolean;
-    epsilon : double;
     d : double;
     l : double;
     m, t : double;
@@ -1379,7 +1260,8 @@ end;
 
 
 // compute singular values of 2 by 2 matrix
-procedure dlas2(const F, G, H : double; var ssmin, ssmax : double); //inline;
+// dlas2
+procedure SingularValues2x2(const F, G, H : double; var ssmin, ssmax : double); //inline;
 var fa, ga, ha, fhmn, fhmx : double;
     ass, at, au : double;
     c : double;
@@ -1525,7 +1407,7 @@ end;
 // left singular vectors from the singular value decomposition (SVD) of
 // a real N-by-N (upper or lower) bidiagonal matrix B using the implicit
 // zero-shift QR algorithm.
-function dbdsqr_upper(D : PConstDoubleArr; E : PConstDoubleArr;
+function SingularValuesUpperBiDiag(D : PConstDoubleArr; E : PConstDoubleArr;
                      VT : PDouble; const LineWidthVT : TASMNativeInt; U : PDouble; const LineWidthU : TASMNativeInt;
                      C : PDouble; const LineWidthC : TASMNativeInt;
                      N, NCVT, NRU, NCC : TASMNativeInt; Work : PDouble;
@@ -1560,7 +1442,6 @@ var nm1 : TASMNativeInt;
     sigmn, sigmx, sinr, cosr, sinl, cosl : double;
     isub : TASMNativeInt;
     j : TASMNativeInt;
-    llFound : boolean;
 begin
      Result := srOk;
      pwork := PConstDoubleArr(work);
@@ -1673,7 +1554,7 @@ begin
           if ll = m - 1 then
           begin
                // 2 by 2 block, handle separately
-               dlasv2(d^[m - 1], e^[m - 1], d^[m], sigmn, sigmx, sinr, cosr, sinl, cosl);
+               SingularValuesTriang2x2(d^[m - 1], e^[m - 1], d^[m], sigmn, sigmx, sinr, cosr, sinl, cosl);
                d^[m - 1] := sigmx;
                e^[m - 1] := 0;
                d^[m] := sigmn;
@@ -1796,12 +1677,12 @@ begin
                if idir = 1 then
                begin
                     sll := abs(d^[ll]);
-                    dlas2(d^[m - 1], e^[m - 1], d^[m], shift, r);
+                    SingularValues2x2(d^[m - 1], e^[m - 1], d^[m], shift, r);
                end
                else
                begin
                     sll := abs( d^[m] );
-                    dlas2(d^[ll], e^[ll], d^[ll + 1], shift, r);
+                    SingularValues2x2(d^[ll], e^[ll], d^[ll + 1], shift, r);
                end;
 
                if sll > 0 then
@@ -2123,7 +2004,6 @@ var work : PDouble;
     eps1, smallnum , bignum : double;
     minmn : TASMNativeInt;
     absMax : double;
-    doScale : boolean;
     mnthr : TASMNativeInt;
     pWorkITau : PDouble;
     pWorkTauQ, pWorkTaup, pWorkI, pWorkIE : PDouble;
@@ -2133,14 +2013,12 @@ var work : PDouble;
     isScaled : boolean;
     x, y : TASMNativeInt;
     pWorkIR : PDouble;
-    LineWidthIR : TASMNativeInt;
-    ldwrku, ldwrkr : TASMNativeInt;
-    itau : TASMNativeInt;
     chunk : TASMNativeInt;
     w2, h2 : TASMNativeInt;
     memNeed : TASMNativeInt;
-    qrMem : TASMNativeInt;
 begin
+     Result := srOk;
+
      if width > Height then
         raise Exception.Create('Not implemented');
 
@@ -2259,7 +2137,7 @@ begin
                svdData.qFromQRDecomp(pWorkIR, w2*sizeof(double), width, width, pWorkTauq, svdData.QRPnlSize, nil, svdData.Progress);
 
                // Generate right vectors bidiangoizaing R in VT
-               Dorgbr_P(V, LineWidthV, width, width, width, pWorkTaup, nil, svdData);
+               InitAndLeftQFromQR(V, LineWidthV, width, width, width, pWorkTaup, nil, svdData);
 
                pWorkI := pWorkIE;
                inc(pWorkI, width);
@@ -2267,7 +2145,7 @@ begin
                // Perform bidiagonal QR iteration, computing left
                // singular vectors of R in WORK(IR) and computing right
                // singular vectors of R in VT
-               Result := dbdsqr_upper(W, PConstDoubleArr(pWorkIE), V, LineWidthV, pWorkIR, w2*sizeof(double), nil, 0, width, width, width, 0, pworki, svdData);
+               Result := SingularValuesUpperBiDiag(W, PConstDoubleArr(pWorkIE), V, LineWidthV, pWorkIR, w2*sizeof(double), nil, 0, width, width, width, 0, pworki, svdData);
 
                if Result = srOk then
                begin
@@ -2315,7 +2193,7 @@ begin
                         pV^[x] := pA^[x];
                end;
 
-               dorgbr_P(v, LineWidthV, width, width, width, pWorkTaup, nil, svdData);
+               InitAndLeftQFromQR(v, LineWidthV, width, width, width, pWorkTaup, nil, svdData);
 
                // Left singular vectors in A
 
@@ -2326,7 +2204,7 @@ begin
                // bidiagonal QR iteration. if desired, computing
                // left singular vectors in A and computing right singular
                // vectors in VT
-               Result := dbdsqr_upper(W, PConstDoubleArr(pWorkIE), V, LineWidthV, A, LineWidthA, nil, 0, width, width, height, 0, pWorkI, svdData)
+               Result := SingularValuesUpperBiDiag(W, PConstDoubleArr(pWorkIE), V, LineWidthV, A, LineWidthA, nil, 0, width, width, height, 0, pWorkI, svdData)
           end;
      end;
 

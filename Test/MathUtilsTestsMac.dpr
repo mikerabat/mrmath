@@ -75,7 +75,6 @@ uses
   BaseMathPersistence in '..\BaseMathPersistence.pas',
   BinaryReaderWriter in '..\BinaryReaderWriter.pas',
   BufferedStream in '..\BufferedStream.pas',
-  ThreadedLinAlg in '..\ThreadedLinAlg.pas',
   TestPCA in 'TestPCA.pas',
   CCA in '..\CCA.pas',
   PCA in '..\PCA.pas',
@@ -99,7 +98,13 @@ uses
   TestRandom in 'TestRandom.pas',
   winRandomGen in '..\win\winRandomGen.pas',
   MacOsRandomGen in '..\mac\MacOsRandomGen.pas',
-  JSONReaderWriter in '..\JSONReaderWriter.pas';
+  JSONReaderWriter in '..\JSONReaderWriter.pas',
+  LinAlgSVD in '..\LinAlgSVD.pas',
+  HouseholderReflectors in '..\HouseholderReflectors.pas',
+  MatrixRotations in '..\MatrixRotations.pas',
+  LinAlgCholesky in '..\LinAlgCholesky.pas',
+  LinAlgLU in '..\LinAlgLU.pas',
+  LinAlgQR in '..\LinAlgQR.pas';
 
 {$R *.res}
 
