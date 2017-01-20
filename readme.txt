@@ -15,6 +15,12 @@ open the mrMath.dpk file and compile it.
 You may find quite a few examples in "Test\MathUtilsTests.dpr" - it's a unit test
 program which shows the usage of the library nicely.
 
+Add the basepath, the win and macos paths to the delphi library paths.
+Basically you can use the "Matrix.pas" unit in your project it encapsulates
+all the matrix functions in a class.
+Alternatively one can use the ThreadedMatrix.pas file which adds multithreaded
+functionality to the base class.
+
 Also check out
 https://github.com/mikerabat/mrmath
 for a deeper description.
