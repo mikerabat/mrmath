@@ -105,6 +105,7 @@ type
     procedure TestMedian;
     procedure TestSort;
     procedure TestCholesky;
+    procedure TestSVD;
   end;
 
 implementation
@@ -632,14 +633,13 @@ begin
 
      Check((u.Width = 3) and (u.Height = 3), 'Error U has the wrong dimension');
      Check((w.Width = 3) and (w.Height = 3), 'Error W has the wrong dimension');
-     Check((v.Width = 3) and (v.Height = 4), 'Error V has the wrong dimension');
+     Check((v.Width = 4) and (v.Height = 3), 'Error V has the wrong dimension');
 
      status(WriteMtx(u.SubMatrix, u.Width));
      status(WriteMtx(w.SubMatrix, w.Width));
      status(WriteMtx(v.SubMatrix, v.Width));
 
      // check if U*W*V' = A
-     v.TransposeInPlace;
      w.MultInPlace(v);
      u.MultInPlace(w);
 
@@ -951,6 +951,49 @@ begin
      Check(CheckMtx(m1.SubMatrix, m2.SubMatrix), 'Error calculating threaded sorted matrix');
 end;
 
+
+procedure TestTThreadedMatrix.TestSVD;
+const cBlkWidth = 512;
+      cBlkSize = cBlkWidth*cBlkWidth;
+var a, x1, x2, b : TDoubleDynArray;
+    i : integer;
+    start, stop : int64;
+    m1, m2 : IMatrix;
+
+    u1, v1, w1 : IMatrix;
+    u2, v2, w2 : IMatrix;
+begin
+     SetLength(a, cBlkSize);
+     SetLength(b, 3*cBlkWidth);
+     SetLength(x1, 3*cBlkWidth);
+     SetLength(x2, 3*cBlkWidth);
+
+     RandSeed := 15;
+     for i := 0 to cBlkSize - 1 do
+         a[i] := Random - 0.5;
+
+     m1 := TDoubleMatrix.Create(a, cBlkWidth, cBlkWidth);
+     m2 := TThreadedMatrix.Create(a, cBlkWidth, cBlkWidth);
+
+     start := MtxGetTime;
+     m1.SVD(u1, v1, w1, False);
+     stop := MtxGetTime;
+     Status(Format('Blocked SVD decomp: %.2fms', [(stop - start)/mtxfreq*1000]));
+
+     start := MtxGetTime;
+     m2.SVD(u2, v2, w2, False);
+     stop := MtxGetTime;
+     Status(Format('Threaded SVD decomp: %.2fms', [(stop - start)/mtxfreq*1000]));
+
+     w1.MultInPlace(v1);
+     u1.MultInPlace(w1);
+
+     w2.MultInPlace(v2);
+     u2.MultInPlace(w2);
+     
+     Check( CheckMtx( u1.SubMatrix, a ), 'Error non Threaded SVD');
+     Check( CheckMtx( u2.SubMatrix, a ), 'Error threade SVD');
+end;
 
 procedure TestTThreadedMatrix.TestThreadMult;
 var dest1, dest2 : IMatrix;

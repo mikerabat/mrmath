@@ -397,7 +397,7 @@ begin
           numBlocks := height1 div Blocksize + width2 div BlockSize;
 
           // at least 2 block per core:
-          Result := Max(1, Min(numCPUCores, numBlocks div 2 ) );
+          Result := Max(1, Min(numCPUCores, numBlocks ) );
      end;
 end;
 
@@ -428,7 +428,7 @@ begin
      if cpud2 > 1 then
      begin
           heightCores := cpud2;
-          cpud2 := numCPUCores div heightCores;
+          cpud2 := numUsedCores div heightCores;
 
           widthFits := (width2 mod cpud2) = 0;
           thrWidth := (width2 div cpud2) + TASMNativeInt(not widthFits);
@@ -440,9 +440,9 @@ begin
      else
      begin
           cpud2 := 1;
-          heightFits := (height1 mod numCPUCores) = 0;
-          thrHeight := height1 div numCPUCores + TASMNativeInt(not heightFits);
-          heightCores := numCPUCores;
+          heightFits := (height1 mod numUsedCores) = 0;
+          thrHeight := height1 div numUsedCores + TASMNativeInt(not heightFits);
+          heightCores := numUsedCores;
      end;
 
      // #################################################
@@ -499,8 +499,7 @@ begin
 
      MatrixMultDirectFunc(objs[numUsed - 1]);
      objs[numUsed - 1].Free;
-     if numUsed > 1 then
-        calls.SyncAll;
+     calls.SyncAll;
 end;
 
 procedure ThrMatrixMultEx(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
@@ -533,7 +532,7 @@ begin
      if cpud2 > 1 then
      begin
           heightCores := cpud2;
-          cpud2 := numCPUCores div heightCores;
+          cpud2 := usedCores div heightCores;
 
           widthFits := (width2 mod cpud2) = 0;
           // ensure that we can do aligned operations on matrices
@@ -546,10 +545,10 @@ begin
      else
      begin
           cpud2 := 1;
-          heightFits := (height1 mod numCPUCores) = 0;
-          thrHeight := height1 div numCPUCores + TASMNativeInt(not heightFits);
+          heightFits := (height1 mod usedCores) = 0;
+          thrHeight := height1 div usedCores + TASMNativeInt(not heightFits);
           thrHeight := thrHeight + thrHeight and $1;
-          heightCores := numCPUCores;
+          heightCores := usedCores;
      end;
 
      // ####################################################
@@ -662,7 +661,7 @@ begin
      if cpud2 > 1 then
      begin
           widthCores := cpud2;
-          cpud2 := numCPUCores div widthCores;
+          cpud2 := usedCores div widthCores;
 
           widthFits := (width2 mod cpud2) = 0;
           // ensure that we can do aligned operations on matrices
@@ -676,10 +675,10 @@ begin
      else
      begin
           cpud2 := 1;
-          widthFits1 := (width1 mod numCPUCores) = 0;
-          thrWidth1 := width1 div numCPUCores + TASMNativeInt(not widthFits1);
+          widthFits1 := (width1 mod usedCores) = 0;
+          thrWidth1 := width1 div usedCores + TASMNativeInt(not widthFits1);
           thrWidth1 := thrWidth1 + thrWidth1 and $1;
-          widthCores := numCPUCores;
+          widthCores := usedCores;
      end;
 
      // #################################################
@@ -782,7 +781,7 @@ begin
      if cpud2 > 1 then
      begin
           heightCores := cpud2;
-          cpud2 := numCPUCores div heightCores;
+          cpud2 := usedCores div heightCores;
 
           heightFits1 := (height2 mod cpud2) = 0;
           // ensure that we can do aligned operations on matrices
@@ -796,10 +795,10 @@ begin
      else
      begin
           cpud2 := 1;
-          heightFits := (height1 mod numCPUCores) = 0;
-          thrHeight := height1 div numCPUCores + TASMNativeInt(not heightFits);
+          heightFits := (height1 mod usedCores) = 0;
+          thrHeight := height1 div usedCores + TASMNativeInt(not heightFits);
           thrHeight := thrHeight + thrHeight and $1;
-          heightCores := numCPUCores;
+          heightCores := usedCores;
      end;
 
      // #################################################
@@ -1070,6 +1069,9 @@ var i: TASMNativeInt;
     calls : IMtxAsyncCallGroup;
     sizeFits : boolean;
     thrSize : TASMNativeInt;
+    
+    objs : Array[0..cMaxNumCores - 1] of TAsyncMatrixFuncObj;
+    numUsed : integer;
 begin
      // check if it is really necessary to thread the call:
      if (width < numCPUCores) and (height < numCPUCores) then
@@ -1078,7 +1080,7 @@ begin
           exit;
      end;
 
-     calls := MtxInitTaskGroup;
+     numUsed := 0;
 
      if width > height then
      begin
@@ -1097,8 +1099,9 @@ begin
                inc(obj.dest, i*thrSize);
                if width < (i + 1)*thrSize then
                   obj.Width := width - i*thrSize;
-
-               calls.AddTask(@MatrixFuncFunc, obj);
+                   
+               objs[numUsed] := obj;
+               inc(numUsed);
           end;
      end
      else
@@ -1119,10 +1122,21 @@ begin
                if height < (i + 1)*thrSize then
                   obj.Height := height - i*thrSize;
 
-               calls.AddTask(@MatrixAddAndScaleFunc, obj);
+               objs[numUsed] := obj;
+               inc(numUsed);
           end;
      end;
 
+     // ###########################################
+     // #### Run threads
+     calls := MtxInitTaskGroup;
+
+     for i := 0 to numUsed - 2 do
+         calls.AddTask(@MatrixFuncFunc, objs[i]);
+
+     MatrixFuncFunc(objs[numUsed  - 1]);
+     objs[numUsed - 1].Free;
+     
      calls.SyncAll;
 end;
 
@@ -1132,6 +1146,9 @@ var i: TASMNativeInt;
     calls : IMtxAsyncCallGroup;
     sizeFits : boolean;
     thrSize : TASMNativeInt;
+
+    objs : Array[0..cMaxNumCores - 1] of TAsyncMatrixFuncObjObj;
+    numUsed : integer;
 begin
      // check if it is really necessary to thread the call:
      if (width < numCPUCores) and (height < numCPUCores) then
@@ -1140,8 +1157,7 @@ begin
           exit;
      end;
 
-     calls := MtxInitTaskGroup;
-
+     numUsed := 0;
      if width > height then
      begin
           sizeFits := (width mod numCPUCores) = 0;
@@ -1160,7 +1176,8 @@ begin
                if width < (i + 1)*thrSize then
                   obj.Width := width - i*thrSize;
 
-               calls.AddTask(@MatrixFuncObjFunc, obj);
+               objs[numUsed] := obj;
+               inc(numUsed);
           end;
      end
      else
@@ -1181,10 +1198,21 @@ begin
                if height < (i + 1)*thrSize then
                   obj.Height := height - i*thrSize;
 
-               calls.AddTask(@MatrixFuncObjFunc, obj);
+               objs[numUsed] := obj;
+               inc(numUsed);
           end;
      end;
 
+     // ###########################################
+     // #### Run threads
+     calls := MtxInitTaskGroup;
+
+     for i := 0 to numUsed - 2 do
+         calls.AddTask(@MatrixFuncObjFunc, objs[i]);
+
+     MatrixFuncObjFunc(objs[numUsed  - 1]);
+     objs[numUsed - 1].Free;
+     
      calls.SyncAll;
 end;
 
@@ -1194,6 +1222,9 @@ var i: TASMNativeInt;
     calls : IMtxAsyncCallGroup;
     sizeFits : boolean;
     thrSize : TASMNativeInt;
+
+    objs : Array[0..cMaxNumCores - 1] of TAsyncMatrixFuncRefObj;
+    numUsed : integer;
 begin
      // check if it is really necessary to thread the call:
      if (width < numCPUCores) and (height < numCPUCores) then
@@ -1202,8 +1233,8 @@ begin
           exit;
      end;
 
-     calls := MtxInitTaskGroup;
-
+     numUsed := 0;
+     
      if width > height then
      begin
           sizeFits := (width mod numCPUCores) = 0;
@@ -1222,7 +1253,8 @@ begin
                if width < (i + 1)*thrSize then
                   obj.Width := width - i*thrSize;
 
-               calls.AddTask(@MatrixFuncRefFunc, obj);
+               objs[numUsed] := obj;
+               inc(numUsed);
           end;
      end
      else
@@ -1243,10 +1275,21 @@ begin
                if height < (i + 1)*thrSize then
                   obj.Height := height - i*thrSize;
 
-               calls.AddTask(@MatrixFuncRefFunc, obj);
+               objs[numUsed] := obj;
+               inc(numUsed);
           end;
      end;
 
+     // ###########################################
+     // #### Run threads
+     calls := MtxInitTaskGroup;
+
+     for i := 0 to numUsed - 2 do
+         calls.AddTask(@MatrixFuncRefFunc, objs[i]);
+
+     MatrixFuncRefFunc(objs[numUsed  - 1]);
+     objs[numUsed - 1].Free;
+     
      calls.SyncAll;
 end;
 
@@ -1256,6 +1299,9 @@ var i: TASMNativeInt;
     calls : IMtxAsyncCallGroup;
     sizeFits : boolean;
     thrSize : TASMNativeInt;
+
+    objs : Array[0..cMaxNumCores - 1] of TAsyncMatrixFuncRefObjObj;
+    numUsed : integer;
 begin
      // check if it is really necessary to thread the call:
      if (width < numCPUCores) and (height < numCPUCores) then
@@ -1264,7 +1310,7 @@ begin
           exit;
      end;
 
-     calls := MtxInitTaskGroup;
+     numUsed := 0;
 
      if width > height then
      begin
@@ -1284,7 +1330,8 @@ begin
                if width < (i + 1)*thrSize then
                   obj.Width := width - i*thrSize;
 
-               calls.AddTask(@MatrixFuncRefObjFunc, obj);
+               objs[numUsed] := obj;
+               inc(numUsed);
           end;
      end
      else
@@ -1305,10 +1352,21 @@ begin
                if height < (i + 1)*thrSize then
                   obj.Height := height - i*thrSize;
 
-               calls.AddTask(@MatrixFuncRefObjFunc, obj);
+               objs[numUsed] := obj;
+               inc(numUsed);
           end;
      end;
 
+     // ###########################################
+     // #### Run threads
+     calls := MtxInitTaskGroup;
+
+     for i := 0 to numUsed - 2 do
+         calls.AddTask(@MatrixFuncRefObjFunc, objs[i]);
+
+     MatrixFuncRefObjFunc(objs[numUsed  - 1]);
+     objs[numUsed - 1].Free;
+     
      calls.SyncAll;
 end;
 

@@ -68,7 +68,8 @@ begin
      // -> use that same decomposition as well for the inverting process!
      if mtx.SVD(U, V, W, True) <> srOk then
         raise ELinEQSingularException.Create('Error could not invert covariance matrix C');
-
+     V.TransposeInPlace;
+        
      // main algorithm see MatrixPseudoinverse
      tolerance := w.height*eps(w.Max);
 
@@ -189,6 +190,7 @@ begin
      if tmp.SVD(U, V, W, True) <> srOk then
         raise ELinEQSingularException.Create('Error could not calculate SVD');
 
+     V.TransposeInPlace;
      // ####################################################
      // #### Compute cannonical correlation vectors
      invCxx.MultInPlace(U);

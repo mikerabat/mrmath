@@ -379,6 +379,7 @@ begin
            begin
                 fMeanNormExamples.TransposeInPlace;
                 Result := fMeanNormExamples.SVD(mv, fEigVecs, fEigVals) = srOk;
+                fEigVecs.TransposeInPlace;  // SVD returns eigvecs transposed (V is V transposed!)
            end;
 
            // calculate real eigenvalues
@@ -508,6 +509,36 @@ begin
      end;
 end;
 
+//procedure WriteMatlabData(const fileName: string;
+//  const data: array of double; width: integer);
+//var i : integer;
+//    s : string;
+//begin
+//     // write a file which can be read into matlab using the load command
+//     // the procedure is usefull to verify the results against this program.
+//     with TStringList.Create do
+//     try
+//        BeginUpdate;
+//        s := '';
+//        for i := 0 to Length(data) - 1 do
+//        begin
+//             s := s + Format('%.9f,', [data[i]]);
+//
+//             if i mod width = width - 1 then
+//             begin
+//                  s[length(s)] := ';';
+//                  Add(s);
+//                  s := '';
+//             end;
+//        end;
+//        EndUpdate;
+//
+//        SaveToFile(FileName {$IF not Defined(FPC) and (CompilerVersion >= 20)} , TEncoding.ASCII {$IFEND});
+//     finally
+//            Free;
+//     end;
+//end;
+
 // conversion of ICG's principal component analysis.
 //     The Principal Components (PC) are the orthonormal eigenvectors of
 //     cov(A). If A is a mean normalized matrix of random variables,
@@ -553,13 +584,14 @@ begin
         // calcluated Eigenvectors and eigenvalues using the SVD algorithm
         mv := nil;
         try
-           if Examples.Height > Examples.Width
+           if Examples.Height >= Examples.Width
            then
                Result := fMeanNormExamples.SVD(fEigVecs, mv, fEigVals, True) = srOk
            else
            begin
                 fMeanNormExamples.TransposeInPlace;
                 Result := fMeanNormExamples.SVD(mv, fEigVecs, fEigVals, True) = srOk;
+                fEigVecs.TransposeInPlace;  // transpose: svd returns V as V transposed version
            end;
 
            // this scaling is apart from the original Matlab implementation but

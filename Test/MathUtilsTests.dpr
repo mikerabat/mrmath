@@ -76,7 +76,6 @@ uses
   BaseMathPersistence in '..\BaseMathPersistence.pas',
   BinaryReaderWriter in '..\BinaryReaderWriter.pas',
   BufferedStream in '..\BufferedStream.pas',
-  ThreadedLinAlg in '..\ThreadedLinAlg.pas',
   TestPCA in 'TestPCA.pas',
   CCA in '..\CCA.pas',
   PCA in '..\PCA.pas',
@@ -104,7 +103,9 @@ uses
   FastMM4Messages in 'D:\Daten\Delphi2010\3rdParty\FastMM4\FastMM4Messages.pas',
   LinAlgSVD in '..\LinAlgSVD.pas',
   HouseholderReflectors in '..\HouseholderReflectors.pas',
-  MatrixRotations in '..\MatrixRotations.pas';
+  MatrixRotations in '..\MatrixRotations.pas',
+  LinAlgCholesky in '..\LinAlgCholesky.pas',
+  LinAlgLU in '..\LinAlgLU.pas';
 
 {$R *.RES}
 

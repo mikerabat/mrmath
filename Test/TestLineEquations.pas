@@ -41,8 +41,8 @@ type
   procedure TestSVD4;
   procedure TestSVD5;
   procedure TestBigSVD;
-  procedure TestBigSVD2;
-  procedure TestBigSVD3;
+  procedure TestBigSVDHeightGEWidth;
+  procedure TestBigSVDWidthGEHeight;
 
   procedure TestCholesky;
   procedure TestCholesky2;
@@ -62,8 +62,8 @@ type
 
 implementation
 
-uses LinearAlgebraicEquations, MtxThreadPool, ThreadedLinAlg, math, MtxTimer, 
-     BlockSizeSetup, LinAlgSVD, LinAlgQR;
+uses LinearAlgebraicEquations, MtxThreadPool, math, MtxTimer, 
+     BlockSizeSetup, LinAlgSVD, LinAlgQR, LinAlgCholesky, LinAlgLU;
 
 { TestTDoubleMatrix }
 
@@ -200,7 +200,7 @@ begin
      Check( SVDMult(A, W, V), 'Error blocked SVD');
 end;
 
-procedure TTestLinearEquations.TestBigSVD2;
+procedure TTestLinearEquations.TestBigSVDHeightGEWidth;
 const cBlkWidths : Array[0..7] of integer = (1, 9, 16, 24, 43, 189, 256, 500); //, 1024);
       cBlkHeights : Array[0..7] of integer = (1, 13, 26, 123, 331, 223, 256, 543); //, 2048);
 
@@ -218,7 +218,6 @@ var A, A2, A3, W, W2, W3, V, V2, V3 : TDoubleDynArray;
 function SVDMult(A, W, V : TDoubleDynArray) : boolean;
 var i, j : integer;
     x : TDoubleDynArray;
-    v2 : TDoubleDynArray;
 begin
      //A*W store in A
      for i := 0 to BlkHeight - 1 do
@@ -226,8 +225,7 @@ begin
              A[i*BlkWidth + j] := A[i*BlkWidth + j]*W[j];
 
      // final mutl: A*W*V'
-     v2 := MatrixTranspose(@V[0], BlkWidth*sizeof(double), BlkWidth, BlkWidth);
-     x := MatrixMult(@A[0], @v2[0], BlkWidth, BlkHeight, BlkWidth, BlkWidth, BlkWidth*sizeof(double), BlkWidth*sizeof(double));
+     x := MatrixMult(@A[0], @v[0], BlkWidth, BlkHeight, BlkWidth, BlkWidth, BlkWidth*sizeof(double), BlkWidth*sizeof(double));
 
      Result := CheckMtx(X, ARef);
 end;
@@ -265,7 +263,7 @@ begin
           A3 := Copy(A, 0, Length(A));
           ARef := Copy(A, 0, Length(A));
 
-          WriteMatlabData('D:\svdinp.txt', A3, BlkWidth);
+          //WriteMatlabData('D:\svdinp.txt', A3, BlkWidth);
 
           QRBlockSize := BlkWidth;
           SVDBlockSize := BlkWidth;
@@ -285,12 +283,11 @@ begin
           ThrMatrixSVDInPlace(@A3[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W3[0]), @V3[0], BlkWidth*sizeof(double), SVDBlockSize, nil);
           stop3 := MtxGetTime;
 
-
           Status(Format('BigSVD took (%d, %d): %.3fms, %.3fms, %.3fms', [blkWidth, blkHeight, (stop1 - start1)/mtxfreq*1000, (stop2 - start2)/mtxfreq*1000, (stop3 - start3)/mtxfreq*1000]));
 
-          WriteMatlabData('D:\U2.txt', A, BlkWidth);
-          WriteMatlabData('D:\W2.txt', W, 1);
-          WriteMatlabData('D:\V2.txt', V, BlkWidth);
+         // WriteMatlabData('D:\U2.txt', A, BlkWidth);
+//          WriteMatlabData('D:\W2.txt', W, 1);
+//          WriteMatlabData('D:\V2.txt', V, BlkWidth);
 //
 //          WriteMatlabData('D:\U1.txt', A2, BlkWidth);
 //          WriteMatlabData('D:\W1.txt', W2, 1);
@@ -300,6 +297,7 @@ begin
           Check( CheckMtx(W2, W, -1, -1, 1e-6), 'Iter: ' + intToStr(iter) + ' - Blocked SVD version failed in W');
           Check( SVDMult(A2, W2, V2), 'Iter: ' + intToStr(iter) + ' - Error non blocked SVD');
           Check( SVDMult(A, W, V), 'Iter: ' + intToStr(iter) + ' - Error blocked SVD');
+          Check( SVDMult(A3, W3, V3), 'Iter: ' + intToStr(iter) + ' - Error threaded SVD');
 
           // note: the matrices a and v may have different signs (the final multiplication works though) -> compare the absolute values only
           MatrixAbs(@A2[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight);
@@ -313,7 +311,7 @@ begin
      FinalizeMtxThreadPool;
 end;
 
-procedure TTestLinearEquations.TestBigSVD3;
+procedure TTestLinearEquations.TestBigSVDWidthGEHeight;
 const cBlkHeights : Array[0..7] of integer = (1, 9, 16, 24, 43, 189, 256, 500); //, 1024);
       cBlkWidths : Array[0..7] of integer = (1, 13, 26, 123, 331, 223, 256, 543); //, 2048);
 
@@ -331,16 +329,16 @@ var A, A2, A3, W, W2, W3, V, V2, V3 : TDoubleDynArray;
 function SVDMult(A, W, V : TDoubleDynArray) : boolean;
 var i, j : integer;
     x : TDoubleDynArray;
-    v2 : TDoubleDynArray;
+    minMN : integer;
 begin
+     minMN := Min(blkWidth, blkHeight);
      //A*W store in A
-     for i := 0 to blkHeight - 1 do
-         for j := 0 to blkHeight - 1 do
-             A[i*blkHeight + j] := A[i*blkHeight + j]*W[j];
+     for i := 0 to minMN - 1 do
+         for j := 0 to minMN - 1 do
+             A[i*blkWidth + j] := A[i*blkWidth + j]*W[j];
 
      // final mutl: A*W*V'
-     v2 := MatrixTranspose(@V[0], BlkHeight*sizeof(double), blkHeight, blkWidth);
-     x := MatrixMult(@A[0], @v2[0], blkHeight, blkHeight, blkWidth, blkHeight, blkWidth*sizeof(double), blkWidth*sizeof(double));
+     x := MatrixMult(@A[0], @v[0], blkHeight, blkHeight, blkWidth, blkHeight, blkWidth*sizeof(double), blkWidth*sizeof(double));
 
      Result := CheckMtx(X, ARef);
 end;
@@ -360,11 +358,11 @@ begin
           blkSize := blkWidth*blkHeight;
 
           SetLength(A, BlkSize);
-          SetLength(V, BlkWidth*blkHeight);
+          SetLength(V, BlkSize);
           SetLength(W, blkHeight);
-          SetLength(V2, BlkWidth*blkHeight);
+          SetLength(V2, BlkSize);
           SetLength(W2, blkHeight);
-          SetLength(V3, BlkWidth*blkHeight);
+          SetLength(V3, BlkSize);
           SetLength(W3, blkHeight);
 
           RandSeed := 15;
@@ -378,32 +376,32 @@ begin
           A3 := Copy(A, 0, Length(A));
           ARef := Copy(A, 0, Length(A));
 
-          WriteMatlabData('D:\svdinp.txt', A3, BlkWidth);
+          //WriteMatlabData('D:\svdinp.txt', A3, BlkWidth);
 
           QRBlockSize := BlkWidth;
           SVDBlockSize := BlkWidth;
 
           start1 := MtxGetTime;
-          MatrixSVDInPlace2(@A2[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W2[0]), @V2[0], blkHeight*sizeof(double), BlkWidth, nil);
+          MatrixSVDInPlace2(@A2[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W2[0]), @V2[0], blkWidth*sizeof(double), BlkWidth, nil);
           stop1 := MtxGetTime;
 
           SVDBlockSize := 24;
           QRBlockSize := 32;
 
           start2 := MtxGetTime;
-          MatrixSVDInPlace2(@A[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W[0]), @V[0], blkHeight*sizeof(double), SVDBlockSize, nil);
+          MatrixSVDInPlace2(@A[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W[0]), @V[0], blkWidth*sizeof(double), SVDBlockSize, nil);
           stop2 := MtxGetTime;
 
           start3 := MtxGetTime;
-          ThrMatrixSVDInPlace(@A3[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W3[0]), @V3[0], blkHeight*sizeof(double), SVDBlockSize, nil);
+          ThrMatrixSVDInPlace(@A3[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W3[0]), @V3[0], blkWidth*sizeof(double), SVDBlockSize, nil);
           stop3 := MtxGetTime;
 
 
           Status(Format('BigSVD took (%d, %d): %.3fms, %.3fms, %.3fms', [blkWidth, blkHeight, (stop1 - start1)/mtxfreq*1000, (stop2 - start2)/mtxfreq*1000, (stop3 - start3)/mtxfreq*1000]));
 
-          WriteMatlabData('D:\U2.txt', A, BlkWidth);
-          WriteMatlabData('D:\W2.txt', W, 1);
-          WriteMatlabData('D:\V2.txt', V, BlkWidth);
+          //WriteMatlabData('D:\U2.txt', A, BlkWidth);
+//          WriteMatlabData('D:\W2.txt', W, 1);
+//          WriteMatlabData('D:\V2.txt', V, BlkWidth);
 //
 //          WriteMatlabData('D:\U1.txt', A2, BlkWidth);
 //          WriteMatlabData('D:\W1.txt', W2, 1);
@@ -413,12 +411,13 @@ begin
           Check( CheckMtx(W2, W, -1, -1, 1e-6), 'Iter: ' + intToStr(iter) + ' - Blocked SVD version failed in W');
           Check( SVDMult(A2, W2, V2), 'Iter: ' + intToStr(iter) + ' - Error non blocked SVD');
           Check( SVDMult(A, W, V), 'Iter: ' + intToStr(iter) + ' - Error blocked SVD');
+          Check( SVDMult(A3, W3, V3), 'Iter: ' + intToStr(iter) + ' - Error threaded SVD');
 
           // note: the matrices a and v may have different signs (the final multiplication works though) -> compare the absolute values only
           MatrixAbs(@A2[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight);
           MatrixAbs(@A[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight);
-          MatrixAbs(@V2[0], BlkWidth*sizeof(double), BlkWidth, BlkWidth);
-          MatrixAbs(@V[0], BlkWidth*sizeof(double), BlkWidth, BlkWidth);
+          MatrixAbs(@V2[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight);
+          MatrixAbs(@V[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight);
           Check( CheckMtx(A2, A, -1, -1, 1e-6), 'Iter: ' + intToStr(iter) + ' - Blocked SVD version failed in A');
           Check( CheckMtx(V2, V, -1, -1, 1e-6), 'Iter: ' + intToStr(iter) + ' - Blocked SVD version failed in V');
      end;
@@ -803,22 +802,30 @@ begin
      index := 0;
      Check(CheckMtxIdx(x1, x2, index), Format('error Lin equation solve. Error at x[%d] = %.5f, y[%d] = %.5f', [index, x1[index], index, x2[index]]));
 end;
-
+ 
 procedure TTestLinearEquations.TestPseudoInversion;
 const A : Array[0..9] of double = (1, 1, 2, -2, 3, -1, -1, 2, -2, 3);
       Res : Array[0..9] of double = (0.2000, 0.0606, 0.2606, 0.0545, 0.0242, 0.2000, -0.0606, 0.1394, 0.1455, 0.1758);
       Res1 : Array[0..9] of double = (0.2500, -0.2500, 0.2500, -0.2500, 0.0588, 0.0588, -0.0588, -0.0588, 0.0882, 0.0882);
 var dest : Array[0..9] of double;
+    dest2 : Array[0..9] of double;
     Ain : Array[0..9] of double;
 begin
-     exit;
      Move(A, Ain, sizeof(A));
 
      Check(MatrixPseudoinverse(@dest[0], 5*sizeof(double), @Ain[0], 2*sizeof(Double),  2, 5) = srOk, 'Error Pseudo Inversion: ' + WriteMtx(A, 2));
      Check(CheckMtx(Dest, Res), 'Error Pseudo Inversion calculation: ' + WriteMtx(dest, 5));
 
      Move(A, Ain, sizeof(A));
+     Check(MatrixPseudoinverse2(@dest2[0], 5*sizeof(double), @Ain[0], 2*sizeof(Double),  2, 5) = srOk, 'Error Pseudo Inversion: ' + WriteMtx(A, 2));
+     Check(CheckMtx(Dest2, res), 'Error second pseudo inversion: ' + WriteMtx(dest2, 5) );
+     
+     Move(A, Ain, sizeof(A));
      Check(MatrixPseudoinverse(@dest[0], 2*sizeof(double), @Ain[0], 5*sizeof(double), 5, 2) = srOk, 'Error Pseudo Inversion: ' + WriteMtx(A, 2));
+     Check(CheckMtx(Dest, Res1), 'Error Pseudo Inversion calculation: ' + WriteMtx(dest, 5));
+
+     Move(A, Ain, sizeof(A));
+     Check(MatrixPseudoinverse2(@dest[0], 2*sizeof(double), @Ain[0], 5*sizeof(double), 5, 2) = srOk, 'Error Pseudo Inversion: ' + WriteMtx(A, 2));
      Check(CheckMtx(Dest, Res1), 'Error Pseudo Inversion calculation: ' + WriteMtx(dest, 5));
 end;
 
@@ -836,6 +843,30 @@ begin
 
      SetLength(B, 25*5);
      Check(MatrixPseudoinverse(@B[0], 25*sizeof(double), @A[0], 5*sizeof(double), 5, 25) = srOk, 'Error Pseudoinversion failed');
+
+     SetLength(A, 25*5);
+     for i := 0 to Length(A) - 1 do
+     begin
+          A[i] := i + 1;
+     end;
+
+     // check if A*pinv(A)*A = A
+     C := MatrixMult(A, B, 5, 25, 25, 5);
+     C := MatrixMult(C, A, 25, 25, 5, 25);
+
+     Check(CheckMtx(C, A), 'Error Pseudoinversion Test A*pinv(A)*A = A failed');
+
+     // ###########################################
+     // #### Second function
+     SetLength(A, 25*5);
+     for i := 0 to Length(A) - 1 do
+     begin
+          A[i] := i + 1;
+     end;
+
+     B := nil;
+     SetLength(B, 25*5);
+     Check(MatrixPseudoinverse2(@B[0], 25*sizeof(double), @A[0], 5*sizeof(double), 5, 25) = srOk, 'Error Pseudoinversion failed');
 
      SetLength(A, 25*5);
      for i := 0 to Length(A) - 1 do
@@ -1335,7 +1366,7 @@ begin
      FillChar(w, sizeof(w), 0);
      FillChar(v, sizeof(V), 0);
 
-     check( srOk = MatrixSVDInPlace2(@a[0], 4*sizeof(double), 4, 3, @w[0], @V[0], 3*sizeof(double) ), 'SVD failed');
+     check( srOk = MatrixSVDInPlace2(@a[0], 4*sizeof(double), 4, 3, @w[0], @V[0], 4*sizeof(double) ), 'SVD failed');
 
      Status(WriteMtx(a, 4));
      Status(WriteMtx(w, 1));
@@ -1355,19 +1386,19 @@ end;
 procedure TTestLinearEquations.TestSVD5;
 const cA : Array[0..14*7-1] of double =
    (-23.841054899,-23.000184846,37.364632705,7.272944470,-72.860984584,8.392959617,-13.517837487,
-60.833639470,3.528232561,65.804237499,-25.197981829,183.333439172,26.149141747,-13.517837487,
-21.579330488,67.296743757,42.066119531,-48.863406745,-1.629477818,-4.422232876,-13.517837487,
-38.620422590,39.258801436,-4.913997784,14.672415460,47.614035833,26.340871666,-13.517837487,
--13.690499909,-15.391362672,-35.390273798,16.967858448,-3.694489408,37.019954750,-13.517837487,
--4.034295958,-27.493006881,-60.436555743,28.847186847,-0.394691221,39.366084701,-13.517837487,
-1.976754100,45.834624533,66.282178166,-34.404550498,52.139325490,11.110598762,-13.517837487,
-15.114082290,1.834218170,-79.628378305,-3.587105772,10.593308957,27.817851407,-13.517837487,
-12.508676902,21.787220575,-27.722453549,5.434413595,1.490079217,27.019600049,-13.517837487,
--35.301395001,-30.306190220,-51.518289041,-9.061938108,-15.487013198,25.557031986,-13.517837487,
-19.726155128,-46.220738905,-57.209275825,-40.642947792,10.707942501,-42.920308087,-13.517837487,
--7.391353654,-66.613291328,47.413312602,56.674039448,-123.457046957,-15.540073582,-13.517837487,
--63.357914386,20.124520361,1.274499920,-2.497354473,17.414166679,-124.031886610,-13.517837487,
--22.742547160,9.360413460,56.614243622,34.386426948,-105.768594664,-41.859593530,175.731887330);
+    60.833639470,3.528232561,65.804237499,-25.197981829,183.333439172,26.149141747,-13.517837487,
+    21.579330488,67.296743757,42.066119531,-48.863406745,-1.629477818,-4.422232876,-13.517837487,
+    38.620422590,39.258801436,-4.913997784,14.672415460,47.614035833,26.340871666,-13.517837487,
+    -13.690499909,-15.391362672,-35.390273798,16.967858448,-3.694489408,37.019954750,-13.517837487,
+    -4.034295958,-27.493006881,-60.436555743,28.847186847,-0.394691221,39.366084701,-13.517837487,
+    1.976754100,45.834624533,66.282178166,-34.404550498,52.139325490,11.110598762,-13.517837487,
+    15.114082290,1.834218170,-79.628378305,-3.587105772,10.593308957,27.817851407,-13.517837487,
+    12.508676902,21.787220575,-27.722453549,5.434413595,1.490079217,27.019600049,-13.517837487,
+    -35.301395001,-30.306190220,-51.518289041,-9.061938108,-15.487013198,25.557031986,-13.517837487,
+    19.726155128,-46.220738905,-57.209275825,-40.642947792,10.707942501,-42.920308087,-13.517837487,
+    -7.391353654,-66.613291328,47.413312602,56.674039448,-123.457046957,-15.540073582,-13.517837487,
+    -63.357914386,20.124520361,1.274499920,-2.497354473,17.414166679,-124.031886610,-13.517837487,
+    -22.742547160,9.360413460,56.614243622,34.386426948,-105.768594664,-41.859593530,175.731887330);
 
 const cWidth = 7;
       cHeight = 14;

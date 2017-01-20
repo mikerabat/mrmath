@@ -71,6 +71,7 @@ type
     function QR(out ecosizeR : TDoubleMatrix; out tau : TDoubleMatrix) : TQRResult; override;
     function QRFull(out Q, R : TDoubleMatrix) : TQRResult; override;
     function Cholesky(out Chol : TDoubleMatrix) : TCholeskyResult; overload; override;
+    function SVD(out U, V, W : TDoubleMatrix; onlyDiagElements : boolean = False) : TSVDResult; override;
     
     class procedure InitThreadPool;
     class procedure FinalizeThreadPool;
@@ -78,8 +79,8 @@ type
 
 implementation
 
-uses SysUtils, ThreadedMatrixOperations, MtxThreadPool, ThreadedLinAlg, BlockSizeSetup,
-     Math, LinAlgQR;
+uses SysUtils, ThreadedMatrixOperations, MtxThreadPool, BlockSizeSetup,
+     Math, LinAlgQR, LinAlgCholesky, LinAlgLU, LinAlgSVD;
 
 { TThreadedMatrix }
 
@@ -529,6 +530,76 @@ begin
      // inplace matrix substraction
      assert((fSubWidth = Value.Width) and (fSubHeight = Value.Height), 'Matrix dimensions do not match');
      ThrMatrixSub(StartElement, LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight, LineWidth, Value.LineWidth);
+end;
+
+function TThreadedMatrix.SVD(out U, V, W: TDoubleMatrix;
+  onlyDiagElements: boolean): TSVDResult;
+var pW : PConstDoubleArr;
+    wArr : PByte;
+    minWH : TASMNativeInt;
+    i : Integer;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'Dimension error');
+
+     U := nil;
+     V := nil;
+     W := nil;
+     wArr := nil;
+     try
+        minWH := Math.Min(fSubWidth, fSubHeight);
+
+        W := ResultClass.Create(ifthen(onlyDiagElements, 1, minWH), minWH);
+
+        pW := PConstDoubleArr( W.StartElement );
+        if not onlyDiagElements then
+        begin
+             wArr := AllocMem( minWH*sizeof(double));
+             pW := PConstDoubleArr( @wArr[0] );
+        end;
+
+        if width > height then
+        begin
+             V := Transpose;
+             U := ResultClass.Create( fSubHeight, fSubHeight );
+
+             Result := ThrMatrixSVDInPlace(V.StartElement, V.LineWidth, Height, Width, pW, U.StartElement, U.LineWidth, SVDBlockSize, nil );
+
+             // we need a final transposition on the matrix U and V
+             U.TransposeInPlace;
+             V.TransposeInPlace;
+        end
+        else
+        begin
+             U := Clone;
+             V := ResultClass.Create(fSubWidth, fSubWidth);
+
+             Result := ThrMatrixSVDInPlace(U.StartElement, U.LineWidth, Width, Height, pW, V.StartElement, V.LineWidth, SVDBlockSize, nil);
+        end;
+
+        if Result <> srOk then
+        begin
+             FreeAndNil(u);
+             FreeAndNil(V);
+             FreeAndNil(W);
+        end
+        else if not onlyDiagElements then
+        begin
+             for i := 0 to minWH - 1 do
+                 W[i, i] := pW^[i];
+        end;
+
+        if Assigned(wArr) then
+           FreeMem(wArr);
+     except
+           FreeAndNil(u);
+           FreeAndNil(V);
+           FreeAndNil(W);
+
+           if Assigned(wArr) then
+              FreeMem(wArr);
+
+           raise;
+     end;
 end;
 
 end.

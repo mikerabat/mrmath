@@ -17,6 +17,30 @@
 
 package mrMath;
 
+{$R *.res}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS ON}
+{$RANGECHECKS ON}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$IMPLICITBUILD ON}
+
 requires
   rtl;
 
@@ -51,7 +75,6 @@ contains
   BlockSizeSetup in 'BlockSizeSetup.pas',
   CPUFeatures in 'CPUFeatures.pas',
   Eigensystems in 'Eigensystems.pas',
-  LinearAlgebraicEquations in 'LinearAlgebraicEquations.pas',
   MathUtilFunc in 'MathUtilFunc.pas',
   Matrix in 'Matrix.pas',
   MatrixConst in 'MatrixConst.pas',
@@ -65,7 +88,6 @@ contains
   JSONReaderWriter in 'JSONReaderWriter.pas',
   PCA in 'PCA.pas',
   NonLinearFit in 'NonLinearFit.pas',
-  ThreadedLinAlg in 'ThreadedLinAlg.pas',
   IncrementalPCA in 'IncrementalPCA.pas',
   MacOsThreadPool in 'mac\MacOsThreadPool.pas',
   WinThreadPool in 'win\WinThreadPool.pas',
@@ -79,6 +101,13 @@ contains
   ICA in 'ICA.pas',
   RandomEng in 'RandomEng.pas',
   winRandomGen in 'win\winRandomGen.pas',
-  MacOsRandomGen in 'mac\MacOsRandomGen.pas';
+  MacOsRandomGen in 'mac\MacOsRandomGen.pas',
+  LinAlgCholesky in 'LinAlgCholesky.pas',
+  LinAlgLU in 'LinAlgLU.pas',
+  LinAlgQR in 'LinAlgQR.pas',
+  LinAlgSVD in 'LinAlgSVD.pas',
+  HouseholderReflectors in 'HouseholderReflectors.pas',
+  MatrixRotations in 'MatrixRotations.pas',
+  LinearAlgebraicEquations in 'LinearAlgebraicEquations.pas';
 
 end.

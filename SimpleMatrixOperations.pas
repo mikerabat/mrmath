@@ -82,6 +82,10 @@ procedure GenericMtxTranspose(dest : PDouble; const destLineWidth : TASMNativeIn
 function GenericMtxTranspose(const mt : Array of Double; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
 procedure GenericMtxTranspose(var dest : Array of Double; const mt : Array of Double; width : TASMNativeInt; height : TASMNativeInt); overload;
 
+// -> only square matrices are allowed:
+procedure GenericMtxTransposeInplace(dest : PDouble; const destLineWidth : TASMNativeInt; n : TASMNativeInt);
+
+
 function GenericMtxMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 function GenericMtxMin(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 
@@ -1288,6 +1292,29 @@ begin
      assert(High(dest) >= width + 1, 'Dimension Error');
 
      GenericMtxTranspose(@dest[0], width*sizeof(double), @mt[0], width, height, width*sizeof(double));
+end;
+
+procedure GenericMtxTransposeInplace(dest : PDouble; const destLineWidth : TASMNativeInt; n : TASMNativeInt);
+var x, y : TASMNativeInt;
+    pDest : PConstDoubleArr;
+    pDest1 : PDouble;
+    tmp : double;
+begin
+     assert((n > 0), 'Dimension Error');
+
+     for y := 0 to n - 2 do
+     begin
+          pDest := PConstDoubleArr( GenPtr(dest, 0, y, destLineWidth) );
+          pDest1 := GenPtr(dest, y, y + 1, destLineWidth);
+          
+          for x := y + 1 to n - 1 do
+          begin
+               tmp := pDest^[x];
+               pDest^[x] := pDest1^;
+               pDest1^ := tmp;
+               inc(PByte(pDest1), destLineWidth);
+          end;
+     end;
 end;
 
 procedure GenericMtxSqrt(dest : PDouble; destLineWidth : TASMNativeInt; width, height : TASMNativeInt);

@@ -414,9 +414,7 @@ type
 
     // ###################################################
     // #### Matrix transformations
-    function SVD2(out U, V, W : TDoubleMatrix; onlyDiagElements : boolean = False) : TSVDResult; overload;
-    function SVD(out U, V, W : TDoubleMatrix; onlyDiagElements : boolean = False) : TSVDResult; overload;
-    function SVD2(out U, V, W : IMatrix; onlyDiagElements : boolean = False) : TSVDResult; overload;
+    function SVD(out U, V, W : TDoubleMatrix; onlyDiagElements : boolean = False) : TSVDResult; overload; virtual;
     function SVD(out U, V, W : IMatrix; onlyDiagElements : boolean = False) : TSVDResult; overload;
     function SymEig(out EigVals : TDoubleMatrix; out EigVect : TDoubleMatrix) : TEigenvalueConvergence; overload;
     function SymEig(out EigVals : TDoubleMatrix) : TEigenvalueConvergence; overload;
@@ -464,8 +462,8 @@ type
 
 implementation
 
-uses Math, OptimizedFuncs, LinearAlgebraicEquations,
-     Eigensystems, LinAlgSVD, LinAlgQR, BlockSizeSetup;
+uses Math, OptimizedFuncs, Eigensystems, LinAlgSVD, LinAlgQR, BlockSizeSetup, LinAlgCholesky, 
+     LinAlgLU;
 
 
 {$IFNDEF CPUX64}
@@ -1461,7 +1459,7 @@ begin
 
      mtx := ResultClass.Create(height, width);
      try
-        Result := MatrixPseudoinverse(mtx.StartElement, mtx.LineWidth, StartElement, LineWidth, Width, Height, fLinEQProgress);
+        Result := MatrixPseudoinverse2(mtx.StartElement, mtx.LineWidth, StartElement, LineWidth, Width, Height, fLinEQProgress);
 
         if Result = srOk then
            TakeOver(mtx);
@@ -1912,10 +1910,10 @@ begin
      end;
 end;
 
-function TDoubleMatrix.SVD2(out U, V, W: IMatrix; onlyDiagElements: boolean): TSVDResult;
+function TDoubleMatrix.SVD(out U, V, W: IMatrix; onlyDiagElements: boolean): TSVDResult;
 var uObj, vObj, wObj : TDoubleMatrix;
 begin
-     Result := SVD2(uObj, vObj, wObj, onlyDiagElements);
+     Result := SVD(uObj, vObj, wObj, onlyDiagElements);
      U := uObj;
      V := vObj;
      W := wObj;
@@ -1925,7 +1923,7 @@ function TDoubleMatrix.SVD(out U, V, W: TDoubleMatrix; onlyDiagElements : boolea
 var pW : PConstDoubleArr;
     wArr : PByte;
     minWH : TASMNativeInt;
-  i: Integer;
+    i : Integer;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'Dimension error');
 
@@ -1952,8 +1950,9 @@ begin
 
              Result := MatrixSVDInPlace2(V.StartElement, V.LineWidth, Height, Width, pW, U.StartElement, U.LineWidth, SVDBlockSize, nil );
 
-             // we need a final transposition on the matrix U
+             // we need a final transposition on the matrix U and V
              U.TransposeInPlace;
+             V.TransposeInPlace;
         end
         else
         begin
@@ -1985,46 +1984,6 @@ begin
            if Assigned(wArr) then
               FreeMem(wArr);
 
-           raise;
-     end;
-end;
-function TDoubleMatrix.SVD(out U, V, W: IMatrix; onlyDiagElements: boolean): TSVDResult;
-var uObj, vObj, wObj : TDoubleMatrix;
-begin
-     Result := SVD(uObj, vObj, wObj, onlyDiagElements);
-     U := uObj;
-     V := vObj;
-     W := wObj;
-end;
-
-function TDoubleMatrix.SVD2(out U, V, W: TDoubleMatrix; onlyDiagElements : boolean): TSVDResult;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'Dimension error');
-
-     U := nil;
-     V := nil;
-     W := Nil;
-     try
-        U := ResultClass.Create(fSubWidth, fSubHeight);
-        V := ResultClass.Create(fSubWidth, fSubWidth);
-        W := ResultClass.Create(ifthen(onlyDiagElements, 1, fSubWidth), fSubWidth);
-
-        // create three matrices -> Matrix W is a diagonal matrix with the singular values stored in the diagonal
-        Result := MatrixSVD(StartElement, LineWidth, fSubWidth, fSubHeight, U.StartElement, U.LineWidth, 
-                            W.StartElement, W.LineWidth + ifthen(onlyDiagElements, 0, sizeof(double)), 
-                            V.StartElement, V.LineWidth, fLinEQProgress);
-     
-        if Result <> srOk then
-        begin
-             FreeAndNil(u);
-             FreeAndNil(V);
-             FreeAndNil(W);
-        end;
-     except
-           FreeAndNil(u);
-           FreeAndNil(V);
-           FreeAndNil(W);
-           
            raise;
      end;
 end;

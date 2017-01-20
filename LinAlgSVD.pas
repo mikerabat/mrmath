@@ -30,7 +30,7 @@ function MatrixSVD(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNa
                    U : PDouble; const LineWidthU : TASMNativeInt; W : PDouble; const LineWidthW : TASMNativeInt;
                    V : PDouble; const LineWidthV : TASMNativeInt; progress : TLinEquProgress = nil) : TSVDResult;
 
-// lapack implementation of the svd
+// lapack implementation of the svd . this routine returns V transposed!
 function MatrixSVDInPlace2( A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt;
                  W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt; SVDBlockSize : TASMNativeInt = 32;
                  progress : TLinEquProgress = nil) : TSVDResult;
@@ -42,12 +42,26 @@ function ThrMatrixSVDInPlace( A : PDouble; const LineWidthA : TASMNativeInt; wid
                  progress : TLinEquProgress = nil) : TSVDResult;
 
 
+// Pseudoinversion - implementation taken from matlab
+// X = pinv(A) produces a matrix X of the same dimensions
+//  as A' so that A*X*A = A, X*A*X = X and A*X and X*A
+//  are Hermitian. The computation is based on SVD(A) and any
+//  singular values less than a tolerance are treated as zero.
+//  The default tolerance is MAX(SIZE(A)) * NORM(A) * EPS(class(A))
+// Note the Matrix in X is also used in the calculations, thus it's content is destroyed!
+// dest must be at least as big as the transposed of X
+function MatrixPseudoinverse(dest : PDouble; const LineWidthDest : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
+  width, height : TASMNativeInt; progress : TLinEquProgress = nil) : TSVDResult;
+
+// using MatrixsvdInPlac2
+function MatrixPseudoinverse2(dest : PDouble; const LineWidthDest : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
+  width, height : TASMNativeInt; progress : TLinEquProgress = nil) : TSVDResult;
 
 implementation
 
 uses ASMMatrixOperations, SimpleMatrixOperations, BlockSizeSetup, Classes,
      HouseholderReflectors, MatrixRotations, LinAlgQR,
-  ThreadedMatrixOperations, MtxThreadPool;
+     ThreadedMatrixOperations, MtxThreadPool;
 
 // ########################################################################
 // #### Local definitions
@@ -2326,23 +2340,30 @@ function MatrixSVDInPlace2( A : PDouble; const LineWidthA : TASMNativeInt; width
                  W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt; SVDBlockSize : TASMNativeInt = 32; progress : TLinEquProgress = nil) : TSVDResult;
 var svdData : TMtxSVDDecompData;
     minmn : TASMNativeInt;
-    aT : TDoubleDynArray;
+    vT : TDoubleDynArray;
     pA : PConstDoubleArr;
     x, y : TASMNativeInt;
 begin
      if width > Height then
      begin
-          // make use of A_T = (U * W * V_T)_T = (V * W_T * U_T)
-          MatrixTranspose(V, LineWidthV, A, LineWidthA, width, height);
+          // make use of A_T = (U * W * V_T)_T = (V * W_T * U_T)    
+          MatrixTranspose(V, height*sizeof(double), A, LineWidthA, width, height);
           MatrixScaleAndAdd(A, LineWidthA, width, height, 0, 0);  // clear out A
 
-          Result := MatrixSVDInPlace2(V, LineWidthV, height, width, W, A, LineWidthA, SVDBlockSize, progress);
+          Result := MatrixSVDInPlace2(V, height*sizeof(double), height, width, W, A, LineWidthA, SVDBlockSize, progress);
+
           if Result = srOk then
           begin
-               aT := MatrixTranspose(A, LineWidthA, height, height);
-               // copy back
-               MatrixCopy(A, LineWidthA, @aT[0], height*sizeof(double), height, height);
+               // ###########################################
+               // #### Undo transposition
 
+               // a can be inplace transposed since it is height x height:
+               GenericMtxTransposeInplace(A, LineWidthA, Height);
+               
+               // V is now height x width -> transpose
+               vt := MatrixTranspose(V, height*sizeof(double), height, width);
+               MatrixCopy(V, LineWidthV, @vt[0], width*sizeof(double), width, height);
+               
                // set the values that are not needed any more on A to zero
                for y := 0 to height - 1 do
                begin
@@ -2351,6 +2372,7 @@ begin
                         pA^[x] := 0;
                end;
           end;
+
           exit;
      end;
      // ###########################################
@@ -2584,23 +2606,39 @@ function ThrMatrixSVDInPlace( A : PDouble; const LineWidthA : TASMNativeInt; wid
                  progress : TLinEquProgress = nil) : TSVDResult;
 var svdData : TMtxSVDDecompData;
     minmn : TASMNativeInt;
-    aT : TDoubleDynArray;
-    pa : PConstDoubleArr;
+    vT : TDoubleDynArray;
+    pA : PConstDoubleArr;
     x, y : TASMNativeInt;
 begin
+     // ###########################################
+     // #### check if multithreading is ok to use
+     if (width < 128) and (height < 128) then
+     begin
+          Result := MatrixSVDInPlace2(A, LineWidthA, width, height, W, V, LineWidthV, SVDBlockSize, progress);
+          exit;
+     end;
+     
+
      if width > Height then
      begin
           // make use of A_T = (U * W * V_T)_T = (V * W_T * U_T)
-          MatrixTranspose(V, LineWidthV, A, LineWidthA, width, height);
+          MatrixTranspose(V, height*sizeof(double), A, LineWidthA, width, height);
           MatrixScaleAndAdd(A, LineWidthA, width, height, 0, 0);  // clear out A
 
-          Result := ThrMatrixSVDInPlace(V, LineWidthV, height, width, W, A, LineWidthA, SVDBlockSize, progress);
+          Result := ThrMatrixSVDInPlace(V, height*sizeof(double), height, width, W, A, LineWidthA, SVDBlockSize, progress);
           if Result = srOk then
           begin
-               aT := MatrixTranspose(A, LineWidthA, height, height);
-               // copy back
-               MatrixCopy(A, LineWidthA, @aT[0], height*sizeof(double), height, height);
+               // ###########################################
+               // #### Undo transposition
 
+               // a can be inplace transposed since it is height x height:
+               GenericMtxTransposeInplace(A, LineWidthA, Height);
+               
+               // V is now height x width -> transpose
+               vt := MatrixTranspose(V, height*sizeof(double), height, width);
+
+               MatrixCopy(V, LineWidthV, @vt[0], width*sizeof(double), width, height);
+                              
                // set the values that are not needed any more on A to zero
                for y := 0 to height - 1 do
                begin
@@ -2645,5 +2683,219 @@ begin
      FreeMem(svdData.pWorkMem);
 end;
 
+// ###########################################
+// #### Pseudoinversion
+// ###########################################
+
+function MatrixPseudoinverse(dest : PDouble; const LineWidthDest : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
+  width, height : TASMNativeInt; progress : TLinEquProgress) : TSVDResult;
+var doTranspose : boolean;
+    data : TDoubleDynArray;
+    UTranspose : TDoubleDynArray;
+    pData : PDouble;
+    lineWidthData : TASMNativeInt;
+    S, V : TDoubleDynArray;
+    lineWidthV : TASMNativeInt;
+    tolerance : double;
+    r : TASMNativeInt;
+    i : TASMNativeInt;
+    k, l : TASMNativeInt;
+    pUTranspose : PDouble;
+    res : TDoubleDynArray;
+    destOffset : TASMNativeInt;
+begin
+     // pseudo inversion of a matrix: pinv(x) = x'*(x*x')^-1
+     // based on the matlab implementation:
+     // [u s v] = svd(x, 0)
+     // s = diag(S);
+     // tol = max(m,n) * eps(max(s));
+     // r = sum(s > tol);
+     // s = diag(ones(r,1)./s(1:r));
+     // X = V(:,1:r)*s*U(:,1:r)';
+     assert((width > 0) and (height > 0) and (lineWidthDest >= height*sizeof(double)), 'Dimension error');
+
+     doTranspose := width > height;
+     if doTranspose then
+     begin
+          data := MatrixTranspose(X, LineWidthX, width, height);
+          pData := @data[0];
+          lineWidthData := height*sizeof(double);
+
+          Result := MatrixPseudoinverse(X, LineWidthX, pData, lineWidthData, height, width);
+
+          MatrixTranspose(dest, LineWidthDest, x, LineWidthX, width, height);
+          exit;
+     end;
+
+     SetLength(S, width);
+     SetLength(V, sqr(width));
+     lineWidthV := width*sizeof(double);
+     Result := MatrixSVDInPlace(X, lineWidthX, width, height, @S[0], sizeof(double), @V[0], lineWidthV, progress);
+
+     if Result = srNoConvergence then
+        exit;
+
+     tolerance := height*eps(MatrixMax(@S[0], width, 1, width*sizeof(double)));
+
+     r := 0;
+     for i := 0 to width - 1 do
+     begin
+          if s[i] > tolerance then
+             inc(r)
+     end;
+
+     if r = 0 then
+     begin
+          // set all to zero
+          destOffset := LineWidthDest - height*sizeof(double);
+          for k := 0 to width - 1 do
+          begin
+               for l := 0 to height - 1 do
+               begin
+                    dest^ := 0;
+                    inc(dest);
+               end;
+
+               inc(PByte(dest), destOffset);
+          end;
+     end
+     else
+     begin
+          // invert
+          for i := 0 to width - 1 do
+          begin
+               if s[i] > tolerance
+               then
+                   s[i] := 1/s[i]
+               else
+                   s[i] := 0;
+          end;
+
+          UTranspose := MatrixTranspose(X, LineWidthX, width, height);
+          pUTranspose := @UTranspose[0];
+          for k := 0 to width - 1 do
+          begin
+               for l := 0 to height - 1 do
+               begin
+                    pUTranspose^ := pUTranspose^*s[k];
+                    inc(pUTranspose);
+               end;
+          end;
+
+          res := MatrixMult(@V[0], @UTranspose[0], width, width, height, width, width*sizeof(double), height*sizeof(double));
+          V := nil;
+          UTranspose := nil;
+          s := nil;
+
+          // copy
+          MatrixCopy(dest, LineWidthDest, @res[0], height*sizeof(double), height, width);
+     end;
+end;
+
+function MatrixPseudoinverse2(dest : PDouble; const LineWidthDest : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
+  width, height : TASMNativeInt; progress : TLinEquProgress = nil) : TSVDResult;
+var doTranspose : boolean;
+    data : TDoubleDynArray;
+    UTranspose : TDoubleDynArray;
+    pData : PDouble;
+    lineWidthData : TASMNativeInt;
+    S, V : TDoubleDynArray;
+    lineWidthV : TASMNativeInt;
+    tolerance : double;
+    r : TASMNativeInt;
+    i : TASMNativeInt;
+    k, l : TASMNativeInt;
+    pUTranspose : PDouble;
+    res : TDoubleDynArray;
+    destOffset : TASMNativeInt;
+begin
+     // pseudo inversion of a matrix: pinv(x) = x'*(x*x')^-1
+     // based on the matlab implementation:
+     // [u s v] = svd(x, 0)
+     // s = diag(S);
+     // tol = max(m,n) * eps(max(s));
+     // r = sum(s > tol);
+     // s = diag(ones(r,1)./s(1:r));
+     // X = V(:,1:r)*s*U(:,1:r)';
+     assert((width > 0) and (height > 0) and (lineWidthDest >= height*sizeof(double)), 'Dimension error');
+
+
+     doTranspose := width > height;
+     if doTranspose then
+     begin
+          data := MatrixTranspose(X, LineWidthX, width, height);
+          pData := @data[0];
+          lineWidthData := height*sizeof(double);
+
+          Result := MatrixPseudoinverse2(X, LineWidthX, pData, lineWidthData, height, width);
+
+          MatrixTranspose(dest, LineWidthDest, x, LineWidthX, width, height);
+          exit;
+     end;
+
+     SetLength(S, width);
+     SetLength(V, sqr(width));
+     lineWidthV := width*sizeof(double);
+     Result := MatrixSVDInPlace2(X, lineWidthX, width, height, @S[0], @V[0], lineWidthV, SVDBlockSize, progress);
+
+     if Result = srNoConvergence then
+        exit;
+
+     tolerance := height*eps(MatrixMax(@S[0], width, 1, width*sizeof(double)));
+
+     r := 0;
+     for i := 0 to width - 1 do
+     begin
+          if s[i] > tolerance then
+             inc(r)
+     end;
+
+     if r = 0 then
+     begin
+          // set all to zero
+          destOffset := LineWidthDest - height*sizeof(double);
+          for k := 0 to width - 1 do
+          begin
+               for l := 0 to height - 1 do
+               begin
+                    dest^ := 0;
+                    inc(dest);
+               end;
+
+               inc(PByte(dest), destOffset);
+          end;
+     end
+     else
+     begin
+          // invert
+          for i := 0 to width - 1 do
+          begin
+               if s[i] > tolerance
+               then
+                   s[i] := 1/s[i]
+               else
+                   s[i] := 0;
+          end;
+
+          UTranspose := MatrixTranspose(X, LineWidthX, width, height);
+          pUTranspose := @UTranspose[0];
+          for k := 0 to width - 1 do
+          begin
+               for l := 0 to height - 1 do
+               begin
+                    pUTranspose^ := pUTranspose^*s[k];
+                    inc(pUTranspose);
+               end;
+          end;
+
+          res := MatrixMultT1(@V[0], @UTranspose[0], width, width, height, width, width*sizeof(double), height*sizeof(double));
+          V := nil;
+          UTranspose := nil;
+          s := nil;
+
+          // copy
+          MatrixCopy(dest, LineWidthDest, @res[0], height*sizeof(double), height, width);
+     end;
+end;
 
 end.

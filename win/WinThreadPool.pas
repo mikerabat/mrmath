@@ -252,8 +252,8 @@ procedure TWinMtxAsyncCallThread.StartTask(aTask: TWinMtxAsyncCall);
 begin
      if not fWorking then
      begin
-          fWorking := True;
           fTask := aTask;
+          fWorking := True;
           fSig.SetEvent;
      end;
 end;
@@ -287,7 +287,7 @@ begin
 
      // try again -> a new thread has been created
      if not FreeThreadFound then
-        AddAsyncCall(call);
+        call.InternExecuteAsyncCall;
 end;
 
 function TMtxThreadPool.AllocThread : TWinMtxAsyncCallThread;
