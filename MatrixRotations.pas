@@ -123,8 +123,8 @@ var cTemp, stemp, temp : double;
 begin
      for y := 0 to height - 2 do
      begin
-          ctemp := c[y];
-          stemp := s[y];
+          ctemp := c^[y];
+          stemp := s^[y];
 
           if (ctemp <> 1) or (stemp <> 0) then
           begin
@@ -147,8 +147,8 @@ var cTemp, stemp, temp : double;
 begin
      for y := height - 2 downto 0 do
      begin
-          ctemp := c[y];
-          stemp := s[y];
+          ctemp := c^[y];
+          stemp := s^[y];
 
           if (ctemp <> 1) or (stemp <> 0) then
           begin
@@ -305,8 +305,8 @@ var cTemp, stemp, temp : double;
 begin
      for y := 1 to width - 1 do
      begin
-          ctemp := c[y - 1];
-          stemp := s[y - 1];
+          ctemp := c^[y - 1];
+          stemp := s^[y - 1];
 
           if (ctemp <> 1) or (stemp <> 0) then
           begin
@@ -333,8 +333,8 @@ var cTemp, stemp, temp : double;
 begin
      for y := width - 1 downto 1 do
      begin
-          ctemp := c[y - 1];
-          stemp := s[y - 1];
+          ctemp := c^[y - 1];
+          stemp := s^[y - 1];
 
           if (ctemp <> 1) or (stemp <> 0) then
           begin
@@ -361,8 +361,8 @@ var cTemp, stemp, temp : double;
 begin
      for y := 0 to width - 2 do
      begin
-          ctemp := c[y];
-          stemp := s[y];
+          ctemp := c^[y];
+          stemp := s^[y];
 
           if (ctemp <> 1) or (stemp <> 0) then
           begin
@@ -389,8 +389,8 @@ var cTemp, stemp, temp : double;
 begin
      for y := width - 2 downto 0 do
      begin
-          ctemp := c[y];
-          stemp := s[y];
+          ctemp := c^[y];
+          stemp := s^[y];
 
           if (ctemp <> 1) or (stemp <> 0) then
           begin
@@ -427,9 +427,9 @@ begin
           pY := PConstDoubleArr(DY);
           for i := 0 to n - 1 do
           begin
-               dtemp := c*pX[i] + s*pY[i];
-               pY[i] := c*pY[i] - s*pX[i];
-               px[i] := dtemp;
+               dtemp := c*pX^[i] + s*pY^[i];
+               pY^[i] := c*pY^[i] - s*pX^[i];
+               px^[i] := dtemp;
           end;
      end
      else

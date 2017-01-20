@@ -137,7 +137,6 @@ var A, A2, W, W2, V, V2 : TDoubleDynArray;
 function SVDMult(A, W, V : TDoubleDynArray) : boolean;
 var i, j : integer;
     x : TDoubleDynArray;
-    v2 : TDoubleDynArray;
 begin
      //A*W store in A
      for i := 0 to cBlkWidth - 1 do

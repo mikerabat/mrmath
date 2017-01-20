@@ -24,7 +24,6 @@ program MathUtilsTests;
 {$ENDIF}
 
 uses
-  FastMM4 in 'D:\Daten\Delphi2010\3rdParty\FastMM4\FastMM4.pas',
   Forms,
   TestFramework,
   GUITestRunner,
@@ -100,12 +99,12 @@ uses
   winRandomGen in '..\win\winRandomGen.pas',
   MacOsRandomGen in '..\mac\MacOsRandomGen.pas',
   JSONReaderWriter in '..\JSONReaderWriter.pas',
-  FastMM4Messages in 'D:\Daten\Delphi2010\3rdParty\FastMM4\FastMM4Messages.pas',
   LinAlgSVD in '..\LinAlgSVD.pas',
   HouseholderReflectors in '..\HouseholderReflectors.pas',
   MatrixRotations in '..\MatrixRotations.pas',
   LinAlgCholesky in '..\LinAlgCholesky.pas',
-  LinAlgLU in '..\LinAlgLU.pas';
+  LinAlgLU in '..\LinAlgLU.pas',
+  LinAlgQR in '..\LinAlgQR.pas';
 
 {$R *.RES}
 

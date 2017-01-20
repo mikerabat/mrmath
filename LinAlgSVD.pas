@@ -702,7 +702,7 @@ begin
                pAmin := GenPtr(A, i, min( i + 1, height - 1), LineWidthA);
                GenElemHousholderRefl(pAmin, LineWidthA, height - i, pAii^, @tauq^[i]);
 
-               d[i] := pAii^;
+               d^[i] := pAii^;
                pAii^ := 1;
 
                // Apply H(i) to A(i:m,i+1:n) from the left
@@ -710,29 +710,29 @@ begin
                begin
                     pC := pAii;
                     inc(pC);
-                    ApplyElemHousholderReflLeft( pAii, LineWidthA, pC, LineWidthA, width - i - 1, height - i, @tauq[i], work);
+                    ApplyElemHousholderReflLeft( pAii, LineWidthA, pC, LineWidthA, width - i - 1, height - i, @tauq^[i], work);
                end;
 
-               pAii^ := d[i];
+               pAii^ := d^[i];
 
                if i < width - 1 then
                begin
                     // Generate elementary reflector G(i) to annihilate A(i,i+2:n)
                     pAmin := GenPtr(A, min( i + 2, width - 1), i, LineWidthA);
                     inc(pAii);
-                    GenElemHousholderRefl(pAmin, sizeof(double), width - i - 1, pAii^, @taup[i]);
-                    e[i]:= pAii^;
+                    GenElemHousholderRefl(pAmin, sizeof(double), width - i - 1, pAii^, @taup^[i]);
+                    e^[i]:= pAii^;
                     pAii^ := 1;
 
                     // Apply G(i) to A(i+1:m,i+1:n) from the right
                     pC := pAii;
                     inc(PByte(pC), LineWidthA);
                     ApplyElemHousholderReflRight(pAii, sizeof(double), pC, LineWidthA,
-                                                 width - i - 1, height - i - 1, @taup[i], work);
-                    pAii^ := e[i];
+                                                 width - i - 1, height - i - 1, @taup^[i], work);
+                    pAii^ := e^[i];
                end
                else
-                   taup[i] := 0;
+                   taup^[i] := 0;
           end;
      end
      else
@@ -745,7 +745,7 @@ begin
                pAmin := GenPtr(A, min( i + 1, width - 1), i, LineWidthA);
                GenElemHousholderRefl(pAmin, sizeof(double), width - i, pAii^, @taup^[i]);
 
-               d[i] := pAii^;
+               d^[i] := pAii^;
                pAii^ := 1;
 
                // Apply G(i) to A(i+1:m,i:n) from the right
@@ -753,10 +753,10 @@ begin
                begin
                     pC := pAii;
                     inc(PByte(pC), LineWidthA);
-                    ApplyElemHousholderReflRight(pAii, sizeof(double), pC, LineWidthA, width - i, height - i - 1, @taup[i], work);
+                    ApplyElemHousholderReflRight(pAii, sizeof(double), pC, LineWidthA, width - i, height - i - 1, @taup^[i], work);
                end;
 
-               pAii^ := d[i];
+               pAii^ := d^[i];
 
                if i < height - 1 then
                begin
@@ -767,8 +767,8 @@ begin
                     pAmin := GenPtr(A, i, min(i + 2, Height - 1), LineWidthA);
                     inc(PByte(pAii), LineWidthA);
 
-                    GenElemHousholderRefl(pAmin, LineWidthA, height - i - 1, pAii^, @tauq[i]);
-                    e[i]:= pAii^;
+                    GenElemHousholderRefl(pAmin, LineWidthA, height - i - 1, pAii^, @tauq^[i]);
+                    e^[i]:= pAii^;
                     pAii^ := 1;
 
                     // Apply H(i) to A(i+1:m,i+1:n) from the left
@@ -776,11 +776,11 @@ begin
                     inc(pC);
 
                     inc(pC);
-                    ApplyElemHousholderReflLeft(pAii, LineWidthA, pC, LineWidthA, width - i - 1, height - i - 1, @tauq[i], work);
-                    pAii^ := e[i];
+                    ApplyElemHousholderReflLeft(pAii, LineWidthA, pC, LineWidthA, width - i - 1, height - i - 1, @tauq^[i], work);
+                    pAii^ := e^[i];
                end
                else
-                   tauq[i] := 0;
+                   tauq^[i] := 0;
           end;
      end;
 end;
@@ -843,7 +843,7 @@ begin
                pAminIM := GenPtr(A, i, Min(i + 1, Height - 1), LineWidthA);
                GenElemHousholderRefl(pAminIM, LineWidthA, height - i, pAii00^, @tauQ^[i]);
 
-               d[i] := pAii00^;
+               d^[i] := pAii00^;
 
                if i < width - 1 then
                begin
@@ -868,7 +868,7 @@ begin
                     MatrixMtxVecMultT(pYii10, LineWidthY, pA0i01, pY0i00, LineWidthA, LineWidthY, width - i - 1, i, -1, 1);
 
                     // CALL dscal( n-i, tauq( i ), y( i+1, i ), 1 )
-                    MatrixScaleAndAdd(pYii10, LineWidthY, 1, Width - i - 1, 0, tauq[i]);
+                    MatrixScaleAndAdd(pYii10, LineWidthY, 1, Width - i - 1, 0, tauq^[i]);
 
                     // update A(i, i+1:n)
 
@@ -883,7 +883,7 @@ begin
                     pAminIM := GenPtr(A, min(i + 2, width - 1), i, LineWidthA);
                     GenElemHousholderRefl(pAminIM, sizeof(double), width - i - 1, pAii01^, @taup^[i]);
 
-                    e[i] := pAii01^;
+                    e^[i] := pAii01^;
                     pAii01^ := 1;
 
                     // Compute X(i+1:m,i)
@@ -904,7 +904,7 @@ begin
                     //             ldx, x( 1, i ), 1, one, x( i+1, i ), 1 )
                     MatrixMtxVecMult(pXii10, LineWidthX, pXi010, pX0i00, LineWidthX, LineWidthX, i, height - i - 1, -1, 1);
                     // CALL dscal( m-i, taup( i ), x( i+1, i ), 1 )
-                    MatrixScaleAndAdd(pXii10, LineWidthX, 1, height - i - 1, 0, taup[i]);
+                    MatrixScaleAndAdd(pXii10, LineWidthX, 1, height - i - 1, 0, taup^[i]);
                end;
           end;
      end
@@ -1570,22 +1570,22 @@ begin
      // Compute approximate maximum, minimum singular values
      smax := 0;
      for i := 0 to n - 1 do
-         smax := max(smax, abs(d[i]));
+         smax := max(smax, abs(d^[i]));
      for i := 0 to n - 2 do
-         smax := max(smax, abs(e[i]) );
+         smax := max(smax, abs(e^[i]) );
 
      // relative accuracy desired
      sminl := 0;
      if tol >= 0 then
      begin
-          sminoa := abs(d[0]);
+          sminoa := abs(d^[0]);
 
           if sminoa <> 0 then
           begin
                mu := sminoa;
                for i := 1 to n - 1 do
                begin
-                    mu := abs( d[i] )*( mu/(mu + abs(e[i - 1])));
+                    mu := abs( d^[i] )*( mu/(mu + abs(e^[i - 1])));
                     sminoa := min(sminoa, mu);
                     if sminoa = 0 then
                        break;
@@ -1623,10 +1623,10 @@ begin
           end;
 
           // Find diagonal block of matrix to work on
-          if (tol < 0) and (abs(d[m]) <= thresh) then
-             d[m] := 0;
+          if (tol < 0) and (abs(d^[m]) <= thresh) then
+             d^[m] := 0;
 
-          smax := abs(d[m]);
+          smax := abs(d^[m]);
           smin := smax;
 
           doCont := False;
@@ -1635,14 +1635,14 @@ begin
           while lll < m do
           begin
                ll := m - lll - 1;
-               abss := abs(d[ll]);
-               abse := abs(e[ll]);
+               abss := abs(d^[ll]);
+               abse := abs(e^[ll]);
 
                if (tol < 0) and (abss <= thresh) then
-                  d[ll] := 0;
+                  d^[ll] := 0;
                if abse <= thresh then
                begin
-                    e[ll] := 0;
+                    e^[ll] := 0;
                     // matrix splits since e[ll] = 0
 
                     if ll = m - 1 then
@@ -1673,10 +1673,10 @@ begin
           if ll = m - 1 then
           begin
                // 2 by 2 block, handle separately
-               dlasv2(d[m - 1], e[m - 1], d[m], sigmn, sigmx, sinr, cosr, sinl, cosl);
-               d[m - 1] := sigmx;
-               e[m - 1] := 0;
-               d[m] := sigmn;
+               dlasv2(d^[m - 1], e^[m - 1], d^[m], sigmn, sigmx, sinr, cosr, sinl, cosl);
+               d^[m - 1] := sigmx;
+               e^[m - 1] := 0;
+               d^[m] := sigmn;
 
                // Compute singular vectors, if desired
                svdData.MatrixRotate(u, LineWidthU, vt, LineWidthVT, m, nru, ncvt, cosl, sinl, cosr, sinr);
@@ -1695,7 +1695,7 @@ begin
           // from larger end diagonal element towards smaller)
           if (ll > oldm) or (m < oldll) then
           begin
-               if abs( d[ll] ) >= abs( d[m] )
+               if abs( d^[ll] ) >= abs( d^[m] )
                then
                    // chase bulge from top
                    idir := 1
@@ -1708,31 +1708,31 @@ begin
           begin
                // Run convergence test in forward direction
                // First apply standard test to bottom of matrix
-               if (abs(e[m - 1]) <= abs(tol)*abs(d[m]) ) or
-                  ( (tol < 0) and (abs( e[m - 1]) <= thresh ))
+               if (abs(e^[m - 1]) <= abs(tol)*abs(d^[m]) ) or
+                  ( (tol < 0) and (abs( e^[m - 1]) <= thresh ))
                then
                begin
-                    e[m - 1] := 0;
+                    e^[m - 1] := 0;
                     continue;
                end;
 
                // apply convergence criterion forward
                if tol >= 0 then
                begin
-                    mu := abs( d[ll] );
+                    mu := abs( d^[ll] );
                     sminl := mu;
 
                     doCont := False;
                     for lll := ll to m - 1 do
                     begin
-                         if abs( e[lll] ) <= tol*mu then
+                         if abs( e^[lll] ) <= tol*mu then
                          begin
-                              e[lll] := 0;
+                              e^[lll] := 0;
                               doCont := True;
                               break;
                          end;
 
-                         mu := abs( d[lll + 1]) * (mu / (mu + abs( e[lll] )));
+                         mu := abs( d^[lll + 1]) * (mu / (mu + abs( e^[lll] )));
                          sminl := min(sminl, mu);
                     end;
 
@@ -1746,11 +1746,11 @@ begin
                // Run convergence test in backward direction
                // First apply standard test to top of matrix
 
-               if (abs(e[ll]) < abs(tol)*abs(d[ll]) ) or
-                  ( (tol < 0) and (abs(e[ll]) <= thresh) )
+               if (abs(e^[ll]) < abs(tol)*abs(d^[ll]) ) or
+                  ( (tol < 0) and (abs(e^[ll]) <= thresh) )
                then
                begin
-                    e[ll] := 0;
+                    e^[ll] := 0;
                     // go all up
                     continue;
                end;
@@ -1759,20 +1759,20 @@ begin
                begin
                     // If relative accuracy desired,
                     // apply convergence criterion backward
-                    mu := abs( d[m] );
+                    mu := abs( d^[m] );
                     sminl := mu;
 
                     doCont := False;
                     for lll := m - 1 downto ll do
                     begin
-                         if abs(e[lll]) <= tol*mu then
+                         if abs(e^[lll]) <= tol*mu then
                          begin
-                              e[lll] := 0;
+                              e^[lll] := 0;
                               doCont := True;
                               break;
                          end;
 
-                         mu := abs(d[lll])*(mu/(mu + abs(e[lll])));
+                         mu := abs(d^[lll])*(mu/(mu + abs(e^[lll])));
                          sminl := min (sminl, mu);
                     end;
 
@@ -1795,13 +1795,13 @@ begin
                // Compute the shift from 2-by-2 block at end of matrix
                if idir = 1 then
                begin
-                    sll := abs(d[ll]);
-                    dlas2(d[m - 1], e[m - 1], d[m], shift, r);
+                    sll := abs(d^[ll]);
+                    dlas2(d^[m - 1], e^[m - 1], d^[m], shift, r);
                end
                else
                begin
-                    sll := abs( d[m] );
-                    dlas2(d[ll], e[ll], d[ll + 1], shift, r);
+                    sll := abs( d^[m] );
+                    dlas2(d^[ll], e^[ll], d^[ll + 1], shift, r);
                end;
 
                if sll > 0 then
@@ -1827,20 +1827,20 @@ begin
 
                     for i := ll to m - 1 do
                     begin
-                         GenPlaneRotation( d[i]*cs, e[i], cs, sn, r);
+                         GenPlaneRotation( d^[i]*cs, e^[i], cs, sn, r);
                          if i > ll then
-                            e[i - 1] := oldsn*r;
-                         GenPlaneRotation(oldcs*r, d[i + 1]*sn, oldcs, oldsn, d[i]);
+                            e^[i - 1] := oldsn*r;
+                         GenPlaneRotation(oldcs*r, d^[i + 1]*sn, oldcs, oldsn, d^[i]);
 
-                         pwork[i - ll] := cs;
-                         pwork[i - ll + nm1] := sn;
-                         pwork[i - ll + nm12] := oldcs;
-                         pwork[i - ll + nm13] := oldsn;
+                         pwork^[i - ll] := cs;
+                         pwork^[i - ll + nm1] := sn;
+                         pwork^[i - ll + nm12] := oldcs;
+                         pwork^[i - ll + nm13] := oldsn;
                     end;
 
-                    h := d[m]*cs;
-                    d[m] := h*oldcs;
-                    e[m - 1] := h*oldsn;
+                    h := d^[m]*cs;
+                    d^[m] := h*oldcs;
+                    e^[m - 1] := h*oldsn;
 
                     // update singular vectors
                     svdData.MatrixRotateUpdF(GenPtr(u, ll, 0, LineWidthU),
@@ -1862,8 +1862,8 @@ begin
 //                                 PConstDoubleArr(GenPtr(work, nm12, 0, 0)), PConstDoubleArr(GenPtr(work, nm13, 0, 0)));
 
                     // test convergence
-                    if abs( e[m - 1] ) <= thresh then
-                       e[m - 1] := 0;
+                    if abs( e^[m - 1] ) <= thresh then
+                       e^[m - 1] := 0;
                end
                else
                begin
@@ -1877,20 +1877,20 @@ begin
 
                     for i := m downto ll + 1 do
                     begin
-                         GenPlaneRotation( d[i]*cs, e[i - 1], cs, sn, r);
+                         GenPlaneRotation( d^[i]*cs, e^[i - 1], cs, sn, r);
                          if i < m then
-                            e[i] := oldsn*r;
-                         GenPlaneRotation(oldcs*r, d[i - 1]*sn, oldcs, oldsn, d[i]);
+                            e^[i] := oldsn*r;
+                         GenPlaneRotation(oldcs*r, d^[i - 1]*sn, oldcs, oldsn, d^[i]);
 
-                         pwork[i - ll - 1] := cs;
-                         pwork[i - ll - 1 + nm1] := -sn;
-                         pwork[i - ll - 1 + nm12] := oldcs;
-                         pwork[i - ll - 1 + nm13] := -oldsn;
+                         pwork^[i - ll - 1] := cs;
+                         pwork^[i - ll - 1 + nm1] := -sn;
+                         pwork^[i - ll - 1 + nm12] := oldcs;
+                         pwork^[i - ll - 1 + nm13] := -oldsn;
                     end;
 
-                    h := d[ll]*cs;
-                    d[ll] := h*oldcs;
-                    e[ll] := h*oldsn;
+                    h := d^[ll]*cs;
+                    d^[ll] := h*oldcs;
+                    e^[ll] := h*oldsn;
 
                     // update singular vectors
                     svdData.MatrixRotateUpdB(GenPtr(u, ll, 0, LineWidthU), LineWidthU,
@@ -1912,8 +1912,8 @@ begin
 //                                 PConstDoubleArr(GenPtr(work, 0, 0, 0)), PConstDoubleArr(GenPtr(work, n - 1, 0, 0)));
 
                     // test convergence
-                    if abs( e[ll] ) <= thresh then
-                       e[ll] := 0;
+                    if abs( e^[ll] ) <= thresh then
+                       e^[ll] := 0;
                end;
           end
           else
@@ -1923,38 +1923,38 @@ begin
                begin
                     // Chase bulge from top to bottom
                     // Save cosines and sines for later singular vector updates
-                    f := ( abs(D[ll] ) - shift)*
-                         ( sign(1, d[ll] ) + shift/d[ll] );
-                    g := e[ll];
+                    f := ( abs(D^[ll] ) - shift)*
+                         ( sign(1, d^[ll] ) + shift/d^[ll] );
+                    g := e^[ll];
 
                     for i := ll to m - 1 do
                     begin
                          GenPlaneRotation( f, g, cosr, sinr, r);
                          if i > ll then
-                            e[i - 1] := r;
+                            e^[i - 1] := r;
 
-                         f := cosr*d[i] + sinr*e[i];
-                         e[i] := cosr*e[i] - sinr*d[i];
-                         g := sinr*d[i + 1];
-                         d[i + 1] := cosr*d[i + 1];
+                         f := cosr*d^[i] + sinr*e^[i];
+                         e^[i] := cosr*e^[i] - sinr*d^[i];
+                         g := sinr*d^[i + 1];
+                         d^[i + 1] := cosr*d^[i + 1];
                          GenPlaneRotation(f, g, cosl, sinl, r);
 
-                         d[i] := r;
-                         f := cosl*e[i] + sinl*d[i + 1];
-                         d[i + 1] := cosl*d[i + 1] - sinl*e[i];
+                         d^[i] := r;
+                         f := cosl*e^[i] + sinl*d^[i + 1];
+                         d^[i + 1] := cosl*d^[i + 1] - sinl*e^[i];
                          if i < m - 1 then
                          begin
-                              g := sinl*e[i + 1];
-                              e[i + 1] := cosl*e[i + 1];
+                              g := sinl*e^[i + 1];
+                              e^[i + 1] := cosl*e^[i + 1];
                          end;
 
-                         pwork[i - ll] := cosr;
-                         pwork[i - ll + nm1] := sinr;
-                         pwork[i - ll + nm12] := cosl;
-                         pwork[i - ll + nm13] := sinl;
+                         pwork^[i - ll] := cosr;
+                         pwork^[i - ll + nm1] := sinr;
+                         pwork^[i - ll + nm12] := cosl;
+                         pwork^[i - ll + nm13] := sinl;
                     end;
 
-                    e[m - 1] := f;
+                    e^[m - 1] := f;
 
                     // update singular vectors
                     svdData.MatrixRotateUpdF(GenPtr(u, ll, 0, LineWidthU), LineWidthU,
@@ -1976,46 +1976,46 @@ begin
 //                                 PConstDoubleArr(GenPtr(work, nm12, 0, 0)), PConstDoubleArr(GenPtr(work, nm13, 0, 0)));
 
                     // test convergence
-                    if abs( e[m - 1] ) <= thresh then
-                       e[m - 1] := 0;
+                    if abs( e^[m - 1] ) <= thresh then
+                       e^[m - 1] := 0;
                end
                else
                begin
                     // Chase bulge from bottom to top
                     // Save cosines and sines for later singular vector updates
-                    f := ( abs( d[m] ) - shift)*(sign(1, d[m]) + shift/d[m]);
-                    g := e[m - 1];
+                    f := ( abs( d^[m] ) - shift)*(sign(1, d^[m]) + shift/d^[m]);
+                    g := e^[m - 1];
 
                     for i := m downto ll + 1 do
                     begin
                          GenPlaneRotation(f, g, cosr, sinr, r);
                          if i < m then
-                            e[i] := r;
-                         f := cosr*d[i] + sinr*e[i - 1];
-                         e[i - 1] := cosr*e[i - 1] - sinr*d[i];
-                         g := sinr*d[i - 1];
-                         d[i - 1] := cosr*d[i - 1];
+                            e^[i] := r;
+                         f := cosr*d^[i] + sinr*e^[i - 1];
+                         e^[i - 1] := cosr*e^[i - 1] - sinr*d^[i];
+                         g := sinr*d^[i - 1];
+                         d^[i - 1] := cosr*d^[i - 1];
                          GenPlaneRotation(f, g, cosl, sinl, r);
-                         d[i] := r;
-                         f := cosl*e[i - 1] + sinl*d[i - 1];
-                         d[i - 1] := cosl*d[i - 1] - sinl*e[i - 1];
+                         d^[i] := r;
+                         f := cosl*e^[i - 1] + sinl*d^[i - 1];
+                         d^[i - 1] := cosl*d^[i - 1] - sinl*e^[i - 1];
                          if i > ll + 1 then
                          begin
-                              g := sinl*e[i - 2];
-                              e[i - 2] := cosl*e[i - 2];
+                              g := sinl*e^[i - 2];
+                              e^[i - 2] := cosl*e^[i - 2];
                          end;
 
-                         pwork[i - ll - 1] := cosr;
-                         pwork[i - ll - 1 + nm1] := -sinr;
-                         pwork[i - ll - 1 + nm12] := cosl;
-                         pwork[i - ll - 1 + nm13] := -sinl;
+                         pwork^[i - ll - 1] := cosr;
+                         pwork^[i - ll - 1 + nm1] := -sinr;
+                         pwork^[i - ll - 1 + nm12] := cosl;
+                         pwork^[i - ll - 1 + nm13] := -sinl;
                     end;
 
-                    e[ll] := f;
+                    e^[ll] := f;
 
                     // test convergence
-                    if abs( e[ll] ) <= thresh then
-                       e[ll] := 0;
+                    if abs( e^[ll] ) <= thresh then
+                       e^[ll] := 0;
 
                     // update singular vectors
                     svdData.MatrixRotateUpdB(GenPtr(u, ll, 0, LineWidthU), LineWidthU,
@@ -2043,9 +2043,9 @@ begin
      // All singular values converged, so make them positive
      for i := 0 to n - 1 do
      begin
-          if d[i] < 0 then
+          if d^[i] < 0 then
           begin
-               d[i] := -d[i];
+               d^[i] := -d^[i];
 
                // change sign of singular vectors, if desired
                if ncvt > 0 then
@@ -2057,22 +2057,22 @@ begin
      for i := 0 to n - 2 do
      begin
           isub := 0;
-          smin := d[0];
+          smin := d^[0];
 
           for j := 1 to n - i - 1 do
           begin
-               if d[j] <= smin then
+               if d^[j] <= smin then
                begin
                     isub := j;
-                    smin := d[j];
+                    smin := d^[j];
                end;
           end;
 
           if isub <> n - i - 1 then
           begin
                // swap singular values and vectors
-               d[isub] := d[n - i - 1];
-               d[n - i - 1] := smin;
+               d^[isub] := d^[n - i - 1];
+               d^[n - i - 1] := smin;
 
                if ncvt > 0 then
                   DswapRow(vt, LineWidthVT, isub, n - i - 1, ncvt);
@@ -2385,17 +2385,17 @@ begin
      svdData.SVDPnlSize := SVDBlockSize;
      svdData.SVDMultSize := minmn;
      svdData.QRPnlSize := QRBlockSize;
-     svdData.qrDecomp := MatrixQRDecompInPlace2;
-     svdData.qFromQRDecomp := MatrixQFromQRDecomp;
-     svdData.LeftQFromQRDecomp := MatrixLeftQFromQRDecomp;
+     svdData.qrDecomp := {$IFDEF FPC}@{$ENDIF}MatrixQRDecompInPlace2;
+     svdData.qFromQRDecomp := {$IFDEF FPC}@{$ENDIF}MatrixQFromQRDecomp;
+     svdData.LeftQFromQRDecomp := {$IFDEF FPC}@{$ENDIF}MatrixLeftQFromQRDecomp;
      svdData.BlkMltSize := BlockMatrixCacheSize;
-     svdData.MatrixMultEx := MatrixMultEx;
-     svdData.MatrixMultT1 := MatrixMultT1Ex;
-     svdData.MatrixMultT2 := MatrixMultT2Ex;
+     svdData.MatrixMultEx := {$IFDEF FPC}@{$ENDIF}MatrixMultEx;
+     svdData.MatrixMultT1 := {$IFDEF FPC}@{$ENDIF}MatrixMultT1Ex;
+     svdData.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}MatrixMultT2Ex;
 
-     svdData.MatrixRotateUpdB := MatrixRotateUpdB;
-     svdData.MatrixRotateUpdF := MatrixRotateUpdF;
-     svdData.MatrixRotate := MatrixRotateFunc;
+     svdData.MatrixRotateUpdB := {$IFDEF FPC}@{$ENDIF}MatrixRotateUpdB;
+     svdData.MatrixRotateUpdF := {$IFDEF FPC}@{$ENDIF}MatrixRotateUpdF;
+     svdData.MatrixRotate := {$IFDEF FPC}@{$ENDIF}MatrixRotateFunc;
 
      // ###########################################
      // #### Allocate workspace for fast algorithm...
@@ -2559,7 +2559,7 @@ begin
                                    m, nru, ncvt, cosl, sinl, cosr, sinr);
 
      calls := MtxInitTaskGroup;
-     calls.AddTask(ThrRot_VT, obj);
+     calls.AddTask({$IFDEF FPC}@{$ENDIF}ThrRot_VT, obj);
      if NRU > 0 then
         MatrixRotate(nru, GenPtr(u, m - 1, 0, LineWidthU), LineWidthU, GenPtr(u, m, 0, LineWidthU), LineWidthU, cosl, sinl);
      calls.SyncAll;
@@ -2578,7 +2578,7 @@ begin
                                    aNM, anru, ancvt, aw1, aw2, aw3, aw4);
 
      calls := MtxInitTaskGroup;
-     calls.AddTask(ThrApplyPlaneRotSeqRVB, obj);
+     calls.AddTask({$IFDEF FPC}@{$ENDIF}ThrApplyPlaneRotSeqRVB, obj);
      ThrApplyPlaneRotSeqLVB(obj);
      calls.SyncAll;
 end;
@@ -2595,7 +2595,7 @@ begin
                                    aNM, anru, ancvt, aw1, aw2, aw3, aw4);
 
      calls := MtxInitTaskGroup;
-     calls.AddTask(ThrApplyPlaneRotSeqLVF, obj);
+     calls.AddTask({$IFDEF FPC}@{$ENDIF}ThrApplyPlaneRotSeqLVF, obj);
      ThrApplyPlaneRotSeqRVF(obj);
      calls.SyncAll;
 end;

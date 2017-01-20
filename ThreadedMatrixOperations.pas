@@ -22,7 +22,7 @@ procedure ThrMatrixMultDirect(dest : PDouble; const destLineWidth : TASMNativeIn
 procedure ThrMatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation = doNone);
 procedure ThrMatrixMultEx(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble;
                           width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-                          const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : integer;
+                          const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt;
                           op : TMatrixMultDestOperation; mem : PDouble); overload;
 
 procedure ThrMatrixMultT1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble;
@@ -503,7 +503,7 @@ begin
 end;
 
 procedure ThrMatrixMultEx(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-                          const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : integer; op : TMatrixMultDestOperation; mem : PDouble);
+                          const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble);
 var obj : TAsyncMultObj;
     i, j : TASMNativeInt;
     thrHeight, thrWidth : TASMNativeInt;

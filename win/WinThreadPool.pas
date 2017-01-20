@@ -169,7 +169,7 @@ constructor TWinMtxAsyncCallThread.Create(CPUNum: integer);
 begin
      FCPUNum := CPUNum;
      FreeOnTerminate := True;
-     fSig := TSimpleEvent.Create(nil, True, False, '');
+     fSig := TSimpleEvent.Create;
 
      inherited Create(False);
 end;

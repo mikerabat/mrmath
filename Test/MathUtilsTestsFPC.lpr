@@ -67,9 +67,7 @@ uses
   ThreadedMatrixOperations in '..\ThreadedMatrixOperations.pas',
   BaseMathPersistence in '..\BaseMathPersistence.pas',
   BinaryReaderWriter in '..\BinaryReaderWriter.pas',
-  JSONReaderWriter in '..\JSONReaderWriter.pas',
   BufferedStream in '..\BufferedStream.pas',
-  ThreadedLinAlg in '..\ThreadedLinAlg.pas',
   TestPCA in 'TestPCA.pas',
   CCA in '..\CCA.pas',
   PCA in '..\PCA.pas',
@@ -89,10 +87,16 @@ uses
   winCPUInfo in '..\win\winCPUInfo.pas',
   ICA in '..\ICA.pas',
   TestICA in 'TestICA.pas',
+  RandomEng in '..\RandomEng.pas',
+  TestRandom in 'TestRandom.pas',
   winRandomGen in '..\win\winRandomGen.pas',
   MacOsRandomGen in '..\mac\MacOsRandomGen.pas',
-  RandomEng in '..\RandomEng.pas',
-  TestRandom in 'TestRandom.pas';
+  JSONReaderWriter in '..\JSONReaderWriter.pas',
+  LinAlgSVD in '..\LinAlgSVD.pas',
+  HouseholderReflectors in '..\HouseholderReflectors.pas',
+  MatrixRotations in '..\MatrixRotations.pas',
+  LinAlgCholesky in '..\LinAlgCholesky.pas',
+  LinAlgLU in '..\LinAlgLU.pas';
 
 {$R *.res}
 

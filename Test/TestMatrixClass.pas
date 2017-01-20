@@ -955,7 +955,7 @@ end;
 procedure TestTThreadedMatrix.TestSVD;
 const cBlkWidth = 512;
       cBlkSize = cBlkWidth*cBlkWidth;
-var a, x1, x2, b : TDoubleDynArray;
+var a : TDoubleDynArray;
     i : integer;
     start, stop : int64;
     m1, m2 : IMatrix;
@@ -964,9 +964,6 @@ var a, x1, x2, b : TDoubleDynArray;
     u2, v2, w2 : IMatrix;
 begin
      SetLength(a, cBlkSize);
-     SetLength(b, 3*cBlkWidth);
-     SetLength(x1, 3*cBlkWidth);
-     SetLength(x2, 3*cBlkWidth);
 
      RandSeed := 15;
      for i := 0 to cBlkSize - 1 do

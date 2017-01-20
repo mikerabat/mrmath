@@ -70,14 +70,14 @@ procedure MatrixLeftQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt;
 // routines
 
 // Threaded version of the matrix qr decomposition -> makes use of threaded matrix multiplications
-function ThrMatrixQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; work : PDouble; pnlSize : integer; progress : TLinEquProgress = nil) : TQRResult;
+function ThrMatrixQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; work : PDouble; pnlSize : TASMNativeInt; progress : TLinEquProgress = nil) : TQRResult;
 
 // Threaded version of the full Q creation -> makes use of threaded matrix multiplications
 procedure ThrMatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-       tau : PDouble; BlockSize : integer; work : PDouble; progress : TLinEquProgress = nil);
+       tau : PDouble; BlockSize : TASMNativeInt; work : PDouble; progress : TLinEquProgress = nil);
 
 procedure ThrMatrixLeftQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  tau : PDouble; BlockSize : integer; work : PDouble; progress : TLinEquProgress = nil);
+  tau : PDouble; BlockSize : TASMNativeInt; work : PDouble; progress : TLinEquProgress = nil);
 
 
 implementation
@@ -1229,7 +1229,8 @@ end;
 // ##### Threaded version of matrix QR decomposition
 // ######################################################
 
-function ThrMatrixQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; work : PDouble; pnlSize : integer; progress : TLinEquProgress = nil) : TQRResult;
+function ThrMatrixQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
+   tau : PDouble; work : PDouble; pnlSize : TASMNativeInt; progress : TLinEquProgress = nil) : TQRResult;
 var res : boolean;
     qrData : TRecMtxQRDecompData;
 begin
@@ -1269,7 +1270,7 @@ begin
 end;
 
 procedure ThrMatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  tau : PDouble; BlockSize : integer; work : PDouble; progress : TLinEquProgress = nil);
+  tau : PDouble; BlockSize : TASMNativeInt; work : PDouble; progress : TLinEquProgress = nil);
 var qrData : TRecMtxQRDecompData;
 begin
      qrData.pWorkMem := nil;
@@ -1303,7 +1304,7 @@ begin
 end;
 
 procedure ThrMatrixLeftQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  tau : PDouble; BlockSize : integer; work : PDouble; progress : TLinEquProgress = nil);
+  tau : PDouble; BlockSize : TASMNativeInt; work : PDouble; progress : TLinEquProgress = nil);
 var qrData : TRecMtxQRDecompData;
 begin
      qrData.pWorkMem := nil;
