@@ -1196,7 +1196,7 @@ begin
                 actErr := Min(globalMeanError, localMeanErrors[i]);
                 for j := 0 to errors[i].Height - 1 do
                 begin
-                     if errors[i][0, j] < actErr then
+                     if errors[i][0, j] <= actErr then
                      begin
                           new(elem);
                           elem^.Error := errors[i][0, j];
@@ -1314,8 +1314,8 @@ begin
               data := X.SubMatrix;
               QuickSort(data);
 
-              numNewElements := Max(fEigVecs.Width, Min(numElements - 1, Round(numElements*fProps.ReductionFactor)));
-              if numNewElements <= 0 then
+              numNewElements := Min(numElements - 1, Max(fEigVecs.Width, Round(numElements*fProps.ReductionFactor)));
+              if numNewElements < 0 then
                  break;
 
               thresh := data[numNewElements];
