@@ -50,7 +50,7 @@ type
   protected
     { Decendants must implement this method. It is called  when the async call
       should be executed. }
-    function ExecuteAsyncCall: Integer; 
+    function ExecuteAsyncCall: Integer;
   public
     constructor Create(proc : TMtxProc; obj : TObject);
     destructor Destroy; override;
@@ -92,11 +92,9 @@ type
     fNumThreads : integer;
     fNumCPU : integer;
 
-//    function GetNexTWinMtxAsyncCall(Thread: TWinMtxAsyncCallThread): TWinMtxAsyncCall; // called from the threads
     function AllocThread : TWinMtxAsyncCallThread;
   public
     procedure AddAsyncCall(call : TWinMtxAsyncCall);
-//    function RemoveAsyncCall(Call: TWinMtxAsyncCall): Boolean;
 
     property MaxThreads : integer read fMaxThreads write fMaxThreads;
 
