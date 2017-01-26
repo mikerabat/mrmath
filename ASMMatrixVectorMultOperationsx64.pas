@@ -44,6 +44,11 @@ procedure ASMMatrixVectMultOddUnAlignedVAligned(dest : PDouble; destLineWidth : 
 // no speed gain agains amsmatrixVectMultT
 procedure ASMMatrixVectMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 
+// rank1 update: A = A + alpha*X*Y' where x and y are vectors. It's assumed that y is sequential
+procedure ASMRank1UpdateSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
+  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+procedure ASMRank1UpdateSeqAligned(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
+  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
 
 {$ENDIF}
 
@@ -2319,6 +2324,194 @@ asm
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
    end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
+
+procedure ASMRank1UpdateSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
+  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+// note: RCX = A, RDX = LineWidthA, R8 = width, R9 = height
+var iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
+asm
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRSI, rsi;
+   mov iRDI, rdi;
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+
+   mov r12, width;
+   sar r12, 1;   // width div 2
+
+   // performs A = A + alpha*X*Y' in row major form
+
+   mov rdi, X;
+   mov r13, Y;
+
+   // for the temp calculation
+   movddup xmm3, alpha;
+
+   // prepare for loop
+   mov rsi, incx;
+   // init for y := 0 to height - 1:
+   @@foryloop:
+
+      // init values:
+      movddup xmm0, [rdi];  // res := 0;
+      mulpd xmm0, xmm3;     // tmp := alpha*pX^
+      mov rax, rcx;         // eax = first destination element A
+      mov rbx, r13;           // ebx = first y vector element
+
+      // for j := 0 to width - 1 do
+      mov r14, r12;
+      test r14, r14;
+      jz @@lastElem;
+
+      @@forxloop:
+      movupd xmm1, [rax];
+      movupd xmm2, [rbx];
+
+      // pA^[j] := pA^[j] + tmp*pY1^[j];
+      mulpd xmm2, xmm0;
+      addpd xmm1, xmm2;
+
+      movupd [rax], xmm1;
+
+      add rax, 16;
+      add rbx, 16;
+
+      dec r14;
+      jnz @@forxloop;
+
+      // check if we need to handle the last element
+      mov r14, r8;
+      and r14, 1;
+      jz @@nextline;
+
+      @@lastElem:
+
+      movsd xmm1, [rax];
+      movsd xmm2, [rbx];
+
+      mulsd xmm2, xmm0;
+      addsd xmm1, xmm2;
+      movsd [rax], xmm1;
+
+      @@nextline:
+
+      // next results:
+      add rdi, rsi;
+      add rcx, rdx;
+   dec r9;          // r9 = height
+   jnz @@foryloop;
+
+   // epilog
+   mov rbx, iRBX;
+   mov rsi, iRSI;
+   mov rdi, iRDI;
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
+
+procedure ASMRank1UpdateSeqAligned(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
+  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+// note: RCX = A, RDX = LineWidthA, R8 = width, R9 = height
+var iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
+asm
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRSI, rsi;
+   mov iRDI, rdi;
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+
+   mov r12, width;
+   sar r12, 1;   // width div 2
+
+   // performs A = A + alpha*X*Y' in row major form
+
+   mov rdi, X;
+   mov r13, Y;
+
+   // for the temp calculation
+   movddup xmm3, alpha;
+
+   // prepare for loop
+   mov rsi, incx;
+   // init for y := 0 to height - 1:
+   @@foryloop:
+
+      // init values:
+      movddup xmm0, [rdi];  // res := 0;
+      mulpd xmm0, xmm3;     // tmp := alpha*pX^
+      mov rax, rcx;         // eax = first destination element A
+      mov rbx, r13;           // ebx = first y vector element
+
+      // for j := 0 to width - 1 do
+      mov r14, r12;
+      test r14, r14;
+      jz @@lastElem;
+
+      @@forxloop:
+      movapd xmm1, [rax];
+      movapd xmm2, [rbx];
+
+      // pA^[j] := pA^[j] + tmp*pY1^[j];
+      mulpd xmm2, xmm0;
+      addpd xmm1, xmm2;
+
+      movupd [rax], xmm1;
+
+      add rax, 16;
+      add rbx, 16;
+
+      dec r14;
+      jnz @@forxloop;
+
+      // check if we need to handle the last element
+      mov r14, r8;
+      and r14, 1;
+      jz @@nextline;
+
+      @@lastElem:
+
+      movsd xmm1, [rax];
+      movsd xmm2, [rbx];
+
+      mulsd xmm2, xmm0;
+      addsd xmm1, xmm2;
+      movsd [rax], xmm1;
+
+      @@nextline:
+
+      // next results:
+      add rdi, rsi;
+      add rcx, rdx;
+   dec r9;          // r9 = height
+   jnz @@foryloop;
+
+   // epilog
+   mov rbx, iRBX;
+   mov rsi, iRSI;
+   mov rdi, iRDI;
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+end;
 {$IFDEF FPC}
 end;
 {$ENDIF}

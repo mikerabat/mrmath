@@ -39,6 +39,10 @@ procedure ASMMatrixMultDirect(dest : PDouble; const destLineWidth : TASMNativeIn
 procedure ASMMtxVecMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 procedure ASMMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 
+procedure ASMRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
+  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+
+
 // note: the matrix add routine tries to add two values at once and does not carry out any range checks thus the line widhts must
 // be multiple of 16.
 procedure ASMMatrixAdd(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
@@ -1908,6 +1912,19 @@ begin
 //         ASMMatrixVectMultTDestVec(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta)
 //     else
          ASMMatrixVectMultT(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta);
+end;
+
+procedure ASMRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
+  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+begin
+     if (width <= 0) or (height <= 0) then
+        exit;
+
+     if ((TASMNativeUInt(A) and $0000000F) = 0) and ((TASMNativeUInt(Y) and $0000000F) = 0) and (LineWidthA and $F = 0)
+     then
+         ASMRank1UpdateSeqAligned(A, LineWidthA, width, height, alpha, x, y, incX, incY)
+     else
+         ASMRank1UpdateSeq(A, LineWidthA, width, height, alpha, x, y, incX, incY);
 end;
 
 end.

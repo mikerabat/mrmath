@@ -86,6 +86,8 @@ type
     procedure TestVarianceCol;
     procedure TestMtxVecMult;
     procedure TestBigMtxVecMult;
+    procedure TestRank1Upd;
+    procedure TestBigRank1Upd;
   end;
 
   TASMatrixBlockSizeSetup = class(TBaseMatrixTestCase)
@@ -3099,9 +3101,9 @@ begin
      for i := 0 to cMtxSize - 1 do
      begin
           row[i] := y[i*cMtxSize];
-          rowa^[i] := row[i]; 
+          rowa^[i] := row[i];
      end;
-         
+
      startTime1 := MtxGetTime;
      GenericMtxVecMult(@dest1[0], cMtxSize*sizeof(double), @x[0], @y[0], cMtxSize*sizeof(double), cMtxSize*sizeof(double), cMtxSize, cMtxSize, 2, -0.2);
      endTime1 := MtxGetTime;
@@ -3204,6 +3206,69 @@ begin
 
      FreeMem(xa);
      FreeMem(ya);
+end;
+
+procedure TASMMatrixOperations.TestRank1Upd;
+const cV : Array[0..5] of double = (1, 2, 3, 4, 5, 6);
+var a, a1 : Array[0..35] of double;
+    cnt : integer;
+begin
+     for cnt := 0 to High(a) do
+     begin
+          a[cnt] := cnt;
+          a1[cnt] := cnt;
+     end;
+
+     GenericRank1Update(@A[0], 6*sizeof(double), 6, 6, 1.2, @cV[0], @cV[0], sizeof(double), sizeof(double) );
+     ASMRank1UpdateSeq(@A1[0], 6*sizeof(double), 6, 6, 1.2, @cV[0], @cV[0], sizeof(double), sizeof(double) );
+
+     Check(CheckMtx(a, A1), 'Error rank 1 (even width) update failed');
+
+     GenericRank1Update(@A[0], 6*sizeof(double), 5, 5, 1.2, @cV[0], @cV[0], sizeof(double), sizeof(double) );
+     ASMRank1UpdateSeq(@A1[0], 6*sizeof(double), 5, 5, 1.2, @cV[0], @cV[0], sizeof(double), sizeof(double) );
+
+     Check(CheckMtx(a, A1), 'Error rank 1 (odd width) update failed');
+
+end;
+
+procedure TASMMatrixOperations.TestBigRank1Upd;
+const cMtxWidth = 2048;
+      cMtxHeight = 2048;
+      cMtxSize = cMtxHeight*cMtxWidth;
+var x, y : TDoubleDynArray;
+    xa, ya, yy : PDouble;
+    startTime1, endTime1 : Int64;
+    startTime2, endTime2 : int64;
+    startTime3, endTime3 : int64;
+begin
+     FillMatrix(cMtxSize, x, y, xa, ya);
+
+     Move( x[0], y[0], cMtxSize*sizeof(double));
+
+     yy := GetMemory(cMtxSize*sizeof(double));
+     Move( x[0], yy^, cMtxSize*sizeof(double));
+
+     startTime1 := MtxGetTime;
+     GenericRank1Update(@x[0], cMtxWidth*sizeof(double), cMtxWidth, cMtxHeight, 1.2, xa, ya, cMtxWidth*sizeof(double),  sizeof(double));
+     endTime1 := MtxGetTime;
+
+     startTime2 := MtxGetTime;
+     ASMRank1UpdateSeq(@y[0], cMtxWidth*sizeof(double), cMtxWidth, cMtxHeight, 1.2, xa, ya, cMtxWidth*sizeof(double),  sizeof(double));
+     endTime2 := MtxGetTime;
+
+     startTime3 := MtxGetTime;
+     ASMRank1UpdateSeqAligned(yy, cMtxWidth*sizeof(double), cMtxWidth, cMtxHeight, 1.2, xa, ya, cMtxWidth*sizeof(double),  sizeof(double));
+     endTime3 := MtxGetTime;
+
+     Status(Format('%.2f,  %.2f   %2f', [(endTime1 - startTime1)/mtxFreq*1000,  (endTime2 - startTime2)/mtxFreq*1000, (endTime3 - startTime3)/mtxFreq*1000]));
+
+     FreeMem(xa);
+     FreeMem(ya);
+
+     Check(CheckMtx(x, y), 'Big rank update failed');
+     Move(yy^, y[0], cMtxSize*sizeof(double));
+     Check(CheckMtx(x, y), 'Big rank aligned update failed');
+     FreeMem(yy);
 end;
 
 initialization

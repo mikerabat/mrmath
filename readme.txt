@@ -52,6 +52,10 @@ William Cantrall - special thanks for making the library MacOs compatible.
 
 // ###################################################################
 changelog:
+
+Date: 26.02.2017:
+* Rank1Updates are now assembler optimized results in a slightly faster QR and SVD decomposition.
+
 Date: 20.01.2017:
 * Implemented lapacks SVD routine. 
 * Blockwise and Multithreaded SVD

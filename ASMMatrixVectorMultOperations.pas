@@ -43,6 +43,12 @@ procedure ASMMatrixVectMultOddUnAlignedVAligned(dest : PDouble; destLineWidth : 
 // no speed gain agains amsmatrixVectMultT
 procedure ASMMatrixVectMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 
+// rank1 update: A = A + alpha*X*Y' where x and y are vectors. It's assumed that y is sequential
+procedure ASMRank1UpdateSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
+  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+procedure ASMRank1UpdateSeqAligned(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
+  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+
 {$ENDIF}
 
 implementation
@@ -344,7 +350,7 @@ begin
             add eax, LineWidthMT;
 
         dec height;
-        jnz @@foryshortloop;   
+        jnz @@foryshortloop;
 
         @@endmult:
 
@@ -1252,6 +1258,177 @@ begin
         // epilog
         pop edi;
         pop esi;
+        pop ebx;
+        pop edx;
+        pop eax;
+     end;
+end;
+
+procedure ASMRank1UpdateSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
+  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+var wd2 : TASMNativeInt;
+begin
+     assert(incY = sizeof(double), 'Sequential Y expected');
+
+     wd2 := width div 2;
+     // performs A = A + alpha*X*Y' in row major form
+     asm
+        push eax;
+        push edx;
+        push ebx;
+        push edi;
+        push esi;
+
+        mov edi, X;
+
+        // for the temp calculation
+        movddup xmm7, alpha;
+
+        // prepare for loop
+        mov esi, LineWidthA;
+
+        // init for y := 0 to height - 1:
+        @@foryloop:
+
+            // init values:
+            movddup xmm0, [edi];  // res := 0;
+            mulpd xmm0, xmm7;     // tmp := alpha*pX^
+            mov eax, A;           // eax = first destination element
+            mov ebx, Y;           // ebx = first y vector element
+
+            // for j := 0 to width - 1 do
+            mov ecx, wd2;
+            test ecx, ecx;
+            jz @@lastElem;
+
+            @@forxloop:
+                movupd xmm1, [eax];
+                movupd xmm2, [ebx];
+
+                // pA^[j] := pA^[j] + tmp*pY1^[j];
+                mulpd xmm2, xmm0;
+                addpd xmm1, xmm2;
+
+                movupd [eax], xmm1;
+
+                add eax, 16;
+                add ebx, 16;
+
+            dec ecx;
+            jnz @@forxloop;
+
+            // check if we need to handle the last element
+            mov ecx, width;
+            and ecx, 1;
+            jz @@nextline;
+
+            @@lastElem:
+
+            movsd xmm1, [eax];
+            movsd xmm2, [ebx];
+
+            mulsd xmm2, xmm0;
+            addsd xmm1, xmm2;
+            movsd [eax], xmm1;
+
+            @@nextline:
+
+            // next results:
+            add edi, incx;
+            add A, esi;
+        dec height;
+        jnz @@foryloop;
+
+        // epilog
+        pop esi;
+        pop edi;
+        pop ebx;
+        pop edx;
+        pop eax;
+     end;
+end;
+
+procedure ASMRank1UpdateSeqAligned(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
+  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+var wd2 : TASMNativeInt;
+begin
+     assert(incY = sizeof(double), 'Sequential Y expected');
+     assert( TASMNativeUInt(A) and $0000000F = 0, 'Non aligned input A');
+     assert( TASMNativeUInt(Y) and $0000000F = 0, 'Non aligned input Y');
+     assert( LineWidthA and $0000000F = 0, 'Non aligned line width');
+
+     wd2 := width div 2;
+     // performs A = A + alpha*X*Y' in row major form
+     asm
+        push eax;
+        push edx;
+        push ebx;
+        push edi;
+        push esi;
+
+        mov edi, X;
+
+        // for the temp calculation
+        movddup xmm7, alpha;
+
+        // prepare for loop
+        mov esi, LineWidthA;
+
+        // init for y := 0 to height - 1:
+        @@foryloop:
+
+            // init values:
+            movddup xmm0, [edi];  // res := 0;
+            mulpd xmm0, xmm7;     // tmp := alpha*pX^
+            mov eax, A;           // eax = first destination element
+            mov ebx, Y;           // ebx = first y vector element
+
+            // for j := 0 to width - 1 do
+            mov ecx, wd2;
+            test ecx, ecx;
+            jz @@lastElem;
+
+            @@forxloop:
+                movapd xmm1, [eax];
+                movapd xmm2, [ebx];
+
+                // pA^[j] := pA^[j] + tmp*pY1^[j];
+                mulpd xmm2, xmm0;
+                addpd xmm1, xmm2;
+
+                movupd [eax], xmm1;
+
+                add eax, 16;
+                add ebx, 16;
+
+            dec ecx;
+            jnz @@forxloop;
+
+            // check if we need to handle the last element
+            mov ecx, width;
+            and ecx, 1;
+            jz @@nextline;
+
+            @@lastElem:
+
+            movsd xmm1, [eax];
+            movsd xmm2, [ebx];
+
+            mulsd xmm2, xmm0;
+            addsd xmm1, xmm2;
+            movsd [eax], xmm1;
+
+            @@nextline:
+
+            // next results:
+            add edi, incx;
+            add A, esi;
+        dec height;
+        jnz @@foryloop;
+
+        // epilog
+        pop esi;
+        pop edi;
         pop ebx;
         pop edx;
         pop eax;

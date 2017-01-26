@@ -2442,23 +2442,45 @@ var i : TASMNativeInt;
     j : TASMNativeInt;
     tmp : double;
     pX, pY : PDouble;
-    pA : PConstDoubleArr;
+    pA, pY1 : PConstDoubleArr;
 begin
-     // performs A = A + alpha*X*Y' in row major form
-     pX := X;
-     for i := 0 to Height - 1 do
+     // special case: sequential vector y
+     if incy = sizeof(double) then
      begin
-          tmp := alpha*pX^;
+          // performs A = A + alpha*X*Y' in row major form
+          pY1 := PConstDoubleArr(y);
+          pX := X;
 
-          pA := PConstDoubleArr(GenPtr(A, 0, i, LineWidthA));
-          pY := Y;
-          for j := 0 to Width - 1 do
+          for i := 0 to Height - 1 do
           begin
-               pA^[j] := pA^[j] + tmp*pY^;
-               inc(PByte(pY), incY);
-          end;
+               tmp := alpha*pX^;
 
-          inc(PByte(pX), incX);
+               pA := PConstDoubleArr(GenPtr(A, 0, i, LineWidthA));
+
+               for j := 0 to Width - 1 do
+                   pA^[j] := pA^[j] + tmp*pY1^[j];
+
+               inc(PByte(pX), incX);
+          end;
+     end
+     else
+     begin
+          // performs A = A + alpha*X*Y' in row major form
+          pX := X;
+          for i := 0 to Height - 1 do
+          begin
+               tmp := alpha*pX^;
+
+               pA := PConstDoubleArr(GenPtr(A, 0, i, LineWidthA));
+               pY := Y;
+               for j := 0 to Width - 1 do
+               begin
+                    pA^[j] := pA^[j] + tmp*pY^;
+                    inc(PByte(pY), incY);
+               end;
+
+               inc(PByte(pX), incX);
+          end;
      end;
 end;
 

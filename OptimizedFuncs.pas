@@ -72,6 +72,8 @@ procedure MatrixMtxVecMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v
 // performs matrix vector multiplication in the form: dest := alpha*mt1'*v + beta*dest
 procedure MatrixMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 
+procedure MatrixRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
+  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
 
 procedure MatrixElemMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
 function MatrixElemMult(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
@@ -163,7 +165,8 @@ type
   TMatrixMedianFunc = procedure (dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; tmp : PDouble = nil);
   TMatrixSortFunc = procedure (dest : PDouble; destLineWidth : TASMNativeInt; width, height : integer; RowWise : boolean; tmp : PDouble = nil);
   TMatrixVecMultFunc = procedure (dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-
+  TMatrixRank1UpdateFunc = procedure (A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
+                                      const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
 implementation
 
 uses BlockSizeSetup, SimpleMatrixOperations, ASMMatrixOperations, ASMMatrixMultOperations,
@@ -200,6 +203,7 @@ var multFunc : TMatrixMultFunc;
     matrixVarFunc : TMatrixVarianceFunc;
     matrixSumFunc : TMatrixNormalizeFunc;
     rowSwapFunc : TMatrixRowSwapFunc;
+    Rank1Update : TMatrixRank1UpdateFunc;
 
 procedure MatrixCopy(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 begin
@@ -440,6 +444,19 @@ end;
 procedure MatrixMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 begin
      MtxVecMultTFunc(dest, destLineWidth, mt1, V, LineWidthMT, LineWidthV, width, height, alpha, beta);
+end;
+
+procedure MatrixRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
+  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+begin
+     if (width <= 0) or (height <= 0) then
+        exit;
+
+     if incy = sizeof(double)
+     then
+         Rank1Update(A, LineWidthA, width, height, alpha, x, y, incx, incy)
+     else
+         GenericRank1Update(A, LineWidthA, width, height, alpha, x, y, incx, incy);
 end;
 
 procedure MatrixElemMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
@@ -793,6 +810,7 @@ begin
           multTria2T1 := {$IFDEF FPC}@{$ENDIF}ASMMtxMultTria2T1;
           MtxVecMultFunc := {$IFDEF FPC}@{$ENDIF}ASMMtxVecMult;
           MtxVecMultTFunc := {$IFDEF FPC}@{$ENDIF}ASMMtxVecMultT;
+          Rank1Update := {$IFDEF FPC}@{$ENDIF}ASMRank1Update;
      end
      else
      begin
@@ -825,6 +843,7 @@ begin
           multTria2T1 := {$IFDEF FPC}@{$ENDIF}GenericMtxMultTria2T1Lower;
           MtxVecMultFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxVecMult;
           MtxVecMultTFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxVecMultT;
+          Rank1Update := {$IFDEF FPC}@{$ENDIF}GenericRank1Update;
      end;
 
      matrixMedianFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMedian;

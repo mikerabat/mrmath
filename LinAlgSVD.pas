@@ -773,9 +773,7 @@ begin
 
                     // Apply H(i) to A(i+1:m,i+1:n) from the left
                     pC := pAii;
-                    inc(pC);
-
-                    inc(pC);
+                    inc(pC, 2);
                     ApplyElemHousholderReflLeft(pAii, LineWidthA, pC, LineWidthA, width - i - 1, height - i - 1, @tauq^[i], work);
                     pAii^ := e^[i];
                end
@@ -919,7 +917,7 @@ procedure InitAndLeftQFromQR(A : PDouble; const LineWidthA : TASMNativeInt; widt
 var pA : PDouble;
     i : Integer;
     j : Integer;
-    pAij, PAi1j : PDouble;
+    pAij, PAi1j : PConstDoubleArr;
 begin
      // Shift the vectors which define the elementary reflectors one
      // row downward, and set the first row and column of P**T to
@@ -936,21 +934,16 @@ begin
 
      for j := width - 1 downto 1 do   // rows
      begin
+          pAij := PConstDoubleArr(GenPtr(A, 0, j, LineWidthA));
+          pAi1j := PConstDoubleArr(GenPtr(A, 0, j - 1, LineWidthA));
+
           for i := j to width - 1 do // cols
-          begin
-               pAij := GenPtr(A, i, j, LineWidthA);
-               pAi1j := GenPtr(A, i, j - 1, LineWidthA);
-
-               pAij^ := pAi1j^;
-          end;
+              pAij^[i] := pAi1j^[i];
      end;
 
-     pAij := GenPtr(A, 1, 0, LineWidthA);
+     pAij := PConstDoubleArr(A);
      for i := 1 to width - 1 do
-     begin
-          pAij^ := 0;
-          inc(pAij);
-     end;
+         pAij^[i] := 0;
 
 
      if width > 1 then

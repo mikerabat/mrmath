@@ -49,7 +49,7 @@ begin
           // do the basic operation here...
           //GenericMtxVecMult(work, sizeof(double), C, V, LineWidthC, LineWidthV, width, height, 1, 0);
           MatrixMtxVecMult(work, sizeof(double), C, V, LineWidthC, LineWidthV, width, height, 1, 0);
-          GenericRank1Update(C, LineWidthC, width, height, -Tau^, work, V, sizeof(double), LineWidthV);
+          MatrixRank1Update(C, LineWidthC, width, height, -Tau^, work, V, sizeof(double), LineWidthV);
      end;
 end;
 
@@ -129,7 +129,7 @@ begin
           // do the basic operation here...
           //GenericMtxVecMultT(work, sizeof(double), C, V, LineWidthC, LineWidthV, width, height, 1, 0);
           MatrixMtxVecMultT(work, sizeof(double), C, V, LineWidthC, LineWidthV, width, height, 1, 0);
-          GenericRank1Update(C, LineWidthC, width, height, -tau^, V, work, LineWidthV, sizeof(double));
+          MatrixRank1Update(C, LineWidthC, width, height, -tau^, V, work, LineWidthV, sizeof(double));
      end;
 end;
 

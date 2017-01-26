@@ -439,7 +439,8 @@ begin
                pA1 := GenPtr(A, 0, i + 1, LineWidthA);
                pAij := GenPtr(A, i, i + 1, LineWidthA);
                pT := GenPtr(T, i, 0, qrData.LineWidthWork );
-               GenericMtxVecMultT(pT, qrData.LineWidthWork, pA1, pAij, LineWidthA, LineWidthA, i, n - i - 1, -tau^, 1 );
+
+               MatrixMtxVecMultT(pT, qrData.LineWidthWork, pA1, pAij, LineWidthA, LineWidthA, i, n - i - 1, -tau^, 1 );
           end;
 
           // dtrmv: upper triangle matrix mult T(1:i-1,i) := T(1:i-1, 1:i-1)*T(1:i-1,i)
