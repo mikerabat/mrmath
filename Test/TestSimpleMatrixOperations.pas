@@ -1174,22 +1174,22 @@ begin
      m1[1] := -2;
 
      norm1 := GenericMtxElementwiseNorm2(PDouble(@m1[0]), sizeof(double), 1, 1);
-     assert(SameValue(norm1, 2), 'Error elementwise norm failed for w=h=1');
+     Check(SameValue(norm1, 2), 'Error elementwise norm failed for w=h=1');
 
      norm1 := ASMMatrixElementwiseNorm2(PDouble(@m1[0]), sizeof(double), 1, 1);
-     assert(SameValue(norm1, 2), 'Error elementwise norm failed for w=h=1');
+     Check(SameValue(norm1, 2), 'Error elementwise norm failed for w=h=1');
 
      norm1 := GenericMtxElementwiseNorm2(PDouble(@m1[0]), 2*sizeof(double), 2, 1);
-     assert(SameValue(norm1, sqrt(8)), 'Error elementwise norm failed for w=2, h=1');
+     Check(SameValue(norm1, sqrt(8)), 'Error elementwise norm failed for w=2, h=1');
 
      norm1 := GenericMtxElementwiseNorm2(PDouble(@m1[0]), sizeof(double), 1, 2);
-     assert(SameValue(norm1, sqrt(8)), 'Error elementwise norm failed for w=2, h=1');
+     Check(SameValue(norm1, sqrt(8)), 'Error elementwise norm failed for w=2, h=1');
 
      norm1 := ASMMatrixElementwiseNorm2(PDouble(@m1[0]), 2*sizeof(double), 2, 1);
-     assert(SameValue(norm1, sqrt(8)), 'Error elementwise norm failed for w=2, h=1');
+     Check(SameValue(norm1, sqrt(8)), 'Error elementwise norm failed for w=2, h=1');
 
      norm1 := ASMMatrixElementwiseNorm2(PDouble(@m1[0]), sizeof(double), 1, 2);
-     assert(SameValue(norm1, sqrt(8)), 'Error elementwise norm failed for w=2, h=1');
+     Check(SameValue(norm1, sqrt(8)), 'Error elementwise norm failed for w=2, h=1');
 
      randomize;
      FillMatrix(cMtxSize, x, y, xa, ya);
