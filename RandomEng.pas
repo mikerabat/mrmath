@@ -256,7 +256,7 @@ begin
      val1 := fRandLW($FFFFFFFF);
      val2 := fRandLW($FFFFFFFF);
 
-     Result := ( ( Int64(val1) shl 32) + Int64(val2) ) mod aRange;
+     Result := ( ( UInt64(val1) shl 32) + UInt64(val2) ) mod aRange;
 end;
 
 function TRandomGenerator.Random: double;

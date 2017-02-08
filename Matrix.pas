@@ -1580,7 +1580,7 @@ begin
               numLineElems := width + width and $01
           else
               numLineElems := width;
-          fMemory := AllocMem(16 + height*numLineElems*sizeof(double));
+          fMemory := MtxAlloc(16 + height*numLineElems*sizeof(double));
           fData := Pointer(NativeUInt(fMemory) + 16 - NativeUInt(fMemory) and $0F);
 
           fLineWidth := numLineElems*sizeof(double);
@@ -1939,7 +1939,7 @@ begin
         pW := PConstDoubleArr( W.StartElement );
         if not onlyDiagElements then
         begin
-             wArr := AllocMem( minWH*sizeof(double));
+             wArr := MtxAlloc( minWH*sizeof(double));
              pW := PConstDoubleArr( @wArr[0] );
         end;
 

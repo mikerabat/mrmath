@@ -66,7 +66,7 @@ implementation
 
 uses LinearAlgebraicEquations, MtxThreadPool, math, MtxTimer, 
      BlockSizeSetup, LinAlgSVD, LinAlgQR, LinAlgCholesky, LinAlgLU,
-  MatrixRotations, ASMMatrixRotations;
+     MatrixRotations, ASMMatrixRotations, ASMMatrixRotationsx64;
 
 { TestTDoubleMatrix }
 
@@ -1734,7 +1734,6 @@ begin
      ASMApplyPlaneRotSeqLVB(cVecSize - 1, cHeight, @lx1[0], cVecSize*sizeof(double), @lc[0], @ls[0]);
 
      Check( CheckMtx(lx, lx1), 'Error ASM Plane rotate LVB odd width');
-
 end;
 
 initialization

@@ -22,6 +22,8 @@ interface
 
 uses MatrixConst, Types;
 
+function MtxAlloc( NumBytes : TASMNativeInt ) : Pointer;
+
 procedure MatrixCopy(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); overload;
 procedure MatrixCopy(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt); overload;
 function MatrixCopy(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt) : TDoubleDynArray; overload;
@@ -180,12 +182,14 @@ type
 
   TApplyPlaneRotSeqMatrix = procedure (width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
   TMatrixRotate = procedure (N : TASMNativeInt; DX : PDouble; const LineWidthDX : TASMNativeInt; DY : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
+  TMemInitFunc = procedure(A : PDouble; NumBytes : TASMNativeInt; const Value : double);
 
 implementation
 
 uses BlockSizeSetup, SimpleMatrixOperations, ASMMatrixOperations, ASMMatrixMultOperations,
      ASMMatrixMultOperationsx64, ASMMatrixVectorMultOperations, ASMMatrixVectorMultOperationsx64,
-     CPUFeatures, MatrixRotations, ASMMatrixRotations;
+     CPUFeatures, MatrixRotations, ASMMatrixRotations, ASMMatrixRotationsx64,
+  ASMMoveOperations, ASMMoveOperationsx64;
 
 var actUseSSEoptions : boolean;
     actUseStrassenMult : boolean;
@@ -223,7 +227,23 @@ var multFunc : TMatrixMultFunc;
     PlaneRotSeqRVF : TApplyPlaneRotSeqMatrix;
     PlaneRotSeqLVB : TApplyPlaneRotSeqMatrix;
     PlaneRotSeqLVF : TApplyPlaneRotSeqMatrix;
+    memInitFunc : TMemInitFunc;
 
+
+function MtxAlloc( NumBytes : TASMNativeInt ) : Pointer;
+begin
+     Result := nil;
+     if NumBytes <= 0 then
+        exit;
+
+     // align to next multiple of 16 bytes
+     if NumBytes and $F <> 0 then
+        NumBytes := NumBytes and $FFFFFFF0 + 16;
+
+     Result := GetMemory(NumBytes);
+     if Assigned(Result) then
+        memInitFunc(Result, NumBytes, 0);
+end;
 
 procedure MatrixCopy(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 begin
@@ -860,6 +880,7 @@ begin
           PlaneRotSeqRVF := {$IFDEF FPC}@{$ENDIF}ASMApplyPlaneRotSeqRVF;
           PlaneRotSeqLVB := {$IFDEF FPC}@{$ENDIF}ASMApplyPlaneRotSeqLVB;
           PlaneRotSeqLVF := {$IFDEF FPC}@{$ENDIF}ASMApplyPlaneRotSeqLVF;
+          memInitFunc := {$IFDEF FPC}@{$ENDIF}ASMInitMemAligned;
      end
      else
      begin
@@ -898,6 +919,7 @@ begin
           PlaneRotSeqRVF := {$IFDEF FPC}@{$ENDIF}GenericApplyPlaneRotSeqRVF;
           PlaneRotSeqLVB := {$IFDEF FPC}@{$ENDIF}GenericApplyPlaneRotSeqLVB;
           PlaneRotSeqLVF := {$IFDEF FPC}@{$ENDIF}GenericApplyPlaneRotSeqLVF;
+          memInitFunc := {$IFDEF FPC}@{$ENDIF}GenericInitMemAligned;
      end;
 
      matrixMedianFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMedian;

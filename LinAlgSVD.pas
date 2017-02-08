@@ -2050,7 +2050,7 @@ begin
                memNeed := 16 + sizeof(double)*(  (3 + 5)*w2 + (w2 + height)*SVDBlockSize) + BlockMultMemSize(Max(SVDBlockSize, QRMultBlockSize));
           end;
 
-          pMem := AllocMem(memNeed);
+          pMem := MtxAlloc(memNeed);
      end
      else
          pMem := svdData.pWorkMem;
@@ -2270,7 +2270,7 @@ begin
 
      // ###########################################
      // #### Allocate workspace for fast algorithm...
-     svdData.pWorkMem := AllocMem( SVDMemSize(svdData, width, height) );
+     svdData.pWorkMem := MtxAlloc( SVDMemSize(svdData, width, height) );
 
      Result := InternalMatrixSVD(A, LineWidthA, width, height, W, V, LineWidthV, svdData);
 
@@ -2547,7 +2547,7 @@ begin
 
      // ###########################################
      // #### Allocate workspace for fast algorithm...
-     svdData.pWorkMem := AllocMem( SVDMemSizeThr(svdData, width, height) );
+     svdData.pWorkMem := MtxAlloc( SVDMemSizeThr(svdData, width, height) );
 
      Result := InternalMatrixSVD(A, LineWidthA, width, height, W, V, LineWidthV, svdData);
 

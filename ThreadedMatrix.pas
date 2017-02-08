@@ -80,7 +80,7 @@ type
 implementation
 
 uses SysUtils, ThreadedMatrixOperations, MtxThreadPool, BlockSizeSetup,
-     Math, LinAlgQR, LinAlgCholesky, LinAlgLU, LinAlgSVD;
+     Math, LinAlgQR, LinAlgCholesky, LinAlgLU, LinAlgSVD, OptimizedFuncs;
 
 { TThreadedMatrix }
 
@@ -553,7 +553,7 @@ begin
         pW := PConstDoubleArr( W.StartElement );
         if not onlyDiagElements then
         begin
-             wArr := AllocMem( minWH*sizeof(double));
+             wArr := MtxAlloc( minWH*sizeof(double));
              pW := PConstDoubleArr( @wArr[0] );
         end;
 

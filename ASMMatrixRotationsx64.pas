@@ -280,14 +280,14 @@ begin
               //     pcAy1^[x + 1] := cTemp*temp1 - stemp*pcAy1[x + 1];
 
               // evaluate 2 values
-              movupd xmm2, [r11 + rdi];
-              movupd xmm3, [r8 + rdi];
+              movupd xmm2, [r8 + rdi];
+              movupd xmm3, [r11 + rdi];
 
               // temp store...
               movapd xmm4, xmm2
               movapd xmm5, xmm3;
 
-              mulpd xmm3, xmm0; // ctemp*pcay1^[x] and ctemp*a[x+1]
+              mulpd xmm3, xmm0;  // ctemp*pcay1^[x] and ctemp*a[x+1]
               mulpd xmm2, xmm1;  // stemp*pcAy^[x] and stemp*a[x+1]
 
               subpd xmm3, xmm2;
@@ -300,8 +300,8 @@ begin
               addpd xmm5, xmm4;
 
               // write back...
-              movupd [r11 + rdi], xmm5;
-              movupd [r8 + rdi], xmm3;
+              movupd [r8 + rdi], xmm5;
+              movupd [r11 + rdi], xmm3;
 
               add rdi, 16;
            jnz @@forxloop;
@@ -315,8 +315,8 @@ begin
            jz @@nextLine;
 
            // same as above but with single elements
-           movsd xmm2, [r11];
-           movsd xmm3, [r8];
+           movsd xmm2, [r8];
+           movsd xmm3, [r11];
 
            movsd xmm4, xmm2;
            movsd xmm5, xmm3;
@@ -331,8 +331,8 @@ begin
 
            addsd xmm5, xmm4;
 
-           movsd [r11], xmm5;
-           movsd [r8], xmm3;
+           movsd [r8], xmm5;
+           movsd [r11], xmm3;
 
            // ###########################################
            // #### next y
@@ -386,7 +386,6 @@ begin
 
         mov rax, c;
         mov rbx, s;
-        mov r8, A;
 
         movupd xmm7, cMulM1Bits;
         xorpd xmm6, xmm6;  // haddpd zero extend
@@ -439,7 +438,9 @@ begin
 
         @@endproc:
      end;
+{$IFDEF FPC}
 end;
+{$ENDIF}
 
 procedure ASMApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
 var iRBX, iRDI : TASMNativeInt;
@@ -464,7 +465,7 @@ begin
         movupd dXMM7, xmm7;
 
         dec rcx;
-        imul rcx, 8; //iter := (width - 1)*sizeof(double)
+        imul rcx, -8; //iter := (width - 1)*sizeof(double)
 
         mov rax, c;
         mov rbx, s;
@@ -617,7 +618,9 @@ begin
         // #### epilog
         movupd xmm6, dXMM6;
      end;
+{$IFDEF FPC}
 end;
+{$ENDIF}
 
 // rcx = N, RDX = X, R8 = LineWidthDX, R9 = Y; 
 procedure ASMMatrixRotateUnaligned(N : TASMNativeInt; X : PDouble; const LineWidthDX : TASMNativeInt;

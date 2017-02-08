@@ -172,9 +172,23 @@ procedure GenericRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; widt
   const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt); // {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 
 
+procedure GenericInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; const Value : double);
+
 implementation
 
 uses Math, BlockSizeSetup, MathUtilFunc;
+
+procedure GenericInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; const Value : double);
+var numElem : TASMNativeInt;
+    pA : PConstDoubleArr;
+    counter: Integer;
+begin
+     numElem := NumBytes div sizeof(double);
+     pA := PConstDoubleArr(A);
+
+     for counter := 0 to numElem - 1 do
+         pA^[counter] := Value;
+end;
 
 function GenericMtxNormalize(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray;
 begin

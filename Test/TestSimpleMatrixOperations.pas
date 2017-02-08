@@ -40,6 +40,7 @@ type
     procedure TearDown; override;
   published
     procedure TestMatrixASMCopy;
+    procedure TestMatrixAlloc;
     procedure TestASMAdd;
     procedure TestBigASMAdd;
     procedure TestAddAndScale;
@@ -116,7 +117,7 @@ uses ASMMatrixOperations, ThreadedMatrixOperations, MtxThreadPool, mtxTimer,
      ASMMatrixTransposeOperations, ASMMatrixNormOperations,
      ASMMatrixMeanOperations, ASMMatrixSumOperations,
      {$ENDIF}
-     MatrixConst, MathUtilFunc;
+     MatrixConst, MathUtilFunc, OptimizedFuncs;
 
 procedure TestMatrixOperations.TestAbs;
 const mt1 : Array[0..5] of double = (-1, 2, 2, -2, 3, -3);
@@ -1876,6 +1877,52 @@ begin
 
      res := GenericMtxTranspose(@mt1, sizeof(double), 1, 6);
      CheckEqualsMem(@mt1, @res[0], sizeof(mt1), 'Error matrix transpose: ' + #13#10 + WriteMTxDyn(res, 6));
+end;
+
+procedure TASMMatrixOperations.TestMatrixAlloc;
+var startTime1: Int64;
+    endTime1: Int64;
+    startTime2: Int64;
+    endTime2: Int64;
+
+    xa, ya : PDouble;
+begin
+     InitMathFunctions(False, False);
+     xa := MtxAlloc(48);
+     InitMathFunctions(True, False);
+     ya := MtxAlloc(48);
+
+     Check(CompareMem(xa, ya, 48));
+
+     FreeMem(xa);
+     FreeMem(ya);
+
+     InitMathFunctions(False, False);
+     xa := MtxAlloc(256);
+     InitMathFunctions(True, False);
+     ya := MtxAlloc(256);
+
+     Check(CompareMem(xa, ya, 256));
+
+     FreeMem(xa);
+     FreeMem(ya);
+
+     InitMathFunctions(False, False);
+     startTime1 := MtxGetTime;
+     xa := MtxAlloc(1000*1001*sizeof(double) + sizeof(double));
+     endTime1 := MtxGetTime;
+
+     InitMathFunctions(True, False);
+     startTime2 := MtxGetTime;
+     ya := MtxAlloc(1000*1000*sizeof(double) + sizeof(double));
+     endTime2 := MtxGetTime;
+
+     Check(CompareMem(xa, ya, 1000*1000*sizeof(double) + sizeof(double)));
+
+     Status(Format('Alloc took: %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000]));
+
+     FreeMem(xa);
+     FreeMem(ya);
 end;
 
 procedure TASMMatrixOperations.TestMatrixASMCopy;

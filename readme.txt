@@ -53,6 +53,15 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: 08.02.2017:
+* Intruduction of assembler optimized vector Rotation routines -> amazing speedup in SVD
+* Fixed some initialization routines - in rare cases it may happen that old initialized memory could
+  be involved and produces Invalid Floating point exceptions (e.g. vector matrix mult where 0 is multiplied
+  with NAN -> exception later on)
+* New assembler optimized allocation (init to zero) function.
+* Fixed a rare range check error in the UInt64 random number generator.
+
+
 Date: 26.02.2017:
 * Rank1Updates are now assembler optimized results in a slightly faster QR and SVD decomposition.
 

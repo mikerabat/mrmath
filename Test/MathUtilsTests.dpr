@@ -61,6 +61,9 @@ uses
   ASMMoveOperations in '..\ASMMoveOperations.pas',
   ASMMoveOperationsx64 in '..\ASMMoveOperationsx64.pas',
   ASMMatrixRotations in '..\ASMMatrixRotations.pas',
+  ASMMatrixRotationsx64 in '..\ASMMatrixRotationsx64.pas',
+  ASMMatrixAbsOperations in '..\ASMMatrixAbsOperations.pas',
+  ASMMatrixAbsOperationsx64 in '..\ASMMatrixAbsOperationsx64.pas',
   BlockSizeSetup in '..\BlockSizeSetup.pas',
   CPUFeatures in '..\CPUFeatures.pas',
   Eigensystems in '..\Eigensystems.pas',
@@ -80,8 +83,6 @@ uses
   CCA in '..\CCA.pas',
   PCA in '..\PCA.pas',
   TestNonLinFit in 'TestNonLinFit.pas',
-  ASMMatrixAbsOperations in '..\ASMMatrixAbsOperations.pas',
-  ASMMatrixAbsOperationsx64 in '..\ASMMatrixAbsOperationsx64.pas',
   NonLinearFit in '..\NonLinearFit.pas',
   IncrementalPCA in '..\IncrementalPCA.pas',
   MacOsThreadPool in '..\mac\MacOsThreadPool.pas',
@@ -105,8 +106,7 @@ uses
   MatrixRotations in '..\MatrixRotations.pas',
   LinAlgCholesky in '..\LinAlgCholesky.pas',
   LinAlgLU in '..\LinAlgLU.pas',
-  LinAlgQR in '..\LinAlgQR.pas',
-  ASMMatrixRotationsx64 in '..\ASMMatrixRotationsx64.pas';
+  LinAlgQR in '..\LinAlgQR.pas';
 
 {$R *.RES}
 

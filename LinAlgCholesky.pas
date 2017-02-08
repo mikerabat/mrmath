@@ -114,7 +114,7 @@ begin
      // ###########################################
      // #### Blocked code
      // ###########################################
-     multMem := AllocMem(BlockMultMemSize(pnlSize));
+     multMem := MtxAlloc(BlockMultMemSize(pnlSize));
      Result := InternalBlkCholeskyInPlace(A, LineWidthA, width, pnlSize, {$IFDEF FPC}@{$ENDIF}MatrixMultT2Ex, multMem, progress);
      FreeMem(multMem);
 end;
@@ -255,7 +255,7 @@ begin
         
      data := work;
      if work = nil then
-        data := AllocMem(numCPUCores*( 4 + BlockMultMemSize(pnlSize) ) );
+        data := MtxAlloc(numCPUCores*( 4 + BlockMultMemSize(pnlSize) ) );
 
      multMem := data;
      if (NativeUInt(data) and $0000000F) <> 0 then

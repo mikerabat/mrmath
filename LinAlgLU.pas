@@ -769,7 +769,7 @@ var parity : integer;
     rc : TRecMtxLUDecompData;
     mem : Pointer;
 begin
-     mem := AllocMem(4*numCPUCores*(cBlkMultSize + numCPUCores + 2)*cBlkMultSize*sizeof(double) + 32);
+     mem := MtxAlloc(4*numCPUCores*(cBlkMultSize + numCPUCores + 2)*cBlkMultSize*sizeof(double) + 32);
      FillChar(indx^, width*sizeof(integer), 0);
 
      rc.progress := progress;
@@ -904,7 +904,7 @@ begin
 
      w := width + width and $01;
      LUDecomp := GetMemory(w*w*sizeof(double));
-     mem := AllocMem(4*numCPUCores*(cBlkMultSize + numCPUCores + 2)*cBlkMultSize*sizeof(double) + 32);
+     mem := MtxAlloc(4*numCPUCores*(cBlkMultSize + numCPUCores + 2)*cBlkMultSize*sizeof(double) + 32);
      SetLength(indx, width);
      MatrixCopy(LUDecomp, w*sizeof(double), A, LineWidthA, width, width);
 

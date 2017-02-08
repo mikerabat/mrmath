@@ -43,6 +43,9 @@ procedure ASMRowSwapUnAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
 procedure ASMRowSwapAlignedOddW(A, B : PDouble; width : TASMNativeInt);
 procedure ASMRowSwapUnAlignedOddW(A, B : PDouble; width : TASMNativeInt);
 
+// it is assumed that this function has multiple of sizeof(double) as numbytes
+procedure ASMInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; const Value : double);
+
 {$ENDIF}
 
 implementation
@@ -50,6 +53,56 @@ implementation
 {$IFNDEF x64}
 
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
+
+// uses non temporal moves so the cache is not poisned
+procedure ASMInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; const Value : double);
+begin
+     asm
+        push ebx;
+
+        movddup xmm0, Value;
+
+        mov eax, A;
+        mov ebx, NumBytes;
+        and ebx, $FFFFFF80;
+        jz @@loopUnrolledEnd;
+
+        imul ebx, -1;
+        sub eax, ebx;
+
+        @@loopUnrolled:
+          movntdq [eax + ebx], xmm0;
+          movntdq [eax + ebx + 16], xmm0;
+          movntdq [eax + ebx + 32], xmm0;
+          movntdq [eax + ebx + 48], xmm0;
+          movntdq [eax + ebx + 64], xmm0;
+          movntdq [eax + ebx + 80], xmm0;
+          movntdq [eax + ebx + 96], xmm0;
+          movntdq [eax + ebx + 112], xmm0;
+
+          add ebx, 128;
+        jnz @@loopUnrolled;
+
+        @@loopUnrolledEnd:
+
+        // last few bytes
+        mov eax, A;
+        mov ebx, NumBytes;
+        add eax, ebx;
+        and ebx, $7F;
+        jz @@exitProc;
+
+        imul ebx, -1;
+
+        @@loop:
+          movsd [eax + ebx], xmm0;
+          add ebx, 8;
+        jnz @@loop;
+
+        @@exitProc:
+        pop ebx;
+     end;
+end;
 
 procedure ASMRowSwapAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
 var iters : TASMNativeInt;

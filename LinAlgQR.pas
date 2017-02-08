@@ -608,7 +608,7 @@ begin
 
      if work = nil then
      begin
-          qrData.pWorkMem := AllocMem( QRDecompMemSize(pnlSize, width) );
+          qrData.pWorkMem := MtxAlloc( QRDecompMemSize(pnlSize, width) );
           qrData.work := PDouble(qrData.pWorkMem);
           if (NativeUInt(qrData.pWorkMem) and $0000000F) <> 0 then
              qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 16 - NativeUInt(qrData.pWorkMem) and $0F);
@@ -835,7 +835,7 @@ begin
 
      if work = nil then
      begin
-          qrData.pWorkMem := AllocMem( QRDecompMemSize(qrData.pnlSize, width) );
+          qrData.pWorkMem := MtxAlloc( QRDecompMemSize(qrData.pnlSize, width) );
           qrData.work := PDouble(qrData.pWorkMem);
           if (NativeUInt(qrData.pWorkMem) and $0000000F) <> 0 then
              qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 16 - NativeUInt(qrData.pWorkMem) and $0F);
@@ -1201,7 +1201,7 @@ begin
      qrData.MatrixMultEx := {$IFDEF FPC}@{$ENDIF}MatrixMultEx;
      if work = nil then
      begin
-          qrData.pWorkMem := AllocMem(qrData.pnlSize*sizeof(double)*height + 64 + BlockMultMemSize(QRMultBlockSize) );
+          qrData.pWorkMem := MtxAlloc(qrData.pnlSize*sizeof(double)*height + 64 + BlockMultMemSize(QRMultBlockSize) );
           qrData.work := PDouble(qrData.pWorkMem);
           if (NativeUInt(qrData.pWorkMem) and $0000000F) <> 0 then
              qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 16 - NativeUInt(qrData.pWorkMem) and $0F);
@@ -1240,7 +1240,7 @@ begin
 
      if work = nil then
      begin
-          qrData.pWorkMem := AllocMem(pnlSize*sizeof(double)*height + 64 );
+          qrData.pWorkMem := MtxAlloc(pnlSize*sizeof(double)*height + 64 );
           qrData.work := PDouble(qrData.pWorkMem);
           if (NativeUInt(qrData.pWorkMem) and $0000000F) <> 0 then
              qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 16 - NativeUInt(qrData.pWorkMem) and $0F);
@@ -1281,7 +1281,7 @@ begin
 
      if work = nil then
      begin
-          qrData.pWorkMem := AllocMem(BlockSize*sizeof(double)*height + 64 );
+          qrData.pWorkMem := MtxAlloc(BlockSize*sizeof(double)*height + 64 );
           qrData.work := PDouble(qrData.pWorkMem);
           if (NativeUInt(qrData.pWorkMem) and $0000000F) <> 0 then
              qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 16 - NativeUInt(qrData.pWorkMem) and $0F);
@@ -1315,7 +1315,7 @@ begin
 
      if work = nil then
      begin
-          qrData.pWorkMem := AllocMem(BlockSize*sizeof(double)*height + 64 );
+          qrData.pWorkMem := MtxAlloc(BlockSize*sizeof(double)*height + 64 );
           qrData.work := PDouble(qrData.pWorkMem);
           if (NativeUInt(qrData.pWorkMem) and $0000000F) <> 0 then
              qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 16 - NativeUInt(qrData.pWorkMem) and $0F);
