@@ -2413,7 +2413,7 @@ end;
 function ThrRot_VT(obj : TObject) : integer;
 begin
      if TMatrixRotateObj(obj).ncvt > 0 then
-        MatrixRotate(TMatrixRotateObj(obj).ncvt, GenPtr(TMatrixRotateObj(obj).vt, 0, TMatrixRotateObj(obj).mm - 1, TMatrixRotateObj(obj).LineWidthVT), sizeof(double),
+        GenericMatrixRotate(TMatrixRotateObj(obj).ncvt, GenPtr(TMatrixRotateObj(obj).vt, 0, TMatrixRotateObj(obj).mm - 1, TMatrixRotateObj(obj).LineWidthVT), sizeof(double),
              GenPtr(TMatrixRotateObj(obj).vt, 0, TMatrixRotateObj(obj).mm, TMatrixRotateObj(obj).LineWidthVT),
              sizeof(double), TMatrixRotateObj(obj).cosr, TMatrixRotateObj(obj).sinr);
 
@@ -2432,7 +2432,7 @@ begin
      calls := MtxInitTaskGroup;
      calls.AddTask({$IFDEF FPC}@{$ENDIF}ThrRot_VT, obj);
      if NRU > 0 then
-        MatrixRotate(nru, GenPtr(u, m - 1, 0, LineWidthU), LineWidthU, GenPtr(u, m, 0, LineWidthU), LineWidthU, cosl, sinl);
+        GenericMatrixRotate(nru, GenPtr(u, m - 1, 0, LineWidthU), LineWidthU, GenPtr(u, m, 0, LineWidthU), LineWidthU, cosl, sinl);
      calls.SyncAll;
 end;
 

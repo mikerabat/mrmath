@@ -32,6 +32,8 @@ type
   TLinEquProgressWOObj = procedure(Progress : Integer);
 
 const cDefEpsilon : double = 1e-20;
+      cMinusOne : double = -1;
+      cOne : double = 1;
 
 type
   TEigenvalueConvergence = (qlOk, qlNoConverge, qlMatrixError);

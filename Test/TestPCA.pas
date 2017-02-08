@@ -36,7 +36,7 @@ implementation
 uses PCA,
      {$IFDEF MACOS} FMX.Types, {$ENDIF}
      Graphics, BinaryReaderWriter, BaseMathPersistence, IncrementalPCA,
-     JSONReaderWriter, MtxTimer;
+     JSONReaderWriter, MtxTimer, BlockSizeSetup;
 
 { TTestEigensystems }
 
@@ -94,8 +94,6 @@ var Examples : TDoubleMatrix;
     feature : TDoubleMatrix;
     w, h : integer;
     i : integer;
-  //  start : Cardinal;
-  //  stop : Cardinal;
     x : integer;
     props : TFastRobustPCAProps;
 begin
@@ -259,7 +257,7 @@ var Examples : TDoubleMatrix;
     start, stop : Int64;
 begin
      Examples := LoadImages(w, h);
-
+     
      // ############################################
      // #### Calculate PCA on images
      with TMatrixPCA.Create([pcaEigVals, pcaMeanNormalizedData, pcaTransposedEigVec]) do

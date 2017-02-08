@@ -60,6 +60,7 @@ uses
   ASMMatrixVectorMultOperationsx64 in '..\ASMMatrixVectorMultOperationsx64.pas',
   ASMMoveOperations in '..\ASMMoveOperations.pas',
   ASMMoveOperationsx64 in '..\ASMMoveOperationsx64.pas',
+  ASMMatrixRotations in '..\ASMMatrixRotations.pas',
   BlockSizeSetup in '..\BlockSizeSetup.pas',
   CPUFeatures in '..\CPUFeatures.pas',
   Eigensystems in '..\Eigensystems.pas',
@@ -104,7 +105,8 @@ uses
   MatrixRotations in '..\MatrixRotations.pas',
   LinAlgCholesky in '..\LinAlgCholesky.pas',
   LinAlgLU in '..\LinAlgLU.pas',
-  LinAlgQR in '..\LinAlgQR.pas';
+  LinAlgQR in '..\LinAlgQR.pas',
+  ASMMatrixRotationsx64 in '..\ASMMatrixRotationsx64.pas';
 
 {$R *.RES}
 

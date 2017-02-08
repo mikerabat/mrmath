@@ -1396,7 +1396,7 @@ begin
                 mulpd xmm2, xmm0;
                 addpd xmm1, xmm2;
 
-                movupd [eax], xmm1;
+                movapd [eax], xmm1;
 
                 add eax, 16;
                 add ebx, 16;

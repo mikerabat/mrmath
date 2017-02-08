@@ -904,7 +904,7 @@ begin
 
      w := width + width and $01;
      LUDecomp := GetMemory(w*w*sizeof(double));
-     mem := GetMemory(4*numCPUCores*(cBlkMultSize + numCPUCores + 2)*cBlkMultSize*sizeof(double) + 32);
+     mem := AllocMem(4*numCPUCores*(cBlkMultSize + numCPUCores + 2)*cBlkMultSize*sizeof(double) + 32);
      SetLength(indx, width);
      MatrixCopy(LUDecomp, w*sizeof(double), A, LineWidthA, width, width);
 

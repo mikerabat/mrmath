@@ -136,6 +136,16 @@ procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width,
 procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFunc); overload;
 procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefObjFunc); overload;
 
+// matrix rotation stubs
+procedure ApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure ApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+
+procedure ApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure ApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+
+procedure MatrixRotate(N : TASMNativeInt; DX : PDouble; const LineWidthDX : TASMNativeInt; DY : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
+
+
 procedure InitMathFunctions(UseSSEOptFuncs : boolean; useStrassenMult : boolean);
 procedure InitSSEOptFunctions(UseSSEOptFuncs : boolean);
 
@@ -167,11 +177,15 @@ type
   TMatrixVecMultFunc = procedure (dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
   TMatrixRank1UpdateFunc = procedure (A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
                                       const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+
+  TApplyPlaneRotSeqMatrix = procedure (width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+  TMatrixRotate = procedure (N : TASMNativeInt; DX : PDouble; const LineWidthDX : TASMNativeInt; DY : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
+
 implementation
 
 uses BlockSizeSetup, SimpleMatrixOperations, ASMMatrixOperations, ASMMatrixMultOperations,
      ASMMatrixMultOperationsx64, ASMMatrixVectorMultOperations, ASMMatrixVectorMultOperationsx64,
-     CPUFeatures;
+     CPUFeatures, MatrixRotations, ASMMatrixRotations;
 
 var actUseSSEoptions : boolean;
     actUseStrassenMult : boolean;
@@ -204,6 +218,12 @@ var multFunc : TMatrixMultFunc;
     matrixSumFunc : TMatrixNormalizeFunc;
     rowSwapFunc : TMatrixRowSwapFunc;
     Rank1Update : TMatrixRank1UpdateFunc;
+    matrixRot : TMatrixRotate;
+    PlaneRotSeqRVB : TApplyPlaneRotSeqMatrix;
+    PlaneRotSeqRVF : TApplyPlaneRotSeqMatrix;
+    PlaneRotSeqLVB : TApplyPlaneRotSeqMatrix;
+    PlaneRotSeqLVF : TApplyPlaneRotSeqMatrix;
+
 
 procedure MatrixCopy(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 begin
@@ -775,6 +795,30 @@ begin
      InitMathFunctions(actUseSSEoptions, useStrassenMult);
 end;
 
+procedure ApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+begin
+     PlaneRotSeqRVB(width, height, A, LineWidthA, C, S);
+end;
+procedure ApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+begin
+     PlaneRotSeqRVF(width, height, A, LineWidthA, C, S);
+end;
+
+procedure ApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+begin
+     PlaneRotSeqLVB(width, height, A, LineWidthA, C, S);
+end;
+
+procedure ApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+begin
+     PlaneRotSeqLVF(width, height, A, LineWidthA, C, S);
+end;
+
+procedure MatrixRotate(N : TASMNativeInt; DX : PDouble; const LineWidthDX : TASMNativeInt; DY : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
+begin
+     matrixRot(N, DX, LineWidthDX, DY, LineWidthDY, c, s);
+end;
+
 procedure InitMathFunctions(UseSSEOptFuncs : boolean; useStrassenMult : boolean);
 var fpuCtrlWord : Word;
 begin
@@ -811,6 +855,11 @@ begin
           MtxVecMultFunc := {$IFDEF FPC}@{$ENDIF}ASMMtxVecMult;
           MtxVecMultTFunc := {$IFDEF FPC}@{$ENDIF}ASMMtxVecMultT;
           Rank1Update := {$IFDEF FPC}@{$ENDIF}ASMRank1Update;
+          matrixRot := {$IFDEF FPC}@{$ENDIF}ASMMatrixRotate;
+          PlaneRotSeqRVB := {$IFDEF FPC}@{$ENDIF}ASMApplyPlaneRotSeqRVB;
+          PlaneRotSeqRVF := {$IFDEF FPC}@{$ENDIF}ASMApplyPlaneRotSeqRVF;
+          PlaneRotSeqLVB := {$IFDEF FPC}@{$ENDIF}ASMApplyPlaneRotSeqLVB;
+          PlaneRotSeqLVF := {$IFDEF FPC}@{$ENDIF}ASMApplyPlaneRotSeqLVF;
      end
      else
      begin
@@ -844,6 +893,11 @@ begin
           MtxVecMultFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxVecMult;
           MtxVecMultTFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxVecMultT;
           Rank1Update := {$IFDEF FPC}@{$ENDIF}GenericRank1Update;
+          matrixRot := {$IFDEF FPC}@{$ENDIF}GenericMatrixRotate;
+          PlaneRotSeqRVB := {$IFDEF FPC}@{$ENDIF}GenericApplyPlaneRotSeqRVB;
+          PlaneRotSeqRVF := {$IFDEF FPC}@{$ENDIF}GenericApplyPlaneRotSeqRVF;
+          PlaneRotSeqLVB := {$IFDEF FPC}@{$ENDIF}GenericApplyPlaneRotSeqLVB;
+          PlaneRotSeqLVF := {$IFDEF FPC}@{$ENDIF}GenericApplyPlaneRotSeqLVF;
      end;
 
      matrixMedianFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMedian;
