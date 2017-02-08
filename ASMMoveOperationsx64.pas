@@ -63,7 +63,7 @@ begin
         movddup xmm1, Value;
 
         mov r10, rdx;
-        and r10, $FFFFFF80;
+        and r10, $FFFFFFFFFFFFFF80;
         jz @@loopUnrolledEnd;
 
         mov rax, rcx;
