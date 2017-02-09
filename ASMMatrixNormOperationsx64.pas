@@ -52,8 +52,6 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
-const cOne : double = 1.0;
-
 function ASMMatrixElementwiseNorm2AlignedEvenW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
 var dXMM4, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}

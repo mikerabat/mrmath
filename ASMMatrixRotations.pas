@@ -44,7 +44,6 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
-const cMulM1Bits : Array[0..1] of Int64 = ($8000000000000000, $0);
 
 procedure ASMApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
 var y2 : TASMNativeInt;

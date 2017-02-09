@@ -47,11 +47,6 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
-uses Math;
-
-const cNegMaxDouble : Array[0..1] of double = (-MaxDouble, -MaxDouble);
-      cMaxDouble : Array[0..1] of double = (MaxDouble, MaxDouble);
-
 function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 var iRBX : NativeInt;
 {$IFDEF FPC}
@@ -71,7 +66,7 @@ asm
    sub rcx, rdx;
 
 	  // init result
-   movupd xmm0, [rip + cNegMaxDouble];
+   movupd xmm0, [rip + cNegMaxDoubles];
    movapd xmm1, xmm0;
    movapd xmm2, xmm0;
    movapd xmm3, xmm0;
@@ -153,7 +148,7 @@ asm
    sub rcx, rdx;
 
 	  // init result
-   movupd xmm0, [rip + cNegMaxDouble];
+   movupd xmm0, [rip + cNegMaxDoubles];
    movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:
@@ -239,7 +234,7 @@ asm
    sub rcx, rdx;
 
    // init result
-   movupd xmm0, [rip + cNegMaxDouble];
+   movupd xmm0, [rip + cNegMaxDoubles];
    movapd xmm1, xmm0;
    movapd xmm2, xmm0;
    movapd xmm3, xmm0;
@@ -326,7 +321,7 @@ asm
    sub rcx, rdx;
 
    // init result
-   movupd xmm0, [rip + cNegMaxDouble];
+   movupd xmm0, [rip + cNegMaxDoubles];
    movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:
@@ -415,7 +410,7 @@ asm
    sub rcx, rdx;
 
 	  // init result
-   movupd xmm0, [rip + cMaxDouble];
+   movupd xmm0, [rip + cMaxDoubles];
    movapd xmm1, xmm0;
    movapd xmm2, xmm0;
    movapd xmm3, xmm0;
@@ -497,7 +492,7 @@ asm
    sub rcx, rdx;
 
 	  // init result
-   movupd xmm0, [rip + cMaxDouble];
+   movupd xmm0, [rip + cMaxDoubles];
    movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:
@@ -516,7 +511,7 @@ asm
            movupd xmm2, [rcx + rax - 112];
            minpd xmm3, xmm2;
            movupd xmm1, [rcx + rax - 96];
-       				minpd xmm0, xmm1;
+       	   minpd xmm0, xmm1;
            movupd xmm2, [rcx + rax - 80];
            minpd xmm3, xmm2;
            movupd xmm1, [rcx + rax - 64];
@@ -583,7 +578,7 @@ asm
    sub rcx, rdx;
 
    // init result
-   movupd xmm0, [rip + cMaxDouble];
+   movupd xmm0, [rip + cMaxDoubles];
    movapd xmm1, xmm0;
    movapd xmm2, xmm0;
    movapd xmm3, xmm0;
@@ -626,7 +621,7 @@ asm
        @nextLine:
 
        // special care of the last column:
-   				movlpd xmm1, [rcx];
+       movlpd xmm1, [rcx];
        Minsd xmm0, xmm1;
 
        // next line:
@@ -670,7 +665,7 @@ asm
    sub rcx, rdx;
 
 	  // init result
-   movupd xmm0, [rip + cMaxDouble];
+   movupd xmm0, [rip + cMaxDoubles];
    movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:
@@ -689,7 +684,7 @@ asm
            movupd xmm2, [rcx + rax - 112];
            minpd xmm3, xmm2;
            movupd xmm1, [rcx + rax - 96];
-       				minpd xmm0, xmm1;
+       	   minpd xmm0, xmm1;
            movupd xmm2, [rcx + rax - 80];
            minpd xmm3, xmm2;
            movupd xmm1, [rcx + rax - 64];
@@ -717,7 +712,7 @@ asm
        @nextLine:
 
        // special care of the last column:
-   				movlpd xmm1, [rcx];
+       movlpd xmm1, [rcx];
        Minsd xmm0, xmm1;
 
        // next line:

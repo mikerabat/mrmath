@@ -45,8 +45,6 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
-const cMulM1Bits : Array[0..1] of Int64 = ($8000000000000000, $0);
-
 // rcx = width, rdx = height, r8 : A, r9 = LineWidthA
 procedure ASMApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
 var iRBX, iRDI : TASMNativeInt;
@@ -97,7 +95,7 @@ begin
         mov r11, r8;   // A[y][x]
         sub r11, r9;
 
-        movsd xmm7, cOne;
+        movsd xmm7, [rip + cOne];
         xorpd xmm6, xmm6;  // haddpd zero extend
 
         @@foryloop:
@@ -247,7 +245,7 @@ begin
         mov r11, r8;   // A[y][x]
         add r11, r9;
 
-        movsd xmm7, cOne;
+        movsd xmm7, [rip + cOne];
         xorpd xmm6, xmm6;  // haddpd zero extend
 
         @@foryloop:
@@ -387,7 +385,7 @@ begin
         mov rax, c;
         mov rbx, s;
 
-        movupd xmm7, cMulM1Bits;
+        movupd xmm7, [rip + cMulM1Bits];
         xorpd xmm6, xmm6;  // haddpd zero extend
 
         @@foryloop:
@@ -474,7 +472,7 @@ begin
         sub rbx, rcx;
         sub r8, rcx;
 
-        movupd xmm7, cMulM1Bits;
+        movupd xmm7, [rip + cMulM1Bits];
         xorpd xmm6, xmm6;  // haddpd zero extend
 
         @@foryloop:
@@ -544,7 +542,7 @@ begin
 
         // init
         movsd xmm2, s;
-        mulsd xmm2, cMinusOne;
+        mulsd xmm2, [rip + cMinusOne];
 
         movddup xmm0, xmm2;
         movddup xmm1, c;
@@ -636,7 +634,7 @@ begin
         movupd dXMM7, xmm7;
      
         movsd xmm2, s;
-        mulsd xmm2, cMinusOne;
+        mulsd xmm2, [rip + cMinusOne];
 
         movddup xmm0, xmm2;
         movddup xmm1, c;

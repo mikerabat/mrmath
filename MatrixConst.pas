@@ -34,6 +34,17 @@ type
 const cDefEpsilon : double = 1e-20;
       cMinusOne : double = -1;
       cOne : double = 1;
+      cOnes : Array[0..1] of double = (1, 1);
+
+      cSignBits : Array[0..1] of int64 = ($7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF);
+      cNegMaxDouble : double = -1.7e+308;
+      cMaxDouble : double = 1.7e+308;
+
+const cNegMaxDoubles : Array[0..1] of double = (-1.7e+308, -1.7e+308);
+      cMaxDoubles : Array[0..1] of double = (1.7e+308, 1.7e+308);
+
+      cMulM1Bits : Array[0..1] of Int64 = ($8000000000000000, $0);
+
 
 type
   TEigenvalueConvergence = (qlOk, qlNoConverge, qlMatrixError);

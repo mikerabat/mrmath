@@ -47,11 +47,6 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
-uses Math;
-
-const cNegMaxDouble : double = -MaxDouble;
-      cMaxDouble : double = MaxDouble;
-
 function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 var iters : TASMNativeInt;
 begin

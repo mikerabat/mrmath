@@ -706,10 +706,6 @@ end;
 // #### Variance calculation
 // ###########################################
 
-const cOnes : Array[0..1] of double = (1, 1);
-      cOne : double = 1;
-      
-
 procedure ASMMatrixVarRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 var iters : TASMNativeInt;
 begin

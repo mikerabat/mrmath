@@ -53,6 +53,11 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: 09.02.2017
+* Fixed som FPC issues - some constants weren't loaded via the [RIP + cMyConst] directive (delphi is
+  "smarter" here)
+* Moved constants to MatrixConst.pas
+
 Date: 08.02.2017:
 * Intruduction of assembler optimized vector Rotation routines -> amazing speedup in SVD
 * Fixed some initialization routines - in rare cases it may happen that old initialized memory could
