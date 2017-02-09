@@ -232,6 +232,8 @@ var multFunc : TMatrixMultFunc;
 
 function MtxAlloc( NumBytes : TASMNativeInt ) : Pointer;
 begin
+     assert(NumBytes and $7 = 0, 'Numbytes not multiple of 8');
+     
      Result := nil;
      if NumBytes <= 0 then
         exit;
@@ -242,7 +244,19 @@ begin
 
      Result := GetMemory(NumBytes);
      if Assigned(Result) then
-        memInitFunc(Result, NumBytes, 0);
+     begin
+          // normally getMemory should return aligned bytes ->
+          // but just in case:
+          if (TASMNativeUInt( Result ) and $F) <> 0 then
+          begin
+               PDouble(Result)^ := 0;
+               inc(PByte(Result), 8);
+               memInitfunc(Result, NumBytes - 8, 0);
+               dec(PByte(Result), 8);
+          end
+          else
+              memInitFunc(Result, NumBytes, 0);
+     end;
 end;
 
 procedure MatrixCopy(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
