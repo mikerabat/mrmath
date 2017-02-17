@@ -383,10 +383,13 @@ begin
      asm
         push ebx;
         push edi;
+        push esi;
 
         mov eax, c;
         mov ebx, s;
         mov ecx, A;
+
+        mov esi, LineWidthA;
 
         sub eax, iter;
         sub ebx, iter;
@@ -430,12 +433,13 @@ begin
 
            movsd [ecx + edi], xmm2;
 
-           add ecx, LineWidthA;
+           add ecx, esi;
 
         dec height;
         jnz @@foryloop;
 
         // epilog
+        pop esi;
         pop edi;
         pop ebx;
      end;
