@@ -43,6 +43,9 @@ procedure ASMMatrixSubUnAlignedEvenW(dest : PDouble; const destLinewidth : TASMN
 procedure ASMMatrixSubAlignedOddW(dest : PDouble; const destLinewidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, Linewidth2 : TASMNativeInt);
 procedure ASMMatrixSubUnAlignedOddW(dest : PDouble; const destLinewidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, Linewidth2 : TASMNativeInt);
 
+procedure ASMMatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
+
+
 {$ENDIF}
 
 implementation
@@ -943,6 +946,51 @@ begin
         pop esi;
      end;
 end;
+
+procedure ASMMatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
+begin
+     asm
+        push ebx;
+        push edi;
+        push esi;
+
+        // iter := -width*sizeof(double)
+        mov ebx, A;
+        mov eax, width;
+        imul eax, -8;
+        sub ebx, eax;
+
+        mov edi, B;
+        mov esi, LineWidthB;
+
+        // for y := 0 to height - 1
+        @@foryloop:
+           mov ecx, edi;
+           mov edx, eax;
+
+           // for x := 0 to width - 1
+           @@forxloop:
+              movsd xmm0, [ebx + edx];
+              movsd xmm1, [ecx];
+
+              subsd xmm0, xmm1;
+              movsd [ebx + edx], xmm0;
+
+              add ecx, esi;
+           add edx, 8;
+           jnz @@forxloop;
+
+           add ebx, LineWidthA;
+           add edi, 8;
+        dec height;
+        jnz @@foryloop;
+
+        pop esi;
+        pop edi;
+        pop ebx;
+     end;
+end;
+
 
 {$ENDIF}
 

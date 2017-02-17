@@ -48,7 +48,7 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 procedure ASMMatrixTransposeAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-var iR12, iR13, iR14, iRDI : NativeInt;
+var iR12, iR13, iR14, iRDI : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -234,7 +234,7 @@ end;
 end;
 
 procedure ASMMatrixTransposeUnAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-var iR12, iR13, iR14, iRDI : NativeInt;
+var iR12, iR13, iR14, iRDI : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -418,7 +418,7 @@ end;
 
 
 procedure ASMMatrixTransposeAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-var iR12, iR13, iR14, iRDI : NativeInt;
+var iR12, iR13, iR14, iRDI : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -622,7 +622,7 @@ end;
 end;
 
 procedure ASMMatrixTransposeUnAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-var iR12, iR13, iR14, iRDI : NativeInt;
+var iR12, iR13, iR14, iRDI : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -822,7 +822,7 @@ end;
 end;
 
 procedure ASMMatrixTransposeAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-var iR12, iR13, iR14, iRDI : NativeInt;
+var iR12, iR13, iR14, iRDI : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1016,7 +1016,7 @@ end;
 end;
 
 procedure ASMMatrixTransposeUnAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-var iR12, iR13, iR14, iRDI : NativeInt;
+var iR12, iR13, iR14, iRDI : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1208,7 +1208,7 @@ end;
 
 
 procedure ASMMatrixTransposeAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-var iR12, iR13, iR14, iRDI : NativeInt;
+var iR12, iR13, iR14, iRDI : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1424,7 +1424,7 @@ end;
 end;
 
 procedure ASMMatrixTransposeUnAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-var iR12, iR13, iR14, iRDI : NativeInt;
+var iR12, iR13, iR14, iRDI : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}

@@ -48,7 +48,7 @@ implementation
 // rcx = width, rdx = height, r8 : A, r9 = LineWidthA
 procedure ASMApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
 var iRBX, iRDI : TASMNativeInt;
-    dXMM6, dXMM7 : Array[0..1] of double;
+    dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -65,6 +65,8 @@ begin
 
         mov iRBX, rbx;
         mov iRDI, rdi;
+        movupd dXMM4, xmm4;
+        movupd dXMM5, xmm5;
         movupd dXMM6, xmm6;
         movupd dXMM7, xmm7;
 
@@ -197,6 +199,8 @@ begin
         // #### epilog - restore stack
         mov rbx, iRBX;
         mov rdi, iRDI;
+        movupd xmm4, dXMM4;
+        movupd xmm5, dXMM5;
         movupd xmm6, dXMM6;
         movupd xmm7, dXMM7;
 
@@ -209,7 +213,7 @@ end;
 
 procedure ASMApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
 var iRBX, iRDI : TASMNativeInt;
-    dXMM6, dXMM7 : Array[0..1] of double;
+    dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -226,6 +230,8 @@ begin
 
         mov iRBX, rbx;
         mov iRDI, rdi;
+        movupd dXMM4, xmm4;
+        movupd dXMM5, xmm5;
         movupd dXMM6, xmm6;
         movupd dXMM7, xmm7;
 
@@ -347,6 +353,8 @@ begin
         // #### epilog - restore stack
         mov rbx, iRBX;
         mov rdi, iRDI;
+        movupd xmm4, dXMM4;
+        movupd xmm5, dXMM5;
         movupd xmm6, dXMM6;
         movupd xmm7, dXMM7;
 
@@ -359,7 +367,7 @@ end;
 // rcx = width, rdx = height, r8 : A, r9 = LineWidthA
 procedure ASMApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
 var iRBX, iRDI : TASMNativeInt;
-    dXMM6, dXMM7 : Array[0..1] of double;
+    dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -376,6 +384,8 @@ begin
 
         mov iRBX, rbx;
         mov iRDI, rdi;
+        movupd dXMM4, xmm4;
+        movupd dXMM5, xmm5;
         movupd dXMM6, xmm6;
         movupd dXMM7, xmm7;
 
@@ -431,6 +441,8 @@ begin
         // epilog
         mov rbx, iRBX;
         mov rdi, iRDI;
+        movupd xmm4, dXMM4;
+        movupd xmm5, dXMM5;
         movupd xmm6, dXMM6;
         movupd xmm7, dXMM7;
 
@@ -442,7 +454,7 @@ end;
 
 procedure ASMApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
 var iRBX, iRDI : TASMNativeInt;
-    dXMM6, dXMM7 : Array[0..1] of double;
+    dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -459,6 +471,8 @@ begin
 
         mov iRBX, rbx;
         mov iRDI, rdi;
+        movupd dXMM4, xmm4;
+        movupd dXMM5, xmm5;
         movupd dXMM6, xmm6;
         movupd dXMM7, xmm7;
 
@@ -518,6 +532,8 @@ begin
         // epilog
         mov rbx, iRBX;
         mov rdi, iRDI;
+        movupd xmm4, dXMM4;
+        movupd xmm5, dXMM5;
         movupd xmm6, dXMM6;
         movupd xmm7, dXMM7;
 
@@ -531,13 +547,15 @@ end;
 // rcx = N, RDX = X, R8 = Y,
 procedure ASMMatrixRotateAligned(N : TASMNativeInt; X : PDouble;
   Y : PDouble; const c, s : double);
-var dXMM6 : Array[0..1] of double;
+var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
      asm
         // ###########################################
         // #### Stack push
+        movupd dXMM4, xmm4;
+        movupd dXMM5, xmm5;
         movupd dXMM6, xmm6;
 
         // init
@@ -614,6 +632,8 @@ begin
 
         // ###########################################
         // #### epilog
+        movupd xmm4, dXMM4;
+        movupd xmm5, dXMM5;
         movupd xmm6, dXMM6;
      end;
 {$IFDEF FPC}
@@ -623,13 +643,15 @@ end;
 // rcx = N, RDX = X, R8 = LineWidthDX, R9 = Y; 
 procedure ASMMatrixRotateUnaligned(N : TASMNativeInt; X : PDouble; const LineWidthDX : TASMNativeInt;
   Y : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
-var dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
      asm
         // ###########################################
         // #### Stack push
+        movupd dXMM4, xmm4;
+        movupd dXMM5, xmm5;
         movupd dXMM6, xmm6;
         movupd dXMM7, xmm7;
      
@@ -725,6 +747,8 @@ begin
 
         // ###########################################
         // #### Epilog
+        movupd xmm4, dXMM4;
+        movupd xmm5, dXMM5;
         movupd xmm6, dXMM6;
         movupd xmm7, dXMM7;
      end;

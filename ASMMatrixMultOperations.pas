@@ -43,13 +43,34 @@ procedure ASMMatrixMultUnAlignedOddW1EvenW2(dest : PDouble; const destLineWidth 
 procedure ASMMatrixMultAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 procedure ASMMatrixMultUnAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 
-// som special types of multiplications used e.g. in QR Decomposition
+// some special types of multiplications used e.g. in QR Decomposition
 // note the result is stored in mt2 again!
 // dest = mt1'*mt2; where mt2 is a lower triangular matrix and the operation is transposition
 // the function assumes a unit diagonal (does not touch the real middle elements)
 // width and height values are assumed to be the "original" (non transposed) ones
 procedure ASMMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
+// mt1 = mt1*mt2'; where mt2 is an upper triangular matrix
+procedure ASMMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+// calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be 1!
+procedure ASMMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+
+// W = C1*V1*T -> V1 is an upper triangular matrix with assumed unit diagonal entries. Operation on V1 transposition
+procedure ASMMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+
+// mt1 = mt1*mt2; where mt2 is an upper triangular matrix
+procedure ASMMtxMultTria2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+
+// mt1 = mt1*mt2; where mt2 is an upper triangular matrix - diagonal elements are unit
+procedure ASMMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+
+
+
 
 {$ENDIF}
 
@@ -1168,8 +1189,6 @@ begin
      assert((width1 > 0) and (height1 > 0) and (height1 = height2), 'Dimension error');
 
      asm
-        push eax;
-        push edx;
         push ebx;
         push esi;
         push edi;
@@ -1334,8 +1353,631 @@ begin
        pop edi;
        pop esi;
        pop ebx;
-       pop edx;
-       pop eax;
+     end;
+end;
+
+procedure ASMMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+var iter : TASMNativeInt;
+begin
+     assert((width1 > 0) and (height1 > 0) and (width1 = height2), 'Dimension error');
+     assert(width1 = width2, 'Width need to be the same');
+
+     iter := -(width1-1)*sizeof(double);
+     asm
+        push ebx;
+        push edi;
+        push esi;
+        // init
+
+        // inc(mt2, width2 - 1);
+        mov ebx, mt2;
+        mov edx, width2;
+        dec edx;
+        imul edx, 8; //sizeof(double)
+        add ebx, edx;
+
+        mov edx, width2;
+        dec edx;
+        mov width2, edx;
+
+        mov edx, LineWidth2;
+
+        // for x := 0 to width2 - 2 do
+        @@forxloop:
+           mov edi, height1;
+
+           mov eax, mt1;
+           sub eax, iter;
+
+           // for y := 0 to height1 - 1
+           @@foryloop:
+              // tmp := 0;
+              xorpd xmm0, xmm0;
+
+              // ebx, mt2
+              mov ecx, ebx;
+
+              // for idx := 0 to width1 - x - 2
+              mov esi, iter;
+
+              // check if we have enough iterations:
+              cmp esi, 0;
+              jge @@foridxloopend;
+
+              @@foridxloop:
+                 movsd xmm1, [ecx];
+                 movsd xmm2, [eax + esi]
+
+                 add ecx, edx;  // + linewidth2
+
+                 mulsd xmm1, xmm2;
+                 addsd xmm0, xmm1;
+
+              add esi, 8;
+              jnz @@foridxloop;
+
+              @@foridxloopend:
+
+              // last element is unit
+              addsd xmm0, [eax];
+
+              // PConstDoubleArr(pmt1)^[width2 - 1 - x] := tmp;
+              mov ecx, eax;
+              add ecx, iter;
+              mov esi, width2;
+              //dec esi;
+              movsd [ecx + 8*esi], xmm0;
+
+              // inc(PByte(pmT1), LineWidth1);
+              add eax, LineWidth1;
+
+           dec edi;
+           jnz @@foryloop;
+
+           // reduce for idx loop
+           add iter, 8;
+           // dec(mt2);
+           sub ebx, 8;
+
+        dec width2;
+        jnz @@forxloop;
+
+        @@endproc:
+
+        // cleanup stack
+        pop esi;
+        pop edi;
+        pop ebx;
+     end;
+end;
+
+procedure ASMMtxMultTria2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+var wm1 : TASMNativeInt;
+    iter : TASMNativeInt;
+begin
+     assert((width1 > 0) and (height1 > 0) and (width1 = height2), 'Dimension error');
+
+     wm1 := width2 - 1;
+     iter := -width1*sizeof(double);
+     asm
+        push ebx;
+        push edi;
+        push esi;
+        // init
+
+        // inc(mt2, width2 - 1);
+        mov ebx, mt2;
+        mov edx, wm1;
+        imul edx, 8; //sizeof(double)
+        add ebx, edx;
+
+        mov edx, LineWidth2;
+
+        // for x := 0 to width2 - 1 do
+        @@forxloop:
+           mov edi, height1;
+
+           mov eax, mt1;
+           sub eax, iter;
+
+           // for y := 0 to height1 - 1
+           @@foryloop:
+              // tmp := 0;
+              xorpd xmm0, xmm0;
+
+              // ebx, mt2
+              mov ecx, ebx;
+
+              // for idx := 0 to width1 - x - 1
+              mov esi, iter;
+
+              // check if we have enough iterations:
+              test esi, esi;
+              jz @@foridxloopend;
+
+              @@foridxloop:
+                 movsd xmm1, [ecx];
+                 movsd xmm2, [eax + esi]
+
+                 add ecx, edx;  // + linewidth2
+
+                 mulsd xmm1, xmm2;
+                 addsd xmm0, xmm1;
+
+              add esi, 8;
+              jnz @@foridxloop;
+
+              @@foridxloopend:
+
+              // PConstDoubleArr(pmt1)^[width2 - 1 - x] := tmp;
+              mov ecx, eax;
+              add ecx, iter;
+              mov esi, width2;
+              dec esi;
+              movsd [ecx + 8*esi], xmm0;
+
+              // inc(PByte(pmT1), LineWidth1);
+              add eax, LineWidth1;
+
+           dec edi;
+           jnz @@foryloop;
+
+           // reduce for idx loop
+           add iter, 8;
+           // dec(mt2);
+           sub ebx, 8;
+
+        dec width2;
+        jnz @@forxloop;
+
+        // cleanup stack
+        pop esi;
+        pop edi;
+        pop ebx;
+     end;
+end;
+
+
+// note the result is stored in mt1 again!
+// mt1 = mt1*mt2; where mt2 is an upper triangular matrix
+procedure ASMMtxMultTria2Store12(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+var wm1 : TASMNativeInt;
+    iter : TASMNativeInt;
+begin
+     assert((width1 > 0) and (height1 > 0) and (width1 = height2), 'Dimension error');
+
+     wm1 := width2 - 1;
+     iter := -width1*sizeof(double);
+     asm
+        push ebx;
+        push edi;
+        push esi;
+        // init
+
+        // inc(mt2, width2 - 1);
+        mov ebx, mt2;
+        mov edx, wm1;
+        imul edx, 8; //sizeof(double)
+        add ebx, edx;
+
+        mov edx, LineWidth2;
+
+        // for x := 0 to width2 - 1 do
+        @@forxloop:
+           mov edi, height1;
+
+           mov eax, mt1;
+           sub eax, iter;
+
+           // for y := 0 to height1 - 1
+           @@foryloop:
+              // tmp := 0;
+              xorpd xmm0, xmm0;
+
+              // ebx, mt2
+              mov ecx, ebx;
+
+              // for idx := 0 to width1 - x - 1
+              mov esi, iter;
+              //test esi, esi;
+              //jge @@foridxloopend;
+
+              // check if we can do an unrolled loop
+              add esi, 32; // -4*sizeof(double)
+              jg @@foridxloopinit;
+
+              // unrolled loop
+              @@foridxunrolled:
+                 movsd xmm1, [ecx];
+                 movsd xmm3, [ecx + edx];
+                 movupd xmm2, [eax + esi - 32];
+
+                 add ecx, edx;
+                 add ecx, edx;
+
+                 movlhps xmm1, xmm3;
+                 mulpd xmm1, xmm2;
+                 addpd xmm0, xmm1;
+
+                 movsd xmm1, [ecx];
+                 movsd xmm3, [ecx + edx];
+                 movupd xmm2, [eax + esi - 16];
+
+                 add ecx, edx;
+                 add ecx, edx;
+
+                 movlhps xmm1, xmm3;
+                 mulpd xmm1, xmm2;
+                 addpd xmm0, xmm1;
+
+              add esi, 32;
+              jl @@foridxunrolled;
+
+              movhlps xmm1, xmm0;
+              addsd xmm0, xmm1;
+
+              @@foridxloopinit:
+              // undo too much substractiton
+              sub esi, 32;
+
+              // check if we have enough iterations:
+              test esi, esi;
+              jz @@foridxloopend;
+
+
+              @@foridxloop:
+                 movsd xmm1, [ecx];
+                 movsd xmm2, [eax + esi]
+
+                 add ecx, edx;  // + linewidth2
+
+                 mulsd xmm1, xmm2;
+                 addsd xmm0, xmm1;
+
+              add esi, 8;
+              jnz @@foridxloop;
+
+              @@foridxloopend:
+
+              // PConstDoubleArr(pmt1)^[width2 - 1 - x] := tmp;
+              mov ecx, eax;
+              add ecx, iter;
+              mov esi, width2;
+              dec esi;
+              shl esi, 3; // *sizeof(doubl)
+              movsd [ecx + esi], xmm0;
+
+              // inc(PByte(pmT1), LineWidth1);
+              add eax, LineWidth1;
+
+           dec edi;
+           jnz @@foryloop;
+
+           // reduce for idx loop
+           add iter, 8;
+           // dec(mt2);
+           sub ebx, 8;
+
+        dec width2;
+        jnz @@forxloop;
+
+        // cleanup stack
+        pop esi;
+        pop edi;
+        pop ebx;
+     end;
+end;
+
+// calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be 1!
+procedure ASMMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+var iter : TASMNativeInt;
+begin
+     assert((width1 > 0) and (height1 > 0) and (width1 = height2), 'Dimension error');
+
+     iter := -(width2 - 1)*sizeof(double);
+
+     asm
+        push ebx;
+        push edi;
+        push esi;
+
+        // edx = iter
+        mov edx, iter;
+
+        xorpd xmm3, xmm3;
+
+        // start from bottom
+        // ebx: mt2
+        // inc(PByte(mt2),(height2 - 1)*LineWidth2);
+        mov ebx, mt2;
+        mov eax, height2;
+        dec eax;
+        imul eax, LineWidth2;
+        add ebx, eax;
+        sub ebx, edx;
+
+        // for x := 0 to width2 - 2
+        mov ecx, width2;
+        dec ecx;
+        jz @@endproc;
+        @@forxloop:
+           mov eax, mt1;
+           sub eax, edx;
+
+           // for y := 0 to height1 - 1
+           mov esi, height1;
+           @@foryloop:
+              xorpd xmm0, xmm0;
+
+              // for idx := 0 to width2 - x - 2
+              mov edi, edx;
+              test edi, edi;
+              jz @@foridxloopend;
+
+              // unrolled loop 2x2
+              add edi, 32;
+              jg @@foridxloopStart;
+
+              @@foridxlongloop:
+                 movupd xmm1, [eax + edi - 32];
+                 movupd xmm2, [ebx + edi - 32];
+                 mulpd xmm1, xmm2;
+                 addpd xmm0, xmm1;
+
+                 movupd xmm1, [eax + edi - 16];
+                 movupd xmm2, [ebx + edi - 16];
+                 mulpd xmm1, xmm2;
+                 addpd xmm0, xmm1;
+              add edi, 32;
+              jl @@foridxlongloop;
+
+              haddpd xmm0, xmm3;
+
+              @@foridxloopStart:
+              sub edi, 32;
+
+              jz @@foridxloopend;
+
+              @@foridxloop:
+                 movsd xmm1, [eax + edi];
+                 movsd xmm2, [ebx + edi];
+                 mulsd xmm1, xmm2;
+                 addsd xmm0, xmm1;
+
+              add edi, 8;
+              jnz @@foridxloop;
+
+              @@foridxloopend:
+
+              // last element is unit:
+              movsd xmm1, [eax];
+              addsd xmm0, xmm1;
+
+              // write back
+              // PConstDoubleArr(pMt1)^[width2 - x - 1] := tmp + valCounter1^[width2 - x - 1];
+              movsd [eax], xmm0;
+
+              add eax, LineWidth1;
+
+           dec esi;
+           jnz @@foryloop;
+
+           // dec(PByte(mt2), LineWidth2);
+           sub ebx, LineWidth2;
+           sub ebx, 8;
+
+           // adjust iterator to the next x value for the idxloop
+           add edx, 8;
+
+        dec ecx;
+        jnz @@forxloop;
+
+        @@endproc:
+
+        pop esi;
+        pop edi;
+        pop ebx;
+     end;
+end;
+
+
+procedure ASMMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+var iter : TASMNativeInt;
+    testExitLoopVal : TASMNativeInt;
+begin
+     assert((width1 > 0) and (height1 > 0) and (width1 = width2), 'Dimension error');
+
+     iter := -width1*sizeof(double);
+     testExitLoopVal := height2*sizeof(double) + iter;
+
+     asm
+        push ebx;
+        push esi;
+        push edi;
+        xorpd xmm7, xmm7; // haddpd
+
+        // eax := mt1
+        mov eax, mt1;
+        sub eax, iter;
+
+        // for y loop
+        @@foryloop:
+           mov ebx, mt2;
+           sub ebx, iter;
+           mov esi, iter;
+
+           @@forxloop:
+              xorpd xmm0, xmm0; // temp := 0
+
+              mov edx, esi;  // loop counter x;
+
+              // test if height2 > width1 and loop counter > width1
+              mov edi, edx;
+              test edi, edi;
+              jge @@foriloopend;
+
+              // in case x is odd -> handle the first element separately
+              and edi, $E;
+              jz @@foriloopinit;
+
+              // single element handling
+              movsd xmm1, [eax + edx];
+              movsd xmm2, [ebx + edx];
+              mulsd xmm1, xmm2;
+              addsd xmm0, xmm1;
+              add edx, 8;
+
+              @@foriloopinit:
+
+              // in case the last single x element was handled we do not need further looping
+              test edx, edx;
+              jz @@foriloopend;
+
+              // for i := x to width1 - 1
+              @@foriloop:
+                 // two elements at a time:
+                 movupd xmm1, [eax + edx];
+                 movupd xmm2, [ebx + edx];
+                 mulpd xmm1, xmm2;
+                 addpd xmm0, xmm1;
+
+              add edx, 16;
+              jnz @@foriloop;
+
+              @@foriloopend:
+
+              // final result
+              haddpd xmm0, xmm7;
+              movsd [eax + esi], xmm0;
+
+              add ebx, LineWidth2;
+              add esi, 8;
+
+           mov edx, testExitLoopVal;
+           cmp esi, edx;
+           jne @@forxloop;
+
+           add eax, LineWidth1;
+        dec height1;
+        jnz @@foryloop;
+
+        pop edi;
+        pop esi;
+
+        pop ebx;
+     end;
+end;
+
+// W = C1*V1*T -> V1 is an upper triangular matrix with assumed unit diagonal entries. Operation on V1 transposition
+procedure ASMMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+var iter : TASMNativeInt;
+    testExitLoopVal : TASMNativeInt;
+begin
+     assert((width1 > 0) and (height1 > 0) and (width1 = width2), 'Dimension error');
+
+     iter := -width1*sizeof(double);
+     testExitLoopVal := height2*sizeof(double) + iter;
+
+     asm
+        push ebx;
+        push esi;
+        push edi;
+
+        xorpd xmm7, xmm7; // haddpd
+
+        // eax := mt1
+        mov eax, mt1;
+        sub eax, iter;
+
+        // ecx = dest
+        mov ecx, dest;
+        sub ecx, iter;
+
+        // for y loop
+        @@foryloop:
+           mov ebx, mt2;
+           sub ebx, iter;
+           mov esi, iter;
+
+           @@forxloop:
+              xorpd xmm0, xmm0; // temp := 0
+
+              mov edx, esi;  // loop counter x;
+
+              // test if height2 > width1 and loop counter > width1
+              mov edi, edx;
+              test edi, edi;
+              jge @@foriloopend;
+
+              // in case x is odd -> handle the first element separately
+              and edi, $E;
+              jz @@foriloopinit;
+
+              // single element handling -> mt1 first element is assumed unit!
+              movsd xmm0, [eax + edx];
+              add edx, 8;
+
+              jmp @@AfterLoopInit;
+
+              @@foriloopinit:
+
+              test edx, edx;
+              jz @@foriloopend;
+
+              // two elements init at a time:
+              movsd xmm0, [eax + edx];
+              movsd xmm1, [eax + edx + 8];
+              movsd xmm2, [ebx + edx + 8];
+              mulsd xmm1, xmm2;
+              addsd xmm0, xmm1;
+
+              add edx, 16;
+
+              @@AfterLoopInit:
+
+              // in case the last single x element was handled we do not need further looping
+              test edx, edx;
+              jz @@foriloopend;
+
+              // for i := x to width1 - 1
+              @@foriloop:
+                 // two elements at a time:
+                 movupd xmm1, [eax + edx];
+                 movupd xmm2, [ebx + edx];
+                 mulpd xmm1, xmm2;
+                 addpd xmm0, xmm1;
+
+              add edx, 16;
+              jnz @@foriloop;
+
+              @@foriloopend:
+
+              // final result
+              haddpd xmm0, xmm7;
+              movsd [ecx + esi], xmm0;
+
+              add ebx, LineWidth2;
+              add esi, 8;
+
+           mov edx, testExitLoopVal;
+           cmp esi, edx;
+           jne @@forxloop;
+
+           add eax, LineWidth1;
+           add ecx, LineWidthDest;
+        dec height1;
+        jnz @@foryloop;
+
+        pop edi;
+        pop esi;
+
+        pop ebx;
      end;
 end;
 

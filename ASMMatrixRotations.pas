@@ -54,10 +54,7 @@ begin
      y2 := height - 1;
      iter := -(width and $FFFFFFFE)*sizeof(double);
      asm
-        push eax;
         push ebx;
-        push ecx;
-        push edx;
         push edi;
 
         mov eax, c;  // point to y (aka the end)
@@ -178,10 +175,7 @@ begin
         jnz @@foryloop;
 
         pop edi;
-        pop edx;
-        pop ecx;
         pop ebx;
-        pop eax;
      end;
 end;
 
@@ -195,10 +189,7 @@ begin
      y2 := height - 1;
      iter := -(width and $FFFFFFFE)*sizeof(double);
      asm
-        push eax;
         push ebx;
-        push ecx;
-        push edx;
         push edi;
 
         mov eax, c;
@@ -308,10 +299,7 @@ begin
         jnz @@foryloop;
 
         pop edi;
-        pop edx;
-        pop ecx;
         pop ebx;
-        pop eax;
      end;
 end;
 
@@ -326,9 +314,7 @@ begin
      iter := w2*sizeof(double);
 
      asm
-        push eax;
         push ebx;
-        push ecx;
         push edi;
 
         mov eax, c;
@@ -380,9 +366,7 @@ begin
 
         // epilog
         pop edi;
-        pop ecx;
         pop ebx;
-        pop eax;
      end;
 end;
 
@@ -397,9 +381,7 @@ begin
      iter := -w2*sizeof(double);
 
      asm
-        push eax;
         push ebx;
-        push ecx;
         push edi;
 
         mov eax, c;
@@ -455,9 +437,7 @@ begin
 
         // epilog
         pop edi;
-        pop ecx;
         pop ebx;
-        pop eax;
      end;
 end;
 
@@ -466,9 +446,7 @@ procedure ASMMatrixRotateAligned(N : TASMNativeInt; X : PDouble;
   Y : PDouble; const c, s : double);
 begin
      asm
-        push eax;
         push ebx;
-        push ecx;
         push esi;
 
         movsd xmm2, s;
@@ -546,9 +524,7 @@ begin
         @@endProc:
 
         pop esi;
-        pop ecx;
         pop ebx;
-        pop eax;
      end;
 end;
 
@@ -557,10 +533,7 @@ procedure ASMMatrixRotateUnaligned(N : TASMNativeInt; X : PDouble; const LineWid
   Y : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
 begin
      asm
-        push eax;
         push ebx;
-        push ecx;
-        push edx;
         push edi;
         push esi;
 
@@ -655,9 +628,8 @@ begin
         @@endProc:
 
         pop esi;
-        pop ecx;
+        pop edi;
         pop ebx;
-        pop eax;
      end;
 end;
 
@@ -665,7 +637,7 @@ procedure ASMMatrixRotate(N : TASMNativeInt; X : PDouble; const LineWidthDX : TA
 begin
      if N <= 0 then
         exit;
-        
+
      if (LineWidthDX = sizeof(double)) and (LineWidthDY = sizeof(double))
      then
          ASMMatrixRotateAligned(N, X, Y, c, s)

@@ -1180,7 +1180,7 @@ end;
 end;
 
 procedure ASMMatrixNormalizeColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iRBX, iRSI : NativeInt;
+var iRBX, iRSI : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1258,7 +1258,7 @@ end;
 end;
 
 procedure ASMMatrixNormalizeColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iRBX, iRSI : NativeInt;
+var iRBX, iRSI : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1337,7 +1337,7 @@ end;
 
 
 procedure ASMMatrixNormalizeColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iRBX, iRSI : NativeInt;
+var iRBX, iRSI : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -1449,7 +1449,7 @@ end;
 end;
 
 procedure ASMMatrixNormalizeColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iRBX, iRSI : NativeInt;
+var iRBX, iRSI : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}

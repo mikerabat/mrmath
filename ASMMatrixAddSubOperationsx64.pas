@@ -43,6 +43,7 @@ procedure ASMMatrixSubUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMN
 procedure ASMMatrixSubAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 procedure ASMMatrixSubUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 
+procedure ASMMatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
 {$ENDIF}
 
 implementation
@@ -52,7 +53,7 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 procedure ASMMatrixAddAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var iRBX, iR12 : NativeInt;
+var iRBX, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -168,7 +169,7 @@ end;
 {$ENDIF}
 
 procedure ASMMatrixAddUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var iRBX, iR12 : NativeInt;
+var iRBX, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -294,7 +295,7 @@ end;
 {$ENDIF}
 
 procedure ASMMatrixAddAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var iRBX, iR12 : NativeInt;
+var iRBX, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -418,7 +419,7 @@ end;
 {$ENDIF}
 
 procedure ASMMatrixAddUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var iRBX, iR12 : NativeInt;
+var iRBX, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -551,7 +552,7 @@ end;
 {$ENDIF}
 
 procedure ASMMatrixSubAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var iRBX, iR12 : NativeInt;
+var iRBX, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -668,7 +669,7 @@ end;
 {$ENDIF}
 
 procedure ASMMatrixSubUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var iRBX, iR12 : NativeInt;
+var iRBX, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -794,7 +795,7 @@ end;
 {$ENDIF}
 
 procedure ASMMatrixSubAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var iRBX, iR12 : NativeInt;
+var iRBX, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -918,7 +919,7 @@ end;
 {$ENDIF}
 
 procedure ASMMatrixSubUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var iRBX, iR12 : NativeInt;
+var iRBX, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -1049,6 +1050,51 @@ end;
 {$IFDEF FPC}
 end;
 {$ENDIF}
+
+procedure ASMMatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
+var iRBX : TASMNativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
+     // rcx : A, rdx : LineWidthA, r8 : B, r9 : LineWidthB;
+     asm
+        // maintain stack
+        mov iRBX, rbx;
+
+        // rax: iter := -width*sizeof(double)
+        mov rcx, A;
+        mov rax, width;
+        imul rax, -8;
+        sub rcx, rax;
+
+        // for y := 0 to height - 1
+        @@foryloop:
+           mov r10, r8;
+           mov rbx, rax;
+
+           // for x := 0 to width - 1
+           @@forxloop:
+              movsd xmm0, [rcx + rbx];
+              movsd xmm1, [r10];
+
+              subsd xmm0, xmm1;
+              movsd [rcx + rbx], xmm0;
+
+              add r10, r9;
+           add rbx, 8;
+           jnz @@forxloop;
+
+           add rcx, rdx;
+           add r8, 8;
+        dec height;
+        jnz @@foryloop;
+
+        mov rbx, iRBX;
+     end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
 
 {$ENDIF}
 

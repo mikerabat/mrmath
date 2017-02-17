@@ -65,8 +65,6 @@ begin
      iter := -width*sizeof(double);
 
      asm
-        push eax;
-        push edx;
         push ebx;
         push esi;
         push edi;
@@ -94,7 +92,7 @@ begin
             xorpd xmm0, xmm0;  // dest^ := 0;
             xorpd xmm1, xmm1;
             xorpd xmm2, xmm2;
-            xorpd xmm3, xmm3; 
+            xorpd xmm3, xmm3;
             mov ebx, v;        // ebx = first vector element
             mov ecx, iter;
 
@@ -127,7 +125,7 @@ begin
             add eax, iter; // undo increment
 
             // calculate dest = beta*dest + alpha*xmm0
-            // -> 4 times since the loop is unrolled 
+            // -> 4 times since the loop is unrolled
             movhpd xmm0, [edi];
             mulpd xmm0, xmm6;
             haddpd xmm0, xmm7;
@@ -162,7 +160,7 @@ begin
         // ###########################################
         // #### Remaining rows (max 4):
         @@foryloopend:
-        
+
         add height, 4;
         jz @@endmult;
 
@@ -173,7 +171,7 @@ begin
             xorpd xmm0, xmm0;  // dest^ := 0;
             mov ebx, v;        // ebx = first vector element
             mov ecx, iter;
-            
+
             @@forxshortloop:
                 movsd xmm4, [ebx];
                 mulsd xmm4, [eax + ecx];
@@ -194,7 +192,7 @@ begin
             add eax, LineWidthMT;
 
         dec height;
-        jnz @@foryshortloop;   
+        jnz @@foryshortloop;
 
         @@endmult:
 
@@ -202,8 +200,6 @@ begin
         pop edi;
         pop esi;
         pop ebx;
-        pop edx;
-        pop eax;
      end;
 end;
 
@@ -216,8 +212,6 @@ begin
      iter := -width*sizeof(double);
 
      asm
-        push eax;
-        push edx;
         push ebx;
         push esi;
         push edi;
@@ -358,8 +352,6 @@ begin
         pop edi;
         pop esi;
         pop ebx;
-        pop edx;
-        pop eax;
      end;
 end;
 
@@ -372,8 +364,6 @@ begin
      iter := -width*sizeof(double);
 
      asm
-        push eax;
-        push edx;
         push ebx;
         push esi;
         push edi;
@@ -400,7 +390,7 @@ begin
             xorpd xmm0, xmm0;  // dest^ := 0;
             xorpd xmm1, xmm1;
             xorpd xmm2, xmm2;
-            xorpd xmm3, xmm3; 
+            xorpd xmm3, xmm3;
             mov ebx, v;        // ebx = first vector element
             mov ecx, iter;
 
@@ -433,7 +423,7 @@ begin
             add eax, iter; // undo increment
 
             // calculate dest = beta*dest + alpha*xmm0
-            // -> 4 times since the loop is unrolled 
+            // -> 4 times since the loop is unrolled
             movsd xmm5, [edi];
             haddpd xmm0, xmm5;
             mulpd xmm0, xmm6;
@@ -472,29 +462,29 @@ begin
         // ###########################################
         // #### Remaining rows (max 4):
         @@foryloopend:
-        
+
         add height, 4;
         jz @@endmult;
 
         sub eax, iter;
         @@foryshortloop:
 
-            // init values: 
+            // init values:
             xorpd xmm0, xmm0;  // dest^ := 0;
             mov ebx, v;        // ebx = first vector element
             mov ecx, iter;
-            
+
             @@forxshortloop:
                 movupd xmm4, [ebx];
                 movupd xmm5, [eax + ecx];
                 mulpd xmm5, xmm4;
                 addpd xmm0, xmm5;
-            
+
                 add ebx, 16;
             add ecx, 16;
             jnz @@forxshortloop;
 
-            
+
             // calculate dest = beta*dest + alpha*xmm0
             movsd xmm5, [edi];
             haddpd xmm0, xmm5;
@@ -507,7 +497,7 @@ begin
             add eax, LineWidthMT;
 
         dec height;
-        jnz @@foryshortloop;   
+        jnz @@foryshortloop;
 
         @@endmult:
 
@@ -515,8 +505,6 @@ begin
         pop edi;
         pop esi;
         pop ebx;
-        pop edx;
-        pop eax;
      end;
 end;
 
@@ -530,8 +518,6 @@ begin
      iter := -(width - 1)*sizeof(double);
 
      asm
-        push eax;
-        push edx;
         push ebx;
         push esi;
         push edi;
@@ -558,7 +544,7 @@ begin
             xorpd xmm0, xmm0;  // dest^ := 0;
             xorpd xmm1, xmm1;
             xorpd xmm2, xmm2;
-            xorpd xmm3, xmm3; 
+            xorpd xmm3, xmm3;
             mov ebx, v;        // ebx = first vector element
             mov ecx, iter;
 
@@ -615,7 +601,7 @@ begin
             add eax, iter; // undo increment
 
             // calculate dest = beta*dest + alpha*xmm0
-            // -> 4 times since the loop is unrolled 
+            // -> 4 times since the loop is unrolled
             movsd xmm5, [edi];
             haddpd xmm0, xmm5;
             mulpd xmm0, xmm6;
@@ -702,8 +688,6 @@ begin
         pop edi;
         pop esi;
         pop ebx;
-        pop edx;
-        pop eax;
      end;
 end;
 
@@ -717,8 +701,6 @@ begin
      if (width = 0) or (height = 0) then
         exit;
      asm
-        push eax;
-        push edx;
         push ebx;
         push esi;
         push edi;
@@ -1007,8 +989,6 @@ begin
         pop edi;
         pop esi;
         pop ebx;
-        pop edx;
-        pop eax;
      end;
 end;
 
@@ -1020,8 +1000,6 @@ begin
      if (width = 0) or (height = 0) then
         exit;
      asm
-        push eax;
-        push edx;
         push ebx;
         push esi;
         push edi;
@@ -1190,8 +1168,6 @@ begin
         pop edi;
         pop esi;
         pop ebx;
-        pop edx;
-        pop eax;
      end;
 end;
 
@@ -1199,8 +1175,6 @@ end;
 procedure ASMMatrixVectMultT1(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 begin
      asm
-        push eax;
-        push edx;
         push ebx;
         push esi;
         push edi;
@@ -1259,8 +1233,6 @@ begin
         pop edi;
         pop esi;
         pop ebx;
-        pop edx;
-        pop eax;
      end;
 end;
 
@@ -1273,8 +1245,6 @@ begin
      wd2 := width div 2;
      // performs A = A + alpha*X*Y' in row major form
      asm
-        push eax;
-        push edx;
         push ebx;
         push edi;
         push esi;
@@ -1343,8 +1313,6 @@ begin
         pop esi;
         pop edi;
         pop ebx;
-        pop edx;
-        pop eax;
      end;
 end;
 
@@ -1360,8 +1328,6 @@ begin
      wd2 := width div 2;
      // performs A = A + alpha*X*Y' in row major form
      asm
-        push eax;
-        push edx;
         push ebx;
         push edi;
         push esi;
@@ -1430,8 +1396,6 @@ begin
         pop esi;
         pop edi;
         pop ebx;
-        pop edx;
-        pop eax;
      end;
 end;
 

@@ -2201,6 +2201,18 @@ begin
           end;
      end;
 
+     // ####################################
+     // #### Undo scaling if necessary
+     if isScaled then
+     begin
+          if absMax < smallnum
+          then
+              MatrixScaleAndAdd(PDouble(W), sizeof(double), minmn, 1, 0, absMax/smallnum)
+          else if absMax > bigNum
+          then
+              MatrixScaleAndAdd(PDouble(W), sizeof(double), minmn, 1, 0, absMax/bignum);
+     end;
+
      // ###########################################
      // #### Cleanup
      if svdData.pWorkMem = nil  then
@@ -2413,7 +2425,7 @@ end;
 function ThrRot_VT(obj : TObject) : integer;
 begin
      if TMatrixRotateObj(obj).ncvt > 0 then
-        GenericMatrixRotate(TMatrixRotateObj(obj).ncvt, GenPtr(TMatrixRotateObj(obj).vt, 0, TMatrixRotateObj(obj).mm - 1, TMatrixRotateObj(obj).LineWidthVT), sizeof(double),
+        MatrixRotate(TMatrixRotateObj(obj).ncvt, GenPtr(TMatrixRotateObj(obj).vt, 0, TMatrixRotateObj(obj).mm - 1, TMatrixRotateObj(obj).LineWidthVT), sizeof(double),
              GenPtr(TMatrixRotateObj(obj).vt, 0, TMatrixRotateObj(obj).mm, TMatrixRotateObj(obj).LineWidthVT),
              sizeof(double), TMatrixRotateObj(obj).cosr, TMatrixRotateObj(obj).sinr);
 
@@ -2432,7 +2444,7 @@ begin
      calls := MtxInitTaskGroup;
      calls.AddTask({$IFDEF FPC}@{$ENDIF}ThrRot_VT, obj);
      if NRU > 0 then
-        GenericMatrixRotate(nru, GenPtr(u, m - 1, 0, LineWidthU), LineWidthU, GenPtr(u, m, 0, LineWidthU), LineWidthU, cosl, sinl);
+        MatrixRotate(nru, GenPtr(u, m - 1, 0, LineWidthU), LineWidthU, GenPtr(u, m, 0, LineWidthU), LineWidthU, cosl, sinl);
      calls.SyncAll;
 end;
 

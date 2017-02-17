@@ -49,7 +49,7 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 procedure ASMMatrixElemMultAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var iRBX, iR11, iR12 : NativeInt;
+var iRBX, iR11, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -169,7 +169,7 @@ end;
 end;
 
 procedure ASMMatrixElemMultUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var iRBX, iR11, iR12 : NativeInt;
+var iRBX, iR11, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -294,7 +294,7 @@ end;
 end;
 
 procedure ASMMatrixElemMultAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var iRBX, iR11, iR12 : NativeInt;
+var iRBX, iR11, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -422,7 +422,7 @@ end;
 end;
 
 procedure ASMMatrixElemMultUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var iRBX, iR11, iR12 : NativeInt;
+var iRBX, iR11, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -559,7 +559,7 @@ end;
 // ##############################################################
 
 procedure ASMMatrixElemDivAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var iRBX, iR11, iR12 : NativeInt;
+var iRBX, iR11, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -679,7 +679,7 @@ end;
 end;
 
 procedure ASMMatrixElemDivUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var iRBX, iR11, iR12 : NativeInt;
+var iRBX, iR11, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -804,7 +804,7 @@ end;
 end;
 
 procedure ASMMatrixElemDivAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var iRBX, iR11, iR12 : NativeInt;
+var iRBX, iR11, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -932,7 +932,7 @@ end;
 end;
 
 procedure ASMMatrixElemDivUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var iRBX, iR11, iR12 : NativeInt;
+var iRBX, iR11, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}

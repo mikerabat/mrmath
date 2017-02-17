@@ -48,7 +48,7 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-var iRBX : NativeInt;
+var iRBX : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -130,7 +130,7 @@ end;
 end;
 
 function ASMMatrixMaxUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-var iRBX : NativeInt;
+var iRBX : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -215,7 +215,7 @@ end;
 
 
 function ASMMatrixMaxAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-var iRBX : NativeInt;
+var iRBX : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -302,7 +302,7 @@ end;
 end;
 
 function ASMMatrixMaxUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-var iRBX : NativeInt;
+var iRBX : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -392,7 +392,7 @@ end;
 
 
 function ASMMatrixMinAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-var iRBX : NativeInt;
+var iRBX : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -474,7 +474,7 @@ end;
 end;
 
 function ASMMatrixMinUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-var iRBX : NativeInt;
+var iRBX : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -559,7 +559,7 @@ end;
 
 
 function ASMMatrixMinAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-var iRBX : NativeInt;
+var iRBX : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -646,7 +646,7 @@ end;
 end;
 
 function ASMMatrixMinUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-var iRBX : NativeInt;
+var iRBX : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}

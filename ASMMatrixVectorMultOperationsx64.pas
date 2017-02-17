@@ -59,7 +59,7 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 procedure ASMMatrixVectorMultAlignedEvenW1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt);
-var iRBX, iRDI, iR12 : NativeInt;
+var iRBX, iRDI, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -68,11 +68,6 @@ asm
    mov iRBX, rbx;
    mov iRDI, rdi;
    mov iR12, r12;
-   {
-   .pushnv rbx;
-   .pushnv rdi;
-   .pushnv r12;
-   }
 
    mov r10, width1;
    shl r10, 3;
@@ -177,7 +172,7 @@ end;
 end;
 
 procedure ASMMatrixVectorMultUnAlignedEvenW1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt);
-var iRBX, iRDI, iR12 : NativeInt;
+var iRBX, iRDI, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -186,12 +181,8 @@ asm
    mov iRBX, rbx;
    mov iRDI, rdi;
    mov iR12, r12;
-   {
-   .pushnv rbx;
-   .pushnv rdi;
-   .pushnv r12;
-   }
 
+   // "iter"
    mov r10, width1;
    shl r10, 3;
    imul r10, -1;
@@ -292,7 +283,7 @@ end;
 
 
 procedure ASMMatrixVectorMultAlignedOddW1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt);
-var iRBX, iRDI, iR12 : NativeInt;
+var iRBX, iRDI, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -301,12 +292,8 @@ asm
    mov iRBX, rbx;
    mov iRDI, rdi;
    mov iR12, r12;
-   {
-   .pushnv rbx;
-   .pushnv rdi;
-   .pushnv r12;
-   }
 
+   // iter
    mov r10, width1;
    dec r10;
    shl r10, 3;
@@ -418,7 +405,7 @@ end;
 end;
 
 procedure ASMMatrixVectorMultUnAlignedOddW1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt);
-var iRBX, iRDI, iR12 : NativeInt;
+var iRBX, iRDI, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -427,12 +414,8 @@ asm
    mov iRBX, rbx;
    mov iRDI, rdi;
    mov iR12, r12;
-   {
-   .pushnv rbx;
-   .pushnv rdi;
-   .pushnv r12;
-   }
 
+   // iter
    mov r10, width1;
    dec r10;
    shl r10, 3;
@@ -541,7 +524,7 @@ end;
 
 procedure ASMMatrixVectMultAlignedOddW(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -558,7 +541,7 @@ asm
    movupd dXMM7, xmm7;
 
    // global function inits (for haddpd)
-   xorpd xmm7, xmm7;
+   xorpd xmm0, xmm0;
 
    // for the final multiplication  (alpha, beta handling)
    movhpd xmm6, beta;
@@ -608,7 +591,7 @@ asm
 
        // result building
        // write back result (final addition and compactation)
-       haddpd xmm3, xmm7;
+       haddpd xmm3, xmm0;
 
        // result building
        // write back result (final addition and compactation)
@@ -617,7 +600,7 @@ asm
        movhpd xmm3, [rcx];
 
        mulpd xmm3, xmm6;
-       haddpd xmm3, xmm7;
+       haddpd xmm3, xmm0;
 
        // store destination
        movlpd [rcx], xmm3;
@@ -635,9 +618,6 @@ asm
    mov r12, iR12;
    mov r13, iR13;
    mov r14, iR14;
-
-   movupd xmm6, dXMM6;
-   movupd xmm7, dXMM7;
 end;
 {$IFDEF FPC}
 end;
@@ -648,7 +628,7 @@ end;
 // note we need at lest width = 3 for this function!
 procedure ASMMatrixVectMultUnalignedOddW(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -754,7 +734,7 @@ end;
 
 procedure ASMMatrixVectMultUnalignedEvenW(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -850,8 +830,8 @@ end;
 {$ENDIF}
 
 procedure ASMMatrixVectMultAlignedEvenW(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-var dXMM6, dXMM7 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
+var dXMM4 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -864,15 +844,14 @@ asm
    mov iR13, r13;
    mov iR14, r14;
 
-   movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
+   movupd dXMM4, xmm4;
 
    // global function inits (for haddpd)
    xorpd xmm7, xmm7;
 
    // for the final multiplication  (alpha, beta handling)
-   movhpd xmm6, beta;
-   movlpd xmm6, alpha;
+   movhpd xmm4, beta;
+   movlpd xmm4, alpha;
 
    // prepare for loop
    mov rsi, LineWidthMT;
@@ -918,7 +897,7 @@ asm
        // calculate dest = beta*dest + alpha*xmm0
        movhpd xmm3, [rcx];
 
-       mulpd xmm3, xmm6;
+       mulpd xmm3, xmm4;
        haddpd xmm3, xmm7;
 
        // store destination
@@ -938,8 +917,7 @@ asm
    mov r13, iR13;
    mov r14, iR14;
 
-   movupd xmm6, dXMM6;
-   movupd xmm7, dXMM7;
+   movupd xmm4, dxmm4;
 end;
 {$IFDEF FPC}
 end;
@@ -949,13 +927,18 @@ end;
 
 procedure ASMMatrixVectMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
-var dXMM6, dXMM7 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
+var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
 asm
    // prolog - simulate stack
+   movupd dXMM4, xmm4;
+   movupd dXMM5, xmm5;
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
+
    mov iRBX, rbx;
    mov iRSI, rsi;
    mov iRDI, rdi;
@@ -963,8 +946,6 @@ asm
    mov iR13, r13;
    mov iR14, r14;
 
-   movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
 
    // global function inits (for haddpd and alpha, beta handling)
    xorpd xmm7, xmm7;
@@ -1105,6 +1086,8 @@ asm
    mov r13, iR13;
    mov r14, iR14;
 
+   movupd xmm4, dXMM4;
+   movupd xmm5, dXMM5;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
 end;
@@ -1116,8 +1099,8 @@ end;
 // routines with special input layouts: LineWidthV needs to be sizeof(double)
 procedure ASMMatrixVectMultEvenAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
-var dXMM6, dXMM7 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
+var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1130,6 +1113,8 @@ asm
    mov iR13, r13;
    mov iR14, r14;
 
+   movupd dXMM4, xmm4;
+   movupd dXMM5, xmm5;
    movupd dXMM6, xmm6;
    movupd dXMM7, xmm7;
 
@@ -1277,6 +1262,8 @@ asm
    mov r13, iR13;
    mov r14, iR14;
 
+   movupd xmm4, dXMM4;
+   movupd xmm5, dXMM5;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
 end;
@@ -1286,8 +1273,8 @@ end;
 
 procedure ASMMatrixVectMultEvenUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
-var dXMM6, dXMM7 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
+var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1300,6 +1287,8 @@ asm
    mov iR13, r13;
    mov iR14, r14;
 
+   movupd dXMM4, xmm4;
+   movupd dXMM5, xmm5;
    movupd dXMM6, xmm6;
    movupd dXMM7, xmm7;
 
@@ -1447,6 +1436,8 @@ asm
    mov r13, iR13;
    mov r14, iR14;
 
+   movupd xmm4, dXMM4;
+   movupd xmm5, dXMM5;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
 end;
@@ -1456,8 +1447,8 @@ end;
 
 procedure ASMMatrixVectMultOddUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
-var dXMM6, dXMM7 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
+var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1470,6 +1461,8 @@ asm
    mov iR13, r13;
    mov iR14, r14;
 
+   movupd dXMM4, xmm4;
+   movupd dXMM5, xmm5;
    movupd dXMM6, xmm6;
    movupd dXMM7, xmm7;
 
@@ -1649,6 +1642,8 @@ asm
    mov r13, iR13;
    mov r14, iR14;
 
+   movupd xmm4, dXMM4;
+   movupd xmm5, dXMM5;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
 end;
@@ -1661,8 +1656,8 @@ end;
 // so only this version exists
 
 procedure ASMMatrixVectMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-var dXMM6, dXMM7 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
+var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 
     res0, res1, res2, res3,
     res4, res5, res6, res7 : Array[0..1] of  double;
@@ -1678,7 +1673,13 @@ asm
    mov iR13, r13;
    mov iR14, r14;
 
-   // for the final multiplication
+   movupd dXMM4, xmm4;
+   movupd dXMM5, xmm5;
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
+
+
+   // for the f inal multiplication
    movddup xmm6, alpha;
    movddup xmm7, beta;
 
@@ -1967,6 +1968,7 @@ asm
    mov r13, iR13;
    mov r14, iR14;
 
+   movupd xmm4, dXMM4;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
 end;
@@ -1979,7 +1981,7 @@ end;
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
 procedure ASMMatrixVectMultT1(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -2064,8 +2066,8 @@ end;
 
 
 procedure ASMMatrixVectMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-var dXMM6, dXMM7 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
+var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 
     res0, res1, res2, res3,
     res4, res5, res6, res7 : Array[0..1] of  double;
@@ -2080,6 +2082,12 @@ asm
    mov iR12, r12;
    mov iR13, r13;
    mov iR14, r14;
+
+   movupd dXMM4, xmm4;
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
+
+
 
    // for the final multiplication
    movddup xmm6, alpha;
@@ -2321,6 +2329,7 @@ asm
    mov r13, iR13;
    mov r14, iR14;
 
+   movupd xmm4, dXMM4;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
    end;
@@ -2332,7 +2341,7 @@ end;
 procedure ASMRank1UpdateSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
   const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
 // note: RCX = A, RDX = LineWidthA, R8 = width, R9 = height
-var iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
+var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -2426,7 +2435,7 @@ end;
 procedure ASMRank1UpdateSeqAligned(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
   const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
 // note: RCX = A, RDX = LineWidthA, R8 = width, R9 = height
-var iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
+var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}

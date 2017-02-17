@@ -146,10 +146,10 @@ procedure GenericMtxMultTria2T1_2(dest : PDouble; LineWidthDest : TASMNativeInt;
 
 
 // dtrm right upper transpose unit
-procedure GenericMtxMultTria2TUpper(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure GenericMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 
-  
+
 procedure GenericMtxMultTria2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 procedure GenericMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
@@ -169,7 +169,7 @@ procedure GenericSymRankKUpd(dest : PDouble; LineWidthDest: TASMNativeInt; A : P
 procedure GenericSolveLoTriMtxTranspNoUnit(A : PDouble; const LineWidthA : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
 
 procedure GenericRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt); // {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
 
 
 procedure GenericInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; const Value : double);
@@ -2011,7 +2011,7 @@ end;
 // ###########################################
 
 // W = C1*V1*T -> V1 is an upper triangular matrix with assumed unit diagonal entries. Operation on V1 transposition
-procedure GenericMtxMultTria2TUpper(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure GenericMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 var y: Integer;
     x : Integer;
@@ -2021,6 +2021,7 @@ var y: Integer;
     pMt2 : PConstDoubleArr;
 begin
      assert((width1 > 0) and (height1 > 0) and (width1 = width2), 'Dimension error'); 
+     assert(width1 = height2, 'Width1 <> height1');
      for y := 0 to height1 - 1 do
      begin
           pDest := PConstDoubleArr( GenPtr(dest, 0, y, LineWidthDest ) );
@@ -2194,13 +2195,13 @@ end;
 procedure GenericMtxMultTria2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 var x, y, idx : TASMNativeInt;
-    valCounter1 : PDouble;
+    valCounter1 : PConstDoubleArr;
     valCounter2 : PDouble;
     tmp : double;
     pMt1 : PDouble;
 begin
      assert((width1 > 0) and (height1 > 0) and (width1 = height2), 'Dimension error');
-
+     assert(width1 = width2, 'Widths need to be the same');
      // start from the back
      inc(mt2, width2 - 1);
      for x := 0 to width2 - 1 do
@@ -2209,13 +2210,12 @@ begin
           for y := 0 to height1 - 1 do
           begin
                tmp := 0;
-               valCounter1 := pmt1;
+               valCounter1 := PConstDoubleArr( pmt1 );
                valCounter2 := MT2;
 
                for idx := 0 to width1 - x - 1 do
                begin
-                    tmp := tmp + valCounter1^*valCounter2^;
-                    inc(valCounter1);
+                    tmp := tmp + valCounter1^[idx]*valCounter2^;
                     inc(PByte(valCounter2), LineWidth2);
                end;
 
@@ -2239,10 +2239,11 @@ var y: Integer;
     tmp : double;
 begin
      assert((width1 > 0) and (height1 > 0) and (width1 = height2), 'Dimension error'); 
+     assert(width1 = width2, 'Widths need to be the same');
      for y := 0 to height1 - 1 do
      begin
           pMt1 :=  PConstDoubleArr( GenPtr(mt1, 0, y, LineWidth1 ) );
-          for x := width2 - 1 downto 0 do
+          for x := width2 - 1 downto 1 do
           begin
                pMt2 := GenPtr(mt2, x, 0, LineWidth2 );
                tmp := 0;
@@ -2268,7 +2269,8 @@ var y: Integer;
     pMt2 : PConstDoubleArr;
     tmp : double;
 begin
-     assert((width1 > 0) and (height1 > 0) and (width1 = width2), 'Dimension error'); 
+     assert((width1 > 0) and (height1 > 0) and (width1 = width2), 'Dimension error');
+     assert(width1 = height2, 'width1 <> height2');
      for y := 0 to height1 - 1 do
      begin
           pMt1 :=  PConstDoubleArr( GenPtr(mt1, 0, y, LineWidth1 ) );
@@ -2288,31 +2290,27 @@ end;
 procedure GenericMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 var x, y, idx : TASMNativeInt;
-    valCounter1 : PDouble;
-    valCounter2 : PDouble;
+    valCounter1 : PConstDoubleArr;
+    valCounter2 : PConstDoubleArr;
     tmp : double;
     pMT1 : PDouble;
 begin
      assert((width1 > 0) and (height1 > 0) and (width1 = height2), 'Dimension error');
+     assert(width1 = width2, 'Widths need to be the same');
+     inc(PByte(mt2), (height2 - 1)*LineWidth2);
 
-     inc(PByte(mt2),(height2 - 1)*LineWidth2);
-
-     for x := 0 to width2 - 1 do
+     for x := 0 to width2 - 2 do
      begin
           pMt1 := mt1;
           for y := 0 to height1 - 1 do
           begin
                tmp := 0;
-               valCounter1 := pMt1;
-               valCounter2 := mt2;
+               valCounter1 := PConstDoubleArr(pMt1);
+               valCounter2 := PConstDoubleArr(mt2);
                for idx := 0 to width2 - x - 2 do
-               begin
-                    tmp := tmp + valCounter1^*valCounter2^;
-                    inc(valCounter1);
-                    inc(valCounter2);
-               end;
+                   tmp := tmp + valCounter1^[idx]*valCounter2^[idx];
 
-               PConstDoubleArr(pMt1)^[width2 - x - 1] := tmp + valCounter1^;
+               PConstDoubleArr(pMt1)^[width2 - x - 1] := tmp + valCounter1^[width2 - x - 1];
 
                inc(PByte(pMt1), LineWidth1);
           end;

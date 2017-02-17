@@ -33,8 +33,8 @@ function sign(const a : double; const b : double) : double; {$IFNDEF FPC} {$IF C
 procedure DoubleSwap(var a, b : Double); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function binom(n, k : integer) : int64;
 
-function lcm(a, b : NativeInt) : NativeInt;  // least common multiple
-function gcm(a, b : NativeInt) : NativeInt; // greatest common divisior
+function lcm(a, b : TASMNativeInt) : TASMNativeInt;  // least common multiple
+function gcm(a, b : TASMNativeInt) : TASMNativeInt; // greatest common divisior
 
 function eps(const val : double) : double;
 function MinDblDiv : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
@@ -219,14 +219,14 @@ begin
      end;
 end;
 
-function lcm(a, b : NativeInt) : NativeInt;  // least common multiple
+function lcm(a, b : TASMNativeInt) : TASMNativeInt;  // least common multiple
 begin
      Result := (abs(a) div gcm(a, b)) * abs(b);
 end;
 
 // from https://en.wikipedia.org/wiki/Euclidean_algorithm
-function gcm(a, b : NativeInt) : NativeInt; // greatest common divisior
-var t : NativeInt;
+function gcm(a, b : TASMNativeInt) : TASMNativeInt; // greatest common divisior
+var t : TASMNativeInt;
 begin
      while b <> 0 do
      begin

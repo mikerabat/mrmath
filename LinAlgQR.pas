@@ -84,7 +84,7 @@ implementation
 
 uses ASMMatrixOperations, SimpleMatrixOperations, BlockSizeSetup, Classes, LinAlgSVD,
      HouseholderReflectors, Math, ThreadedMatrixOperations, MathUtilFunc,
-  MtxThreadPool;
+  MtxThreadPool, ASMMatrixMultOperations;
 
 
 // ###########################################
@@ -511,20 +511,20 @@ begin
      begin
           if transposed
           then
-              GenericMtxMultTria2T1StoreT1(mem, LineWidthMem, T, LineWidthT, widthT, heightW, WidthT, WidthT)
+              MtxMultTria2T1StoreT1(mem, LineWidthMem, T, LineWidthT, widthT, heightW, WidthT, WidthT)
           else
-              GenericMtxMultTria2Store1(mem, LineWidthMem, T, LineWidthT, widthT, heightW, WidthT, WidthT);
+              MtxMultTria2Store1(mem, LineWidthMem, T, LineWidthT, widthT, heightW, WidthT, WidthT);
 
           // C2 = C2 - Y2*W'
           qrData.MatrixMultT2(pC2, LineWidthA, pY2, mem, widthT, height - widthT, widthT, heightW,
                               LineWidthA, LineWidthMem, QRMultBlockSize, doSub, qrData.BlkMultMem);
 
           // W = W*Y1' (lower left part of Y1! -> V1)
-          GenericMtxMultLowTria2T2Store1(mem, LineWidthMem, A, LineWidthA, WidthT, heightW, widthT, widthT);
+          MtxMultLowTria2T2Store1(mem, LineWidthMem, A, LineWidthA, WidthT, heightW, widthT, widthT);
      end;
 
      // C1 = C1 - W'
-     GenericMatrixSubT(pC1, LineWidthA, mem, LineWidthMem, width - widthT, widthT);
+     MatrixSubT(pC1, LineWidthA, mem, LineWidthMem, width - widthT, widthT);
 end;
 
 
@@ -901,7 +901,7 @@ begin
 
      // W := W * V1**T  // dtrm right upper transpose unit combined with copy
      W := mem;
-     GenericMtxMultTria2TUpper(W, LineWidthMem, pC1, LineWidthA, pV1, LineWidthA, widthC1, heightC1, widthV1, heightV1);
+     MtxMultTria2TUpperUnit(W, LineWidthMem, pC1, LineWidthA, pV1, LineWidthA, widthC1, heightC1, widthV1, heightV1);
 
      if width > widthT then
      begin
@@ -914,9 +914,9 @@ begin
      // W := W * T  or  W * T**T
      if transposed
      then
-         GenericMtxMultTria2T1StoreT1(W, LineWidthMem, T, LineWidthT, widthW, heightW, WidthT, WidthT)
+         MtxMultTria2T1StoreT1(W, LineWidthMem, T, LineWidthT, widthW, heightW, WidthT, WidthT)
      else
-         GenericMtxMultTria2Store1(W, LineWidthMem, T, LineWidthT, widthW, heightW, WidthT, WidthT);
+         MtxMultTria2Store1(W, LineWidthMem, T, LineWidthT, widthW, heightW, WidthT, WidthT);
 
      // C2 := C2 - W * V2
      if width > widthT then
@@ -924,7 +924,7 @@ begin
                      LineWidthA, QRMultBlockSize, doSub, qrData.BlkMultMem);
 
      // W := W * V1
-     GenericMtxMultTria2Store1Unit(W, LineWidthMem, pV1, LineWidthA, widthW, heightW, widthV1, heightV1);
+     MtxMultTria2Store1Unit(W, LineWidthMem, pV1, LineWidthA, widthW, heightW, widthV1, heightV1);
 
      // C1 := C1 - W
      MatrixSub(pC1, LineWidthA, pC1, W, widthC1, heightC1, LineWidthA, LineWidthMem);

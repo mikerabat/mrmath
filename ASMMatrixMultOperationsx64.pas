@@ -43,13 +43,30 @@ procedure ASMMatrixMultUnAlignedOddW1EvenW2(dest : PDouble; const destLineWidth 
 procedure ASMMatrixMultAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 procedure ASMMatrixMultUnAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 
-// som special types of multiplications used e.g. in QR Decomposition
-// note the result is stored in mt2 again!
+// some special types of multiplications used e.g. in QR Decomposition
 // dest = mt1'*mt2; where mt2 is a lower triangular matrix and the operation is transposition
 // the function assumes a unit diagonal (does not touch the real middle elements)
 // width and height values are assumed to be the "original" (non transposed) ones
-procedure ASMMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt;
-  mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure ASMMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+// mt1 = mt1*mt2'; where mt2 is an upper triangular matrix
+procedure ASMMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+
+// W = C1*V1*T -> V1 is an upper triangular matrix with assumed unit diagonal entries. Operation on V1 transposition
+procedure ASMMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+
+// mt1 = mt1*mt2; where mt2 is an upper triangular matrix
+procedure ASMMtxMultTria2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+
+// calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be 1!
+procedure ASMMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+
+// mt1 = mt1*mt2; where mt2 is an upper triangular matrix - diagonal elements are unit
+procedure ASMMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 
 
@@ -62,7 +79,7 @@ implementation
 {$IFDEF x64}
 procedure ASMMatrixMultAlignedEvenW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : NativeInt;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
 
 {$IFDEF FPC}
 begin
@@ -84,20 +101,6 @@ asm
     movupd dXMM6, xmm6;
     movupd dXMM7, xmm7;
 
-    {
-   .pushnv rbx;
-   .pushnv rsi;
-   .pushnv rdi;
-   .pushnv r12;
-   .pushnv r13;
-   .pushnv r14;
-   .pushnv r15;
-
-   .savenv xmm4;
-   .savenv xmm5;
-   .savenv xmm6;
-   .savenv xmm7;
-   }
 
     //destOffset := destLineWidth - Width2*sizeof(double);
     mov rbx, Width2;
@@ -228,7 +231,7 @@ end;
 
 procedure ASMMatrixMultUnAlignedEvenW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : NativeInt;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
 
 {$IFDEF FPC}
 begin
@@ -392,7 +395,7 @@ end;
 // the width of the second matrix is uneven -> the last column of mt2 must be handled differently
 procedure ASMMatrixMultAlignedEvenW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : NativeInt;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
 
 {$IFDEF FPC}
 begin
@@ -576,7 +579,7 @@ end;
 
 procedure ASMMatrixMultUnAlignedEvenW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : NativeInt;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
 
 {$IFDEF FPC}
 begin
@@ -761,7 +764,7 @@ end;
 // the width of mt1 is odd but the one of mt2 is even
 procedure ASMMatrixMultAlignedOddW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : NativeInt;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
 
 {$IFDEF FPC}
 begin
@@ -937,7 +940,7 @@ end;
 
 procedure ASMMatrixMultUnAlignedOddW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : NativeInt;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
 
 {$IFDEF FPC}
 begin
@@ -1115,7 +1118,7 @@ end;
 // both matrices have an odd width
 procedure ASMMatrixMultAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM5, dXMM6, dXMM7, dXMM8 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : NativeInt;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
 
 {$IFDEF FPC}
 begin
@@ -1319,7 +1322,7 @@ end;
 
 procedure ASMMatrixMultUnAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM5, dXMM6, dXMM7, dXMM8 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : NativeInt;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
 
 {$IFDEF FPC}
 begin
@@ -1526,6 +1529,334 @@ end;
 // #### Special multiplication routines (for now only used in QR Decomposition)
 // ###########################################
 
+// note the result is stored in mt1 again!
+// mt1 = mt1*mt2; where mt2 is an upper triangular matrix
+procedure ASMMtxMultTria2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+var iRBX, iRDI, iRSI, iR12, iR13 : TASMNativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
+     // prolog init stack
+     // rcx = mt1, rdx = LineWidth1, r8 = mt2, r9 = LineWidth2
+     asm
+        // prolog: stack
+        mov iRBX, rbx;
+        mov iRDI, rdi;
+        mov iRSI, rsi;
+        mov iR12, r12;
+        mov iR13, r13;
+
+        // r13 = height1
+        mov r13, height1;
+
+        // wm1: r11
+        mov r11, width2;
+        dec r11;
+
+        // iter: r10
+        mov r10, width1;
+        shl r10, 3;
+        imul r10, -1;
+        // init
+
+        // inc(mt2, width2 - 1);
+        mov rax, r11;
+        shl rax, 3; //sizeof(double)
+        add r8, rax;
+
+
+        // for x := 0 to width2 - 1 do
+        mov r12, width2;
+        @@forxloop:
+           mov rdi, r13;  // height1
+
+           mov rax, rcx;
+           sub rax, r10;
+
+           // for y := 0 to height1 - 1
+           @@foryloop:
+              // tmp := 0;
+              xorpd xmm0, xmm0;
+
+              // r8, mt2
+              mov rbx, r8;
+
+              // for idx := 0 to width1 - x - 1
+              mov rsi, r10;
+
+              // check if we have enough iterations:
+              test rsi, rsi;
+              jz @@foridxloopend;
+
+              @@foridxloop:
+                 movsd xmm1, [rbx];
+                 movsd xmm2, [rax + rsi]
+
+                 add rbx, r9;  // + linewidth2
+
+                 mulsd xmm1, xmm2;
+                 addsd xmm0, xmm1;
+
+              add rsi, 8;
+              jnz @@foridxloop;
+
+              @@foridxloopend:
+
+              // PConstDoubleArr(pmt1)^[width2 - 1 - x] := tmp;
+              mov rbx, rax;
+              add rbx, r10;
+              mov rsi, r12; // r12 = width2
+              dec rsi;
+              movsd [rbx + 8*rsi], xmm0;
+
+              // inc(PByte(pmT1), LineWidth1);
+              add rax, rdx;
+
+           dec rdi;
+           jnz @@foryloop;
+
+           // reduce for idx loop
+           add r10, 8;
+           // dec(mt2);
+           sub r8, 8;
+
+        // dec width2
+        dec r12;
+        jnz @@forxloop;
+
+        // cleanup stack
+        mov rbx, iRBX;
+        mov rdi, iRDI;
+        mov rsi, iRSI;
+        mov r12, iR12;
+        mov r13, iR13;
+     end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
+procedure ASMMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+var iRBX, iRDI, iRSI : TASMNativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
+     // rcx = mt1, rdx = LineWidth1, r8 = mt2, r9 = LineWidth2
+     asm
+        // prolog: stack
+        mov iRBX, rbx;
+        mov iRDI, rdi;
+        mov iRSI, rsi;
+
+        //iter := -width1*sizeof(double);
+        mov r10, width1;
+        imul r10, -8;
+
+        // testExitLoopVal := height2*sizeof(double) + iter;
+        mov r11, height2;
+        shl r11, 3; //*8
+        add r11, r10;
+
+        xorpd xmm5, xmm5; // haddpd
+
+        // rcx := mt1
+        sub rcx, r10;  // mt1 - iter
+
+        // for y loop
+        @@foryloop:
+           mov rbx, r8;
+           sub rbx, r10;
+           mov rsi, r10;
+
+           @@forxloop:
+              xorpd xmm0, xmm0; // temp := 0
+
+              mov rax, rsi;  // loop counter x;
+
+              // test if height2 > width1 and loop counter > width1
+              mov rdi, rax;
+              test rdi, rdi;
+              jge @@foriloopend;
+
+              // in case x is odd -> handle the first element separately
+              and rdi, $E;
+              jz @@foriloopinit;
+
+              // single element handling
+              movsd xmm1, [rcx + rax];
+              movsd xmm2, [rbx + rax];
+              mulsd xmm1, xmm2;
+              addsd xmm0, xmm1;
+              add rax, 8;
+
+              @@foriloopinit:
+
+              // in case the last single x element was handled we do not need further looping
+              test rax, rax;
+              jz @@foriloopend;
+
+              // for i := x to width1 - 1
+              @@foriloop:
+                 // two elements at a time:
+                 movupd xmm1, [rcx + rax];
+                 movupd xmm2, [rbx + rax];
+                 mulpd xmm1, xmm2;
+                 addpd xmm0, xmm1;
+
+              add rax, 16;
+              jnz @@foriloop;
+
+              @@foriloopend:
+
+              // final result
+              haddpd xmm0, xmm5;
+              movsd [rcx + rsi], xmm0;
+
+              add rbx, r9;
+              add rsi, 8;
+
+           mov rax, r11;
+           cmp rsi, rax;
+           jne @@forxloop;
+
+           add rcx, rdx;
+        dec height1;
+        jnz @@foryloop;
+
+        // epilog
+        mov rbx, iRBX;
+        mov rdi, iRDI;
+        mov rsi, iRSI;
+
+     end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
+
+procedure ASMMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+var iRBX, iRDI, iRSI, iR12, iR13 : TASMNativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
+     // rcx = dest, rdx = LineWidthDest, r8 = mt1, r9 = LineWidth1
+     asm
+        // prolog: stack
+        mov iRBX, rbx;
+        mov iRDI, rdi;
+        mov iRSI, rsi;
+        mov iR12, r12;
+        mov iR13, r13;
+
+        // r12: mt2
+        mov r12, mt2;
+        // r13: LineWidth2
+        mov r13, LineWidth2;
+
+        //iter := -width1*sizeof(double);
+        mov r10, width1;
+        imul r10, -8;
+
+        // testExitLoopVal := height2*sizeof(double) + iter;
+        mov r11, height2;
+        shl r11, 3; //*8
+        add r11, r10;
+
+        xorpd xmm5, xmm5; // haddpd
+
+        // r8 := mt1
+        sub r8, r10;  // mt1 - iter
+        sub rcx, r10;
+
+        // for y loop
+        @@foryloop:
+           mov rbx, r12;
+           sub rbx, r10;
+           mov rsi, r10;
+
+           @@forxloop:
+              xorpd xmm0, xmm0; // temp := 0
+
+              mov rax, rsi;  // loop counter x;
+
+              // test if height2 > width1 and loop counter > width1
+              mov rdi, rax;
+              test rdi, rdi;
+              jge @@foriloopend;
+
+              // in case x is odd -> handle the first element separately
+              and rdi, $E;
+              jz @@foriloopinit;
+
+              // single element handling -> mt1 first element is assumed unit!
+              movsd xmm0, [r8 + rax];
+              add rax, 8;
+
+              jmp @@AfterLoopInit;
+
+              @@foriloopinit:
+
+              test rax, rax;
+              jz @@foriloopend;
+
+              // two elements init at a time:
+              movsd xmm0, [r8 + rax];
+              movsd xmm1, [r8 + rax + 8];
+              movsd xmm2, [rbx + rax + 8];
+              mulsd xmm1, xmm2;
+              addsd xmm0, xmm1;
+
+              add rax, 16;
+
+              @@AfterLoopInit:
+
+              // in case the last single x element was handled we do not need further looping
+              test rax, rax;
+              jz @@foriloopend;
+
+              // for i := x to width1 - 1
+              @@foriloop:
+                 // two elements at a time:
+                 movupd xmm1, [r8 + rax];
+                 movupd xmm2, [rbx + rax];
+                 mulpd xmm1, xmm2;
+                 addpd xmm0, xmm1;
+
+              add rax, 16;
+              jnz @@foriloop;
+
+              @@foriloopend:
+
+              // final result
+              haddpd xmm0, xmm5;
+              movsd [rcx + rsi], xmm0;
+
+              add rbx, r13;
+              add rsi, 8;
+
+           mov rax, r11;
+           cmp rsi, rax;
+           jne @@forxloop;
+
+           add r8, r9;
+           add rcx, rdx;
+        dec height1;
+        jnz @@foryloop;
+
+        // epilog
+        mov rbx, iRBX;
+        mov rdi, iRDI;
+        mov rsi, iRSI;
+        mov r12, iR12;
+        mov r13, iR13;
+     end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
+
 // note the result is stored in mt2 again!
 // dest = mt1'*mt2; where mt2 is a lower triangular matrix and the operation is transposition
 // the function assumes a unit diagonal (does not touch the real middle elements)
@@ -1535,7 +1866,7 @@ procedure ASMMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 :
   width1, height1, width2, height2 : TASMNativeInt);
 var pMt2 : PDouble;
 
-    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : NativeInt;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1715,6 +2046,231 @@ begin
        mov rdi, iRDI;
        mov rbx, iRBX;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
+// calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be 1!
+procedure ASMMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+var iRBX, iRDI, iRSI : TASMNativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
+     // rcx: mt1, rdx: LineWidth1, r8 : mt2, r9 : LineWidth2
+     asm
+        // prolog - stack
+        mov iRBX, rbx;
+        mov iRDI, rdi;
+        mov iRSI, rsi;
+
+        // r11 : height1
+        mov r11, height1;
+
+        // r10 = iter := -(width2 - 1)*sizeof(double);
+        mov r10, width2;
+        dec r10;
+        imul r10, -8;
+
+        xorpd xmm3, xmm3;
+
+        // start from bottom
+        // r8: mt2
+        // inc(PByte(mt2),(height2 - 1)*LineWidth2);
+        mov rax, height2;
+        dec rax;
+        imul rax, r9;
+        add r8, rax;
+        sub r8, r10;
+
+        // for x := 0 to width2 - 2
+        mov rbx, width2;
+        dec rbx;
+        jz @@endproc;
+        @@forxloop:
+           mov rax, rcx;
+           sub rax, r10;
+
+           // for y := 0 to height1 - 1
+           mov rsi, r11;
+           @@foryloop:
+              xorpd xmm0, xmm0;
+
+              // for idx := 0 to width2 - x - 2
+              mov rdi, r10;
+              test rdi, rdi;
+              jz @@foridxloopend;
+
+              // unrolled loop 2x2
+              add rdi, 32;
+              jg @@foridxloopStart;
+
+              @@foridxlongloop:
+                 movupd xmm1, [rax + rdi - 32];
+                 movupd xmm2, [r8 + rdi - 32];
+                 mulpd xmm1, xmm2;
+                 addpd xmm0, xmm1;
+
+                 movupd xmm1, [rax + rdi - 16];
+                 movupd xmm2, [r8 + rdi - 16];
+                 mulpd xmm1, xmm2;
+                 addpd xmm0, xmm1;
+              add rdi, 32;
+              jl @@foridxlongloop;
+
+              haddpd xmm0, xmm3;
+
+              @@foridxloopStart:
+              sub rdi, 32;
+
+              jz @@foridxloopend;
+
+              @@foridxloop:
+                 movsd xmm1, [rax + rdi];
+                 movsd xmm2, [r8 + rdi];
+                 mulsd xmm1, xmm2;
+                 addsd xmm0, xmm1;
+
+              add rdi, 8;
+              jnz @@foridxloop;
+
+              @@foridxloopend:
+
+              // last element is unit:
+              movsd xmm1, [rax];
+              addsd xmm0, xmm1;
+
+              // write back
+              // PConstDoubleArr(pMt1)^[width2 - x - 1] := tmp + valCounter1^[width2 - x - 1];
+              movsd [rax], xmm0;
+
+              add rax, rdx;
+
+           dec rsi;
+           jnz @@foryloop;
+
+           // dec(PByte(mt2), LineWidth2);
+           sub r8, r9;
+           sub r8, 8;
+
+           // adjust iterator to the next x value for the idxloop
+           add r10, 8;
+
+        dec rbx;
+        jnz @@forxloop;
+
+        @@endproc:
+
+        // epilog: stack fixing
+        mov rbx, iRBX;
+        mov rdi, iRDI;
+        mov rsi, iRSI;
+     end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
+procedure ASMMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+var iRBX, iRDI, iRSI, iR12 : TASMNativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
+     // rcx : mt1, rdx : LineWidth1, r8 : mt2, r9: LineWidth2
+     asm
+        // prolog - stack
+        mov iRBX, rbx;
+        mov iRDI, rdi;
+        mov iRSI, rsi;
+        mov iR12, r12;
+        // init
+
+        // r12: height1
+        mov r12, height1;
+
+        // r10 : iter := -(width1-1)*sizeof(double);
+        mov r10, width1;
+        dec r10;
+        imul r10, -8;
+
+        // inc(mt2, width2 - 1);
+        mov rax, width2;
+        dec rax;
+        imul rax, 8; //sizeof(double)
+        add r8, rax;
+
+        // r11: width2
+        mov r11, width2;
+        dec r11;
+
+        // for x := 0 to width2 - 2 do
+        @@forxloop:
+           mov rdi, r12;
+
+           mov rax, rcx;
+           sub rax, r10;
+
+           // for y := 0 to height1 - 1
+           @@foryloop:
+              // tmp := 0;
+              xorpd xmm0, xmm0;
+
+              // r8, mt2
+              mov rbx, r8;
+
+              // for idx := 0 to width1 - x - 2
+              mov rsi, r10;
+
+              // check if we have enough r10ations:
+              cmp rsi, 0;
+              jge @@foridxloopend;
+
+              @@foridxloop:
+                 movsd xmm1, [rbx];
+                 movsd xmm2, [rax + rsi]
+
+                 add rbx, r9;  // + linewidth2
+
+                 mulsd xmm1, xmm2;
+                 addsd xmm0, xmm1;
+
+              add rsi, 8;
+              jnz @@foridxloop;
+
+              @@foridxloopend:
+
+              // last element is unit
+              addsd xmm0, [rax];
+
+              // PConstDoubleArr(pmt1)^[width2 - 1 - x] := tmp;
+              mov rbx, rax;
+              add rbx, r10;
+              mov rsi, r11;
+              movsd [rbx + 8*rsi], xmm0;
+
+              // inc(PByte(pmT1), LineWidth1);
+              add rax, rdx;
+
+           dec rdi;
+           jnz @@foryloop;
+
+           // reduce for idx loop
+           add r10, 8;
+           // dec(mt2);
+           sub r8, 8;
+
+        dec r11;
+        jnz @@forxloop;
+
+        @@endproc:
+
+        // cleanup stack
+        mov rbx, iRBX;
+        mov rdi, iRDI;
+        mov rsi, iRSI;
+        mov r12, iR12;
+
+     end;
 {$IFDEF FPC}
 end;
 {$ENDIF}

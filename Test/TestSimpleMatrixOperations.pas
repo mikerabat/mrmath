@@ -42,6 +42,7 @@ type
     procedure TestMatrixASMCopy;
     procedure TestMatrixAlloc;
     procedure TestASMAdd;
+    procedure TestSubT;
     procedure TestBigASMAdd;
     procedure TestAddAndScale;
     procedure TestMultASMEvenW1EvenW2;
@@ -89,6 +90,7 @@ type
     procedure TestBigMtxVecMult;
     procedure TestRank1Upd;
     procedure TestBigRank1Upd;
+    procedure TestDiagMtxMult1;
   end;
 
   TASMatrixBlockSizeSetup = class(TBaseMatrixTestCase)
@@ -111,8 +113,9 @@ uses ASMMatrixOperations, ThreadedMatrixOperations, MtxThreadPool, mtxTimer,
      {$IFDEF x64}
      ASMMatrixMultOperationsx64, ASMMatrixVectorMultOperationsx64, ASMMatrixMultTransposedOperationsx64,
      ASMMatrixTransposeOperationsx64, ASMMatrixNormOperationsx64,
-     ASMMatrixMeanOperationsx64, ASMMatrixSumOperationsx64,
+     ASMMatrixMeanOperationsx64, ASMMatrixSumOperationsx64, ASMMatrixAddSubOperationsx64,
      {$ELSE}
+     ASMMatrixAddSubOperations,
      ASMMatrixMultOperations, ASMMatrixVectorMultOperations, ASMMatrixMultTransposedOperations,
      ASMMatrixTransposeOperations, ASMMatrixNormOperations,
      ASMMatrixMeanOperations, ASMMatrixSumOperations,
@@ -475,7 +478,7 @@ begin
 
      blk := AllocMem((2*cMtxDestSize + cMtxSize + 16)*sizeof(double) + 16);
      dest2a := blk;
-     inc(Pbyte(dest2a), 16 - TASMNativeInt(blk) and $F);
+     inc(Pbyte(dest2a), 16 - TASMNativeUint(blk) and $F);
      dest3a := dest2a;
      inc(dest3a, cMtxDestSize + cMtxDestSize mod 2);
      za := dest3a;
@@ -1635,7 +1638,7 @@ var dest : Array[0..8] of double;
 begin
      blk := AllocMem((16 + 12)*sizeof(double) + 16);
      desta := blk;
-     inc(PByte(desta), 16 - TASMNativeInt(blk) and $F);
+     inc(PByte(desta), 16 - TASMNativeUint(blk) and $F);
      mta := desta;
      inc(mta, 16);
 
@@ -2201,7 +2204,7 @@ var dest1, dest2 : Array[0..15] of double;
 begin
      blk := AllocMem(32*sizeof(double) + 16);
      m := blk;
-     inc(PByte(m), 16 - TASMNativeInt(blk) and $F);
+     inc(PByte(m), 16 - TASMNativeUint(blk) and $F);
      dest := m;
      inc(dest, 16);
      Move(mt1, m^, 16*sizeof(double));
@@ -2233,7 +2236,7 @@ var dest1, dest2 : Array[0..15] of double;
 begin
      blk := AllocMem((3*16)*sizeof(double) + 16);
      m := blk;
-     inc(PByte(m), 16 - TASMNativeInt(blk) and $F);
+     inc(PByte(m), 16 - TASMNativeUint(blk) and $F);
      dest := m;
      inc(dest, 16);
      Move(mt1, m^, 16*sizeof(double));
@@ -2276,7 +2279,7 @@ const cMtxWidth = 2000;
 begin
      blk := AllocMem((16 + 8)*sizeof(double) + 16);
      m := blk;
-     inc(PByte(m), 16 - TASMNativeInt(blk) and $F);
+     inc(PByte(m), 16 - TASMNativeUint(blk) and $F);
      dest := m;
      inc(dest, 16);
 
@@ -2313,7 +2316,7 @@ begin
      // big row test
      blk := AllocMem((cMtxSize + 16 + cMtxHeight*2)*sizeof(double) + 16);
      m := blk;
-     inc(PByte(m), 16 - TASMNativeInt(blk) and $F);
+     inc(PByte(m), 16 - TASMNativeUint(blk) and $F);
      dest := m;
      inc(dest, cMtxSize + cMtxSize mod 2);
 
@@ -2382,7 +2385,7 @@ const cMtxWidth = 500;
 begin
      blk := AllocMem((16 + 8)*sizeof(double) + 16);
      m := blk;
-     inc(PByte(m), 16 - TASMNativeInt(blk) and $F);
+     inc(PByte(m), 16 - TASMNativeUint(blk) and $F);
      dest := m;
      inc(dest, 16);
 
@@ -2415,7 +2418,7 @@ begin
      // big row test
      blk := AllocMem((cMtxSize*2)*sizeof(double) + 48);
      m := blk;
-     inc(PByte(m), 16 - TASMNativeInt(m) and $F);
+     inc(PByte(m), 16 - TASMNativeUint(m) and $F);
      dest := m;
      inc(dest, cMtxSize + cMtxSize mod 2);
 
@@ -2485,7 +2488,7 @@ begin
 
      blk := AllocMem((16 + 8)*sizeof(double) + 16);
      m := blk;
-     inc(PByte(m), 16 - TASMNativeInt(blk) and $F);
+     inc(PByte(m), 16 - TASMNativeUint(blk) and $F);
      dest := m;
      inc(dest, 16);
 
@@ -2520,7 +2523,7 @@ begin
      // big row test
      blk := AllocMem((cMtxSize + 2*cMtxHeight)*sizeof(double) + 48);
      m := blk;
-     inc(PByte(m), 16 - TASMNativeInt(blk) and $F);
+     inc(PByte(m), 16 - TASMNativeUint(blk) and $F);
      dest := m;
      inc(dest, cMtxSize + cMtxSize mod 2);
 
@@ -2589,7 +2592,7 @@ const cMtxWidth = 500;
 begin
      blk := AllocMem((16 + 8)*sizeof(double) + 16);
      m := blk;
-     inc(PByte(m), 16 - TASMNativeInt(blk) and $F);
+     inc(PByte(m), 16 - TASMNativeUint(blk) and $F);
      dest := m;
      inc(dest, 16);
 
@@ -2616,7 +2619,7 @@ begin
      // big row test
      blk := AllocMem((cMtxSize+ cMtxHeight*2)*sizeof(double) + 48);
      m := blk;
-     inc(PByte(m), 16 - TASMNativeInt(blk) and $F);
+     inc(PByte(m), 16 - TASMNativeUint(blk) and $F);
      dest := m;
      inc(dest, cMtxSize + cMtxSize mod 2);
 
@@ -2696,7 +2699,7 @@ var m1, m2, dest : PDouble;
     blk : PByte;
 begin
      blk := AllocMem(3*16*sizeof(double) + 16);
-     m1 := PDouble(Cardinal(blk) + 16 - Cardinal(blk) mod $10);
+     m1 := PDouble(TASMNativeUint(blk) + 16 - TASMNativeUint(blk) mod $10);
      m2 := m1;
      inc(m2, 16);
      dest := m2;
@@ -2724,7 +2727,7 @@ begin
      blk := AllocMem((16 + 16 + 16)*sizeof(double) + 16);
      m1 := PDouble(blk);
 
-     inc(PByte(m1), 16 - TASMNativeInt(blk) and $F);
+     inc(PByte(m1), 16 - TASMNativeUint(blk) and $F);
      m2 := m1;
      inc(m2, 16);
      dest := m2;
@@ -2758,7 +2761,7 @@ begin
      blk := AllocMem((16 + 16 + 16)*sizeof(double) + 16);
      m1 := PDouble(blk);
 
-     inc(PByte(m1), 16 - TASMNativeInt(blk) and $F);
+     inc(PByte(m1), 16 - TASMNativeUint(blk) and $F);
      m2 := m1;
      inc(m2, 16);
      dest := m2;
@@ -2797,7 +2800,7 @@ begin
 
      memBlk := AllocMem((16 + 16 + 16)*sizeof(double) + 16);
      dest2 := memBlk;
-     if Cardinal(dest2) and $F <> 0 then       // note it's 8 byte aligned!
+     if TASMNativeUint(dest2) and $F <> 0 then       // note it's 8 byte aligned!
      	  inc(dest2);
 
      m1 := dest2;
@@ -2832,7 +2835,7 @@ begin
      blk := AllocMem((16 + 16 + 16)*sizeof(double) + 16);
      m1 := PDouble(blk);
 
-     inc(PByte(m1), 16 - TASMNativeInt(blk) and $F);
+     inc(PByte(m1), 16 - TASMNativeUInt(blk) and $F);
      m2 := m1;
      inc(m2, 16);
      dest2 := m2;
@@ -2867,7 +2870,7 @@ begin
 
      memBlk := AllocMem((16 + 16 + 16)*sizeof(double) + 16);
      dest2 := memBlk;
-     if Cardinal(dest2) and $F <> 0 then       // note it's 8 byte aligned!
+     if TASMNativeUInt(dest2) and $F <> 0 then       // note it's 8 byte aligned!
      	  inc(dest2);
 
      m1 := dest2;
@@ -2898,7 +2901,7 @@ begin
      blk := AllocMem((16 + 16 + 16)*sizeof(double) + 16);
      m1 := PDouble(blk);
 
-     inc(PByte(m1), 16 - TASMNativeInt(blk) and $F);
+     inc(PByte(m1), 16 - TASMNativeUInt(blk) and $F);
      m2 := m1;
      inc(m2, 16);
      dest := m2;
@@ -2941,7 +2944,7 @@ begin
 
      blk := AllocMem((16 + 16 + 16)*sizeof(double) + 16);
      dest2 := PDouble(blk);
-     inc(PByte(dest2), 16 - TASMNativeInt(blk) and $F);
+     inc(PByte(dest2), 16 - TASMNativeUInt(blk) and $F);
      m1 := dest2;
      inc(m1, 16);
      m2 := m1;
@@ -3317,6 +3320,114 @@ begin
      Check(CheckMtx(x, y), 'Big rank aligned update failed');
      FreeMem(yy);
 end;
+
+procedure TASMMatrixOperations.TestDiagMtxMult1;
+var a1, a : Array[0..15] of double;
+    b : Array[0..15] of double;
+    c, c1 : Array[0..15] of double;
+  procedure Init;
+  var counter : integer;
+  begin
+       for counter := 0 to Length(a) - 1 do
+       begin
+            a1[counter] := counter + 1;
+            a[counter] := a1[counter];
+            b[counter] := counter*2 - 1;
+            c[counter] := 0;
+            c1[counter] := 0;
+       end;
+  end;
+begin
+     Init;
+
+     GenericMtxMultTria2T1StoreT1(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+     ASMMtxMultTria2T1StoreT1(@a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+
+     Check(CheckMtx(a, a1), 'MtxMultTria2T1StoreT1');
+
+     GenericMtxMultTria2T1StoreT1(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 3, 4, 3, 3);
+     ASMMtxMultTria2T1StoreT1(@a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 3, 4, 3, 3);
+
+     Check(CheckMtx(a, a1), 'MtxMultTria2T1StoreT1');
+
+     Init;
+     GenericMtxMultTria2Store1(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+     ASMMtxMultTria2Store1(@a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+
+     Check(CheckMtx(a, a1), 'MtxMultTria2Store1');
+
+     Init;
+     GenericMtxMultTria2Store1(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+     ASMMtxMultTria2Store1(@a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+
+     Check(CheckMtx(a, a1), 'MtxMultTria2Store1');
+
+     Init;
+     GenericMtxMultTria2Store1(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 3, 4, 3, 3);
+     ASMMtxMultTria2Store1(@a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 3, 4, 3, 3);
+
+     Check(CheckMtx(a, a1), 'MtxMultTria2Store1');
+
+
+     Init;
+     GenericMtxMultTria2TUpperUnit(@c[0], 4*sizeof(double), @a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+     ASMMtxMultTria2TUpperUnit(@c1[0], 4*sizeof(double), @a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+
+     Check(CheckMtx(a, a1), 'MtxMultTria2TUpperUnit');
+
+     Init;
+     GenericMtxMultTria2TUpperUnit(@c[0], 4*sizeof(double), @a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 3, 4, 3, 3);
+     ASMMtxMultTria2TUpperUnit(@c1[0], 4*sizeof(double), @a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 3, 4, 3, 3);
+
+     Check(CheckMtx(a, a1), 'MtxMultTria2TUpperUnit');
+
+     Init;
+     GenericMtxMultLowTria2T2Store1(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+     ASMMtxMultLowTria2T2Store1(@a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+
+     Check(CheckMtx(a, a1), 'MtxMultTria2TUpperUnit');
+
+     Init;
+     GenericMtxMultLowTria2T2Store1(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+     ASMMtxMultLowTria2T2Store1(@a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+
+     Check(CheckMtx(a, a1), 'MtxMultLowTria2T2Store1');
+
+
+     Init;
+     GenericMtxMultLowTria2T2Store1(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 3, 4, 3, 3);
+     ASMMtxMultLowTria2T2Store1(@a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 3, 4, 3, 3);
+
+     Check(CheckMtx(a, a1), 'MtxMultLowTria2T2Store1');
+
+     Init;
+     GenericMtxMultTria2Store1Unit(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+     ASMMtxMultTria2Store1Unit(@a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+
+     Check(CheckMtx(a, a1), 'MtxMultTria2Store1Unit');
+
+     Init;
+     GenericMtxMultTria2Store1Unit(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 3, 4, 3, 3);
+     ASMMtxMultTria2Store1Unit(@a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 3, 4, 3, 3);
+
+     Check(CheckMtx(a, a1), 'MtxMultTria2Store1Unit');
+
+end;
+
+procedure TASMMatrixOperations.TestSubT;
+const mt1 : Array[0..5] of double = (0, 1, 2, 3, 4, 5);
+      mt2 : Array[0..5] of double = (1, 2, -1, 3, -12, -1);
+var res, res1 : TDoubleDynArray;
+begin
+     SetLength(res, Length(mt1));
+     Move(mt1, res[0], sizeof(mt1));
+     res1 := copy(res, 0, Length(res));
+
+     GenericMatrixSubT(@res[0], 3*sizeof(double), @mt2, 2*sizeof(double), 3, 2);
+     ASMMatrixSubT(@res1[0], 3*sizeof(double), @mt2, 2*sizeof(double), 3, 2);
+     Check(CheckMtx(res, res1), 'Error ASM subT');
+end;
+
 
 initialization
   RegisterTest(TestMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});
