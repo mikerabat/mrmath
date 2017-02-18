@@ -1948,7 +1948,7 @@ begin
              V := Transpose;
              U := ResultClass.Create( fSubHeight, fSubHeight );
 
-             Result := MatrixSVDInPlace2(V.StartElement, V.LineWidth, Height, Width, pW, U.StartElement, U.LineWidth, SVDBlockSize, nil );
+             Result := MatrixSVDInPlace2(V.StartElement, V.LineWidth, Height, Width, pW, U.StartElement, U.LineWidth, SVDBlockSize, fLinEQProgress );
 
              // we need a final transposition on the matrix U and V
              U.TransposeInPlace;
@@ -1959,7 +1959,7 @@ begin
              U := Clone;
              V := ResultClass.Create(fSubWidth, fSubWidth);
 
-             Result := MatrixSVDInPlace2(U.StartElement, U.LineWidth, Width, Height, pW, V.StartElement, V.LineWidth, SVDBlockSize, nil);
+             Result := MatrixSVDInPlace2(U.StartElement, U.LineWidth, Width, Height, pW, V.StartElement, V.LineWidth, SVDBlockSize, fLinEQProgress);
         end;
 
         if Result <> srOk then

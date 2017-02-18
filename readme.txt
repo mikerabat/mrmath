@@ -53,6 +53,16 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: 18.02.2017:
+* Added a progress functionality to SVD
+* Changed threading in SVD: Throwing more threads at the plane rotations seems to help :)
+
+Date: 17.02.2017:
+* New assembler optimized multiplication methods - these are small upper lower triangulation multiplications used in QR and SVD decomposition.
+ -> just a few ms faster now.
+* the initial scaling in SVD does now also a unscaling at the end.
+* removed unnecessary stack operations
+
 Date: 09.02.2017
 * Fixed som FPC issues - some constants weren't loaded via the [RIP + cMyConst] directive (delphi is
   "smarter" here)

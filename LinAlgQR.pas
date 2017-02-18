@@ -705,7 +705,7 @@ begin
           // ###########################################
           // #### Progress
           if Assigned(qrData.Progress) then
-             qrData.Progress((qrData.actIdx + i)*100 div qrData.qrWidth);
+             qrData.Progress((qrData.actIdx + (k-i) - i)*100 div qrData.qrWidth);
      end;
 end;
 
@@ -1078,7 +1078,7 @@ begin
           // ###########################################
           // #### Progress
           if Assigned(qrData.Progress) then
-             qrData.Progress((qrData.actIdx + i)*100 div qrData.qrWidth);
+             qrData.Progress((qrData.actIdx + (k-1) - i)*100 div qrData.qrWidth);
      end;
 end;
 

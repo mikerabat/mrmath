@@ -81,13 +81,18 @@ type
   TQRDecompFunc = function (A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; work : PDouble; pnlSize : TASMNativeInt; progress : TLinEquProgress) : TQRResult;
   TQFromQRFunc = procedure (A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; BlockSize : TASMNativeInt; work : PDouble; progress : TLinEquProgress);
 
+
+type
+
 // #######################################################
 // #### function definitions for the SVD
 // (shared with the multithreaded version)
-type
+  TQRProgressObj = class;
   TMtxSVDDecompData = record
     pWorkMem : PByte;
     Progress : TLinEquProgress;
+    QrProgressObj : TQRProgressObj;
+    QRProgress : TLinEquProgress;
     SVDPnlSize : TASMNativeInt;
     QRPnlSize : TASMNativeInt;
     BlkMltSize : TASMNativeInt;
@@ -103,6 +108,20 @@ type
     MatrixRotateUpdB : TMatrixSingularVecUpd;
     MatrixRotateUpdF : TMatrixSingularVecUpd;
     MatrixRotate : TMatrixSingularVecRotate;
+  end;
+  PMtxSVDDecompData = ^TMtxSVDDecompData;
+
+  TQRProgressObj = class(TObject)
+  private
+    fSVDData : PMtxSVDDecompData;
+  public
+    FromPerc : integer;
+    ToPerc : integer;
+
+    procedure OnQRProgress(progress : integer);
+
+
+    constructor Create(aSVDData : PMtxSVDDecompData; aFrom, aTo : Integer);
   end;
 
 
@@ -951,7 +970,7 @@ begin
           pA := GenPtr(A, 1, 1, LineWidthA);
 
           // form P_Transposed
-          svdData.LeftQFromQRDecomp(pA, LineWidthA, width - 1, height - 1, tau, QRBlockSize, work, svdData.Progress);
+          svdData.LeftQFromQRDecomp(pA, LineWidthA, width - 1, height - 1, tau, QRBlockSize, work, svdData.QRProgress);
      end;
 end;
 
@@ -1073,6 +1092,9 @@ begin
           inc(pE, nb);
           inc(pTauQ, nb);
           inc(pTauP, nb);
+
+          if Assigned(svdData.qrProgress) then
+             svdData.qrProgress( 100*i div (minmn - nx) );
      end;
 
      // ###########################################
@@ -1524,6 +1546,11 @@ begin
                          // Convergence of bottom singular value, return to top of loop
                          dec(m);
                          doCont := True;
+
+                         if Assigned(svdData.Progress) then
+                            svdData.Progress(40 +  Int64( (n - 1) - m )*55 div Int64(n - 1));
+
+
                          break;
                     end;
 
@@ -1560,6 +1587,9 @@ begin
 //                  drot(ncc, GenPtr(C, 0, m - 1, LineWidthC), sizeof(double), GenPtr(c, 0, m, LineWidthC), sizeof(double), cosl, sinl);
 
                dec(m, 2);
+
+               if Assigned(svdData.Progress) and (m > 0) then
+                  svdData.Progress(40 +  Int64( (n - 1) - m )*55 div Int64(n - 1));
 
                // next m
                continue;
@@ -2073,6 +2103,9 @@ begin
      then
          MatrixScaleAndAdd(A, LineWidthA, Width, Height, 0, bignum/absMax);
 
+     if Assigned(svdData.Progress) then
+        svdData.Progress(0);
+
      // ###########################################
      // #### crossover
      if Height >= Width then
@@ -2084,8 +2117,13 @@ begin
                pWorkITau := work;
                inc(pWorkITau, w2*w2);
 
+               if Assigned(svdData.QrProgressObj) then
+               begin
+                    svdData.QrProgressObj.FromPerc := 0;
+                    svdData.QrProgressObj.ToPerc := 15;
+               end;
                // Compute A=Q*R
-               if svdData.qrDecomp(A, LineWidthA, width, height, pWorkITau, nil, QRBlockSize, svdData.Progress) <> qrOK then
+               if svdData.qrDecomp(A, LineWidthA, width, height, pWorkITau, nil, QRBlockSize, svdData.QRProgress) <> qrOK then
                begin
                     Result := srNoConvergence;
                     if svdData.pWorkMem = nil then
@@ -2104,7 +2142,17 @@ begin
                end;
 
                // Generate Q in A
-               svdData.qFromQRDecomp(A, LineWidthA, width, Height, pWorkITau, QRBlockSize, nil, svdData.Progress);
+               if Assigned(svdData.QrProgressObj) then
+               begin
+                    svdData.QrProgressObj.FromPerc := 16;
+                    svdData.QrProgressObj.ToPerc := 18;
+               end;
+
+               svdData.qFromQRDecomp(A, LineWidthA, width, Height, pWorkITau, QRBlockSize, nil, svdData.QRProgress);
+
+               if Assigned(svdData.Progress) then
+                  svdData.Progress(20);
+
 
                // Bidiagonalize R in VT, copying result to WORK(IR)
                pWorkIE := pWorkITau;
@@ -2126,14 +2174,38 @@ begin
                         pWorkIArr^[x] := pV^[x];
                end;
 
+               if Assigned(svdData.Progress) then
+                  svdData.Progress(30);
+
+
                // Generate left vectors bidiagonalizing R in WORK(IR)
-               svdData.qFromQRDecomp(pWorkIR, w2*sizeof(double), width, width, pWorkTauq, svdData.QRPnlSize, nil, svdData.Progress);
+               if Assigned(svdData.QrProgressObj) then
+               begin
+                    svdData.QrProgressObj.FromPerc := 31;
+                    svdData.QrProgressObj.ToPerc := 34;
+               end;
+
+               svdData.qFromQRDecomp(pWorkIR, w2*sizeof(double), width, width, pWorkTauq, svdData.QRPnlSize, nil, svdData.QRProgress);
+
+               if Assigned(svdData.Progress) then
+                  svdData.Progress(35);
+
 
                // Generate right vectors bidiangoizaing R in VT
+               if Assigned(svdData.QrProgressObj) then
+               begin
+                    svdData.QrProgressObj.FromPerc := 35;
+                    svdData.QrProgressObj.ToPerc := 40;
+               end;
+
                InitAndLeftQFromQR(V, LineWidthV, width, width, width, pWorkTaup, nil, svdData);
 
                pWorkI := pWorkIE;
                inc(pWorkI, width);
+
+               if Assigned(svdData.Progress) then
+                  svdData.Progress(40);
+
 
                // Perform bidiagonal QR iteration, computing left
                // singular vectors of R in WORK(IR) and computing right
@@ -2175,7 +2247,17 @@ begin
                inc(pWorkI, w2);
 
                // Bidiagonalize A
+               if Assigned(svdData.QrProgressObj) then
+               begin
+                    svdData.QrProgressObj.FromPerc := 0;
+                    svdData.QrProgressObj.ToPerc := 30;
+               end;
+
                MatrixBidiagonalBlocked(A, LineWidthA, width, height, PDouble(W), pWorkIE, pWorkTauQ, pWorkTauP, pWorkI, svdData);
+
+               if Assigned(svdData.Progress) then
+                  svdData.Progress(20);
+
 
                // right singular vectors on V, copy upper triangle part of A
                for y := 0 to width - 1 do
@@ -2186,11 +2268,28 @@ begin
                         pV^[x] := pA^[x];
                end;
 
+
+               if Assigned(svdData.QrProgressObj) then
+               begin
+                    svdData.QrProgressObj.FromPerc := 31;
+                    svdData.QrProgressObj.ToPerc := 35;
+               end;
+
                InitAndLeftQFromQR(v, LineWidthV, width, width, width, pWorkTaup, nil, svdData);
+
 
                // Left singular vectors in A
 
-               svdData.qFromQRDecomp(A, LineWidthA, width, height, pWorkTauq, svdData.QRPnlSize, pWorkI, svdData.Progress);
+               if Assigned(svdData.QrProgressObj) then
+               begin
+                    svdData.QrProgressObj.FromPerc := 36;
+                    svdData.QrProgressObj.ToPerc := 40;
+               end;
+
+               svdData.qFromQRDecomp(A, LineWidthA, width, height, pWorkTauq, svdData.QRPnlSize, pWorkI, svdData.QRProgress);
+
+               if Assigned(svdData.Progress) then
+                  svdData.Progress(40);
 
                pWorkI := pWorkIE;
                inc(pWorkI, w2);
@@ -2213,11 +2312,15 @@ begin
               MatrixScaleAndAdd(PDouble(W), sizeof(double), minmn, 1, 0, absMax/bignum);
      end;
 
+     if Assigned(svdData.Progress) then
+        svdData.Progress(100);
+
      // ###########################################
      // #### Cleanup
      if svdData.pWorkMem = nil  then
         FreeMem(pMem);
 end;
+
 
 function MatrixSVDInPlace2( A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt;
                  W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt; SVDBlockSize : TASMNativeInt = 32; progress : TLinEquProgress = nil) : TSVDResult;
@@ -2229,7 +2332,7 @@ var svdData : TMtxSVDDecompData;
 begin
      if width > Height then
      begin
-          // make use of A_T = (U * W * V_T)_T = (V * W_T * U_T)    
+          // make use of A_T = (U * W * V_T)_T = (V * W_T * U_T)
           MatrixTranspose(V, height*sizeof(double), A, LineWidthA, width, height);
           MatrixScaleAndAdd(A, LineWidthA, width, height, 0, 0);  // clear out A
 
@@ -2242,11 +2345,11 @@ begin
 
                // a can be inplace transposed since it is height x height:
                GenericMtxTransposeInplace(A, LineWidthA, Height);
-               
+
                // V is now height x width -> transpose
                vt := MatrixTranspose(V, height*sizeof(double), height, width);
                MatrixCopy(V, LineWidthV, @vt[0], width*sizeof(double), width, height);
-               
+
                // set the values that are not needed any more on A to zero
                for y := 0 to height - 1 do
                begin
@@ -2259,11 +2362,19 @@ begin
           exit;
      end;
      // ###########################################
-     // #### Machine constants
+     // ####
      minmn := Min(Width, Height);
 
      // ###################################################
      // ##### Apply svd
+     svdData.QRProgress := nil;
+     svdData.QrProgressObj := nil;
+     if Assigned(progress) then
+     begin
+          svdData.QrProgressObj := TQRProgressObj.Create(@svdData, 10, 20);
+          svdData.QRProgress := {$IFDEF FPC}@{$ENDIF}svdData.QrProgressObj.OnQRProgress;
+     end;
+
      svdData.Progress := progress;
      svdData.SVDPnlSize := SVDBlockSize;
      svdData.SVDMultSize := minmn;
@@ -2286,6 +2397,7 @@ begin
 
      Result := InternalMatrixSVD(A, LineWidthA, width, height, W, V, LineWidthV, svdData);
 
+     svdData.QrProgressObj.Free;
      FreeMem(svdData.pWorkMem);
 end;
 
@@ -2455,15 +2567,51 @@ procedure ThrMatrixRotateUpdB(aU : PDouble; const aLineWidthU : TASMNativeInt;
                               aw1, aw2,
                               aw3, aw4 : PConstDoubleArr);
 var obj : TMatrixRotateObj;
+    objs : Array[0..63] of TMatrixRotateObj;
+    numUsed : integer;
     calls : IMtxAsyncCallGroup;
+    counter: TASMNativeInt;
+    numNru : TASMNativeInt;
 begin
-     obj := TMatrixRotateObj.Create(aU, aLineWidthU, aVt, aLineWidthVT,
+     //numUsed := numCPUCores - 1;
+     numUsed := numRealCores;
+
+     if numRealCores = numCPUCores then
+        dec(numUsed);
+
+     // check if threading is speeding up the process
+     if (numUsed < 2) or (aNM < 4*numUsed) then
+     begin
+          obj := TMatrixRotateObj.Create(aU, aLineWidthU, aVt, aLineWidthVT,
                                    aNM, anru, ancvt, aw1, aw2, aw3, aw4);
 
+          ThrApplyPlaneRotSeqLVF(obj);
+          ThrApplyPlaneRotSeqRVF(obj);
+          obj.Free;
+          exit;
+     end;
+
+     numNRU := anru div numUsed;
+     for counter := 0 to numUsed - 1 do
+     begin
+          obj := TMatrixRotateObj.Create(aU, aLineWidthU, aVt, aLineWidthVT,
+                                   aNM, numNRU, ancvt, aw1, aw2, aw3, aw4);
+          obj.u := GenPtr(aU, 0, counter*numNRU, aLineWidthU);
+          objs[counter] := obj;
+     end;
+
+     objs[numUsed - 1].nru := anru - (numUsed - 1)*numNRU;
+     obj := TMatrixRotateObj.Create(aU, aLineWidthU, aVt, aLineWidthVT,
+                                   aNM, aNru, ancvt, aw1, aw2, aw3, aw4);
+
      calls := MtxInitTaskGroup;
-     calls.AddTask({$IFDEF FPC}@{$ENDIF}ThrApplyPlaneRotSeqRVB, obj);
-     ThrApplyPlaneRotSeqLVB(obj);
+     calls.AddTask({$IFDEF FPC}@{$ENDIF}ThrApplyPlaneRotSeqLVB, obj);
+     for counter := 0 to numUsed - 2 do
+         calls.AddTask({$IFDEF FPC}@{$ENDIF}ThrApplyPlaneRotSeqRVB, objs[counter]);
+     ThrApplyPlaneRotSeqRVB(objs[numUsed - 1]);
      calls.SyncAll;
+
+     objs[numUsed - 1].Free;
 end;
 
 procedure ThrMatrixRotateUpdF(aU : PDouble; const aLineWidthU : TASMNativeInt;
@@ -2472,15 +2620,51 @@ procedure ThrMatrixRotateUpdF(aU : PDouble; const aLineWidthU : TASMNativeInt;
                               aw1, aw2,
                               aw3, aw4 : PConstDoubleArr);
 var obj : TMatrixRotateObj;
+    objs : Array[0..63] of TMatrixRotateObj;
+    numUsed : integer;
     calls : IMtxAsyncCallGroup;
+    counter: TASMNativeInt;
+    numNru : TASMNativeInt;
 begin
-     obj := TMatrixRotateObj.Create(aU, aLineWidthU, aVt, aLineWidthVT,
+     //numUsed := numCPUCores - 1;
+     numUsed := numRealCores;
+
+     if numRealCores = numCPUCores then
+        dec(numUsed);
+
+     // check if threading is speeding up the process
+     if (numUsed < 2) or (aNM < 4*numUsed) then
+     begin
+          obj := TMatrixRotateObj.Create(aU, aLineWidthU, aVt, aLineWidthVT,
                                    aNM, anru, ancvt, aw1, aw2, aw3, aw4);
+
+          ThrApplyPlaneRotSeqLVF(obj);
+          ThrApplyPlaneRotSeqRVF(obj);
+          obj.Free;
+          exit;
+     end;
+
+     numNRU := anru div numUsed;
+     for counter := 0 to numUsed - 1 do
+     begin
+          obj := TMatrixRotateObj.Create(aU, aLineWidthU, aVt, aLineWidthVT,
+                                   aNM, numNRU, ancvt, aw1, aw2, aw3, aw4);
+          obj.u := GenPtr(aU, 0, counter*numNRU, aLineWidthU);
+          objs[counter] := obj;
+     end;
+
+     objs[numUsed - 1].nru := anru - (numUsed - 1)*numNRU;
+     obj := TMatrixRotateObj.Create(aU, aLineWidthU, aVt, aLineWidthVT,
+                                   aNM, aNru, ancvt, aw1, aw2, aw3, aw4);
 
      calls := MtxInitTaskGroup;
      calls.AddTask({$IFDEF FPC}@{$ENDIF}ThrApplyPlaneRotSeqLVF, obj);
-     ThrApplyPlaneRotSeqRVF(obj);
+     for counter := 0 to numUsed - 2 do
+         calls.AddTask({$IFDEF FPC}@{$ENDIF}ThrApplyPlaneRotSeqRVF, objs[counter]);
+     ThrApplyPlaneRotSeqRVF(objs[numUsed - 1]);
      calls.SyncAll;
+
+     objs[numUsed - 1].Free;
 end;
 
 
@@ -2494,13 +2678,13 @@ var svdData : TMtxSVDDecompData;
     x, y : TASMNativeInt;
 begin
      // ###########################################
-     // #### check if multithreading is ok to use
+     // #### check if multithreading is an advantage here
      if (width < 128) and (height < 128) then
      begin
           Result := MatrixSVDInPlace2(A, LineWidthA, width, height, W, V, LineWidthV, SVDBlockSize, progress);
           exit;
      end;
-     
+
 
      if width > Height then
      begin
@@ -2516,12 +2700,12 @@ begin
 
                // a can be inplace transposed since it is height x height:
                GenericMtxTransposeInplace(A, LineWidthA, Height);
-               
+
                // V is now height x width -> transpose
                vt := MatrixTranspose(V, height*sizeof(double), height, width);
 
                MatrixCopy(V, LineWidthV, @vt[0], width*sizeof(double), width, height);
-                              
+
                // set the values that are not needed any more on A to zero
                for y := 0 to height - 1 do
                begin
@@ -2540,6 +2724,14 @@ begin
 
      // ###################################################
      // ##### Apply svd
+     svdData.QRProgress := nil;
+     svdData.QrProgressObj := nil;
+     if Assigned(progress) then
+     begin
+          svdData.QrProgressObj := TQRProgressObj.Create(@svdData, 10, 20);
+          svdData.QRProgress := {$IFDEF FPC}@{$ENDIF}svdData.QrProgressObj.OnQRProgress;
+     end;
+
      svdData.Progress := progress;
      svdData.SVDPnlSize := SVDBlockSize;
      svdData.SVDMultSize := minmn;
@@ -2563,6 +2755,7 @@ begin
 
      Result := InternalMatrixSVD(A, LineWidthA, width, height, W, V, LineWidthV, svdData);
 
+     svdData.QrProgressObj.Free;
      FreeMem(svdData.pWorkMem);
 end;
 
@@ -2779,6 +2972,23 @@ begin
           // copy
           MatrixCopy(dest, LineWidthDest, @res[0], height*sizeof(double), height, width);
      end;
+end;
+
+{ TQRProgressObj }
+
+constructor TQRProgressObj.Create(aSVDData : PMtxSVDDecompData; aFrom, aTo: Integer);
+begin
+     FromPerc := aFrom;
+     ToPerc := aTo;
+     fSVDData := aSVDData;
+
+     inherited Create;
+end;
+
+procedure TQRProgressObj.OnQRProgress(progress: integer);
+begin
+     if Assigned(fSVDData^.Progress) then
+        fSVDData^.Progress( FromPerc + progress*(ToPerc - FromPerc) div 100);
 end;
 
 end.

@@ -32,19 +32,10 @@ type
   procedure TestLUDecomp1;
   procedure TestLUBackSubst1;
   procedure TestLUBackSubst2;
+  procedure TestBigLUDecomp;
   procedure TestInvert1;
   procedure TestInvert2;
   procedure TestInvert3;
-  procedure TestSVD1;
-  procedure TestSVD11;
-  procedure TestSVD12;
-  procedure TestSVD2;
-  procedure TestSVD3;
-  procedure TestSVD4;
-  procedure TestSVD5;
-  procedure TestBigSVD;
-  procedure TestBigSVDHeightGEWidth;
-  procedure TestBigSVDWidthGEHeight;
 
   procedure TestCholesky;
   procedure TestCholesky2;
@@ -56,9 +47,20 @@ type
   procedure TestLargeFullQRDecomp;
   procedure TestAsymQRDecomp1;
   procedure TestAsymQRDecomp2;
+
+  procedure TestSVD1;
+  procedure TestSVD11;
+  procedure TestSVD12;
+  procedure TestSVD2;
+  procedure TestSVD3;
+  procedure TestSVD4;
+  procedure TestSVD5;
+  procedure TestBigSVD;
+  procedure TestBigSVDHeightGEWidth;
+  procedure TestBigSVDWidthGEHeight;
+
   procedure TestPseudoInversion;
   procedure TestPseudoInversion2;
-  procedure TestBigLUDecomp;
   procedure TestMatrixSolve;
  end;
 
@@ -203,8 +205,8 @@ begin
 end;
 
 procedure TTestLinearEquations.TestBigSVDHeightGEWidth;
-const cBlkWidths : Array[0..7] of integer = (1, 9, 16, 24, 43, 189, 256, 500); //, 1024);
-      cBlkHeights : Array[0..7] of integer = (1, 13, 26, 123, 331, 223, 256, 543); //, 2048);
+const cBlkWidths : Array[0..7] of integer = (1, 9, 16, 24, 43, 189, 256, 500);//, 1024);
+      cBlkHeights : Array[0..7] of integer = (1, 13, 26, 123, 331, 223, 256, 543);//, 2048);
 
 var A, A2, A3, W, W2, W3, V, V2, V3 : TDoubleDynArray;
     ARef : TDoubleDynArray;

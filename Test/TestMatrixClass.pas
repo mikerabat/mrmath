@@ -37,6 +37,7 @@ type
    fRefMatrix2 : TDoubleMatrix;
    fRefMatrix1 : TDoubleMatrix;
 
+   procedure OnProgress(Progress : Integer);
    procedure ElemWiseSqr(var elem : double);
   public
    procedure SetUp; override;
@@ -629,6 +630,7 @@ begin
      a := TDoubleMatrix.Create(4, 3);
      a.Assign(cA, 4, 3);
 
+     a.LineEQProgress := {$IFDEF FPC}@{$ENDIF}OnProgress;
      a.SVD(u, v, w, False);
 
      Check((u.Width = 3) and (u.Height = 3), 'Error U has the wrong dimension');
@@ -690,6 +692,11 @@ begin
      finally
             mtx.Free;
      end;
+end;
+
+procedure TestTDoubleMatrix.OnProgress(Progress: Integer);
+begin
+     Status(IntToStr(Progress));
 end;
 
 { TestTThreadedMatrix }
