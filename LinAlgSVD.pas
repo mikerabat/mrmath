@@ -2037,7 +2037,7 @@ var work : PDouble;
     x, y : TASMNativeInt;
     pWorkIR : PDouble;
     chunk : TASMNativeInt;
-    w2, h2 : TASMNativeInt;
+    w2 : TASMNativeInt;
     memNeed : TASMNativeInt;
 begin
      Result := srOk;
@@ -2060,7 +2060,6 @@ begin
 
      // for factors of 2.. (better aligned memory)
      w2 := width + width and 1;
-     h2 := height + height and 1;
 
      mnthr := Trunc( minmn*1.6 );
 
