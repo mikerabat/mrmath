@@ -47,7 +47,6 @@ begin
 
           // todo: there is some other scanning going on for non zero columns...
           // do the basic operation here...
-          //GenericMtxVecMult(work, sizeof(double), C, V, LineWidthC, LineWidthV, width, height, 1, 0);
           MatrixMtxVecMult(work, sizeof(double), C, V, LineWidthC, LineWidthV, width, height, 1, 0);
           MatrixRank1Update(C, LineWidthC, width, height, -Tau^, work, V, sizeof(double), LineWidthV);
      end;
@@ -127,7 +126,6 @@ begin
      begin
           // todo: there is some other scanning going on for non zero columns...
           // do the basic operation here...
-          //GenericMtxVecMultT(work, sizeof(double), C, V, LineWidthC, LineWidthV, width, height, 1, 0);
           MatrixMtxVecMultT(work, sizeof(double), C, V, LineWidthC, LineWidthV, width, height, 1, 0);
           MatrixRank1Update(C, LineWidthC, width, height, -tau^, V, work, LineWidthV, sizeof(double));
      end;
