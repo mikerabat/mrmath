@@ -116,6 +116,9 @@ procedure MatrixTranspose(dest : PDouble; const destLineWidth : TASMNativeInt; m
 function MatrixTranspose(const mt : Array of Double; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
 procedure MatrixTranspose(var dest : Array of Double; const mt : Array of Double; width : TASMNativeInt; height : TASMNativeInt); overload;
 
+// inplace transposition of an N x N matrix
+procedure MatrixTransposeInplace(mt : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt);
+
 function MatrixMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 function MatrixMin(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 
@@ -194,6 +197,7 @@ type
   TMatrixCopyFunc = procedure(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
   TMatrixMinMaxFunc = function(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
   TMatrixTransposeFunc = procedure(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+  TMatrixTransposeInplaceFunc = procedure(mt : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt);
   TMatrixElemWiseNormFunc = function (dest : PDouble; LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
   TMatrixNormalizeFunc = procedure(dest : PDouble; destLineWidth : TASMNativeInt; src : PDouble; srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; RowWise : Boolean);
   TMatrixVarianceFunc = procedure(dest : PDouble; destLineWidth : TASMNativeInt; src : PDouble; srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; RowWise : Boolean; unbiased : boolean);
@@ -214,7 +218,8 @@ implementation
 uses BlockSizeSetup, SimpleMatrixOperations, ASMMatrixOperations, ASMMatrixMultOperations,
      ASMMatrixMultOperationsx64, ASMMatrixVectorMultOperations, ASMMatrixVectorMultOperationsx64,
      CPUFeatures, MatrixRotations, ASMMatrixRotations, ASMMatrixRotationsx64,
-     ASMMoveOperations, ASMMoveOperationsx64, ASMMatrixAddSubOperations, ASMMatrixAddSubOperationsx64;
+     ASMMoveOperations, ASMMoveOperationsx64, ASMMatrixAddSubOperations, ASMMatrixAddSubOperationsx64,
+     ASMMatrixTransposeOperations, ASMMatrixTransposeOperationsx64;
 
 var actUseSSEoptions : boolean;
     actUseStrassenMult : boolean;
@@ -245,6 +250,7 @@ var multFunc : TMatrixMultFunc;
     minFunc : TMatrixMinMaxFunc;
     elemNormFunc : TMatrixElemWiseNormFunc;
     transposeFunc : TMatrixTransposeFunc;
+    transposeInplaceFunc : TMatrixTransposeInplaceFunc;
     matrixNormalizeFunc : TMatrixNormalizeFunc;
     matrixMeanFunc : TMatrixNormalizeFunc;
     matrixMedianFunc : TMatrixMedianFunc;
@@ -658,6 +664,11 @@ begin
      transposeFunc(@dest[0], height*sizeof(double), @mt[0], width, height, width*sizeof(double));
 end;
 
+procedure MatrixTransposeInplace(mt : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt);
+begin
+     TransposeInplaceFunc(mt, LineWidth, N);
+end;
+
 function MatrixMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 begin
      assert((width > 0) and (height > 0) and (LineWidth >= width*sizeof(double)), 'Dimension error');
@@ -940,6 +951,7 @@ begin
           minFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixMin;
           maxFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixMax;
           transposeFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixTranspose;
+          transposeInplaceFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixTransposeInplace;
           elemNormFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixElementwiseNorm2;
           matrixNormalizeFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixNormalize;
           matrixMeanFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixMean;
@@ -985,6 +997,7 @@ begin
           minFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMin;
           maxFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMax;
           transposeFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxTranspose;
+          transposeInplaceFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxTransposeInplace;
           elemNormFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxElementwiseNorm2;
           matrixNormalizeFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxNormalize;
           matrixMeanFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMean;

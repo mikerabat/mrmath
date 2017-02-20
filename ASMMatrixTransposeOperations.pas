@@ -39,6 +39,8 @@ procedure ASMMatrixTransposeUnAlignedOddWEvenH(dest : PDouble; const destLineWid
 procedure ASMMatrixTransposeAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 procedure ASMMatrixTransposeUnAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 
+procedure ASMMatrixTransposeInplace(mt : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt);
+
 {$ENDIF}
 
 implementation
@@ -1562,6 +1564,71 @@ begin
         pop esi;
      end;
 end;
+
+// Inplace Trasnposition of an N x N matrix
+procedure ASMMatrixTransposeInplace(mt : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt);
+begin
+     assert(LineWidth >= N*sizeof(double), 'Linewidth error');
+     asm
+        push ebx;
+        push edi;
+        push esi;
+
+        mov eax, N;
+        cmp eax, 2;
+        jl @@exitProc;
+
+        // iter: -N*sizeof(Double)
+        mov edx, eax;
+        imul edx, -8;
+
+
+        mov eax, mt;   // pDest
+        mov ebx, eax;  // pDest1: genptr(mt, 0, 1, linewidth)
+        add ebx, LineWidth;
+
+        sub eax, edx;  // mt + iter
+
+        // for y := 0 to n - 2
+        mov ecx, N;
+        dec ecx;
+        mov N, ecx;
+
+        mov ecx, LineWidth;
+        @@foryloop:
+
+           mov edi, edx; // iter aka x
+           add edi, 8;
+           mov esi, ebx;
+           // for x := y + 1 to n-1 do
+           @@forxloop:
+              movsd xmm0, [eax + edi];
+              movsd xmm1, [esi];
+
+              movsd [eax + edi], xmm1;
+              movsd [esi], xmm0;
+
+              add esi, ecx;
+           add edi, 8;
+           jnz @@forxloop;
+
+           add edx, 8;  // iter + sizeof(double);
+           //pDest := PConstDoubleArr( GenPtr(dest, 0, y, destLineWidth) );
+           add eax, ecx;
+           // GenPtr(dest, y, y + 1, destLineWidth);
+           add ebx, ecx;
+           add ebx, 8;
+        dec N;
+        jnz @@foryloop;
+
+        @@exitProc:
+
+        pop esi;
+        pop edi;
+        pop ebx;
+     end;
+end;
+
 
 {$ENDIF}
 

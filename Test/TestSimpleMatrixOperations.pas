@@ -66,6 +66,7 @@ type
     procedure TestBigTiledMult2;
     procedure TestTiledMultT1;
     procedure TestTiledMultT2;
+    procedure TestInplaceTranspose;
     procedure TestTransposedASMEvenWEvenH;
     procedure TestTransposedASMEvenWOddH;
     procedure TestTransposeASSMOddWOddH;
@@ -1653,6 +1654,28 @@ begin
 
      FreeMem(blk);
 end;
+
+procedure TASMMatrixOperations.TestInplaceTranspose;
+var a, a1 : Array[0..8] of double;
+    counter : integer;
+begin
+     for counter := 0 to High(a) do
+     begin
+          a[counter] := counter;
+          a1[counter] := counter;
+     end;
+
+     GenericMtxTransposeInplace(@a[0], 3*sizeof(double), 3);
+     ASMMatrixTransposeInplace(@a1[0], 3*sizeof(double), 3);
+
+     Check(CheckMtx(a, a1), 'Inplace transposition failed');
+
+     GenericMtxTransposeInplace(@a[0], 3*sizeof(double), 2);
+     ASMMatrixTransposeInplace(@a1[0], 3*sizeof(double), 2);
+
+     Check(CheckMtx(a, a1), 'Inplace transposition failed');
+end;
+
 
 procedure TASMMatrixOperations.TestTransposedASMEvenWEvenH;
 const mt1 : Array[0..15] of double = (0, 1, 2, 4, 3, 4, 5, 5, 6, 7, 8, 6, 7, 8, 9, 10);
@@ -3427,7 +3450,6 @@ begin
      ASMMatrixSubT(@res1[0], 3*sizeof(double), @mt2, 2*sizeof(double), 3, 2);
      Check(CheckMtx(res, res1), 'Error ASM subT');
 end;
-
 
 initialization
   RegisterTest(TestMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});

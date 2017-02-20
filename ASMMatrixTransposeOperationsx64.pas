@@ -39,6 +39,9 @@ procedure ASMMatrixTransposeUnAlignedOddWEvenH(dest : PDouble; const destLineWid
 procedure ASMMatrixTransposeAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 procedure ASMMatrixTransposeUnAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 
+// Inplace Trasnposition of an N x N matrix
+procedure ASMMatrixTransposeInplace(mt : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt);
+
 {$ENDIF}
 
 implementation
@@ -1636,6 +1639,70 @@ end;
 {$ENDIF}
 end;
 
+// simple Inplace Trasnposition of an N x N matrix
+procedure ASMMatrixTransposeInplace(mt : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt);
+var iRBX, iRDI, iRSI : TASMNativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
+     // rcx: mt, rdx, LineWidth, r8: N
+     asm
+        // prolog - stack
+        mov iRBX, rbx;
+        mov iRDI, rdi;
+        mov iRSI, rsi;
+
+        cmp r8, 2;
+        jl @@exitProc;
+
+        // iter: -N*sizeof(Double)
+        mov rax, r8;
+        imul rax, -8;
+
+
+        mov rbx, rcx;  // pDest1: genptr(mt, 0, 1, linewidth)
+        add rbx, rdx;
+
+        sub rcx, rax;  // mt + iter
+
+        // for y := 0 to n - 2
+        dec r8;
+        @@foryloop:
+
+           mov rdi, rax; // iter aka x
+           add rdi, 8;
+           mov rsi, rbx;
+           // for x := y + 1 to n-1 do
+           @@forxloop:
+              movsd xmm0, [rcx + rdi];
+              movsd xmm1, [rsi];
+
+              movsd [rcx + rdi], xmm1;
+              movsd [rsi], xmm0;
+
+              add rsi, rdx;
+           add rdi, 8;
+           jnz @@forxloop;
+
+           add rax, 8;  // iter + sizeof(double);
+           //pDest := PConstDoubleArr( GenPtr(dest, 0, y, destLineWidth) );
+           add rcx, rdx;
+           // GenPtr(dest, y, y + 1, destLineWidth);
+           add rbx, rdx;
+           add rbx, 8;
+        dec r8;
+        jnz @@foryloop;
+
+        @@exitProc:
+
+        // epilog - cleanup stack
+        mov rbx, iRBX;
+        mov rdi, iRDI;
+        mov rsi, iRSI;
+     end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 {$ENDIF}
 

@@ -1358,13 +1358,13 @@ const cA : Array[0..11] of double = ( 1, 2, 3, 4,
       cU : Array[0..8] of double = ( -0.5404, 0.7475, -0.3862,
                                      -0.7714, -0.6235, -0.1274,
                                      -0.3360, 0.2291, 0.9136 );
-      cV : Array[0..11] of double = (-0.5392,   -0.5889,   -0.1284,
-                                      -0.5512,   -0.1488,    0.6397,
-                                      -0.4866,    0.1653,   -0.7357,
-                                      -0.4107,    0.7770,    0.1817  );
+      cV : Array[0..11] of double = (-0.5392,   -0.5512,   -0.4866,   -0.4107,
+                                     -0.5889,   -0.1488,    0.1653,    0.7770,
+                                     -0.1284,    0.6397,   -0.7357,    0.1817  );
 var a : Array[0..11] of double;
     w : Array[0..2] of double;
     v : Array[0..11] of double;
+    u : Array[0..8] of double;
 begin
      Move(cA, a, SizeOf(cA));
      FillChar(w, sizeof(w), 0);
@@ -1375,6 +1375,13 @@ begin
      Status(WriteMtx(a, 4));
      Status(WriteMtx(w, 1));
      Status(WriteMtx(v, 3));
+
+     MatrixCopy(@u[0], 3*sizeof(double), @a[0], 4*sizeof(double), 3, 3);
+
+     Check(CheckMtx(u, cU, -1, -1, 1e-2), 'SVD U failed');
+     Check(CheckMtx(w, cW, -1, -1, 1e-2), 'SVD W failed');
+     Check(CheckMtx(v, cV, -1, -1, 1e-2), 'SVD W failed');
+
 
      MatrixTranspose(@a[0], 3*sizeof(double), @cA[0], 4*sizeof(double), 4, 3);
      FillChar(w, sizeof(w), 0);

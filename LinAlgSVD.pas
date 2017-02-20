@@ -2343,7 +2343,7 @@ begin
                // #### Undo transposition
 
                // a can be inplace transposed since it is height x height:
-               GenericMtxTransposeInplace(A, LineWidthA, Height);
+               MatrixTransposeInplace(A, LineWidthA, Height);
 
                // V is now height x width -> transpose
                vt := MatrixTranspose(V, height*sizeof(double), height, width);
@@ -2698,7 +2698,7 @@ begin
                // #### Undo transposition
 
                // a can be inplace transposed since it is height x height:
-               GenericMtxTransposeInplace(A, LineWidthA, Height);
+               MatrixTransposeInplace(A, LineWidthA, Height);
 
                // V is now height x width -> transpose
                vt := MatrixTranspose(V, height*sizeof(double), height, width);

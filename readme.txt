@@ -53,6 +53,9 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: 20.02.2017:
+* No "genericxyz" functions any more in the LinAlg functions.
+
 Date: 18.02.2017:
 * Added a progress functionality to SVD
 * Changed threading in SVD: Throwing more threads at the plane rotations seems to help :)
