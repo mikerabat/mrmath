@@ -53,6 +53,9 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: 24.02.2017:
+* A new matrix constructor to generate a linearily spaced vector.
+
 Date: 20.02.2017:
 * No "genericxyz" functions any more in the LinAlg functions.
 

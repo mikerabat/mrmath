@@ -454,6 +454,7 @@ type
     constructor Create(const Data : TDoubleDynArray; aWidth, aHeight : integer); overload;
     constructor CreateRand(aWidth, aHeight : integer; method : TRandomAlgorithm; seed : LongInt); overload; // uses random engine
     constructor CreateRand(aWidth, aHeight : integer); overload; // uses system default random
+    constructor CreateLinSpace(vecLen : integer; const StartVal : double; const EndVal : double);
     destructor Destroy; override;
   end;
 
@@ -2320,6 +2321,39 @@ var outEigVals : TDoubleMatrix;
 begin
      Result := SymEig(outEigVals);
      EigVals := outEigVals;
+end;
+
+constructor TDoubleMatrix.CreateLinSpace(vecLen: integer; const StartVal,
+  EndVal: double);
+var value : double;
+    pVec : PDouble;
+    counter: Integer;
+    dx : double;
+begin
+     assert(vecLen >= 0, 'Error: initialized by negative len');
+
+     inherited Create;
+
+     SetWidthHeight(1, vecLen);
+
+     if vecLen = 0 then
+        exit;
+
+     dx := (EndVal - StartVal)/Math.Max(1, veclen - 1);
+
+     pVec := StartElement;
+     value := startVal;
+     for counter := 0 to vecLen - 1 do
+     begin
+          pVec^ := value;
+          value := value + dx;
+          inc(PByte(pVec), LineWidth);
+     end;
+
+     // account for small accumulated errors - so at least the last
+     // value is as expected
+     if veclen > 1 then
+        Vec[vecLen - 1] := EndVal;
 end;
 
 initialization
