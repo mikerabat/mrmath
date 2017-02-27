@@ -98,6 +98,8 @@ procedure GenericMtxMean(dest : PDouble; destLineWidth : TASMNativeInt; Src : PD
 procedure GenericMtxVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
 procedure GenericMtxSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
 
+procedure GenericMtxCumulativeSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+
 // matrix median (row or column wise). For the calculation of the median at least width (for rowwise) or height (for columnwise) extra
 // memory is needed. The memory is either allocated on the fly or can be provided in the function.
 procedure GenericMtxMedian(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; tmp : PDouble = nil);
@@ -550,6 +552,56 @@ begin
                end;
 
                dest^ := val;
+               inc(pVal1, sizeof(double));
+               inc(dest);
+          end;
+     end;
+end;
+
+procedure GenericMtxCumulativeSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+var val : double;
+    x, y : TASMNativeInt;
+    pVal1 : PByte;
+    pVal2 : PConstDoubleArr;
+    pVal : PDouble;
+    pDest : PDouble;
+begin
+     assert((Width > 0) and (Height > 0), 'No data assigned');
+
+     pVal1 := PByte(Src);
+     if RowWise then
+     begin
+          for y := 0 to Height - 1 do
+          begin
+               val := 0;
+
+               pVal2 := PConstDoubleArr(pVal1);
+               for x := 0 to Width - 1 do
+               begin
+                    val := val + pVal2^[x];
+                    PConstDoubleArr(dest)^[x] := val;
+               end;
+
+               inc(pVal1, srcLineWidth);
+               inc(PByte(dest), destLineWidth);
+          end;
+     end
+     else
+     begin
+          for x := 0 to Width - 1 do
+          begin
+               val := 0;
+
+               pVal := PDouble(pVal1);
+               pDest := dest;
+               for y := 0 to Height - 1 do
+               begin
+                    val := val + pVal^;
+                    pDest^ := val;
+                    inc(PByte(pVal), srcLineWidth);
+                    inc(PByte(pDest), destLineWidth);
+               end;
+
                inc(pVal1, sizeof(double));
                inc(dest);
           end;

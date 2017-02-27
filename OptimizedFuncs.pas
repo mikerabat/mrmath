@@ -150,6 +150,8 @@ function MatrixSum(const Src : Array of double; width, height : TASMNativeInt; R
 procedure MatrixSum(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean); overload;
 procedure MatrixSum(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean); overload;
 
+procedure MatrixCumulativeSum(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+
 procedure MatrixAddAndScale(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
 procedure MatrixScaleAndAdd(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
 procedure MatrixAbs(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
@@ -257,6 +259,7 @@ var multFunc : TMatrixMultFunc;
     matrixSortFunc : TMatrixSortFunc;
     matrixVarFunc : TMatrixVarianceFunc;
     matrixSumFunc : TMatrixNormalizeFunc;
+    matrixCumulativeSumFunc : TMatrixNormalizeFunc;
     rowSwapFunc : TMatrixRowSwapFunc;
     Rank1UpdateFunc : TMatrixRank1UpdateFunc;
     matrixRot : TMatrixRotate;
@@ -832,6 +835,13 @@ begin
      MatrixSum(@dest[0], width*sizeof(double), @src[0], width*sizeof(double), width, height, RowWise);
 end;
 
+procedure MatrixCumulativeSum(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+begin
+     assert( (width > 0) and (height > 0), 'Dimension error');
+      
+     matrixCumulativeSumFunc(dest, destLineWidth, Src, srcLineWidth, width, height, RowWise);
+end;
+
 procedure MatrixAddAndScale(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
 begin
      assert((width > 0) and (height > 0), 'Dimension error');
@@ -957,6 +967,7 @@ begin
           matrixMeanFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixMean;
           matrixVarFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixVar;
           matrixSumFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixSum;
+          matrixCumulativeSumFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxCumulativeSum;
           rowSwapFunc := {$IFDEF FPC}@{$ENDIF}ASMRowSwap;
           absFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixAbs;
           elemWiseDivFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixElemDiv;
@@ -1003,6 +1014,7 @@ begin
           matrixMeanFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMean;
           matrixVarFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxVar;
           matrixSumFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxSum;
+          matrixCumulativeSumFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxCumulativeSum;
           rowSwapFunc := {$IFDEF FPC}@{$ENDIF}GenericRowSwap;
           absFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxAbs;
           elemWiseDivFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxElemDiv;

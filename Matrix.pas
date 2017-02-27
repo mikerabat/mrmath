@@ -144,6 +144,8 @@ type
 
     function Sum(RowWise : boolean) : TDoubleMatrix;
     procedure SumInPlace(RowWise : boolean);
+    function CumulativeSum(RowWise : boolean) : TDoubleMatrix;
+    procedure CumulativeSumInPlace(RowWise : boolean);
 
     function Add(const Value : double) : TDoubleMatrix; overload;
     procedure AddInPlace(const Value : double); overload;
@@ -180,6 +182,8 @@ type
     // ###################################################
     // #### Special functions
     procedure MaskedSetValue(const Mask : Array of boolean; const newVal : double);
+    procedure RepeatMatrixInPlace(numY, numX : integer);
+    function RepeatMatrix(numY, numX : integer) : TDoubleMatrix;
 
     // ###################################################
     // #### Matrix transformations
@@ -375,6 +379,8 @@ type
 
     function Sum(RowWise : boolean) : TDoubleMatrix;
     procedure SumInPlace(RowWise : boolean);
+    function CumulativeSum(RowWise : boolean) : TDoubleMatrix;
+    procedure CumulativeSumInPlace(RowWise : boolean);
 
     function Add(const Value : double) : TDoubleMatrix; overload;
     procedure AddInPlace(const Value : double); overload;
@@ -411,6 +417,8 @@ type
     // ###################################################
     // #### Special functions
     procedure MaskedSetValue(const Mask : Array of boolean; const newVal : double);
+    procedure RepeatMatrixInPlace(numY, numX : integer);
+    function RepeatMatrix(numX, numY : integer) : TDoubleMatrix;
 
     // ###################################################
     // #### Matrix transformations
@@ -733,6 +741,20 @@ begin
 
      SetWidthHeight(aWidth, aHeight);
      ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}MtxRand);
+end;
+
+function TDoubleMatrix.CumulativeSum(RowWise: boolean): TDoubleMatrix;
+begin
+     Result := TDoubleMatrix.Create(Width, Height);
+     MatrixCumulativeSum(Result.StartElement, Result.LineWidth, StartElement, LineWidth, width, height, RowWise);
+end;
+
+procedure TDoubleMatrix.CumulativeSumInPlace(RowWise: boolean);
+var dt : TDoubleMatrix;
+begin
+     dt := CumulativeSum(RowWise);
+     dt.TakeOver(dt);
+     dt.Free;
 end;
 
 function TDoubleMatrix.Determinant: double;
@@ -1559,6 +1581,34 @@ begin
            FreeAndNil(tau);
 
            raise;
+     end;
+end;
+
+function TDoubleMatrix.RepeatMatrix(numX, numy : integer): TDoubleMatrix;
+begin
+     Result := Clone;
+     Result.RepeatMatrixInPlace(numY, numX);
+end;
+
+procedure TDoubleMatrix.RepeatMatrixInPlace(numY, numX: integer);
+var origW, origH : integer;
+    subMtx : IMatrix;
+    x, y : Integer;
+begin
+     origW := Width;
+     origH := Height;
+
+     subMtx := Clone;
+
+     SetWidthHeight( Width*numX, Height*numY );
+
+     for y := 0 to numY - 1 do
+     begin
+          for x := 0 to numX - 1 do
+          begin
+               if (x <> 0) or (y <> 0) then
+                  AssignSubMatrix(subMtx, x*origW, y*origH);
+          end;
      end;
 end;
 
