@@ -53,6 +53,10 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: 01.03.2017:
+* Added cumulative matrix sum helper function (+assembler optimization)
+* Added repeat matrix helper function
+
 Date: 24.02.2017:
 * A new matrix constructor to generate a linearily spaced vector.
 

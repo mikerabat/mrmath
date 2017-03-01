@@ -57,6 +57,7 @@ type
     procedure TestMtxMeanColumn;
     procedure TestMtxSumColumn;
     procedure TestMtxSumRow;
+    procedure TestMtxCumulativeSumColumn;
     procedure TestMinMaxASM;
     procedure TestMatrixBigASMMinMax;
     procedure TestMultASM;
@@ -3450,6 +3451,91 @@ begin
      ASMMatrixSubT(@res1[0], 3*sizeof(double), @mt2, 2*sizeof(double), 3, 2);
      Check(CheckMtx(res, res1), 'Error ASM subT');
 end;
+
+procedure TASMMatrixOperations.TestMtxCumulativeSumColumn;
+const mt1 : Array[0..15] of double = (28, 35, 42, 36, 50, 67, 84, 61, 72, 99, 126, 86, 94, 128, 162, 120);
+var dest1, dest2 : Array[0..15] of double;
+    m, pM, dest : PDouble;
+    destGen, DestDyn : TDoubleDynArray;
+    i : Integer;
+    blk : PDouble;
+
+    startTime1, endTime1 : Int64;
+    startTime2, endTime2 : Int64;
+    startTime3, endTime3 : Int64;
+const cMtxWidth = 500;
+      cMtxHeight = 2000;
+      cMtxSize = cMtxWidth*cMtxHeight;
+      cMtxLinewidth = cMtxWidth*sizeof(double);
+
+begin
+     blk := AllocMem((2*16*8)*sizeof(double) + 16);
+     m := blk;
+     inc(PByte(m), 16 - TASMNativeUint(blk) and $F);
+     dest := m;
+     inc(dest, 16);
+
+     Move(mt1, m^, 16*sizeof(double));
+
+     GenericMtxCumulativeSum(@dest1[0], 4*sizeof(double), @mt1[0], 4*sizeof(double), 4, 4, False);
+     ASMMatrixCumulativeSumColumnEvenWUnaligned(@dest2[0], 4*sizeof(double), @mt1[0], 4*sizeof(double), 4, 4);
+     ASMMatrixCumulativeSumColumnEvenWAligned(dest, 4*sizeof(double), m, 4*sizeof(double), 4, 4);
+
+     Check(checkMtx(dest1, dest2), 'Error column wise Matrix sum');
+     Move(dest^, dest2, sizeof(dest2));
+     Check(checkMtx(dest1, dest2), 'Error column wise aligned Matrix sum');
+
+     GenericMtxCumulativeSum(@dest1[0], 4*sizeof(double), @mt1[0], 4*sizeof(double), 3, 4, False);
+     ASMMatrixCumulativeSumColumnOddWUnaligned(@dest2[0], 4*sizeof(double), @mt1[0], 4*sizeof(double), 3, 4);
+     ASMMatrixCumulativeSumColumnOddWAligned(dest, 4*sizeof(double), m, 4*sizeof(double), 3, 4);
+
+     Check(checkMtx(dest1, dest2), 'Error column wise Matrix sum');
+     Move(dest^, dest2, sizeof(dest2));
+     Check(checkMtx(dest1, dest2), 'Error column wise aligned Matrix sum');
+
+     FreeMem(blk);
+
+     // big row test
+     blk := AllocMem((cMtxSize+ cMtxSize)*sizeof(double) + 48);
+     m := blk;
+     inc(PByte(m), 16 - TASMNativeUint(blk) and $F);
+     dest := m;
+     inc(dest, cMtxSize);
+
+     SetLength(DestDyn, cMtxSize);
+     SetLength(DestGen, cMtxSize);
+
+     pM := m;
+     for i := 0 to cMtxSize - 1 do
+     begin
+     	    pM^ := i;
+          inc(pM);
+     end;
+
+					startTime1 := MtxGetTime;
+     GenericMtxCumulativeSum(@destGen[0], cMtxWidth*sizeof(double), m, cMtxLineWidth, cMtxWidth, cMtxheight, False);
+     endTime1 := MtxGetTime;
+
+     startTime2 := MtxGetTime;
+     ASMMatrixCumulativeSumColumnEvenWUnAligned(@destDyn[0], cMtxWidth*sizeof(double), m, cMtxLineWidth, cMtxWidth, cMtxheight);
+     endTime2 := MtxGetTime;
+
+     Check(CheckMtx(destGen, DestDyn), 'Error unaligned cumsum operation');
+
+     startTime3 := MtxGetTime;
+     ASMMatrixCumulativeSumColumnEvenWAligned(dest, cMtxWidth*sizeof(double), m, cMtxLineWidth, cMtxWidth, cMtxheight);
+     endTime3 := MtxGetTime;
+
+     Move(dest^, destDyn[0], cMtxSize*sizeof(double));
+
+     Check(CheckMtx(destGen, DestDyn), 'Error aligned cumsum operation');
+
+     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+                        (endTime3 - startTime3)/mtxFreq*1000]));
+
+     FreeMem(blk);
+end;
+
 
 initialization
   RegisterTest(TestMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});

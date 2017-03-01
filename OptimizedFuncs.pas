@@ -967,7 +967,7 @@ begin
           matrixMeanFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixMean;
           matrixVarFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixVar;
           matrixSumFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixSum;
-          matrixCumulativeSumFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxCumulativeSum;
+          matrixCumulativeSumFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixCumulativeSum;
           rowSwapFunc := {$IFDEF FPC}@{$ENDIF}ASMRowSwap;
           absFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixAbs;
           elemWiseDivFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixElemDiv;

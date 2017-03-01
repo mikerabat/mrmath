@@ -84,7 +84,7 @@ implementation
 
 uses ASMMatrixOperations, SimpleMatrixOperations, BlockSizeSetup, Classes, LinAlgSVD,
      HouseholderReflectors, Math, ThreadedMatrixOperations, MathUtilFunc,
-  MtxThreadPool, ASMMatrixMultOperations;
+     MtxThreadPool;
 
 
 // ###########################################
