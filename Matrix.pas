@@ -449,6 +449,7 @@ type
     procedure AssignSubMatrix(Value : TDoubleMatrix; X : integer = 0; Y : integer = 0); overload;
     procedure AssignSubMatrix(Value : IMatrix; X : integer = 0; Y : integer = 0); overload;
 
+    // actually the same as assign but it takes over the data and leaves an empty matrix object behind.
     procedure TakeOver(Value : TDoubleMatrix); overload;
     procedure TakeOver(Value : IMatrix); overload;
 
@@ -750,11 +751,8 @@ begin
 end;
 
 procedure TDoubleMatrix.CumulativeSumInPlace(RowWise: boolean);
-var dt : TDoubleMatrix;
 begin
-     dt := CumulativeSum(RowWise);
-     dt.TakeOver(dt);
-     dt.Free;
+     MatrixCumulativeSum(StartElement, LineWidth, StartElement, LineWidth, Width, Height, RowWise);
 end;
 
 function TDoubleMatrix.Determinant: double;

@@ -32,6 +32,7 @@ type
    procedure TestApplyfunc;
    procedure TestAbs;
    procedure TestMedian;
+   procedure TestCumSum;
    procedure TestGamma;
   end;
 
@@ -1273,6 +1274,18 @@ begin
      CheckEqualsMem(@mt1, @res[0], sizeof(mt1), 'Error matrix copy: ' + #13#10 + WriteMtxDyn(res, 3));
 end;
 
+procedure TestMatrixOperations.TestCumSum;
+const mt1 : Array[0..8] of double = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+      cCumMt1 : Array[0..8] of double = (1, 2, 3, 5, 7, 9, 12, 15, 18);
+      cCumMt2 : Array[0..8] of double = (1, 3, 6, 4, 9, 15, 7, 15, 24);
+var dest1 : Array[0..8] of double;
+begin
+     GenericMtxCumulativeSum(@dest1[0], 3*sizeof(double), @mt1[0], 3*sizeof(double), 3, 3, False);
+     Check(CheckMtx(cCumMt1, dest1), 'Error cumsum column wise');
+
+     GenericMtxCumulativeSum(@dest1[0], 3*sizeof(double), @mt1[0], 3*sizeof(double), 3, 3, True);
+     Check(CheckMtx(cCumMt2, dest1), 'Error cumsum column wise');
+end;
 procedure TestMatrixOperations.TestMedian;
 const mt1 : Array[0..5] of double = (0, 1, 2, 3, 4, 5);
 var hlp : TDoubleDynArray;
