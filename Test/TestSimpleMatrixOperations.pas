@@ -32,6 +32,7 @@ type
    procedure TestApplyfunc;
    procedure TestAbs;
    procedure TestMedian;
+   procedure TestGamma;
   end;
 
   TASMMatrixOperations = class(TBaseMatrixTestCase)
@@ -3536,6 +3537,21 @@ begin
      FreeMem(blk);
 end;
 
+
+procedure TestMatrixOperations.TestGamma;
+begin
+     Status(Format('%d - %.6f', [factorial(3), Gamma(4)] ));
+     Status(Format('%d - %.6f', [factorial(5), Gamma(6)] ));
+     Status(Format('%d - %.6f', [factorial(7), Gamma(8)] ));
+     Status(Format('%d - %.6f', [factorial(13), Gamma(14)] ));
+
+     Check( SameValue( Gamma(1.5), sqrt(pi)/2, 1e-5 ), 'Gamma 1.5 should be sqrt(pi)/2');
+
+     Status(Format('%.5f', [Gamma(-2.1)]));
+     Status(Format('%.5f', [Gamma(-6.1)]));
+     Status(Format('%.5f', [Gamma(-8.1)]));
+     Status(Format('%.5f', [Gamma(-1.1)]));
+end;
 
 initialization
   RegisterTest(TestMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});

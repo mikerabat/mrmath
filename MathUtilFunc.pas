@@ -54,6 +54,14 @@ procedure QuickSort(A : PConstDoubleArr; Width : integer); overload;
 function KthLargest(var vals : TDoubleDynArray; elemNum : Cardinal) : double; overload;
 function KthLargest(valsArr : PDouble; numElem : integer; elemNum : Cardinal) : double; overload;
 
+// factorial - integer and double
+function Factorial(n : integer) : Int64;
+
+// and based on the gamma function  factorial(n) = gamma(n + 1)
+
+// gamma: gamma(x) = integral from 0 to inf of t^(x-1) exp(-t) dt.
+function Gamma(x : double) : double;
+
 implementation
 
 uses SysUtils, Math, Classes;
@@ -374,6 +382,119 @@ begin
              l := i;
      end;
 end;
+
+function Factorial(n : integer) : Int64;
+begin
+     Result := 1;
+
+     while n > 1 do
+     begin
+          Result := Result*Int64(n);
+          dec(n);
+     end;
+end;
+
+function Gamma(x : double) : double;
+const p : Array[0..7] of double = (
+                 -1.71618513886549492533811e+0,  2.47656508055759199108314e+1,
+                 -3.79804256470945635097577e+2,  6.29331155312818442661052e+2,
+                  8.66966202790413211295064e+2, -3.14512729688483675254357e+4,
+                 -3.61444134186911729807069e+4,  6.64561438202405440627855e+4);
+     q : Array[0..7] of double = (
+                 -3.08402300119738975254353e+1,  3.15350626979604161529144e+2,
+                 -1.01515636749021914166146e+3, -3.10777167157231109440444e+3,
+                  2.25381184209801510330112e+4,  4.75584627752788110767815e+3,
+                 -1.34659959864969306392456e+5, -1.15132259675553483497211e+5);
+     c : Array[0..6] of double = (
+                 -1.910444077728e-03,            8.4171387781295e-04,
+                 -5.952379913043012e-04,         7.93650793500350248e-04,
+                 -2.777777777777681622553e-03,   8.333333333333333331554247e-02,
+                  5.7083835261e-03);
+     spi : double = 0.9189385332046727417803297;
+var xn : integer;
+    y, ysq : double;
+    y1 : integer;
+    fact : double;
+    xnum, xden : double;
+    z : double;
+    i : integer;
+    x1 : double;
+    isNeg : boolean;
+    sum : double;
+begin
+     xn := 0;
+     fact := 1;
+
+     isNeg := x <= 0;
+
+     // catch negative x
+     if x <= 0 then
+     begin
+          y := -x;
+          y1 := floor(y);  // nearest integer towards zero
+          Result := y - y1;
+          fact := -pi/sin(pi*result) * (1 - 2*(y1 mod 2));
+          x := y + 1;
+     end;
+
+     // Map x in interval [0,1] to [1,2]
+     x1 := 1;
+     if x < 1 then
+     begin
+          x1 := x;
+          x := x + 1;
+     end;
+
+     // Map x in interval [1,12] to [1,2]
+     if x < 12 then
+     begin
+          xn := floor(x) - 1;
+          x := x - xn;
+     end;
+
+     // Evaluate approximation for 1 < x < 2
+     z := x - 1;
+     xnum := 0;
+     xden := xnum + 1;
+
+     for i := 0 to High(p) do
+     begin
+          xnum := (xnum + p[i])*z;
+          xden := xden*z + q[i];
+     end;
+
+     Result := xnum/xden + 1;
+
+     // Adjust result for case  0.0 < x < 1.0
+     Result := Result/x1;
+
+     // Adjust result for case  2.0 < x < 12.0
+     while xn > 0 do
+     begin
+          Result := Result*x;
+          x := x + 1;
+          xn := xn - 1;
+     end;
+
+     // Evaluate approximation for x >= 12
+     if x >= 12 then
+     begin
+          y := x;
+          ysq := sqr(y);
+          sum := c[6];
+          for i := 0 to High(c) - 1 do
+              sum := sum / ysq + c[i];
+
+          sum := sum /y - y + spi;
+          sum := sum +(y - 0.5)*ln(y);
+          Result := exp(sum);
+     end;
+
+     if isNeg then
+        Result := fact/Result;
+
+end;
+
 
 initialization
   cMinDblDivEps := MinDblDiv/eps(1);
