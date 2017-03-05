@@ -616,8 +616,9 @@ begin
            xorpd xmm0, xmm0;
 
            @@forxloop:
-              addsd xmm0, [r8 + eax];
-              movsd [rcx + eax], xmm0;
+              movsd xmm1, [r8 + rax];
+              addsd xmm0, xmm1;
+              movsd [rcx + rax], xmm0;
            add rax, 8;
            jnz @@forxloop;
 
@@ -663,13 +664,13 @@ begin
            mov rax, r11;
            xorpd xmm0, xmm0;
            xor rdi, rdi;
-           xor esi, esi;
+           xor rsi, rsi;
 
            // two values at once
            @@foryloop:
               movupd xmm1, [r8 + rdi];
               addpd xmm0, xmm1;
-              movupd [rcx + esi], xmm0;
+              movupd [rcx + rsi], xmm0;
 
               add rdi, r9;
               add rsi, rdx;
@@ -686,7 +687,9 @@ begin
         mov rdi, iRDI;
         mov rsi, iRSI;
      end;
+{$IFDEF FPC}
 end;
+{$ENDIF}
 
 procedure ASMMatrixCumulativeSumColumnOddWUnaligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iRDI, iRSI : TASMNativeint;
@@ -716,13 +719,13 @@ begin
            mov rax, r11;
            xorpd xmm0, xmm0;
            xor rdi, rdi;
-           xor esi, esi;
+           xor rsi, rsi;
 
            // two values at once
            @@foryloop:
               movupd xmm1, [r8 + rdi];
               addpd xmm0, xmm1;
-              movupd [rcx + esi], xmm0;
+              movupd [rcx + rsi], xmm0;
 
               add rdi, r9;
               add rsi, rdx;
@@ -785,13 +788,13 @@ begin
            mov rax, r11;
            xorpd xmm0, xmm0;
            xor rdi, rdi;
-           xor esi, esi;
+           xor rsi, rsi;
 
            // two values at once
            @@foryloop:
               movapd xmm1, [r8 + rdi];
               addpd xmm0, xmm1;
-              movapd [rcx + esi], xmm0;
+              movapd [rcx + rsi], xmm0;
 
               add rdi, r9;
               add rsi, rdx;
@@ -808,7 +811,9 @@ begin
         mov rdi, iRDI;
         mov rsi, iRSI;
      end;
+{$IFDEF FPC}
 end;
+{$ENDIF}
 
 procedure ASMMatrixCumulativeSumColumnOddWAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iRDI, iRSI : TASMNativeint;
@@ -838,13 +843,13 @@ begin
            mov rax, r11;
            xorpd xmm0, xmm0;
            xor rdi, rdi;
-           xor esi, esi;
+           xor rsi, rsi;
 
            // two values at once
            @@foryloop:
               movapd xmm1, [r8 + rdi];
               addpd xmm0, xmm1;
-              movapd [rcx + esi], xmm0;
+              movapd [rcx + rsi], xmm0;
 
               add rdi, r9;
               add rsi, rdx;
