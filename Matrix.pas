@@ -70,8 +70,8 @@ type
 
     procedure SetValue(const initVal : double);
 
-    function Reshape(newWidth, newHeight : integer) : TDoubleMatrix;
-    procedure ReshapeInPlace(newWidth, newHeight : integer);
+    function Reshape(newWidth, newHeight : integer; RowMajor : boolean = False) : TDoubleMatrix;
+    procedure ReshapeInPlace(newWidth, newHeight : integer; RowMajor : boolean = False);
 
     // ###################################################
     // #### Simple matrix utility functions
@@ -309,8 +309,8 @@ type
 
     procedure SetValue(const initVal : double);
 
-    function Reshape(newWidth, newHeight : integer) : TDoubleMatrix;
-    procedure ReshapeInPlace(newWidth, newHeight : integer);
+    function Reshape(newWidth, newHeight : integer; RowMajor : boolean = False) : TDoubleMatrix;
+    procedure ReshapeInPlace(newWidth, newHeight : integer; RowMajor : boolean = False);
 
     // ###################################################
     // #### Simple matrix utility functions
@@ -1636,15 +1636,55 @@ begin
      end;
 end;
 
-function TDoubleMatrix.Reshape(newWidth, newHeight: integer) : TDoubleMatrix;
+function TDoubleMatrix.Reshape(newWidth, newHeight: integer; RowMajor : boolean = False) : TDoubleMatrix;
+var xOld, yOld : integer;
+    x, y : Integer;
 begin
      CheckAndRaiseError((fWidth > 0) and (fHeight > 0), 'Error operation not allowed on empty matrices');
      CheckAndRaiseError((newWidth*newHeight) = (fWidth*fHeight), 'Error new dimension does not fit into the old one');
 
-     Result := ResultClass.Create;
+     Result := ResultClass.Create(newWidth, newHeight);
      try
-        Result.Assign(Self, True);
-        Result.ReshapeInPlace(newWidth, newHeight);
+        if RowMajor then
+        begin
+             // reshape along rows not columns...
+             xOld := 0;
+             yOld := 0;
+             for x := 0 to newWidth - 1 do
+             begin
+                  for y := 0 to newHeight - 1 do
+                  begin
+                       Result[x, y] := Items[xOld, yOld];
+
+                       inc(yOld);
+                       if yOld = Height then
+                       begin                       
+                            inc(xOld);
+                            yOld := 0;
+                       end;
+                  end;
+             end;
+        end
+        else
+        begin
+             // reshape along rows not columns...
+             xOld := 0;
+             yOld := 0;
+             for y := 0 to newheight - 1 do
+             begin
+                  for x := 0 to newWidth - 1 do
+                  begin
+                       Result[x, y] := Items[xOld, yOld];
+
+                       inc(xOld);
+                       if xOld = Width then
+                       begin                       
+                            inc(yOld);
+                            xOld := 0;
+                       end;
+                  end;
+             end;
+        end;
      except
            FreeAndNil(Result);
 
@@ -1652,59 +1692,23 @@ begin
      end;
 end;
 
-procedure TDoubleMatrix.ReshapeInPlace(newWidth, newHeight: integer);
-var oldData : PConstDoubleArr;
-    oldOrigPtr : Pointer;
-    numSkip : integer;
-    pActLine : PConstDoubleArr;
-    x, y, z : integer;
-    actElemIdx : integer;
-    i : Integer;
+procedure TDoubleMatrix.ReshapeInPlace(newWidth, newHeight: integer; RowMajor : boolean = False);
+var res : TDoubleMatrix;
 begin
      CheckAndRaiseError((fWidth > 0) and (fHeight > 0), 'Error operation not allowed on empty matrices');
      CheckAndRaiseError((fWidth = fSubWidth) and (fHeight = fSubHeight), 'Operation only allowed on full matrices');
      CheckAndRaiseError((newWidth*newHeight) = (fWidth*fHeight), 'Error new dimension does not fit into the old one');
 
      // check if the line width fits the old width -> then we only have to adjust the
-     // line width parameter, otherwise copy. Note we take here into account that
-     // the new line width could cause unaligned operations!
-     if fLineWidth = fWidth*sizeof(double)
+     // line width parameter, otherwise copy. 
+     if (fWidth = fSubWidth) and (fHeight = fSubHeight) and (fLineWidth = fWidth*sizeof(double)) and not RowMajor
      then
          fLineWidth := newWidth*sizeof(double)
      else
      begin
-          oldOrigPtr := fMemory;
-          oldData := PConstDoubleArr(fData);
-
-          fMemory := nil;
-          fData := nil;
-
-          numSkip := (fLineWidth - fWidth*sizeof(double)) div sizeof(double);
-          ReserveMem(newWidth, newHeight);
-
-          // now copy to new structure
-          z := 0;
-          actElemIdx := 0;
-          for y := 0 to newHeight - 1 do
-          begin
-               pActLine := PConstDoubleArr(NativeUInt(fData) + NativeUInt(fLineWidth*y));
-
-               for x := 0 to newWidth - 1 do
-               begin
-                    pActLine^[x] := oldData^[z];
-                    inc(actElemIdx);
-                    inc(z);
-
-                    if actElemIdx = fWidth then
-                    begin
-                         for i := 0 to numSkip - 1 do
-                             inc(z);
-
-                         actElemIdx := 0;
-                    end;
-               end;
-          end;
-          FreeMem(oldOrigPtr);
+          res := Reshape(newWidth, newHeight, RowMajor);
+          TakeOver(res);
+          res.Free;
      end;
 
      fWidth := newWidth;
@@ -2298,7 +2302,7 @@ end;
 function TDoubleMatrix.Clone: TDoubleMatrix;
 begin
      Result := ResultClass.Create(Width, Height);
-     Result.Assign(Self);
+     Result.Assign(Self, True);
 end;
 
 procedure TDoubleMatrix.SetRow(row: integer; Values: IMatrix; ValRow: integer);
