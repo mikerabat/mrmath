@@ -82,8 +82,7 @@ procedure ThrMatrixLeftQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeI
 
 implementation
 
-uses ASMMatrixOperations, SimpleMatrixOperations, BlockSizeSetup, Classes, LinAlgSVD,
-     HouseholderReflectors, Math, ThreadedMatrixOperations, MathUtilFunc,
+uses BlockSizeSetup, Classes, HouseholderReflectors, Math, ThreadedMatrixOperations, MathUtilFunc,
      MtxThreadPool;
 
 

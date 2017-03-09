@@ -44,6 +44,7 @@ type
     procedure SetWidth(const Value : integer);
     procedure SetHeight(const Value : integer);
     procedure SetWidthHeight(const Width, Height : integer);
+    function GetVecLen : integer;
 
     property Width : integer read GetSubWidth write SetWidth;
     property Height : integer read GetSubHeight write SetHeight;
@@ -53,6 +54,7 @@ type
     // general access
     property Items[x, y : integer] : double read GetItems write SetItems; default;
     property Vec[idx : integer] : double read GetVecItem write SetVecItem; // matrix as vector
+    property VecLen : integer read GetVecLen;   
 
     procedure Clear;
     function GetObjRef : TDoubleMatrix;
@@ -142,6 +144,8 @@ type
     procedure SortInPlace(RowWise : boolean);
     function Sort(RowWise : boolean) : TDoubleMatrix;
 
+    function Diff(RowWise : boolean) : TDoubleMatrix;
+    procedure DiffInPlace(RowWise : boolean);
     function Sum(RowWise : boolean) : TDoubleMatrix;
     procedure SumInPlace(RowWise : boolean);
     function CumulativeSum(RowWise : boolean) : TDoubleMatrix;
@@ -278,6 +282,7 @@ type
     procedure SetHeight(const Value : integer);
     function GetSubWidth : integer;
     function GetSubHeight : integer;
+    function GetVecLen : integer;
     function GetObjRef : TDoubleMatrix;
   public
     property Width : integer read GetSubWidth write SetWidth;
@@ -296,6 +301,7 @@ type
 
     property Items[x, y : integer] : double read GetItems write SetItems; default;
     property Vec[idx : integer] : double read GetVecItem write SetVecItem; // matrix as vector
+    property VecLen : integer read GetVecLen;  // width*height
     function SubMatrix : TDoubleDynArray;
     procedure SetSubMatrix(x, y, Subwidth, Subheight : integer);
     procedure UseFullMatrix;
@@ -377,6 +383,8 @@ type
     procedure SortInPlace(RowWise : boolean); virtual;
     function Sort(RowWise : boolean) : TDoubleMatrix;
 
+    function Diff(RowWise : boolean) : TDoubleMatrix;
+    procedure DiffInPlace(RowWise : boolean);
     function Sum(RowWise : boolean) : TDoubleMatrix;
     procedure SumInPlace(RowWise : boolean);
     function CumulativeSum(RowWise : boolean) : TDoubleMatrix;
@@ -463,7 +471,7 @@ type
     constructor Create(const Data : TDoubleDynArray; aWidth, aHeight : integer); overload;
     constructor CreateRand(aWidth, aHeight : integer; method : TRandomAlgorithm; seed : LongInt); overload; // uses random engine
     constructor CreateRand(aWidth, aHeight : integer); overload; // uses system default random
-    constructor CreateLinSpace(vecLen : integer; const StartVal : double; const EndVal : double);
+    constructor CreateLinSpace(aVecLen : integer; const StartVal : double; const EndVal : double);
     destructor Destroy; override;
   end;
 
@@ -803,6 +811,45 @@ begin
      TakeOver(dl);
 end;
 
+function TDoubleMatrix.Diff(RowWise: boolean): TDoubleMatrix;
+var newWidth : integer;
+    newHeight : integer;
+begin
+     Result := nil;
+     if (width = 0) or (height = 0) then
+        exit;
+
+     newWidth := Width;
+     newHeight := Height;
+     if RowWise 
+     then
+         dec(newWidth)
+     else
+         dec(newHeight);
+
+     Result := ResultClass.Create(newWidth, newHeight);
+     MatrixDiff(Result.StartElement, Result.LineWidth, StartElement, LineWidth, Width, Height, RowWise);
+end;
+
+procedure TDoubleMatrix.DiffInPlace(RowWise: boolean);
+begin
+     if (width = 0) or (height = 0) then
+        exit;
+
+     MatrixDiff(StartElement, LineWidth, StartElement, LineWidth, Width, height, RowWise);
+
+     if RowWise then
+     begin
+          dec(fSubWidth);
+          fWidth := fSubWidth;
+     end
+     else
+     begin
+          dec(fSubHeight);
+          fHeight := fHeight;
+     end;
+end;
+
 function TDoubleMatrix.SolveLinEQ(Value: TDoubleMatrix; numRefinements : integer) : TDoubleMatrix;
 begin
      // solves the System: A * x = b
@@ -1122,6 +1169,12 @@ begin
          Result := GetItems(idx, 0)
      else
          Result := GetItems(idx mod fSubWidth, idx div fSubWidth);
+end;
+
+function TDoubleMatrix.GetVecLen: integer;
+begin
+     // treat matrix as vector
+     Result := fSubWidth*fSubHeight;
 end;
 
 function TDoubleMatrix.Invert: TDoubleMatrix;
@@ -1601,13 +1654,8 @@ begin
      SetWidthHeight( Width*numX, Height*numY );
 
      for y := 0 to numY - 1 do
-     begin
-          for x := 0 to numX - 1 do
-          begin
-               if (x <> 0) or (y <> 0) then
-                  AssignSubMatrix(subMtx, x*origW, y*origH);
-          end;
-     end;
+         for x := 0 to numX - 1 do
+             AssignSubMatrix(subMtx, x*origW, y*origH);
 end;
 
 procedure TDoubleMatrix.ReserveMem(width, height : integer);
@@ -2375,7 +2423,7 @@ begin
      EigVals := outEigVals;
 end;
 
-constructor TDoubleMatrix.CreateLinSpace(vecLen: integer; const StartVal,
+constructor TDoubleMatrix.CreateLinSpace(aVecLen: integer; const StartVal,
   EndVal: double);
 var value : double;
     pVec : PDouble;
@@ -2386,16 +2434,16 @@ begin
 
      inherited Create;
 
-     SetWidthHeight(1, vecLen);
+     SetWidthHeight(1, aVecLen);
 
-     if vecLen = 0 then
+     if aVecLen = 0 then
         exit;
 
-     dx := (EndVal - StartVal)/Math.Max(1, veclen - 1);
+     dx := (EndVal - StartVal)/Math.Max(1, aVecLen - 1);
 
      pVec := StartElement;
      value := startVal;
-     for counter := 0 to vecLen - 1 do
+     for counter := 0 to aVecLen - 1 do
      begin
           pVec^ := value;
           value := value + dx;
@@ -2404,7 +2452,7 @@ begin
 
      // account for small accumulated errors - so at least the last
      // value is as expected
-     if veclen > 1 then
+     if aVecLen > 1 then
         Vec[vecLen - 1] := EndVal;
 end;
 

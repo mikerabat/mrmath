@@ -151,6 +151,7 @@ procedure MatrixSum(dest : PDouble; const destLineWidth : TASMNativeInt; Src : P
 procedure MatrixSum(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean); overload;
 
 procedure MatrixCumulativeSum(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure MatrixDiff(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean); 
 
 procedure MatrixAddAndScale(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
 procedure MatrixScaleAndAdd(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
@@ -217,11 +218,24 @@ type
 
 implementation
 
-uses BlockSizeSetup, SimpleMatrixOperations, ASMMatrixOperations, ASMMatrixMultOperations,
-     ASMMatrixMultOperationsx64, ASMMatrixVectorMultOperations, ASMMatrixVectorMultOperationsx64,
-     CPUFeatures, MatrixRotations, ASMMatrixRotations, ASMMatrixRotationsx64,
-     ASMMoveOperations, ASMMoveOperationsx64, ASMMatrixAddSubOperations, ASMMatrixAddSubOperationsx64,
-     ASMMatrixTransposeOperations, ASMMatrixTransposeOperationsx64;
+{$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+
+uses ASMMatrixOperations,
+     {$IFNDEF x64}
+     ASMMatrixMultOperations,
+     ASMMatrixRotations, ASMMoveOperations,
+     ASMMatrixTransposeOperations, ASMMatrixAddSubOperations,
+     {$ELSE}
+     ASMMatrixMultOperationsx64,
+     ASMMatrixRotationsx64, ASMMoveOperationsx64, ASMMatrixAddSubOperationsx64,
+     ASMMatrixTransposeOperationsx64,
+     {$ENDIF}
+     BlockSizeSetup, SimpleMatrixOperations, CPUFeatures, MatrixRotations;
 
 var actUseSSEoptions : boolean;
     actUseStrassenMult : boolean;
@@ -260,6 +274,7 @@ var multFunc : TMatrixMultFunc;
     matrixVarFunc : TMatrixVarianceFunc;
     matrixSumFunc : TMatrixNormalizeFunc;
     matrixCumulativeSumFunc : TMatrixNormalizeFunc;
+    matrixDiffFunc : TMatrixNormalizeFunc;
     rowSwapFunc : TMatrixRowSwapFunc;
     Rank1UpdateFunc : TMatrixRank1UpdateFunc;
     matrixRot : TMatrixRotate;
@@ -842,6 +857,13 @@ begin
      matrixCumulativeSumFunc(dest, destLineWidth, Src, srcLineWidth, width, height, RowWise);
 end;
 
+procedure MatrixDiff(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean); 
+begin
+     assert( (Width > 0) and (height > 0), 'Dimension error');
+
+     matrixDiffFunc(dest, destLineWidth, Src, srcLineWidth, width, height, RowWise);
+end;
+
 procedure MatrixAddAndScale(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
 begin
      assert((width > 0) and (height > 0), 'Dimension error');
@@ -968,6 +990,7 @@ begin
           matrixVarFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixVar;
           matrixSumFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixSum;
           matrixCumulativeSumFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixCumulativeSum;
+          matrixDiffFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixDifferentiate;
           rowSwapFunc := {$IFDEF FPC}@{$ENDIF}ASMRowSwap;
           absFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixAbs;
           elemWiseDivFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixElemDiv;
@@ -1015,6 +1038,7 @@ begin
           matrixVarFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxVar;
           matrixSumFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxSum;
           matrixCumulativeSumFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxCumulativeSum;
+          matrixDiffFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxDifferentiate;
           rowSwapFunc := {$IFDEF FPC}@{$ENDIF}GenericRowSwap;
           absFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxAbs;
           elemWiseDivFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxElemDiv;

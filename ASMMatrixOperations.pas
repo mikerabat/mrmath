@@ -64,6 +64,8 @@ procedure ASMMatrixMean(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDo
 procedure ASMMatrixVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
 procedure ASMMatrixSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
 procedure ASMMatrixCumulativeSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure ASMMatrixDifferentiate(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+
 
 // this routine first performs a transposition on the second matrix before the multiplication is executed. This results
 // normaly in quite a boost.
@@ -106,13 +108,15 @@ uses Math, BlockSizeSetup, SimpleMatrixOperations,
      ASMMatrixMultTransposedOperationsx64, ASMMatrixAddSubOperationsx64,
      ASMMatrixElementwiseMultOperationsx64, ASMMatrixScaleOperationsx64, ASMMatrixSQRTOperationsx64,
      ASMMoveOperationsx64, ASMMatrixMinMaxOperationsx64, ASMMatrixTransposeOperationsx64,
-     ASMMatrixNormOperationsx64, ASMMatrixMeanOperationsx64, ASMMatrixSumOperationsx64
+     ASMMatrixNormOperationsx64, ASMMatrixMeanOperationsx64, ASMMatrixSumOperationsx64,
+     ASMMatrixCumSumDiffOperationsx64
      {$ELSE}
      ASMMatrixMultOperations, ASMMatrixVectorMultOperations, ASMMatrixAbsOperations,
      ASMMatrixMultTransposedOperations, ASMMatrixAddSubOperations,
      ASMMatrixElementwiseMultOperations, ASMMatrixScaleOperations, ASMMatrixSQRTOperations,
      ASMMoveOperations, ASMMatrixMinMaxOperations, ASMMatrixTransposeOperations,
-     ASMMatrixNormOperations, ASMMatrixMeanOperations, ASMMatrixSumOperations
+     ASMMatrixNormOperations, ASMMatrixMeanOperations, ASMMatrixSumOperations,
+     ASMMatrixCumSumDiffOperations
      {$ENDIF}
      ;
 
@@ -714,6 +718,49 @@ begin
                    ASMMatrixCumulativeSumColumnEvenWUnaligned(dest, destLineWidth, Src, srcLineWidth, width, height)
                else
                    ASMMatrixCumulativeSumColumnOddWUnaligned(dest, destLineWidth, Src, srcLineWidth, width, height);
+          end;
+     end;
+end;
+
+procedure ASMMatrixDifferentiate(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+begin
+     if (width = 0) or (height = 0) then
+        exit;
+     assert((width*sizeof(double) <= srcLineWidth), 'Dimension error');
+     assert((rowWise and (destLineWidth >= sizeof(double))) or (not rowWise and (destLineWidth >= width*sizeof(double))), 'Dimension error');
+
+     // check if we have vector operations:
+     if (width = 1) and (srcLineWidth = sizeof(double)) and not RowWise then
+     begin
+          width := Height;
+          height := 1;
+          srcLineWidth := width*sizeof(double) + (width and 1)*sizeof(double);
+          destLineWidth := srcLineWidth;
+          RowWise := True;
+     end;
+
+     if RowWise
+     then
+         ASMMatrixDifferentiateRow(dest, destLineWidth, Src, srcLineWidth, width, height)
+     else
+     begin
+          if (TASMNativeUInt(Dest) and $0000000F = 0) and (TASMNativeUInt(src) and $0000000F = 0) and
+             (destLineWidth and $0000000F = 0) and (srcLineWidth and $0000000F = 0)
+          then
+          begin
+               if width and 1 = 0
+               then
+                   ASMMatrixDifferentiateColumnEvenWAligned(dest, destLineWidth, Src, srcLineWidth, width, height)
+               else
+                   ASMMatrixDifferentiateColumnOddWAligned(dest, destLineWidth, Src, srcLineWidth, width, height);
+          end
+          else
+          begin
+               if width and 1 = 0
+               then
+                   ASMMatrixDifferentiateColumnEvenWUnaligned(dest, destLineWidth, Src, srcLineWidth, width, height)
+               else
+                   ASMMatrixDifferentiateColumnOddWUnaligned(dest, destLineWidth, Src, srcLineWidth, width, height);
           end;
      end;
 end;

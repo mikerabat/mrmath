@@ -66,9 +66,22 @@ type
 
 implementation
 
+{$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+
 uses LinearAlgebraicEquations, MtxThreadPool, math, MtxTimer, 
      BlockSizeSetup, LinAlgSVD, LinAlgQR, LinAlgCholesky, LinAlgLU,
-     MatrixRotations, ASMMatrixRotations, ASMMatrixRotationsx64;
+     MatrixRotations,
+     {$IFNDEF x64}
+      ASMMatrixRotations
+     {$ELSE}
+     ASMMatrixRotationsx64
+     {$ENDIF}
+     ;
 
 { TestTDoubleMatrix }
 

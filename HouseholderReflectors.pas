@@ -33,7 +33,7 @@ procedure ApplyElemHousholderReflRight(V : PDouble; LineWidthV : TASMNativeInt; 
 
 implementation
 
-uses OptimizedFuncs, MathUtilFunc, SimpleMatrixOperations;
+uses OptimizedFuncs, MathUtilFunc;
 
 // "right" part of dlarf
 procedure ApplyElemHousholderReflRight(V : PDouble; LineWidthV : TASMNativeInt; C : PDouble; const LineWidthC : TASMNativeInt; width, height : TASMNativeInt;

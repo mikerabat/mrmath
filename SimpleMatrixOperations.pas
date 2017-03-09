@@ -99,6 +99,7 @@ procedure GenericMtxVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDo
 procedure GenericMtxSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
 
 procedure GenericMtxCumulativeSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure GenericMtxDifferentiate(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
 
 // matrix median (row or column wise). For the calculation of the median at least width (for rowwise) or height (for columnwise) extra
 // memory is needed. The memory is either allocated on the fly or can be provided in the function.
@@ -607,6 +608,50 @@ begin
           end;
      end;
 end;
+
+procedure GenericMtxDifferentiate(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+var x, y : TASMNativeInt;
+    pVal11 : PDouble;
+    pVal2 : PConstDoubleArr;
+    pVal1 : PDouble;
+    pDest : PDouble;
+begin
+     assert((Width > 0) and (Height > 0), 'No data assigned');
+
+     if RowWise then
+     begin
+          pVal2 := PConstDoubleArr(src);
+          for y := 0 to Height - 1 do
+          begin
+               for x := 0 to Width - 2 do
+                   PConstDoubleArr(dest)^[x] := PConstDoubleArr(pVal2)^[x + 1] - PConstDoubleArr(pVal2)^[x];
+
+               inc(PByte(pVal2), srcLineWidth);
+               inc(PByte(dest), destLineWidth);
+          end;
+     end
+     else
+     begin
+          for x := 0 to Width - 1 do
+          begin
+               pVal1 := PDouble(src);
+               pVal11 := pVal1;
+               inc(PByte(pVal11), srcLineWidth);
+               pDest := dest;
+               for y := 0 to Height - 2 do
+               begin
+                    pDest^ := pVal11^ - pVal1^;
+                    pVal1 := pVal11;
+                    inc(PByte(pVal11), srcLineWidth);
+                    inc(PByte(pDest), destLineWidth);
+               end;
+
+               inc(src);
+               inc(dest);
+          end;
+     end;
+end;
+
 
 function GenericMtxElementwiseNorm2(Src : PDouble; srcLineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
 var pSrc : PConstDoubleArr;
