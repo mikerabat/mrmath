@@ -53,6 +53,10 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: 09.03.2017
+* Added a simple "differentiate" function (diff between two neighbouring mtx elements)
+* Fixed a few (non fatal) warnings in fpc
+
 Date: 01.03.2017:
 * Added cumulative matrix sum helper function (+assembler optimization)
 * Added repeat matrix helper function
