@@ -53,6 +53,10 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: 15.3.2017
+* New least squares solver for overdetermined linear equation systems. (multithreaded and single threaded)
+* Fixed a bug in the matrix diff function for row wise differentiation.
+
 Date: 09.03.2017
 * Added a simple "differentiate" function (diff between two neighbouring mtx elements)
 * Fixed a few (non fatal) warnings in fpc

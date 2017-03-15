@@ -386,8 +386,8 @@ begin
            @@forxloop:
               movsd xmm0, [ecx + eax];
               movsd xmm2, xmm0;
-              subsd xmm1, xmm0;
-              movsd [edx + eax - 8], xmm1;
+              subsd xmm0, xmm1;
+              movsd [edx + eax - 8], xmm0;
 
               movsd xmm1, xmm2;
            add eax, 8;

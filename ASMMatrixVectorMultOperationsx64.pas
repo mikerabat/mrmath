@@ -1679,7 +1679,7 @@ asm
    movupd dXMM7, xmm7;
 
 
-   // for the f inal multiplication
+   // for the final multiplication
    movddup xmm6, alpha;
    movddup xmm7, beta;
 

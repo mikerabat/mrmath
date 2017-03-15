@@ -78,12 +78,6 @@ type
                        m, nru, ncvt : TASMNativeInt; const cosl, sinl, cosr, sinr : double);
 
 type
-  TQRDecompFunc = function (A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; work : PDouble; pnlSize : TASMNativeInt; progress : TLinEquProgress) : TQRResult;
-  TQFromQRFunc = procedure (A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; BlockSize : TASMNativeInt; work : PDouble; progress : TLinEquProgress);
-
-
-type
-
 // #######################################################
 // #### function definitions for the SVD
 // (shared with the multithreaded version)

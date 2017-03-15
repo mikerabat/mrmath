@@ -61,6 +61,8 @@ type
 
   procedure TestPseudoInversion;
   procedure TestPseudoInversion2;
+
+  procedure TestLeasSquaresQR;
   procedure TestMatrixSolve;
  end;
 
@@ -1030,6 +1032,26 @@ begin
      Check(CheckMtx(q1, q2), 'Threaded Q from ecsosize QR failed');
      
      MtxThreadPool.FinalizeMtxThreadPool;
+end;
+
+procedure TTestLinearEquations.TestLeasSquaresQR;
+const cA : Array[0..5] of double = (3, -6, 4, -8, 0, 1);
+      cY : Array[0..2] of double = (-1, 7, 2);
+      cX : Array[0..1] of double = (5, 2);
+var A : Array[0..5] of double;
+    y : Array[0..2] of double;
+    x : Array[0..1] of double;
+begin
+     Move(cA, A, sizeof(A));
+     Move(cY, y, sizeof(y));
+
+     FillChar(x, sizeof(x), 0);
+
+     Check( MatrixQRSolve(@x[0], sizeof(double), @A[0], 2*sizeof(double), @y[0], sizeof(double), 2, 3) = qrOK, 'Error could not solve system');
+
+     Status(WriteMtx(x, 2));     
+
+     Check( CheckMtx(x, cX), 'QR Least Squares failed');
 end;
 
 procedure TTestLinearEquations.TestFullQRDecomp;

@@ -389,13 +389,13 @@ begin
 
         @@foryloop:
            mov rax, rbx;
-           movsd xmm0, [r8 + rax - 8];
+           movsd xmm1, [r8 + rax - 8];
 
            @@forxloop:
               movsd xmm0, [r8 + rax];
               movsd xmm2, xmm0;
 
-              addsd xmm0, xmm1;
+              subsd xmm1, xmm0;
               movsd [rcx + rax - 8], xmm0;
               movsd xmm1, xmm2;
            add rax, 8;

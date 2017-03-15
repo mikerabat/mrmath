@@ -107,6 +107,7 @@ type
     procedure TestSort;
     procedure TestCholesky;
     procedure TestSVD;
+    procedure TestLeastSquares;
   end;
 
 implementation
@@ -844,6 +845,42 @@ begin
      Status(Format('Big threaded inversion: %.2fms', [(stop - start)/mtxfreq*1000]));
 
      Check(CheckMtx(m1.SubMatrix, m2.SubMatrix), 'Error threaded inverion differs from original one');
+end;
+
+procedure TestTThreadedMatrix.TestLeastSquares;
+const cBlkWidth = 1024;
+      cBlkSize = cBlkWidth*cBlkWidth;
+var x : TDoubleDynArray;
+    i: Integer;
+    start, stop : Int64;
+    m1, m2 : IMatrix;
+    y : IMatrix;
+    x1, x2 : IMatrix;
+begin
+     // big inversion
+     SetLength(x, cBlkSize);
+     RandSeed := 15;
+     for i := 0 to cBlkSize - 1 do
+         x[i] := Random/3.8 - 0.5/3.8;
+
+     y := TDoubleMatrix.CreateRand(1, cBlkWidth);
+
+     m1 := TDoubleMatrix.Create(x, cBlkWidth, cBlkWidth);
+     m2 := TThreadedMatrix.Create(x, cBlkWidth, cBlkWidth);
+
+     start := MtxGetTime;
+     check(m1.SolveLeastSquaresInPlace(x1, y) = qrOK, 'Error big least squares');
+     stop := MtxGetTime;
+     Status(Format('Big single least squares: %.2fms', [(stop - start)/mtxfreq*1000]));
+
+     start := MtxGetTime;
+     check(m2.SolveLeastSquaresInPlace(x2, y) = qrOk, 'Error inverting multi threaded version');
+     stop := MtxGetTime;
+
+     Status(Format('Big threaded least sqares: %.2fms', [(stop - start)/mtxfreq*1000]));
+
+     Check(CheckMtx(m1.SubMatrix, m2.SubMatrix), 'Error threaded inverion differs from original one');
+     Check(CheckMtx(x1.SubMatrix, x2.SubMatrix), 'Error least squares result is different');
 end;
 
 procedure TestTThreadedMatrix.TestMatrixSolve;

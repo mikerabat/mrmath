@@ -22,6 +22,11 @@ interface
 
 uses MatrixConst, OptimizedFuncs;
 
+type
+  TQRDecompFunc = function (A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; work : PDouble; pnlSize : TASMNativeInt; progress : TLinEquProgress) : TQRResult;
+  TQFromQRFunc = procedure (A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; BlockSize : TASMNativeInt; work : PDouble; progress : TLinEquProgress);
+
+
 // original functions from Numerical Recipies:
 // In place QR decomposition. Constructs the QR decomposition of A (n*n). The upper triangle matrix R is returned
 // in the upper triangle of a, except for the diagonal elements of R which are returned in
@@ -78,6 +83,27 @@ procedure ThrMatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; 
 
 procedure ThrMatrixLeftQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
   tau : PDouble; BlockSize : TASMNativeInt; work : PDouble; progress : TLinEquProgress = nil);
+
+
+// ###########################################
+// #### Solve overdetermined equation system via QR decomposition (least squares)
+// ###########################################
+
+// solves A*x = y  A is width x height where height >= width; x and y are vectors
+// -> implements the least squares approach as:
+// -> A' * A * x = y        | QR decomposotion on A
+//    R' * Q' * Q * R * x = R' * Q' * y
+//    R' * R * x = R' *Q' * y   | Q'*Q = I
+//    R * x = Q' * b             when R is non signular
+//  -> solve R*x = Q' * b by back substitution
+
+// if work is provided it needs to be at least (max( width*height, QRDecompMemSize) + 2*width)*sizeof(double) and for best performance
+// alligned to 16bytes
+function MatrixQRSolve(x : PDouble; const LineWidthX : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; 
+                       y : PDouble; const LineWidthY : TASMNativeInt; width, height : TASMNativeInt; work : PDouble = nil) : TQRResult;
+
+function ThrMatrixQRSolve(x : PDouble; const LineWidthX : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; 
+                       y : PDouble; const LineWidthY : TASMNativeInt; width, height : TASMNativeInt) : TQRResult;
 
 
 implementation
@@ -1327,6 +1353,136 @@ begin
         freeMem(qrData.pWorkMem);
 
      FreeMem(qrData.BlkMultMem);
+end;
+
+
+function InternalMatrixQRSolve(x : PDouble; const LineWidthX : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; 
+    y : PDouble; const LineWidthY : TASMNativeInt; width, height : TASMNativeInt; 
+    QRDecompInPlaceFunc : TQRDecompFunc; QFromQRDecompFunc : TQFromQRFunc;
+    work : PDouble = nil) : TQRResult;
+var mem : PByte;
+    tau : PDouble;
+    Q : PDouble;
+    LineWidthQ : TASMNativeInt;
+    w2 : TASMNativeInt;
+    qy : PDouble;
+    pX, ppX : PDouble;
+    pA : PConstDoubleArr;
+
+    value : double;
+
+    w : TASMNativeInt;
+    idxY : TASMNativeInt;
+    idxX : TASMNativeInt;
+    qrMem : PDouble;
+begin
+     assert( height >= width, 'Error function only defined for height >= width');
+     
+     qrMem := nil;
+     if Assigned(work) then
+     begin
+          mem := PByte(work);
+          w2 := width;
+          tau := work;
+          Q := tau;
+          inc(Q, w2);
+          qy := Q;
+          inc(qy, w2*height);
+
+          qrMem := Q;
+     end
+     else
+     begin
+          // reserve some meory
+          w2 := width + width and $1;
+
+          // reserve memory for tau and R
+          mem := MtxAlloc( w2*height*sizeof(double) + 32 + 2*w2*sizeof(double) );
+          tau := PDouble(mem);
+          if TASMNativeUInt( mem ) and $F <> 0 then
+             tau := PDouble(NativeUInt(mem) + 16 - NativeUInt(mem) and $0F);
+          Q := tau;
+          inc(Q, w2);
+
+          qy := Q;
+          inc(qy, w2*height);
+     end;
+
+     LineWidthQ := w2*sizeof(double);
+
+     Result := QRDecompInPlaceFunc(A, LineWidthA, width, height, tau, qrMem, QRBlockSize, nil);
+
+     if Result <> qrOK then
+     begin
+          FreeMem(mem);
+          exit;
+     end;
+
+     MatrixCopy(Q, LineWidthQ, A, LineWidthA, width, height);
+     QFromQRDecompFunc(Q, LineWidthQ, width, height, tau, QRBlockSize, qrMem, nil);
+     
+
+     // calcualte Q'*y -> store in qy
+     MatrixMtxVecMultT(qy, sizeof(double), Q, y, LineWidthQ, LineWidthY, width, height, 1, 0);
+
+     w := Min(width, height); 
+     
+     pX := x;
+     inc(PByte(pX), (w - 1)*LineWidthX );
+     ppX := pX;
+     pA := PConstDoubleArr(GenPtr(A, 0, w - 1, LineWidthA));
+
+     // back substitue R*x = qy
+     for idxY := w - 1 downto 0 do
+     begin
+          value := 0;
+          for idxX := idxY + 1 to w - 1 do
+          begin
+               value := value + pA^[idxX]*ppX^;
+               inc(PByte(ppX), LineWidthX);
+          end;
+          
+          value := PConstDoubleArr(qy)^[idxY] - value;
+          pX^ := value/ pA^[idxY];
+
+          ppX := pX;
+          dec(PByte(pX), LineWidthX);
+          dec(PByte(pA), LineWidthA);
+     end;
+
+     if work = nil then
+        FreeMem( mem );
+end;
+
+// solves A*x = y  A is width x height where height >= width; x and y are vectors
+function MatrixQRSolve(x : PDouble; const LineWidthX : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; 
+                       y : PDouble; const LineWidthY : TASMNativeInt; width, height : TASMNativeInt; work : PDouble = nil) : TQRResult;
+begin
+     assert( height >= width, 'Error function only defined for height >= width');
+     
+     Result := InternalMatrixQRSolve(x, LineWidthX, A, LineWidthA, y, LineWidthY, width, height, 
+                                     {$IFDEF FPC}@{$ENDIF}MatrixQRDecompInPlace2, 
+                                     {$IFDEF FPC}@{$ENDIF}MatrixQFromQRDecomp, 
+                                     work);
+end;
+
+function ThrMatrixQRSolve(x : PDouble; const LineWidthX : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; 
+                       y : PDouble; const LineWidthY : TASMNativeInt; width, height : TASMNativeInt) : TQRResult;
+begin
+     assert( height >= width, 'Error function only defined for height >= width');
+
+     // check if multithreading is a good choice (note this parameter is a crude one...)
+     if (width > 8*QRBlockSize) 
+     then
+         Result := InternalMatrixQRSolve(x, LineWidthX, A, LineWidthA, y, LineWidthY, width, height,
+                                        {$IFDEF FPC}@{$ENDIF}ThrMatrixQRDecomp, 
+                                        {$IFDEF FPC}@{$ENDIF}ThrMatrixQFromQRDecomp, 
+                                        nil)
+     else
+         Result := InternalMatrixQRSolve(x, LineWidthX, A, LineWidthA, y, LineWidthY, width, height,
+                                        {$IFDEF FPC}@{$ENDIF}MatrixQRDecompInPlace2, 
+                                        {$IFDEF FPC}@{$ENDIF}MatrixQFromQRDecomp, 
+                                        nil)
 end;
 
 

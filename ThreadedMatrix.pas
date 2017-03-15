@@ -26,7 +26,6 @@ uses Matrix, MatrixConst;
 // ##############################################################
 // #### Some overridden function which allows some multi threaded
 // operations on the data
-// todo: implement more functions multi threaded!
 type
   TThreadedMatrix = class(TDoubleMatrix)
   protected
@@ -72,6 +71,10 @@ type
     function QRFull(out Q, R : TDoubleMatrix) : TQRResult; override;
     function Cholesky(out Chol : TDoubleMatrix) : TCholeskyResult; overload; override;
     function SVD(out U, V, W : TDoubleMatrix; onlyDiagElements : boolean = False) : TSVDResult; override;
+    
+    // solves least sqaures A*x = b using the QR decomposition
+    function SolveLeastSquaresInPlace(out x : TDoubleMatrix; b : TDoubleMatrix) : TQRResult; overload; override;
+    function SolveLeastSquares(out x : TDoubleMatrix; b : TDoubleMatrix) : TQRResult; overload; override;
     
     class procedure InitThreadPool;
     class procedure FinalizeThreadPool;
@@ -451,6 +454,38 @@ begin
            FreeAndNil(chol);
            Result := crNoPositiveDefinite;
      end;
+end;
+
+function TThreadedMatrix.SolveLeastSquares(out x: TDoubleMatrix;
+  b: TDoubleMatrix): TQRResult;
+var tmpA : TDoubleMatrix;
+begin
+     CheckAndRaiseError( width <= Height, 'Height must be at least width');
+     
+     tmpA := Clone;
+     try
+        x := ResultClass.Create( 1, Width );
+
+        Result := ThrMatrixQRSolve( x.StartElement, x.LineWidth, tmpA.StartElement, tmpA.LineWidth, b.StartElement, b.LineWidth, width, height);
+
+        if Result <> qrOK then
+           FreeAndNil(x);
+     finally
+            tmpA.Free;
+     end;
+end;
+
+function TThreadedMatrix.SolveLeastSquaresInPlace(out x: TDoubleMatrix;
+  b: TDoubleMatrix): TQRResult;
+begin
+     CheckAndRaiseError( width <= Height, 'Height must be at least width');
+     
+     x := ResultClass.Create( 1, Width );
+
+     Result := ThrMatrixQRSolve( x.StartElement, x.LineWidth, StartElement, LineWidth, b.StartElement, b.LineWidth, width, height );
+
+     if Result <> qrOK then
+        FreeAndNil(x);
 end;
 
 function TThreadedMatrix.SolveLinEQ(Value: TDoubleMatrix;

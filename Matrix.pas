@@ -175,6 +175,14 @@ type
     function SolveLinEQ(Value : IMatrix; numRefinements : integer = 0) : TDoubleMatrix; overload;
     procedure SolveLinEQInPlace(Value : TDoubleMatrix; numRefinements : integer = 0); overload;
     procedure SolveLinEQInPlace(Value : IMatrix; numRefinements : integer = 0); overload;
+
+    // solves least sqaures A*x = b using the QR decomposition
+    function SolveLeastSquaresInPlace(out x : TDoubleMatrix; b : TDoubleMatrix) : TQRResult; overload; 
+    function SolveLeastSquaresInPlace(out x : IMatrix; b : IMatrix) : TQRResult; overload; 
+    function SolveLeastSquares(out x : TDoubleMatrix; b : TDoubleMatrix) : TQRResult; overload; 
+    function SolveLeastSquares(out x : IMatrix; b : IMatrix) : TQRResult; overload;
+
+    // matrix inversion (based on LU decomposition)    
     function InvertInPlace : TLinEquResult;
     function Invert : TDoubleMatrix;
     function PseudoInversionInPlace : TSVDResult;
@@ -414,6 +422,14 @@ type
     function SolveLinEQ(Value : IMatrix; numRefinements : integer = 0) : TDoubleMatrix; overload;
     procedure SolveLinEQInPlace(Value : TDoubleMatrix; numRefinements : integer = 0); overload; virtual;
     procedure SolveLinEQInPlace(Value : IMatrix; numRefinements : integer = 0); overload;
+    
+    // solves least sqaures A*x = b using the QR decomposition
+    function SolveLeastSquaresInPlace(out x : TDoubleMatrix; b : TDoubleMatrix) : TQRResult; overload; virtual;
+    function SolveLeastSquaresInPlace(out x : IMatrix; b : IMatrix) : TQRResult; overload; 
+    function SolveLeastSquares(out x : TDoubleMatrix; b : TDoubleMatrix) : TQRResult; overload; virtual;
+    function SolveLeastSquares(out x : IMatrix; b : IMatrix) : TQRResult; overload;
+
+    // Matrix inversion (via LU decomposition
     function InvertInPlace : TLinEquResult; virtual;
     function Invert : TDoubleMatrix; virtual;
     function PseudoInversionInPlace : TSVDResult;
@@ -869,6 +885,54 @@ begin
            FreeAndNil(Result);
            raise;
      end;
+end;
+
+function TDoubleMatrix.SolveLeastSquares(out x : TDoubleMatrix; b : TDoubleMatrix): TQRResult;
+var tmpA : TDoubleMatrix;
+begin
+     CheckAndRaiseError( width <= Height, 'Height must be at least width');
+     
+     tmpA := Clone;
+     try
+        x := ResultClass.Create( 1, Width );
+
+        Result := MatrixQRSolve( x.StartElement, x.LineWidth, tmpA.StartElement, tmpA.LineWidth, b.StartElement, b.LineWidth, width, height);
+
+        if Result <> qrOK then
+           FreeAndNil(x);
+     finally
+            tmpA.Free;
+     end;
+end;
+
+function TDoubleMatrix.SolveLeastSquares(out x : IMatrix; b: IMatrix): TQRResult;
+var tmp : TDoubleMatrix;
+begin
+     Result := SolveLeastSquares(tmp, b.GetObjRef);
+
+     x := tmp;
+end;
+
+function TDoubleMatrix.SolveLeastSquaresInPlace(out x: TDoubleMatrix;
+  b: TDoubleMatrix): TQRResult;
+begin
+     CheckAndRaiseError( width <= Height, 'Height must be at least width');
+     
+     x := ResultClass.Create( 1, Width );
+
+     Result := MatrixQRSolve( x.StartElement, x.LineWidth, StartElement, LineWidth, b.StartElement, b.LineWidth, width, height);
+
+     if Result <> qrOK then
+        FreeAndNil(x);
+end;
+
+function TDoubleMatrix.SolveLeastSquaresInPlace(out x: IMatrix;
+  b: IMatrix): TQRResult;
+var tmp : TDoubleMatrix;
+begin
+     Result := SolveLeastSquaresInPlace(tmp, b.GetObjRef);
+
+     x := tmp;
 end;
 
 function TDoubleMatrix.SolveLinEQ(Value: IMatrix;

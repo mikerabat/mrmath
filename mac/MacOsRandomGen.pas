@@ -16,6 +16,8 @@ unit MacOsRandomGen;
 
 interface
 
+{$IFNDEF MSWINDOWS}
+
 uses RandomEng;
 
 // note: until now this is only a stub for the real implementation
@@ -27,8 +29,6 @@ uses RandomEng;
 // simply uncomment the "DummyRND" switch to have the standard prng in place
 
 {.$DEFINE DummyRND}
-
-{$IFNDEF MSWINDOWS}
 
 function CreateOsRndObj : TOsRndEngine;
 
