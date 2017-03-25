@@ -17,6 +17,12 @@
 
 package mrMath;
 
+{$R *.res}
+{$ALIGN 8}
+{$DESCRIPTION 'mrMath Matrix library'}
+{$RUNONLY}
+{$IMPLICITBUILD ON}
+
 requires
   rtl;
 
