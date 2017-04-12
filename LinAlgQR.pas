@@ -55,8 +55,8 @@ procedure MatrixQRSolveLinEq(A : PDouble; const LineWidthA : TASMNativeInt; widt
 //   and tau in TAU(i).
 // note the matrix above starts with index 1 instead of 0.
 // the output is the same as the matlab economy size output on a QR decomposition e.g. dcmp = qr(A, 0);
-function MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; progress : TLinEquProgress = nil) : TQRResult; overload;
 function MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; work : PDouble; pnlSize : TASMNativeInt; progress : TLinEquProgress = nil) : TQRResult; overload;
+function MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; progress : TLinEquProgress = nil) : TQRResult; overload;
 
 // according to the panel size and the global QRBlockmultsize we calculate here the needed memory (including some alignment buffer)
 function QRDecompMemSize( pnlSize, width : TASMNativeInt) : TASMNativeInt;
@@ -64,8 +64,8 @@ function QRDecompMemSize( pnlSize, width : TASMNativeInt) : TASMNativeInt;
 // implementation of Lapacks dorgqr function: On start the matrix A and Tau contains the result of
 // the MatrixQRDecompInPlace2 function (economy size QR Decomposition). On output A is replaced by the full Q
 // matrix with orthonormal columns.
-procedure MatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; progress : TLinEquProgress = nil); overload;
 procedure MatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; BlockSize : TASMNativeInt; work : PDouble; progress : TLinEquProgress = nil); overload;
+procedure MatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; progress : TLinEquProgress = nil); overload;
 
 procedure MatrixLeftQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
  tau : PDouble; BlockSize : TASMNativeInt; work : PDouble; progress : TLinEquProgress = nil);
