@@ -67,45 +67,66 @@ type
       3: (Reserved: array [0..1] of ULONGLONG);
   end;
 
-function GetLogicalProcessorInformation(
+type
+  TLogicalProcessorInfProc = function (
   Buffer: PSystemLogicalProcessorInformation;
   var ReturnLength: DWORD): BOOL; stdcall;
-  external kernel32 name 'GetLogicalProcessorInformation';
 
 
 var sysInfo : TSystemInfo;
     ReturnLength: DWORD;
     Buffer: array of TSystemLogicalProcessorInformation;
     i : integer;
-    
+    logicalInfoProc : TLogicalProcessorInfProc;
+    dllHdl : THandle;
+      
 initialization
 
   ReturnLength := 0;
   Buffer := nil;
-  if not GetLogicalProcessorInformation(nil, ReturnLength) then
-  begin
-       if GetLastError = ERROR_INSUFFICIENT_BUFFER then
-       begin
-            SetLength(Buffer, ReturnLength div SizeOf(TSystemLogicalProcessorInformation) + 1);
-            if not GetLogicalProcessorInformation(@Buffer[0], ReturnLength) then
-               RaiseLastOSError;
-       end
-       else
-           RaiseLastOSError;
-  end;
+  dllHdl := LoadLibrary( 'kernel32.dll' ); // according to microsoft it's save to load kernel32.dll in the initialization section...
 
   numRealCores := 0;
-
-  for i := 0 to (ReturnLength div sizeof(TSystemLogicalProcessorInformation)) - 1 do
+  if dllHdl <> 0 then
   begin
-       if buffer[i].Relationship = RelationProcessorCore then
-          inc(numRealCores);
+       try
+          try
+             logicalInfoProc := GetProcAddress( dllHdl, 'GetLogicalProcessorInformation');
 
-       // todo: determine a good procedure to estimate the block size   
-       //if (buffer[i].Relationship = RelationCache) and (buffer[i].Cache.Level = 2) then
-//       begin
-//            BlockedMatrixMultSize := buffer[i].Cache.Size div 1024;
-//       end;
+             if Assigned(logicalInfoProc) then
+             begin
+                  if not logicalInfoProc(nil, ReturnLength) then
+                  begin
+                       if GetLastError = ERROR_INSUFFICIENT_BUFFER then
+                       begin
+                            SetLength(Buffer, ReturnLength div SizeOf(TSystemLogicalProcessorInformation) + 1);
+                            if not logicalInfoProc(@Buffer[0], ReturnLength) then
+                               RaiseLastOSError;
+                       end
+                       else
+                           RaiseLastOSError;
+                  end;
+
+                  numRealCores := 0;
+
+                  for i := 0 to (ReturnLength div sizeof(TSystemLogicalProcessorInformation)) - 1 do
+                  begin
+                       if buffer[i].Relationship = RelationProcessorCore then
+                          inc(numRealCores);
+
+                       // todo: determine a good procedure to estimate the block size   
+                       //if (buffer[i].Relationship = RelationCache) and (buffer[i].Cache.Level = 2) then
+                //       begin
+                //            BlockedMatrixMultSize := buffer[i].Cache.Size div 1024;
+                //       end;
+                  end;
+             end;
+          finally
+                 FreeLibrary(dllHdl);
+          end;
+       except
+             numRealCores := 0;
+       end;
   end;
   
   GetSystemInfo(SysInfo);
@@ -116,6 +137,9 @@ initialization
   numCoresForSimpleFuncs := numRealCores;
   if numCoresForSimpleFuncs > 3 then
      numCoresForSimpleFuncs := 3;
+
+  if numRealCores = 0 then
+     numRealCores := numCPUCores;
 
 finalization
 {$ENDIF}
