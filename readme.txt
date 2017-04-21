@@ -53,6 +53,10 @@ William Cantrall - special thanks for making the library MacOs compatible.
 // ###################################################################
 changelog:
 
+Date: 21.04.2017
+* Faster transposed matrix multiplication by reducing the steps in the inner loop
+* one less register used
+
 Date: 15.3.2017
 * New least squares solver for overdetermined linear equation systems. (multithreaded and single threaded)
 * Fixed a bug in the matrix diff function for row wise differentiation.

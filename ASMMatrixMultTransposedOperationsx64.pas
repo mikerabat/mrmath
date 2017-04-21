@@ -54,7 +54,7 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 procedure ASMMatrixMultUnAlignedEvenW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 
 {$IFDEF FPC}
@@ -71,24 +71,8 @@ asm
    mov iR15, r15;
 
    movupd dXMM4, xmm4;
-   movupd dXMM5, xmm5;
    movupd dXMM6, xmm6;
    movupd dXMM7, xmm7;
-
-   {
-   .pushnv rbx;
-   .pushnv rsi;
-   .pushnv rdi;
-   .pushnv r12;
-   .pushnv r13;
-   .pushnv r14;
-   .pushnv r15;
-
-   .savenv xmm4;
-   .savenv xmm5;
-   .savenv xmm6;
-   .savenv xmm7;
-   }
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -134,7 +118,6 @@ asm
 
            @@InnerLoop:
                movupd xmm1, [r8 + rax];
-               movupd xmm5, xmm1;
 
                // load 2x2 block
                movupd xmm3, [rdi + rax];
@@ -142,7 +125,7 @@ asm
 
                // multiply 2x2 and add
                mulpd xmm3, xmm1;
-               mulpd xmm4, xmm5;
+               mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
                addpd xmm7, xmm4;
@@ -216,7 +199,6 @@ asm
    mov r15, iR15;
 
    movupd xmm4, dXMM4;
-   movupd xmm5, dXMM5;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
 {$IFDEF FPC}
@@ -225,7 +207,7 @@ end;
 end;
 
 procedure ASMMatrixMultAlignedEvenW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 
 {$IFDEF FPC}
@@ -242,24 +224,8 @@ asm
    mov iR15, r15;
 
    movupd dXMM4, xmm4;
-   movupd dXMM5, xmm5;
    movupd dXMM6, xmm6;
    movupd dXMM7, xmm7;
-
-   {
-   .pushnv rbx;
-   .pushnv rsi;
-   .pushnv rdi;
-   .pushnv r12;
-   .pushnv r13;
-   .pushnv r14;
-   .pushnv r15;
-
-   .savenv xmm4;
-   .savenv xmm5;
-   .savenv xmm6;
-   .savenv xmm7;
-   }
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -305,7 +271,6 @@ asm
 
            @@InnerLoop:
                movapd xmm1, [r8 + rax];
-               movapd xmm5, xmm1;
 
                // load 2x2 block
                movapd xmm3, [rdi + rax];
@@ -313,7 +278,7 @@ asm
 
                // multiply 2x2 and add
                mulpd xmm3, xmm1;
-               mulpd xmm4, xmm5;
+               mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
                addpd xmm7, xmm4;
@@ -386,7 +351,6 @@ asm
    mov r15, iR15;
 
    movupd xmm4, dXMM4;
-   movupd xmm5, dXMM5;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
 {$IFDEF FPC}
@@ -395,7 +359,7 @@ end;
 end;
 
 procedure ASMMatrixMultAlignedEvenW1EvenH2TransposedMod16(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 
 {$IFDEF FPC}
@@ -412,24 +376,8 @@ asm
    mov iR15, r15;
 
    movupd dXMM4, xmm4;
-   movupd dXMM5, xmm5;
    movupd dXMM6, xmm6;
    movupd dXMM7, xmm7;
-
-   {
-   .pushnv rbx;
-   .pushnv rsi;
-   .pushnv rdi;
-   .pushnv r12;
-   .pushnv r13;
-   .pushnv r14;
-   .pushnv r15;
-
-   .savenv xmm4;
-   .savenv xmm5;
-   .savenv xmm6;
-   .savenv xmm7;
-   }
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -476,7 +424,6 @@ asm
                // prefetch [eax + edx + 128];
 
                movapd xmm1, [r8 + rax];
-               movapd xmm5, xmm1;
 
                // load 2x2 block
                movapd xmm3, [rdi + rax];
@@ -484,13 +431,12 @@ asm
 
                // multiply 2x2 and add
                mulpd xmm3, xmm1;
-               mulpd xmm4, xmm5;
+               mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
                addpd xmm7, xmm4;
 
                movapd xmm1, [r8 + rax + 16];
-               movapd xmm5, xmm1;
 
                // load 2x2 block
                movapd xmm3, [rdi + rax + 16];
@@ -498,13 +444,12 @@ asm
 
                // multiply 2x2 and add
                mulpd xmm3, xmm1;
-               mulpd xmm4, xmm5;
+               mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
                addpd xmm7, xmm4;
 
                movapd xmm1, [r8 + rax + 32];
-               movapd xmm5, xmm1;
 
                // load 2x2 block
                movapd xmm3, [rdi + rax + 32];
@@ -512,13 +457,12 @@ asm
 
                // multiply 2x2 and add
                mulpd xmm3, xmm1;
-               mulpd xmm4, xmm5;
+               mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
                addpd xmm7, xmm4;
 
                movapd xmm1, [r8 + rax + 48];
-               movapd xmm5, xmm1;
 
                // load 2x2 block
                movapd xmm3, [rdi + rax + 48];
@@ -526,13 +470,12 @@ asm
 
                // multiply 2x2 and add
                mulpd xmm3, xmm1;
-               mulpd xmm4, xmm5;
+               mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
                addpd xmm7, xmm4;
 
                movapd xmm1, [r8 + rax + 64];
-               movapd xmm5, xmm1;
 
                // load 2x2 block
                movapd xmm3, [rdi + rax + 64];
@@ -540,13 +483,12 @@ asm
 
                // multiply 2x2 and add
                mulpd xmm3, xmm1;
-               mulpd xmm4, xmm5;
+               mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
                addpd xmm7, xmm4;
 
                movapd xmm1, [r8 + rax + 80];
-               movapd xmm5, xmm1;
 
                // load 2x2 block
                movapd xmm3, [rdi + rax + 80];
@@ -554,13 +496,12 @@ asm
 
                // multiply 2x2 and add
                mulpd xmm3, xmm1;
-               mulpd xmm4, xmm5;
+               mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
                addpd xmm7, xmm4;
 
                movapd xmm1, [r8 + rax + 96];
-               movapd xmm5, xmm1;
 
                // load 2x2 block
                movapd xmm3, [rdi + rax + 96];
@@ -568,13 +509,12 @@ asm
 
                // multiply 2x2 and add
                mulpd xmm3, xmm1;
-               mulpd xmm4, xmm5;
+               mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
                addpd xmm7, xmm4;
 
                movapd xmm1, [r8 + rax + 112];
-               movapd xmm5, xmm1;
 
                // load 2x2 block
                movapd xmm3, [rdi + rax + 112];
@@ -582,7 +522,7 @@ asm
 
                // multiply 2x2 and add
                mulpd xmm3, xmm1;
-               mulpd xmm4, xmm5;
+               mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
                addpd xmm7, xmm4;
@@ -632,7 +572,6 @@ asm
    mov r15, iR15;
 
    movupd xmm4, dXMM4;
-   movupd xmm5, dXMM5;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
 {$IFDEF FPC}
@@ -642,7 +581,7 @@ end;
 
 // note mt2 is transposed this time -> width1 and width2 must be the same!
 procedure ASMMatrixMultAlignedEvenW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 
 {$IFDEF FPC}
@@ -659,24 +598,9 @@ asm
    mov iR15, r15;
 
    movupd dXMM4, xmm4;
-   movupd dXMM5, xmm5;
    movupd dXMM6, xmm6;
    movupd dXMM7, xmm7;
 
-   {
-   .pushnv rbx;
-   .pushnv rsi;
-   .pushnv rdi;
-   .pushnv r12;
-   .pushnv r13;
-   .pushnv r14;
-   .pushnv r15;
-
-   .savenv xmm4;
-   .savenv xmm5;
-   .savenv xmm6;
-   .savenv xmm7;
-   }
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -719,7 +643,6 @@ asm
 
            @@InnerLoop:
                movapd xmm1, [r8 + rax];
-               movapd xmm5, xmm1;
 
                // load 2x2 block
                movapd xmm3, [rdi + rax];
@@ -727,7 +650,7 @@ asm
 
                // multiply 2x2 and add
                mulpd xmm3, xmm1;
-               mulpd xmm4, xmm5;
+               mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
                addpd xmm7, xmm4;
@@ -777,7 +700,6 @@ asm
    mov r15, iR15;
 
    movupd xmm4, dXMM4;
-   movupd xmm5, dXMM5;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
 {$IFDEF FPC}
@@ -786,7 +708,7 @@ end;
 end;
 
 procedure ASMMatrixMultUnAlignedEvenW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 
 {$IFDEF FPC}
@@ -803,24 +725,8 @@ asm
    mov iR15, r15;
 
    movupd dXMM4, xmm4;
-   movupd dXMM5, xmm5;
    movupd dXMM6, xmm6;
    movupd dXMM7, xmm7;
-
-   {
-   .pushnv rbx;
-   .pushnv rsi;
-   .pushnv rdi;
-   .pushnv r12;
-   .pushnv r13;
-   .pushnv r14;
-   .pushnv r15;
-
-   .savenv xmm4;
-   .savenv xmm5;
-   .savenv xmm6;
-   .savenv xmm7;
-   }
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -863,7 +769,6 @@ asm
 
            @@InnerLoop:
                movupd xmm1, [r8 + rax];
-               movupd xmm5, xmm1;
 
                // load 2x2 block
                movupd xmm3, [rdi + rax];
@@ -871,7 +776,7 @@ asm
 
                // multiply 2x2 and add
                mulpd xmm3, xmm1;
-               mulpd xmm4, xmm5;
+               mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
                addpd xmm7, xmm4;
@@ -921,7 +826,6 @@ asm
    mov r15, iR15;
 
    movupd xmm4, dXMM4;
-   movupd xmm5, dXMM5;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
 {$IFDEF FPC}
@@ -930,7 +834,7 @@ end;
 end;
 
 procedure ASMMatrixMultUnAlignedOddW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 
 {$IFDEF FPC}
@@ -947,24 +851,8 @@ asm
    mov iR15, r15;
 
    movupd dXMM4, xmm4;
-   movupd dXMM5, xmm5;
    movupd dXMM6, xmm6;
    movupd dXMM7, xmm7;
-
-   {
-   .pushnv rbx;
-   .pushnv rsi;
-   .pushnv rdi;
-   .pushnv r12;
-   .pushnv r13;
-   .pushnv r14;
-   .pushnv r15;
-
-   .savenv xmm4;
-   .savenv xmm5;
-   .savenv xmm6;
-   .savenv xmm7;
-   }
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -1008,7 +896,6 @@ asm
 
            @@InnerLoop:
                movupd xmm1, [r8 + rax];
-               movupd xmm5, xmm1;
 
                // load 2x2 block
                movupd xmm3, [rdi + rax];
@@ -1016,7 +903,7 @@ asm
 
                // multiply 2x2 and add
                mulpd xmm3, xmm1;
-               mulpd xmm4, xmm5;
+               mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
                addpd xmm7, xmm4;
@@ -1027,13 +914,12 @@ asm
 
            // multiply and add the last element
            movlpd xmm1, [r8];
-           movupd xmm5, xmm1;
 
            movlpd xmm3, [rdi];
            movlpd xmm4, [rsi];
 
            mulsd xmm3, xmm1;
-           mulsd xmm4, xmm5;
+           mulsd xmm4, xmm1;
 
            haddpd xmm0, xmm2;
            haddpd xmm7, xmm6;
@@ -1079,7 +965,6 @@ asm
    mov r15, iR15;
 
    movupd xmm4, dXMM4;
-   movupd xmm5, dXMM5;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
 {$IFDEF FPC}
@@ -1088,7 +973,7 @@ end;
 end;
 
 procedure ASMMatrixMultAlignedOddW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 
 {$IFDEF FPC}
@@ -1105,24 +990,8 @@ asm
    mov iR15, r15;
 
    movupd dXMM4, xmm4;
-   movupd dXMM5, xmm5;
    movupd dXMM6, xmm6;
    movupd dXMM7, xmm7;
-
-   {
-   .pushnv rbx;
-   .pushnv rsi;
-   .pushnv rdi;
-   .pushnv r12;
-   .pushnv r13;
-   .pushnv r14;
-   .pushnv r15;
-
-   .savenv xmm4;
-   .savenv xmm5;
-   .savenv xmm6;
-   .savenv xmm7;
-   }
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -1166,7 +1035,6 @@ asm
 
            @@InnerLoop:
                movapd xmm1, [r8 + rax];
-               movapd xmm5, xmm1;
 
                // load 2x2 block
                movapd xmm3, [rdi + rax];
@@ -1174,7 +1042,7 @@ asm
 
                // multiply 2x2 and add
                mulpd xmm3, xmm1;
-               mulpd xmm4, xmm5;
+               mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
                addpd xmm7, xmm4;
@@ -1185,13 +1053,12 @@ asm
 
            // multiply and add the last element
            movlpd xmm1, [r8];
-           movapd xmm5, xmm1;
 
            movlpd xmm3, [rdi];
            movlpd xmm4, [rsi];
 
            mulsd xmm3, xmm1;
-           mulsd xmm4, xmm5;
+           mulsd xmm4, xmm1;
 
            haddpd xmm0, xmm2;
            haddpd xmm7, xmm6;
@@ -1237,7 +1104,6 @@ asm
    mov r15, iR15;
 
    movupd xmm4, dXMM4;
-   movupd xmm5, dXMM5;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
 {$IFDEF FPC}
@@ -1246,7 +1112,7 @@ end;
 end;
 
 procedure ASMMatrixMultAlignedOddW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 
 {$IFDEF FPC}
@@ -1263,24 +1129,8 @@ asm
    mov iR15, r15;
 
    movupd dXMM4, xmm4;
-   movupd dXMM5, xmm5;
    movupd dXMM6, xmm6;
    movupd dXMM7, xmm7;
-
-   {
-   .pushnv rbx;
-   .pushnv rsi;
-   .pushnv rdi;
-   .pushnv r12;
-   .pushnv r13;
-   .pushnv r14;
-   .pushnv r15;
-
-   .savenv xmm4;
-   .savenv xmm5;
-   .savenv xmm6;
-   .savenv xmm7;
-   }
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -1327,7 +1177,6 @@ asm
 
            @@InnerLoop:
                movapd xmm1, [r8 + rax];
-               movapd xmm5, xmm1;
 
                // load 2x2 block
                movapd xmm3, [rdi + rax];
@@ -1335,7 +1184,7 @@ asm
 
                // multiply 2x2 and add
                mulpd xmm3, xmm1;
-               mulpd xmm4, xmm5;
+               mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
                addpd xmm7, xmm4;
@@ -1346,13 +1195,12 @@ asm
 
            // multiply and add the last element
            movlpd xmm1, [r8];
-           movapd xmm5, xmm1;
 
            movlpd xmm3, [rdi];
            movlpd xmm4, [rsi];
 
            mulsd xmm3, xmm1;
-           mulsd xmm4, xmm5;
+           mulsd xmm4, xmm1;
 
            haddpd xmm0, xmm2;
            haddpd xmm7, xmm6;
@@ -1427,7 +1275,6 @@ asm
    mov r15, iR15;
 
    movupd xmm4, dXMM4;
-   movupd xmm5, dXMM5;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
 {$IFDEF FPC}
@@ -1436,7 +1283,7 @@ end;
 end;
 
 procedure ASMMatrixMultUnAlignedOddW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 
 {$IFDEF FPC}
@@ -1453,24 +1300,8 @@ asm
    mov iR15, r15;
 
    movupd dXMM4, xmm4;
-   movupd dXMM5, xmm5;
    movupd dXMM6, xmm6;
    movupd dXMM7, xmm7;
-
-   {
-   .pushnv rbx;
-   .pushnv rsi;
-   .pushnv rdi;
-   .pushnv r12;
-   .pushnv r13;
-   .pushnv r14;
-   .pushnv r15;
-
-   .savenv xmm4;
-   .savenv xmm5;
-   .savenv xmm6;
-   .savenv xmm7;
-   }
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -1517,7 +1348,6 @@ asm
 
            @@InnerLoop:
                movupd xmm1, [r8 + rax];
-               movapd xmm5, xmm1;
 
                // load 2x2 block
                movupd xmm3, [rdi + rax];
@@ -1525,7 +1355,7 @@ asm
 
                // multiply 2x2 and add
                mulpd xmm3, xmm1;
-               mulpd xmm4, xmm5;
+               mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
                addpd xmm7, xmm4;
@@ -1536,13 +1366,12 @@ asm
 
            // multiply and add the last element
            movlpd xmm1, [r8];
-           movapd xmm5, xmm1;
 
            movlpd xmm3, [rdi];
            movlpd xmm4, [rsi];
 
            mulsd xmm3, xmm1;
-           mulsd xmm4, xmm5;
+           mulsd xmm4, xmm1;
 
            haddpd xmm0, xmm2;
            haddpd xmm7, xmm6;
@@ -1618,7 +1447,6 @@ asm
    mov r15, iR15;
 
    movupd xmm4, dXMM4;
-   movupd xmm5, dXMM5;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
 {$IFDEF FPC}

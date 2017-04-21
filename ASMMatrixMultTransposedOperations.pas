@@ -103,7 +103,6 @@ begin
 
                 @@InnerLoop:
                     movupd xmm1, [ecx + edx];
-                    movapd xmm5, xmm1;
 
                     // load 2x2 block
                     movupd xmm3, [edi + edx];
@@ -111,7 +110,7 @@ begin
 
                     // multiply 2x2 and add
                     mulpd xmm3, xmm1;
-                    mulpd xmm4, xmm5;
+                    mulpd xmm4, xmm1;
 
                     addpd xmm0, xmm3;
                     addpd xmm7, xmm4;
@@ -236,7 +235,6 @@ begin
 
                 @@InnerLoop:
                     movapd xmm1, [ecx + edx];
-                    movapd xmm5, xmm1;
 
                     // load 2x2 block
                     movapd xmm3, [edi + edx];
@@ -244,7 +242,7 @@ begin
 
                     // multiply 2x2 and add
                     mulpd xmm3, xmm1;
-                    mulpd xmm4, xmm5;
+                    mulpd xmm4, xmm1;
 
                     addpd xmm0, xmm3;
                     addpd xmm7, xmm4;
@@ -371,7 +369,6 @@ begin
                     // prefetch [eax + edx + 128];
 
                     movapd xmm1, [ecx + edx];
-                    movapd xmm5, xmm1;
 
                     // load 2x2 block
                     movapd xmm3, [edi + edx];
@@ -379,13 +376,12 @@ begin
 
                     // multiply 2x2 and add
                     mulpd xmm3, xmm1;
-                    mulpd xmm4, xmm5;
+                    mulpd xmm4, xmm1;
 
                     addpd xmm0, xmm3;
                     addpd xmm7, xmm4;
 
                     movapd xmm1, [ecx + edx + 16];
-                    movapd xmm5, xmm1;
 
                     // load 2x2 block
                     movapd xmm3, [edi + edx + 16];
@@ -393,13 +389,12 @@ begin
 
                     // multiply 2x2 and add
                     mulpd xmm3, xmm1;
-                    mulpd xmm4, xmm5;
+                    mulpd xmm4, xmm1;
 
                     addpd xmm0, xmm3;
                     addpd xmm7, xmm4;
 
                     movapd xmm1, [ecx + edx + 32];
-                    movapd xmm5, xmm1;
 
                     // load 2x2 block
                     movapd xmm3, [edi + edx + 32];
@@ -407,13 +402,12 @@ begin
 
                     // multiply 2x2 and add
                     mulpd xmm3, xmm1;
-                    mulpd xmm4, xmm5;
+                    mulpd xmm4, xmm1;
 
                     addpd xmm0, xmm3;
                     addpd xmm7, xmm4;
 
                     movapd xmm1, [ecx + edx + 48];
-                    movapd xmm5, xmm1;
 
                     // load 2x2 block
                     movapd xmm3, [edi + edx + 48];
@@ -421,14 +415,13 @@ begin
 
                     // multiply 2x2 and add
                     mulpd xmm3, xmm1;
-                    mulpd xmm4, xmm5;
+                    mulpd xmm4, xmm1;
 
                     addpd xmm0, xmm3;
                     addpd xmm7, xmm4;
 
 
                     movapd xmm1, [ecx + edx + 64];
-                    movapd xmm5, xmm1;
 
                     // load 2x2 block
                     movapd xmm3, [edi + edx + 64];
@@ -436,13 +429,12 @@ begin
 
                     // multiply 2x2 and add
                     mulpd xmm3, xmm1;
-                    mulpd xmm4, xmm5;
+                    mulpd xmm4, xmm1;
 
                     addpd xmm0, xmm3;
                     addpd xmm7, xmm4;
 
                     movapd xmm1, [ecx + edx + 80];
-                    movapd xmm5, xmm1;
 
                     // load 2x2 block
                     movapd xmm3, [edi + edx + 80];
@@ -450,13 +442,12 @@ begin
 
                     // multiply 2x2 and add
                     mulpd xmm3, xmm1;
-                    mulpd xmm4, xmm5;
+                    mulpd xmm4, xmm1;
 
                     addpd xmm0, xmm3;
                     addpd xmm7, xmm4;
 
                     movapd xmm1, [ecx + edx + 96];
-                    movapd xmm5, xmm1;
 
                     // load 2x2 block
                     movapd xmm3, [edi + edx + 96];
@@ -464,13 +455,12 @@ begin
 
                     // multiply 2x2 and add
                     mulpd xmm3, xmm1;
-                    mulpd xmm4, xmm5;
+                    mulpd xmm4, xmm1;
 
                     addpd xmm0, xmm3;
                     addpd xmm7, xmm4;
 
                     movapd xmm1, [ecx + edx + 112];
-                    movapd xmm5, xmm1;
 
                     // load 2x2 block
                     movapd xmm3, [edi + edx + 112];
@@ -478,7 +468,7 @@ begin
 
                     // multiply 2x2 and add
                     mulpd xmm3, xmm1;
-                    mulpd xmm4, xmm5;
+                    mulpd xmm4, xmm1;
 
                     addpd xmm0, xmm3;
                     addpd xmm7, xmm4;
@@ -577,7 +567,6 @@ begin
 
                 @@InnerLoop:
                     movapd xmm1, [ecx + edx];
-                    movapd xmm5, xmm1;
 
                     // load 2x2 block
                     movapd xmm3, [edi + edx];
@@ -585,7 +574,7 @@ begin
 
                     // multiply 2x2 and add
                     mulpd xmm3, xmm1;
-                    mulpd xmm4, xmm5;
+                    mulpd xmm4, xmm1;
 
                     addpd xmm0, xmm3;
                     addpd xmm7, xmm4;
@@ -677,7 +666,6 @@ begin
 
                 @@InnerLoop:
                     movupd xmm1, [ecx + edx];
-                    movapd xmm5, xmm1;
 
                     // load 2x2 block
                     movupd xmm3, [edi + edx];
@@ -685,7 +673,7 @@ begin
 
                     // multiply 2x2 and add
                     mulpd xmm3, xmm1;
-                    mulpd xmm4, xmm5;
+                    mulpd xmm4, xmm1;
 
                     addpd xmm0, xmm3;
                     addpd xmm7, xmm4;
@@ -783,7 +771,6 @@ begin
 
                 @@InnerLoop:
                     movupd xmm1, [ecx + edx];
-                    movapd xmm5, xmm1;
 
                     // load 2x2 block
                     movupd xmm3, [edi + edx];
@@ -791,7 +778,7 @@ begin
 
                     // multiply 2x2 and add
                     mulpd xmm3, xmm1;
-                    mulpd xmm4, xmm5;
+                    mulpd xmm4, xmm1;
 
                     addpd xmm0, xmm3;
                     addpd xmm7, xmm4;
@@ -802,13 +789,12 @@ begin
 
                 // multiply and add the last element
                 movlpd xmm1, [ecx];
-                movapd xmm5, xmm1;
 
                 movlpd xmm3, [edi];
                 movlpd xmm4, [eax];
 
                 mulsd xmm3, xmm1;
-                mulsd xmm4, xmm5;
+                mulsd xmm4, xmm1;
 
                 haddpd xmm0, xmm2;
                 haddpd xmm7, xmm6;
@@ -903,7 +889,6 @@ begin
 
                 @@InnerLoop:
                     movapd xmm1, [ecx + edx];
-                    movapd xmm5, xmm1;
 
                     // load 2x2 block
                     movapd xmm3, [edi + edx];
@@ -911,7 +896,7 @@ begin
 
                     // multiply 2x2 and add
                     mulpd xmm3, xmm1;
-                    mulpd xmm4, xmm5;
+                    mulpd xmm4, xmm1;
 
                     addpd xmm0, xmm3;
                     addpd xmm7, xmm4;
@@ -922,13 +907,12 @@ begin
 
                 // multiply and add the last element
                 movlpd xmm1, [ecx];
-                movapd xmm5, xmm1;
 
                 movlpd xmm3, [edi];
                 movlpd xmm4, [eax];
 
                 mulsd xmm3, xmm1;
-                mulsd xmm4, xmm5;
+                mulsd xmm4, xmm1;
 
                 haddpd xmm0, xmm2;
                 haddpd xmm7, xmm6;
@@ -1025,7 +1009,6 @@ begin
 
                 @@InnerLoop:
                     movapd xmm1, [ecx + edx];
-                    movapd xmm5, xmm1;
 
                     // load 2x2 block
                     movapd xmm3, [edi + edx];
@@ -1033,7 +1016,7 @@ begin
 
                     // multiply 2x2 and add
                     mulpd xmm3, xmm1;
-                    mulpd xmm4, xmm5;
+                    mulpd xmm4, xmm1;
 
                     addpd xmm0, xmm3;
                     addpd xmm7, xmm4;
@@ -1044,13 +1027,12 @@ begin
 
                 // multiply and add the last element
                 movlpd xmm1, [ecx];
-                movapd xmm5, xmm1;
 
                 movlpd xmm3, [edi];
                 movlpd xmm4, [eax];
 
                 mulsd xmm3, xmm1;
-                mulsd xmm4, xmm5;
+                mulsd xmm4, xmm1;
 
                 haddpd xmm0, xmm2;
                 haddpd xmm7, xmm6;
@@ -1174,7 +1156,6 @@ begin
 
                 @@InnerLoop:
                     movupd xmm1, [ecx + edx];
-                    movapd xmm5, xmm1;
 
                     // load 2x2 block
                     movupd xmm3, [edi + edx];
@@ -1182,7 +1163,7 @@ begin
 
                     // multiply 2x2 and add
                     mulpd xmm3, xmm1;
-                    mulpd xmm4, xmm5;
+                    mulpd xmm4, xmm1;
 
                     addpd xmm0, xmm3;
                     addpd xmm7, xmm4;
@@ -1193,13 +1174,12 @@ begin
 
                 // multiply and add the last element
                 movlpd xmm1, [ecx];
-                movapd xmm5, xmm1;
 
                 movlpd xmm3, [edi];
                 movlpd xmm4, [eax];
 
                 mulsd xmm3, xmm1;
-                mulsd xmm4, xmm5;
+                mulsd xmm4, xmm1;
 
                 haddpd xmm0, xmm2;
                 haddpd xmm7, xmm6;

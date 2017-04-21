@@ -586,14 +586,13 @@ begin
         Status(IntToStr(idx));
      check(res);
 
-     startTime4 := MtxGetTime;
-     BlockedMatrixMultiplication(dest3a, cMtxLineWidth2, xa, ya, cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, 352);
-     endTime4 := MtxGetTime;
-
      startTime3 := MtxGetTime;
      BlockedMatrixMultiplicationDirect(dest2a, cMtxLineWidth2, xa, ya, cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, 352);
      endTime3 := MtxGetTime;
-
+     
+     startTime4 := MtxGetTime;
+     BlockedMatrixMultiplication(dest3a, cMtxLineWidth2, xa, ya, cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, 352);
+     endTime4 := MtxGetTime;
 
      Status(Format('%.2f, %.2f, %.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
                 (endTime3 - startTime3)/mtxFreq*1000, (endTime4 - startTime4)/mtxFreq*1000,
