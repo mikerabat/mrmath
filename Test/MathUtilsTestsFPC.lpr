@@ -101,7 +101,8 @@ uses
   MatrixRotations in '..\MatrixRotations.pas',
   LinAlgCholesky in '..\LinAlgCholesky.pas',
   LinAlgLU in '..\LinAlgLU.pas',
-  LinAlgQR in '..\LinAlgQR.pas';
+  LinAlgQR in '..\LinAlgQR.pas',
+  PLS in '..\PLS.PAS';
 
 {$R *.res}
 

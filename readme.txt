@@ -49,9 +49,15 @@ Developer:
 
 Rabatscher Michael - main windows and core development - contact via www.mrsoft.com
 William Cantrall - special thanks for making the library MacOs compatible. 
+Gustav Kaiser - special thanks for implementing the PLS algorithm.
 
 // ###################################################################
 changelog:
+
+Date: 09.05.2017
+* New global subspace method used for regression: Partial Least Squares
+* Extended CCA to have a "project" function that allows to map inputs to predicted outputs
+  (e.g. images to degree rotation)
 
 Date: 21.04.2017
 * Faster transposed matrix multiplication by reducing the steps in the inner loop

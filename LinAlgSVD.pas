@@ -1455,7 +1455,7 @@ begin
      Result := srOk;
      pwork := PConstDoubleArr(work);
 
-     tol := 2e-14;//cDoubleEpsilon* max(10, min(100, Power(cDoubleEpsilon, -0.125 ) )) ;
+     tol := 2.0097e-014;//cDoubleEpsilon* max(10, min(100, Power(cDoubleEpsilon, -0.125 ) )) ;
 
      // Compute approximate maximum, minimum singular values
      smax := 0;

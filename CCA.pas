@@ -31,6 +31,9 @@ type
     fWxT : IMatrix;
     fWyT : IMatrix;
     fR : IMatrix;
+    fInvWy : IMatrix;   // used in the project method
+    fMeanX : IMatrix;   // used in the project method
+    fMeanY : IMatrix;   // used in the project method
 
     function InvertAndSQRT(mtx : IMatrix) : IMatrix;
     procedure CCA(X, Y: TDoubleMatrix; doRegularization: Boolean;
@@ -45,6 +48,8 @@ type
     property WxT : IMatrix read fWxT;
     property WyT : IMatrix read fWyT;
     property R : IMatrix read fR;
+
+    function Project(X : TDoubleMatrix) : TDoubleMatrix;
 
     constructor Create(X, Y : TDoubleMatrix; doRegularization : Boolean = True; Lamda : double = 1e-5);
     destructor Destroy; override;
@@ -95,8 +100,7 @@ end;
 
 procedure TMatrixCCA.CCA(X, Y: TDoubleMatrix; doRegularization: Boolean;
   Lamda: double);
-var meanX, meanY : IMatrix;
-    meanNormX : IMatrix;
+var meanNormX : IMatrix;
     meanNormY : IMatrix;
     Cxx, Cyy, Cxy : IMatrix;
     //Cyx : IMatrix;
@@ -116,8 +120,8 @@ begin
 
      // ##################################################
      // #### mean normalize data
-     meanX := X.Mean(True);
-     meanY := Y.Mean(True);
+     fMeanX := X.Mean(True);
+     fMeanY := Y.Mean(True);
 
      meanNormX := TDoubleMatrix.Create;
      meanNormX.Assign(X);
@@ -127,12 +131,12 @@ begin
      for counter := 0 to X.Width - 1 do
      begin
           meanNormX.SetSubMatrix(counter, 0, 1, X.Height);
-          meanNormX.SubInPlace(meanX);
+          meanNormX.SubInPlace(fmeanX);
      end;
      for counter := 0 to Y.Width - 1 do
      begin
           meanNormY.SetSubMatrix(counter, 0, 1, Y.Height);
-          meanNormY.SubInPlace(meanY);
+          meanNormY.SubInPlace(fmeanY);
      end;
 
      meanNormX.UseFullMatrix;
@@ -207,6 +211,14 @@ begin
      W.SetSubMatrix(0, 0, 1, numCC);
      fR := TDoubleMatrix.Create;
      fR.Assign(W);
+
+     // ###########################################
+     // #### Prepare for projection method
+     fInvWy := fWyT.Transpose;
+     if fInvWy.InvertInPlace = leSingular then
+        raise Exception.Create('Error cannot invert Wy for projection');
+
+     fInvWy.MultInPlace(fWxT);
 end;
 
 constructor TMatrixCCA.Create(X, Y : TDoubleMatrix; doRegularization : Boolean = True; Lamda : double = 1e-5);
@@ -217,6 +229,18 @@ begin
      CCA(X, Y, doRegularization, Lamda);
 end;
 
+function TMatrixCCA.Project(X: TDoubleMatrix): TDoubleMatrix;
+var tmp : IMatrix;
+begin
+     if not Assigned(fInvWy) then
+        raise Exception.Create('Error inverted matrix not ready');
+
+     // Result := invWy*Wx'*(X-fMeanX) + fMeany
+     tmp := X.Sub(fMeanX);
+     Result := fInvWy.Mult(tmp);
+     Result.AddInplace(fMeanY);
+end;
+
 // ######################################################################
 // #### persistence functionality
 // ######################################################################
@@ -225,6 +249,9 @@ const cCCAIdentifier = 'CCA';
       cCCAR = 'R';
       cCCAWx = 'Wx';
       cCCAWy = 'Wy';
+      cCCAInvWy = 'invWy';
+      cCCAMeanX = 'meanX';
+      cCCAMeanY = 'meanY';
 
 class function TMatrixCCA.ClassIdentifier: String;
 begin
@@ -239,11 +266,18 @@ begin
         AddObject(cCCAWx, fWxT.GetObjRef);
      if Assigned(fWyT) then
         AddObject(cCCAWy, fWyT.GetObjRef);
+     if Assigned(fInvWy) then
+        AddObject(cCCAInvWy, fInvWy.GetObjRef);
+     if Assigned(fMeanX) then
+        AddObject(cCCAMeanX, fMeanX.GetObjRef);
+     if Assigned(fMeanY) then
+        AddObject(cCCAMeanY, fMeanY.GetObjRef);
 end;
 
 function TMatrixCCA.PropTypeOfName(const Name: string): TPropType;
 begin
-     if (CompareText(Name, cCCAR) = 0) or (CompareText(Name, cCCAWx) = 0) or (CompareText(Name, cCCAWy) = 0)
+     if SameText(Name, cCCAR) or SameText(Name, cCCAWx) or SameText(Name, cCCAWy) or
+        SameText(Name, cCCAInvWy) or SameText(Name, cCCAMeanX) or SameText(Name, cCCAMeanY)
      then
          Result := ptObject
      else
@@ -263,6 +297,12 @@ begin
      else if SameText(Name, cCCAWy)
      then
          fWyT := obj as IMatrix
+     else if SameText(Name, cCCAInvWy) 
+     then
+         fInvWy := obj as IMatrix
+     else if SameText(Name, cCCAMeanY) 
+     then
+         fMeanY := obj as IMatrix
      else
          Result := inherited OnLoadObject(Name, Obj);
 end;
