@@ -94,6 +94,7 @@ contains
   LinAlgSVD in 'LinAlgSVD.pas',
   HouseholderReflectors in 'HouseholderReflectors.pas',
   MatrixRotations in 'MatrixRotations.pas',
-  LinearAlgebraicEquations in 'LinearAlgebraicEquations.pas';
+  LinearAlgebraicEquations in 'LinearAlgebraicEquations.pas',
+  PLS in 'PLS.pas';
 
 end.
