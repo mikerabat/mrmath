@@ -23,18 +23,21 @@ type
   TTestCCA = class(TBaseImgTestCase)
   published
     procedure TestCCAImages;
+    procedure TestCCAPersistence;
   end;
 
 type
   TTestPLS = class(TBaseImgTestCase)
   published
     procedure TestPLS;
+    procedure TestPLSPersistence;
     procedure TestPLSImages;
   end;
  
 implementation
 
-uses CCA, Math, Matrix, PLS;
+uses CCA, Math, Matrix, PLS, BinaryReaderWriter, BaseMathPersistence, 
+     JSONReaderWriter;
 
 { TTestCCA }
 
@@ -74,6 +77,39 @@ begin
      finally
             Free;
      end;
+
+     x.Free;
+     y.Free;
+end;
+
+procedure TTestCCA.TestCCAPersistence;
+var x, y : TDoubleMatrix;
+    w, h, i : integer;
+    ccaObj : TMatrixCCA;
+    ccaObjRestore : TMatrixCCA;
+begin
+     // load images
+     x := LoadImages(w, h, 'CCATest', '*.bmp');
+
+     // training orientations
+     y := TDoubleMatrix.Create(360 div 12, 2);
+     for i := 0 to y.Width - 1 do
+     begin
+          y[i, 0] := sin(i*12*pi/180);
+          y[i, 1] := cos(i*12*pi/180);
+     end;
+
+     ccaObj := TMatrixCCA.Create(X, Y);
+     TBinaryReaderWriter.StaticSaveToFile(ccaObj, 'cca.txt');
+
+     ccaObjRestore := ReadObjFromFile( 'cca.txt' ) as TMatrixCCA;   
+
+     Check(CheckMtx(ccaObj.WxT.SubMatrix, ccaObjRestore.WxT.SubMatrix), 'Error Wxt not the same' );
+     Check(CheckMtx(ccaObj.WyT.SubMatrix, ccaObjRestore.WyT.SubMatrix), 'Error WyT not the same' );
+     Check(CheckMtx(ccaObj.R.SubMatrix, ccaObjRestore.R.SubMatrix), 'Error R not the same' );
+     
+     ccaObj.Free;
+     ccaObjRestore.Free;
 
      x.Free;
      y.Free;
@@ -206,6 +242,41 @@ begin
      finally
             Free;
      end;
+
+     x.Free;
+     y.Free;
+end;
+
+procedure TTestPLS.TestPLSPersistence;
+var x, y : TDoubleMatrix;
+    w, h, i : integer;
+    plsObj : TMatrixPLS;
+    plsObjRest : TMatrixPLS;
+begin
+     // load images
+     x := LoadImages(w, h, 'CCATest', '*.bmp');
+     x.TransposeInPlace;
+     
+     // training orientations
+     y := TDoubleMatrix.Create(1, 360 div 12);
+     for i := 0 to y.Height - 1 do
+         y.Vec[i] := sin(i*12*pi/180);
+
+     plsObj := TMatrixPLS.Create;
+     plsObj.Plsr(X, Y, 1, 20);
+
+     TJsonReaderWriter.StaticSaveToFile(plsObj, 'PLSObj.json');
+
+     plsObjRest := ReadObjFromFile( 'PLSObj.json' ) as TMatrixPLS;
+
+     Check(CheckMtx( plsObj.SSQDif.SubMatrix, plsObjRest.SSQDif.SubMatrix ), 'SSQDif not equal');
+     Check(CheckMtx( plsObj.W.SubMatrix, plsObjRest.W.SubMatrix ), 'W not equal');
+     Check(CheckMtx( plsObj.Beta.SubMatrix, plsObjRest.Beta.SubMatrix ), 'Beta not equal');
+     Check(CheckMtx( plsObj.YRes.SubMatrix, plsObjRest.YRes.SubMatrix ), 'YRes not equal');
+     Check(CheckMtx( plsObj.Theta.SubMatrix, plsObjRest.Theta.SubMatrix ), 'Theta not equal');
+     
+     plsObj.Free;
+     plsObjRest.Free;
 
      x.Free;
      y.Free;

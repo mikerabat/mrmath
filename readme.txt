@@ -53,6 +53,8 @@ Gustav Kaiser - special thanks for implementing the PLS algorithm.
 
 // ###################################################################
 changelog:
+Deate: 10.05.2017
+* Added persistence tests for CCA and PLS
 
 Date: 09.05.2017
 * New global subspace method used for regression: Partial Least Squares
