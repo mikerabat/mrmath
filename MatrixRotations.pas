@@ -71,7 +71,7 @@ begin
                      g1 := g1*cSaveMin;
 
                      scale := max( abs(f1 ), abs( g1 ) );
-               until scale >= cSaveMax;
+               until scale < cSaveMax;
 
                r := sqrt( sqr(f1) + sqr(g1) );
                cs := f1/r;
@@ -89,7 +89,7 @@ begin
                      g1 := g1*cSaveMax;
 
                      scale := max( abs(f1 ), abs( g1 ) );
-               until scale <= cSaveMin;
+               until scale > cSaveMin;
 
                r := sqrt( sqr(f1) + sqr(g1) );
                cs := f1/r;

@@ -84,7 +84,7 @@ type
     function PCA(Examples : TDoubleMatrix; CutEps : double; IsRelativeValue : boolean) : boolean; virtual;
 
     // Calculates the PCA from a weighted dataset. One whole example is weighted with a constant factor
-    // (caled temporal weight). The can be found in Danijel Skocaj's PHD:
+    // (caled temporal weight). This can be found in Danijel Skocaj's PHD:
     // "Robust Subspace Approaches to Visual Learning and Recognition", p 58ff.
     function TemporalWeightPCA(Examples : TDoubleMatrix; CutEps : double; IsRelativeValue : boolean; const Weights : Array of Double) : boolean; virtual;
 
