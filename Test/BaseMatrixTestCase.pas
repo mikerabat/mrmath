@@ -162,6 +162,8 @@ begin
              if i mod width = width - 1 then
              begin
                   s[length(s)] := ';';
+                  if i = Length(data) - 1 then
+                     system.Delete(s, Length(s), 1);
                   Add(s);
                   s := '';
              end;

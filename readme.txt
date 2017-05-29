@@ -53,7 +53,13 @@ Gustav Kaiser - special thanks for implementing the PLS algorithm.
 
 // ###################################################################
 changelog:
-Deate: 10.05.2017
+Date: 29.05.2017
+* Added base correlation functions: base correlation and covariance matrix
+* Added Fast and standard Dynamic Time Warp algorithm to the library.
+* Added mean and variance calculation to a matrix in one step.
+* Added a new constructor type.
+
+Date: 10.05.2017
 * Added persistence tests for CCA and PLS
 
 Date: 09.05.2017

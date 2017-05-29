@@ -102,7 +102,9 @@ uses
   LinAlgCholesky in '..\LinAlgCholesky.pas',
   LinAlgLU in '..\LinAlgLU.pas',
   LinAlgQR in '..\LinAlgQR.pas',
-  PLS in '..\PLS.PAS';
+  PLS in '..\PLS.pas',
+  Corr in '..\Corr.pas',
+  TestCorr in 'TestCorr.pas';
 
 {$R *.res}
 

@@ -138,6 +138,12 @@ type
     function Std(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
     procedure StdInPlace(RowWise : boolean; unbiased : boolean = True);
 
+    // calculates mean and variance in one step and stores the mean in the first row, the variance in the second
+    // if RowWise is selected. If rowwise is false it's vice versa
+    function MeanVariance(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
+    procedure MeanVarianceInPlace(RowWise : boolean; unbiased : boolean = True);
+    
+    
     function Median(RowWise : boolean) : TDoubleMatrix;
     procedure MedianInPlace(RowWise : boolean);
 
@@ -194,8 +200,8 @@ type
     // ###################################################
     // #### Special functions
     procedure MaskedSetValue(const Mask : Array of boolean; const newVal : double);
-    procedure RepeatMatrixInPlace(numY, numX : integer);
-    function RepeatMatrix(numY, numX : integer) : TDoubleMatrix;
+    procedure RepeatMatrixInPlace(numX, numY : integer);
+    function RepeatMatrix(numX, numY : integer) : TDoubleMatrix;
 
     // ###################################################
     // #### Matrix transformations
@@ -384,6 +390,11 @@ type
     procedure VarianceInPlace(RowWise : boolean; unbiased : boolean = True);
     function Std(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
     procedure StdInPlace(RowWise : boolean; unbiased : boolean = True);
+    
+     // calculates mean and variance in one step and stores the mean in the first row, the variance in the second
+    // if RowWise is selected. If rowwise is false it's vice versa
+    function MeanVariance(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
+    procedure MeanVarianceInPlace(RowWise : boolean; unbiased : boolean = True);
 
     function Median(RowWise : boolean) : TDoubleMatrix; virtual;
     procedure MedianInPlace(RowWise : boolean);
@@ -441,7 +452,7 @@ type
     // ###################################################
     // #### Special functions
     procedure MaskedSetValue(const Mask : Array of boolean; const newVal : double);
-    procedure RepeatMatrixInPlace(numY, numX : integer);
+    procedure RepeatMatrixInPlace(numX, numY : integer);
     function RepeatMatrix(numX, numY : integer) : TDoubleMatrix;
 
     // ###################################################
@@ -485,6 +496,7 @@ type
     constructor CreateEye(aWidth : integer);
     constructor Create(data : PDouble; aLineWidth : integer; aWidth, aHeight : integer); overload;
     constructor Create(const Data : TDoubleDynArray; aWidth, aHeight : integer); overload;
+    constructor Create(const Mtx : Array of double; W, H : integer); overload; 
     constructor CreateRand(aWidth, aHeight : integer; method : TRandomAlgorithm; seed : LongInt); overload; // uses random engine
     constructor CreateRand(aWidth, aHeight : integer); overload; // uses system default random
     constructor CreateLinSpace(aVecLen : integer; const StartVal : double; const EndVal : double);
@@ -1348,6 +1360,35 @@ begin
      end;
 end;
 
+function TDoubleMatrix.MeanVariance(RowWise, unbiased: boolean): TDoubleMatrix;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+
+     if RowWise then
+     begin
+          Result := ResultClass.Create(2, fSubHeight);
+
+          MatrixMeanVar(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise, unbiased);
+     end
+     else
+     begin
+          Result := ResultClass.Create(fSubWidth, 2);
+
+          MatrixMeanVar(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise, unbiased);
+     end;
+end;
+
+procedure TDoubleMatrix.MeanVarianceInPlace(RowWise, unbiased: boolean);
+var dt : TDoubleMatrix;
+begin
+     dt := MeanVariance(RowWise, unbiased);
+     try
+        TakeOver(dt);
+     finally
+            dt.Free;
+     end;
+end;
+
 function TDoubleMatrix.Median(RowWise: boolean): TDoubleMatrix;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
@@ -1705,7 +1746,7 @@ begin
      Result.RepeatMatrixInPlace(numY, numX);
 end;
 
-procedure TDoubleMatrix.RepeatMatrixInPlace(numY, numX: integer);
+procedure TDoubleMatrix.RepeatMatrixInPlace(numX, numY: integer);
 var origW, origH : integer;
     subMtx : IMatrix;
     x, y : Integer;
@@ -2518,6 +2559,16 @@ begin
      // value is as expected
      if aVecLen > 1 then
         Vec[vecLen - 1] := EndVal;
+end;
+
+constructor TDoubleMatrix.Create(const Mtx: array of double; W, H: integer);
+begin
+     CheckAndRaiseError((W*H > 0) and (Length(Mtx) = W*H), 'Dimension error');
+
+     inherited Create;
+
+     SetWidthHeight(W, H);
+     MatrixCopy(StartElement, LineWidth, @Mtx[0], W*sizeof(double), W, H);
 end;
 
 initialization

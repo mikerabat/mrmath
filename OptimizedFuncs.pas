@@ -144,6 +144,8 @@ function Matrixvar(const Src : Array of double; width, height : TASMNativeInt; R
 procedure MatrixVar(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean); overload;
 procedure MatrixVar(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean); overload;
 
+procedure MatrixMeanVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
+
 
 function MatrixSum(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
 function MatrixSum(const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
@@ -273,6 +275,7 @@ var multFunc : TMatrixMultFunc;
     matrixSortFunc : TMatrixSortFunc;
     matrixVarFunc : TMatrixVarianceFunc;
     matrixSumFunc : TMatrixNormalizeFunc;
+    matrixMeanVarFunc : TMatrixVarianceFunc;
     matrixCumulativeSumFunc : TMatrixNormalizeFunc;
     matrixDiffFunc : TMatrixNormalizeFunc;
     rowSwapFunc : TMatrixRowSwapFunc;
@@ -827,6 +830,12 @@ begin
      MatrixSum(@Result[0], width*sizeof(double), src, srcLineWidth, width, height, RowWise);
 end;
 
+procedure MatrixMeanVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
+begin
+     assert((RowWise and (destLineWidth >= 2*sizeof(double))) or (not RowWise and (destLineWidth >= width*sizeof(double))), 'Dimension error');
+     matrixMeanVarFunc(dest, destLineWidth, Src, srcLineWidth, width, height, RowWise, unbiased);
+end;
+
 function MatrixSum(const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
 begin
      assert((width > 0) and (height > 0) and (Length(src) >= width*height), 'Dimension error');
@@ -988,6 +997,7 @@ begin
           matrixNormalizeFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixNormalize;
           matrixMeanFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixMean;
           matrixVarFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixVar;
+          matrixMeanVarFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMeanVar;
           matrixSumFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixSum;
           matrixCumulativeSumFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixCumulativeSum;
           matrixDiffFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixDifferentiate;
@@ -1036,6 +1046,7 @@ begin
           matrixNormalizeFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxNormalize;
           matrixMeanFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMean;
           matrixVarFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxVar;
+          matrixMeanVarFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMeanVar;
           matrixSumFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxSum;
           matrixCumulativeSumFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxCumulativeSum;
           matrixDiffFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxDifferentiate;

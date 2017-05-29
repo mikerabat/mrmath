@@ -98,6 +98,9 @@ procedure GenericMtxMean(dest : PDouble; destLineWidth : TASMNativeInt; Src : PD
 procedure GenericMtxVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
 procedure GenericMtxSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
 
+// Calculate the mean and variance at the same time -> dest is at least a 2xheight matrix
+procedure GenericMtxMeanVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
+
 procedure GenericMtxCumulativeSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
 procedure GenericMtxDifferentiate(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
 
@@ -319,6 +322,88 @@ begin
      end;
 end;
 
+procedure GenericMtxVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
+var val : double;
+    x, y : TASMNativeInt;
+    pVal1 : PByte;
+    pVal2 : PConstDoubleArr;
+    pVal : PDouble;
+    meanVal : double;
+    aVariance : double;
+begin
+     assert((Width > 0) and (Height > 0), 'No data assigned');
+
+     pVal1 := PByte(Src);
+     if RowWise then
+     begin
+          for y := 0 to Height - 1 do
+          begin
+               val := 0;
+
+               pVal2 := PConstDoubleArr(pVal1);
+               for x := 0 to Width - 1 do
+                   val := val + pVal2^[x];
+
+               aVariance := 0;
+               if Width > 0 then
+               begin
+                    meanVal := val/width;
+
+                    for x := 0 to Width - 1 do
+                        aVariance := aVariance + sqr(pVal2^[x] - meanVal);
+                    
+                    if unbiased 
+                    then
+                        dest^ := aVariance/Max(1, width - 1)
+                    else
+                        dest^ := aVariance/width;
+               end
+               else
+                   dest^ := 0;
+               inc(pVal1, srcLineWidth);
+               inc(PByte(dest), destLineWidth);
+          end;
+     end
+     else
+     begin
+          for x := 0 to Width - 1 do
+          begin
+               val := 0;
+
+               pVal := PDouble(pVal1);
+               for y := 0 to Height - 1 do
+               begin
+                    val := val + pVal^;
+                    inc(PByte(pVal), srcLineWidth);
+               end;
+
+               if Height > 0 then
+               begin
+                    meanVal := val/Height;
+
+                    aVariance := 0;
+                    pVal := PDouble(pVal1);
+                    for y := 0 to Height - 1 do
+                    begin
+                         aVariance := aVariance + sqr(pVal^ - meanVal);
+                         inc(PByte(pVal), srcLineWidth);
+                    end;
+
+                    if unbiased 
+                    then
+                        dest^ := aVariance/Max(1, Height - 1)
+                    else
+                        dest^ := aVariance/Height;
+               end
+               else
+                   dest^ := 0;
+
+               inc(pVal1, sizeof(double));
+               inc(dest);
+          end;
+     end;
+end;
+
 procedure GenericMtxMedian(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; 
   width, height : TASMNativeInt; RowWise : boolean; tmp : PDouble = nil);
 var x, y : TASMNativeInt;
@@ -434,15 +519,16 @@ begin
      end;
 end;
 
-// note: this function calculates the unbiased version of the matrix variance!
-procedure GenericMtxVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
+procedure GenericMtxMeanVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
 var x, y : TASMNativeInt;
     pVal1 : PByte;
     pVal2 : PConstDoubleArr;
     pVal : PDouble;
+    pDest1 : PDouble;
     meanVal : double;
 begin
      assert((Width > 0) and (Height > 0), 'No data assigned');
+     assert( not RowWise or (destLineWidth >= 2*sizeof(double)), 'Results linewidth is too short');
 
      pVal1 := PByte(Src);
      if RowWise then
@@ -451,7 +537,6 @@ begin
           begin
                meanVal := 0;
 
-               dest^ := Infinity;
                pVal2 := PConstDoubleArr(pVal1);
                for x := 0 to Width - 1 do
                    meanVal := meanVal + pVal2^[x];
@@ -459,6 +544,9 @@ begin
                if Width > 0 then
                begin
                     meanVal := meanVal/Width;
+                    dest^ := meanVal;
+                    inc(dest);
+                    
                     dest^ := 0;
                     for x := 0 to Width - 1 do
                         dest^ := dest^ + sqr( pVal2^[x] - meanVal );
@@ -468,6 +556,15 @@ begin
                         dest^ := dest^/Max(1, width - 1)
                     else
                         dest^ := dest^/width;
+
+                    dec(dest);
+               end
+               else
+               begin
+                    dest^ := 0;
+                    inc(dest);
+                    dest^ := Infinity;
+                    dec(dest);
                end;
                   
                inc(pVal1, srcLineWidth);
@@ -476,12 +573,13 @@ begin
      end
      else
      begin
+          pDest1 := dest;
+          inc(PByte(dest), destLineWidth);
+          
           for x := 0 to Width - 1 do
           begin
                meanVal := 0;
 
-               dest^ := Infinity;
-               
                pVal := PDouble(pVal1);
                for y := 0 to Height - 1 do
                begin
@@ -492,24 +590,31 @@ begin
                if Height > 0 then
                begin
                     meanVal := meanVal/Height;
-
+                    dest^ := meanVal;
+                    
                     pVal := PDouble(pVal1);
-                    dest^ := 0;
+                    pDest1^ := 0;
                     for y := 0 to Height - 1 do
                     begin
-                         dest^ := dest^ + sqr( pVal^ - meanVal );
+                         pDest1^ := pDest1^ + sqr( pVal^ - meanVal );
                          inc(PByte(pVal), srcLineWidth);
                     end;   
 
                     if unbiased 
                     then
-                        dest^ := dest^/Max(1, height - 1)
+                        pDest1^ := pDest1^/Max(1, height - 1)
                     else
-                        dest^ := dest^/height;
+                        pDest1^ := pDest1^/height;
+               end
+               else
+               begin
+                    dest^ := 0;
+                    pDest1^ := Infinity;
                end;
 
                inc(pVal1, sizeof(double));
                inc(dest);
+               inc(pDest1);
           end;
      end;
 end;
