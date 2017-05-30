@@ -95,6 +95,7 @@ contains
   HouseholderReflectors in 'HouseholderReflectors.pas',
   MatrixRotations in 'MatrixRotations.pas',
   LinearAlgebraicEquations in 'LinearAlgebraicEquations.pas',
-  PLS in 'PLS.pas';
+  PLS in 'PLS.pas',
+  Corr in 'Corr.pas';
 
 end.

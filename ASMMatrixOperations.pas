@@ -62,6 +62,7 @@ function ASMMatrixElementwiseNorm2(dest : PDouble; LineWidth : TASMNativeInt; Wi
 procedure ASMMatrixNormalize(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
 procedure ASMMatrixMean(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
 procedure ASMMatrixVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
+procedure ASMMatrixMeanVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
 procedure ASMMatrixSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
 procedure ASMMatrixCumulativeSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
 procedure ASMMatrixDifferentiate(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
@@ -879,6 +880,64 @@ begin
                    ASMMatrixVarRowUnAlignedOddW(dest, destLineWidth, Src, srcLineWidth, width, height, unbiased)
                else
                    ASMMatrixVarColumnUnAlignedOddW(dest, destLineWidth, Src, srcLineWidth, width, height, unbiased);
+          end;
+     end;
+end;
+
+procedure ASMMatrixMeanVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
+begin
+     if (width = 0) or (height = 0) then
+        exit;
+     assert((width*sizeof(double) <= srcLineWidth), 'Dimension error');
+     assert((rowWise and (destLineWidth >= 2*sizeof(double))) or (not rowWise and (destLineWidth >= width*sizeof(double))), 'Dimension error');
+
+     // check if they are vector operations:
+     if (width = 1) and (srcLineWidth = sizeof(double)) and not RowWise then
+     begin
+          width := Height;
+          height := 1;
+          srcLineWidth := width*sizeof(double) + (width and 1)*sizeof(double);
+          RowWise := True;
+     end;
+
+     if (TASMNativeUInt(Dest) and $0000000F = 0) and (TASMNativeUInt(src) and $0000000F = 0) and
+        (destLineWidth and $0000000F = 0) and (srcLineWidth and $0000000F = 0)
+     then
+     begin
+          if width and 1 = 0 then
+          begin
+               if RowWise
+               then
+                   ASMMatrixMeanVarRowAlignedEvenW(dest, destLineWidth, Src, srcLineWidth, width, height, unbiased)
+               else
+                   ASMMatrixMeanVarColumnAlignedEvenW(dest, destLineWidth, Src, srcLineWidth, width, height, unbiased)
+          end
+          else
+          begin
+               if RowWise
+               then
+                   ASMMatrixMeanVarRowAlignedOddW(dest, destLineWidth, Src, srcLineWidth, width, height, unbiased)
+               else
+                   ASMMatrixMeanVarColumnAlignedOddW(dest, destLineWidth, Src, srcLineWidth, width, height, unbiased);
+          end;
+     end
+     else
+     begin
+          if width and 1 = 0 then
+          begin
+               if RowWise
+               then
+                   ASMMatrixMeanVarRowUnAlignedEvenW(dest, destLineWidth, Src, srcLineWidth, width, height, unbiased)
+               else
+                   ASMMatrixMeanVarColumnUnAlignedEvenW(dest, destLineWidth, Src, srcLineWidth, width, height, unbiased)
+          end
+          else
+          begin
+               if RowWise
+               then
+                   ASMMatrixMeanVarRowUnAlignedOddW(dest, destLineWidth, Src, srcLineWidth, width, height, unbiased)
+               else
+                   ASMMatrixMeanVarColumnUnAlignedOddW(dest, destLineWidth, Src, srcLineWidth, width, height, unbiased);
           end;
      end;
 end;

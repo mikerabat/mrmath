@@ -18,8 +18,7 @@ interface
 
 uses
   {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF} ,
-  Classes, SysUtils, Types, Matrix, BaseMatrixTestCase,
-  ThreadedMatrix;
+  Classes, SysUtils, Types, Matrix, BaseMatrixTestCase;
 
 type
   TestCorrelation = class(TBaseMatrixTestCase)
@@ -112,7 +111,6 @@ var x : TDoubleDynArray;
     counter : integer;
     dtw : TDynamicTimeWarp;
     xv, yV : IMatrix;
-    res : IMatrix;
     dist : double;
 begin
      SetLength(x, 1000);
@@ -128,9 +126,9 @@ begin
 
      dtw := TDynamicTimeWarp.Create;
      try
-        res := dtw.DTW(xv, yv, dist);
+        dtw.DTW(xv, yv, dist);
 
-        //WriteMatlabData('D:\chirp1.txt', res.SubMatrix, res.Width);
+        //WriteMatlabData('D:\chirp1.txt', dtw.W1.SubMatrix, res.Width);
         //WriteMatlabData('D:\chirp2.txt', dtw.W2.SubMatrix, dtw.W2.Width);
 
         Status(Format('Distance: %.4f', [dist]));
@@ -148,7 +146,6 @@ const cDWTCorr = 0.9879;
       cInvDWTCorr = 0.6899;
       
 var master, tpl : IMatrix;
-    res : IMatrix;
     dtw : TDynamicTimeWarp;
     dist : double;
     cr : double;
@@ -159,7 +156,7 @@ begin
      master := ReadObjFromFile('dyntimeWarp2.bin') as TDoubleMatrix;
      
      dtw := TDynamicTimeWarp.Create;
-     res := dtw.DTW(tpl, master, dist);
+     dtw.DTW(tpl, master, dist);
 
      Check(dist > 0, 'error distance <= 0');
 
@@ -224,7 +221,6 @@ const cDWTCorr = 0.9879;
       cInvDWTCorr = 0.6382;
 
 var master, tpl : IMatrix;
-    res : IMatrix;
     dtw : TDynamicTimeWarp;
     dist : double;
     cr : double;
@@ -235,7 +231,7 @@ begin
      master := ReadObjFromFile('dyntimeWarp2.bin') as TDoubleMatrix;
      
      dtw := TDynamicTimeWarp.Create;
-     res := dtw.DTW(tpl, master, dist);
+     dtw.DTW(tpl, master, dist);
 
      //WriteMatlabData('D:\dynWarp1.txt', tpl.SubMatrix, tpl.Width);
      //WriteMatlabData('D:\dynWarp2.txt', master.SubMatrix, master.Width);
@@ -255,7 +251,7 @@ begin
 
      dtw.Free;
      dtw := TDynamicTimeWarp.Create(dtwAbsolute);
-     res := dtw.FastDTW(tpl, master, dist, 2);
+     dtw.FastDTW(tpl, master, dist, 2);
      cr := dtw.FastDTWCorr(tpl, master, 2);
      
      Status( Format('Dist: %.4f', [dist]) );
@@ -279,7 +275,6 @@ var x : TDoubleDynArray;
     counter : integer;
     dtw : TDynamicTimeWarp;
     xv, yV : IMatrix;
-    res : IMatrix;
     dist : double;
 begin
      SetLength(x, 1000);
@@ -295,9 +290,9 @@ begin
 
      dtw := TDynamicTimeWarp.Create(dtwAbsolute);
      try
-        res := dtw.FastDTW(xv, yv, dist, 3);   // minimum radius for this setup to achieve perfect match
+        dtw.FastDTW(xv, yv, dist, 3);   // minimum radius for this setup to achieve perfect match
 
-        //WriteMatlabData('D:\chirp1.txt', res.SubMatrix, res.Width);
+        //WriteMatlabData('D:\chirp1.txt', dtw.w1..SubMatrix, res.Width);
         //WriteMatlabData('D:\chirp2.txt', dtw.W2.SubMatrix, dtw.W2.Width);
 
         Status(Format('Distance: %.4f', [dist]));

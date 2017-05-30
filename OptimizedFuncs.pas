@@ -997,7 +997,7 @@ begin
           matrixNormalizeFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixNormalize;
           matrixMeanFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixMean;
           matrixVarFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixVar;
-          matrixMeanVarFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMeanVar;
+          matrixMeanVarFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixMeanVar;
           matrixSumFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixSum;
           matrixCumulativeSumFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixCumulativeSum;
           matrixDiffFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixDifferentiate;

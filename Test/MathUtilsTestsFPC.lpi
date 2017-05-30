@@ -36,7 +36,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="74">
+    <Units Count="76">
       <Unit0>
         <Filename Value="MathUtilsTestsFPC.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -333,6 +333,14 @@
         <Filename Value="..\ASMMatrixCumSumDiffOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit73>
+      <Unit74>
+        <Filename Value="TestCorr.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit74>
+      <Unit75>
+        <Filename Value="..\Corr.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit75>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

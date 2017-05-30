@@ -574,7 +574,7 @@ begin
      else
      begin
           pDest1 := dest;
-          inc(PByte(dest), destLineWidth);
+          inc(PByte(pDest1), destLineWidth);
           
           for x := 0 to Width - 1 do
           begin

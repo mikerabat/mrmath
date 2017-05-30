@@ -53,6 +53,9 @@ Gustav Kaiser - special thanks for implementing the PLS algorithm.
 
 // ###################################################################
 changelog:
+Date: 30.05.2017
+* ASM Version of the combined mean and variance implementation
+
 Date: 29.05.2017
 * Added base correlation functions: base correlation and covariance matrix
 * Added Fast and standard Dynamic Time Warp algorithm to the library.
