@@ -26,7 +26,7 @@ uses SysUtils, Classes, Matrix, MatrixConst, BaseMathPersistence;
 // kernel canonical correlation analysis", Pattern Recognition 36,
 // 1961-1971, 2003
 type
-  TMatrixCCA = class(TBaseMathPersistence)
+  TMatrixCCA = class(TMatrixClass)
   private
     fWxT : IMatrix;
     fWyT : IMatrix;
@@ -36,8 +36,6 @@ type
     fMeanY : IMatrix;   // used in the project method
 
     function InvertAndSQRT(mtx : IMatrix) : IMatrix;
-    procedure CCA(X, Y: TDoubleMatrix; doRegularization: Boolean;
-      Lamda: double);
   protected
     class function ClassIdentifier : String; override;
     procedure DefineProps; override;
@@ -51,8 +49,7 @@ type
 
     function Project(X : TDoubleMatrix) : TDoubleMatrix;
 
-    constructor Create(X, Y : TDoubleMatrix; doRegularization : Boolean = True; Lamda : double = 1e-5);
-    destructor Destroy; override;
+    procedure CCA(X, Y: TDoubleMatrix; doRegularization : Boolean = True; Lamda : double = 1e-5);
   end;
 
 implementation
@@ -123,9 +120,9 @@ begin
      fMeanX := X.Mean(True);
      fMeanY := Y.Mean(True);
 
-     meanNormX := TDoubleMatrix.Create;
+     meanNormX := MatrixClass.Create;
      meanNormX.Assign(X);
-     meanNormY := TDoubleMatrix.Create;
+     meanNormY := MatrixClass.Create;
      meanNormY.Assign(Y);
 
      for counter := 0 to X.Width - 1 do
@@ -209,7 +206,7 @@ begin
      fWyT := invCyy.Transpose;
 
      W.SetSubMatrix(0, 0, 1, numCC);
-     fR := TDoubleMatrix.Create;
+     fR := MatrixClass.Create;
      fR.Assign(W);
 
      // ###########################################
@@ -219,14 +216,6 @@ begin
         raise Exception.Create('Error cannot invert Wy for projection');
 
      fInvWy.MultInPlace(fWxT);
-end;
-
-constructor TMatrixCCA.Create(X, Y : TDoubleMatrix; doRegularization : Boolean = True; Lamda : double = 1e-5);
-begin
-     inherited Create;
-
-     // compute CCA immediately
-     CCA(X, Y, doRegularization, Lamda);
 end;
 
 function TMatrixCCA.Project(X: TDoubleMatrix): TDoubleMatrix;
@@ -305,11 +294,6 @@ begin
          fMeanY := obj as IMatrix
      else
          Result := inherited OnLoadObject(Name, Obj);
-end;
-
-destructor TMatrixCCA.Destroy;
-begin
-     inherited;
 end;
 
 initialization

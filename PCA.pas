@@ -40,7 +40,7 @@ type
 // ##########################################
 // #### base PCA algorithm based on Singular Value decomposition
 type
-  TMatrixPCA = class(TBaseMathPersistence)
+  TMatrixPCA = class(TMatrixClass)
   private
     fProgress : TPCAProgress;
 
@@ -249,7 +249,7 @@ end;
 function TMatrixPCA.GetEigVals: TDoubleMatrix;
 begin
      if not Assigned(fEigVals) then
-        fEigVals := TDoubleMatrix.Create;
+        fEigVals := MatrixClass.Create;
 
      Result := fEigVals;
 end;
@@ -257,7 +257,7 @@ end;
 function TMatrixPCA.GetEigVecs: TDoubleMatrix;
 begin
      if not Assigned(fEigVecs) then
-        fEigVecs := TDoubleMatrix.Create;
+        fEigVecs := MatrixClass.Create;
 
      Result := fEigVecs;
 end;
@@ -265,7 +265,7 @@ end;
 function TMatrixPCA.GetMeanElem: TDoubleMatrix;
 begin
      if not Assigned(fMeanElem) then
-        fMeanElem := TDoubleMatrix.Create;
+        fMeanElem := MatrixClass.Create;
 
      Result := fMeanElem;
 end;
@@ -353,7 +353,7 @@ begin
      // calculate weighted mean
      fMeanElem := WeightedMean(Examples, Weights);
 
-     fMeanNormExamples := TDoubleMatrix.Create;
+     fMeanNormExamples := MatrixClass.Create;
      try
         // subtract mean from each column
         fMeanNormExamples.Assign(Examples);
@@ -434,7 +434,7 @@ begin
                             else
                                 fEigVals.SetSubMatrix(0, 0, 1, i);
 
-                            mv := TDoubleMatrix.Create;
+                            mv := MatrixClass.Create;
                             try
                                mv.Assign(fEigVals, True);
                                FreeAndNil(fEigVals);
@@ -453,7 +453,7 @@ begin
                            fEigVecs.SetSubMatrix(0, 0, Min(i + 1, fEigVecs.Width), fEigVecs.Height)
                        else
                            fEigVecs.SetSubMatrix(0, 0, i, fEigVecs.Height);
-                       mv := TDoubleMatrix.Create;
+                       mv := MatrixClass.Create;
                        try
                           mv.Assign(fEigVecs, True);
                           FreeAndNil(fEigVecs);
@@ -487,7 +487,7 @@ begin
      if Length(Weights) <> Examples.Width then
         raise ERangeError.Create('Dimension error: Number of weights does not fit the number of examples' + IntToStr(Length(weights)) + ',' + IntToStr(Examples.Width));
 
-     Result := TDoubleMatrix.Create(1, Examples.Height);
+     Result := MatrixClass.Create(1, Examples.Height);
      try
         // assume that one examples is covered by one column
         weightSum := 0;
@@ -568,7 +568,7 @@ begin
      // calculate mean
      fMeanElem := Examples.Mean(True);
 
-     fMeanNormExamples := TDoubleMatrix.Create;
+     fMeanNormExamples := MatrixClass.Create;
      try
         // subtract mean from each column
         fMeanNormExamples.Assign(Examples, True);
@@ -646,7 +646,7 @@ begin
                   begin
                        // shrink space to 0..i
                        fEigVals.SetSubMatrix(0, 0, 1, i);
-                       mv := TDoubleMatrix.Create;
+                       mv := MatrixClass.Create;
                        try
                           mv.Assign(fEigVals, True);
                           FreeAndNil(fEigVals);
@@ -660,7 +660,7 @@ begin
                       FreeAndNil(fEigVals);
 
                   fEigVecs.SetSubMatrix(0, 0, i, fEigVecs.Height);
-                  mv := TDoubleMatrix.Create;
+                  mv := MatrixClass.Create;
                   try
                      mv.Assign(fEigVecs, True);
                      FreeAndNil(fEigVecs);
@@ -712,7 +712,7 @@ begin
      if not Assigned(fEigVecs) then
         raise EPCAException.Create('PCA object not initialized');
 
-     meanMtx := TDoubleMatrix.Create;
+     meanMtx := MatrixClass.Create;
      try
         meanMtx.Assign(Example, True);
 
@@ -981,7 +981,7 @@ var x : TDoubleMatrix;
 begin
      xhat := nil;
      a := nil;
-     x := TDoubleMatrix.Create(1, fSubMeanElem[idx].Height);
+     x := MatrixClass.Create(1, fSubMeanElem[idx].Height);
      try
         // project to feature space
         for i := 0 to x.Height - 1 do
@@ -994,7 +994,7 @@ begin
         xhat := fSubEigVecs[idx].Mult(a);
 
         // calculate absolute error
-        Result := TDoubleMatrix.Create(1, xhat.Height);
+        Result := MatrixClass.Create(1, xhat.Height);
 
         for i := 0 to Result.Height - 1 do
             Result[0, i] := abs(x[0, i] - xhat[0, i]);
@@ -1108,7 +1108,7 @@ begin
      begin
           fSubItemIdx[i] := GenerateSampleList(Examples.Height, i);
 
-          SubExamples := TDoubleMatrix.Create(Examples.Width, Length(fSubItemIdx[i]));
+          SubExamples := MatrixClass.Create(Examples.Width, Length(fSubItemIdx[i]));
           try
              for j := 0 to Length(fSubItemIdx[i]) - 1 do
                  SubExamples.SetRow(j, Examples, fSubItemIdx[i][j]);
@@ -1283,8 +1283,8 @@ begin
      meanNormExample := Example.Sub(fMeanElem);
      try
         repeat
-              A := TDoubleMatrix.Create(fEigVecs.Width, numElements);
-              X := TDoubleMatrix.Create(1, numElements);
+              A := MatrixClass.Create(fEigVecs.Width, numElements);
+              X := MatrixClass.Create(1, numElements);
 
               // copy rows respectively elements
               for i := 0 to numElements - 1 do
@@ -1409,7 +1409,7 @@ begin
      begin
           fSubItemIdx[i] := GenerateSampleList(Examples.Height, i);
 
-          SubExamples := TDoubleMatrix.Create(Examples.Width, Length(fSubItemIdx[i]));
+          SubExamples := MatrixClass.Create(Examples.Width, Length(fSubItemIdx[i]));
           try
              for j := 0 to Length(fSubItemIdx[i]) - 1 do
                  SubExamples.SetRow(j, Examples, fSubItemIdx[i][j]);

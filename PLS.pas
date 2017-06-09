@@ -24,7 +24,7 @@ Uses SysUtils, MatrixConst, Matrix, BaseMathPersistence;
 // #### Partial least squares   
 // ###########################################
 Type
-  TMatrixPLS = Class(TBaseMathPersistence)
+  TMatrixPLS = Class(TMatrixClass)
   private
     fSSQDif: TDoubleMatrix;
     fCW: TDoubleMatrix;
@@ -114,7 +114,7 @@ begin
        raise Exception.Create('Number of rows for input and output must be same!');
 
      // alloc ssq
-     LSSQ := TDoubleMatrix.Create(NComp, 2);
+     LSSQ := MatrixClass.Create(NComp, 2);
 
      //ssqx = sum(sum(xreg.^2)');
      Lssqx := ((Xreg.ElementWiseMult(Xreg) As IMatrix).Sum(FALSE) As IMatrix).Sum(TRUE);
@@ -125,10 +125,10 @@ begin
      //y = yreg;
      Ly := yreg.Clone;
      //I = eye(ncx);
-     LI := TDoubleMatrix.CreateEye(LNcx);
+     LI := MatrixClass.CreateEye(LNcx);
      //w = zeros(ncx,lv);
-     fW := TDoubleMatrix.Create(NComp, LNcx);
-     LR := TDoubleMatrix.Create(NComp, LNrx);
+     fW := MatrixClass.Create(NComp, LNcx);
+     LR := MatrixClass.Create(NComp, LNrx);
 
      //for i = 1:lv
      for i := 0 to NComp-1 do
@@ -165,7 +165,7 @@ begin
      fBeta := fW.Mult(fCW);
 
      //ssqdif = zeros(lv,2);
-     fSSQDif := TDoubleMatrix.Create(NComp, 2);
+     fSSQDif := MatrixClass.Create(NComp, 2);
      //ssqdif(1,1) = 100 - ssq(1,1);
      fSSQDif[0,0] := 100 - LSSQ[0,0];
      //ssqdif(1,2) = 100 - ssq(1,2);
@@ -189,7 +189,7 @@ begin
 
      //n = ncx / ninput;
      n := LNcx div NInput;
-     fTheta := TDoubleMatrix.Create(NInput, n);
+     fTheta := MatrixClass.Create(NInput, n);
      
      //for i = 1:ninput
      for i := 0 to NInput - 1 do

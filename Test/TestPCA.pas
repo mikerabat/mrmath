@@ -24,6 +24,7 @@ type
  published
    procedure TestPCASimple;
    procedure TestPCAImages;
+   procedure TestPCAImagesThreaded;
    procedure TestPCAIncremental;
    procedure TestPCAWeightedIncremental;
    procedure TestPCAWeighted;
@@ -36,7 +37,7 @@ implementation
 uses PCA,
      {$IFDEF MACOS} FMX.Types, {$ENDIF}
      Graphics, BinaryReaderWriter, BaseMathPersistence, IncrementalPCA,
-     JSONReaderWriter, MtxTimer;
+     JSONReaderWriter, MtxTimer, ThreadedMatrix;
 
 { TTestEigensystems }
 
@@ -257,7 +258,7 @@ var Examples : TDoubleMatrix;
     start, stop : Int64;
 begin
      Examples := LoadImages(w, h);
-     
+
      // ############################################
      // #### Calculate PCA on images
      with TMatrixPCA.Create([pcaEigVals, pcaMeanNormalizedData, pcaTransposedEigVec]) do
@@ -420,6 +421,54 @@ begin
 
      FreeAndNil(examples);
 end;
+
+procedure TTestPCA.TestPCAImagesThreaded;
+var Examples : TDoubleMatrix;
+    img : TDoubleMatrix;
+    feature : TDoubleMatrix;
+    w, h : integer;
+    i : integer;
+    start, stop : Int64;
+begin
+     Examples := LoadImages(w, h);
+
+     TThreadedMatrix.InitThreadPool;
+
+     // ############################################
+     // #### Calculate PCA on images
+     with TMatrixPCA.Create([pcaEigVals, pcaMeanNormalizedData, pcaTransposedEigVec]) do
+     try
+        MatrixClass := TThreadedMatrix;
+        start := MtxGetTime;
+        Check(PCA(Examples, 0.95, True) = True, 'Error in PCA');
+        stop := MtxGetTime;
+
+        Status(Format('PCA images took: %.3fms', [(stop - start)/mtxfreq*1000]));
+
+        // create a few examples along the first mode
+        feature := TDoubleMatrix.Create(1, NumModes);
+        try
+           for i in [0, 1, 2, 3, 4 ] do
+           begin
+                feature[0, 0] := (i - 2)*sqrt(EigVals[0,0]);
+                img := Reconstruct(feature);
+                try
+                   ImageFromMatrix(img, w, h, Format('%s\bmp1t_%d.bmp', [ExtractFilePath(ParamStr(0)), i - 2]));
+                finally
+                       img.Free;
+                end;
+           end;
+        finally
+               feature.Free;
+        end;
+     finally
+            Free;
+     end;
+
+     FreeAndNil(examples);
+     TThreadedMatrix.FinalizeThreadPool;
+end;
+
 
 initialization
   RegisterTest(TTestPCA{$IFNDEF FPC}.Suite{$ENDIF});

@@ -50,7 +50,7 @@ type
   end;
 
 type
-  TMatrixICA = class(TBaseMathPersistence)
+  TMatrixICA = class(TMatrixClass)
   private
     fProps : TICAProps;
 
@@ -200,7 +200,7 @@ begin
         whiteMtx.UseFullMatrix;
         deWhiteMtx.UseFullMatrix;
 
-        whiteImg := TDoubleMatrix.Create(Examples.Width, pca.EigVecs.Width);
+        whiteImg := MatrixClass.Create(Examples.Width, pca.EigVecs.Width);
         for counter := 0 to Examples.Width - 1 do
         begin
              Examples.SetSubMatrix(counter, 0, 1, Examples.Height);
@@ -229,14 +229,14 @@ begin
      // initial guess
 
      // orthogonalize random init
-     hlp := TDoubleMatrix.CreateRand(Min(whiteImg.Width, fProps.NumIC), whiteImg.Height);
+     hlp := MatrixClass.CreateRand(Min(whiteImg.Width, fProps.NumIC), whiteImg.Height);
      hlp.AddInplace(-0.5);
-     // it's not as stable as svd but faster and since we are dealing with random inits 
+     // it's not as stable as svd but faster and since we are dealing with random inits
      // the rank is normally full
-     hlp.QRFull(B, hlp2);  
-     
-     Bold := TDoubleMatrix.Create(B.Width, B.Height);
-     Bold2 := TDoubleMatrix.Create(B.Width, B.Height);
+     hlp.QRFull(B, hlp2);
+
+     Bold := MatrixClass.Create(B.Width, B.Height);
+     Bold2 := MatrixClass.Create(B.Width, B.Height);
 
      // iteration
      counter := 0;
@@ -363,10 +363,10 @@ begin
         mx := WhitenData(pca.EigVecsT, wz);
 
         numOfBlocks := Examples.Height div fProps.BlockSize;
-        mIdentMatB := TDoubleMatrix.CreateEye(Examples.Width);
+        mIdentMatB := MatrixClass.CreateEye(Examples.Width);
         mIdentMatB.ScaleInPlace(fProps.BlockSize);
 
-        mw := TDoubleMatrix.CreateEye(Examples.Width);
+        mw := MatrixClass.CreateEye(Examples.Width);
 
         annealingIdx := 0;
         if not fProps.Annealing then
@@ -498,9 +498,9 @@ begin
           Result := X.Mult(hypTan);
           Result.ScaleInPlace(1/x.Width);
      
-          hlp := TDoubleMatrix.Create(1, B.Height, 1);
+          hlp := MatrixClass.Create(1, B.Height, 1);
 
-          hlp1 := TDoubleMatrix.Create(hypTan.Width, hypTan.Height, 1);
+          hlp1 := MatrixClass.Create(hypTan.Width, hypTan.Height, 1);
           hypTan.ElementWiseMultInPlace(hypTan);
           hlp1.SubInPlace(hypTan);
           hlp1.SumInPlace(False);
@@ -570,7 +570,7 @@ begin
           Result := X.Mult(hlp);
           Result.ScaleInPlace(1/x.Width);
 
-          hlp := TDoubleMatrix.Create(1, B.Height, 1);
+          hlp := MatrixClass.Create(1, B.Height, 1);
           hlpSqr.SumInPlace(False);
           hlp.MultInPlace(hlpSqr);
           hlp.ElementWiseMultInPlace(B);

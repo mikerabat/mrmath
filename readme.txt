@@ -53,6 +53,12 @@ Gustav Kaiser - special thanks for implementing the PLS algorithm.
 
 // ###################################################################
 changelog:
+Date: 09.06.2017
+* Introduced a new base class that easily allows to change the matrix implementation used for
+  PCA, CCA, PLS, ICA, NMF. (e.g. from single core to multithreaded)
+* Fixed an inconvenience in the threaded LU decomposition on small matrices and updated the 
+  invocation procedure.
+
 Date: 30.05.2017
 * ASM Version of the combined mean and variance implementation
 

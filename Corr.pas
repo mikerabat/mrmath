@@ -20,7 +20,7 @@ uses SysUtils, Math, MatrixConst, Matrix, BaseMathPersistence, Types;
 
 // standard simple linear correlation method:
 type
-  TCorrelation = class(TObject)
+  TCorrelation = class(TMatrixClass)
   protected
     function InternalCorrelate(w1, w2 : IMatrix) : double;
   public
@@ -121,7 +121,7 @@ begin
      if x.Width*x.Height <> y.Width*y.Height then
         raise Exception.Create('Error length of x and y must be the same');
 
-     xc := TDoubleMatrix.Create(2, x.Width*x.Height);
+     xc := MatrixClass.Create(2, x.Width*x.Height);
 
      // build matrix with 2 columns
      if x.Width = 1 
@@ -150,7 +150,7 @@ var aMean : IMatrix;
 begin
      aMean := A.Mean(False);
 
-     ac := TDoubleMatrix.Create(A.Width, A.Height);
+     ac := MatrixClass.Create(A.Width, A.Height);
      for m := 0 to A.Height - 1 do
      begin
           ac.SetSubMatrix(0, m, ac.Width, 1);
@@ -217,11 +217,11 @@ begin
      // #### Prepare memory
      if not Assigned(fd) or (fd.Width <> t.Width) or (fd.Height <> r.Width) then
      begin
-          fd := TDoubleMatrix.Create( t.Width, r.Width );
-          fAccDist := TDoubleMatrix.Create(t.Width, r.Width);
+          fd := MatrixClass.Create( t.Width, r.Width );
+          fAccDist := MatrixClass.Create(t.Width, r.Width);
           SetLength(fWindow, 2*max(r.Width, t.Width));
-          fW1 := TDoubleMatrix.Create(Length(fWindow), 1);
-          fW2 := TDoubleMatrix.Create(Length(fWindow), 1);
+          fW1 := MatrixClass.Create(Length(fWindow), 1);
+          fW2 := MatrixClass.Create(Length(fWindow), 1);
      end;
      fNumW := 0;
 
@@ -356,8 +356,8 @@ begin
      // #### Build result
      if not Assigned(fW1) then
      begin
-          fW1 := TDoubleMatrix.Create(fNumPath, 1);
-          fW2 := TDoubleMatrix.Create(fNumPath, 1);
+          fW1 := MatrixClass.Create(fNumPath, 1);
+          fW2 := MatrixClass.Create(fNumPath, 1);
      end;
      fW1.UseFullMatrix;
      fW2.UseFullMatrix;

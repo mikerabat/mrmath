@@ -153,7 +153,7 @@ uses Math, MatrixConst, MathUtilFunc;
 
 // implements the update Eigenspace functions and holds references to all necessary data structures
 type
-  TSubspaceUpdater = class(TObject)
+  TSubspaceUpdater = class(TMatrixClass)
   private
     fNumEigenvectorsToKeep : integer;
     fEigVecs : TDoubleMatrix;
@@ -243,7 +243,7 @@ begin
         r.ScaleInPlace(1/normR);
 
         // append new basis vector to u
-        u1 := TDoubleMatrix.Create(fEigVecs.Width + 1, fEigVecs.Height);
+        u1 := MatrixClass.Create(fEigVecs.Width + 1, fEigVecs.Height);
         for x := 0 to fEigVecs.Width - 1 do
             u1.SetColumn(x, fEigVecs, x);
         u1.SetColumn(u1.Width - 1, r);
@@ -251,7 +251,7 @@ begin
         FreeAndNil(r);
 
         // append new value in feature space
-        a1 := TDoubleMatrix.Create(fA.Width + 1, fA.Height + 1);
+        a1 := MatrixClass.Create(fA.Width + 1, fA.Height + 1);
         a1.SetSubMatrix(0, 0, a1.Width, a1.Height - 1);
         for x := 0 to fA.Width - 1 do
             a1.SetColumn(x, fA, x);
@@ -299,7 +299,7 @@ begin
            // discard the last eigenvector -> keep the basis constant
            if (fNumEigenvectorsToKeep > 0) and (fEigVecs.Width > fNumEigenvectorsToKeep) then
            begin
-                temp := TDoubleMatrix.Create;
+                temp := MatrixClass.Create;
                 fEigVecs.SetSubMatrix(0, 0, fEigVecs.Width - 1, fEigVecs.Height);
                 temp.Assign(fEigVecs, True);
                 FreeAndNil(fEigVecs);
@@ -344,11 +344,11 @@ begin
      try
         // #########################################################
         // #### Calculate the coefficients considering the spacial weights
-        rootWeights := TDoubleMatrix.Create(1, Length(spacialWeights));
+        rootWeights := MatrixClass.Create(1, Length(spacialWeights));
         for y := 0 to rootWeights.Height - 1 do
             rootWeights[0, y] := sqrt(spacialWeights[y]);
 
-        uPinv := TDoubleMatrix.Create;
+        uPinv := MatrixClass.Create;
         uPinv.Assign(fEigVecs);
 
         // elementwise multiply the elements of U with the spacial weights
@@ -383,7 +383,7 @@ begin
 
         // ############################################################
         // #### Blend the input and the reconstructed image considering the spatial weights
-        Result := TDoubleMatrix.Create(1, mtx.Height);
+        Result := MatrixClass.Create(1, mtx.Height);
 
         for y := 0 to Result.Height - 1 do
             Result[0, y] := mtx[0, y]*spacialWeights[y] + residual[0, y]*(1 - spacialWeights[y]);
@@ -538,7 +538,7 @@ end;
 function TIncrementalPCA.GetA: TDoubleMatrix;
 begin
      if not Assigned(fA) then
-        fA := TDoubleMatrix.Create;
+        fA := MatrixClass.Create;
 
      Result := fA;
 end;
@@ -673,13 +673,13 @@ begin
 
      if not Assigned(fMeanElem) then
      begin
-          fMeanElem := TDoubleMatrix.Create;
+          fMeanElem := MatrixClass.Create;
           fMeanElem.Assign(mtx, True);
-          fEigVecs := TDoubleMatrix.Create(1, mtx.Height);
-          fA := TDoubleMatrix.Create(1, 1);
+          fEigVecs := MatrixClass.Create(1, mtx.Height);
+          fA := MatrixClass.Create(1, 1);
 
           if pcaEigVals in fKeepFlags then
-             fEigVals := TDoubleMatrix.Create(1, 1);
+             fEigVals := MatrixClass.Create(1, 1);
 
           exit;
      end;
@@ -688,6 +688,7 @@ begin
      // #### Execute the generic eigenspace update
      updater := TSubspaceUpdater.Create(fNumEigenvectorsToKeep);
      try
+        updater.MatrixClass := MatrixClass;
         Result := updater.UpdateEigenspace(mtx, fEigVecs, fEigVals, fMeanElem, fA);
      finally
             updater.Free;
@@ -704,13 +705,13 @@ begin
 
      if not Assigned(fMeanElem) then
      begin
-          fMeanElem := TDoubleMatrix.Create;
+          fMeanElem := MatrixClass.Create;
           fMeanElem.Assign(mtx, True);
-          fEigVecs := TDoubleMatrix.Create(1, mtx.Height);
-          fA := TDoubleMatrix.Create(1, 1);
+          fEigVecs := MatrixClass.Create(1, mtx.Height);
+          fA := MatrixClass.Create(1, 1);
 
           if pcaEigVals in fKeepFlags then
-             fEigVals := TDoubleMatrix.Create(1, 1);
+             fEigVals := MatrixClass.Create(1, 1);
 
           exit;
      end;
@@ -719,6 +720,7 @@ begin
      // #### Use the subspace updater:
      updater := TSubspaceUpdater.Create(fNumEigenvectorsToKeep);
      try
+        updater.MatrixClass := MatrixClass;
         Result := updater.UpdateEigenspace(mtx, spacialWeights, fEigVecs, fEigVals, fMeanElem, fA);
      finally
             updater.Free;
@@ -737,13 +739,13 @@ begin
 
      if not Assigned(fMeanElem) then
      begin
-          fMeanElem := TDoubleMatrix.Create;
+          fMeanElem := MatrixClass.Create;
           fMeanElem.Assign(mtx, True);
-          fEigVecs := TDoubleMatrix.Create(1, mtx.Height);
-          fA := TDoubleMatrix.Create(1, 1);
+          fEigVecs := MatrixClass.Create(1, mtx.Height);
+          fA := MatrixClass.Create(1, 1);
 
           if pcaEigVals in fKeepFlags then
-             fEigVals := TDoubleMatrix.Create(1, 1);
+             fEigVals := MatrixClass.Create(1, 1);
 
           exit;
      end;
@@ -752,6 +754,7 @@ begin
      // #### Use the subspace updater:
      updater := TSubspaceUpdater.Create(fNumEigenvectorsToKeep);
      try
+        updater.MatrixClass := MatrixClass;
         Result := updater.UpdateEigenspaceWeighted(mtx, fWeights, fNumWeights, spacialWeights, fEigVecs, fEigVals, fMeanElem, fA);
      finally
             updater.Free;
@@ -769,13 +772,13 @@ begin
 
      if not Assigned(fMeanElem) then
      begin
-          fMeanElem := TDoubleMatrix.Create;
+          fMeanElem := MatrixClass.Create;
           fMeanElem.Assign(mtx, True);
-          fEigVecs := TDoubleMatrix.Create(1, mtx.Height);
-          fA := TDoubleMatrix.Create(1, 1);
+          fEigVecs := MatrixClass.Create(1, mtx.Height);
+          fA := MatrixClass.Create(1, 1);
 
           if pcaEigVals in fKeepFlags then
-             fEigVals := TDoubleMatrix.Create(1, 1);
+             fEigVals := MatrixClass.Create(1, 1);
 
           exit;
      end;
@@ -784,6 +787,7 @@ begin
      // #### Use the subspace updater:
      updater := TSubspaceUpdater.Create(fNumEigenvectorsToKeep);
      try
+        updater.MatrixClass := MatrixClass;
         Result := updater.UpdateEigenspaceWeighted(mtx, fWeights, fNumWeights, fEigVecs, fEigVals, fMeanElem, fA);
      finally
             updater.Free;
@@ -820,7 +824,7 @@ begin
      SetLength(fSubA, fProps.NumSubSubSpaces);
      for idx := 0 to Length(fSubEigVecs) - 1 do
      begin
-          x := TDoubleMatrix.Create(Examples.Width, fSubMeanElem[idx].Height);
+          x := MatrixClass.Create(Examples.Width, fSubMeanElem[idx].Height);
           try
              // project to feature space
              for j := 0 to Examples.Width - 1 do
@@ -1150,7 +1154,7 @@ begin
              if fSubItemIdx[i] = nil then
                 fSubItemIdx[i] := GenerateSampleList(mtx.Height, i);
 
-             SubExample := TDoubleMatrix.Create(mtx.Width, Length(fSubItemIdx[i]));
+             SubExample := MatrixClass.Create(mtx.Width, Length(fSubItemIdx[i]));
              try
                 if Length(spacialWeights) > 0 then
                 begin
@@ -1167,20 +1171,21 @@ begin
 
                 if not Assigned(fMeanElem) then
                 begin
-                     fSubMeanElem[i] := TDoubleMatrix.Create;
+                     fSubMeanElem[i] := MatrixClass.Create;
                      fSubMeanElem[i].Assign(SubExample, True);
-                     fSubEigVecs[i] := TDoubleMatrix.Create(1, SubExample.Height);
-                     fSubA[i] := TDoubleMatrix.Create(1, 1);
+                     fSubEigVecs[i] := MatrixClass.Create(1, SubExample.Height);
+                     fSubA[i] := MatrixClass.Create(1, 1);
 
                      if pcaEigVals in fKeepFlags then
-                        fSubEigVals[i] := TDoubleMatrix.Create(1, 1);
+                        fSubEigVals[i] := MatrixClass.Create(1, 1);
                      if pcaTransposedEigVec in fKeepFlags then
-                        fSubEigVecsT[i] := TDoubleMatrix.Create(1, mtx.Height);
+                        fSubEigVecsT[i] := MatrixClass.Create(1, mtx.Height);
                 end
                 else
                 begin
                      pcaUpdater := TSubspaceUpdater.Create(fNumEigenvectorsToKeep);
                      try
+                        pcaUpdater.MatrixClass := MatrixClass;
                         example := SubExample;
                         try
                            if Length(spacialWeights) <> 0 then
@@ -1220,14 +1225,14 @@ begin
 
         if not Assigned(fMeanElem) then
         begin
-             fMeanElem := TDoubleMatrix.Create;
+             fMeanElem := MatrixClass.Create;
              fMeanElem.Assign(mtx, True);
-             fEigVecs := TDoubleMatrix.Create(1, mtx.Height);
-             fA := TDoubleMatrix.Create(1, 1);
+             fEigVecs := MatrixClass.Create(1, mtx.Height);
+             fA := MatrixClass.Create(1, 1);
 
              fEigVals := nil;
              if pcaEigVals in fKeepFlags then
-                fEigVals := TDoubleMatrix.Create(1, 1);
+                fEigVals := MatrixClass.Create(1, 1);
 
              exit;
         end;
@@ -1236,6 +1241,7 @@ begin
         // #### Execute the generic eigenspace update
         pcaUpdater := TSubspaceUpdater.Create(fNumEigenvectorsToKeep);
         try
+           pcaUpdater.MatrixClass := MatrixClass;
            example := mtx;
            try
               if Length(spacialWeights) <> 0 then

@@ -23,6 +23,7 @@ type
   TTestCCA = class(TBaseImgTestCase)
   published
     procedure TestCCAImages;
+    procedure TestCCAThreadedImg;
     procedure TestCCAPersistence;
   end;
 
@@ -37,7 +38,7 @@ type
 implementation
 
 uses CCA, Math, Matrix, PLS, BinaryReaderWriter, BaseMathPersistence, 
-     JSONReaderWriter;
+     JSONReaderWriter, ThreadedMatrix, MtxTimer;
 
 { TTestCCA }
 
@@ -45,6 +46,7 @@ procedure TTestCCA.TestCCAImages;
 var x, y : TDoubleMatrix;
     w, h, i : integer;
     yp : IMatrix;
+    start, stop : int64;
 begin
      // load images
      x := LoadImages(w, h, 'CCATest', '*.bmp');
@@ -57,11 +59,18 @@ begin
           y[i, 1] := cos(i*12*pi/180);
      end;
 
-     with TMatrixCCA.Create(X, Y) do
+     with TMatrixCCA.Create do
      try
+        start := MtxGetTime;
+        CCA(X, Y);
+        stop := MtxGetTime;
+
+        Status(Format('CCA images took: %.3fms', [(stop - start)/mtxfreq*1000]));
+
+
         Check(SameValue(R[0, 0], 0.9999, 0.0001), 'Error computation of R failed');
         Check(SameValue(R[0, 1], 0.9999, 0.0001), 'Error computation of R failed');
-        
+
         Check((WyT.Height = WyT.Width) and (WyT.Width = 2), 'Dimension error');
 
         // ###########################################
@@ -99,7 +108,8 @@ begin
           y[i, 1] := cos(i*12*pi/180);
      end;
 
-     ccaObj := TMatrixCCA.Create(X, Y);
+     ccaObj := TMatrixCCA.Create;
+     ccaObj.CCA(X, Y);
      TBinaryReaderWriter.StaticSaveToFile(ccaObj, 'cca.txt');
 
      ccaObjRestore := ReadObjFromFile( 'cca.txt' ) as TMatrixCCA;   
@@ -114,6 +124,60 @@ begin
      x.Free;
      y.Free;
 end;
+
+procedure TTestCCA.TestCCAThreadedImg;
+var x, y : TDoubleMatrix;
+    w, h, i : integer;
+    yp : IMatrix;
+    start, stop : int64;
+begin
+     // load images
+     x := LoadImages(w, h, 'CCATest', '*.bmp');
+
+     // training orientations
+     y := TDoubleMatrix.Create(360 div 12, 2);
+     for i := 0 to y.Width - 1 do
+     begin
+          y[i, 0] := sin(i*12*pi/180);
+          y[i, 1] := cos(i*12*pi/180);
+     end;
+
+     TThreadedMatrix.InitThreadPool;
+
+     with TMatrixCCA.Create do
+     try
+        MatrixClass := TThreadedMatrix;
+        start := MtxGetTime;
+        CCA(X, Y);
+        stop := MtxGetTime;
+
+        Status(Format('CCA images took: %.3fms', [(stop - start)/mtxfreq*1000]));
+
+        Check(SameValue(R[0, 0], 0.9999, 0.0001), 'Error computation of R failed');
+        Check(SameValue(R[0, 1], 0.9999, 0.0001), 'Error computation of R failed');
+
+        Check((WyT.Height = WyT.Width) and (WyT.Width = 2), 'Dimension error');
+
+        // ###########################################
+        // #### Test projection
+        for i := 0 to x.Width - 1 do
+        begin
+             X.SetSubMatrix(i, 0, 1, X.Height);
+             Y.SetSubMatrix(i, 0, 1, Y.Height);
+             yp := Project(X);
+
+             Check( CheckMtx( yp.SubMatrix, y.SubMatrix, -1, -1, 1e-1 ), 'Projections not accurate');
+        end;
+     finally
+            Free;
+     end;
+
+     TThreadedMatrix.FinalizeThreadPool;
+
+     x.Free;
+     y.Free;
+end;
+
 
 { TTestPLS }
 

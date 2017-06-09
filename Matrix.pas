@@ -506,9 +506,28 @@ type
 type
   TDoubleMatrixDynArr = Array of TDoubleMatrix;
 
+// default class used in derrived methods like in the global subspace methdos:
+// override the class value to use different matrix class implementations
+// e.g. the threaded version
+type
+  TMatrixClass = class(TBaseMathPersistence)
+  private
+    fMatrixClass : TDoubleMatrixClass;
+    function GetMtxClass: TDoubleMatrixClass;
+    procedure SetMtxClass(const Value: TDoubleMatrixClass);
+  protected
+    procedure DefineProps; override;
+  public
+    property MatrixClass : TDoubleMatrixClass read GetMtxClass write SetMtxClass;
+
+    class var DefMatrixClass : TDoubleMatrixClass;
+    class constructor Create;
+  end;
+
+
 implementation
 
-uses Math, OptimizedFuncs, Eigensystems, LinAlgSVD, LinAlgQR, BlockSizeSetup, LinAlgCholesky, 
+uses Math, OptimizedFuncs, Eigensystems, LinAlgSVD, LinAlgQR, BlockSizeSetup, LinAlgCholesky,
      LinAlgLU;
 
 
@@ -2569,6 +2588,31 @@ begin
 
      SetWidthHeight(W, H);
      MatrixCopy(StartElement, LineWidth, @Mtx[0], W*sizeof(double), W, H);
+end;
+
+{ TMatrixClass }
+
+class constructor TMatrixClass.Create;
+begin
+     DefMatrixClass := TDoubleMatrix;
+end;
+
+function TMatrixClass.GetMtxClass: TDoubleMatrixClass;
+begin
+     Result := fMatrixClass;
+     if Result = nil then
+        Result := DefMatrixClass;
+end;
+
+procedure TMatrixClass.SetMtxClass(const Value: TDoubleMatrixClass);
+begin
+     fMatrixClass := Value;
+end;
+
+procedure TMatrixClass.DefineProps;
+begin
+     inherited;
+     // do nothing here
 end;
 
 initialization

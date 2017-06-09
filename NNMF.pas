@@ -38,7 +38,7 @@ type
   ENMFException = class(EBaseMatrixException);
   TNMFProgress = procedure(Sender : TObject; progress : integer) of Object;
   TNMFRes = (nmOk, nmFloatingPointPrecReached, nmFailed);
-  TNNMF = class(TBaseMathPersistence)
+  TNNMF = class(TMatrixClass)
   private
     fProps : TNNMFProps;
     fH: TDoubleMatrix;
@@ -164,7 +164,7 @@ begin
      // ###########################################
      // #### Randomly initialize matrices
      try
-        fW := TDoubleMatrix.Create(RankOfBasis, lenOfEigVec);
+        fW := MatrixClass.Create(RankOfBasis, lenOfEigVec);
         fW.ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}randFunc);
 
         sumW := fW.Sum(False);
@@ -176,7 +176,7 @@ begin
         fW.UseFullMatrix;
         sumW := nil;
 
-        fH := TDoubleMatrix.Create(NumOfEigVec, RankOfBasis);
+        fH := MatrixClass.Create(NumOfEigVec, RankOfBasis);
         fH.ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}randFunc);
 
         if ( fProps.UseLastResIfFail ) and (fProps.method <> nnmfAlternateLeastSquare ) then

@@ -630,24 +630,47 @@ var i: TASMNativeInt;
     calls : IMtxAsyncCallGroup;
     wSize : integer;
     thrSize : Integer;
+    objs : Array[0..63] of TAsyncMatrixUSubst;
+    numUsed : integer;
 begin
-     calls := MtxInitTaskGroup;
+     // ######################################################
+     // #### prepare objs
+     numUsed := 0;
 
-     thrSize := width div numCPUCores + Integer((width mod numCPUCores) <> 0);
+     thrSize := Max(32, width div numCPUCores + Integer((width mod numCPUCores) <> 0));
 
      for i := 0 to numCPUCores - 1 do
      begin
           wSize := thrSize;
-          if i = numCPUCores - 1 then
+          if wSize*(i + 1) >= width then
              wSize := width - i*thrSize;
 
           obj := TAsyncMatrixUSubst.Create(A, wSize, height, B, LineWidth);
-          calls.AddTask(@MatrixLUBacksupFunc, obj);
+          objs[numUsed] := obj;
+          inc(numUsed);
+
+          if thrSize*(i + 1) >= width then
+             break;
 
           inc(B, thrSize);
      end;
 
-     calls.SyncAll;
+     if numUsed = 0 then
+        exit;
+
+     // #######################################################
+     // #### execute tasks
+     if numUsed > 1 then
+        calls := MtxInitTaskGroup;
+
+     for i := 0 to numUsed - 2 do
+         calls.AddTask(@MatrixLUBacksupFunc, objs[i]);
+
+     MatrixLUBacksupFunc(objs[numUsed - 1]);
+     objs[numUsed - 1].Free;
+
+     if numUsed > 1 then
+        calls.SyncAll;
 end;
 
 function InternalThrMatrixLUDecomp(A : PDouble; width, height : integer;
@@ -841,8 +864,10 @@ var Y : PDouble;
     w : integer;
     thrSize : integer;
     wSize : integer;
-    obj : TAsyncMatrixLUBacksup;
+    objs : Array[0..63] of TAsyncMatrixLUBacksup;
+    numUsed : integer;
     calls : IMtxAsyncCallGroup;
+    obj : TAsyncMatrixLUBacksup;
 begin
      Assert(lineWidthA >= width*sizeof(double), 'Dimension Error');
      Assert(width > 0, 'Dimension error');
@@ -861,30 +886,49 @@ begin
           exit;
      end;
 
-     calls := MtxInitTaskGroup;
+     numUsed := 0;
 
-     thrSize := width div numCPUCores + Integer((width mod numCPUCores) <> 0);
+     // at least 32 blocks
+     thrSize := Max(32, width div numCPUCores + Integer((width mod numCPUCores) <> 0));
 
+     // ############################################################
+     // #### prepare tasks
      for i := 0 to numCPUCores - 1 do
      begin
           wSize := thrSize;
-          if i = numCPUCores - 1 then
+          if wSize*(i+1) > width then
              wSize := width - i*thrSize;
 
           obj := TAsyncMatrixLUBacksup.Create;
           obj.A := Y;
           obj.lineWidthA := w*sizeof(double);
-          obj.width := wSize;
+          obj.width := Min(wSize, width);
           obj.height := width;
           obj.offset := i*thrSize;
           obj.B := A;
           obj.LineWidthB := LineWidthA;
           obj.indx := @indx[0];
 
-          calls.AddTask(@MatrixLUInvertCall, obj);
+          objs[numUsed] := obj;
+          inc(numUsed);
+
+          if (i + 1)*thrSize >= width then
+             break;
      end;
 
-     calls.SyncAll;
+     // ################################################
+     // #### Execute tasks
+     if numUsed > 1 then
+        calls := MtxInitTaskGroup;
+
+     for i := 0 to numUsed - 2 do
+         calls.AddTask(@MatrixLUInvertCall, objs[i]);
+
+     MatrixLUInvertCall(objs[numUsed - 1]);
+     objs[numUsed - 1].Free;
+
+     if numUsed > 1 then
+        calls.SyncAll;
 
      FreeMem(Y);
 end;
