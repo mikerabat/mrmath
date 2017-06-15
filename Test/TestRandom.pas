@@ -37,7 +37,7 @@ type
 
 implementation
 
-uses RandomEng, CPUFeatures, MtxTimer;
+uses RandomEng, CPUFeatures, MtxTimer, MathUtilFunc;
 
 const cNumRandNum = 1000000;
 
@@ -105,7 +105,11 @@ var s : AnsiString;
     gen : TRandomGenerator;
     cnt : integer;
     buf1, buf2 : TByteDynArray;
+    ft : TFormatSettings;
 begin
+     ft := GetLocalFMTSet;
+     ft.DecimalSeparator := '.';
+
      // produce the exact same output as in mt19937ar.c
      gen := TRandomGenerator.Create;
 
@@ -120,7 +124,7 @@ begin
         for cnt := 0 to 200 - 1 do
         begin
              s := AnsiString( Format('%10u %10u %10u %10u %10u ' + #13#10, [gen.RandLW($FFFFFFFF) ,
-                         gen.RandLW($FFFFFFFF), gen.RandLW($FFFFFFFF), gen.RandLW($FFFFFFFF), gen.RandLW($FFFFFFFF)]));
+                         gen.RandLW($FFFFFFFF), gen.RandLW($FFFFFFFF), gen.RandLW($FFFFFFFF), gen.RandLW($FFFFFFFF)], ft));
              WriteBuffer(s[1], Length(s));
         end;
 
@@ -128,7 +132,7 @@ begin
         WriteBuffer(s[1], Length(s));
         for cnt := 0 to 200 - 1 do
         begin
-             s := AnsiString( Format('%10.8f %10.8f %10.8f %10.8f %10.8f ' + #13#10, [gen.Random, gen.Random, gen.Random, gen.Random, gen.Random]));
+             s := AnsiString( Format('%10.8f %10.8f %10.8f %10.8f %10.8f ' + #13#10, [gen.Random, gen.Random, gen.Random, gen.Random, gen.Random], ft));
              WriteBuffer(s[1], Length(s));
         end;
      finally

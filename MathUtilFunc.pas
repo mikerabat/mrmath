@@ -21,7 +21,7 @@ unit MathUtilFunc;
 
 interface
 
-uses Types, MatrixConst;
+uses Types, MatrixConst, SysUtils;
 
 {$WRITEABLECONST ON}
 
@@ -62,9 +62,11 @@ function Factorial(n : integer) : Int64;
 // gamma: gamma(x) = integral from 0 to inf of t^(x-1) exp(-t) dt.
 function Gamma(x : double) : double;
 
+function GetLocalFMTSet : TFormatSettings;
+
 implementation
 
-uses SysUtils, Math, Classes;
+uses Math, Classes;
 
 // ##########################################
 // #### utility function implementation
@@ -280,17 +282,22 @@ begin
          Result := -abs(a);
 end;
 
+function GetLocalFMTSet : TFormatSettings;
+begin
+     {$IF DEFINED(FPC) or (CompilerVersion <= 21)}
+     GetLocaleFormatSettings(0, Result);
+     {$ELSE}
+     Result := TFormatSettings.Create;
+     {$IFEND}
+end;
+
 // writes the matrix such that matlab can read it nicely
 procedure WriteMtlMtx(const fileName : string; const mtx : TDoubleDynArray; width : integer; prec : integer = 8);
 var s : UTF8String;
     x, y : integer;
     ft : TFormatSettings;    
 begin
-     {$IF DEFINED(FPC) or (CompilerVersion <= 21)}
-     GetLocaleFormatSettings(0, ft);
-     {$ELSE}
-     ft := TFormatSettings.Create;
-     {$IFEND}
+     ft := GetLocalFMTSet;
 
      ft.DecimalSeparator := '.';
 
