@@ -91,7 +91,7 @@ initialization
   begin
        try
           try
-             logicalInfoProc := GetProcAddress( dllHdl, 'GetLogicalProcessorInformation');
+             logicalInfoProc := TLogicalProcessorInfProc(GetProcAddress( dllHdl, 'GetLogicalProcessorInformation'));
 
              if Assigned(logicalInfoProc) then
              begin

@@ -113,7 +113,7 @@ type
   
 implementation
 
-uses SysUtils, CPUFeatures, Math, Classes, MtxTimer, winRandomGen, MacOSRandomGen;
+uses SysUtils, CPUFeatures, Math, Classes, MtxTimer{$IFDEF MSWINDOWS}, winRandomGen {$ELSE}, MacOSRandomGen {$ENDIF};
 
 const two2neg32: double = ((1.0/$10000) / $10000);  // 2^-32
 

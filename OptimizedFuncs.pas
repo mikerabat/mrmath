@@ -237,7 +237,7 @@ uses ASMMatrixOperations,
      ASMMatrixRotationsx64, ASMMoveOperationsx64, ASMMatrixAddSubOperationsx64,
      ASMMatrixTransposeOperationsx64,
      {$ENDIF}
-     BlockSizeSetup, SimpleMatrixOperations, CPUFeatures, MatrixRotations;
+     BlockSizeSetup, SimpleMatrixOperations, CPUFeatures, MatrixRotations, corr;
 
 var actUseSSEoptions : boolean;
     actUseStrassenMult : boolean;
@@ -1019,6 +1019,8 @@ begin
           PlaneRotSeqLVB := {$IFDEF FPC}@{$ENDIF}ASMApplyPlaneRotSeqLVB;
           PlaneRotSeqLVF := {$IFDEF FPC}@{$ENDIF}ASMApplyPlaneRotSeqLVF;
           memInitFunc := {$IFDEF FPC}@{$ENDIF}ASMInitMemAligned;
+
+          TDynamicTimeWarp.UseSSE := True;
      end
      else
      begin
@@ -1068,6 +1070,8 @@ begin
           PlaneRotSeqLVB := {$IFDEF FPC}@{$ENDIF}GenericApplyPlaneRotSeqLVB;
           PlaneRotSeqLVF := {$IFDEF FPC}@{$ENDIF}GenericApplyPlaneRotSeqLVF;
           memInitFunc := {$IFDEF FPC}@{$ENDIF}GenericInitMemAligned;
+
+          TDynamicTimeWarp.UseSSE := False
      end;
 
      matrixMedianFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMedian;

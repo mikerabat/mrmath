@@ -440,14 +440,15 @@ type
     function SolveLeastSquares(out x : TDoubleMatrix; b : TDoubleMatrix) : TQRResult; overload; virtual;
     function SolveLeastSquares(out x : IMatrix; b : IMatrix) : TQRResult; overload;
 
-    // Matrix inversion (via LU decomposition
+    // Matrix inversion (via LU decomposition)
     function InvertInPlace : TLinEquResult; virtual;
     function Invert : TDoubleMatrix; virtual;
+    function Determinant : double; virtual;
+
+    // pseudoinversion via svd
     function PseudoInversionInPlace : TSVDResult;
     function PseudoInversion(out Mtx : TDoubleMatrix) : TSVDResult; overload;
     function PseudoInversion(out Mtx : IMatrix) : TSVDResult; overload;
-
-    function Determinant : double; virtual;
 
     // ###################################################
     // #### Special functions
@@ -2611,7 +2612,6 @@ end;
 
 procedure TMatrixClass.DefineProps;
 begin
-     inherited;
      // do nothing here
 end;
 

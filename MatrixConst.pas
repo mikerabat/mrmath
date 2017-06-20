@@ -35,6 +35,7 @@ const cDefEpsilon : double = 1e-20;
       cMinusOne : double = -1;
       cOne : double = 1;
       cOnes : Array[0..1] of double = (1, 1);
+      cDivBy2 : Array[0..1] of double = (0.5, 0.5);
 
       cSignBits : Array[0..1] of int64 = ($7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF);
       cNegMaxDouble : double = -1.7e+308;

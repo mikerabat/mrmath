@@ -37,6 +37,8 @@ type
 //    FastDTW: Toward Accurate Dynamic Time Warping in Linear Time and Space 
 type
   TDynamicTimeWarpDistMethod = (dtwSquared, dtwAbsolute, dtwSymKullbackLeibler);
+  TDynamicTimeWarepReduceFunc = procedure (X : PConstDoubleArr; inLen, inOffset : TASMNativeInt; out newLen, newOffset : TASMNativeInt) of object;
+
   TDynamicTimeWarp = class(TCorrelation)
   private
     type
@@ -51,13 +53,17 @@ type
   private
     fd : IMatrix;
     fAccDist : IMatrix;
-    fW1, fW2 : IMatrix;  
+    fW1, fW2 : IMatrix;
     fNumW : integer;
     fMaxSearchWin : integer;
     fMethod : TDynamicTimeWarpDistMethod;
 
-    fX : TDoubleDynArray;
-    fY : TDoubleDynArray;
+    fMemX : IMatrix;       // holds the aligned memory 
+    fMemY : IMatrix;
+    
+    fX : PConstDoubleArr;  // fast access to fMemx and fMemY (sse aligned)
+    fY : PConstDoubleArr;
+    
     fWindow : Array of TCoordRec; // pairs of x and y indices. Used in dtw and fastdtw
     fDistIdx : Array of TDistRec;
     fPath : Array of TCoordRec;    // i, j that build up the path
@@ -65,28 +71,49 @@ type
 
     fMaxPathLen : integer;
     fMaxWinLen : integer;
-    
+
+    fReduceByHalf : TDynamicTimeWarepReduceFunc;
+
     // fastdtw implementation based on the python package on: https://pypi.python.org/pypi/fastdtw
     // and: Stan Salvador, and Philip Chan. “FastDTW: Toward accurate dynamic time warping in linear time and space.”  Intelligent Data Analysis 11.5 (2007): 561-580.
-    procedure ReduceByHalf(const X : TDoubleDynArray; inLen, inOffset : integer; out newLen, newOffset : Integer);
+    procedure ReduceByHalfPas(X : PConstDoubleArr; inLen, inOffset : TASMNativeInt; out newLen, newOffset : TASMNativeInt);
+    procedure ReduceByHalfSSE(X : PConstDoubleArr; inLen, inOffset : TASMNativeInt; out newLen, newOffset : TASMNativeInt);
     function ExpandWindow(inXLen, inYLen : integer; radius : integer) : Integer;
-    
+
     procedure InternalFastDTW(inXOffset, inXLen, inYOffset, inYLen : integer; radius : integer; var dist : double);
     function InternalDTW(inXOffset, inXLen, inYOffset, inYLen : integer; window : integer) : double;
-    procedure DictNewCoords(var i, j, MaxDictIdx: integer); inline;
-    function DictValue(i, j, MaxDictIdx: integer): double; inline;
+    procedure DictNewCoords(var i, j, MaxDictIdx: integer); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+    function DictValue(i, j, MaxDictIdx: integer): double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+    function GetPathByIndex(index: integer): TCoordRec;
+    procedure InitXY(x, y : IMatrix); overload;
+    procedure InitXY(x, y : TDoubleDynArray); overload;
   public
+    // setup
+    class var UseSSE : boolean;
+
     property W1 : IMatrix read fW1;  // stores the last result (warped vector)
     property W2 : IMatrix read fW2;
+
+    property Path[index : integer] : TCoordRec read GetPathByIndex;
   
     property MaxPathLen : integer read fMaxPathLen;
     property MaxWinLen : integer read fMaxWinLen;
   
-    function DTW(t, r : IMatrix; var dist : double; MaxSearchWin : integer = 0) : IMatrix; 
-    function DTWCorr(t, r : IMatrix; MaxSearchWin : integer = 0) : double;  // calculate the correlation coefficient between both warped vectors
+    function DTW(t, r : IMatrix; var dist : double; MaxSearchWin : integer = 0) : IMatrix; overload;
+    function DTWCorr(t, r : IMatrix; MaxSearchWin : integer = 0) : double; overload;  // calculate the correlation coefficient between both warped vectors
 
-    function FastDTW(x, y : IMatrix; var dist : double; Radius : integer = 1)  : IMatrix; // applies fastdtw
-    function FastDTWCorr(t, r : IMatrix; Radius : integer = 1) : double;  // calculate the correlation coefficient between both warped vectors
+    function FastDTW(x, y : IMatrix; var dist : double; Radius : integer = 1)  : IMatrix; overload; // applies fastdtw
+    function FastDTWCorr(t, r : IMatrix; Radius : integer = 1) : double; overload;  // calculate the correlation coefficient between both warped vectors
+    function FastDTWCorr(t, r : IMatrix; var dist : double; Radius : integer = 1) : double; overload;  
+    
+
+    // same Methods but with dynamic arrays
+    function DTW(t, r : TDoubleDynArray; var dist : double; MaxSearchWin : integer = 0) : TDoubleDynArray; overload;
+    function DTWCorr(t, r : TDoubleDynArray; MaxSearchWin : integer = 0) : double; overload; 
+
+    function FastDTW(x, y : TDoubleDynArray; var dist : double; Radius : integer = 1)  : TDoubleDynArray; overload;
+    function FastDTWCorr(t, r : TDoubleDynArray; Radius : integer = 1) : double; overload; 
+    function FastDTWCorr(t, r : TDoubleDynArray; var dist : double; Radius : integer = 1) : double; overload; 
     
     constructor Create(DistMethod : TDynamicTimeWarpDistMethod = dtwSquared); // -> 0 = infinity
   end;
@@ -196,9 +223,15 @@ end;
 
 { TDynamicTimeWarp }
 
-constructor TDynamicTimeWarp.Create(DistMethod : TDynamicTimeWarpDistMethod = dtwSquared); 
+constructor TDynamicTimeWarp.Create(DistMethod : TDynamicTimeWarpDistMethod = dtwSquared);
 begin
      fMethod := DistMethod;
+
+     if UseSSE
+     then
+         fReduceByHalf := {$IFDEF FPC}@{$ENDIF}ReduceByHalfSSE
+     else
+         fReduceByHalf := {$IFDEF FPC}@{$ENDIF}ReduceByHalfPas;
 
      inherited Create;
 end;
@@ -330,14 +363,9 @@ begin
      // #### Preparation
      fMaxPathLen := 0;
      fMaxWinLen := 0;
-     
-     if Length(fX) < 2*x.Width then
-        SetLength(fX, 2*x.Width);
-     Move(x.StartElement^, fx[0], sizeof(double)*x.Width);
-     if Length(fY) < 2*y.Width then
-        SetLength(fy, 2*y.Width);
-     Move(y.StartElement^, fy[0], sizeof(double)*y.Width);
 
+     InitXY(x, y);
+     
      // prepare memory
      if Length(fWindow) < Max(x.Width, y.Width)*2 then
      begin
@@ -378,6 +406,100 @@ begin
      end;
 
      Result := FW1;
+end;
+
+function TDynamicTimeWarp.FastDTW(x, y: TDoubleDynArray; var dist: double;
+  Radius: integer): TDoubleDynArray;
+var counter: Integer;
+begin
+     dist := 0;
+
+     radius := Max(1, radius);
+
+     // ###########################################
+     // #### Preparation
+     fMaxPathLen := 0;
+     fMaxWinLen := 0;
+     
+
+     InitXY(x, y);
+     
+     // prepare memory
+     if Length(fWindow) < Max(Length(x), Length(y))*2 then
+     begin
+          SetLength(fWindow, (radius*4 + 4)*Max(Length(x), Length(y)));
+          SetLength(fPath, 3*Max(Length(x), Length(y)));
+          SetLength(fDistIdx, Length(fWindow));
+     end;
+     
+     // ###########################################
+     // #### Find optimal path
+     fNumPath := 0;
+     InternalFastDTW(0, Length(x), 0, Length(y), Max(1, Radius), dist);
+
+
+     // ###########################################
+     // #### Build result
+     if not Assigned(fW1) then
+     begin
+          fW1 := TDoubleMatrix.Create(fNumPath, 1);
+          fW2 := TDoubleMatrix.Create(fNumPath, 1);
+     end;
+     fW1.UseFullMatrix;
+     fW2.UseFullMatrix;
+
+     if fW1.Width < fNumPath then
+     begin
+          fW1.SetWidthHeight(fNumPath, 1);
+          fW2.SetWidthHeight(fNumPath, 1);
+     end;
+     
+     fW1.SetSubMatrix(0, 0, fNumPath, 1);
+     fW2.SetSubMatrix(0, 0, fNumPath, 1);
+     
+     for counter := 0 to fNumPath - 1 do
+     begin
+          fW1.Vec[counter] := fX[fPath[counter].i];
+          fW2.Vec[counter] := fY[fPath[counter].j];
+     end;
+
+     Result := FW1.SubMatrix;
+end;
+
+function TDynamicTimeWarp.FastDTWCorr(t, r: IMatrix; var dist: double;
+  Radius: integer): double;
+begin
+     // ###########################################
+     // #### Create time warping vectors -> stored in fw1, fw2
+     FastDTW(t, r, dist, radius);
+
+     // ###########################################
+     // #### Calculate correlation
+     Result := InternalCorrelate(fw1, fw2);
+end;
+
+function TDynamicTimeWarp.FastDTWCorr(t, r: TDoubleDynArray;
+  Radius: integer): double;
+var dist : double;
+begin
+     Result := FastDTWCorr(t, r, dist, radius);
+end;
+
+function TDynamicTimeWarp.FastDTWCorr(t, r: TDoubleDynArray; var dist: double;
+  Radius: integer): double;
+begin
+     // ###########################################
+     // #### Create time warping vectors -> stored in fw1, fw2
+     FastDTW(t, r, dist, radius);
+
+     // ###########################################
+     // #### Calculate correlation
+     Result := InternalCorrelate(fw1, fw2);
+end;
+
+function TDynamicTimeWarp.GetPathByIndex(index: integer): TCoordRec;
+begin
+     Result := fPath[index];
 end;
 
 function TDynamicTimeWarp.FastDTWCorr(t, r: IMatrix; Radius : integer = 1): double;
@@ -546,10 +668,50 @@ begin
      fMaxPathLen := Max(fMaxPathLen, fNumPath);
 end;
 
+procedure TDynamicTimeWarp.InitXY(x, y: IMatrix);
+begin
+     if not Assigned(fMemX) or (fMemX.Width < 2* (x.Width + x.Width and 1)) then
+     begin
+          fMemx := MatrixClass.Create( 2* (x.Width + x.Width and 1), 1);
+          fX := PConstDoubleArr(fMemX.StartElement);
+     end;
+     Move(x.StartElement^, fx^[0], sizeof(double)*x.Width);
+
+
+     if not Assigned(fMemY) or (fMemY.Width < 2* (y.Width + y.Width and 1)) then
+     begin
+          fMemY := MatrixClass.Create( 2* (y.Width + y.Width and 1), 1);
+          fY := PConstDoubleArr(fMemY.StartElement);
+     end;
+     Move(y.StartElement^, fy^[0], sizeof(double)*y.Width); 
+end;
+
+procedure TDynamicTimeWarp.InitXY(x, y: TDoubleDynArray);
+var lenX, lenY : integer;
+begin
+     lenX := Length(x);
+     lenY := Length(y);
+     
+     if not Assigned(fMemX) or (fMemX.Width < 2* (lenX + lenX and 1)) then
+     begin
+          fMemx := MatrixClass.Create( 2* (lenX + lenX and 1), 1);
+          fX := PConstDoubleArr(fMemX.StartElement);
+     end;
+     Move(x[0], fx^[0], sizeof(double)*lenX);
+
+
+     if not Assigned(fMemY) or (fMemY.Width < 2* (lenY + lenY and 1)) then
+     begin
+          fMemY := MatrixClass.Create( 2* (lenY + lenY and 1), 1);
+          fY := PConstDoubleArr(fMemY.StartElement);
+     end;
+     Move(y[0], fy^[0], sizeof(double)*lenY); 
+end;
+
 procedure TDynamicTimeWarp.InternalFastDTW(inXOffset, inXLen, inYOffset, inYLen : integer; radius : integer; var dist : double);
 var minTimeSize : Integer;
-    newXOffset, newXLen : integer;
-    newYOffset, newYLen : Integer;
+    newXOffset, newXLen : TASMNativeInt;
+    newYOffset, newYLen : TASMNativeInt;
     windowCnt : integer;
 begin
      minTimeSize := radius + 2;
@@ -562,28 +724,175 @@ begin
      end;
 
      // reduce by half recursively
-     ReduceByHalf(fX, inXLen, inXOffset, newXLen, newXOffset);
-     ReduceByHalf(fY, inYLen, inYOffset, newYLen, newYOffset);
+     fReduceByHalf(fX, inXLen, inXOffset, newXLen, newXOffset);
+     fReduceByHalf(fY, inYLen, inYOffset, newYLen, newYOffset);
      InternalFastDTW(newXOffset, newXLen, newYOffset, newYLen, radius, dist);
 
-     // rebuild 
+     // rebuild
      windowCnt := ExpandWindow(inXLen, inYLen, radius);
      dist := InternalDTW(inXOffset, inXLen, inYOffset, inYLen, windowCnt);
 end;
 
-procedure TDynamicTimeWarp.ReduceByHalf(const X : TDoubleDynArray; inLen, inOffset : integer; out newLen, newOffset : Integer);
-var counter: Integer;
-    idx : Integer;
+procedure TDynamicTimeWarp.ReduceByHalfPas(X : PConstDoubleArr; inLen, inOffset : TASMNativeInt; out newLen, newOffset : TASMNativeInt);
+var counter: TASMNativeInt;
+    idx : TASMNativeInt;
 begin
      newOffset := inOffset + inLen;
      newLen := inLen div 2;
      idx := inOffset;
      for counter := newOffset to newOffset + newLen - 1 do
      begin
-          X[counter] := 0.5*(x[idx] + X[idx + 1]);
+          X^[counter] := 0.5*(x^[idx] + X^[idx + 1]);
           inc(idx, 2);
      end;
 end;
+
+{$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF x64}
+
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
+
+// 64bit version
+procedure TDynamicTimeWarp.ReduceByHalfSSE(X : PConstDoubleArr; inLen,
+  inOffset: TASMNativeInt; out newLen, newOffset: TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
+asm
+   // rcx self, rdx X, r8 inLen, r9 = inOffset
+
+   // newOffset := inOffset + inLen;
+   // newOffset := newOffset + newOffset and 1;
+   mov r10, newOffset;
+   mov r11, r8;
+   add r11, r9;
+   inc r11;       // make sure the last bit is 0
+   and r11, $FFFFFFFFFFFFFFFE; // clear the lowest bit (ensure SSE alignment)
+   mov [r10], r11;
+
+   // newLen := inLen div 2;
+   shr r8, 1;
+   mov r10, newLen;
+   mov [r10], r8;
+
+   movupd xmm3, [rip + cDivBy2];
+
+   // test if we have enough elements to handle 2 elements at once
+   cmp r8, 2;
+   jl @lastElem;
+
+   @loop1:
+      // loop handles two elements in one step
+      movapd xmm0, [rdx + 8*r9];
+      movapd xmm1, [rdx + 8*r9 + 16];
+
+      // perform xmm0 = 0.5( [rcx + 8] + [rcx + 16]), 0.5*([rcx + 16] + [rcx + 32])
+      haddpd xmm0, xmm1;
+      mulpd xmm0, xmm3;
+
+      // write back two element
+      movapd [rdx + 8*r11], xmm0;
+
+      add r11, 2;
+      add r9, 4;
+   sub r8, 2;
+   jg @loop1;
+
+   test r8, r8;
+   je @exit;
+
+   @lastElem:
+
+   // last element
+   movsd xmm0, [rcx + 8*r9];
+   movsd xmm1, [rcx + 8*r9 + 8];
+   addsd xmm0, xmm1;
+   mulsd xmm0, xmm3;
+
+   movsd [rdx + 8*r11], xmm0;
+
+   @exit:
+end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
+{$ELSE}
+
+// 32 bit version
+procedure TDynamicTimeWarp.ReduceByHalfSSE(X : PConstDoubleArr; inLen,
+  inOffset: TASMNativeInt; out newLen, newOffset: TASMNativeInt);
+asm
+   // edx: X, ecx : inlen
+   push ebx;
+
+   // newOffset := inOffset + inLen;
+   mov ebx, newOffset;
+   mov eax, inOffset;
+   //add eax, inLen;
+   add eax, ecx;
+   inc eax;       // make sure the last bit is 0
+   and eax, $FFFFFFFE; // clear the lowest bit (ensure SSE alignment)
+   mov [ebx], eax;
+
+   // newLen := inLen div 2;
+   //mov ecx, inLen;
+   shr ecx, 1;
+   mov ebx, newLen;
+   mov [ebx], ecx;
+
+   movupd xmm3, cDivBy2;
+
+   // eax := counter for x[idx]
+   // edx := counter for x[counter];
+   //mov edx, X;
+   mov ebx, inOffset;
+
+   // test if we have enough elements to handle 2 elements at once
+   cmp ecx, 2;
+   jl @lastElem;
+
+   @loop1:
+      // loop handles two elements in one step
+      movapd xmm0, [edx + 8*ebx];
+      movapd xmm1, [edx + 8*ebx + 16];
+
+      // perform xmm0 = 0.5( [edx + 8] + [edx + 16]), 0.5*([edx + 16] + [edx + 32])
+      haddpd xmm0, xmm1;
+      mulpd xmm0, xmm3;
+
+      // write back two element
+      movapd [edx + 8*eax], xmm0;
+
+      add eax, 2;
+      add ebx, 4;
+   sub ecx, 2;
+   jg @loop1;
+
+   test ecx, ecx;
+   je @exit;
+
+   @lastElem:
+
+   // last element
+   movsd xmm0, [edx + 8*ebx];
+   movsd xmm1, [edx + 8*ebx + 8];
+   addsd xmm0, xmm1;
+   mulsd xmm0, xmm3;
+
+   movsd [edx + 8*eax], xmm0;
+
+   @exit:
+
+   pop ebx;
+end;
+
+{$ENDIF}
 
 function TDynamicTimeWarp.ExpandWindow(inXLen, inYLen, radius: integer): Integer;
 var cnt : integer;
@@ -656,6 +965,117 @@ begin
           while (Result > 0) and ( (fWindow[Result - 1].i > inXLen) or (fWindow[Result - 1].j > inYLen) ) do
                 dec(Result);
      end;
+end;
+
+function TDynamicTimeWarp.DTW(t, r: TDoubleDynArray; var dist: double;
+  MaxSearchWin: integer): TDoubleDynArray;
+var n, m : integer;
+    counter: Integer;
+begin
+     fMaxSearchWin := MaxSearchWin;
+     
+     // ###########################################
+     // #### Prepare memory
+     if not Assigned(fd) or (fd.Width <> Length(t)) or (fd.Height <> Length(r)) then
+     begin
+          fd := TDoubleMatrix.Create( Length(t), Length(r) );
+          fAccDist := TDoubleMatrix.Create(Length(t), Length(r) );
+          SetLength(fWindow, 2*Max(Length(r), Length(t)));
+          fW1 := TDoubleMatrix.Create(Length(fWindow), 1);
+          fW2 := TDoubleMatrix.Create(Length(fWindow), 1);
+     end;
+     fNumW := 0;
+
+     // ###########################################
+     // #### prepare distance matrix
+     fd.SetValue(MaxDouble);
+     for m := 0 to fd.Height - 1 do
+     begin
+          for n := 0 to fd.Width - 1 do
+          begin
+               if (fMaxSearchWin <= 0) or ( abs(n - m) <= fMaxSearchWin) then
+               begin
+                    case fMethod of
+                      dtwSquared: fd[n, m] := sqr( t[n] - r[m] );
+                      dtwAbsolute: fd[n, m] := abs( t[n] - r[m] );
+                      dtwSymKullbackLeibler: fd[n, m] := (t[n] - r[m])*(ln(t[n]) - ln(r[m]));
+                    end;
+               end;
+          end;
+     end;
+     
+     fAccDist.SetValue(0);
+     fAccDist[0, 0] := fd[0, 0];
+
+     for n := 1 to fd.Width - 1 do
+         fAccDist[n, 0] := fd[n, 0] + fAccDist[n - 1, 0];
+     for m := 1 to fd.Height - 1 do
+         fAccDist[0, m] := fd[0, m] + fAccDist[0, m - 1];
+     for n := 1 to fd.Height - 1 do
+         for m := 1 to fd.Width - 1 do
+             fAccDist[m, n] := fD[m, n] + min( fAccDist[ m, n - 1 ], min( fAccDist[m - 1, n - 1], fAccDist[ m - 1, n] ));
+     
+     dist := fAccDist[fd.Width - 1, fd.Height - 1];
+
+     fNumW := 0;
+     m := Length(t) - 1;
+     n := Length(r) - 1;
+     fWindow[fNumW].i := m;
+     fWindow[fNumW].j := n;
+     inc(fNumW);
+     
+     while (n + m) > 1 do
+     begin
+          if n - 1 <= 0 
+          then
+              dec(m)
+          else if m - 1 <= 0 
+          then
+              dec(n)
+          else
+          begin
+               if fAccDist[m - 1, n - 1] < Min(fAccDist[m, n - 1], fAccDist[m - 1, n]) then
+               begin
+                    dec(n);
+                    dec(m);
+               end
+               else if fAccDist[m, n - 1] < fAccDist[m - 1, n] 
+               then
+                   dec(n)
+               else
+                   dec(m);
+          end;
+
+          fWindow[fNumW].i := m;
+          fWindow[fNumW].j := n;
+
+          inc(fNumW);
+     end;
+
+     // ###########################################
+     // #### Build final warped vector
+     fw1.SetSubMatrix(0, 0, fNumW, 1);
+     fw2.SetSubMatrix(0, 0, fNumW, 1);
+     for counter := 0 to fNumW - 1 do
+     begin
+          fw1.Vec[counter] := r[ fWindow[fNumW - 1 - counter].j ];
+          fw2.Vec[counter] := t[ fWindow[fNumW - 1 - counter].i ]; 
+     end;
+
+     Result := fW1.SubMatrix;
+end;
+
+function TDynamicTimeWarp.DTWCorr(t, r: TDoubleDynArray;
+  MaxSearchWin: integer): double;
+var dist : double;
+begin
+     // ###########################################
+     // #### Create time warping vectors -> stored in fw1, fw2
+     DTW(t, r, dist, MaxSearchWin);
+     
+     // ###########################################
+     // #### Calculate correlation
+     Result := InternalCorrelate(fw1, fw2);
 end;
 
 end.

@@ -34,7 +34,7 @@ type
 
 implementation
 
-uses Corr, Math, BaseMathPersistence;
+uses Corr, Math, BaseMathPersistence, CPUFeatures;
 
 { TestCorrelation }
 
@@ -195,17 +195,24 @@ var x, y : IMatrix;
     dtw : TDynamicTimeWarp;
     dist : double;
     warp : IMatrix;
+    warpSSE : IMatrix;
 begin
      x := TDoubleMatrix.Create(cX, Length(cX), 1);
      y := TDoubleMatrix.Create(cY, Length(cY), 1);
 
+     TDynamicTimeWarp.UseSSE := False;
      dtw := TDynamicTimeWarp.Create(dtwAbsolute);
 
      warp := dtw.FastDTW(x, y, dist, 1);
+     dtw.Free;
+
+     TDynamicTimeWarp.UseSSE := IsSSE3Present;
+     dtw := TDynamicTimeWarp.Create(dtwAbsolute);
+     warpSSE := dtw.FastDTW(x, y, dist, 1);
 
      Status( WriteMtx( warp.SubMatrix, warp.Width ) );
      Status( WriteMtx( dtw.W2.SubMatrix, warp.Width ) );
-     
+
      // check result
      Check( dist = 2, 'Distance measure wrong');
      Check( CheckMtx( warp.SubMatrix, cWarpedX ), 'Error X Vector warping is wrong');
@@ -288,8 +295,26 @@ begin
      xv := TDoubleMatrix.Create(x, Length(x), 1);
      yv := TDoubleMatrix.Create(y, Length(y), 1);
 
+     dtw.UseSSE := False;
      dtw := TDynamicTimeWarp.Create(dtwAbsolute);
      try
+        dtw.FastDTW(xv, yv, dist, 3);   // minimum radius for this setup to achieve perfect match
+
+        //WriteMatlabData('D:\chirp1.txt', dtw.w1..SubMatrix, res.Width);
+        //WriteMatlabData('D:\chirp2.txt', dtw.W2.SubMatrix, dtw.W2.Width);
+
+        Status(Format('Distance: %.4f', [dist]));
+
+        Status('Max Win len: ' + IntToStr(dtw.MaxWinLen));
+        Status('Max Path len: ' + IntToStr(dtw.MaxPathLen));
+
+        // valuse from python script:
+        Check( SameValue(dist, 21.58345, 1e-3), 'Distance calculation wrong in Chirp test');
+
+        dtw.Free;
+        dtw.UseSSE := True;
+        dtw := TDynamicTimeWarp.Create(dtwAbsolute);
+
         dtw.FastDTW(xv, yv, dist, 3);   // minimum radius for this setup to achieve perfect match
 
         //WriteMatlabData('D:\chirp1.txt', dtw.w1..SubMatrix, res.Width);

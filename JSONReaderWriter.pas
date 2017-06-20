@@ -39,7 +39,7 @@ interface
 
 // todo: perhaps Base64 encoding?
 
-uses SysUtils, Classes, BaseMathPersistence, types;
+uses SysUtils, Classes, BaseMathPersistence, MathUtilFunc, types;
 
 // #############################################################
 // #### Loading/saving data
@@ -367,16 +367,7 @@ constructor TJsonReaderWriter.Create;
 begin
      inherited Create;
 
-     {$IFDEF FPC}
-     //fFmt := TFormatSettings.Create(0);
-     GetLocaleFormatSettings(0, fFmt);
-     {$ELSE}
-     {$IF CompilerVersion >= 22}
-     fFmt := TFormatSettings.Create;
-     {$ELSE}
-     GetLocaleFormatSettings(0, fFmt);
-     {$IFEND}
-     {$ENDIF}
+     ffmt := GetLocalFMTSet;
      fFmt.DecimalSeparator := '.';
 end;
 

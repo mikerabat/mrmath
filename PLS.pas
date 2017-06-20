@@ -93,7 +93,7 @@ end;
 procedure TMatrixPLS.Plsr(Xreg, Yreg: TDoubleMatrix; NInput, NComp: Integer);
 var LNrx, LNcx, LNry: Integer;
     Lssqx, Lssqy: IMatrix;
-    Lx,Ly,LI, LR, LSSQ: IMatrix;
+    Lx,Ly, LR, LSSQ: IMatrix;
     i,j: Integer;
     n: integer;
 
@@ -125,7 +125,7 @@ begin
      //y = yreg;
      Ly := yreg.Clone;
      //I = eye(ncx);
-     LI := MatrixClass.CreateEye(LNcx);
+     //LI := MatrixClass.CreateEye(LNcx);
      //w = zeros(ncx,lv);
      fW := MatrixClass.Create(NComp, LNcx);
      LR := MatrixClass.Create(NComp, LNrx);
