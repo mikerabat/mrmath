@@ -53,6 +53,10 @@ Gustav Kaiser - special thanks for implementing the PLS algorithm.
 
 // ###################################################################
 changelog:
+Date: 21.06.2017
+* Minor improvements - the Fast DTW algorithm now implements a SSE version of the reduce by half
+  routine.
+
 Date: 09.06.2017
 * Introduced a new base class that easily allows to change the matrix implementation used for
   PCA, CCA, PLS, ICA, NMF. (e.g. from single core to multithreaded)

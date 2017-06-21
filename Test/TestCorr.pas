@@ -217,6 +217,7 @@ begin
      Check( dist = 2, 'Distance measure wrong');
      Check( CheckMtx( warp.SubMatrix, cWarpedX ), 'Error X Vector warping is wrong');
      Check( CheckMtx( dtw.W2.SubMatrix, cWarpedY ), 'Error Y Vector warping is wrong');
+     Check( CheckMtx( warpSSE.SubMatrix, warp.SubMatrix ), 'Error SSE variant differs from Pascal Variant');
 
      dtw.Free;
 end;

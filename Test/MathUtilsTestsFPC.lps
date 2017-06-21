@@ -632,99 +632,99 @@
         <UsageCount Value="23"/>
       </Unit73>
       <Unit74>
+        <Filename Value="TestCorr.pas"/>
+        <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="196"/>
+        <CursorPos X="70" Y="217"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+      </Unit74>
+      <Unit75>
+        <Filename Value="..\Corr.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="585"/>
+        <CursorPos X="29" Y="607"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+      </Unit75>
+      <Unit76>
         <Filename Value="..\ThreadedLinAlg.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="600"/>
         <CursorPos X="27" Y="600"/>
         <UsageCount Value="21"/>
-      </Unit74>
-      <Unit75>
+      </Unit76>
+      <Unit77>
         <Filename Value="C:\codetyphon\typhon\components\fpcunit\console\consoletestrunner.pas"/>
         <UsageCount Value="10"/>
-      </Unit75>
-      <Unit76>
+      </Unit77>
+      <Unit78>
         <Filename Value="..\win\WinThreadPool.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="155"/>
         <CursorPos X="35" Y="172"/>
         <UsageCount Value="10"/>
-      </Unit76>
-      <Unit77>
+      </Unit78>
+      <Unit79>
         <Filename Value="MathUtilsTestsFPC.lpi"/>
         <CursorPos X="103" Y="27"/>
         <UsageCount Value="10"/>
         <DefaultSyntaxHighlighter Value="XML"/>
-      </Unit77>
-      <Unit78>
+      </Unit79>
+      <Unit80>
         <Filename Value="..\win\winRandomGen.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="55"/>
         <CursorPos X="98" Y="82"/>
         <UsageCount Value="11"/>
-      </Unit78>
-      <Unit79>
+      </Unit80>
+      <Unit81>
         <Filename Value="D:\lazarus\fpc\2.6.4\source\rtl\inc\matrix.pp"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="674"/>
         <CursorPos X="27" Y="697"/>
         <UsageCount Value="10"/>
-      </Unit79>
-      <Unit80>
+      </Unit81>
+      <Unit82>
         <Filename Value="..\win\winCPUInfo.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="87"/>
         <CursorPos X="24" Y="111"/>
         <UsageCount Value="10"/>
-      </Unit80>
-      <Unit81>
+      </Unit82>
+      <Unit83>
         <Filename Value="..\mac\MacOsRandomGen.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="3"/>
         <CursorPos X="6" Y="19"/>
         <UsageCount Value="10"/>
-      </Unit81>
-      <Unit82>
+      </Unit83>
+      <Unit84>
         <Filename Value="C:\codetyphon\fpcsrc\tests\bench\shootout\obsolete\matrix.pp"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="2" Y="3"/>
         <UsageCount Value="10"/>
-      </Unit82>
-      <Unit83>
+      </Unit84>
+      <Unit85>
         <Filename Value="C:\codetyphon\fpcsrc\rtl\objpas\sysutils\sysinth.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="72"/>
         <CursorPos X="3" Y="106"/>
         <UsageCount Value="10"/>
-      </Unit83>
-      <Unit84>
+      </Unit85>
+      <Unit86>
         <Filename Value="C:\codetyphon\typhon\components\lz_FpcUnitRunner\source\guitestrunner.pas"/>
         <UnitName Value="GuiTestRunner"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="747"/>
         <CursorPos X="52" Y="756"/>
         <UsageCount Value="10"/>
-      </Unit84>
-      <Unit85>
-        <Filename Value="TestCorr.pas"/>
-        <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="3"/>
-        <TopLine Value="278"/>
-        <CursorPos X="51" Y="295"/>
-        <UsageCount Value="21"/>
-        <Loaded Value="True"/>
-      </Unit85>
-      <Unit86>
-        <Filename Value="..\Corr.pas"/>
-        <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <WindowIndex Value="-1"/>
-        <TopLine Value="-1"/>
-        <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="21"/>
       </Unit86>
     </Units>
-    <JumpHistory Count="12" HistoryIndex="11">
+    <JumpHistory Count="16" HistoryIndex="15">
       <Position1>
         <Filename Value="MathUtilsTestsFPC.lpr"/>
         <Caret Line="109" TopLine="81"/>
@@ -772,6 +772,21 @@
         <Filename Value="TestCorr.pas"/>
         <Caret Line="278" TopLine="262"/>
       </Position12>
+      <Position13>
+        <Filename Value="..\Corr.pas"/>
+      </Position13>
+      <Position14>
+        <Filename Value="..\Corr.pas"/>
+        <Caret Line="405" Column="34" TopLine="388"/>
+      </Position14>
+      <Position15>
+        <Filename Value="..\Corr.pas"/>
+        <Caret Line="463" Column="34" TopLine="446"/>
+      </Position15>
+      <Position16>
+        <Filename Value="TestCorr.pas"/>
+        <Caret Line="295" Column="51" TopLine="278"/>
+      </Position16>
     </JumpHistory>
   </ProjectSession>
   <Debugging>

@@ -401,8 +401,8 @@ begin
      
      for counter := 0 to fNumPath - 1 do
      begin
-          fW1.Vec[counter] := fX[fPath[counter].i];
-          fW2.Vec[counter] := fY[fPath[counter].j];
+          fW1.Vec[counter] := fX^[fPath[counter].i];
+          fW2.Vec[counter] := fY^[fPath[counter].j];
      end;
 
      Result := FW1;
@@ -459,8 +459,8 @@ begin
      
      for counter := 0 to fNumPath - 1 do
      begin
-          fW1.Vec[counter] := fX[fPath[counter].i];
-          fW2.Vec[counter] := fY[fPath[counter].j];
+          fW1.Vec[counter] := fX^[fPath[counter].i];
+          fW2.Vec[counter] := fY^[fPath[counter].j];
      end;
 
      Result := FW1.SubMatrix;
@@ -598,11 +598,11 @@ begin
           j := fWindow[cnt].j;
 
           case fMethod of
-            dtwSquared: dt := sqr( fX[inXOffset + i - 1] - fY[inYOffset + j - 1]);
-            dtwAbsolute: dt := abs( fX[inXOffset + i - 1] - fY[inYOffset + j - 1] );
-            dtwSymKullbackLeibler: dt := fX[inXOffset + i - 1] - fY[inYOffset + j - 1]*(ln(fX[inXOffset + i - 1]) - ln(fY[inYOffset + j - 1]));
+            dtwSquared: dt := sqr( fX^[inXOffset + i - 1] - fY^[inYOffset + j - 1]);
+            dtwAbsolute: dt := abs( fX^[inXOffset + i - 1] - fY^[inYOffset + j - 1] );
+            dtwSymKullbackLeibler: dt := fX^[inXOffset + i - 1] - fY^[inYOffset + j - 1]*(ln(fX^[inXOffset + i - 1]) - ln(fY^[inYOffset + j - 1]));
           else
-              dt := abs( fX[inXOffset + i - 1] - fY[inYOffset + j - 1] );;
+              dt := abs( fX^[inXOffset + i - 1] - fY^[inYOffset + j - 1] );
           end;
 
           dist0 := DictValue(i - 1, j, dIdx);
