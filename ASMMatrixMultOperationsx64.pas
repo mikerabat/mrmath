@@ -176,9 +176,8 @@ asm
             jnz @@InnerLoop;
 
             // final horizontal addition
-            xorpd xmm2, xmm2;
-            haddpd xmm0, xmm2;
-            haddpd xmm7, xmm2;
+            haddpd xmm0, xmm0;
+            haddpd xmm7, xmm7;
 
             // compact result
             movlhps xmm0, xmm7;
@@ -252,20 +251,7 @@ asm
     movupd dXMM5, xmm5;
     movupd dXMM6, xmm6;
     movupd dXMM7, xmm7;
-    {
-   .pushnv rbx;
-   .pushnv rsi;
-   .pushnv rdi;
-   .pushnv r12;
-   .pushnv r13;
-   .pushnv r14;
-   .pushnv r15;
-
-   .savenv xmm4;
-   .savenv xmm5;
-   .savenv xmm6;
-   .savenv xmm7;
-   }
+    
     //destOffset := destLineWidth - Width2*sizeof(double);
     mov rbx, Width2;
     shl rbx, 3;
@@ -318,7 +304,7 @@ asm
 
                 movupd xmm4, [rdi + rax];
                 add rdi, r12;
-                movupd xmm6, xmm4;
+                movapd xmm6, xmm4;
 
                 // swap such that we can immediately multiply
                 movhlps xmm4, xmm5;
@@ -326,7 +312,7 @@ asm
 
                 // it's a bit faster if we reuse a register - seems the cpu can
                 // then parallelize the instructions better
-                movupd xmm6, xmm1;
+                movapd xmm6, xmm1;
 
                 // multiply 2x2 and add
                 mulpd xmm3, xmm1;
@@ -340,9 +326,8 @@ asm
             jnz @@InnerLoop;
 
             // final horizontal addition
-            xorpd xmm2, xmm2;
-            haddpd xmm0, xmm2;
-            haddpd xmm7, xmm2;
+            haddpd xmm0, xmm0;
+            haddpd xmm7, xmm7;
 
             // compact result
             movlhps xmm0, xmm7;
@@ -416,20 +401,6 @@ asm
     movupd dXMM5, xmm5;
     movupd dXMM6, xmm6;
     movupd dXMM7, xmm7;
-    {
-   .pushnv rbx;
-   .pushnv rsi;
-   .pushnv rdi;
-   .pushnv r12;
-   .pushnv r13;
-   .pushnv r14;
-   .pushnv r15;
-
-   .savenv xmm4;
-   .savenv xmm5;
-   .savenv xmm6;
-   .savenv xmm7;
-   }
 
     //destOffset := destLineWidth - (Width2 - 1)*sizeof(double);
     mov rbx, Width2;
@@ -506,9 +477,8 @@ asm
             jnz @@InnerLoop;
 
             // final horizontal addition
-            xorpd xmm2, xmm2;
-            haddpd xmm0, xmm2;
-            haddpd xmm7, xmm2;
+            haddpd xmm0, xmm0;
+            haddpd xmm7, xmm7;
 
             // compact result
             movlhps xmm0, xmm7;
@@ -533,7 +503,7 @@ asm
         mov rdx, r13;
         @@InnerLoop2:
             // load element from line
-            movlpd xmm1, [r8 + rdx];
+            movsd xmm1, [r8 + rdx];
 
             // load, multiply and add
             mulsd xmm1, [rdi];
@@ -543,7 +513,7 @@ asm
         add rdx, 8;
         jnz @@InnerLoop2;
 
-        movlpd [rcx], xmm0;
+        movsd [rcx], xmm0;
 
         // dec(mt2, Width2);
         // inc(PByte(mt1), LineWidth1);
@@ -600,20 +570,6 @@ asm
     movupd dXMM5, xmm5;
     movupd dXMM6, xmm6;
     movupd dXMM7, xmm7;
-    {
-   .pushnv rbx;
-   .pushnv rsi;
-   .pushnv rdi;
-   .pushnv r12;
-   .pushnv r13;
-   .pushnv r14;
-   .pushnv r15;
-
-   .savenv xmm4;
-   .savenv xmm5;
-   .savenv xmm6;
-   .savenv xmm7;
-   }
 
     //destOffset := destLineWidth - (Width2 - 1)*sizeof(double);
     mov rbx, Width2;
@@ -664,11 +620,11 @@ asm
 
                 // load 2x2 block
                 movupd xmm3, [rdi];
-                movupd xmm5, xmm3;
+                movapd xmm5, xmm3;
 
                 movupd xmm4, [rdi + rax];
                 add rdi, r12;
-                movupd xmm6, xmm4;
+                movapd xmm6, xmm4;
 
                 // swap such that we can immediately multiply
                 movhlps xmm4, xmm5;
@@ -676,7 +632,7 @@ asm
 
                 // it's a bit faster if we reuse a register - seems the cpu can
                 // then parallelize the instructions better
-                movupd xmm6, xmm1;
+                movapd xmm6, xmm1;
 
                 // multiply 2x2 and add
                 mulpd xmm3, xmm1;
@@ -690,9 +646,8 @@ asm
             jnz @@InnerLoop;
 
             // final horizontal addition
-            xorpd xmm2, xmm2;
-            haddpd xmm0, xmm2;
-            haddpd xmm7, xmm2;
+            haddpd xmm0, xmm0;
+            haddpd xmm7, xmm7;
 
             // compact result
             movlhps xmm0, xmm7;
@@ -717,7 +672,7 @@ asm
         mov rdx, r13;
         @@InnerLoop2:
             // load element from line
-            movlpd xmm1, [r8 + rdx];
+            movsd xmm1, [r8 + rdx];
 
             // load, multiply and add
             mulsd xmm1, [rdi];
@@ -727,7 +682,7 @@ asm
         add rdx, 8;
         jnz @@InnerLoop2;
 
-        movlpd [rcx], xmm0;
+        movsd [rcx], xmm0;
 
         // dec(mt2, Width2);
         // inc(PByte(mt1), LineWidth1);
@@ -785,20 +740,6 @@ asm
     movupd dXMM5, xmm5;
     movupd dXMM6, xmm6;
     movupd dXMM7, xmm7;
-    {
-   .pushnv rbx;
-   .pushnv rsi;
-   .pushnv rdi;
-   .pushnv r12;
-   .pushnv r13;
-   .pushnv r14;
-   .pushnv r15;
-
-   .savenv xmm4;
-   .savenv xmm5;
-   .savenv xmm6;
-   .savenv xmm7;
-   }
 
     //destOffset := destLineWidth - Width2*sizeof(double);
     mov rbx, Width2;
@@ -881,15 +822,13 @@ asm
             mulpd xmm1, xmm3;
 
             // final horizontal addition
-            xorpd xmm3, xmm3;
             movq xmm2, xmm1;
             addsd xmm0, xmm2;
-            haddpd xmm0, xmm3;
+            haddpd xmm0, xmm0;
 
-            xorpd xmm2, xmm2;
             movhlps xmm2, xmm1;
             addsd xmm7, xmm2;
-            haddpd xmm7, xmm3;
+            haddpd xmm7, xmm7;
 
             // compact result
             movlhps xmm0, xmm7;
@@ -961,20 +900,6 @@ asm
     movupd dXMM5, xmm5;
     movupd dXMM6, xmm6;
     movupd dXMM7, xmm7;
-    {
-   .pushnv rbx;
-   .pushnv rsi;
-   .pushnv rdi;
-   .pushnv r12;
-   .pushnv r13;
-   .pushnv r14;
-   .pushnv r15;
-
-   .savenv xmm4;
-   .savenv xmm5;
-   .savenv xmm6;
-   .savenv xmm7;
-   }
 
     //destOffset := destLineWidth - Width2*sizeof(double);
     mov rbx, Width2;
@@ -1025,11 +950,11 @@ asm
 
                 // load 2x2 block
                 movupd xmm3, [rdi];
-                movupd xmm5, xmm3;
+                movapd xmm5, xmm3;
 
                 movupd xmm4, [rdi + rax];
                 add rdi, r12;
-                movupd xmm6, xmm4;
+                movapd xmm6, xmm4;
 
                 // swap such that we can immediately multiply
                 movhlps xmm4, xmm5;
@@ -1037,7 +962,7 @@ asm
 
                 // it's a bit faster if we reuse a register - seems the cpu can
                 // then parallelize the instructions better
-                movupd xmm6, xmm1;
+                movapd xmm6, xmm1;
 
                 // multiply 2x2 and add
                 mulpd xmm3, xmm1;
@@ -1057,15 +982,13 @@ asm
             mulpd xmm1, xmm3;
 
             // final horizontal addition
-            xorpd xmm3, xmm3;
             movq xmm2, xmm1;
             addsd xmm0, xmm2;
-            haddpd xmm0, xmm3;
+            haddpd xmm0, xmm0;
 
-            xorpd xmm2, xmm2;
             movhlps xmm2, xmm1;
             addsd xmm7, xmm2;
-            haddpd xmm7, xmm3;
+            haddpd xmm7, xmm7;
 
             // compact result
             movlhps xmm0, xmm7;
@@ -1117,7 +1040,7 @@ end;
 
 // both matrices have an odd width
 procedure ASMMatrixMultAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM5, dXMM6, dXMM7, dXMM8 : Array[0..1] of double;
+var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
 
 {$IFDEF FPC}
@@ -1139,23 +1062,6 @@ asm
     movupd dXMM5, xmm5;
     movupd dXMM6, xmm6;
     movupd dXMM7, xmm7;
-    movupd dXMM8, xmm8;
-    {
-   .pushnv rbx;
-   .pushnv rbx;
-   .pushnv rsi;
-   .pushnv rdi;
-   .pushnv r12;
-   .pushnv r13;
-   .pushnv r14;
-   .pushnv r15;
-
-   .savenv xmm4;
-   .savenv xmm5;
-   .savenv xmm6;
-   .savenv xmm7;
-   .savenv xmm8;
-   }
 
     //destOffset := destLineWidth - (Width2 - 1)*sizeof(double);
     mov rbx, Width2;
@@ -1182,8 +1088,6 @@ asm
     mov r12, LineWidth2;
     shl r12, 1;
 
-    xorpd xmm8, xmm8;
-
     // initalize matrices
     sub r8, r13;    // r8 = mt1
 
@@ -1209,11 +1113,11 @@ asm
 
                 // load 2x2 block
                 movupd xmm3, [rdi];
-                movupd xmm5, xmm3;
+                movapd xmm5, xmm3;
 
                 movupd xmm4, [rdi + rax];
                 add rdi, r12;
-                movupd xmm6, xmm4;
+                movapd xmm6, xmm4;
 
                 // swap such that we can immediately multiply
                 movhlps xmm4, xmm5;
@@ -1221,7 +1125,7 @@ asm
 
                 // it's a bit faster if we reuse a register - seems the cpu can
                 // then parallelize the instructions better
-                movupd xmm6, xmm1;
+                movapd xmm6, xmm1;
 
                 // multiply 2x2 and add
                 mulpd xmm3, xmm1;
@@ -1243,11 +1147,11 @@ asm
             // final horizontal addition
             movq xmm2, xmm1;
             addsd xmm0, xmm2;
-            haddpd xmm0, xmm8;
+            haddpd xmm0, xmm0;
 
             movhlps xmm2, xmm1;
             addsd xmm7, xmm2;
-            haddpd xmm7, xmm8;
+            haddpd xmm7, xmm7;
 
             // compact result
             movlhps xmm0, xmm7;
@@ -1273,7 +1177,7 @@ asm
         mov rdx, r13;
         @@InnerLoop2:
             // load element from line
-            movlpd xmm1, [r8 + rdx];
+            movsd xmm1, [r8 + rdx];
 
             // load, multiply and add
             mulsd xmm1, [rdi];
@@ -1285,7 +1189,7 @@ asm
         add r13, 8;
         sub r8, 8;
 
-        movlpd [rcx], xmm0;
+        movsd [rcx], xmm0;
 
         // dec(mt2, Width2);
         // inc(PByte(mt1), LineWidth1);
@@ -1314,14 +1218,13 @@ asm
     movupd xmm5, dXMM5;
     movupd xmm6, dXMM6;
     movupd xmm7, dXMM7;
-    movupd xmm8, dXMM8;
 end;
 {$IFDEF FPC}
 end;
 {$ENDIF}
 
 procedure ASMMatrixMultUnAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM5, dXMM6, dXMM7, dXMM8 : Array[0..1] of double;
+var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
 
 {$IFDEF FPC}
@@ -1343,23 +1246,6 @@ asm
     movupd dXMM5, xmm5;
     movupd dXMM6, xmm6;
     movupd dXMM7, xmm7;
-    movupd dXMM8, xmm8;
-    {
-   .pushnv rbx;
-   .pushnv rbx;
-   .pushnv rsi;
-   .pushnv rdi;
-   .pushnv r12;
-   .pushnv r13;
-   .pushnv r14;
-   .pushnv r15;
-
-   .savenv xmm4;
-   .savenv xmm5;
-   .savenv xmm6;
-   .savenv xmm7;
-   .savenv xmm8;
-   }
 
     //destOffset := destLineWidth - (Width2 - 1)*sizeof(double);
     mov rbx, Width2;
@@ -1386,8 +1272,6 @@ asm
     mov r12, LineWidth2;
     shl r12, 1;
 
-    xorpd xmm8, xmm8;
-
     // initalize matrices
     sub r8, r13;    // r8 = mt1
 
@@ -1413,11 +1297,11 @@ asm
 
                 // load 2x2 block
                 movupd xmm3, [rdi];
-                movupd xmm5, xmm3;
+                movapd xmm5, xmm3;
 
                 movupd xmm4, [rdi + rax];
                 add rdi, r12;
-                movupd xmm6, xmm4;
+                movapd xmm6, xmm4;
 
                 // swap such that we can immediately multiply
                 movhlps xmm4, xmm5;
@@ -1447,11 +1331,11 @@ asm
             // final horizontal addition
             movq xmm2, xmm1;
             addsd xmm0, xmm2;
-            haddpd xmm0, xmm8;
+            haddpd xmm0, xmm0;
 
             movhlps xmm2, xmm1;
             addsd xmm7, xmm2;
-            haddpd xmm7, xmm8;
+            haddpd xmm7, xmm7;
 
             // compact result
             movlhps xmm0, xmm7;
@@ -1477,10 +1361,10 @@ asm
         mov rdx, r13;
         @@InnerLoop2:
             // load element from line
-            movlpd xmm1, [r8 + rdx];
+            movsd xmm1, [r8 + rdx];
 
             // load, multiply and add
-            movlpd xmm2, [rdi];
+            movsd xmm2, [rdi];
             mulsd xmm1, [rdi];
             add rdi, rax;       // next row
 
@@ -1490,7 +1374,7 @@ asm
         add r13, 8;
         sub r8, 8;
 
-        movlpd [rcx], xmm0;
+        movsd [rcx], xmm0;
 
         // dec(mt2, Width2);
         // inc(PByte(mt1), LineWidth1);
@@ -1518,7 +1402,6 @@ asm
     movupd xmm5, dXMM5;
     movupd xmm6, dXMM6;
     movupd xmm7, dXMM7;
-    movupd xmm8, dXMM8;
 end;
 {$IFDEF FPC}
 end;
@@ -1658,8 +1541,6 @@ begin
         shl r11, 3; //*8
         add r11, r10;
 
-        xorpd xmm5, xmm5; // haddpd
-
         // rcx := mt1
         sub rcx, r10;  // mt1 - iter
 
@@ -1710,7 +1591,7 @@ begin
               @@foriloopend:
 
               // final result
-              haddpd xmm0, xmm5;
+              haddpd xmm0, xmm0;
               movsd [rcx + rsi], xmm0;
 
               add rbx, r9;
@@ -1763,8 +1644,6 @@ begin
         mov r11, height2;
         shl r11, 3; //*8
         add r11, r10;
-
-        xorpd xmm5, xmm5; // haddpd
 
         // r8 := mt1
         sub r8, r10;  // mt1 - iter
@@ -1830,7 +1709,7 @@ begin
               @@foriloopend:
 
               // final result
-              haddpd xmm0, xmm5;
+              haddpd xmm0, xmm0;
               movsd [rcx + rsi], xmm0;
 
               add rbx, r13;
@@ -1865,7 +1744,6 @@ procedure ASMMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 :
   mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 var pMt2 : PDouble;
-
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
 {$IFDEF FPC}
 begin
@@ -2072,8 +1950,6 @@ begin
         dec r10;
         imul r10, -8;
 
-        xorpd xmm3, xmm3;
-
         // start from bottom
         // r8: mt2
         // inc(PByte(mt2),(height2 - 1)*LineWidth2);
@@ -2118,7 +1994,7 @@ begin
               add rdi, 32;
               jl @@foridxlongloop;
 
-              haddpd xmm0, xmm3;
+              haddpd xmm0, xmm0;
 
               @@foridxloopStart:
               sub rdi, 32;

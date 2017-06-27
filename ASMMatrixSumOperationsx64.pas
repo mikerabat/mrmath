@@ -110,7 +110,7 @@ asm
        addsd xmm0, xmm1;
 
        // write result
-       movlpd [rcx], xmm0;
+       movsd [rcx], xmm0;
 
        // next line:
        add r8, r9;
@@ -188,7 +188,7 @@ asm
        addsd xmm0, xmm1;
 
        // write result
-       movlpd [rcx], xmm0;
+       movsd [rcx], xmm0;
 
        // next line:
        add r8, r9;
@@ -264,14 +264,14 @@ asm
        addpd xmm0, xmm2;
 
        // special handling of the last element
-							movlpd xmm3, [r8];
+							movsd xmm3, [r8];
        addsd xmm0, xmm3;
 
        movhlps xmm1, xmm0;
        addsd xmm0, xmm1;
 
        // write result
-       movlpd [rcx], xmm0;
+       movsd [rcx], xmm0;
 
        // next line:
        add r8, r9;
@@ -346,7 +346,7 @@ asm
        @nextLine:
 
        // special handling of the last element
-							movlpd xmm1, [r8];
+							movsd xmm1, [r8];
        addsd xmm0, xmm1;
 
        // build result
@@ -354,7 +354,7 @@ asm
        addsd xmm0, xmm1;
 
        // write result
-       movlpd [rcx], xmm0;
+       movsd [rcx], xmm0;
 
        // next line:
        add r8, r9;
@@ -500,13 +500,13 @@ asm
    // prepare for reverse loop
    mov rax, r10;
    @addforyloop3:
-       movlpd xmm0, [r8 + rax];
+       movsd xmm0, [r8 + rax];
        addsd xmm1, xmm0;
    add rax, r9;
    jnz @addforyloop3;
 
    // build result
-   movlpd [rcx], xmm1;
+   movsd [rcx], xmm1;
 
 {$IFDEF FPC}
 end;
@@ -561,13 +561,13 @@ asm
    // prepare for reverse loop
    mov rax, r10;
    @addforyloop3:
-       movlpd xmm0, [r8 + rax];
+       movsd xmm0, [r8 + rax];
        addsd xmm1, xmm0;
    add rax, r9;
    jnz @addforyloop3;
 
    // build result
-   movlpd [rcx], xmm1;
+   movsd [rcx], xmm1;
 {$IFDEF FPC}
 end;
 {$ENDIF}

@@ -140,13 +140,12 @@ begin
             addpd xmm0, xmm2;
 
             // build result
-            movhlps xmm1, xmm0;
-            addsd xmm0, xmm1;
+            haddpd xmm0, xmm0;
 
             divsd xmm0, xmm5;
 
             // write result
-            movlpd [ebx], xmm0;
+            movsd [ebx], xmm0;
 
             // next line:
             add ecx, srcLineWidth;
@@ -236,11 +235,10 @@ begin
             @buildRes:
 
             // build result
-            movhlps xmm1, xmm7;
-            addsd xmm7, xmm1;
+            haddpd xmm7, xmm7;
             divsd xmm7, xmm5;
 
-            movlpd [ebx], xmm7;
+            movsd [ebx], xmm7;
 
             // next line:
             add ecx, srcLineWidth;
@@ -327,16 +325,15 @@ begin
             addpd xmm0, xmm2;
 
             // handle last element differently
-            movlpd xmm2, [ecx + eax];
+            movsd xmm2, [ecx + eax];
             addsd xmm0, xmm2;
 
             // build result
-            movhlps xmm1, xmm0;
-            addsd xmm0, xmm1;
+            haddpd xmm0, xmm0;
 
             divsd xmm0, xmm5;
 
-            movlpd [ebx], xmm0;
+            movsd [ebx], xmm0;
 
             // next line:
             add ecx, srcLineWidth;
@@ -427,16 +424,15 @@ begin
             @buildRes:
 
             // handle last element differently
-            movlpd xmm2, [ecx + eax];
+            movsd xmm2, [ecx + eax];
             addsd xmm7, xmm2;
 
             // build result
-            movhlps xmm1, xmm7;
-            addsd xmm7, xmm1;
+            haddpd xmm7, xmm7;
 
             divsd xmm7, xmm5;
 
-            movlpd [ebx], xmm7;
+            movsd [ebx], xmm7;
 
             // next line:
             add ecx, srcLineWidth;
@@ -625,7 +621,7 @@ begin
         // prepare for reverse loop
         mov eax, iters;
         @addforyloop3:
-            movlpd xmm0, [ecx + eax];
+            movsd xmm0, [ecx + eax];
             addsd xmm7, xmm0;
         add eax, srcLineWidth;
         jnz @addforyloop3;
@@ -633,7 +629,7 @@ begin
         // build result
         divsd xmm7, xmm6;
 
-        movlpd [ebx], xmm7;
+        movsd [ebx], xmm7;
 
         pop ebx;
      end;
@@ -700,14 +696,14 @@ begin
         // prepare for reverse loop
         mov eax, iters;
         @addforyloop3:
-            movlpd xmm0, [ecx + eax];
+            movsd xmm0, [ecx + eax];
             addsd xmm7, xmm0;
         add eax, srcLineWidth;
         jnz @addforyloop3;
 
         // build result
         divsd xmm7, xmm6;
-        movlpd [ebx], xmm7;
+        movsd [ebx], xmm7;
 
         pop ebx;
      end;
@@ -790,8 +786,7 @@ begin
             addpd xmm0, xmm2;
 
             // build result
-            movhlps xmm1, xmm0;
-            addsd xmm0, xmm1;
+            haddpd xmm0, xmm0;
 
             divsd xmm0, xmm5;
             
@@ -887,7 +882,7 @@ begin
             
             // write result
             @@writeRes:
-            movlpd [ebx], xmm0;
+            movsd [ebx], xmm0;
 
             // next line:
             add ecx, srcLineWidth;
@@ -977,8 +972,7 @@ begin
             @buildRes:
 
             // build result
-            movhlps xmm1, xmm7;
-            addsd xmm7, xmm1;
+            haddpd xmm7, xmm7;
             divsd xmm7, xmm5;
 
             // we have calculated the mean -> 
@@ -1073,7 +1067,7 @@ begin
 
             // write result
             @@writeRes:
-            movlpd [ebx], xmm0;
+            movsd [ebx], xmm0;
 
             // next line:
             add ecx, srcLineWidth;
@@ -1160,7 +1154,7 @@ begin
             addpd xmm0, xmm2;
 
             // handle last element differently
-            movlpd xmm2, [ecx + eax];
+            movsd xmm2, [ecx + eax];
             addsd xmm0, xmm2;
 
             // build result
@@ -1242,14 +1236,13 @@ begin
             @buildRes2:
 
             // handle last element differently
-            movlpd xmm1, [ecx + eax];
+            movsd xmm1, [ecx + eax];
             subsd xmm1, xmm4;
             mulsd xmm1, xmm1;
             addsd xmm0, xmm1;
 
             // build result
-            movhlps xmm1, xmm0;
-            addsd xmm0, xmm1;
+            haddpd xmm0, xmm0;
             
             // check if we need to use the unbiased version
             cmp unbiased, 0;
@@ -1268,7 +1261,7 @@ begin
             
             // write result
             @@writeRes:
-            movlpd [ebx], xmm0;
+            movsd [ebx], xmm0;
 
             // next line:
             add ecx, srcLineWidth;
@@ -1359,12 +1352,11 @@ begin
             @buildRes:
 
             // handle last element differently
-            movlpd xmm2, [ecx + eax];
+            movsd xmm2, [ecx + eax];
             addsd xmm7, xmm2;
 
             // build result
-            movhlps xmm1, xmm7;
-            addsd xmm7, xmm1;
+            haddpd xmm7, xmm7;
 
             divsd xmm7, xmm5;
 
@@ -1441,14 +1433,13 @@ begin
             @buildRes2:
 
             // handle last element differently
-            movlpd xmm1, [ecx + eax];
+            movsd xmm1, [ecx + eax];
             subsd xmm1, xmm4;
             mulsd xmm1, xmm1;
             addsd xmm0, xmm1;
             
             // build result
-            movhlps xmm1, xmm0;
-            addsd xmm0, xmm1;
+            haddpd xmm0, xmm0;
             
             // check if we need to use the unbiased version
             cmp unbiased, 0;
@@ -1467,7 +1458,7 @@ begin
 
             // write result
             @@writeRes:
-            movlpd [ebx], xmm0;
+            movsd [ebx], xmm0;
 
             // next line:
             add ecx, srcLineWidth;
@@ -1757,7 +1748,7 @@ begin
         // prepare for reverse loop
         mov eax, iters;
         @addforyloop3:
-            movlpd xmm0, [ecx + eax];
+            movsd xmm0, [ecx + eax];
             addsd xmm7, xmm0;
         add eax, srcLineWidth;
         jnz @addforyloop3;
@@ -1771,7 +1762,7 @@ begin
         xorpd xmm0, xmm0;
         mov eax, iters;
         @addforyloop4:
-            movlpd xmm1, [ecx + eax];
+            movsd xmm1, [ecx + eax];
             subsd xmm1, xmm7;
             mulsd xmm1, xmm1;
             addsd xmm0, xmm1;
@@ -1795,7 +1786,7 @@ begin
 
         // write result
         @@writeRes2:
-        movlpd [ebx], xmm0;
+        movsd [ebx], xmm0;
 
         pop ebx;
      end;
@@ -1895,7 +1886,7 @@ begin
         // prepare for reverse loop
         mov eax, iters;
         @addforyloop3:
-            movlpd xmm0, [ecx + eax];
+            movsd xmm0, [ecx + eax];
             addsd xmm7, xmm0;
         add eax, srcLineWidth;
         jnz @addforyloop3;
@@ -1909,7 +1900,7 @@ begin
         xorpd xmm0, xmm0;
         mov eax, iters;
         @addforyloop4:
-            movlpd xmm1, [ecx + eax];
+            movsd xmm1, [ecx + eax];
             subsd xmm1, xmm7;
             mulsd xmm1, xmm1;
             addsd xmm0, xmm1;
@@ -1933,7 +1924,7 @@ begin
 
         // write result
         @@writeRes2:
-        movlpd [ebx], xmm0;
+        movsd [ebx], xmm0;
 
         pop ebx;
      end;
@@ -2015,11 +2006,10 @@ begin
             addpd xmm0, xmm2;
 
             // build result
-            movhlps xmm1, xmm0;
-            addsd xmm0, xmm1;
+            haddpd xmm0, xmm0;
 
             divsd xmm0, xmm5;
-            movlpd [ebx], xmm0;
+            movsd [ebx], xmm0;
 
             // we have calculated the mean ->
             // repeat the loop to calculate the variance
@@ -2113,7 +2103,7 @@ begin
 
             // write result
             @@writeRes:
-            movlpd [ebx + 8], xmm0;
+            movsd [ebx + 8], xmm0;
 
             // next line:
             add ecx, srcLineWidth;
@@ -2203,11 +2193,10 @@ begin
             @buildRes:
 
             // build result
-            movhlps xmm1, xmm7;
-            addsd xmm7, xmm1;
+            haddpd xmm7, xmm7;
             divsd xmm7, xmm5;
 
-            movlpd [ebx], xmm7;
+            movsd [ebx], xmm7;
 
             // we have calculated the mean ->
             // repeat the loop to calculate the variance
@@ -2281,8 +2270,7 @@ begin
             @buildRes2:
 
             // build result
-            movhlps xmm1, xmm0;
-            addsd xmm0, xmm1;
+            haddpd xmm0, xmm0;
 
             // check if we need to use the unbiased version
             cmp unbiased, 0;
@@ -2301,7 +2289,7 @@ begin
 
             // write result
             @@writeRes:
-            movlpd [ebx + 8], xmm0;
+            movsd [ebx + 8], xmm0;
 
             // next line:
             add ecx, srcLineWidth;
@@ -2388,16 +2376,15 @@ begin
             addpd xmm0, xmm2;
 
             // handle last element differently
-            movlpd xmm2, [ecx + eax];
+            movsd xmm2, [ecx + eax];
             addsd xmm0, xmm2;
 
             // build result
-            movhlps xmm1, xmm0;
-            addsd xmm0, xmm1;
+            haddpd xmm0, xmm0;
 
             divsd xmm0, xmm5;
 
-            movlpd [ebx], xmm0;
+            movsd [ebx], xmm0;
 
             // we have calculated the mean ->
             // repeat the loop to calculate the variance
@@ -2471,14 +2458,13 @@ begin
             @buildRes2:
 
             // handle last element differently
-            movlpd xmm1, [ecx + eax];
+            movsd xmm1, [ecx + eax];
             subsd xmm1, xmm4;
             mulsd xmm1, xmm1;
             addsd xmm0, xmm1;
 
             // build result
-            movhlps xmm1, xmm0;
-            addsd xmm0, xmm1;
+            haddpd xmm0, xmm0;
 
             // check if we need to use the unbiased version
             cmp unbiased, 0;
@@ -2497,7 +2483,7 @@ begin
 
             // write result
             @@writeRes:
-            movlpd [ebx + 8], xmm0;
+            movsd [ebx + 8], xmm0;
 
             // next line:
             add ecx, srcLineWidth;
@@ -2588,15 +2574,14 @@ begin
             @buildRes:
 
             // handle last element differently
-            movlpd xmm2, [ecx + eax];
+            movsd xmm2, [ecx + eax];
             addsd xmm7, xmm2;
 
             // build result
-            movhlps xmm1, xmm7;
-            addsd xmm7, xmm1;
+            haddpd xmm7, xmm7;
 
             divsd xmm7, xmm5;
-            movlpd [ebx], xmm7;
+            movsd [ebx], xmm7;
 
 
             // we have calculated the mean ->
@@ -2671,7 +2656,7 @@ begin
             @buildRes2:
 
             // handle last element differently
-            movlpd xmm1, [ecx + eax];
+            movsd xmm1, [ecx + eax];
             subsd xmm1, xmm4;
             mulsd xmm1, xmm1;
             addsd xmm0, xmm1;
@@ -2697,7 +2682,7 @@ begin
 
             // write result
             @@writeRes:
-            movlpd [ebx + 8], xmm0;
+            movsd [ebx + 8], xmm0;
 
             // next line:
             add ecx, srcLineWidth;
@@ -2993,7 +2978,7 @@ begin
         // prepare for reverse loop
         mov eax, iters;
         @addforyloop3:
-            movlpd xmm0, [ecx + eax];
+            movsd xmm0, [ecx + eax];
             addsd xmm7, xmm0;
         add eax, srcLineWidth;
         jnz @addforyloop3;
@@ -3008,7 +2993,7 @@ begin
         xorpd xmm0, xmm0;
         mov eax, iters;
         @addforyloop4:
-            movlpd xmm1, [ecx + eax];
+            movsd xmm1, [ecx + eax];
             subsd xmm1, xmm7;
             mulsd xmm1, xmm1;
             addsd xmm0, xmm1;
@@ -3033,7 +3018,7 @@ begin
         // write result
         @@writeRes2:
         mov eax, destLineWidth;
-        movlpd [ebx + eax], xmm0;
+        movsd [ebx + eax], xmm0;
 
         pop ebx;
      end;
@@ -3135,7 +3120,7 @@ begin
         // prepare for reverse loop
         mov eax, iters;
         @addforyloop3:
-            movlpd xmm0, [ecx + eax];
+            movsd xmm0, [ecx + eax];
             addsd xmm7, xmm0;
         add eax, srcLineWidth;
         jnz @addforyloop3;
@@ -3150,7 +3135,7 @@ begin
         xorpd xmm0, xmm0;
         mov eax, iters;
         @addforyloop4:
-            movlpd xmm1, [ecx + eax];
+            movsd xmm1, [ecx + eax];
             subsd xmm1, xmm7;
             mulsd xmm1, xmm1;
             addsd xmm0, xmm1;
@@ -3175,7 +3160,7 @@ begin
         // write result
         @@writeRes2:
         mov eax, destLineWidth;
-        movlpd [ebx + eax], xmm0;
+        movsd [ebx + eax], xmm0;
 
         pop ebx;
      end;

@@ -175,7 +175,7 @@ asm
        haddpd xmm0, xmm2;
 
        // store back result
-       movlpd [r13], xmm0;
+       movsd [r13], xmm0;
 
        // dec(mt2, Width2);
        // inc(PByte(mt1), LineWidth1);
@@ -327,7 +327,7 @@ asm
        haddpd xmm0, xmm2;
 
        // store back result
-       movlpd [r13], xmm0;
+       movsd [r13], xmm0;
 
        // dec(mt2, Width2);
        // inc(PByte(mt1), LineWidth1);
@@ -913,10 +913,10 @@ asm
            jnz @@InnerLoop;
 
            // multiply and add the last element
-           movlpd xmm1, [r8];
+           movsd xmm1, [r8];
 
-           movlpd xmm3, [rdi];
-           movlpd xmm4, [rsi];
+           movsd xmm3, [rdi];
+           movsd xmm4, [rsi];
 
            mulsd xmm3, xmm1;
            mulsd xmm4, xmm1;
@@ -1052,10 +1052,10 @@ asm
            jnz @@InnerLoop;
 
            // multiply and add the last element
-           movlpd xmm1, [r8];
+           movsd xmm1, [r8];
 
-           movlpd xmm3, [rdi];
-           movlpd xmm4, [rsi];
+           movsd xmm3, [rdi];
+           movsd xmm4, [rsi];
 
            mulsd xmm3, xmm1;
            mulsd xmm4, xmm1;
@@ -1194,10 +1194,10 @@ asm
            jnz @@InnerLoop;
 
            // multiply and add the last element
-           movlpd xmm1, [r8];
+           movsd xmm1, [r8];
 
-           movlpd xmm3, [rdi];
-           movlpd xmm4, [rsi];
+           movsd xmm3, [rdi];
+           movsd xmm4, [rsi];
 
            mulsd xmm3, xmm1;
            mulsd xmm4, xmm1;
@@ -1243,15 +1243,15 @@ asm
        jnz @@InnerLoop2;
 
        // multiply and add the last element
-   				movlpd xmm1, [r8];
-       movlpd xmm3, [rdi];
+   				movsd xmm1, [r8];
+       movsd xmm3, [rdi];
 
        mulsd xmm3, xmm1;
        haddpd xmm0, xmm2;
        addsd xmm0, xmm3;
 
        // store back result
-       movlpd [r13], xmm0;
+       movsd [r13], xmm0;
 
        // dec(mt2, Width2);
        // inc(PByte(mt1), LineWidth1);
@@ -1365,10 +1365,10 @@ asm
            jnz @@InnerLoop;
 
            // multiply and add the last element
-           movlpd xmm1, [r8];
+           movsd xmm1, [r8];
 
-           movlpd xmm3, [rdi];
-           movlpd xmm4, [rsi];
+           movsd xmm3, [rdi];
+           movsd xmm4, [rsi];
 
            mulsd xmm3, xmm1;
            mulsd xmm4, xmm1;
@@ -1415,15 +1415,15 @@ asm
        jnz @@InnerLoop2;
 
        // multiply and add the last element
-   				movlpd xmm1, [r8];
-       movlpd xmm3, [rdi];
+   				movsd xmm1, [r8];
+       movsd xmm3, [rdi];
 
        mulsd xmm3, xmm1;
        haddpd xmm0, xmm2;
        addsd xmm0, xmm3;
 
        // store back result
-       movlpd [r13], xmm0;
+       movsd [r13], xmm0;
 
        // dec(mt2, Width2);
        // inc(PByte(mt1), LineWidth1);

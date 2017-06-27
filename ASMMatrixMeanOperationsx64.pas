@@ -144,13 +144,12 @@ asm
        addpd xmm0, xmm2;
 
        // build result
-       movhlps xmm1, xmm0;
-       addsd xmm0, xmm1;
+       haddpd xmm0, xmm0;
 
        divsd xmm0, xmm5;
 
        // write result
-       movlpd [rcx], xmm0;
+       movsd [rcx], xmm0;
 
        // next line:
        add r8, r9;
@@ -252,13 +251,12 @@ asm
        @buildRes:
 
        // build result
-       movhlps xmm1, xmm4;
-       addsd xmm4, xmm1;
+       haddpd xmm4, xmm4;
 
        divsd xmm4, xmm5;
 
        // write result
-       movlpd [rcx], xmm4;
+       movsd [rcx], xmm4;
 
        // next line:
        add r8, r9;
@@ -353,17 +351,16 @@ asm
        addpd xmm0, xmm2;
 
        // handle last element differently
-       movlpd xmm2, [r8 + rax];
+       movsd xmm2, [r8 + rax];
        addsd xmm0, xmm2;
 
        // build result
-       movhlps xmm1, xmm0;
-       addsd xmm0, xmm1;
+       haddpd xmm0, xmm0;
 
        divsd xmm0, xmm5;
 
        // write result
-       movlpd [rcx], xmm0;
+       movsd [rcx], xmm0;
 
        // next line:
        add r8, r9;
@@ -466,17 +463,16 @@ asm
        @buildRes:
 
        // handle last element differently
-       movlpd xmm2, [r8 + rax];
+       movsd xmm2, [r8 + rax];
        addsd xmm4, xmm2;
 
        // build result
-       movhlps xmm1, xmm4;
-       addsd xmm4, xmm1;
+       haddpd xmm4, xmm4;
 
        divsd xmm4, xmm5;
 
        // write result
-       movlpd [rcx], xmm4;
+       movsd [rcx], xmm4;
 
        // next line:
        add r8, r9;
@@ -656,7 +652,7 @@ asm
    // prepare for reverse loop
    mov rax, r10;
    @addforyloop3:
-       movlpd xmm0, [r8 + rax];
+       movsd xmm0, [r8 + rax];
        addsd xmm1, xmm0;
    add rax, r9;
    jnz @addforyloop3;
@@ -664,7 +660,7 @@ asm
    // build result
    divsd xmm1, xmm2;
 
-   movlpd [rcx], xmm1;
+   movsd [rcx], xmm1;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -728,7 +724,7 @@ asm
    // prepare for reverse loop
    mov rax, r10;
    @addforyloop3:
-       movlpd xmm0, [r8 + rax];
+       movsd xmm0, [r8 + rax];
        addsd xmm1, xmm0;
    add rax, r9;
    jnz @addforyloop3;
@@ -736,7 +732,7 @@ asm
    // build result
    divsd xmm1, xmm2;
 
-   movlpd [rcx], xmm1;
+   movsd [rcx], xmm1;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -824,8 +820,7 @@ asm
        addpd xmm0, xmm2;
 
        // build result
-       movhlps xmm1, xmm0;
-       addsd xmm0, xmm1;
+       haddpd xmm0, xmm0;
 
        divsd xmm0, xmm5;
 
@@ -901,8 +896,7 @@ asm
        @buildRes2:
 
        // build result
-       movhlps xmm1, xmm0;
-       addsd xmm0, xmm1;
+       haddpd xmm0, xmm0;
             
        // check if we need to use the unbiased version
        cmp unbiased, 0;
@@ -922,7 +916,7 @@ asm
             
        // write result
        @@writeRes:
-       movlpd [rcx], xmm0;
+       movsd [rcx], xmm0;
 
        // next line:
        add r8, r9;
@@ -1024,8 +1018,7 @@ asm
        @buildRes:
 
        // build result
-       movhlps xmm1, xmm0;
-       addsd xmm0, xmm1;
+       haddpd xmm0, xmm0;
 
        divsd xmm0, xmm5;
 
@@ -1101,8 +1094,7 @@ asm
        @buildRes2:
 
        // build result
-       movhlps xmm1, xmm0;
-       addsd xmm0, xmm1;
+       haddpd xmm0, xmm0;
             
        // check if we need to use the unbiased version
        cmp unbiased, 0;
@@ -1121,7 +1113,7 @@ asm
             
        // write result
        @@writeRes:
-       movlpd [rcx], xmm0;
+       movsd [rcx], xmm0;
 
        // next line:
        add r8, r9;
@@ -1215,12 +1207,11 @@ asm
        addpd xmm0, xmm2;
 
        // handle last element differently
-       movlpd xmm2, [r8 + rax];
+       movsd xmm2, [r8 + rax];
        addsd xmm0, xmm2;
 
        // build result
-       movhlps xmm1, xmm0;
-       addsd xmm0, xmm1;
+       haddpd xmm0, xmm0;
 
        divsd xmm0, xmm5;
 
@@ -1296,14 +1287,13 @@ asm
        @buildRes2:
 
        // handle last element differently
-       movlpd xmm1, [r8 + rax];
+       movsd xmm1, [r8 + rax];
        subsd xmm1, xmm4;
        mulsd xmm1, xmm1;
        addsd xmm0, xmm1;
 
        // build result
-       movhlps xmm1, xmm0;
-       addsd xmm0, xmm1;
+       haddpd xmm0, xmm0;
             
        // check if we need to use the unbiased version
        cmp unbiased, 0;
@@ -1322,7 +1312,7 @@ asm
             
        // write result
        @@writeRes:
-       movlpd [rcx], xmm0;
+       movsd [rcx], xmm0;
 
        // next line:
        add r8, r9;
@@ -1426,12 +1416,11 @@ asm
        @buildRes:
 
        // handle last element differently
-       movlpd xmm2, [r8 + rax];
+       movsd xmm2, [r8 + rax];
        addsd xmm0, xmm2;
 
        // build result
-       movhlps xmm1, xmm0;
-       addsd xmm0, xmm1;
+       haddpd xmm0, xmm0;
 
        divsd xmm0, xmm5;
 
@@ -1507,14 +1496,13 @@ asm
        @buildRes2:
 
        // handle last element differently
-       movlpd xmm1, [r8 + rax];
+       movsd xmm1, [r8 + rax];
        subsd xmm1, xmm4;
        mulsd xmm1, xmm1;
        addsd xmm0, xmm1;
 
        // build result
-       movhlps xmm1, xmm0;
-       addsd xmm0, xmm1;
+       haddpd xmm0, xmm0;
             
        // check if we need to use the unbiased version
        cmp unbiased, 0;
@@ -1533,7 +1521,7 @@ asm
             
        // write result
        @@writeRes:
-       movlpd [rcx], xmm0;
+       movsd [rcx], xmm0;
 
        // next line:
        add r8, r9;
@@ -1812,7 +1800,7 @@ asm
    // prepare for reverse loop
    mov rax, r10;
    @addforyloop3:
-       movlpd xmm1, [r8 + rax];
+       movsd xmm1, [r8 + rax];
        addsd xmm0, xmm1;
    add rax, r9;
    jnz @addforyloop3;
@@ -1826,7 +1814,7 @@ asm
    xorpd xmm4, xmm4;
    mov rax, r10;
    @addforyloop4:
-       movlpd xmm1, [r8 + rax];
+       movsd xmm1, [r8 + rax];
        subsd xmm1, xmm0;
        mulsd xmm1, xmm1;
        addsd xmm4, xmm1;
@@ -1850,7 +1838,7 @@ asm
 
    // write result
    @@writeRes2:
-   movlpd [rcx], xmm4;
+   movsd [rcx], xmm4;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -1947,7 +1935,7 @@ asm
    // prepare for reverse loop
    mov rax, r10;
    @addforyloop3:
-       movlpd xmm1, [r8 + rax];
+       movsd xmm1, [r8 + rax];
        addsd xmm0, xmm1;
    add rax, r9;
    jnz @addforyloop3;
@@ -1961,7 +1949,7 @@ asm
    xorpd xmm4, xmm4;
    mov rax, r10;
    @addforyloop4:
-       movlpd xmm1, [r8 + rax];
+       movsd xmm1, [r8 + rax];
        subsd xmm1, xmm0;
        mulsd xmm1, xmm1;
        addsd xmm4, xmm1;
@@ -1985,7 +1973,7 @@ asm
 
    // write result
    @@writeRes2:
-   movlpd [rcx], xmm4;
+   movsd [rcx], xmm4;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -2069,11 +2057,10 @@ asm
        addpd xmm0, xmm2;
 
        // build result
-       movhlps xmm1, xmm0;
-       addsd xmm0, xmm1;
+       haddpd xmm0, xmm0;
 
        divsd xmm0, xmm5;
-       movlpd [rcx], xmm0;
+       movsd [rcx], xmm0;
 
        // we have calculated the mean ->
        // repeat the loop to calculate the variance
@@ -2147,8 +2134,7 @@ asm
        @buildRes2:
 
        // build result
-       movhlps xmm1, xmm0;
-       addsd xmm0, xmm1;
+       haddpd xmm0, xmm0;
 
        // check if we need to use the unbiased version
        cmp unbiased, 0;
@@ -2168,7 +2154,7 @@ asm
 
        // write result
        @@writeRes:
-       movlpd [rcx + 8], xmm0;
+       movsd [rcx + 8], xmm0;
 
        // next line:
        add r8, r9;
@@ -2270,11 +2256,10 @@ asm
        @buildRes:
 
        // build result
-       movhlps xmm1, xmm0;
-       addsd xmm0, xmm1;
+       haddpd xmm0, xmm0;
 
        divsd xmm0, xmm5;
-       movlpd [rcx], xmm0;
+       movsd [rcx], xmm0;
 
        // we have calculated the mean ->
        // repeat the loop to calculate the variance
@@ -2348,8 +2333,7 @@ asm
        @buildRes2:
 
        // build result
-       movhlps xmm1, xmm0;
-       addsd xmm0, xmm1;
+       haddpd xmm0, xmm0;
 
        // check if we need to use the unbiased version
        cmp unbiased, 0;
@@ -2368,7 +2352,7 @@ asm
 
        // write result
        @@writeRes:
-       movlpd [rcx + 8], xmm0;
+       movsd [rcx + 8], xmm0;
 
        // next line:
        add r8, r9;
@@ -2462,15 +2446,14 @@ asm
        addpd xmm0, xmm2;
 
        // handle last element differently
-       movlpd xmm2, [r8 + rax];
+       movsd xmm2, [r8 + rax];
        addsd xmm0, xmm2;
 
        // build result
-       movhlps xmm1, xmm0;
-       addsd xmm0, xmm1;
+       haddpd xmm0, xmm0;
 
        divsd xmm0, xmm5;
-       movlpd [rcx], xmm0;
+       movsd [rcx], xmm0;
 
        // we have calculated the mean ->
        // repeat the loop to calculate the variance
@@ -2544,14 +2527,13 @@ asm
        @buildRes2:
 
        // handle last element differently
-       movlpd xmm1, [r8 + rax];
+       movsd xmm1, [r8 + rax];
        subsd xmm1, xmm4;
        mulsd xmm1, xmm1;
        addsd xmm0, xmm1;
 
        // build result
-       movhlps xmm1, xmm0;
-       addsd xmm0, xmm1;
+       haddpd xmm0, xmm0;
 
        // check if we need to use the unbiased version
        cmp unbiased, 0;
@@ -2570,7 +2552,7 @@ asm
 
        // write result
        @@writeRes:
-       movlpd [rcx + 8], xmm0;
+       movsd [rcx + 8], xmm0;
 
        // next line:
        add r8, r9;
@@ -2670,15 +2652,14 @@ asm
        @buildRes:
 
        // handle last element differently
-       movlpd xmm2, [r8 + rax];
+       movsd xmm2, [r8 + rax];
        addsd xmm0, xmm2;
 
        // build result
-       movhlps xmm1, xmm0;
-       addsd xmm0, xmm1;
+       haddpd xmm0, xmm0;
 
        divsd xmm0, xmm5;
-       movlpd [rcx], xmm0;
+       movsd [rcx], xmm0;
 
        // we have calculated the mean ->
        // repeat the loop to calculate the variance
@@ -2752,14 +2733,13 @@ asm
        @buildRes2:
 
        // handle last element differently
-       movlpd xmm1, [r8 + rax];
+       movsd xmm1, [r8 + rax];
        subsd xmm1, xmm4;
        mulsd xmm1, xmm1;
        addsd xmm0, xmm1;
 
        // build result
-       movhlps xmm1, xmm0;
-       addsd xmm0, xmm1;
+       haddpd xmm0, xmm0;
 
        // check if we need to use the unbiased version
        cmp unbiased, 0;
@@ -2778,7 +2758,7 @@ asm
 
        // write result
        @@writeRes:
-       movlpd [rcx + 8], xmm0;
+       movsd [rcx + 8], xmm0;
 
        // next line:
        add r8, r9;
@@ -3060,14 +3040,14 @@ asm
    // prepare for reverse loop
    mov rax, r10;
    @addforyloop3:
-       movlpd xmm1, [r8 + rax];
+       movsd xmm1, [r8 + rax];
        addsd xmm0, xmm1;
    add rax, r9;
    jnz @addforyloop3;
 
    // build result
    divsd xmm0, xmm2;
-   movlpd [rcx], xmm0;
+   movsd [rcx], xmm0;
 
    // calculate final standard deviation
    // for y := 0 to height - 1;
@@ -3075,7 +3055,7 @@ asm
    xorpd xmm4, xmm4;
    mov rax, r10;
    @addforyloop4:
-       movlpd xmm1, [r8 + rax];
+       movsd xmm1, [r8 + rax];
        subsd xmm1, xmm0;
        mulsd xmm1, xmm1;
        addsd xmm4, xmm1;
@@ -3099,7 +3079,7 @@ asm
 
    // write result
    @@writeRes2:
-   movlpd [rcx + rdx], xmm4;
+   movsd [rcx + rdx], xmm4;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -3197,14 +3177,14 @@ asm
    // prepare for reverse loop
    mov rax, r10;
    @addforyloop3:
-       movlpd xmm1, [r8 + rax];
+       movsd xmm1, [r8 + rax];
        addsd xmm0, xmm1;
    add rax, r9;
    jnz @addforyloop3;
 
    // build result
    divsd xmm0, xmm2;
-   movlpd [rcx], xmm0;
+   movsd [rcx], xmm0;
 
    // calculate final standard deviation
    // for y := 0 to height - 1;
@@ -3212,7 +3192,7 @@ asm
    xorpd xmm4, xmm4;
    mov rax, r10;
    @addforyloop4:
-       movlpd xmm1, [r8 + rax];
+       movsd xmm1, [r8 + rax];
        subsd xmm1, xmm0;
        mulsd xmm1, xmm1;
        addsd xmm4, xmm1;
@@ -3236,7 +3216,7 @@ asm
 
    // write result
    @@writeRes2:
-   movlpd [rcx + rdx], xmm4;
+   movsd [rcx + rdx], xmm4;
 {$IFDEF FPC}
 end;
 {$ENDIF}

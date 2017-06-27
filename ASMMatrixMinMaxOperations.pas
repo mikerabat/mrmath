@@ -253,7 +253,7 @@ begin
             @nextLine:
 
             // special care of the last column:
-            movlpd xmm1, [ecx];
+            movsd xmm1, [ecx];
             maxsd xmm0, xmm1;
 
             // next line:
@@ -333,7 +333,7 @@ begin
             @nextLine:
 
             // special care of the last column:
-            movlpd xmm1, [ecx];
+            movsd xmm1, [ecx];
             Maxsd xmm0, xmm1;
 
             // next line:
@@ -557,7 +557,7 @@ begin
             @nextLine:
 
             // special care of the last column:
-            movlpd xmm1, [ecx];
+            movsd xmm1, [ecx];
             minsd xmm0, xmm1;
 
             // next line:
@@ -637,7 +637,7 @@ begin
             @nextLine:
 
             // special care of the last column:
-            movlpd xmm1, [ecx];
+            movsd xmm1, [ecx];
             minsd xmm0, xmm1;
 
             // next line:

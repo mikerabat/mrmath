@@ -159,7 +159,7 @@ begin
             haddpd xmm0, xmm2;
 
             // store back result
-            movlpd [esi], xmm0;
+            movsd [esi], xmm0;
 
             // dec(mt2, Width2);
             // inc(PByte(mt1), LineWidth1);
@@ -291,7 +291,7 @@ begin
             haddpd xmm0, xmm2;
 
             // store back result
-            movlpd [esi], xmm0;
+            movsd [esi], xmm0;
 
             // dec(mt2, Width2);
             // inc(PByte(mt1), LineWidth1);
@@ -339,9 +339,6 @@ begin
         sub edi, iters2;
         mov mt1, ecx;
         mov mt2, edi;
-
-        xorpd xmm2, xmm2;
-        xorpd xmm6, xmm6;
 
         // for y := 0 to height1 - 1:
         mov eax, Height1;
@@ -477,8 +474,8 @@ begin
                 add edx, 128
                 jnz @@InnerLoop;
 
-                haddpd xmm0, xmm2;
-                haddpd xmm7, xmm6;
+                haddpd xmm0, xmm0;
+                haddpd xmm7, xmm7;
 
                 // compact result
                 movlhps xmm0, xmm7;
@@ -542,9 +539,6 @@ begin
         mov mt1, ecx;
         mov mt2, edi;
 
-        xorpd xmm2, xmm2;
-        xorpd xmm6, xmm6;
-
         // for y := 0 to height1 - 1:
         mov eax, Height1;
         mov y, eax;
@@ -583,8 +577,8 @@ begin
                 add edx, 16;
                 jnz @@InnerLoop;
 
-                haddpd xmm0, xmm2;
-                haddpd xmm7, xmm6;
+                haddpd xmm0, xmm0;
+                haddpd xmm7, xmm7;
 
                 // compact result
                 movlhps xmm0, xmm7;
@@ -683,9 +677,8 @@ begin
                 add edx, 16;
                 jnz @@InnerLoop;
 
-                xorpd xmm2, xmm2;
-                haddpd xmm0, xmm2;
-                haddpd xmm7, xmm2;
+                haddpd xmm0, xmm0;
+                haddpd xmm7, xmm7;
 
                 // compact result
                 movlhps xmm0, xmm7;
@@ -746,9 +739,6 @@ begin
         mov mt1, ecx;
         mov mt2, edi;
 
-        xorpd xmm2, xmm2;
-        xorpd xmm6, xmm6;
-
         // for y := 0 to height1 - 1:
         mov eax, Height1;
         mov y, eax;
@@ -788,16 +778,16 @@ begin
                 jnz @@InnerLoop;
 
                 // multiply and add the last element
-                movlpd xmm1, [ecx];
+                movsd xmm1, [ecx];
 
-                movlpd xmm3, [edi];
-                movlpd xmm4, [eax];
+                movsd xmm3, [edi];
+                movsd xmm4, [eax];
 
                 mulsd xmm3, xmm1;
                 mulsd xmm4, xmm1;
 
-                haddpd xmm0, xmm2;
-                haddpd xmm7, xmm6;
+                haddpd xmm0, xmm0;
+                haddpd xmm7, xmm7;
 
                 addsd xmm0, xmm3;
                 addsd xmm7, xmm4;
@@ -864,9 +854,6 @@ begin
         mov mt1, ecx;
         mov mt2, edi;
 
-        xorpd xmm2, xmm2;
-        xorpd xmm6, xmm6;
-
         // for y := 0 to height1 - 1:
         mov eax, Height1;
         mov y, eax;
@@ -906,16 +893,16 @@ begin
                 jnz @@InnerLoop;
 
                 // multiply and add the last element
-                movlpd xmm1, [ecx];
+                movsd xmm1, [ecx];
 
-                movlpd xmm3, [edi];
-                movlpd xmm4, [eax];
+                movsd xmm3, [edi];
+                movsd xmm4, [eax];
 
                 mulsd xmm3, xmm1;
                 mulsd xmm4, xmm1;
 
-                haddpd xmm0, xmm2;
-                haddpd xmm7, xmm6;
+                haddpd xmm0, xmm0;
+                haddpd xmm7, xmm7;
 
                 addsd xmm0, xmm3;
                 addsd xmm7, xmm4;
@@ -982,9 +969,6 @@ begin
         mov mt1, ecx;
         mov mt2, edi;
 
-        xorpd xmm2, xmm2;
-        xorpd xmm6, xmm6;
-
         // for y := 0 to height1 - 1:
         mov eax, Height1;
         mov y, eax;
@@ -1026,16 +1010,16 @@ begin
                 jnz @@InnerLoop;
 
                 // multiply and add the last element
-                movlpd xmm1, [ecx];
+                movsd xmm1, [ecx];
 
-                movlpd xmm3, [edi];
-                movlpd xmm4, [eax];
+                movsd xmm3, [edi];
+                movsd xmm4, [eax];
 
                 mulsd xmm3, xmm1;
                 mulsd xmm4, xmm1;
 
-                haddpd xmm0, xmm2;
-                haddpd xmm7, xmm6;
+                haddpd xmm0, xmm0;
+                haddpd xmm7, xmm7;
 
                 addsd xmm0, xmm3;
                 addsd xmm7, xmm4;
@@ -1075,15 +1059,15 @@ begin
             jnz @@InnerLoop2;
 
             // multiply and add the last element
-            movlpd xmm1, [ecx];
-            movlpd xmm3, [edi];
+            movsd xmm1, [ecx];
+            movsd xmm3, [edi];
 
             mulsd xmm3, xmm1;
-            haddpd xmm0, xmm2;
+            haddpd xmm0, xmm0;
             addsd xmm0, xmm3;
 
             // store back result
-            movlpd [esi], xmm0;
+            movsd [esi], xmm0;
 
             // dec(mt2, Width2);
             // inc(PByte(mt1), LineWidth1);
@@ -1129,9 +1113,6 @@ begin
         mov mt1, ecx;
         mov mt2, edi;
 
-        xorpd xmm2, xmm2;
-        xorpd xmm6, xmm6;
-
         // for y := 0 to height1 - 1:
         mov eax, Height1;
         mov y, eax;
@@ -1173,16 +1154,16 @@ begin
                 jnz @@InnerLoop;
 
                 // multiply and add the last element
-                movlpd xmm1, [ecx];
+                movsd xmm1, [ecx];
 
-                movlpd xmm3, [edi];
-                movlpd xmm4, [eax];
+                movsd xmm3, [edi];
+                movsd xmm4, [eax];
 
                 mulsd xmm3, xmm1;
                 mulsd xmm4, xmm1;
 
-                haddpd xmm0, xmm2;
-                haddpd xmm7, xmm6;
+                haddpd xmm0, xmm0;
+                haddpd xmm7, xmm7;
 
                 addsd xmm0, xmm3;
                 addsd xmm7, xmm4;
@@ -1223,15 +1204,15 @@ begin
             jnz @@InnerLoop2;
 
             // multiply and add the last element
-            movlpd xmm1, [ecx];
-            movlpd xmm3, [edi];
+            movsd xmm1, [ecx];
+            movsd xmm3, [edi];
 
             mulsd xmm3, xmm1;
-            haddpd xmm0, xmm2;
+            haddpd xmm0, xmm0;
             addsd xmm0, xmm3;
 
             // store back result
-            movlpd [esi], xmm0;
+            movsd [esi], xmm0;
 
             // dec(mt2, Width2);
             // inc(PByte(mt1), LineWidth1);

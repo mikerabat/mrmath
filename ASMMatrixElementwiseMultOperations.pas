@@ -358,10 +358,10 @@ begin
             @nextLine:
 
             // special care of the last column:
-            movlpd xmm0, [esi];
+            movsd xmm0, [esi];
             mulsd xmm0, [edi];
 
-            movlpd [ecx], xmm0;
+            movsd [ecx], xmm0;
 
             // next line:
             add esi, lineWidth1;
@@ -475,11 +475,11 @@ begin
             @nextLine:
 
             // special care of the last column:
-            movlpd xmm0, [esi];
-            movlpd xmm1, [edi];
+            movsd xmm0, [esi];
+            movsd xmm1, [edi];
             mulsd xmm0, xmm1;
 
-            movlpd [ecx], xmm0;
+            movsd [ecx], xmm0;
 
             // next line:
             add esi, lineWidth1;
@@ -809,10 +809,10 @@ begin
             @nextLine:
 
             // special care of the last column:
-            movlpd xmm0, [esi];
+            movsd xmm0, [esi];
             divsd xmm0, [edi];
 
-            movlpd [ecx], xmm0;
+            movsd [ecx], xmm0;
 
             // next line:
             add esi, lineWidth1;
@@ -926,11 +926,11 @@ begin
             @nextLine:
 
             // special care of the last column:
-            movlpd xmm0, [esi];
-            movlpd xmm1, [edi];
+            movsd xmm0, [esi];
+            movsd xmm1, [edi];
             divsd xmm0, xmm1;
 
-            movlpd [ecx], xmm0;
+            movsd [ecx], xmm0;
 
             // next line:
             add esi, lineWidth1;

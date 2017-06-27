@@ -277,7 +277,7 @@ asm
        @nextLine:
 
        // special care of the last column:
-   				movlpd xmm1, [rcx];
+   				movsd xmm1, [rcx];
        maxsd xmm0, xmm1;
 
        // next line:
@@ -368,7 +368,7 @@ asm
        @nextLine:
 
        // special care of the last column:
-   				movlpd xmm1, [rcx];
+   				movsd xmm1, [rcx];
        maxsd xmm0, xmm1;
 
        // next line:
@@ -621,7 +621,7 @@ asm
        @nextLine:
 
        // special care of the last column:
-       movlpd xmm1, [rcx];
+       movsd xmm1, [rcx];
        Minsd xmm0, xmm1;
 
        // next line:
@@ -712,7 +712,7 @@ asm
        @nextLine:
 
        // special care of the last column:
-       movlpd xmm1, [rcx];
+       movsd xmm1, [rcx];
        Minsd xmm0, xmm1;
 
        // next line:

@@ -300,11 +300,11 @@ asm
    @endfunc:
 
    // last swap
-   movlpd xmm0, [rcx];
-   movlpd xmm1, [rdx];
+   movsd xmm0, [rcx];
+   movsd xmm1, [rdx];
 
-   movlpd [rcx], xmm1;
-   movlpd [rdx], xmm0;
+   movsd [rcx], xmm1;
+   movsd [rdx], xmm0;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -371,11 +371,11 @@ asm
    @endfunc:
 
    // last swap
-   movlpd xmm0, [rcx];
-   movlpd xmm1, [rdx];
+   movsd xmm0, [rcx];
+   movsd xmm1, [rdx];
 
-   movlpd [rcx], xmm1;
-   movlpd [rdx], xmm0;
+   movsd [rcx], xmm1;
+   movsd [rdx], xmm0;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -610,8 +610,8 @@ asm
        @nextLine:
 
        // special care of the last element
-       movlpd xmm0, [r8];
-       movlpd [rcx], xmm0;
+       movsd xmm0, [r8];
+       movsd [rcx], xmm0;
 
        // next line:
        add r8, r9;
@@ -692,8 +692,8 @@ asm
        @nextLine:
 
        // special care of the last element
-       movlpd xmm0, [r8];
-       movlpd [rcx], xmm0;
+       movsd xmm0, [r8];
+       movsd [rcx], xmm0;
 
        // next line:
        add r8, r9;

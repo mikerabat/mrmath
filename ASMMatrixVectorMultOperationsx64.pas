@@ -73,8 +73,6 @@ asm
    shl r10, 3;
    imul r10, -1;
 
-   xorpd xmm3, xmm3;
-
    // prepare for reverse loop indexing
    mov r11, mt1;
    mov r12, mt2;
@@ -153,8 +151,8 @@ asm
        jnz @@forxloop2;
 
        // write back result (final addition and compactation)
-       haddpd xmm0, xmm3;
-       movlpd [rcx], xmm0;
+       haddpd xmm0, xmm0;
+       movsd [rcx], xmm0;
 
        // next results:
        add rcx, rdx;
@@ -186,8 +184,6 @@ asm
    mov r10, width1;
    shl r10, 3;
    imul r10, -1;
-
-   xorpd xmm3, xmm3;
 
    // prepare for reverse loop indexing
    mov r11, mt1;
@@ -263,8 +259,8 @@ asm
        jnz @@forxloop2;
 
        // write back result (final addition and compactation)
-       haddpd xmm0, xmm3;
-       movlpd [rcx], xmm0;
+       haddpd xmm0, xmm0;
+       movsd [rcx], xmm0;
 
        // next results:
        add rcx, rdx;
@@ -299,8 +295,6 @@ asm
    shl r10, 3;
    imul r10, -1;
 
-   xorpd xmm3, xmm3;
-
    // prepare for reverse loop indexing
    mov r11, mt1;
    mov r12, mt2;
@@ -379,15 +373,15 @@ asm
        jnz @@forxloop2;
 
        // special treatment for the last value:
-       movlpd xmm1, [r11];
-       movlpd xmm2, [r12];
+       movsd xmm1, [r11];
+       movsd xmm2, [r12];
 
        mulsd xmm1, xmm2;
        addsd xmm0, xmm1;
 
        // write back result (final addition and compactation)
-       haddpd xmm0, xmm3;
-       movlpd [rcx], xmm0;
+       haddpd xmm0, xmm0;
+       movsd [rcx], xmm0;
 
        // next results:
        add rcx, rdx;
@@ -420,8 +414,6 @@ asm
    dec r10;
    shl r10, 3;
    imul r10, -1;
-
-   xorpd xmm3, xmm3;
 
    // prepare for reverse loop indexing
    mov r11, mt1;
@@ -497,15 +489,15 @@ asm
        jnz @@forxloop2;
 
        // special treatment for the last value:
-       movlpd xmm1, [r11];
-       movlpd xmm2, [r12];
+       movsd xmm1, [r11];
+       movsd xmm2, [r12];
 
        mulsd xmm1, xmm2;
        addsd xmm0, xmm1;
 
        // write back result (final addition and compactation)
-       haddpd xmm0, xmm3;
-       movlpd [rcx], xmm0;
+       haddpd xmm0, xmm0;
+       movsd [rcx], xmm0;
 
        // next results:
        add rcx, rdx;
@@ -539,9 +531,6 @@ asm
 
    movupd dXMM6, xmm6;
    movupd dXMM7, xmm7;
-
-   // global function inits (for haddpd)
-   xorpd xmm0, xmm0;
 
    // for the final multiplication  (alpha, beta handling)
    movhpd xmm6, beta;
@@ -583,15 +572,15 @@ asm
        jnz @@forxloop;
 
        // special treatment for the last value:
-       movlpd xmm1, [rax];
-       movlpd xmm2, [rbx];
+       movsd xmm1, [rax];
+       movsd xmm2, [rbx];
 
        mulsd xmm1, xmm2;
        addsd xmm3, xmm1;
 
        // result building
        // write back result (final addition and compactation)
-       haddpd xmm3, xmm0;
+       haddpd xmm3, xmm3;
 
        // result building
        // write back result (final addition and compactation)
@@ -600,10 +589,10 @@ asm
        movhpd xmm3, [rcx];
 
        mulpd xmm3, xmm6;
-       haddpd xmm3, xmm0;
+       haddpd xmm3, xmm3;
 
        // store destination
-       movlpd [rcx], xmm3;
+       movsd [rcx], xmm3;
 
        // next results:
        add rcx, rdx;       // next dest element
@@ -643,9 +632,6 @@ asm
 
    movupd dXMM6, xmm6;
    movupd dXMM7, xmm7;
-
-   // global function inits (for haddpd)
-   xorpd xmm7, xmm7;
 
    // for the final multiplication  (alpha, beta handling)
    movhpd xmm6, beta;
@@ -688,15 +674,15 @@ asm
        jnz @@forxloop;
 
        // special treatment for the last value:
-       movlpd xmm1, [rax];
-       movlpd xmm2, [rbx];
+       movsd xmm1, [rax];
+       movsd xmm2, [rbx];
 
        mulsd xmm1, xmm2;
        addsd xmm3, xmm1;
 
        // result building
        // write back result (final addition and compactation)
-       haddpd xmm3, xmm7;
+       haddpd xmm3, xmm3;
 
        // result building
        // write back result (final addition and compactation)
@@ -705,10 +691,10 @@ asm
        movhpd xmm3, [rcx];
 
        mulpd xmm3, xmm6;
-       haddpd xmm3, xmm7;
+       haddpd xmm3, xmm3;
 
        // store destination
-       movlpd [rcx], xmm3;
+       movsd [rcx], xmm3;
 
        // next results:
        add rcx, rdx;       // next dest element
@@ -750,9 +736,6 @@ asm
    movupd dXMM6, xmm6;
    movupd dXMM7, xmm7;
 
-   // global function inits (for haddpd)
-   xorpd xmm7, xmm7;
-
    // for the final multiplication  (alpha, beta handling)
    movhpd xmm6, beta;
    movlpd xmm6, alpha;
@@ -794,7 +777,7 @@ asm
 
        // result building
        // write back result (final addition and compactation)
-       haddpd xmm3, xmm7;
+       haddpd xmm3, xmm3;
 
        // result building
        // write back result (final addition and compactation)
@@ -803,10 +786,10 @@ asm
        movhpd xmm3, [rcx];
 
        mulpd xmm3, xmm6;
-       haddpd xmm3, xmm7;
+       haddpd xmm3, xmm3;
 
        // store destination
-       movlpd [rcx], xmm3;
+       movsd [rcx], xmm3;
 
        // next results:
        add rcx, rdx;       // next dest element
@@ -845,9 +828,6 @@ asm
    mov iR14, r14;
 
    movupd dXMM4, xmm4;
-
-   // global function inits (for haddpd)
-   xorpd xmm7, xmm7;
 
    // for the final multiplication  (alpha, beta handling)
    movhpd xmm4, beta;
@@ -889,7 +869,7 @@ asm
 
        // result building
        // write back result (final addition and compactation)
-       haddpd xmm3, xmm7;
+       haddpd xmm3, xmm3;
 
        // result building
        // write back result (final addition and compactation)
@@ -898,7 +878,7 @@ asm
        movhpd xmm3, [rcx];
 
        mulpd xmm3, xmm4;
-       haddpd xmm3, xmm7;
+       haddpd xmm3, xmm3;
 
        // store destination
        movsd [rcx], xmm3;
@@ -946,9 +926,6 @@ asm
    mov iR13, r13;
    mov iR14, r14;
 
-
-   // global function inits (for haddpd and alpha, beta handling)
-   xorpd xmm7, xmm7;
 
    // for the final multiplication
    movhpd xmm6, beta;
@@ -1008,28 +985,28 @@ asm
        // calculate dest = beta*dest + alpha*xmm0
        movhpd xmm0, [rcx];
        mulpd xmm0, xmm6;
-       haddpd xmm0, xmm7;
+       haddpd xmm0, xmm0;
        movsd [rcx], xmm0;
        add rcx, rdx;
        add r8, rsi;              // next mt1 element
 
        movhpd xmm1, [rcx];
        mulpd xmm1, xmm6;
-       haddpd xmm1, xmm7;
+       haddpd xmm1, xmm1;
        movsd [rcx], xmm1;
        add rcx, rdx;
        add r8, rsi;              // next mt1 element
 
        movhpd xmm2, [rcx];
        mulpd xmm2, xmm6;
-       haddpd xmm2, xmm7;
+       haddpd xmm2, xmm2;
        movsd [rcx], xmm2;
        add rcx, rdx;
        add r8, rsi;              // next mt1 element
 
        movhpd xmm3, [rcx];
        mulpd xmm3, xmm6;
-       haddpd xmm3, xmm7;
+       haddpd xmm3, xmm3;
        movsd [rcx], xmm3;
        add rcx, rdx;             // next dest element
        add r8, rsi;              // next mt1 element
@@ -1068,7 +1045,7 @@ asm
        // calculate dest = beta*dest + alpha*xmm0
        movhpd xmm0, [rcx];
        mulpd xmm0, xmm6;
-       haddpd xmm0, xmm7;
+       haddpd xmm0, xmm0;
        movsd [rcx], xmm0;
        add rcx, rdx;
        add r8, rsi;
@@ -1099,7 +1076,7 @@ end;
 // routines with special input layouts: LineWidthV needs to be sizeof(double)
 procedure ASMMatrixVectMultEvenAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
-var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 {$IFDEF FPC}
 begin
@@ -1116,10 +1093,6 @@ asm
    movupd dXMM4, xmm4;
    movupd dXMM5, xmm5;
    movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
-
-   // global function inits (for haddpd and alpha, beta handling)
-   xorpd xmm7, xmm7;
 
    // for the final multiplication
    movhpd xmm6, beta;
@@ -1180,7 +1153,7 @@ asm
        movsd xmm5, [rcx];              // first element
        haddpd xmm0, xmm5;              // calculate xmm0_1 + xmm0_2 (store low) xmm5_1 + xmm5_2 (store high)
        mulpd xmm0, xmm6;               // beta * dest + alpha*xmm0
-       haddpd xmm0, xmm7;              // final add
+       haddpd xmm0, xmm0;              // final add
        movsd [rcx], xmm0;              // store back
        add rcx, rdx;
        add r8, rsi;
@@ -1188,7 +1161,7 @@ asm
        movsd xmm5, [rcx];
        haddpd xmm1, xmm5;
        mulpd xmm1, xmm6;
-       haddpd xmm1, xmm7;
+       haddpd xmm1, xmm1;
        movsd [rcx], xmm1;
        add rcx, rdx;
        add r8, rsi;
@@ -1196,7 +1169,7 @@ asm
        movsd xmm5, [rcx];
        haddpd xmm2, xmm5;
        mulpd xmm2, xmm6;
-       haddpd xmm2, xmm7;
+       haddpd xmm2, xmm2;
        movsd [rcx], xmm2;
        add rcx, rdx;
        add r8, rsi;
@@ -1204,7 +1177,7 @@ asm
        movsd xmm5, [rcx];
        haddpd xmm3, xmm5;
        mulpd xmm3, xmm6;
-       haddpd xmm3, xmm7;
+       haddpd xmm3, xmm3;
        movsd [rcx], xmm3;
        add rcx, rdx;
        add r8, rsi;
@@ -1243,7 +1216,7 @@ asm
        movsd xmm5, [rcx];
        haddpd xmm0, xmm5;
        mulpd xmm0, xmm6;
-       haddpd xmm0, xmm7;
+       haddpd xmm0, xmm0;
        movsd [rcx], xmm0;
 
        add rcx, rdx;
@@ -1265,7 +1238,6 @@ asm
    movupd xmm4, dXMM4;
    movupd xmm5, dXMM5;
    movupd xmm6, dXMM6;
-   movupd xmm7, dXMM7;
 end;
 {$IFDEF FPC}
 end;
@@ -1273,7 +1245,7 @@ end;
 
 procedure ASMMatrixVectMultEvenUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
-var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 {$IFDEF FPC}
 begin
@@ -1290,10 +1262,6 @@ asm
    movupd dXMM4, xmm4;
    movupd dXMM5, xmm5;
    movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
-
-   // global function inits (for haddpd and alpha, beta handling)
-   xorpd xmm7, xmm7;
 
    // for the final multiplication
    movhpd xmm6, beta;
@@ -1354,7 +1322,7 @@ asm
        movsd xmm5, [rcx];              // first element
        haddpd xmm0, xmm5;              // calculate xmm0_1 + xmm0_2 (store low) xmm5_1 + xmm5_2 (store high)
        mulpd xmm0, xmm6;               // beta * dest + alpha*xmm0
-       haddpd xmm0, xmm7;              // final add
+       haddpd xmm0, xmm0;              // final add
        movsd [rcx], xmm0;              // store back
        add rcx, destLineWidth;
        add r8, rsi;
@@ -1362,7 +1330,7 @@ asm
        movsd xmm5, [rcx];
        haddpd xmm1, xmm5;
        mulpd xmm1, xmm6;
-       haddpd xmm1, xmm7;
+       haddpd xmm1, xmm1;
        movsd [rcx], xmm1;
        add rcx, destLineWidth;
        add r8, rsi;
@@ -1370,7 +1338,7 @@ asm
        movsd xmm5, [rcx];
        haddpd xmm2, xmm5;
        mulpd xmm2, xmm6;
-       haddpd xmm2, xmm7;
+       haddpd xmm2, xmm2;
        movsd [rcx], xmm2;
        add rcx, destLineWidth;
        add r8, rsi;
@@ -1378,7 +1346,7 @@ asm
        movsd xmm5, [rcx];
        haddpd xmm3, xmm5;
        mulpd xmm3, xmm6;
-       haddpd xmm3, xmm7;
+       haddpd xmm3, xmm3;
        movsd [rcx], xmm3;
        add rcx, destLineWidth;
        add r8, rsi;
@@ -1417,7 +1385,7 @@ asm
        movsd xmm5, [rcx];
        haddpd xmm0, xmm5;
        mulpd xmm0, xmm6;
-       haddpd xmm0, xmm7;
+       haddpd xmm0, xmm0;
        movsd [rcx], xmm0;
 
        add rcx, destLineWidth;
@@ -1439,7 +1407,6 @@ asm
    movupd xmm4, dXMM4;
    movupd xmm5, dXMM5;
    movupd xmm6, dXMM6;
-   movupd xmm7, dXMM7;
 end;
 {$IFDEF FPC}
 end;
@@ -1447,7 +1414,7 @@ end;
 
 procedure ASMMatrixVectMultOddUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
-var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 {$IFDEF FPC}
 begin
@@ -1464,10 +1431,6 @@ asm
    movupd dXMM4, xmm4;
    movupd dXMM5, xmm5;
    movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
-
-   // global function inits (for haddpd and alpha, beta handling)
-   xorpd xmm7, xmm7;
 
    // for the final multiplication
    movhpd xmm6, beta;
@@ -1553,7 +1516,7 @@ asm
        movsd xmm5, [rcx];              // first element
        haddpd xmm0, xmm5;              // calculate xmm0_1 + xmm0_2 (store low) xmm5_1 + xmm5_2 (store high)
        mulpd xmm0, xmm6;               // beta * dest + alpha*xmm0
-       haddpd xmm0, xmm7;              // final add
+       haddpd xmm0, xmm0;              // final add
        movsd [rcx], xmm0;              // store back
        add rcx, destLineWidth;
        add r8, rsi;
@@ -1561,7 +1524,7 @@ asm
        movsd xmm5, [rcx];
        haddpd xmm1, xmm5;
        mulpd xmm1, xmm6;
-       haddpd xmm1, xmm7;
+       haddpd xmm1, xmm1;
        movsd [rcx], xmm1;
        add rcx, destLineWidth;
        add r8, rsi;
@@ -1569,7 +1532,7 @@ asm
        movsd xmm5, [rcx];
        haddpd xmm2, xmm5;
        mulpd xmm2, xmm6;
-       haddpd xmm2, xmm7;
+       haddpd xmm2, xmm2;
        movsd [rcx], xmm2;
        add rcx, destLineWidth;
        add r8, rsi;
@@ -1577,7 +1540,7 @@ asm
        movsd xmm5, [rcx];
        haddpd xmm3, xmm5;
        mulpd xmm3, xmm6;
-       haddpd xmm3, xmm7;
+       haddpd xmm3, xmm3;
        movsd [rcx], xmm3;
        add rcx, destLineWidth;
        add r8, rsi;
@@ -1623,7 +1586,7 @@ asm
        movsd xmm5, [rcx];
        haddpd xmm0, xmm5;
        mulpd xmm0, xmm6;
-       haddpd xmm0, xmm7;
+       haddpd xmm0, xmm0;
        movsd [rcx], xmm0;
 
        add rcx, destLineWidth;
@@ -1645,7 +1608,6 @@ asm
    movupd xmm4, dXMM4;
    movupd xmm5, dXMM5;
    movupd xmm6, dXMM6;
-   movupd xmm7, dXMM7;
 end;
 {$IFDEF FPC}
 end;
@@ -1980,7 +1942,7 @@ end;
 // simple routine... not used any more
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
 procedure ASMMatrixVectMultT1(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-var dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM6 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 {$IFDEF FPC}
 begin
@@ -1995,10 +1957,6 @@ asm
    mov iR14, r14;
 
    movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
-
-   // global function inits (for haddpd and alpha, beta handling)
-   xorpd xmm7, xmm7;
 
    // for the final multiplication
    movhpd xmm6, beta;
@@ -2039,9 +1997,9 @@ asm
        movhpd xmm3, [rcx];
 
        mulpd xmm3, xmm6;
-       haddpd xmm3, xmm7;
+       haddpd xmm3, xmm3;
 
-       movlpd [rcx], xmm3;
+       movsd [rcx], xmm3;
 
        // next results:
        add rcx, destLineWidth;   // next dest element
@@ -2058,7 +2016,6 @@ asm
    mov r14, iR14;
 
    movupd xmm6, dXMM6;
-   movupd xmm7, dXMM7;
 end;
 {$IFDEF FPC}
 end;
@@ -2086,8 +2043,6 @@ asm
    movupd dXMM4, xmm4;
    movupd dXMM6, xmm6;
    movupd dXMM7, xmm7;
-
-
 
    // for the final multiplication
    movddup xmm6, alpha;

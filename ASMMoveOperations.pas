@@ -297,11 +297,11 @@ begin
         @endfunc:
 
         // last swap
-        movlpd xmm0, [eax];
-        movlpd xmm1, [ecx];
+        movsd xmm0, [eax];
+        movsd xmm1, [ecx];
 
-        movlpd [eax], xmm1;
-        movlpd [ecx], xmm0;
+        movsd [eax], xmm1;
+        movsd [ecx], xmm0;
      end;
 end;
 
@@ -366,11 +366,11 @@ begin
         @endfunc:
 
         // last swap
-        movlpd xmm0, [eax];
-        movlpd xmm1, [ecx];
+        movsd xmm0, [eax];
+        movsd xmm1, [ecx];
 
-        movlpd [eax], xmm1;
-        movlpd [ecx], xmm0;
+        movsd [eax], xmm1;
+        movsd [ecx], xmm0;
      end;
 end;
 
@@ -604,8 +604,8 @@ begin
             @nextLine:
 
             // special care of the last element
-            movlpd xmm0, [esi];
-            movlpd [ecx], xmm0;
+            movsd xmm0, [esi];
+            movsd [ecx], xmm0;
 
             // next line:
             add esi, srcLineWidth;
@@ -686,8 +686,8 @@ begin
             @nextLine:
 
             // special care of the last element
-            movlpd xmm0, [esi];
-            movlpd [ecx], xmm0;
+            movsd xmm0, [esi];
+            movsd [ecx], xmm0;
 
             // next line:
             add esi, srcLineWidth;

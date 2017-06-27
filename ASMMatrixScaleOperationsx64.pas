@@ -376,10 +376,10 @@ asm
        @nextLine:
 
        // special care of the last column:
-       movlpd xmm0, [rcx];
+       movsd xmm0, [rcx];
        addsd xmm0, xmm6;
        mulsd xmm0, xmm7;
-       movlpd [rcx], xmm0;
+       movsd [rcx], xmm0;
 
        // next line:
        add rcx, rdx;
@@ -495,10 +495,10 @@ asm
        @nextLine:
 
        // special care of the last column:
-       movlpd xmm0, [rcx];
+       movsd xmm0, [rcx];
        addsd xmm0, xmm6;
        mulsd xmm0, xmm7;
-       movlpd [rcx], xmm0;
+       movsd [rcx], xmm0;
 
        // next line:
        add rcx, rdx;
@@ -846,10 +846,10 @@ asm
        @nextLine:
 
        // special care of the last column:
-       movlpd xmm0, [rcx];
+       movsd xmm0, [rcx];
        mulsd xmm0, xmm7;
        addsd xmm0, xmm6;
-       movlpd [rcx], xmm0;
+       movsd [rcx], xmm0;
 
        // next line:
        add rcx, rdx;

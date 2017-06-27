@@ -115,7 +115,7 @@ begin
             addsd xmm0, xmm1;
 
             // write result
-            movlpd [ebx], xmm0;
+            movsd [ebx], xmm0;
 
             // next line:
             add ecx, srcLineWidth;
@@ -202,7 +202,7 @@ begin
             movhlps xmm1, xmm7;
             addsd xmm7, xmm1;
 
-            movlpd [ebx], xmm7;
+            movsd [ebx], xmm7;
 
             // next line:
             add ecx, srcLineWidth;
@@ -279,7 +279,7 @@ begin
             @buildRes:
 
             // handle last element differently
-            movlpd xmm2, [ecx + eax];
+            movsd xmm2, [ecx + eax];
             addsd xmm7, xmm2;
 
             // build result
@@ -291,7 +291,7 @@ begin
             addsd xmm0, xmm1;
 
             // write result
-            movlpd [ebx], xmm0;
+            movsd [ebx], xmm0;
 
             // next line:
             add ecx, srcLineWidth;
@@ -375,14 +375,14 @@ begin
             @buildRes:
 
             // handle last element differently
-            movlpd xmm2, [ecx + eax];
+            movsd xmm2, [ecx + eax];
             addsd xmm7, xmm2;
 
             // build result
             movhlps xmm1, xmm7;
             addsd xmm7, xmm1;
 
-            movlpd [ebx], xmm7;
+            movsd [ebx], xmm7;
 
             // next line:
             add ecx, srcLineWidth;
@@ -544,13 +544,13 @@ begin
         // prepare for reverse loop
         mov eax, iters;
         @addforyloop3:
-            movlpd xmm0, [ecx + eax];
+            movsd xmm0, [ecx + eax];
             addsd xmm7, xmm0;
         add eax, srcLineWidth;
         jnz @addforyloop3;
 
         // build result
-        movlpd [ebx], xmm7;
+        movsd [ebx], xmm7;
 
         pop ebx;
      end;
@@ -608,13 +608,13 @@ begin
         // prepare for reverse loop
         mov eax, iters;
         @addforyloop3:
-            movlpd xmm0, [ecx + eax];
+            movsd xmm0, [ecx + eax];
             addsd xmm7, xmm0;
         add eax, srcLineWidth;
         jnz @addforyloop3;
 
         // build result
-        movlpd [ebx], xmm7;
+        movsd [ebx], xmm7;
 
         pop ebx;
      end;

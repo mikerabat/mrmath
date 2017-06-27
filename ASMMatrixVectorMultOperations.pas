@@ -1179,7 +1179,6 @@ begin
         push esi;
         push edi;
 
-        xorpd xmm7, xmm7;
         mov edi, dest;
 
         // for the final multiplication
@@ -1219,9 +1218,9 @@ begin
             movhpd xmm0, [edi];
 
             mulpd xmm0, xmm6;
-            haddpd xmm0, xmm7;
+            haddpd xmm0, xmm0;
 
-            movlpd [edi], xmm0;
+            movsd [edi], xmm0;
 
             // next results:
             add edi, destLineWidth;

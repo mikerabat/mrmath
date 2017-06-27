@@ -177,9 +177,8 @@ begin
                 jnz @@InnerLoop;
 
                 // final horizontal addition
-                xorpd xmm2, xmm2;
-                haddpd xmm0, xmm2;
-                haddpd xmm7, xmm2;
+                haddpd xmm0, xmm0;
+                haddpd xmm7, xmm7;
 
                 // compact result
                 movlhps xmm0, xmm7;
@@ -292,9 +291,8 @@ begin
                 jnz @@InnerLoop;
 
                 // final horizontal addition
-                xorpd xmm2, xmm2;
-                haddpd xmm0, xmm2;
-                haddpd xmm7, xmm2;
+                haddpd xmm0, xmm0;
+                haddpd xmm7, xmm7;
 
                 // compact result
                 movlhps xmm0, xmm7;
@@ -697,7 +695,7 @@ begin
             mov ebx, iters2;
             @@InnerLoop2:
                 // load element from line
-                movlpd xmm1, [ecx + ebx];
+                movsd xmm1, [ecx + ebx];
 
                 // load, multiply and add
                 mulsd xmm1, [edi];
@@ -708,7 +706,7 @@ begin
             jnz @@InnerLoop2;
 
             mov edi, dest;
-            movlpd [edi], xmm0;
+            movsd [edi], xmm0;
 
             // dec(mt2, Width2);
             // inc(PByte(mt1), LineWidth1);
@@ -834,7 +832,7 @@ begin
             mov ebx, iters2;
             @@InnerLoop2:
                 // load element from line
-                movlpd xmm1, [ecx + ebx];
+                movsd xmm1, [ecx + ebx];
 
                 // load, multiply and add
                 mulsd xmm1, [edi];
@@ -845,7 +843,7 @@ begin
             jnz @@InnerLoop2;
 
             mov edi, dest;
-            movlpd [edi], xmm0;
+            movsd [edi], xmm0;
 
             // dec(mt2, Width2);
             // inc(PByte(mt1), LineWidth1);
@@ -986,7 +984,7 @@ begin
             mov ebx, iters3;
             @@InnerLoop2:
                 // load element from line
-                movlpd xmm1, [ecx + ebx];
+                movsd xmm1, [ecx + ebx];
 
                 // load, multiply and add
                 mulsd xmm1, [edi];
@@ -997,7 +995,7 @@ begin
             jnz @@InnerLoop2;
 
             mov edi, dest;
-            movlpd [edi], xmm0;
+            movsd [edi], xmm0;
 
             // dec(mt2, Width2);
             // inc(PByte(mt1), LineWidth1);
@@ -1136,7 +1134,7 @@ begin
             mov ebx, iters3;
             @@InnerLoop2:
                 // load element from line
-                movlpd xmm1, [ecx + ebx];
+                movsd xmm1, [ecx + ebx];
 
                 // load, multiply and add
                 mulsd xmm1, [edi];
@@ -1147,7 +1145,7 @@ begin
             jnz @@InnerLoop2;
 
             mov edi, dest;
-            movlpd [edi], xmm0;
+            movsd [edi], xmm0;
 
             // dec(mt2, Width2);
             // inc(PByte(mt1), LineWidth1);
