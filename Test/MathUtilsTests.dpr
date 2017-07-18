@@ -111,7 +111,8 @@ uses
   LinAlgQR in '..\LinAlgQR.pas',
   PLS in '..\PLS.pas',
   Corr in '..\Corr.pas',
-  TestCorr in 'TestCorr.pas';
+  TestCorr in 'TestCorr.pas',
+  linuxthrpool in '..\mac\linuxthrpool.pas';
 
 {$R *.RES}
 

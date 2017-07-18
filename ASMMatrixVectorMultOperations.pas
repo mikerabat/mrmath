@@ -69,7 +69,6 @@ begin
         push esi;
         push edi;
 
-        xorpd xmm7, xmm7;
         mov edi, dest;
 
         // for the final multiplication
@@ -128,28 +127,28 @@ begin
             // -> 4 times since the loop is unrolled
             movhpd xmm0, [edi];
             mulpd xmm0, xmm6;
-            haddpd xmm0, xmm7;
+            haddpd xmm0, xmm0;
             movsd [edi], xmm0;
             add edi, destLineWidth;
             add eax, LineWidthMT;
 
             movhpd xmm1, [edi];
             mulpd xmm1, xmm6;
-            haddpd xmm1, xmm7;
+            haddpd xmm1, xmm1;
             movsd [edi], xmm1;
             add edi, destLineWidth;
             add eax, LineWidthMT;
 
             movhpd xmm2, [edi];
             mulpd xmm2, xmm6;
-            haddpd xmm2, xmm7;
+            haddpd xmm2, xmm2;
             movsd [edi], xmm2;
             add edi, destLineWidth;
             add eax, LineWidthMT;
 
             movhpd xmm3, [edi];
             mulpd xmm3, xmm6;
-            haddpd xmm3, xmm7;
+            haddpd xmm3, xmm3;
             movsd [edi], xmm3;
             add edi, destLineWidth;
             add eax, LineWidthMT;
@@ -184,7 +183,7 @@ begin
             // calculate dest = beta*dest + alpha*xmm0
             movhpd xmm0, [edi];
             mulpd xmm0, xmm6;
-            haddpd xmm0, xmm7;
+            haddpd xmm0, xmm0;
             movsd [edi], xmm0;
 
             // next line
@@ -216,7 +215,6 @@ begin
         push esi;
         push edi;
 
-        xorpd xmm7, xmm7;
         mov edi, dest;
 
         // for the final multiplication
@@ -275,7 +273,7 @@ begin
             movsd xmm5, [edi];
             haddpd xmm0, xmm5;
             mulpd xmm0, xmm6;
-            haddpd xmm0, xmm7;
+            haddpd xmm0, xmm0;
             movsd [edi], xmm0;
             add edi, destLineWidth;
             add eax, LineWidthMT;
@@ -283,7 +281,7 @@ begin
             movsd xmm5, [edi];
             haddpd xmm1, xmm5;
             mulpd xmm1, xmm6;
-            haddpd xmm1, xmm7;
+            haddpd xmm1, xmm1;
             movsd [edi], xmm1;
             add edi, destLineWidth;
             add eax, LineWidthMT;
@@ -291,7 +289,7 @@ begin
             movsd xmm5, [edi];
             haddpd xmm2, xmm5;
             mulpd xmm2, xmm6;
-            haddpd xmm2, xmm7;
+            haddpd xmm2, xmm2;
             movsd [edi], xmm2;
             add edi, destLineWidth;
             add eax, LineWidthMT;
@@ -299,7 +297,7 @@ begin
             movsd xmm5, [edi];
             haddpd xmm3, xmm5;
             mulpd xmm3, xmm6;
-            haddpd xmm3, xmm7;
+            haddpd xmm3, xmm3;
             movsd [edi], xmm3;
             add edi, destLineWidth;
             add eax, LineWidthMT;
@@ -368,7 +366,6 @@ begin
         push esi;
         push edi;
 
-        xorpd xmm7, xmm7;
         mov edi, dest;
 
         // for the final multiplication
@@ -427,7 +424,7 @@ begin
             movsd xmm5, [edi];
             haddpd xmm0, xmm5;
             mulpd xmm0, xmm6;
-            haddpd xmm0, xmm7;
+            haddpd xmm0, xmm0;
             movsd [edi], xmm0;
             add edi, destLineWidth;
             add eax, LineWidthMT;
@@ -435,7 +432,7 @@ begin
             movsd xmm5, [edi];
             haddpd xmm1, xmm5;
             mulpd xmm1, xmm6;
-            haddpd xmm1, xmm7;
+            haddpd xmm1, xmm1;
             movsd [edi], xmm1;
             add edi, destLineWidth;
             add eax, LineWidthMT;
@@ -443,7 +440,7 @@ begin
             movsd xmm5, [edi];
             haddpd xmm2, xmm5;
             mulpd xmm2, xmm6;
-            haddpd xmm2, xmm7;
+            haddpd xmm2, xmm2;
             movsd [edi], xmm2;
             add edi, destLineWidth;
             add eax, LineWidthMT;
@@ -451,7 +448,7 @@ begin
             movsd xmm5, [edi];
             haddpd xmm3, xmm5;
             mulpd xmm3, xmm6;
-            haddpd xmm3, xmm7;
+            haddpd xmm3, xmm3;
             movsd [edi], xmm3;
             add edi, destLineWidth;
             add eax, LineWidthMT;
@@ -489,7 +486,7 @@ begin
             movsd xmm5, [edi];
             haddpd xmm0, xmm5;
             mulpd xmm0, xmm6;
-            haddpd xmm0, xmm7;
+            haddpd xmm0, xmm0;
             movsd [edi], xmm0;
 
             // next line
@@ -522,7 +519,6 @@ begin
         push esi;
         push edi;
 
-        xorpd xmm7, xmm7;
         mov edi, dest;
 
         // for the final multiplication
@@ -605,7 +601,7 @@ begin
             movsd xmm5, [edi];
             haddpd xmm0, xmm5;
             mulpd xmm0, xmm6;
-            haddpd xmm0, xmm7;
+            haddpd xmm0, xmm0;
             movsd [edi], xmm0;
             add edi, destLineWidth;
             add eax, LineWidthMT;
@@ -613,7 +609,7 @@ begin
             movsd xmm5, [edi];
             haddpd xmm1, xmm5;
             mulpd xmm1, xmm6;
-            haddpd xmm1, xmm7;
+            haddpd xmm1, xmm1;
             movsd [edi], xmm1;
             add edi, destLineWidth;
             add eax, LineWidthMT;
@@ -621,7 +617,7 @@ begin
             movsd xmm5, [edi];
             haddpd xmm2, xmm5;
             mulpd xmm2, xmm6;
-            haddpd xmm2, xmm7;
+            haddpd xmm2, xmm2;
             movsd [edi], xmm2;
             add edi, destLineWidth;
             add eax, LineWidthMT;
@@ -629,7 +625,7 @@ begin
             movsd xmm5, [edi];
             haddpd xmm3, xmm5;
             mulpd xmm3, xmm6;
-            haddpd xmm3, xmm7;
+            haddpd xmm3, xmm3;
             movsd [edi], xmm3;
             add edi, destLineWidth;
             add eax, LineWidthMT;
@@ -672,7 +668,7 @@ begin
             movsd xmm5, [edi];
             haddpd xmm0, xmm5;
             mulpd xmm0, xmm6;
-            haddpd xmm0, xmm7;
+            haddpd xmm0, xmm0;
             movsd [edi], xmm0;
 
             // next line

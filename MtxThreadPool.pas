@@ -84,6 +84,31 @@ end;
 {$ENDIF}
 
 // ###########################################
+// #### Linux Thread pooling
+// ###########################################
+
+{$IFDEF LINUX}
+
+uses linthrpool;
+
+procedure InitMtxThreadPool;
+begin
+     InitLinuxMtxThreadPool;
+end;
+
+procedure FinalizeMtxThreadPool;
+begin
+     FinalizeLinuxMtxThreadPool;
+end;
+
+function MtxInitTaskGroup : IMtxAsyncCallGroup;
+begin
+     Result := InitLinuxThreadGroup;
+end;
+
+{$ENDIF}
+
+// ###########################################
 // #### MACOS Thread pooling
 // ###########################################
 

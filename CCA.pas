@@ -100,7 +100,6 @@ procedure TMatrixCCA.CCA(X, Y: TDoubleMatrix; doRegularization: Boolean;
 var meanNormX : IMatrix;
     meanNormY : IMatrix;
     Cxx, Cyy, Cxy : IMatrix;
-    //Cyx : IMatrix;
     invCxx, invCyy : IMatrix;
     U, V, W : IMatrix;
     tmp : IMatrix;

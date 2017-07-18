@@ -35,6 +35,17 @@ procedure ASMMatrixAbsAlignedEvenW(Dest : PDouble; const LineWidth, Width, Heigh
 begin
   {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    //iters := -width*sizeof(double);
    mov r10, width;
@@ -124,6 +135,17 @@ procedure ASMMatrixAbsUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Hei
 begin
   {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    //iters := -width*sizeof(double);
    mov r10, width;
@@ -211,6 +233,17 @@ procedure ASMMatrixAbsAlignedOddW(Dest : PDouble; const LineWidth, Width, Height
 begin
   {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
@@ -307,6 +340,17 @@ procedure ASMMatrixAbsUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Heig
 begin
   {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    //iters := -(width-1)*sizeof(double);
    mov r10, width;

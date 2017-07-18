@@ -383,7 +383,7 @@ begin
           Result := fWInv.Mult(exmplTransp);
      end
      else
-         Result := fWInv.Mult(exmplTransp);
+         Result := fWInv.Mult(Example);
 end;
 
 function TNNMF.Reconstruct(Features: TDoubleMatrix): TDoubleMatrix;

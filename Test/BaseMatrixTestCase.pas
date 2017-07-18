@@ -18,7 +18,7 @@ unit BaseMatrixTestCase;
 interface
 
 uses
-  Windows,
+  {$IFDEF LINUX}lcltype, {$ELSE} Windows, {$ENDIF}
   {$IFDEF FPC} fpcunit, testregistry, {$ELSE} TestFramework, {$ENDIF}
   Classes, SysUtils, Types, Matrix;
 
@@ -127,18 +127,18 @@ end;
 
 procedure TBaseMatrixTestCase.TryClearCache;
 var mem : PInteger;
-	   i : integer;
+    i : integer;
     pMem : PInteger;
 const cNumElem = 5000000;
       cMaxCacheSize = cNumElem*sizeof(integer);
 begin
-	    // allocates a realy big piece of memory reads and writes it -
+     // allocates a realy big piece of memory reads and writes it -
      // the cache should then be clear
      mem := GetMemory(cMaxCacheSize);
      pMem := mem;
      for i := 0 to cNumElem - 1 do
      begin
-      	   pMem^ := i;
+      	  pMem^ := i;
           inc(pMem);
      end;
      FreeMem(mem);
@@ -246,14 +246,14 @@ procedure TBaseImgTestCase.ImageFromMatrix(img: TDoubleMatrix; w, h : integer;
 var bmp : TBitmap;
     x, y : integer;
     idx : integer;
-    pScanLine : PRGBTriple;
+    pScanLine : PRGBQUAD;
 begin
      // create an image from the reconstructed matrix
      bmp := TBitmap.Create;
      try
         bmp.Width := W;
         bmp.Height := H;
-        bmp.PixelFormat := pf24bit;
+        bmp.PixelFormat := pf32bit;
 
         idx := 0;
         for y := 0 to bmp.Height - 1 do
@@ -262,9 +262,9 @@ begin
 
              for x := 0 to bmp.Width - 1 do
              begin
-                  pScanline^.rgbtBlue := Max(0, Min(255, Round(img[0, idx])));
-                  pScanline^.rgbtRed := pScanline^.rgbtBlue;
-                  pScanline^.rgbtGreen := pScanline^.rgbtBlue;
+                  pScanline^.rgbBlue := Max(0, Min(255, Round(img[0, idx])));
+                  pScanline^.rgbRed := pScanline^.rgbBlue;
+                  pScanline^.rgbGreen := pScanline^.rgbBlue;
 
                   inc(pScanLine);
                   inc(idx);
@@ -277,78 +277,84 @@ begin
      end;
 end;
 
+
 function TBaseImgTestCase.LoadImages(out w, h : integer; path : string = 'Images'; ext : string = '*.jpg' ): TDoubleMatrix;
 var imgNum : integer;
     img : TPicture;
     bmp : TBitmap;
     sr : TSearchRec;
-    pScanLine : PRGBTriple;
+    pScanLine : PRGBQUAD;
     idx : integer;
     x, y : integer;
     numImg : integer;
+    sl : TStringList;
+    i : integer;
 begin
      // load a bunch of images and calculate a PCA. Note the images
      Result := nil;
      imgNum := 0;
      w := 0;
      h := 0;
-     path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)) + '\' + path);
+     path := IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter( ExtractFilePath(ParamStr(0)) ) + path);
+     sl := TStringList.Create;
 
      numImg := 0;
      if FindFirst(Path + ext, 0, sr) = 0 then
      begin
           repeat
+                sl.Add( Path + sr.Name );
                 inc(numImg);
           until FindNext(sr) <> 0;
      end;
 
      FindClose(sr);
 
-     if FindFirst(Path + ext, 0, sr) = 0 then
+     sl.Sort;
+
+     for i := 0 to sl.Count - 1 do
      begin
-          repeat
-                img := TPicture.Create;
-                try
-                   img.LoadFromFile(path + sr.name);
+          img := TPicture.Create;
+          try
+             img.LoadFromFile(sl[i]);
 
-                   bmp := TBitmap.Create;
-                   try
-                      bmp.SetSize(img.Width, img.Height);
-                      bmp.PixelFormat := pf24bit;
-                      bmp.Canvas.Draw(0, 0, img.Graphic);
+             bmp := TBitmap.Create;
+             try
+                bmp.SetSize(img.Width, img.Height);
+                bmp.PixelFormat := pf32bit;
+                bmp.Canvas.Draw(0, 0, img.Graphic);
 
-                      if not Assigned(Result) then
-                      begin
-                           w := bmp.Width;
-                           h := bmp.Height;
-                           Result := TDoubleMatrix.Create(numImg, bmp.Width*bmp.Height);
-                      end;
-
-                      // create matrix from image
-                      idx := 0;
-                      for y := 0 to bmp.Height - 1 do
-                      begin
-                           pScanLine := bmp.ScanLine[y];
-
-                           for x := 0 to bmp.Width - 1 do
-                           begin
-                                Result[imgNum, idx] := Round(pScanline^.rgbtBlue*0.1140 + pScanline^.rgbtRed*0.2989 + pScanline^.rgbtGreen*0.5870);
-                                inc(pScanLine);
-                                inc(idx);
-                           end;
-                      end;
-
-                      inc(imgNum);
-                   finally
-                          bmp.Free;
-                   end;
-                finally
-                       img.Free;
+                if not Assigned(Result) then
+                begin
+                     w := bmp.Width;
+                     h := bmp.Height;
+                     Result := TDoubleMatrix.Create(numImg, bmp.Width*bmp.Height);
                 end;
-          until FindNext(sr) <> 0;
+
+                // create matrix from image
+                idx := 0;
+                for y := 0 to bmp.Height - 1 do
+                begin
+                     pScanLine := bmp.ScanLine[y];
+
+                     for x := 0 to bmp.Width - 1 do
+                     begin
+                          Result[imgNum, idx] := Round(pScanline^.rgbBlue*0.1140 + pScanline^.rgbRed*0.2989 + pScanline^.rgbGreen*0.5870);
+                          inc(pScanLine);
+                          inc(idx);
+                     end;
+                end;
+
+                inc(imgNum);
+             finally
+                    bmp.Free;
+             end;
+          finally
+                 img.Free;
+          end;
      end;
-     FindClose(sr);
+     sl.Free;
 end;
+
 
 initialization
   {$IFDEF FPC}

@@ -764,6 +764,17 @@ procedure TDynamicTimeWarp.ReduceByHalfSSE(X : PConstDoubleArr; inLen,
 begin
 {$ENDIF}
 asm
+{$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+{$ENDIF}
+
    // rcx self, rdx X, r8 inLen, r9 = inOffset
 
    // newOffset := inOffset + inLen;

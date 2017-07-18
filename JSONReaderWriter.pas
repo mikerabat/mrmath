@@ -419,7 +419,7 @@ var c : Ansichar;
     aObj : TBaseMathPersistence;
     mathIOClass : TBaseMathPersistenceClass;
     version: Integer;
-  counter: Integer;
+    counter: Integer;
 
 function DecodeStringToBinary(const s : string) : TByteDynArray;
 var binIdx : integer;
@@ -587,6 +587,7 @@ function ReadString : string;
 var c : AnsiChar;
     sHlp : string;
 begin
+     sHlp := '';
      PushState(sString);
      Result := '';
      while aStream.Read(c, sizeof(c)) = 1 do
@@ -752,6 +753,7 @@ begin
      listS := nil;
      listdd := nil;
      listii := nil;
+     sProp := '';
 
      PushState(sObj);
 

@@ -60,6 +60,17 @@ begin
 {$ENDIF}
      // rcx: dest, rdx: destlinewidth; r8: src; r9 : srclinewidth
      asm
+        {$IFDEF LINUX}
+        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+        // (note that the 5th and 6th parameter are are on the stack)
+        // The parameters are passed in the following order:
+        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+        mov r8, rdx;
+        mov r9, rcx;
+        mov rcx, rdi;
+        mov rdx, rsi;
+        {$ENDIF}
+
         // prolog - maintain stack
         mov iRBX, rbx;
         mov iRDI, rdi;
@@ -115,6 +126,17 @@ begin
 {$ENDIF}
      // rcx: dest, rdx: destlinewidth; r8: src; r9 : srclinewidth
      asm
+        {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
         // prolog - maintain stack
         mov iRDI, rdi;
         mov iRSI, rsi;
@@ -167,6 +189,16 @@ begin
 {$ENDIF}
      // rcx: dest, rdx: destlinewidth; r8: src; r9 : srclinewidth
      asm
+        {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
         // prolog - maintain stack
         mov iRDI, rdi;
         mov iRSI, rsi;
@@ -239,6 +271,16 @@ begin
 {$ENDIF}
      // rcx: dest, rdx: destlinewidth; r8: src; r9 : srclinewidth
      asm
+        {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
         // prolog - maintain stack
         mov iRDI, rdi;
         mov iRSI, rsi;
@@ -291,6 +333,16 @@ begin
 {$ENDIF}
      // rcx: dest, rdx: destlinewidth; r8: src; r9 : srclinewidth
      asm
+        {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
         // prolog - maintain stack
         mov iRDI, rdi;
         mov iRSI, rsi;
@@ -366,6 +418,16 @@ begin
 {$ENDIF}
      // rcx: dest, rdx: destlinewidth; r8: src; r9 : srclinewidth
      asm
+        {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
         // prolog - maintain stack
         mov iRBX, rbx;
         mov iRDI, rdi;
@@ -424,6 +486,16 @@ begin
 {$ENDIF}
      // rcx: dest, rdx: destlinewidth; r8: src; r9 : srclinewidth
      asm
+     {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
         // prolog - maintain stack
         mov iRDI, rdi;
         mov iRSI, rsi;
@@ -482,6 +554,16 @@ begin
 {$ENDIF}
      // rcx: dest, rdx: destlinewidth; r8: src; r9 : srclinewidth
      asm
+     {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
         // prolog - maintain stack
         mov iRDI, rdi;
         mov iRSI, rsi;
@@ -562,6 +644,16 @@ begin
 {$ENDIF}
      // rcx: dest, rdx: destlinewidth; r8: src; r9 : srclinewidth
      asm
+     {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
         // prolog - maintain stack
         mov iRDI, rdi;
         mov iRSI, rsi;
@@ -621,6 +713,16 @@ begin
 {$ENDIF}
      // rcx: dest, rdx: destlinewidth; r8: src; r9 : srclinewidth
      asm
+     {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
         // prolog - maintain stack
         mov iRDI, rdi;
         mov iRSI, rsi;

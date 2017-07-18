@@ -53,6 +53,17 @@ var iRBX, iRDI : TASMNativeInt;
 begin
 {$ENDIF}
      asm
+        {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
         // ##########################################
         // #### Prolog - stack and base variable init
         //if (height < 2) or (width < 1) then
@@ -218,6 +229,17 @@ var iRBX, iRDI : TASMNativeInt;
 begin
 {$ENDIF}
      asm
+        {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
         // ##########################################
         // #### Prolog - stack and base variable init
         //if (height < 2) or (width < 1) then
@@ -372,6 +394,17 @@ var iRBX, iRDI : TASMNativeInt;
 begin
 {$ENDIF}
      asm
+        {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
         // ##########################################
         // #### Prolog - stack and base variable init
         //if (height < 2) or (width < 1) then
@@ -459,6 +492,17 @@ var iRBX, iRDI : TASMNativeInt;
 begin
 {$ENDIF}
      asm
+        {$IFDEF LINUX}
+        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+        // (note that the 5th and 6th parameter are are on the stack)
+        // The parameters are passed in the following order:
+        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+        mov r8, rdx;
+        mov r9, rcx;
+        mov rcx, rdi;
+        mov rdx, rsi;
+        {$ENDIF}
+
         // ##########################################
         // #### Prolog - stack and base variable init
         //if (height < 2) or (width < 1) then
@@ -552,6 +596,17 @@ var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
 begin
 {$ENDIF}
      asm
+        {$IFDEF LINUX}
+        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+        // (note that the 5th and 6th parameter are are on the stack)
+        // The parameters are passed in the following order:
+        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+        mov r8, rdx;
+        mov r9, rcx;
+        mov rcx, rdi;
+        mov rdx, rsi;
+        {$ENDIF}
+
         // ###########################################
         // #### Stack push
         movupd dXMM4, xmm4;
@@ -648,6 +703,17 @@ var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
 begin
 {$ENDIF}
      asm
+        {$IFDEF LINUX}
+        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+        // (note that the 5th and 6th parameter are are on the stack)
+        // The parameters are passed in the following order:
+        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+        mov r8, rdx;
+        mov r9, rcx;
+        mov rcx, rdi;
+        mov rdx, rsi;
+        {$ENDIF}
+
         // ###########################################
         // #### Stack push
         movupd dXMM4, xmm4;

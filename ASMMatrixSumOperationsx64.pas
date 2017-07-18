@@ -50,6 +50,17 @@ procedure ASMMatrixSumRowAlignedEvenW(dest : PDouble; const destLineWidth : TASM
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // note: RCX = dest, RDX = destLineWidth, R8 = widh, R9 = height
 
    //iters := -width*sizeof(double);
@@ -128,6 +139,17 @@ procedure ASMMatrixSumRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TA
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // note: RCX = dest, RDX = destLineWidth, R8 = widh, R9 = height
 
    //iters := -width*sizeof(double);
@@ -206,6 +228,17 @@ procedure ASMMatrixSumRowAlignedOddW(dest : PDouble; const destLineWidth : TASMN
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // note: RCX = dest, RDX = destLineWidth, R8 = widh, R9 = height
 
    //iters := -(width - 1)*sizeof(double);
@@ -264,7 +297,7 @@ asm
        addpd xmm0, xmm2;
 
        // special handling of the last element
-							movsd xmm3, [r8];
+       movsd xmm3, [r8];
        addsd xmm0, xmm3;
 
        movhlps xmm1, xmm0;
@@ -289,6 +322,17 @@ procedure ASMMatrixSumRowUnAlignedOddW(dest : PDouble; const destLineWidth : TAS
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // note: RCX = dest, RDX = destLineWidth, R8 = widh, R9 = height
 
    //iters := -(width - 1)*sizeof(double);
@@ -346,7 +390,7 @@ asm
        @nextLine:
 
        // special handling of the last element
-							movsd xmm1, [r8];
+       movsd xmm1, [r8];
        addsd xmm0, xmm1;
 
        // build result
@@ -373,6 +417,17 @@ procedure ASMMatrixSumColumnAlignedEvenW(dest : PDouble; const destLineWidth : T
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    xor r10, r10;
    sub r10, height;
@@ -415,6 +470,17 @@ procedure ASMMatrixSumColumnUnAlignedEvenW(dest : PDouble; const destLineWidth :
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    xor r10, r10;
    sub r10, height;
@@ -458,6 +524,17 @@ procedure ASMMatrixSumColumnAlignedOddW(dest : PDouble; const destLineWidth : TA
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    xor r10, r10;
    sub r10, height;
@@ -518,6 +595,17 @@ procedure ASMMatrixSumColumnUnAlignedOddW(dest : PDouble; const destLineWidth : 
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    xor r10, r10;
    sub r10, height;

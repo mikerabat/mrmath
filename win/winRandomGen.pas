@@ -16,6 +16,8 @@ unit winRandomGen;
 
 interface
 
+{$IFDEF MSWINDOWS}
+
 uses RandomEng;
 
 // interface to the CryptGenRandom windows API 
@@ -23,8 +25,6 @@ uses RandomEng;
 // ###########################################
 // #### rnd object
 // ###########################################
-
-{$IFDEF MSWINDOWS}
 
 function CreateOsRndObj : TOsRndEngine;
 

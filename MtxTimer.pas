@@ -26,16 +26,24 @@ var mtxFreq : Int64;
 
 implementation
 
-uses {$IFDEF MSWINDOWS}Windows{$ENDIF}{$IFDEF MACOS}System.Diagnostics{$ENDIF};
+uses {$IFDEF MSWINDOWS}Windows{$ENDIF}{$IFDEF MACOS}System.Diagnostics{$ENDIF}{$IFDEF LINUX}unixtype, linux{$ENDIF};
 
 {$IFDEF MACOS}
 var sw:  TStopWatch; //wrc
 {$ENDIF}
 
 function MtxGetTime: Int64;
+{$IFDEF LINUX}
+var loc_Start : TTimeSpec;
+{$ENDIF}
 begin
    {$IFDEF MACOS}
    Result := sw.GetTimeStamp;
+   {$ENDIF}
+
+   {$IFDEF LINUX}
+   clock_gettime(CLOCK_MONOTONIC, @loc_Start);
+   Result := loc_Start.tv_sec*1000000000 + loc_Start.tv_nsec;
    {$ENDIF}
 
    {$IFDEF MSWINDOWS}
@@ -47,6 +55,10 @@ end;
 initialization
   {$IFDEF MSWINDOWS}
   QueryPerformanceFrequency(mtxFreq);
+  {$ENDIF}
+
+  {$IFDEF LINUX}
+  mtxFreq := 1000000000;
   {$ENDIF}
 
   {$IFDEF MACOS}

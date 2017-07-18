@@ -125,8 +125,8 @@ end;
 
 procedure TestTDoubleMatrix.SetUp;
 begin
-     fRefMatrix1 := ReadObjFromFile('matrixData1.txt') as TDoubleMatrix;
-     fRefMatrix2 := ReadObjFromFile('matrixData2.txt') as TDoubleMatrix;
+     fRefMatrix1 := ReadObjFromFile('MatrixData1.txt') as TDoubleMatrix;
+     fRefMatrix2 := ReadObjFromFile('MatrixData2.txt') as TDoubleMatrix;
 end;
 
 procedure TestTDoubleMatrix.TearDown;

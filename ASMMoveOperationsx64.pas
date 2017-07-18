@@ -60,6 +60,17 @@ procedure ASMInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; const Value :
 begin
 {$ENDIF}
      asm
+        {$IFDEF LINUX}
+        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+        // (note that the 5th and 6th parameter are are on the stack)
+        // The parameters are passed in the following order:
+        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+        mov r8, rdx;
+        mov r9, rcx;
+        mov rcx, rdi;
+        mov rdx, rsi;
+        {$ENDIF}
+
         movddup xmm1, Value;
 
         mov r10, rdx;
@@ -110,6 +121,17 @@ procedure ASMRowSwapAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // note: RCX = a, RDX = b, R8 = width
    mov r10, width;
    shl r10, 3;
@@ -177,6 +199,17 @@ procedure ASMRowSwapUnAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // note: RCX = a, RDX = b, R8 = width
    mov r10, width;
    shl r10, 3;
@@ -240,6 +273,18 @@ procedure ASMRowSwapAlignedOddW(A, B : PDouble; width : TASMNativeInt);
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
+
    // note: RCX = a, RDX = b, R8 = width
    mov r10, width;
    dec r10;
@@ -315,6 +360,17 @@ procedure ASMRowSwapUnAlignedOddW(A, B : PDouble; width : TASMNativeInt);
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // note: RCX = a, RDX = b, R8 = width
    mov r10, width;
    dec r10;
@@ -386,6 +442,17 @@ procedure ASMMatrixCopyAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNa
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    //iters := -width*sizeof(double);
    mov r10, width;
@@ -467,6 +534,17 @@ procedure ASMMatrixCopyUnAlignedEvenW(Dest : PDouble; const destLineWidth : TASM
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // note: RCX = dest, RDX = destLineWidth, R8 =src, R9 = src
    //iters := -width*sizeof(double);
    mov r10, width;
@@ -544,6 +622,17 @@ procedure ASMMatrixCopyAlignedOddW(Dest : PDouble; const destLineWidth : TASMNat
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
@@ -630,6 +719,17 @@ procedure ASMMatrixCopyUnAlignedOddW(Dest : PDouble; const destLineWidth : TASMN
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;

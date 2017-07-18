@@ -56,6 +56,17 @@ var iR12, iR13, iR14, iRDI : TASMNativeInt;
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
    mov iR12, r12;
    mov iR13, r13;
@@ -242,6 +253,17 @@ var iR12, iR13, iR14, iRDI : TASMNativeInt;
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
    mov iR12, r12;
    mov iR13, r13;
@@ -426,6 +448,17 @@ var iR12, iR13, iR14, iRDI : TASMNativeInt;
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
    mov iR12, r12;
    mov iR13, r13;
@@ -630,6 +663,17 @@ var iR12, iR13, iR14, iRDI : TASMNativeInt;
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
    mov iR12, r12;
    mov iR13, r13;
@@ -830,6 +874,17 @@ var iR12, iR13, iR14, iRDI : TASMNativeInt;
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
    mov iR12, r12;
    mov iR13, r13;
@@ -1024,6 +1079,17 @@ var iR12, iR13, iR14, iRDI : TASMNativeInt;
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
    mov iR12, r12;
    mov iR13, r13;
@@ -1216,6 +1282,17 @@ var iR12, iR13, iR14, iRDI : TASMNativeInt;
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
    mov iR12, r12;
    mov iR13, r13;
@@ -1432,6 +1509,17 @@ var iR12, iR13, iR14, iRDI : TASMNativeInt;
 begin
 {$ENDIF}
 asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
    // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
    mov iR12, r12;
    mov iR13, r13;
@@ -1647,6 +1735,17 @@ begin
 {$ENDIF}
      // rcx: mt, rdx, LineWidth, r8: N
      asm
+        {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
         // prolog - stack
         mov iRBX, rbx;
         mov iRDI, rdi;

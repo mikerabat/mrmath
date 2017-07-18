@@ -65,7 +65,7 @@ type
 constructor TMacOSRndEngine.Create;
 begin
      {$IFNDEF DummyRND}
-     fs := TFileStream.Create('/dev/random', fmOpenRead);
+     fs := TFileStream.Create('/dev/urandom', fmOpenRead);
      fBufIdx := cNumPreCalc;
      {$ELSE}
      fRnd := TRandomGenerator.Create;
@@ -108,6 +108,11 @@ begin
      {$ELSE}
      Result := fRnd.RandLW($FFFFFFFF);
      {$ENDIF}
+end;
+
+function CreateOsRndObj : TOsRndEngine;
+begin
+     Result := TMacOSRndEngine.Create;
 end;
 
 {$ENDIF}

@@ -28,9 +28,9 @@ uses Windows;
 
 implementation
 
-uses MtxThreadPool, SysUtils;
-
 {$IFDEF MSWINDOWS}
+
+uses MtxThreadPool, SysUtils;
 
 // ###########################################
 // #### Get Processor information -> windows only

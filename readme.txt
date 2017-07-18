@@ -53,6 +53,11 @@ Gustav Kaiser - special thanks for implementing the PLS algorithm.
 
 // ###################################################################
 changelog:
+
+Date: 18.07.2017
+* First version of Linux support (FPC Typhoon64 6.1)
+* Some minor optimizations
+
 Date: 21.06.2017
 * Minor improvements - the Fast DTW algorithm now implements a SSE version of the reduce by half
   routine.
