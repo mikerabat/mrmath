@@ -89,7 +89,7 @@ end;
 
 {$IFDEF LINUX}
 
-uses linthrpool;
+uses linuxthrpool;
 
 procedure InitMtxThreadPool;
 begin

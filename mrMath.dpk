@@ -96,6 +96,7 @@ contains
   MatrixRotations in 'MatrixRotations.pas',
   LinearAlgebraicEquations in 'LinearAlgebraicEquations.pas',
   PLS in 'PLS.pas',
-  Corr in 'Corr.pas';
+  Corr in 'Corr.pas',
+  linuxthrpool in 'mac\linuxthrpool.pas';
 
 end.
