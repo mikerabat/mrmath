@@ -25,6 +25,11 @@ interface
 {$ENDIF}
 {$IFDEF x64}
 
+{$IFDEF FPC}
+{$MODE Delphi}
+{$ASMMODE intel}
+{$ENDIF}
+
 uses MatrixConst;
 
 procedure ASMMatrixSumRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
@@ -43,12 +48,7 @@ implementation
 
 {$IFDEF x64}
 
-{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
-
 procedure ASMMatrixSumRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -129,15 +129,9 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 procedure ASMMatrixSumRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -218,15 +212,9 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 procedure ASMMatrixSumRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -312,15 +300,9 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 procedure ASMMatrixSumRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -406,16 +388,10 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 
 procedure ASMMatrixSumColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -460,15 +436,9 @@ asm
    // loop x end
    dec r11;
    jnz @@addforxloop;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 procedure ASMMatrixSumColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -514,15 +484,9 @@ asm
    // loop x end
    dec r11;
    jnz @@addforxloop;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 procedure ASMMatrixSumColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -584,16 +548,9 @@ asm
 
    // build result
    movsd [rcx], xmm1;
-
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 procedure ASMMatrixSumColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -656,9 +613,6 @@ asm
 
    // build result
    movsd [rcx], xmm1;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 {$ENDIF}

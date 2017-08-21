@@ -29,6 +29,11 @@ interface
 {$ENDIF}
 {$IFDEF x64}
 
+{$IFDEF FPC}
+{$MODE Delphi}
+{$ASMMODE intel}
+{$ENDIF}
+
 uses MatrixConst;
 
 
@@ -56,13 +61,8 @@ implementation
 
 {$IFDEF x64}
 
-{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
-
 procedure ASMMatrixVectorMultAlignedEvenW1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt);
 var iRBX, iRDI, iR12 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
 {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -174,16 +174,10 @@ asm
    mov rbx, iRBX;
    mov rdi, iRDI;
    mov r12, iR12;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 procedure ASMMatrixVectorMultUnAlignedEvenW1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt);
 var iRBX, iRDI, iR12 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
 {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -293,17 +287,11 @@ asm
    mov rbx, iRBX;
    mov rdi, iRDI;
    mov r12, iR12;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 
 procedure ASMMatrixVectorMultAlignedOddW1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt);
 var iRBX, iRDI, iR12 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
 {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -425,16 +413,10 @@ asm
    mov rbx, iRBX;
    mov rdi, iRDI;
    mov r12, iR12;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 procedure ASMMatrixVectorMultUnAlignedOddW1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt);
 var iRBX, iRDI, iR12 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
 {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -552,17 +534,11 @@ asm
    mov rbx, iRBX;
    mov rdi, iRDI;
    mov r12, iR12;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 procedure ASMMatrixVectMultAlignedOddW(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
 {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -662,9 +638,6 @@ asm
    mov r13, iR13;
    mov r14, iR14;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
@@ -672,9 +645,6 @@ end;
 procedure ASMMatrixVectMultUnalignedOddW(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
 {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -778,17 +748,11 @@ asm
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 
 procedure ASMMatrixVectMultUnalignedEvenW(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
 {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -884,16 +848,10 @@ asm
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 procedure ASMMatrixVectMultAlignedEvenW(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 var dXMM4 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
 {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -986,9 +944,6 @@ asm
 
    movupd xmm4, dxmm4;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 
 
@@ -996,9 +951,6 @@ procedure ASMMatrixVectMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, 
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
 var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1166,9 +1118,6 @@ asm
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 
 // routines with special input layouts: LineWidthV needs to be sizeof(double)
@@ -1176,9 +1125,6 @@ procedure ASMMatrixVectMultEvenAlignedVAligned(dest : PDouble; destLineWidth : T
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
 var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1348,17 +1294,11 @@ asm
    movupd xmm5, dXMM5;
    movupd xmm6, dXMM6;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 procedure ASMMatrixVectMultEvenUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
 var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1528,17 +1468,11 @@ asm
    movupd xmm5, dXMM5;
    movupd xmm6, dXMM6;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 procedure ASMMatrixVectMultOddUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
 var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1740,9 +1674,6 @@ asm
    movupd xmm5, dXMM5;
    movupd xmm6, dXMM6;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 
 // this function is not that well suited for use of simd instructions...
@@ -1754,9 +1685,6 @@ var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
 
     res0, res1, res2, res3,
     res4, res5, res6, res7 : Array[0..1] of  double;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -2076,9 +2004,6 @@ asm
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 
 // simple routine... not used any more
@@ -2086,9 +2011,6 @@ end;
 procedure ASMMatrixVectMultT1(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 var dXMM6 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
 {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -2170,9 +2092,6 @@ asm
 
    movupd xmm6, dXMM6;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 
 procedure ASMMatrixVectMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
@@ -2181,9 +2100,6 @@ var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
 
     res0, res1, res2, res3,
     res4, res5, res6, res7 : Array[0..1] of  double;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -2451,19 +2367,13 @@ asm
    movupd xmm4, dXMM4;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
-   end;
-{$IFDEF FPC}
 end;
-{$ENDIF}
 
 
 procedure ASMRank1UpdateSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
   const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
 // note: RCX = A, RDX = LineWidthA, R8 = width, R9 = height
 var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -2557,18 +2467,12 @@ asm
    mov r13, iR13;
    mov r14, iR14;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 
 procedure ASMRank1UpdateSeqAligned(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
   const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
 // note: RCX = A, RDX = LineWidthA, R8 = width, R9 = height
 var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -2662,9 +2566,6 @@ asm
    mov r13, iR13;
    mov r14, iR14;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 {$ENDIF}
 

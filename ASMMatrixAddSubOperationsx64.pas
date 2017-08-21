@@ -29,6 +29,11 @@ interface
 {$ENDIF}
 {$IFDEF x64}
 
+{$IFDEF FPC}
+{$MODE Delphi}
+{$ASMMODE intel}
+{$ENDIF}
+
 uses MatrixConst;
 
 procedure ASMMatrixAddAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
@@ -50,13 +55,8 @@ implementation
 
 {$IFDEF x64}
 
-{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
-
 procedure ASMMatrixAddAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var iRBX, iR12 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -175,15 +175,9 @@ asm
    mov rbx, iRBX;
    mov r12, iR12;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 procedure ASMMatrixAddUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var iRBX, iR12 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -312,15 +306,9 @@ asm
    mov rbx, iRBX;
    mov r12, iR12;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 procedure ASMMatrixAddAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var iRBX, iR12 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -447,15 +435,9 @@ asm
    mov rbx, iRBX;
    mov r12, iR12;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 procedure ASMMatrixAddUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var iRBX, iR12 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -591,15 +573,9 @@ asm
    mov rbx, iRBX;
    mov r12, iR12;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 procedure ASMMatrixSubAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var iRBX, iR12 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -719,15 +695,9 @@ asm
    mov rbx, iRBX;
    mov r12, iR12;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 procedure ASMMatrixSubUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var iRBX, iR12 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -856,15 +826,9 @@ asm
    mov rbx, iRBX;
    mov r12, iR12;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 procedure ASMMatrixSubAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var iRBX, iR12 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -991,15 +955,9 @@ asm
    mov rbx, iRBX;
    mov r12, iR12;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 procedure ASMMatrixSubUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var iRBX, iR12 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1135,64 +1093,55 @@ asm
    mov rbx, iRBX;
    mov r12, iR12;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 procedure ASMMatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
 var iRBX : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
-     // rcx : A, rdx : LineWidthA, r8 : B, r9 : LineWidthB;
-     asm
-        {$IFDEF LINUX}
-        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-        // (note that the 5th and 6th parameter are are on the stack)
-        // The parameters are passed in the following order:
-        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-        mov r8, rdx;
-        mov r9, rcx;
-        mov rcx, rdi;
-        mov rdx, rsi;
-        {$ENDIF}
+// rcx : A, rdx : LineWidthA, r8 : B, r9 : LineWidthB;
+asm
+   {$IFDEF LINUX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
 
-        // maintain stack
-        mov iRBX, rbx;
+   // maintain stack
+   mov iRBX, rbx;
 
-        // rax: iter := -width*sizeof(double)
-        mov rcx, A;
-        mov rax, width;
-        imul rax, -8;
-        sub rcx, rax;
+   // rax: iter := -width*sizeof(double)
+   mov rcx, A;
+   mov rax, width;
+   imul rax, -8;
+   sub rcx, rax;
 
-        // for y := 0 to height - 1
-        @@foryloop:
-           mov r10, r8;
-           mov rbx, rax;
+   // for y := 0 to height - 1
+   @@foryloop:
+      mov r10, r8;
+      mov rbx, rax;
 
-           // for x := 0 to width - 1
-           @@forxloop:
-              movsd xmm0, [rcx + rbx];
-              movsd xmm1, [r10];
+      // for x := 0 to width - 1
+      @@forxloop:
+         movsd xmm0, [rcx + rbx];
+         movsd xmm1, [r10];
 
-              subsd xmm0, xmm1;
-              movsd [rcx + rbx], xmm0;
+         subsd xmm0, xmm1;
+         movsd [rcx + rbx], xmm0;
 
-              add r10, r9;
-           add rbx, 8;
-           jnz @@forxloop;
+         add r10, r9;
+      add rbx, 8;
+      jnz @@forxloop;
 
-           add rcx, rdx;
-           add r8, 8;
-        dec height;
-        jnz @@foryloop;
+      add rcx, rdx;
+      add r8, 8;
+   dec height;
+   jnz @@foryloop;
 
-        mov rbx, iRBX;
-     end;
-{$IFDEF FPC}
+   mov rbx, iRBX;
 end;
-{$ENDIF}
 
 
 {$ENDIF}

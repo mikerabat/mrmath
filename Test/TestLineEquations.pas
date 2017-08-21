@@ -257,7 +257,7 @@ begin
           then
               InitMathFunctions(False, False)
           else
-              InitMathFunctions(True, False);
+              InitMathFunctions(True, True);
 
           blkWidth := cBlkWidths[iter div 2];
           blkHeight := cBlkHeights[iter div 2];

@@ -25,6 +25,11 @@ interface
 {$ENDIF}
 {$IFDEF x64}
 
+{$IFDEF FPC}
+{$MODE Delphi}
+{$ASMMODE intel}
+{$ENDIF}
+
 uses MatrixConst;
 
 procedure ASMMatrixAddScaleAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
@@ -45,13 +50,8 @@ implementation
 
 {$IFDEF x64}
 
-{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
-
 procedure ASMMatrixAddScaleAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -167,16 +167,10 @@ asm
    // epilog
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 procedure ASMMatrixAddScaleUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -290,17 +284,11 @@ asm
    // epilog
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 
 procedure ASMMatrixAddScaleAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -424,16 +412,10 @@ asm
    // epilog
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 procedure ASMMatrixAddScaleUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -554,17 +536,11 @@ asm
    // epilog
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 
 procedure ASMMatrixScaleAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -681,16 +657,10 @@ asm
    // epilog
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 procedure ASMMatrixScaleAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -804,17 +774,11 @@ asm
    // epilog
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 
 procedure ASMMatrixScaleAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -938,16 +902,10 @@ asm
    // epilog
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 procedure ASMMatrixScaleAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1068,9 +1026,6 @@ asm
    // epilog
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 {$ENDIF}

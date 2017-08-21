@@ -471,21 +471,21 @@ begin
      with TBinaryReaderWriter.Create do
      try
         mx.Assign(dx, 5, 10);
-        SaveToFile(mx, 'matrixData1.txt');
+        SaveToFile(mx, 'm1.txt');
         mx.Assign(dy, 5, 10);
-        SaveToFile(mx, 'matrixData2.txt');
+        SaveToFile(mx, 'm2.txt');
      finally
             Free;
      end;
 
      mx.Assign(dx, 5, 10);
-     my := ReadObjFromFile('matrixData1.txt') as TDoubleMatrix;
+     my := ReadObjFromFile('m1.txt') as TDoubleMatrix;
      check(Assigned(my), 'error could not read data');
      check(CheckMtx(mx.SubMatrix, my.SubMatrix), 'Error read unsuccessfull');
      my.Free;
 
      mx.Assign(dy, 5, 10);
-     my := ReadObjFromFile('matrixData2.txt') as TDoubleMatrix;
+     my := ReadObjFromFile('m2.txt') as TDoubleMatrix;
      check(Assigned(my), 'error could not read data');
      check(CheckMtx(mx.SubMatrix, my.SubMatrix), 'Error read unsuccessfull');
 
@@ -1061,8 +1061,8 @@ end;
 
 procedure TestIMatrix.SetUp;
 begin
-     fRefMatrix1 := ReadObjFromFile('matrixData1.txt') as IMatrix;
-     fRefMatrix2 := ReadObjFromFile('matrixData2.txt') as IMatrix;
+     fRefMatrix1 := ReadObjFromFile('MatrixData1.txt') as IMatrix;
+     fRefMatrix2 := ReadObjFromFile('MatrixData2.txt') as IMatrix;
 end;
 
 procedure TestIMatrix.TearDown;

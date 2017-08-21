@@ -25,6 +25,11 @@ interface
 {$ENDIF}
 {$IFDEF x64}
 
+{$IFDEF FPC}
+{$MODE Delphi}
+{$ASMMODE intel}
+{$ENDIF}
+
 uses MatrixConst;
 
 procedure ASMMatrixTransposeAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
@@ -48,13 +53,8 @@ implementation
 
 {$IFDEF x64}
 
-{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
-
 procedure ASMMatrixTransposeAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iR12, iR13, iR14, iRDI : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -242,16 +242,10 @@ asm
    mov r13, iR13;
    mov r14, iR14;
    mov rdi, iRDI;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 procedure ASMMatrixTransposeUnAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iR12, iR13, iR14, iRDI : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -436,17 +430,11 @@ asm
    mov r13, iR13;
    mov r14, iR14;
    mov rdi, iRDI;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 
 procedure ASMMatrixTransposeAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iR12, iR13, iR14, iRDI : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -652,16 +640,10 @@ asm
    mov r13, iR13;
    mov r14, iR14;
    mov rdi, iRDI;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 procedure ASMMatrixTransposeUnAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iR12, iR13, iR14, iRDI : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -863,16 +845,10 @@ asm
    mov r13, iR13;
    mov r14, iR14;
    mov rdi, iRDI;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 procedure ASMMatrixTransposeAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iR12, iR13, iR14, iRDI : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1068,16 +1044,10 @@ asm
    mov r13, iR13;
    mov r14, iR14;
    mov rdi, iRDI;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 procedure ASMMatrixTransposeUnAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iR12, iR13, iR14, iRDI : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1270,17 +1240,11 @@ asm
    mov r13, iR13;
    mov r14, iR14;
    mov rdi, iRDI;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 
 procedure ASMMatrixTransposeAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iR12, iR13, iR14, iRDI : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1498,16 +1462,10 @@ asm
    mov r13, iR13;
    mov r14, iR14;
    mov rdi, iRDI;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 procedure ASMMatrixTransposeUnAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iR12, iR13, iR14, iRDI : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1722,20 +1680,14 @@ asm
    mov r13, iR13;
    mov r14, iR14;
    mov rdi, iRDI;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 // simple Inplace Trasnposition of an N x N matrix
 procedure ASMMatrixTransposeInplace(mt : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt);
 var iRBX, iRDI, iRSI : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
-     // rcx: mt, rdx, LineWidth, r8: N
-     asm
-        {$IFDEF LINUX}
+// rcx: mt, rdx, LineWidth, r8: N
+asm
+   {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -1746,62 +1698,59 @@ begin
    mov rdx, rsi;
    {$ENDIF}
 
-        // prolog - stack
-        mov iRBX, rbx;
-        mov iRDI, rdi;
-        mov iRSI, rsi;
+   // prolog - stack
+   mov iRBX, rbx;
+   mov iRDI, rdi;
+   mov iRSI, rsi;
 
-        cmp r8, 2;
-        jl @@exitProc;
+   cmp r8, 2;
+   jl @@exitProc;
 
-        // iter: -N*sizeof(Double)
-        mov rax, r8;
-        imul rax, -8;
+   // iter: -N*sizeof(Double)
+   mov rax, r8;
+   imul rax, -8;
 
 
-        mov rbx, rcx;  // pDest1: genptr(mt, 0, 1, linewidth)
-        add rbx, rdx;
+   mov rbx, rcx;  // pDest1: genptr(mt, 0, 1, linewidth)
+   add rbx, rdx;
 
-        sub rcx, rax;  // mt + iter
+   sub rcx, rax;  // mt + iter
 
-        // for y := 0 to n - 2
-        dec r8;
-        @@foryloop:
+   // for y := 0 to n - 2
+   dec r8;
+   @@foryloop:
 
-           mov rdi, rax; // iter aka x
-           add rdi, 8;
-           mov rsi, rbx;
-           // for x := y + 1 to n-1 do
-           @@forxloop:
-              movsd xmm0, [rcx + rdi];
-              movsd xmm1, [rsi];
+      mov rdi, rax; // iter aka x
+      add rdi, 8;
+      mov rsi, rbx;
+      // for x := y + 1 to n-1 do
+      @@forxloop:
+         movsd xmm0, [rcx + rdi];
+         movsd xmm1, [rsi];
 
-              movsd [rcx + rdi], xmm1;
-              movsd [rsi], xmm0;
+         movsd [rcx + rdi], xmm1;
+         movsd [rsi], xmm0;
 
-              add rsi, rdx;
-           add rdi, 8;
-           jnz @@forxloop;
+         add rsi, rdx;
+      add rdi, 8;
+      jnz @@forxloop;
 
-           add rax, 8;  // iter + sizeof(double);
-           //pDest := PConstDoubleArr( GenPtr(dest, 0, y, destLineWidth) );
-           add rcx, rdx;
-           // GenPtr(dest, y, y + 1, destLineWidth);
-           add rbx, rdx;
-           add rbx, 8;
-        dec r8;
-        jnz @@foryloop;
+      add rax, 8;  // iter + sizeof(double);
+      //pDest := PConstDoubleArr( GenPtr(dest, 0, y, destLineWidth) );
+      add rcx, rdx;
+      // GenPtr(dest, y, y + 1, destLineWidth);
+      add rbx, rdx;
+      add rbx, 8;
+   dec r8;
+   jnz @@foryloop;
 
-        @@exitProc:
+   @@exitProc:
 
-        // epilog - cleanup stack
-        mov rbx, iRBX;
-        mov rdi, iRDI;
-        mov rsi, iRSI;
-     end;
-{$IFDEF FPC}
+   // epilog - cleanup stack
+   mov rbx, iRBX;
+   mov rdi, iRDI;
+   mov rsi, iRSI;
 end;
-{$ENDIF}
 
 {$ENDIF}
 
