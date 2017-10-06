@@ -25,11 +25,6 @@ interface
 {$ENDIF}
 {$IFDEF x64}
 
-{$IFDEF FPC}
-{$MODE Delphi}
-{$ASMMODE intel}
-{$ENDIF}
-
 uses MatrixConst;
 
 procedure ASMMatrixMeanRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
@@ -70,8 +65,14 @@ implementation
 
 {$IFDEF x64}
 
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
+
+
 procedure ASMMatrixMeanRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var dXMM5 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -168,10 +169,16 @@ asm
 
    // epilog
    movupd xmm5, dXMM5;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMeanRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var dXMM5, dXMM4 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -278,10 +285,16 @@ asm
    // epilog
    movupd xmm5, dXMM5;
    movupd xmm4, dXMM4
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMeanRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var dXMM5 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -386,10 +399,16 @@ asm
 
    // epilog
    movupd xmm5, dXMM5;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMeanRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var dXMM5, dXMM4 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -504,9 +523,15 @@ asm
    // epilog
    movupd xmm5, dXMM5;
    movupd xmm4, dXMM4;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMeanColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -561,9 +586,15 @@ asm
    // loop x end
    dec r11;
    jnz @@addforxloop;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMeanColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -619,9 +650,15 @@ asm
    // loop x end
    dec r11;
    jnz @@addforxloop;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMeanColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -695,9 +732,15 @@ asm
    divsd xmm1, xmm2;
 
    movsd [rcx], xmm1;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMeanColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -772,6 +815,9 @@ asm
    divsd xmm1, xmm2;
 
    movsd [rcx], xmm1;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 
@@ -782,6 +828,9 @@ end;
 
 procedure ASMMatrixVarRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 var dXMM5 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -972,10 +1021,16 @@ asm
 
    // epilog
    movupd xmm5, dXMM5;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixVarRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 var dXMM5 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1174,10 +1229,16 @@ asm
 
    // epilog
    movupd xmm5, dXMM5;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixVarRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 var dXMM5 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1378,11 +1439,17 @@ asm
 
    // epilog
    movupd xmm5, dXMM5;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 
 procedure ASMMatrixVarRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 var dXMM5, dXMM4 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1593,9 +1660,15 @@ asm
    // epilog
    movupd xmm5, dXMM5;
    movupd xmm4, dXMM4;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixVarColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1684,9 +1757,15 @@ asm
    // loop x end
    dec r11;
    jnz @@addforxloop;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixVarColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1774,9 +1853,15 @@ asm
    // loop x end
    dec r11;
    jnz @@addforxloop;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixVarColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1913,9 +1998,15 @@ asm
    // write result
    @@writeRes2:
    movsd [rcx], xmm4;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixVarColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -2053,6 +2144,9 @@ asm
    // write result
    @@writeRes2:
    movsd [rcx], xmm4;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 
@@ -2062,6 +2156,9 @@ end;
 
 procedure ASMMatrixMeanVarRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 var dXMM5 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -2250,10 +2347,16 @@ asm
 
    // epilog
    movupd xmm5, dXMM5;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMeanVarRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 var dXMM5 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -2453,10 +2556,16 @@ asm
 
    // epilog
    movupd xmm5, dXMM5;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMeanVarRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 var dXMM5 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -2658,11 +2767,17 @@ asm
 
    // epilog
    movupd xmm5, dXMM5;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 
 procedure ASMMatrixMeanVarRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
 var dXMM5, dXMM4 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -2870,9 +2985,15 @@ asm
    // epilog
    movupd xmm5, dXMM5;
    movupd xmm4, dXMM4;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMeanVarColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -2962,9 +3083,15 @@ asm
    // loop x end
    dec r11;
    jnz @@addforxloop;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMeanVarColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -3053,9 +3180,15 @@ asm
    // loop x end
    dec r11;
    jnz @@addforxloop;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMeanVarColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -3194,9 +3327,15 @@ asm
    // write result
    @@writeRes2:
    movsd [rcx + rdx], xmm4;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMeanVarColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -3336,6 +3475,9 @@ asm
    // write result
    @@writeRes2:
    movsd [rcx + rdx], xmm4;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 

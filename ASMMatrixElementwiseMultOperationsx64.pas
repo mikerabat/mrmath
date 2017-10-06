@@ -25,11 +25,6 @@ interface
 {$ENDIF}
 {$IFDEF x64}
 
-{$IFDEF FPC}
-{$MODE Delphi}
-{$ASMMODE intel}
-{$ENDIF}
-
 uses MatrixConst;
 
 procedure ASMMatrixElemMultAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
@@ -51,8 +46,13 @@ implementation
 
 {$IFDEF x64}
 
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
+
 procedure ASMMatrixElemMultAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var iRBX, iR11, iR12 : TASMNativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -173,10 +173,16 @@ asm
    mov rbx, iRBX;
    mov r11, iR11;
    mov r12, iR12;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixElemMultUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var iRBX, iR11, iR12 : TASMNativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -303,10 +309,16 @@ asm
    mov rbx, iRBX;
    mov r11, iR11;
    mov r12, iR12;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixElemMultAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var iRBX, iR11, iR12 : TASMNativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -436,10 +448,16 @@ asm
    mov rbx, iRBX;
    mov r11, iR11;
    mov r12, iR12;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixElemMultUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var iRBX, iR11, iR12 : TASMNativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -574,6 +592,9 @@ asm
    mov rbx, iRBX;
    mov r11, iR11;
    mov r12, iR12;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 // ##############################################################
@@ -582,6 +603,9 @@ end;
 
 procedure ASMMatrixElemDivAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var iRBX, iR11, iR12 : TASMNativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -703,10 +727,16 @@ asm
    mov rbx, iRBX;
    mov r11, iR11;
    mov r12, iR12;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixElemDivUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var iRBX, iR11, iR12 : TASMNativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -833,10 +863,16 @@ asm
    mov rbx, iRBX;
    mov r11, iR11;
    mov r12, iR12;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixElemDivAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var iRBX, iR11, iR12 : TASMNativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -966,10 +1002,16 @@ asm
    mov rbx, iRBX;
    mov r11, iR11;
    mov r12, iR12;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixElemDivUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var iRBX, iR11, iR12 : TASMNativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1104,6 +1146,9 @@ asm
    mov rbx, iRBX;
    mov r11, iR11;
    mov r12, iR12;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 {$ENDIF}

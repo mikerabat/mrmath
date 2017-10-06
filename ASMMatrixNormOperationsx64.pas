@@ -25,11 +25,6 @@ interface
 {$ENDIF}
 {$IFDEF x64}
 
-{$IFDEF FPC}
-{$MODE Delphi}
-{$ASMMODE intel}
-{$ENDIF}
-
 uses MatrixConst;
 
 function ASMMatrixElementwiseNorm2AlignedEvenW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
@@ -55,8 +50,13 @@ implementation
 
 {$IFDEF x64}
 
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
+
 function ASMMatrixElementwiseNorm2AlignedEvenW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
 var dXMM4, dXMM7 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -163,10 +163,16 @@ asm
    // epilog claenup stack
    movupd xmm4, dXMM4;
    movupd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 function ASMMatrixElementwiseNorm2UnAlignedEvenW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
 var dXMM4, dXMM7 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -270,11 +276,17 @@ asm
    // epilog claenup stack
    movupd xmm4, dXMM4;
    movupd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 
 function ASMMatrixElementwiseNorm2AlignedOddW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
 var dXMM4, dXMM7 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -386,10 +398,16 @@ asm
    // epilog claenup stack
    movupd xmm4, dXMM4;
    movupd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 function ASMMatrixElementwiseNorm2UnAlignedOddW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
 var dXMM4, dXMM7 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -495,10 +513,16 @@ asm
    // epilog claenup stack
    movupd xmm4, dXMM4;
    movupd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixNormalizeRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var dXMM4, dXMM7 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -668,10 +692,16 @@ asm
    // epilog claenup stack
    movupd xmm4, dXMM4;
    movupd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixNormalizeRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var dXMM4, dXMM7 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -839,10 +869,16 @@ asm
    // epilog claenup stack
    movupd xmm4, dXMM4;
    movupd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixNormalizeRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var dXMM4, dXMM7 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1027,10 +1063,16 @@ asm
    // epilog claenup stack
    movupd xmm4, dXMM4;
    movupd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixNormalizeRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var dXMM4, dXMM7 : Array[0..1] of double;
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1208,10 +1250,16 @@ asm
    // epilog claenup stack
    movupd xmm4, dXMM4;
    movupd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixNormalizeColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iRBX, iRSI : TASMNativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1291,10 +1339,16 @@ asm
    // epliog cleanup stack
    mov rbx, iRBX;
    mov rsi, iRSI;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixNormalizeColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iRBX, iRSI : TASMNativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1374,11 +1428,17 @@ asm
    // epliog cleanup stack
    mov rbx, iRBX;
    mov rsi, iRSI;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 
 procedure ASMMatrixNormalizeColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iRBX, iRSI : TASMNativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1492,10 +1552,16 @@ asm
    // epliog cleanup stack
    mov rbx, iRBX;
    mov rsi, iRSI;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixNormalizeColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iRBX, iRSI : TASMNativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1609,6 +1675,9 @@ asm
    // epliog cleanup stack
    mov rbx, iRBX;
    mov rsi, iRSI;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 {$ENDIF}

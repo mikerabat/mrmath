@@ -29,11 +29,6 @@ interface
 {$ENDIF}
 {$IFDEF x64}
 
-{$IFDEF FPC}
-{$MODE Delphi}
-{$ASMMODE intel}
-{$ENDIF}
-
 uses MatrixConst;
 
 procedure ASMMatrixCopyAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
@@ -56,64 +51,75 @@ implementation
 
 {$IFDEF x64}
 
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
+
 // uses non temporal moves so the cache is not poisned
 // rcx = A, rdx = NumBytes;
 procedure ASMInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; const Value : double);
-asm
-   {$IFDEF LINUX}
-   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-   // (note that the 5th and 6th parameter are are on the stack)
-   // The parameters are passed in the following order:
-   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-   mov r8, rdx;
-   mov r9, rcx;
-   mov rcx, rdi;
-   mov rdx, rsi;
-   {$ENDIF}
+{$IFDEF FPC}
+begin
+{$ENDIF}
+     asm
+        {$IFDEF LINUX}
+        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+        // (note that the 5th and 6th parameter are are on the stack)
+        // The parameters are passed in the following order:
+        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+        mov r8, rdx;
+        mov r9, rcx;
+        mov rcx, rdi;
+        mov rdx, rsi;
+        {$ENDIF}
 
-   movddup xmm1, Value;
+        movddup xmm1, Value;
 
-   mov r10, rdx;
-   and r10, $FFFFFFFFFFFFFF80;
-   jz @@loopUnrolledEnd;
+        mov r10, rdx;
+        and r10, $FFFFFFFFFFFFFF80;
+        jz @@loopUnrolledEnd;
 
-   mov rax, rcx;
-   imul r10, -1;
-   sub rax, r10;
+        mov rax, rcx;
+        imul r10, -1;
+        sub rax, r10;
 
-   @@loopUnrolled:
-     movntdq [rax + r10], xmm1;
-     movntdq [rax + r10 + 16], xmm1;
-     movntdq [rax + r10 + 32], xmm1;
-     movntdq [rax + r10 + 48], xmm1;
-     movntdq [rax + r10 + 64], xmm1;
-     movntdq [rax + r10 + 80], xmm1;
-     movntdq [rax + r10 + 96], xmm1;
-     movntdq [rax + r10 + 112], xmm1;
+        @@loopUnrolled:
+          movntdq [rax + r10], xmm1;
+          movntdq [rax + r10 + 16], xmm1;
+          movntdq [rax + r10 + 32], xmm1;
+          movntdq [rax + r10 + 48], xmm1;
+          movntdq [rax + r10 + 64], xmm1;
+          movntdq [rax + r10 + 80], xmm1;
+          movntdq [rax + r10 + 96], xmm1;
+          movntdq [rax + r10 + 112], xmm1;
 
-     add r10, 128;
-   jnz @@loopUnrolled;
+          add r10, 128;
+        jnz @@loopUnrolled;
 
-   @@loopUnrolledEnd:
+        @@loopUnrolledEnd:
 
-   // last few bytes
-   mov rax, rcx;
-   mov r10, rdx;
-   add rax, r10;
-   and r10, $7F;
-   jz @@exitProc;
+        // last few bytes
+        mov rax, rcx;
+        mov r10, rdx;
+        add rax, r10;
+        and r10, $7F;
+        jz @@exitProc;
 
-   imul r10, -1;
+        imul r10, -1;
 
-   @@loop:
-     movsd [rax + r10], xmm1;
-     add r10, 8;
-   jnz @@loop;
+        @@loop:
+          movsd [rax + r10], xmm1;
+          add r10, 8;
+        jnz @@loop;
 
-   @@exitProc:
+        @@exitProc:
+     end;
+{$IFDEF FPC}
 end;
+{$ENDIF}
 
 procedure ASMRowSwapAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -183,9 +189,15 @@ asm
    jnz @loop;
 
    @endfunc:
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMRowSwapUnAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -251,9 +263,15 @@ asm
    jnz @loop;
 
    @endfunc:
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMRowSwapAlignedOddW(A, B : PDouble; width : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -332,9 +350,15 @@ asm
 
    movsd [rcx], xmm1;
    movsd [rdx], xmm0;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMRowSwapUnAlignedOddW(A, B : PDouble; width : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -408,9 +432,15 @@ asm
 
    movsd [rcx], xmm1;
    movsd [rdx], xmm0;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixCopyAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -495,8 +525,14 @@ asm
    dec r11;
    jnz @@addforyloop;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 procedure ASMMatrixCopyUnAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -577,8 +613,14 @@ asm
    dec r11;
    jnz @@addforyloop;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 procedure ASMMatrixCopyAlignedOddW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -668,8 +710,14 @@ asm
    dec r11;
    jnz @@addforyloop;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 procedure ASMMatrixCopyUnAlignedOddW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -755,6 +803,9 @@ asm
    dec r11;
    jnz @@addforyloop;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 {$ENDIF}
 

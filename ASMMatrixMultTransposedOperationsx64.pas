@@ -30,11 +30,6 @@ interface
 {$ENDIF}
 {$IFDEF x64}
 
-{$IFDEF FPC}
-{$MODE Delphi}
-{$ASMMODE intel}
-{$ENDIF}
-
 uses MatrixConst;
 
 procedure ASMMatrixMultAlignedEvenW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
@@ -56,9 +51,15 @@ implementation
 
 {$IFDEF x64}
 
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
+
 procedure ASMMatrixMultUnAlignedEvenW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
+
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -211,11 +212,18 @@ asm
    movupd xmm4, dXMM4;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMultAlignedEvenW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
+
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -367,11 +375,18 @@ asm
    movupd xmm4, dXMM4;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMultAlignedEvenW1EvenH2TransposedMod16(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
+
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -592,6 +607,9 @@ asm
    movupd xmm4, dXMM4;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 // note mt2 is transposed this time -> width1 and width2 must be the same!
@@ -599,6 +617,9 @@ procedure ASMMatrixMultAlignedEvenW1EvenH2Transposed(dest : PDouble; const destL
 var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -725,11 +746,18 @@ asm
    movupd xmm4, dXMM4;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMultUnAlignedEvenW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
+
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -855,11 +883,18 @@ asm
    movupd xmm4, dXMM4;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMultUnAlignedOddW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
+
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -998,11 +1033,18 @@ asm
    movupd xmm4, dXMM4;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMultAlignedOddW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
+
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1141,11 +1183,18 @@ asm
    movupd xmm4, dXMM4;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMultAlignedOddW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
+
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1316,11 +1365,18 @@ asm
    movupd xmm4, dXMM4;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 procedure ASMMatrixMultUnAlignedOddW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
+
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1492,6 +1548,9 @@ asm
    movupd xmm4, dXMM4;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 {$ENDIF}

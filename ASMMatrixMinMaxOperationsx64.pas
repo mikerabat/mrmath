@@ -25,11 +25,6 @@ interface
 {$ENDIF}
 {$IFDEF x64}
 
-{$IFDEF FPC}
-{$MODE Delphi}
-{$ASMMODE intel}
-{$ENDIF}
-
 uses MatrixConst;
 
 function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
@@ -50,8 +45,13 @@ implementation
 
 {$IFDEF x64}
 
+{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
+
 function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 var iRBX : TASMNativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -135,10 +135,16 @@ asm
 
    // epilog - cleanup stack
    mov rbx, iRBX;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 function ASMMatrixMaxUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 var iRBX : TASMNativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -224,11 +230,17 @@ asm
 
    // epilog - cleanup stack
    mov rbx, iRBX;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 
 function ASMMatrixMaxAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 var iRBX : TASMNativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -317,10 +329,16 @@ asm
 
    // epilog - cleanup stack
    mov rbx, iRBX;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 function ASMMatrixMaxUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 var iRBX : TASMNativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -411,11 +429,17 @@ asm
 
    // epilog - cleanup stack
    mov rbx, iRBX;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 
 function ASMMatrixMinAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 var iRBX : TASMNativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -499,10 +523,16 @@ asm
 
    // epilog - cleanup stack
    mov rbx, iRBX;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 function ASMMatrixMinUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 var iRBX : TASMNativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -588,11 +618,17 @@ asm
 
    // epilog - cleanup stack
    mov rbx, iRBX;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 
 function ASMMatrixMinAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 var iRBX : TASMNativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -681,10 +717,16 @@ asm
 
    // epilog - cleanup stack
    mov rbx, iRBX;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 function ASMMatrixMinUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 var iRBX : TASMNativeInt;
+{$IFDEF FPC}
+begin
+  {$ENDIF}
 asm
    {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -775,6 +817,9 @@ asm
 
    // epilog - cleanup stack
    mov rbx, iRBX;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 end;
 
 {$ENDIF}
