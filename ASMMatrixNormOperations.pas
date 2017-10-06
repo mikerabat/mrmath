@@ -143,7 +143,6 @@ begin
         // build result
         movhlps xmm1, xmm7;
         addsd xmm7, xmm1;
-        sqrtsd xmm7, xmm7;
         movsd Result, xmm7;
      end;
 end;
@@ -233,7 +232,6 @@ begin
         // build result
         movhlps xmm1, xmm7;
         addsd xmm7, xmm1;
-        sqrtsd xmm7, xmm7;
         movsd Result, xmm7;
      end;
 end;
@@ -332,7 +330,6 @@ begin
         // build result
         movhlps xmm1, xmm7;
         addsd xmm7, xmm1;
-        sqrtsd xmm7, xmm7;
         movsd Result, xmm7;
      end;
 end;
@@ -427,7 +424,6 @@ begin
         // build result
         movhlps xmm1, xmm7;
         addsd xmm7, xmm1;
-        sqrtsd xmm7, xmm7;
         movsd Result, xmm7;
      end;
 end;

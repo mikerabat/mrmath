@@ -3,7 +3,7 @@ program MathUtilsLinux;
 {$mode objfpc}{$H+}
 
 uses
-  cthreads,
+  {$IFDEF LINUX} cthreads, {$ENDIF}
   Interfaces, Forms, GuiTestRunner,
   TestSimpleMatrixOperations in 'TestSimpleMatrixOperations.pas',
   TestLineEquations in 'TestLineEquations.pas',

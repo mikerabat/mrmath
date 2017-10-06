@@ -26,6 +26,8 @@ type
   published
     procedure TestArctanOpt;
     procedure TestPolynomFit;
+    procedure TestEvalPolynom;
+    procedure TestLinRegress;
   end;
 
 implementation
@@ -71,6 +73,64 @@ begin
      end;
 
      Check(CheckMtx(a0.SubMatrix, a.SubMatrix, -1, -1, 0.02), 'Differences too high');
+end;
+
+procedure TestNonLinFitOptimization.TestEvalPolynom;
+const cNumPts : integer = 20;
+var x, y : TDoubleDynArray;
+    idx : integer;
+    a : IMatrix;
+    val : double;
+    x1 : IMatrix;
+    y1 : IMatrix;
+begin
+     SetLength(x, cNumPts);
+     SetLength(y, cNumPts);
+     // create polynome 4 order from [-4, 4]
+
+     for idx := 0 to cNumPts - 1 do
+     begin
+          val := -4 + 8/cNumPts*idx;;
+          x[idx] := val;
+          y[idx] := 1 + 0.2*val - 0.8*sqr(val) + 0.25*sqr(val)*val + 0.1*sqr(val)*sqr(val);
+     end;
+
+     x1 := TDoubleMatrix.Create( x, Length(x), 1 );
+
+     with TNonLinFitOptimizer.Create do
+     try
+        a := PolynomFit(x, y, 4);
+        y1 := EvalPoly(x1, a);
+     finally
+            Free;
+     end;
+
+     for idx := 0 to Length(y) - 1 do
+         Check( abs(y1.Vec[idx] - y[idx]) < 1e-6, 'Error polynom eval failed');
+end;
+
+procedure TestNonLinFitOptimization.TestLinRegress;
+var x, y : IMatrix;
+    counter: Integer;
+    coef1, coef2 : IMatrix;
+begin
+     y := TDoubleMatrix.CreateRand(1, 20);
+     x := TDoubleMatrix.CreateLinSpace(20, -5, 5);
+
+     y.ScaleInPlace(0.1);
+     for counter := 0 to y.Height - 1 do
+         y.Vec[counter] := y.Vec[counter] + x.Vec[counter]*5 - 3;
+
+     with TNonLinFitOptimizer.Create do
+     try
+        coef1 := PolynomFit(x, y, 1);
+        coef2 := LineFit(x, y);
+     finally
+            Free;
+     end;
+
+     Check( (coef1.Width = coef2.Width) and (coef2.Height = coef1.Height), 'Error wrong dimensions');
+     Check( CheckMtx( coef1.SubMatrix, coef2.SubMatrix), 'Error in linefit');
 end;
 
 procedure TestNonLinFitOptimization.TestPolynomFit;

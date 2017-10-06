@@ -1184,37 +1184,37 @@ begin
      m1[0] := -2;
      m1[1] := -2;
 
-     norm1 := GenericMtxElementwiseNorm2(PDouble(@m1[0]), sizeof(double), 1, 1);
+     norm1 := GenericMtxElementwiseNorm2(PDouble(@m1[0]), sizeof(double), 1, 1, True);
      Check(SameValue(norm1, 2), 'Error elementwise norm failed for w=h=1');
 
-     norm1 := ASMMatrixElementwiseNorm2(PDouble(@m1[0]), sizeof(double), 1, 1);
+     norm1 := ASMMatrixElementwiseNorm2(PDouble(@m1[0]), sizeof(double), 1, 1, True);
      Check(SameValue(norm1, 2), 'Error elementwise norm failed for w=h=1');
 
-     norm1 := GenericMtxElementwiseNorm2(PDouble(@m1[0]), 2*sizeof(double), 2, 1);
+     norm1 := GenericMtxElementwiseNorm2(PDouble(@m1[0]), 2*sizeof(double), 2, 1, True);
      Check(SameValue(norm1, sqrt(8)), 'Error elementwise norm failed for w=2, h=1');
 
-     norm1 := GenericMtxElementwiseNorm2(PDouble(@m1[0]), sizeof(double), 1, 2);
+     norm1 := GenericMtxElementwiseNorm2(PDouble(@m1[0]), sizeof(double), 1, 2, True);
      Check(SameValue(norm1, sqrt(8)), 'Error elementwise norm failed for w=2, h=1');
 
-     norm1 := ASMMatrixElementwiseNorm2(PDouble(@m1[0]), 2*sizeof(double), 2, 1);
+     norm1 := ASMMatrixElementwiseNorm2(PDouble(@m1[0]), 2*sizeof(double), 2, 1, True);
      Check(SameValue(norm1, sqrt(8)), 'Error elementwise norm failed for w=2, h=1');
 
-     norm1 := ASMMatrixElementwiseNorm2(PDouble(@m1[0]), sizeof(double), 1, 2);
+     norm1 := ASMMatrixElementwiseNorm2(PDouble(@m1[0]), sizeof(double), 1, 2, True);
      Check(SameValue(norm1, sqrt(8)), 'Error elementwise norm failed for w=2, h=1');
 
      randomize;
      FillMatrix(cMtxSize, x, y, xa, ya);
 
      startTime1 := MtxGetTime;
-     norm1 := GenericMtxElementwiseNorm2(@x[0], cMtxLineWidth, cMtxWidth, cMtxheight);
+     norm1 := GenericMtxElementwiseNorm2(@x[0], cMtxLineWidth, cMtxWidth, cMtxheight, True);
      endTime1 := MtxGetTime;
 
      startTime2 := MtxGetTime;
-     norm2 := ASMMatrixElementwiseNorm2(@x[0], cMtxLineWidth, cMtxWidth, cMtxheight);
+     norm2 := ASMMatrixElementwiseNorm2(@x[0], cMtxLineWidth, cMtxWidth, cMtxheight, True);
      endTime2 := MtxGetTime;
 
      startTime3 := MtxGetTime;
-     norm3 := ASMMatrixElementwiseNorm2(xa, cMtxLineWidth, cMtxWidth, cMtxheight);
+     norm3 := ASMMatrixElementwiseNorm2(xa, cMtxLineWidth, cMtxWidth, cMtxheight, True);
      endTime3 := MtxGetTime;
 
      Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
@@ -1229,11 +1229,11 @@ begin
      FillMatrix((cmtxWidth + 1)*cMtxHeight, x, y, xa, ya);
 
      startTime1 := MtxGetTime;
-     norm1 := GenericMtxElementwiseNorm2(@x[0], cMtxLineWidth + sizeof(double), cMtxWidth + 1, cMtxheight);
+     norm1 := GenericMtxElementwiseNorm2(@x[0], cMtxLineWidth + sizeof(double), cMtxWidth + 1, cMtxheight, True);
      endTime1 := MtxGetTime;
 
      startTime2 := MtxGetTime;
-     norm2 := ASMMatrixElementwiseNorm2(@x[0], cMtxLineWidth  + sizeof(double), cMtxWidth + 1, cMtxheight);
+     norm2 := ASMMatrixElementwiseNorm2(@x[0], cMtxLineWidth  + sizeof(double), cMtxWidth + 1, cMtxheight, True);
      endTime2 := MtxGetTime;
 
      Status(Format('%.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000]));

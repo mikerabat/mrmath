@@ -21,19 +21,16 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="4">
+    <RequiredPackages Count="3">
       <Item1>
-        <PackageName Value="lz_fpcunitide"/>
+        <PackageName Value="lz_fpcunitrunner"/>
       </Item1>
       <Item2>
-        <PackageName Value="lz_fpcunitrunner"/>
+        <PackageName Value="adLCL"/>
       </Item2>
       <Item3>
-        <PackageName Value="adLCL"/>
-      </Item3>
-      <Item4>
         <PackageName Value="adFCL"/>
-      </Item4>
+      </Item3>
     </RequiredPackages>
     <Units Count="87">
       <Unit0>

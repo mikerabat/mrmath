@@ -114,7 +114,7 @@ procedure GenericMtxAddAndScale(Dest : PDouble; LineWidth, Width, Height : TASMN
 procedure GenericMtxScaleAndAdd(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
 
 // element wise eukledian norm
-function GenericMtxElementwiseNorm2(Src : PDouble; srcLineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
+function GenericMtxElementwiseNorm2(Src : PDouble; srcLineWidth : TASMNativeInt; Width, height : TASMNativeInt; doSqrt : boolean) : double;
 
 
 procedure GenericMtxAbs(dest : PDouble; destLineWidth, width, height : TASMNativeInt);
@@ -758,7 +758,7 @@ begin
 end;
 
 
-function GenericMtxElementwiseNorm2(Src : PDouble; srcLineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
+function GenericMtxElementwiseNorm2(Src : PDouble; srcLineWidth : TASMNativeInt; Width, height : TASMNativeInt; doSqrt : boolean) : double;
 var pSrc : PConstDoubleArr;
     x, y : TASMNativeInt;
 begin
@@ -775,7 +775,8 @@ begin
           inc(PByte(pSrc), srcLineWidth);
      end;
 
-     Result := Sqrt(Result);
+     if doSqrt then
+        Result := Sqrt(Result);
 end;
 
 procedure GenericMtxCopy(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);

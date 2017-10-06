@@ -54,6 +54,11 @@ Gustav Kaiser - special thanks for implementing the PLS algorithm.
 // ###################################################################
 changelog:
 
+Date: 06.10.2017
+* Added a new neat function for linear regression that is faster in a loop.
+  -> note this function does not depend on SVD so it may be not as robust as the svd version
+* Moved the sqrt from the elementary vector norm from the asm routines.
+
 Date: 18.07.2017
 * First version of Linux support (FPC Typhoon64 6.1)
 * Some minor optimizations

@@ -19,7 +19,7 @@ library mrMath;
 {$DESCRIPTION 'mrMath Matrix library'}
 
 uses
-  cthreads,
+  {$IFDEF LINUX} cthreads, {$ENDIF}
   ASMMatrixAddSubOperations in 'ASMMatrixAddSubOperations.pas',
   ASMMatrixAddSubOperationsx64 in 'ASMMatrixAddSubOperationsx64.pas',
   ASMMatrixElementwiseMultOperations in 'ASMMatrixElementwiseMultOperations.pas',
@@ -89,7 +89,7 @@ uses
   MatrixRotations in 'MatrixRotations.pas',
   LinearAlgebraicEquations in 'LinearAlgebraicEquations.pas',
   PLS in 'PLS.pas',
-  Corr in 'Corr.pas'
+  Corr in 'Corr.pas',
   linuxthrpool in 'mac\linuxthrpool.pas';
 begin
 end.

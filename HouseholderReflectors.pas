@@ -72,7 +72,7 @@ begin
           exit;
      end;
 
-     xNorm := MatrixElementwiseNorm2(A, LineWidthA, 1, height);
+     xNorm := MatrixElementwiseNorm2(A, LineWidthA, 1, height, True);
      if xNorm = 0 then
      begin
           // H = I
@@ -98,7 +98,7 @@ begin
                 alpha := alpha*rsafmn;
           until abs(beta) >= saveMin;
 
-          xnorm := MatrixElementwiseNorm2(A, LineWidthA, 1, height);
+          xnorm := MatrixElementwiseNorm2(A, LineWidthA, 1, height, True);
           beta := -sign( pythag(alpha, xnorm), alpha );
      end;
 

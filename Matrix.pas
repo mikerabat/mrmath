@@ -87,7 +87,7 @@ type
     function Diag(createDiagMtx : boolean) : TDoubleMatrix;
 
     procedure Normalize(RowWise : boolean);
-    function ElementwiseNorm2 : double;
+    function ElementwiseNorm2(doSqrt : boolean = True) : double;   
 
     // ###################################################
     // #### Base Matrix operations
@@ -344,7 +344,7 @@ type
     function Diag(createDiagMtx : boolean) : TDoubleMatrix;
 
     procedure Normalize(RowWise : boolean);
-    function ElementwiseNorm2 : double;
+    function ElementwiseNorm2(doSqrt : boolean = True) : double;
 
     // ###################################################
     // #### Base Matrix operations
@@ -497,6 +497,7 @@ type
     constructor CreateEye(aWidth : integer);
     constructor Create(data : PDouble; aLineWidth : integer; aWidth, aHeight : integer); overload;
     constructor Create(const Data : TDoubleDynArray; aWidth, aHeight : integer); overload;
+    constructor Create(const Data : TDoubleDynArray; fromDataIdx : integer; aWidth, aHeight : integer); overload;
     constructor Create(const Mtx : Array of double; W, H : integer); overload; 
     constructor CreateRand(aWidth, aHeight : integer; method : TRandomAlgorithm; seed : LongInt); overload; // uses random engine
     constructor CreateRand(aWidth, aHeight : integer); overload; // uses system default random
@@ -780,6 +781,65 @@ begin
      TRandomGenerator(fObj).Init(seed);
      ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}MtxRandWithEng);
      FreeAndNil(fObj);
+end;
+
+constructor TDoubleMatrix.CreateLinSpace(aVecLen: integer; const StartVal,
+  EndVal: double);
+var value : double;
+    pVec : PDouble;
+    counter: Integer;
+    dx : double;
+begin
+     assert(vecLen >= 0, 'Error: initialized by negative len');
+
+     inherited Create;
+
+     SetWidthHeight(1, aVecLen);
+
+     if aVecLen = 0 then
+        exit;
+
+     dx := (EndVal - StartVal)/Math.Max(1, aVecLen - 1);
+
+     pVec := StartElement;
+     value := startVal;
+     for counter := 0 to aVecLen - 1 do
+     begin
+          pVec^ := value;
+          value := value + dx;
+          inc(PByte(pVec), LineWidth);
+     end;
+
+     // account for small accumulated errors - so at least the last
+     // value is as expected
+     if aVecLen > 1 then
+        Vec[vecLen - 1] := EndVal;
+end;
+
+constructor TDoubleMatrix.Create(const Mtx: array of double; W, H: integer);
+begin
+     CheckAndRaiseError((W*H > 0) and (Length(Mtx) = W*H), 'Dimension error');
+
+     inherited Create;
+
+     SetWidthHeight(W, H);
+     MatrixCopy(StartElement, LineWidth, @Mtx[0], W*sizeof(double), W, H);
+end;
+
+constructor TDoubleMatrix.Create(const Data: TDoubleDynArray; fromDataIdx,
+  aWidth, aHeight: integer);
+begin
+     CheckAndRaiseError((aWidth*aHeight > 0) and (Length(Data) - fromDataIdx >= aWidth*aHeight), 'Dimension error');
+
+     inherited Create;
+
+     SetWidthHeight(aWidth, aHeight);
+     MatrixCopy(StartElement, LineWidth, @Data[fromDataIdx], aWidth*sizeof(double), aWidth, aHeight);
+end;
+
+class constructor TMatrixClass.Create;
+begin
+     DefMatrixClass := TDoubleMatrix;
 end;
 
 procedure TDoubleMatrix.MtxRand(var value: double);
@@ -1220,12 +1280,12 @@ begin
      Result := ElementWiseDiv(Value.GetObjRef);
 end;
 
-function TDoubleMatrix.ElementwiseNorm2: double;
+function TDoubleMatrix.ElementwiseNorm2(doSqrt : boolean = True): double;
 begin
      Result := 0;
 
      if (Width > 0) and (Height > 0) then
-        Result := MatrixElementwiseNorm2(StartElement, LineWidth, Width, Height);
+        Result := MatrixElementwiseNorm2(StartElement, LineWidth, Width, Height, doSqrt);
 end;
 
 function TDoubleMatrix.GetItems(x, y: integer): double;
@@ -2322,6 +2382,29 @@ begin
      // transpose is only allowed on full matrix
      CheckAndRaiseError((fOffsetX = 0) and (fOffsetY = 0) and (fSubWidth = fWidth) and (fSubHeight = fHeight), 'Operation only allowed on full matrices');
 
+     // in case of vectors we can fasten things up a bit
+     if (fwidth = 1) and (LineWidth = sizeof(double)) then
+     begin
+          fWidth := fHeight;
+          fSubWidth := fSubHeight;
+          fHeight := 1;
+          fSubHeight := 1;
+          fLineWidth := fWidth*sizeof(double);
+          exit;
+     end;
+
+     if fHeight = 1 then
+     begin
+          fHeight := fWidth;
+          fSubHeight := fSubWidth;
+          fWidth := 1;
+          fSubWidth := 1;
+          fLineWidth := sizeof(double);
+          exit;
+     end;
+
+     // ###########################################
+     // #### Standard transpose     
      dt := Transpose;
      try
         TakeOver(dt);
@@ -2546,56 +2629,6 @@ var outEigVals : TDoubleMatrix;
 begin
      Result := SymEig(outEigVals);
      EigVals := outEigVals;
-end;
-
-constructor TDoubleMatrix.CreateLinSpace(aVecLen: integer; const StartVal,
-  EndVal: double);
-var value : double;
-    pVec : PDouble;
-    counter: Integer;
-    dx : double;
-begin
-     assert(vecLen >= 0, 'Error: initialized by negative len');
-
-     inherited Create;
-
-     SetWidthHeight(1, aVecLen);
-
-     if aVecLen = 0 then
-        exit;
-
-     dx := (EndVal - StartVal)/Math.Max(1, aVecLen - 1);
-
-     pVec := StartElement;
-     value := startVal;
-     for counter := 0 to aVecLen - 1 do
-     begin
-          pVec^ := value;
-          value := value + dx;
-          inc(PByte(pVec), LineWidth);
-     end;
-
-     // account for small accumulated errors - so at least the last
-     // value is as expected
-     if aVecLen > 1 then
-        Vec[vecLen - 1] := EndVal;
-end;
-
-constructor TDoubleMatrix.Create(const Mtx: array of double; W, H: integer);
-begin
-     CheckAndRaiseError((W*H > 0) and (Length(Mtx) = W*H), 'Dimension error');
-
-     inherited Create;
-
-     SetWidthHeight(W, H);
-     MatrixCopy(StartElement, LineWidth, @Mtx[0], W*sizeof(double), W, H);
-end;
-
-{ TMatrixClass }
-
-class constructor TMatrixClass.Create;
-begin
-     DefMatrixClass := TDoubleMatrix;
 end;
 
 function TMatrixClass.GetMtxClass: TDoubleMatrixClass;

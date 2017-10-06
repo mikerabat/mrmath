@@ -35,6 +35,7 @@ type
     fDerivStep: double;
     fTolX: double;
     fSqrtEPS : double;
+    fHlp, fCoef, fVec : IMatrix;
     procedure WeightedNonLinIterator(weights : IMatrix; a, x, y : IMatrix);
   public
     property MaxIter : integer read fMaxIter write fMaxIter;
@@ -66,13 +67,18 @@ type
 
     function PolynomFit(x, y : TDoubleDynArray; N : integer) : IMatrix; overload;
     function PolynomFit(x, y : IMatrix; N : integer) : IMatrix; overload;
-
+    procedure PolynomFit(x, y : IMatrix; N : Integer; res : IMatrix); overload;  // store result in res
+    procedure LineFit(x, y : IMatrix; res : IMatrix); overload;  // fits a straight line throu x and y
+    function LineFit(x, y : IMatrix) : IMatrix; overload;
+    
+    function EvalPoly(x, coef : IMatrix) : IMatrix;
+    
     constructor Create;
   end;
 
 implementation
 
-uses SysUtils, Math, MathUtilFunc, MatrixConst;
+uses SysUtils, Math, MathUtilFunc, MatrixConst, OptimizedFuncs;
 
 { TNonLinOptimizer }
 
@@ -232,6 +238,48 @@ begin
      fSqrtEPS := sqrt(eps(1));
 end;
 
+function TNonLinFitOptimizer.EvalPoly(x, coef: IMatrix): IMatrix;
+var counter: Integer;
+    doTranspose : boolean;
+begin
+     // init ( avoid memory allocations in case it's used in a loop
+     if not Assigned(fHlp) then
+        fHlp := TDoubleMatrix.Create;
+     if not Assigned(fCoef) then
+        fCoef := TDoubleMatrix.Create;
+     if not Assigned(fVec) then
+        fVec := TDoubleMatrix.Create;
+     if fVec.Width <> x.VecLen then
+        fVec.SetWidthHeight(x.VecLen, 1);
+     if fCoef.Width <> coef.VecLen then
+        fCoef.SetWidthHeight(coef.VecLen, 1);
+
+     // prepare coefficents
+     for counter := 0 to fCoef.Width - 1 do
+         fCoef.Vec[counter] := coef.Vec[counter];
+     
+     if (fHlp.Width <> x.Width) or (fHlp.Height <> fcoef.Width) then
+        fHlp.SetWidthHeight(x.VecLen, fcoef.Width);
+
+     doTranspose := x.Width < x.Height;
+     if doTranspose then
+        x.TransposeInPlace;
+
+     // prepare mult matrix
+     fVec.SetValue( 1 );
+     for counter := fHlp.Height - 1 downto 0 do
+     begin
+          fHlp.SetRow(counter, fVec);
+          fVec.ElementWiseMultInPlace( x ); 
+     end;
+
+     // final multiplication
+     Result := fCoef.Mult(fHlp);
+
+     if doTranspose then
+        x.TransposeInPlace;
+end;
+
 function TNonLinFitOptimizer.Optimize(x, y, a0: IMatrix): IMatrix;
 var weights : IMatrix;
 begin
@@ -256,6 +304,17 @@ begin
 end;
 
 function TNonLinFitOptimizer.PolynomFit(x, y: IMatrix; N: integer): IMatrix;
+begin
+     assert(x.Height = y.Height, 'Error length of xvals is different to length of y');
+     assert((x.Width >= 1) and (y.Width >= 1), 'Dimension error');
+     assert(n > 0, 'Error polynomdegree must be at least 1');
+
+     Result := TDoubleMatrix.Create(x.Width, N + 1);
+     PolynomFit(x, y, N, Result);
+end;
+
+procedure TNonLinFitOptimizer.PolynomFit(x, y: IMatrix; N: Integer;
+  res: IMatrix);
 var V : IMatrix;
     j, i : integer;
     dim : integer;
@@ -264,8 +323,8 @@ begin
      assert(x.Height = y.Height, 'Error length of xvals is different to length of y');
      assert((x.Width >= 1) and (y.Width >= 1), 'Dimension error');
      assert(n > 0, 'Error polynomdegree must be at least 1');
-
-     Result := TDoubleMatrix.Create(x.Width, N + 1);
+     assert((res.width = x.Width) and (res.Height = N + 1), 'Resulting matrix size does not fit');
+     
      for dim := 0 to x.Width - 1 do
      begin
           // construct Vandermonde matrix
@@ -284,8 +343,55 @@ begin
           p := V.Mult(y);
 
           // assign result
-          Result.SetColumn(dim, p);
+          res.SetColumn(dim, p);
+     end;     
+end;
+
+procedure TNonLinFitOptimizer.LineFit(x, y, res: IMatrix);
+var meanx, meanY : double;
+    m1, m2 : double;
+    counter: Integer;
+    pX, pY : PDouble;
+    pcX, pcY : PConstDoubleArr;
+begin
+     MatrixMean(@meanx, sizeof(double), x.StartElement, x.LineWidth, 1, x.Height, False);
+     MatrixMean(@meany, sizeof(double), y.StartElement, y.LineWidth, 1, y.Height, False);
+
+     m1 := 0;
+     m2 := 0;
+
+     if (x.LineWidth = sizeof(double)) and (y.LineWidth = sizeof(double)) then
+     begin
+          pcX := PConstDoubleArr( x.StartElement );
+          pcY := PConstDoubleArr( y.StartElement );
+          for counter := 0 to x.Height - 1 do
+          begin
+               m1 := m1 + (pcX^[counter] - meanX)*(pcY^[counter] - meanY);
+               m2 := m2 + sqr(pcX^[counter] - meanX);
+          end;
+     end
+     else
+     begin           
+          pX := x.StartElement;
+          pY := y.StartElement;
+          for counter := 0 to x.Height - 1 do
+          begin
+               m1 := m1 + (pX^ - meanX)*(pY^ - meanY);
+               m2 := m2 + sqr(pX^ - meanX);
+
+               inc(PByte(pX), x.LineWidth);
+               inc(PByte(pY), y.LineWidth);
+          end;
      end;
+
+     res.Vec[0] := m1/m2;
+     res.Vec[1] := meanY - m1/m2*meanX;
+end;
+
+function TNonLinFitOptimizer.LineFit(x, y: IMatrix): IMatrix;
+begin
+     Result := TDoubleMatrix.Create(1, 2);
+     LineFit(x, y, Result); 
 end;
 
 procedure TNonLinFitOptimizer.WeightedNonLinIterator(weights, a, x,

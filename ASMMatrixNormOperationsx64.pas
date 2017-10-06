@@ -159,7 +159,6 @@ asm
    // build result
    movhlps xmm1, xmm0;
    addsd xmm0, xmm1;
-   sqrtsd xmm0, xmm0;
 
    // epilog claenup stack
    movupd xmm4, dXMM4;
@@ -267,7 +266,6 @@ asm
    // build result
    movhlps xmm1, xmm0;
    addsd xmm0, xmm1;
-   sqrtsd xmm0, xmm0;
 
    // epilog claenup stack
    movupd xmm4, dXMM4;
@@ -384,7 +382,6 @@ asm
    // build result
    movhlps xmm1, xmm0;
    addsd xmm0, xmm1;
-   sqrtsd xmm0, xmm0;
 
    // epilog claenup stack
    movupd xmm4, dXMM4;
@@ -409,10 +406,6 @@ asm
    // prolog - simulate stack
    movupd dXMM4, xmm4;
    movupd dXMM7, xmm7;
-   {
-   .savenv xmm4;
-   .savenv xmm7;
-   }
 
    //iters := -width*sizeof(double);
    mov r10, width;
@@ -498,7 +491,6 @@ asm
    // build result
    movhlps xmm1, xmm0;
    addsd xmm0, xmm1;
-   sqrtsd xmm0, xmm0;
 
    // epilog claenup stack
    movupd xmm4, dXMM4;
@@ -523,10 +515,6 @@ asm
    // prolog - simulate stack
    movupd dXMM4, xmm4;
    movupd dXMM7, xmm7;
-   {
-   .savenv xmm4;
-   .savenv xmm7;
-   }
 
    //iters := -width*sizeof(double);
    mov r10, width;

@@ -73,7 +73,7 @@ end;
 
 procedure TBaseMatrixTestCase.Status(const msg: string);
 begin
-     WriteLn(msg);
+//     WriteLn(msg);
 end;
 
 {$ENDIF}
