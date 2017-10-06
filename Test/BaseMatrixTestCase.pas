@@ -57,6 +57,9 @@ uses Graphics, {$IFNDEF FPC} JPEG, {$ENDIF} Math;
 { TBaseMatrixTestCase }
 
 {$IFDEF FPC}
+
+var AllowStatusWrite : boolean = True;  // global variable which is set to false in case a pure gui application is compiled
+
 procedure TBaseMatrixTestCase.CheckEqualsMem(p1, p2: PByte; memSize: integer;
   const msg: string);
 var cnt : integer;
@@ -73,7 +76,12 @@ end;
 
 procedure TBaseMatrixTestCase.Status(const msg: string);
 begin
-//     WriteLn(msg);
+     try
+        if AllowStatusWrite then
+           WriteLn(msg);
+     except
+           AllowStatusWrite := False;
+     end;
 end;
 
 {$ENDIF}

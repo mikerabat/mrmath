@@ -3,12 +3,13 @@
   <ProjectSession>
     <Version Value="10"/>
     <BuildModes Active="Default"/>
-    <Units Count="95">
+    <Units Count="97">
       <Unit0>
         <Filename Value="MathUtilsLinux.ppr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <CursorPos X="36" Y="6"/>
+        <TopLine Value="62"/>
+        <CursorPos X="90" Y="75"/>
         <UsageCount Value="736"/>
         <Loaded Value="True"/>
       </Unit0>
@@ -330,14 +331,13 @@
       <Unit38>
         <Filename Value="../CCA.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="81"/>
         <CursorPos X="35" Y="89"/>
         <UsageCount Value="736"/>
         <Bookmarks Count="1">
           <Item0 X="2" Y="226" ID="1"/>
         </Bookmarks>
-        <Loaded Value="True"/>
       </Unit38>
       <Unit39>
         <Filename Value="../Corr.pas"/>
@@ -456,20 +456,18 @@
       <Unit52>
         <Filename Value="../MathUtilFunc.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="28"/>
         <CursorPos X="11" Y="42"/>
         <UsageCount Value="736"/>
-        <Loaded Value="True"/>
       </Unit52>
       <Unit53>
         <Filename Value="../Matrix.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="1786"/>
         <CursorPos X="28" Y="1806"/>
         <UsageCount Value="736"/>
-        <Loaded Value="True"/>
       </Unit53>
       <Unit54>
         <Filename Value="../MatrixConst.pas"/>
@@ -533,28 +531,25 @@
       <Unit61>
         <Filename Value="../PCA.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="554"/>
         <CursorPos Y="564"/>
         <UsageCount Value="736"/>
-        <Loaded Value="True"/>
       </Unit61>
       <Unit62>
         <Filename Value="../PLS.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="3"/>
-        <TopLine Value="246"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="232"/>
         <UsageCount Value="736"/>
-        <Loaded Value="True"/>
       </Unit62>
       <Unit63>
         <Filename Value="../RandomEng.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="71"/>
         <CursorPos X="65" Y="47"/>
         <UsageCount Value="736"/>
-        <Loaded Value="True"/>
       </Unit63>
       <Unit64>
         <Filename Value="../SimpleMatrixOperations.pas"/>
@@ -584,8 +579,8 @@
         <Filename Value="BaseMatrixTestCase.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="8"/>
-        <CursorPos X="38" Y="30"/>
+        <TopLine Value="19"/>
+        <CursorPos Y="30"/>
         <UsageCount Value="736"/>
       </Unit67>
       <Unit68>
@@ -618,9 +613,7 @@
         <Filename Value="TestICA.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <WindowIndex Value="-1"/>
-        <TopLine Value="-1"/>
-        <CursorPos X="-1" Y="-1"/>
+        <CursorPos X="5" Y="108"/>
         <UsageCount Value="736"/>
       </Unit71>
       <Unit72>
@@ -745,6 +738,7 @@
       <Unit87>
         <Filename Value=""/>
         <UsageCount Value="10"/>
+        <DefaultSyntaxHighlighter Value="None"/>
       </Unit87>
       <Unit88>
         <Filename Value="/usr/local/codetyphon/fpcsrc/packages/fcl-base/src/syncobjs.pp"/>
@@ -795,40 +789,44 @@
         <CursorPos X="3" Y="197"/>
         <UsageCount Value="10"/>
       </Unit94>
+      <Unit95>
+        <Filename Value="C:/codetyphon/fpcsrc/packages/fcl-fpcunit/src/fpcunit.pp"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="192"/>
+        <CursorPos X="62" Y="206"/>
+        <UsageCount Value="10"/>
+      </Unit95>
+      <Unit96>
+        <Filename Value="C:/codetyphon/fpcsrc/packages/fcl-fpcunit/src/testregistry.pp"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="10"/>
+      </Unit96>
     </Units>
-    <JumpHistory Count="7" HistoryIndex="6">
+    <JumpHistory Count="5" HistoryIndex="4">
       <Position1>
-        <Filename Value="../RandomEng.pas"/>
-        <Caret Line="51" Column="14" TopLine="38"/>
+        <Filename Value="MathUtilsLinux.ppr"/>
+        <Caret Line="99" TopLine="64"/>
       </Position1>
       <Position2>
         <Filename Value="MathUtilsLinux.ppr"/>
-        <Caret Line="99" TopLine="64"/>
+        <Caret Line="85" Column="58" TopLine="64"/>
       </Position2>
       <Position3>
         <Filename Value="MathUtilsLinux.ppr"/>
-        <Caret Line="85" Column="58" TopLine="64"/>
+        <Caret Line="99" TopLine="65"/>
       </Position3>
       <Position4>
-        <Filename Value="../Matrix.pas"/>
-        <Caret Line="1806" Column="28" TopLine="1786"/>
+        <Filename Value="MathUtilsLinux.ppr"/>
+        <Caret Line="98" Column="61" TopLine="80"/>
       </Position4>
       <Position5>
         <Filename Value="MathUtilsLinux.ppr"/>
-        <Caret Line="99" TopLine="65"/>
-      </Position5>
-      <Position6>
-        <Filename Value="MathUtilsLinux.ppr"/>
-        <Caret Line="98" Column="61" TopLine="80"/>
-      </Position6>
-      <Position7>
-        <Filename Value="MathUtilsLinux.ppr"/>
         <Caret Line="6" Column="36"/>
-      </Position7>
+      </Position5>
     </JumpHistory>
   </ProjectSession>
   <Debugging>
-    <BreakPoints Count="1">
+    <BreakPoints Count="2">
       <Item1>
         <Kind Value="bpkSource"/>
         <WatchScope Value="wpsLocal"/>
@@ -836,6 +834,13 @@
         <Source Value="/usr/local/codetyphon/fpcsrc/packages/fcl-base/src/syncobjs.pp"/>
         <Line Value="159"/>
       </Item1>
+      <Item2>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="BaseMatrixTestCase.pas"/>
+        <Line Value="30"/>
+      </Item2>
     </BreakPoints>
     <Watches Count="1">
       <Item1>
