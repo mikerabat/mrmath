@@ -243,17 +243,21 @@ type
 // #### Builds base matrix operations
   TDoubleMatrixClass = class of TDoubleMatrix;
   TDoubleMatrix = class(TBaseMathPersistence, IMatrix)
+  private
+    type
+      TLocConstDoubleArr = Array[0..MaxInt div sizeof(double) - 1] of double;
+      PLocConstDoubleArr = ^TLocConstDoubleArr;
   protected
     // used to determine which class type to use as a result
     // e.g. the threaded class does not override all standard functions but
     // the resulting class type shall always be the threaded class!
     class function ResultClass : TDoubleMatrixClass; virtual;
 
-    function GetItems(x, y: integer): double; register;
-    procedure SetItems(x, y: integer; const Value: double); register;
+    function GetItems(x, y: integer): double; register; inline;
+    procedure SetItems(x, y: integer; const Value: double); register; inline;
     // Access as vector -> same as GetItem(idx mod width, idx div width)
-    function GetVecItem(idx: integer): double; register;
-    procedure SetVecItem(idx: integer; const Value: double); register;
+    function GetVecItem(idx: integer): double; register; 
+    procedure SetVecItem(idx: integer; const Value: double); register; 
 
     // matrix persistence functions
     procedure DefineProps; override;
@@ -271,7 +275,7 @@ type
     procedure ReserveMem(width, height: integer);
   private
     fMemory : Pointer;
-    fData : PConstDoubleArr;       // 16 byte aligned pointer:
+    fData : PLocConstDoubleArr;       // 16 byte aligned pointer:
     fLineWidth : integer;
     fWidth : integer;
     fObj : TObject;                // arbitrary object
@@ -539,7 +543,52 @@ type
 {$ENDIF}
 
 
-{ TDoubleMatrix }
+// ###########################################
+// #### Inline functions (need to be first)
+// ###########################################
+
+procedure TDoubleMatrix.SetItems(x, y: integer; const Value: double);
+var pData : PLocConstDoubleArr;
+begin
+     CheckAndRaiseError((x >= 0) and (x < fSubWidth), 'Dimension error');
+     CheckAndRaiseError((y >= 0) and (y < fSubHeight), 'Dimension error');
+     pData := fData;
+     inc(PByte(pData), (fOffsetY + y)*fLineWidth);
+
+     pData^[fOffsetX + x] := Value;
+end;
+
+function TDoubleMatrix.GetItems(x, y: integer): double;
+var pData : PLocConstDoubleArr;
+begin
+     CheckAndRaiseError((x >= 0) and (x < fSubWidth) and (y >= 0) and (y < fSubHeight), 'Dimension error');
+     pData := fData;
+     inc(PByte(pData), (fOffsetY + y)*fLineWidth);
+
+     Result := pData^[fOffsetX + x];
+end;
+
+procedure TDoubleMatrix.SetVecItem(idx: integer; const Value: double);
+begin
+     if idx < fSubWidth 
+     then
+         SetItems(idx, 0, Value)
+     else
+         SetItems(idx mod fSubWidth, idx div fSubWidth, Value);
+end;
+
+function TDoubleMatrix.GetVecItem(idx: integer): double;
+begin
+     if idx < fSubWidth
+     then
+         Result := GetItems(idx, 0)
+     else
+         Result := GetItems(idx mod fSubWidth, idx div fSubWidth);
+end;
+
+// ###########################################
+// #### TDoubleMatrix
+// ###########################################
 
 function TDoubleMatrix.Abs: TDoubleMatrix;
 begin
@@ -719,7 +768,7 @@ begin
      fWidth := aWidth;
      fHeight := aHeight;
      fMemory := data;
-     fData := PConstDoubleArr(data);
+     fData := PLocConstDoubleArr(data);
      fLineWidth := aLineWidth;
 
      fOffsetX := 0;
@@ -1288,16 +1337,6 @@ begin
         Result := MatrixElementwiseNorm2(StartElement, LineWidth, Width, Height, doSqrt);
 end;
 
-function TDoubleMatrix.GetItems(x, y: integer): double;
-var pData : PConstDoubleArr;
-begin
-     CheckAndRaiseError((x >= 0) and (x < fSubWidth) and (y >= 0) and (y < fSubHeight), 'Dimension error');
-     pData := fData;
-     inc(PByte(pData), (fOffsetY + y)*fLineWidth);
-
-     Result := pData^[fOffsetX + x];
-end;
-
 function TDoubleMatrix.GetLinEQProgress: TLinEquProgress;
 begin
      Result := fLinEQProgress;
@@ -1316,15 +1355,6 @@ end;
 function TDoubleMatrix.GetSubWidth: integer;
 begin
      Result := fSubWidth;
-end;
-
-function TDoubleMatrix.GetVecItem(idx: integer): double;
-begin
-     if idx < fSubWidth 
-     then
-         Result := GetItems(idx, 0)
-     else
-         Result := GetItems(idx mod fSubWidth, idx div fSubWidth);
 end;
 
 function TDoubleMatrix.GetVecLen: integer;
@@ -1846,6 +1876,10 @@ end;
 procedure TDoubleMatrix.ReserveMem(width, height : integer);
 var numLineElems : integer;
 begin
+     // check if we need to reserve memory or if we already have a matrix with this size
+     if (fWidth = width) and (fHeight = height) and (width > 0) and (height > 0) and Assigned(fMemory) then
+        exit;
+     
      if Assigned(fMemory) then
         FreeMem(fMemory);
 
@@ -2015,17 +2049,6 @@ begin
      SetWidthHeight(fWidth, Value);
 end;
 
-procedure TDoubleMatrix.SetItems(x, y: integer; const Value: double);
-var pData : PConstDoubleArr;
-begin
-     CheckAndRaiseError((x >= 0) and (x < fSubWidth), 'Dimension error');
-     CheckAndRaiseError((y >= 0) and (y < fSubHeight), 'Dimension error');
-     pData := fData;
-     inc(PByte(pData), (fOffsetY + y)*fLineWidth);
-
-     pData^[fOffsetX + x] := Value;
-end;
-
 procedure TDoubleMatrix.SetLinEQProgress(value: TLinEquProgress);
 begin
      fLinEQProgress := value;
@@ -2084,15 +2107,6 @@ begin
           for x := 0 to Width - 1 do
               pData^[x] := initVal;
      end;
-end;
-
-procedure TDoubleMatrix.SetVecItem(idx: integer; const Value: double);
-begin
-     if idx < fSubWidth 
-     then
-         SetItems(idx, 0, Value)
-     else
-         SetItems(idx mod fSubWidth, idx div fSubWidth, Value);
 end;
 
 procedure TDoubleMatrix.SetWidth(const Value: integer);

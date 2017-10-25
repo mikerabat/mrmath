@@ -1389,7 +1389,7 @@ begin
           qy := Q;
           inc(qy, w2*height);
 
-          qrMem := Q;
+          qrMem := qy;
      end
      else
      begin
@@ -1414,7 +1414,8 @@ begin
 
      if Result <> qrOK then
      begin
-          FreeMem(mem);
+          if work = nil then
+             FreeMem(mem);
           exit;
      end;
 

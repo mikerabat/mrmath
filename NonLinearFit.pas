@@ -36,7 +36,16 @@ type
     fTolX: double;
     fSqrtEPS : double;
     fHlp, fCoef, fVec : IMatrix;
+    
     procedure WeightedNonLinIterator(weights : IMatrix; a, x, y : IMatrix);
+  private
+    // fast polyfit
+    fV : IMatrix;
+    fWork : IMatrix;
+    fStaticV : IMatrix;
+    fPinvV : IMatrix;
+    fOrder : Integer;
+
   public
     property MaxIter : integer read fMaxIter write fMaxIter;
     property TolFun : double read fTolFun write fTolFun;
@@ -68,17 +77,30 @@ type
     function PolynomFit(x, y : TDoubleDynArray; N : integer) : IMatrix; overload;
     function PolynomFit(x, y : IMatrix; N : integer) : IMatrix; overload;
     procedure PolynomFit(x, y : IMatrix; N : Integer; res : IMatrix); overload;  // store result in res
-    procedure LineFit(x, y : IMatrix; res : IMatrix); overload;  // fits a straight line throu x and y
+    procedure LineFit(x, y : IMatrix; res : IMatrix); overload;  // fits a straight line through x and y using a simple (but fast) algorithm
     function LineFit(x, y : IMatrix) : IMatrix; overload;
-    
-    function EvalPoly(x, coef : IMatrix) : IMatrix;
+
+    procedure PolynomFitFast(x, y : IMatrix; N : Integer; res : IMatrix); overload; // using QR least squares
+
+    // for multiple evaluations with the same x vector use this init first -> avoid multiple memory allocations
+    procedure InitPolyFit(x : IMatrix; N : integer);
+    procedure PolynomFitFast(y : IMatrix; res : IMatrix); overload;
+    procedure PolynomFit(y : IMatrix; res : IMatrix); overload;
+
+
+    // ###########################################
+    // #### polygon evaluation
+    function EvalPoly(x, coef : IMatrix) : IMatrix; overload;              
+    procedure EvalPoly(x, coef : IMatrix; var res : IMatrix); overload; // without memory allocations (only once for res if not initialized yet)     
+                                                                        // use this for multiple evaluations in a loop
     
     constructor Create;
   end;
 
 implementation
 
-uses SysUtils, Math, MathUtilFunc, MatrixConst, OptimizedFuncs;
+uses SysUtils, Math, MathUtilFunc, MatrixConst, OptimizedFuncs, LinAlgQR,
+     BlockSizeSetup;
 
 { TNonLinOptimizer }
 
@@ -280,6 +302,55 @@ begin
         x.TransposeInPlace;
 end;
 
+procedure TNonLinFitOptimizer.EvalPoly(x, coef : IMatrix; var res: IMatrix);
+var counter: Integer;
+    doTranspose : boolean;
+begin
+     // init ( avoid memory allocations in case it's used in a loop
+     if not Assigned(fHlp) then
+        fHlp := TDoubleMatrix.Create;
+     if not Assigned(fCoef) then
+        fCoef := TDoubleMatrix.Create;
+     if not Assigned(fVec) then
+        fVec := TDoubleMatrix.Create;
+     if fVec.Width <> x.VecLen then
+        fVec.SetWidthHeight(x.VecLen, 1);
+     if fCoef.Width <> coef.VecLen then
+        fCoef.SetWidthHeight(coef.VecLen, 1);
+
+     // prepare coefficents
+     for counter := 0 to fCoef.Width - 1 do
+         fCoef.Vec[counter] := coef.Vec[counter];
+     
+     if (fHlp.Width <> x.Width) or (fHlp.Height <> fcoef.Width) then
+        fHlp.SetWidthHeight(x.VecLen, fcoef.Width);
+
+     doTranspose := x.Width < x.Height;
+     if doTranspose then
+        x.TransposeInPlace;
+
+     // prepare mult matrix
+     fVec.SetValue( 1 );
+     for counter := fHlp.Height - 1 downto 0 do
+     begin
+          fHlp.SetRow(counter, fVec);
+          fVec.ElementWiseMultInPlace( x ); 
+     end;
+
+     if not Assigned(res) then
+        res := TDoubleMatrix.Create;
+
+     if (res.Width <> fHlp.Width) or (res.Height <> fCoef.Height) then
+        res.SetWidthHeight(fHlp.Width, fCoef.Height);
+
+     // final multiplication
+     MatrixMult(res.StartElement, res.LineWidth, fCoef.StartElement, fHlp.StartElement, fCoef.Width, fCoef.Height,
+                fHlp.Width, fHlp.Height, fcoef.LineWidth, fHlp.LineWidth);
+     
+     if doTranspose then
+        x.TransposeInPlace;
+end;
+
 function TNonLinFitOptimizer.Optimize(x, y, a0: IMatrix): IMatrix;
 var weights : IMatrix;
 begin
@@ -346,6 +417,147 @@ begin
           res.SetColumn(dim, p);
      end;     
 end;
+
+
+procedure TNonLinFitOptimizer.PolynomFitFast(x, y: IMatrix; N: Integer; res: IMatrix);
+var j, i : integer;
+    dim : integer;
+    pWork : PDouble;
+    pX : PConstDoubleArr;
+    ax : double;
+    pV : PConstDoubleArr;
+begin
+     assert(x.Height = y.Height, 'Error length of xvals is different to length of y');
+     assert((x.Width >= 1) and (y.Width >= 1), 'Dimension error');
+     assert(n > 0, 'Error polynomdegree must be at least 1');
+     assert((res.width = x.Width) and (res.Height = N + 1), 'Resulting matrix size does not fit');
+     
+     if not Assigned(fV) then
+        fV := TDoubleMatrix.Create;
+     if not Assigned(fWork) then
+        fWork := TDoubleMatrix.Create;
+
+     if (fV.Width <> n + 1) or (fV.Height <> x.Height) then
+        fV.SetWidthHeight(n + 1, x.Height);
+     
+     // estimate working space
+     if fWork.Width <> x.Height then
+        fWork.SetWidthHeight(x.Height, 4 + N + QRDecompMemSize(QRBlockSize, x.Height) div (sizeof(double)*x.Height));
+
+     pWork := fWork.StartElement;
+     pX := PConstDoubleArr(pWork);
+     inc(PByte(pWork), fWork.LineWidth);
+     
+     for dim := 0 to x.Width - 1 do
+     begin
+          // construct Vandermonde matrix
+          pV := PConstDoubleArr( fV.StartElement );
+          for i := 0 to fV.Height - 1 do
+          begin
+               pV^[0] := 1;
+               ax := x[dim, i]; 
+               for j := 1 to fV.Width - 1 do
+                   pV^[j] := pV^[j - 1]*ax;
+
+               inc(PByte(pV), fV.LineWidth);
+          end;
+
+          if MatrixQRSolve(PDouble(pX), sizeof(double), fV.StartElement, fV.LineWidth, y.StartElement, y.LineWidth, fV.Width, fV.Height, pWork) <> qrOK then
+             raise Exception.Create('Error cannot create pseudoinverse of the Vandermonde matrix');
+
+          // assign result
+          for j := 0 to n do
+              res[dim, n - j] := pX^[j];
+     end;     
+end;
+
+procedure TNonLinFitOptimizer.InitPolyFit(x: IMatrix; N: integer);
+var pV : PConstDoubleArr;
+    i, j : integer;
+    ax : Double;
+begin
+     // note this only works for vectors!
+     fOrder := N;      
+     assert(x.Width = 1, 'error only vectors allowed');
+     if not Assigned(fV) then
+        fV := TDoubleMatrix.Create;
+     
+     if (fV.Width <> n + 1) or (fV.Height <> x.Height) then
+        fV.SetWidthHeight(n + 1, x.Height);
+
+     // construct Vandermonde matrix
+     pV := PConstDoubleArr( fV.StartElement );
+     for i := 0 to fV.Height - 1 do
+     begin
+          pV^[0] := 1;
+          ax := x[0, i]; 
+          for j := 1 to fV.Width - 1 do
+              pV^[j] := pV^[j - 1]*ax;
+
+          inc(PByte(pV), fV.LineWidth);
+     end;
+
+     if not Assigned(fStaticV) then
+        fStaticV := TDoubleMatrix.Create;
+
+     fStaticV.Assign(fV);
+     fPinvV := nil;
+     fWork := nil;
+end;
+
+procedure TNonLinFitOptimizer.PolynomFitFast(y, res: IMatrix);
+var j : integer;
+    pWork : PDouble;
+    pX : PConstDoubleArr;
+begin
+     assert((res.width = 1) and (res.Height = fOrder + 1), 'Resulting matrix size does not fit');
+     assert(assigned(fStaticV), 'error call init first');
+     
+     if not Assigned(fWork) then
+        fWork := TDoubleMatrix.Create;
+
+     // estimate working space
+     if fWork.Width <> fV.Height then
+        fWork.SetWidthHeight(fV.Height, 4 + fOrder + QRDecompMemSize(QRBlockSize, fV.Height) div (sizeof(double)*fV.Height));
+
+     pWork := fWork.StartElement;
+     pX := PConstDoubleArr(pWork);
+     inc(PByte(pWork), fWork.LineWidth);
+     
+     fV.Assign(fStaticV);
+
+     if MatrixQRSolve(PDouble(pX), sizeof(double), fV.StartElement, fV.LineWidth, y.StartElement, y.LineWidth, fV.Width, fV.Height, pWork) <> qrOK then
+        raise Exception.Create('Error cannot create pseudoinverse of the Vandermonde matrix');
+
+     // assign result
+     for j := 0 to fOrder do
+         res[0, fOrder - j] := pX^[j];
+end;
+
+procedure TNonLinFitOptimizer.PolynomFit(y, res: IMatrix);
+var pX : PConstDoubleArr;
+    j : integer;
+begin
+     // ###########################################
+     // #### do this only one time...
+     if not Assigned( fPinvV ) then
+        fStaticV.PseudoInversion(fPinvV);
+
+     if not Assigned(fWork) then
+        fWork := TDoubleMatrix.Create;
+
+     // estimate working space
+     if fWork.Width <> fV.Height then
+        fWork.SetWidthHeight(fV.Height, 1);
+
+     pX := PConstDoubleArr(fWork.StartElement);
+
+     MatrixMult(PDouble(pX), sizeof(double), fPinvV.StartElement, y.StartElement, fPinvV.Width, fPinvV.Height, y.Width, y.Height, fPInvV.LineWidth, y.LineWidth);
+
+     for j := 0 to fOrder do
+         res[0, fOrder - j] := pX^[j];
+end;
+
 
 procedure TNonLinFitOptimizer.LineFit(x, y, res: IMatrix);
 var meanx, meanY : double;

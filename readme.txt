@@ -54,6 +54,14 @@ Gustav Kaiser - special thanks for implementing the PLS algorithm.
 // ###################################################################
 changelog:
 
+Date: 25.10.2017
+* Extended NonLinear polynomfit by a few faster (but less robust) routines:
+  -> linear regression is done in a fast loop.
+  -> qr based least squares function that outperforms the svd routines in speed (but is less robust in 
+     non nice behaving data)
+* Polynom regression is now memory optimized for usage with the same x vector matrix more than once.
+* matrix class with more inline functions.
+
 Date: 06.10.2017
 * Added a new neat function for linear regression that is faster in a loop.
   -> note this function does not depend on SVD so it may be not as robust as the svd version
