@@ -233,7 +233,7 @@ begin
      for i := 0 to Length(dynData) - 1 do
          dynData[i] := i;
 
-     mtx := TDoubleMatrix.Create(dynData, 3, 3);
+     mtx := TDoubleMatrix.CreateDyn(dynData, 3, 3);
 
      assert(mtx.width = 3, 'Error');
      assert(mtx[2, 2] = 8, 'Error');

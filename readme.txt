@@ -54,6 +54,9 @@ Gustav Kaiser - special thanks for implementing the PLS algorithm.
 // ###################################################################
 changelog:
 
+Date: 06.11.2017
+* Fixed issues with Delphi 2007 (thanks to Zoran for pointing that out)
+
 Date: 25.10.2017
 * Extended NonLinear polynomfit by a few faster (but less robust) routines:
   -> linear regression is done in a fast loop.

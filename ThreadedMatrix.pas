@@ -589,7 +589,7 @@ begin
         if not onlyDiagElements then
         begin
              wArr := MtxAlloc( minWH*sizeof(double));
-             pW := PConstDoubleArr( @wArr[0] );
+             pW := PConstDoubleArr( wArr );
         end;
 
         if width > height then

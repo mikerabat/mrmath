@@ -500,8 +500,8 @@ type
     constructor Create(aWidth, aHeight : integer; const initVal : double = 0); overload;
     constructor CreateEye(aWidth : integer);
     constructor Create(data : PDouble; aLineWidth : integer; aWidth, aHeight : integer); overload;
-    constructor Create(const Data : TDoubleDynArray; aWidth, aHeight : integer); overload;
-    constructor Create(const Data : TDoubleDynArray; fromDataIdx : integer; aWidth, aHeight : integer); overload;
+    constructor CreateDyn(const Data : TDoubleDynArray; aWidth, aHeight : integer); overload;
+    constructor CreateDyn(const Data : TDoubleDynArray; fromDataIdx : integer; aWidth, aHeight : integer); overload;
     constructor Create(const Mtx : Array of double; W, H : integer); overload; 
     constructor CreateRand(aWidth, aHeight : integer; method : TRandomAlgorithm; seed : LongInt); overload; // uses random engine
     constructor CreateRand(aWidth, aHeight : integer); overload; // uses system default random
@@ -527,7 +527,6 @@ type
     property MatrixClass : TDoubleMatrixClass read GetMtxClass write SetMtxClass;
 
     class var DefMatrixClass : TDoubleMatrixClass;
-    class constructor Create;
   end;
 
 
@@ -799,8 +798,7 @@ begin
      end;
 end;
 
-constructor TDoubleMatrix.Create(const Data: TDoubleDynArray; aWidth,
-  aHeight: integer);
+constructor TDoubleMatrix.CreateDyn(const Data : TDoubleDynArray; aWidth, aHeight : integer);
 begin
      inherited Create;
 
@@ -875,7 +873,7 @@ begin
      MatrixCopy(StartElement, LineWidth, @Mtx[0], W*sizeof(double), W, H);
 end;
 
-constructor TDoubleMatrix.Create(const Data: TDoubleDynArray; fromDataIdx,
+constructor TDoubleMatrix.CreateDyn(const Data: TDoubleDynArray; fromDataIdx,
   aWidth, aHeight: integer);
 begin
      CheckAndRaiseError((aWidth*aHeight > 0) and (Length(Data) - fromDataIdx >= aWidth*aHeight), 'Dimension error');
@@ -884,11 +882,6 @@ begin
 
      SetWidthHeight(aWidth, aHeight);
      MatrixCopy(StartElement, LineWidth, @Data[fromDataIdx], aWidth*sizeof(double), aWidth, aHeight);
-end;
-
-class constructor TMatrixClass.Create;
-begin
-     DefMatrixClass := TDoubleMatrix;
 end;
 
 procedure TDoubleMatrix.MtxRand(var value: double);
@@ -2240,7 +2233,7 @@ begin
         if not onlyDiagElements then
         begin
              wArr := MtxAlloc( minWH*sizeof(double));
-             pW := PConstDoubleArr( @wArr[0] );
+             pW := PConstDoubleArr( wArr );
         end;
 
         if width > height then
@@ -2663,6 +2656,7 @@ begin
 end;
 
 initialization
+   TMatrixClass.DefMatrixClass := TDoubleMatrix;
    RegisterMathIO(TDoubleMatrix);
 
 end.

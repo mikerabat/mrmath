@@ -32,7 +32,7 @@
         <PackageName Value="adFCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="87">
+    <Units Count="88">
       <Unit0>
         <Filename Value="MathUtilsLinux.ppr"/>
         <IsPartOfProject Value="True"/>
@@ -381,6 +381,11 @@
         <Filename Value="../mac/linuxthrpool.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit86>
+      <Unit87>
+        <Filename Value="../ASMAVXOpcodes.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="ASMAvxOpcodes"/>
+      </Unit87>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
