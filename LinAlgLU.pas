@@ -338,7 +338,7 @@ begin
 
           if ii >= 0 then
           begin
-               pVal := PDouble(PAnsiChar(LUDecomp) + i*LineWidthLU);
+               pVal := PDouble(TASMNativeUInt(LUDecomp) + TASMNativeUInt(i*LineWidthLU));
                inc(pVal, ii);
                pB := B;
                inc(PByte(pB), LineWidthB*ii);
@@ -362,7 +362,7 @@ begin
 
      pB := B;
      inc(PByte(pB), LineWidthB*(width - 1));
-     pVal := PDouble(PAnsiChar(LUDecomp) + (width - 1)*LineWidthLU);
+     pVal := PDouble(TASMNativeUInt(LUDecomp) + TASMNativeUInt((width - 1)*LineWidthLU));
      inc(pVal, width - 1);
      for i := width - 1 downto 0 do
      begin

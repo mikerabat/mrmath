@@ -103,7 +103,7 @@ begin
                     begin
                          if ipiv[k] = 0 then
                          begin
-                              pVal1 := PDouble(PAnsiChar(A) + j*LineWidthA);
+                              pVal1 := PDouble(TASMNativeUInt(A) + TASMNativeUInt(j*LineWidthA));
                               inc(pVal1, k);
 
                               if abs(pVal1^) >= big then
@@ -129,8 +129,8 @@ begin
 
           if irow <> icol then
           begin
-               pVal1 := PDouble(PAnsiChar(A) + irow*LineWidthA);
-               pVal2 := PDouble(PAnsiChar(A) + icol*LineWidthA);
+               pVal1 := PDouble(TASMNativeUInt(A) + TASMNativeUInt(irow*LineWidthA));
+               pVal2 := PDouble(TASMNativeUInt(A) + TASMNativeUInt(icol*LineWidthA));
                for l := 0 to width - 1 do
                begin
 
@@ -139,8 +139,8 @@ begin
                     inc(pVal2);
                end;
 
-               pVal1 := PDouble(PAnsiChar(B) + irow*LineWidthB);
-               pVal2 := PDouble(PAnsiChar(B) + icol*LineWidthB);
+               pVal1 := PDouble(TASMNativeUInt(B) + TASMNativeUInt(irow*LineWidthB));
+               pVal2 := PDouble(TASMNativeUInt(B) + TASMNativeUInt(icol*LineWidthB));
                for l := 0 to m - 1 do
                begin
                     DoubleSwap(pVal1^, pVal2^);
@@ -153,7 +153,7 @@ begin
           indxr[i] := irow;
           indxc[i] := icol;
 
-          pVal1 := PDouble(PAnsiChar(A) + icol*LineWidthA);
+          pVal1 := PDouble(TASMNativeUInt(A) + TASMNativeUInt(icol*LineWidthA));
           inc(pVal1, icol);
 
           if abs(pVal1^) < epsilon then
@@ -165,14 +165,14 @@ begin
           pivinv := 1/pVal1^;
 
           pVal1^ := 1;
-          pVal1 := PDouble(PAnsiChar(A) + icol*LineWidthA);
+          pVal1 := PDouble(TASMNativeUInt(A) + TASMNativeUInt(icol*LineWidthA));
           for l := 0 to width - 1 do
           begin
                pVal1^ := pVal1^*pivinv;
                inc(pVal1);
           end;
 
-          pVal1 := PDouble(PAnsiChar(B) + icol*LineWidthB);
+          pVal1 := PDouble(TASMNativeUInt(B) + TASMNativeUInt(icol*LineWidthB));
           for l := 0 to m - 1 do
           begin
                pVal1^ := Pivinv*pVal1^;
@@ -183,13 +183,13 @@ begin
           begin
                if ll <> icol then
                begin
-                    pVal1 := PDouble(PAnsiChar(A) + ll*LineWidthA);
+                    pVal1 := PDouble(TASMNativeUInt(A) + TASMNativeUInt(ll*LineWidthA));
                     inc(pVal1, icol);
                     dum := pVal1^;
                     pVal1^ := 0;
 
-                    pVal1 := PDouble(PAnsiChar(A) + ll*LineWidthA);
-                    pVal2 := PDouble(PAnsiChar(A) + icol*LineWidthA);
+                    pVal1 := PDouble(TASMNativeUInt(A) + TASMNativeUInt(ll*LineWidthA));
+                    pVal2 := PDouble(TASMNativeUInt(A) + TASMNativeUInt(icol*LineWidthA));
                     for l := 0 to width - 1 do
                     begin
                          pVal1^ := pVal1^ - pVal2^*dum;
@@ -197,8 +197,8 @@ begin
                          inc(pVal2);
                     end;
 
-                    pVal1 := PDouble(PAnsiChar(B) + ll*LineWidthB);
-                    pVal2 := PDouble(PAnsiChar(B) + icol*LineWidthB);
+                    pVal1 := PDouble(TASMNativeUInt(B) + TASMNativeUInt(ll*LineWidthB));
+                    pVal2 := PDouble(TASMNativeUInt(B) + TASMNativeUInt(icol*LineWidthB));
                     for l := 0 to m - 1 do
                     begin
                          pVal1^ := pVal1^ - pVal2^*dum;
@@ -218,7 +218,7 @@ begin
           begin
                for k := 0 to width - 1 do
                begin
-                    pVal1 := PDouble(PAnsiChar(A) + k*LineWidthA);
+                    pVal1 := PDouble(TASMNativeUInt(A) + TASMNativeUInt(k*LineWidthA));
                     pVal2 := pVal1;
                     inc(pval1, indxr[l]);
                     inc(pval2, indxc[l]);

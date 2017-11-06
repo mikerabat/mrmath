@@ -526,7 +526,7 @@ begin
                          break;
                     end;
 
-                    if abs(PDouble(PAnsiChar(W) + nm*LineWidthW)^) + anorm = anorm then
+                    if abs(PDouble(TASMNativeUInt(W) + TASMNativeUInt(nm*LineWidthW))^) + anorm = anorm then
                        break;
                end;
 
@@ -541,9 +541,9 @@ begin
                          rv1[i] := c*rv1[i];
                          if abs(f) + anorm <> anorm then    // check if the value is lower than the precission in contrast to anorm
                          begin
-                              g := PDouble(PAnsiChar(W) + i*LineWidthW)^;
+                              g := PDouble(TASMNativeUInt(W) + TASMNativeUInt(i*LineWidthW))^;
                               h := pythag(f, g);
-                              PDouble(PAnsiChar(W) + i*LineWidthW)^ := h;
+                              PDouble(TASMNativeUInt(W) + TASMNativeUInt(i*LineWidthW))^ := h;
                               h := 1/h;
                               c := g*h;
                               s := -f*h;
@@ -566,13 +566,13 @@ begin
                     end;
                end;
 
-               z := PDouble(PAnsiChar(W) + k*LineWidthW)^;
+               z := PDouble(TASMNativeUInt(W) + TASMNativeUInt(k*LineWidthW))^;
                // convergence
                if l = k then
                begin
                     if z < 0 then
                     begin
-                         PDouble(PAnsiChar(W) + k*LineWidthW)^ := -z;
+                         PDouble(TASMNativeUInt(W) + TASMNativeUInt(k*LineWidthW))^ := -z;
 
                          pV := V;
                          inc(pV, k);
@@ -590,9 +590,9 @@ begin
                if its = cMaxNumSVDIter - 1 then
                   exit;
 
-               x := PDouble(PAnsiChar(W) + l*LineWidthW)^;
+               x := PDouble(TASMNativeUInt(W) + TASMNativeUInt(l*LineWidthW))^;
                nm := k - 1;
-               y := PDouble(PAnsiChar(W) + nm*LineWidthW)^;
+               y := PDouble(TASMNativeUInt(W) + TASMNativeUInt(nm*LineWidthW))^;
                g := rv1[nm];
                h := rv1[k];
                f := ((y - z)*(y + z) + (g - h)*(g + h))/(2*h*y);
@@ -609,7 +609,7 @@ begin
                begin
                     i := j + 1;
                     g := rv1[i];
-                    y := PDouble(PAnsiChar(W) + i*LineWidthW)^;
+                    y := PDouble(TASMNativeUInt(W) + TASMNativeUInt(i*LineWidthW))^;
                     h := s*g;
                     g := c*g;
                     z := pythag(f, h);
@@ -637,7 +637,7 @@ begin
                     end;
 
                     z := pythag(f, h);
-                    PDouble(PAnsiChar(W) + j*LineWidthW)^ := z;
+                    PDouble(TASMNativeUInt(W) + TASMNativeUInt(j*LineWidthW))^ := z;
                     // rotation can be arbitrary if z = 0
                     if z <> 0 then
                     begin
@@ -666,7 +666,7 @@ begin
 
                rv1[l] := 0;
                rv1[k] := f;
-               PDouble(PAnsiChar(W) + k*LineWidthW)^ := x;
+               PDouble(TASMNativeUInt(W) + TASMNativeUInt(k*LineWidthW))^ := x;
           end;
      end;
 

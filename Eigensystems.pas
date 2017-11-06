@@ -399,7 +399,7 @@ begin
                      if iter = cMaxTridiagIter then
                         exit;
 
-                     g := (PDouble(PAnsiChar(pDl) + LineWidthD)^ - pDl^)/(2*pEl^);
+                     g := (PDouble(TASMNativeUInt(pDl) + TASMNativeUInt(LineWidthD))^ - pDl^)/(2*pEl^);
                      r := pythag(g, 1);
                      pD := D;
                      inc(PByte(pD), m*LineWidthD);

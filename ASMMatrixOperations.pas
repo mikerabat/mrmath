@@ -1385,9 +1385,9 @@ begin
      actBlk := mem;
      if not Assigned(mem) then
         GetMem(actBlk, BlockMultMemSize(blockSize));
-     multBlk := PDouble(PAnsiChar(actBlk) + blockByteSize);
-     transBlk := PDouble(PAnsiChar(actBlk) + 2*blockByteSize);
-     copyBlk := PDouble(PAnsiChar(actBlk) + 3*blockByteSize);
+     multBlk := PDouble(TASMNativeUInt(actBlk) + blockByteSize);
+     transBlk := PDouble(TASMNativeUInt(actBlk) + 2*blockByteSize);
+     copyBlk := PDouble(TASMNativeUInt(actBlk) + 3*blockByteSize);
 
      blockLineSize := blockSize*sizeof(double);
 
@@ -1504,9 +1504,9 @@ begin
      actBlk := mem;
      if not Assigned(mem) then
         GetMem(actBlk, BlockMultMemSize(blockSize));
-     multBlk := PDouble(PAnsiChar(actBlk) + blockByteSize);
-     transBlk1 := PDouble(PAnsiChar(actBlk) + 2*blockByteSize);
-     transBlk2 := PDouble(PAnsiChar(actBlk) + 3*blockByteSize);
+     multBlk := PDouble(TASMNativeUInt(actBlk) + blockByteSize);
+     transBlk1 := PDouble(TASMNativeUInt(actBlk) + 2*blockByteSize);
+     transBlk2 := PDouble(TASMNativeUInt(actBlk) + 3*blockByteSize);
 
      blockLineSize := blockSize*sizeof(double);
 
@@ -1620,8 +1620,8 @@ begin
      actBlk := mem;
      if not Assigned(mem) then
         GetMem(actBlk, BlockMultMemSize(blockSize));
-     multBlk := PDouble(PAnsiChar(actBlk) + blockByteSize);
-     copyBlk := PDouble(PAnsiChar(actBlk) + 2*blockByteSize);
+     multBlk := PDouble(TASMNativeUInt(actBlk) + blockByteSize);
+     copyBlk := PDouble(TASMNativeUInt(actBlk) + 2*blockByteSize);
 
      blockLineSize := blockSize*sizeof(double);
 

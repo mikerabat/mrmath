@@ -1298,7 +1298,7 @@ begin
                // write back result
 
                // pDest^ := tmp[0];
-               // PDouble(PAnsiChar(pDest) + sizeof(double))^ := tmp[1];
+               // PDouble(TASMNativeUInt(pDest) + sizeof(double))^ := tmp[1];
 
                movupd [edx], xmm0;
 

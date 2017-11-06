@@ -297,7 +297,7 @@ begin
 
           for j := i to width - 1 do
           begin
-               sum := PDouble(PAnsiChar(pA) + j*sizeof(double))^;
+               sum := PDouble(TASMNativeUInt(pA) + TASMNativeUInt(j*sizeof(double)))^;
 
                pAj1 := pAj;
                pA1 := pA;
@@ -320,13 +320,13 @@ begin
                     if sum <= 0 then
                        exit;
 
-                    PDouble(PAnsiChar(P) + i*LineWidthP)^ := sqrt(sum);
+                    PDouble(TASMNativeUInt(P) + TASMNativeUInt(i*LineWidthP))^ := sqrt(sum);
                end
                else
                begin
                     pAj1 := pAj;
                     inc(pAj1, i);
-                    pAj1^ := sum/PDouble(PAnsiChar(P) + i*LineWidthP)^;
+                    pAj1^ := sum/PDouble(TASMNativeUInt(P) + TASMNativeUInt(i*LineWidthP))^;
                end;
 
                inc(PByte(pAj), LineWidthA);
