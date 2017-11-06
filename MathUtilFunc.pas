@@ -284,10 +284,14 @@ end;
 
 function GetLocalFMTSet : TFormatSettings;
 begin
-     {$IF DEFINED(FPC) or (CompilerVersion <= 21)}
-     //GetLocaleFormatSettings(0, Result);
+     {$IF DEFINED(FPC)}
+     Result := DefaultFormatSettings;
      {$ELSE}
-     Result := TFormatSettings.Create;
+        {$IF (CompilerVersion <= 21)}
+        GetLocaleFormatSettings(0, Result);
+        {$ELSE}
+        Result := TFormatSettings.Create;
+        {$IFEND}
      {$IFEND}
 end;
 

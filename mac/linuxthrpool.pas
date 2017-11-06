@@ -167,8 +167,6 @@ end;
 { TLinuxMtxAsyncCallThread }
 
 constructor TLinuxMtxAsyncCallThread.Create(CPUNum: integer);
-var guid :TGuid;
-    name : string;
 begin
      FCPUNum := CPUNum;
      FreeOnTerminate := True;
@@ -178,10 +176,7 @@ begin
 end;
 
 procedure TLinuxMtxAsyncCallThread.Execute;
-var idx : integer;
-
-
-    res : TWaitResult;
+var res : TWaitResult;
 begin
      while not Terminated do
      begin
@@ -275,8 +270,6 @@ end;
 
 constructor TMtxThreadPool.Create;
 var i: Integer;
-    mib : Array[0..1] of cint;
-    len : cint;
     t : cint;
 begin
      inherited Create;
@@ -423,7 +416,6 @@ begin
      Result := fProc(fData);
 end;
 
-var t : cint;
 initialization
 
     numCPUCores := sysconf( _SC_NPROCESSORS_ONLN);
