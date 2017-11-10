@@ -54,6 +54,9 @@ Gustav Kaiser - special thanks for implementing the PLS algorithm.
 // ###################################################################
 changelog:
 
+Date: 10.11.2017
+* Spared a few cycles and memory accesses in the matrix multiplications
+
 Date: 06.11.2017
 * Fixed issues with Delphi 2007 (thanks to Zoran for pointing that out)
 

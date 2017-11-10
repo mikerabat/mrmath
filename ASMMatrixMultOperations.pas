@@ -176,12 +176,8 @@ begin
                 add edx, 16;
                 jnz @@InnerLoop;
 
-                // final horizontal addition
-                haddpd xmm0, xmm0;
-                haddpd xmm7, xmm7;
-
-                // compact result
-                movlhps xmm0, xmm7;
+                // final horizontal addition and compact
+                haddpd xmm0, xmm7;
 
                 // store back result
                 mov edi, dest;
@@ -290,12 +286,8 @@ begin
                 add edx, 16;
                 jnz @@InnerLoop;
 
-                // final horizontal addition
-                haddpd xmm0, xmm0;
-                haddpd xmm7, xmm7;
-
-                // compact result
-                movlhps xmm0, xmm7;
+                // final horizontal addition and compact
+                haddpd xmm0, xmm7;
 
                 // store back result
                 mov edi, dest;
@@ -617,8 +609,6 @@ begin
         mov ecx, mt1;    // prepare ecx for the "reversed" for loop
         sub ecx, iters2;
 
-        xorpd xmm2, xmm2;
-
         // for y := 0 to height1 - 1:
         mov eax, Height1;
         mov y, eax;
@@ -667,12 +657,8 @@ begin
                 add edx, 16;
                 jnz @@InnerLoop;
 
-                // final horizontal addition
-                haddpd xmm0, xmm2;
-                haddpd xmm7, xmm2;
-
-                // compact result
-                movlhps xmm0, xmm7;
+                // final horizontal addition and compact result
+                haddpd xmm0, xmm7;
 
                 // store back result
                 mov edi, dest;
@@ -754,8 +740,6 @@ begin
         mov ecx, mt1;    // prepare ecx for the "reversed" for loop
         sub ecx, iters2;
 
-        xorpd xmm2, xmm2;
-
         // for y := 0 to height1 - 1:
         mov eax, Height1;
         mov y, eax;
@@ -804,12 +788,8 @@ begin
                 add edx, 16;
                 jnz @@InnerLoop;
 
-                // final horizontal addition
-                haddpd xmm0, xmm2;
-                haddpd xmm7, xmm2;
-
-                // compact result
-                movlhps xmm0, xmm7;
+                // final horizontal addition and compact
+                haddpd xmm0, xmm7;
 
                 // store back result
                 mov edi, dest;
@@ -1405,7 +1385,7 @@ begin
 
               @@foridxloop:
                  movsd xmm1, [ecx];
-                 movsd xmm2, [eax + esi]
+                 movsd xmm2, [eax + esi];
 
                  add ecx, edx;  // + linewidth2
 
@@ -1797,7 +1777,6 @@ begin
         push ebx;
         push esi;
         push edi;
-        xorpd xmm7, xmm7; // haddpd
 
         // eax := mt1
         mov eax, mt1;
@@ -1850,7 +1829,7 @@ begin
               @@foriloopend:
 
               // final result
-              haddpd xmm0, xmm7;
+              haddpd xmm0, xmm0;
               movsd [eax + esi], xmm0;
 
               add ebx, LineWidth2;
@@ -1886,8 +1865,6 @@ begin
         push ebx;
         push esi;
         push edi;
-
-        xorpd xmm7, xmm7; // haddpd
 
         // eax := mt1
         mov eax, mt1;
@@ -1957,7 +1934,7 @@ begin
               @@foriloopend:
 
               // final result
-              haddpd xmm0, xmm7;
+              haddpd xmm0, xmm0;
               movsd [ecx + esi], xmm0;
 
               add ebx, LineWidth2;

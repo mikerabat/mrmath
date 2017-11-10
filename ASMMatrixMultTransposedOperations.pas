@@ -76,8 +76,8 @@ begin
         mov mt1, ecx;
         mov mt2, edi;
 
-        xorpd xmm2, xmm2;
-        xorpd xmm6, xmm6;
+        //xorpd xmm2, xmm2;
+        //xorpd xmm6, xmm6;
 
         // for y := 0 to height1 - 1:
         mov eax, Height1;
@@ -119,11 +119,13 @@ begin
                 add edx, 16;
                 jnz @@InnerLoop;
 
-                haddpd xmm0, xmm2;
-                haddpd xmm7, xmm6;
-
-                // compact result
-                movlhps xmm0, xmm7;
+                // compact and horizontal add
+                haddpd xmm0, xmm7;
+                //haddpd xmm0, xmm2;
+//                haddpd xmm7, xmm6;
+//
+//                // compact result
+//                movlhps xmm0, xmm7;
 
                 // store back result
                 movupd [esi], xmm0;
@@ -156,7 +158,7 @@ begin
             add edx, 16;
             jnz @@InnerLoop2;
 
-            haddpd xmm0, xmm2;
+            haddpd xmm0, xmm0;
 
             // store back result
             movsd [esi], xmm0;
@@ -208,8 +210,8 @@ begin
         mov mt1, ecx;
         mov mt2, edi;
 
-        xorpd xmm2, xmm2;
-        xorpd xmm6, xmm6;
+        //xorpd xmm2, xmm2;
+        //xorpd xmm6, xmm6;
 
         // for y := 0 to height1 - 1:
         mov eax, Height1;
@@ -251,11 +253,13 @@ begin
                 add edx, 16;
                 jnz @@InnerLoop;
 
-                haddpd xmm0, xmm2;
-                haddpd xmm7, xmm6;
-
-                // compact result
-                movlhps xmm0, xmm7;
+                // horizontal add and compact
+                haddpd xmm0, xmm7;
+                //haddpd xmm0, xmm2;
+//                haddpd xmm7, xmm6;
+//
+//                // compact result
+//                movlhps xmm0, xmm7;
 
                 // store back result
                 movapd [esi], xmm0;
@@ -288,7 +292,7 @@ begin
             add edx, 16;
             jnz @@InnerLoop2;
 
-            haddpd xmm0, xmm2;
+            haddpd xmm0, xmm0;
 
             // store back result
             movsd [esi], xmm0;
@@ -474,11 +478,8 @@ begin
                 add edx, 128
                 jnz @@InnerLoop;
 
-                haddpd xmm0, xmm0;
-                haddpd xmm7, xmm7;
-
-                // compact result
-                movlhps xmm0, xmm7;
+                // add an compact result
+                haddpd xmm0, xmm7;
 
                 // store back result
                 movapd [esi], xmm0;
@@ -577,11 +578,8 @@ begin
                 add edx, 16;
                 jnz @@InnerLoop;
 
-                haddpd xmm0, xmm0;
-                haddpd xmm7, xmm7;
-
-                // compact result
-                movlhps xmm0, xmm7;
+                // add and compact result
+                haddpd xmm0, xmm7;
 
                 // store back result
                 movapd [esi], xmm0;
@@ -677,11 +675,8 @@ begin
                 add edx, 16;
                 jnz @@InnerLoop;
 
-                haddpd xmm0, xmm0;
-                haddpd xmm7, xmm7;
-
-                // compact result
-                movlhps xmm0, xmm7;
+                // add and compact result
+                haddpd xmm0, xmm7;
 
                 // store back result
                 movupd [esi], xmm0;
@@ -786,14 +781,10 @@ begin
                 mulsd xmm3, xmm1;
                 mulsd xmm4, xmm1;
 
-                haddpd xmm0, xmm0;
-                haddpd xmm7, xmm7;
-
+                // last add and compact
                 addsd xmm0, xmm3;
                 addsd xmm7, xmm4;
-
-                // compact result
-                movlhps xmm0, xmm7;
+                haddpd xmm0, xmm7;
 
                 // store back result
                 movupd [esi], xmm0;
@@ -901,14 +892,11 @@ begin
                 mulsd xmm3, xmm1;
                 mulsd xmm4, xmm1;
 
-                haddpd xmm0, xmm0;
-                haddpd xmm7, xmm7;
-
                 addsd xmm0, xmm3;
                 addsd xmm7, xmm4;
 
-                // compact result
-                movlhps xmm0, xmm7;
+                // add and compact both
+                haddpd xmm0, xmm7;
 
                 // store back result
                 movapd [esi], xmm0;
@@ -1018,14 +1006,10 @@ begin
                 mulsd xmm3, xmm1;
                 mulsd xmm4, xmm1;
 
-                haddpd xmm0, xmm0;
-                haddpd xmm7, xmm7;
-
+                // add and compact the last elements
                 addsd xmm0, xmm3;
                 addsd xmm7, xmm4;
-
-                // compact result
-                movlhps xmm0, xmm7;
+                haddpd xmm0, xmm7;
 
                 // store back result
                 movapd [esi], xmm0;
@@ -1162,14 +1146,10 @@ begin
                 mulsd xmm3, xmm1;
                 mulsd xmm4, xmm1;
 
-                haddpd xmm0, xmm0;
-                haddpd xmm7, xmm7;
-
+                // final add and compact result
                 addsd xmm0, xmm3;
                 addsd xmm7, xmm4;
-
-                // compact result
-                movlhps xmm0, xmm7;
+                haddpd xmm0, xmm7;
 
                 // store back result
                 movupd [esi], xmm0;

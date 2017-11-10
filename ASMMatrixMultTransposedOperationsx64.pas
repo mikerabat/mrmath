@@ -54,7 +54,7 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 procedure ASMMatrixMultUnAlignedEvenW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 
 {$IFDEF FPC}
@@ -82,8 +82,6 @@ asm
    mov iR15, r15;
 
    movupd dXMM4, xmm4;
-   movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -106,9 +104,6 @@ asm
    mov r10, r9;
    add r10, r13;
 
-   xorpd xmm2, xmm2;
-   xorpd xmm6, xmm6;
-
    // for y := 0 to height1 - 1:
    mov r11, Height1;
    @@forylabel:
@@ -123,7 +118,7 @@ asm
 
        @@fory2label:
            xorpd xmm0, xmm0;   // dest^ := 0
-           xorpd xmm7, xmm7;   // dest + 1 := 0;
+           xorpd xmm2, xmm2;   // dest + 1 := 0;
            // for idx := 0 to width1 div 2 do
            mov rax, r14;
 
@@ -139,17 +134,13 @@ asm
                mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
-               addpd xmm7, xmm4;
+               addpd xmm2, xmm4;
 
                // end for idx := 0 to width1 div 2
            add rax, 16;
            jnz @@InnerLoop;
 
            haddpd xmm0, xmm2;
-           haddpd xmm7, xmm6;
-
-           // compact result
-           movlhps xmm0, xmm7;
 
            // store back result
            movupd [r13], xmm0;
@@ -183,7 +174,7 @@ asm
        add rax, 16;
        jnz @@InnerLoop2;
 
-       haddpd xmm0, xmm2;
+       haddpd xmm0, xmm0;
 
        // store back result
        movsd [r13], xmm0;
@@ -210,15 +201,13 @@ asm
    mov r15, iR15;
 
    movupd xmm4, dXMM4;
-   movupd xmm6, dXMM6;
-   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}
 end;
 
 procedure ASMMatrixMultAlignedEvenW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 
 {$IFDEF FPC}
@@ -246,8 +235,6 @@ asm
    mov iR15, r15;
 
    movupd dXMM4, xmm4;
-   movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -270,9 +257,6 @@ asm
    mov r10, r9;
    add r10, r13;
 
-   xorpd xmm2, xmm2;
-   xorpd xmm6, xmm6;
-
    // for y := 0 to height1 - 1:
    mov r11, Height1;
    @@forylabel:
@@ -287,7 +271,7 @@ asm
 
        @@fory2label:
            xorpd xmm0, xmm0;   // dest^ := 0
-           xorpd xmm7, xmm7;   // dest + 1 := 0;
+           xorpd xmm2, xmm2;   // dest + 1 := 0;
            // for idx := 0 to width1 div 2 do
            mov rax, r14;
 
@@ -303,17 +287,14 @@ asm
                mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
-               addpd xmm7, xmm4;
+               addpd xmm2, xmm4;
 
                // end for idx := 0 to width1 div 2
            add rax, 16;
            jnz @@InnerLoop;
 
+           // last add and compact result
            haddpd xmm0, xmm2;
-           haddpd xmm7, xmm6;
-
-           // compact result
-           movlhps xmm0, xmm7;
 
            // store back result
            movntdq [r13], xmm0;
@@ -346,7 +327,7 @@ asm
        add rax, 16;
        jnz @@InnerLoop2;
 
-       haddpd xmm0, xmm2;
+       haddpd xmm0, xmm0;
 
        // store back result
        movsd [r13], xmm0;
@@ -373,15 +354,13 @@ asm
    mov r15, iR15;
 
    movupd xmm4, dXMM4;
-   movupd xmm6, dXMM6;
-   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}
 end;
 
 procedure ASMMatrixMultAlignedEvenW1EvenH2TransposedMod16(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 
 {$IFDEF FPC}
@@ -409,14 +388,12 @@ asm
    mov iR15, r15;
 
    movupd dXMM4, xmm4;
-   movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
 
    // iters1 := height2 div 2;
    mov r15, height2;
    shr r15, 1;
 
-	  // iters2 := -width1*sizeof(double);
+   // iters2 := -width1*sizeof(double);
    mov r14, width1;
    shl r14, 3;
    imul r14, -1;
@@ -427,14 +404,11 @@ asm
    mov r12, r13;
    shl r12, 1;
 
-			// prepare matrix pointers - remove constant offset here instead each time in the loop:
+   // prepare matrix pointers - remove constant offset here instead each time in the loop:
    sub r8, r14;
    sub r9, r14;
    mov r10, r9;
    add r10, r13;
-
-   xorpd xmm2, xmm2;
-   xorpd xmm6, xmm6;
 
    // for y := 0 to height1 - 1:
    mov r11, Height1;
@@ -447,7 +421,7 @@ asm
        mov rbx, r15;
        @@fory2label:
            xorpd xmm0, xmm0;   // dest^ := 0
-           xorpd xmm7, xmm7;   // dest + 1 := 0;
+           xorpd xmm2, xmm2;   // dest + 1 := 0;
            // for idx := 0 to width1 div 2 do
            mov rax, r14;
 
@@ -467,7 +441,7 @@ asm
                mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
-               addpd xmm7, xmm4;
+               addpd xmm2, xmm4;
 
                movapd xmm1, [r8 + rax + 16];
 
@@ -480,7 +454,7 @@ asm
                mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
-               addpd xmm7, xmm4;
+               addpd xmm2, xmm4;
 
                movapd xmm1, [r8 + rax + 32];
 
@@ -493,7 +467,7 @@ asm
                mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
-               addpd xmm7, xmm4;
+               addpd xmm2, xmm4;
 
                movapd xmm1, [r8 + rax + 48];
 
@@ -506,7 +480,7 @@ asm
                mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
-               addpd xmm7, xmm4;
+               addpd xmm2, xmm4;
 
                movapd xmm1, [r8 + rax + 64];
 
@@ -519,7 +493,7 @@ asm
                mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
-               addpd xmm7, xmm4;
+               addpd xmm2, xmm4;
 
                movapd xmm1, [r8 + rax + 80];
 
@@ -532,7 +506,7 @@ asm
                mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
-               addpd xmm7, xmm4;
+               addpd xmm2, xmm4;
 
                movapd xmm1, [r8 + rax + 96];
 
@@ -545,7 +519,7 @@ asm
                mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
-               addpd xmm7, xmm4;
+               addpd xmm2, xmm4;
 
                movapd xmm1, [r8 + rax + 112];
 
@@ -558,17 +532,13 @@ asm
                mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
-               addpd xmm7, xmm4;
+               addpd xmm2, xmm4;
 
                // end for idx := 0 to width1 div 2
            add rax, 128;
            jnz @@InnerLoop;
 
            haddpd xmm0, xmm2;
-           haddpd xmm7, xmm6;
-
-           // compact result
-           movlhps xmm0, xmm7;
 
            // store back result
            movntdq [r13], xmm0;
@@ -605,8 +575,6 @@ asm
    mov r15, iR15;
 
    movupd xmm4, dXMM4;
-   movupd xmm6, dXMM6;
-   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -614,7 +582,7 @@ end;
 
 // note mt2 is transposed this time -> width1 and width2 must be the same!
 procedure ASMMatrixMultAlignedEvenW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 
 {$IFDEF FPC}
@@ -642,8 +610,6 @@ asm
    mov iR15, r15;
 
    movupd dXMM4, xmm4;
-   movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
 
 
    // iters1 := height2 div 2;
@@ -667,9 +633,6 @@ asm
    mov r10, r9;
    add r10, r13;
 
-   xorpd xmm2, xmm2;
-   xorpd xmm6, xmm6;
-
    // for y := 0 to height1 - 1:
    mov r11, Height1;
    @@forylabel:
@@ -681,7 +644,7 @@ asm
        mov rbx, r15;
        @@fory2label:
            xorpd xmm0, xmm0;   // dest^ := 0
-           xorpd xmm7, xmm7;   // dest + 1 := 0;
+           xorpd xmm2, xmm2;   // dest + 1 := 0;
            // for idx := 0 to width1 div 2 do
            mov rax, r14;
 
@@ -697,17 +660,14 @@ asm
                mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
-               addpd xmm7, xmm4;
+               addpd xmm2, xmm4;
 
                // end for idx := 0 to width1 div 2
            add rax, 16;
            jnz @@InnerLoop;
 
+           // final add and compact result
            haddpd xmm0, xmm2;
-           haddpd xmm7, xmm6;
-
-           // compact result
-           movlhps xmm0, xmm7;
 
            // store back result
            movntdq [r13], xmm0;
@@ -744,15 +704,13 @@ asm
    mov r15, iR15;
 
    movupd xmm4, dXMM4;
-   movupd xmm6, dXMM6;
-   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}
 end;
 
 procedure ASMMatrixMultUnAlignedEvenW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 
 {$IFDEF FPC}
@@ -780,8 +738,6 @@ asm
    mov iR15, r15;
 
    movupd dXMM4, xmm4;
-   movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -804,9 +760,6 @@ asm
    mov r10, r9;
    add r10, r13;
 
-   xorpd xmm2, xmm2;
-   xorpd xmm6, xmm6;
-
    // for y := 0 to height1 - 1:
    mov r11, Height1;
    @@forylabel:
@@ -818,7 +771,7 @@ asm
        mov rbx, r15;
        @@fory2label:
            xorpd xmm0, xmm0;   // dest^ := 0
-           xorpd xmm7, xmm7;   // dest + 1 := 0;
+           xorpd xmm2, xmm2;   // dest + 1 := 0;
            // for idx := 0 to width1 div 2 do
            mov rax, r14;
 
@@ -834,17 +787,14 @@ asm
                mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
-               addpd xmm7, xmm4;
+               addpd xmm2, xmm4;
 
                // end for idx := 0 to width1 div 2
            add rax, 16;
            jnz @@InnerLoop;
 
+           // final add and compact result
            haddpd xmm0, xmm2;
-           haddpd xmm7, xmm6;
-
-           // compact result
-           movlhps xmm0, xmm7;
 
            // store back result
            movupd [r13], xmm0;
@@ -881,15 +831,13 @@ asm
    mov r15, iR15;
 
    movupd xmm4, dXMM4;
-   movupd xmm6, dXMM6;
-   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}
 end;
 
 procedure ASMMatrixMultUnAlignedOddW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 
 {$IFDEF FPC}
@@ -917,8 +865,6 @@ asm
    mov iR15, r15;
 
    movupd dXMM4, xmm4;
-   movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -942,9 +888,6 @@ asm
    mov r10, r9;
    add r10, r13;
 
-   xorpd xmm2, xmm2;
-   xorpd xmm6, xmm6;
-
    // for y := 0 to height1 - 1:
    mov r11, Height1;
    @@forylabel:
@@ -956,7 +899,7 @@ asm
        mov rbx, r15;
        @@fory2label:
            xorpd xmm0, xmm0;   // dest^ := 0
-           xorpd xmm7, xmm7;   // dest + 1 := 0;
+           xorpd xmm2, xmm2;   // dest + 1 := 0;
            // for idx := 0 to width1 div 2 do
            mov rax, r14;
 
@@ -972,7 +915,7 @@ asm
                mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
-               addpd xmm7, xmm4;
+               addpd xmm2, xmm4;
 
                // end for idx := 0 to width1 div 2
            add rax, 16;
@@ -987,14 +930,10 @@ asm
            mulsd xmm3, xmm1;
            mulsd xmm4, xmm1;
 
-           haddpd xmm0, xmm2;
-           haddpd xmm7, xmm6;
-
+           // final add and compact
            addsd xmm0, xmm3;
-           addsd xmm7, xmm4;
-
-           // compact result
-           movlhps xmm0, xmm7;
+           addsd xmm2, xmm4;
+           haddpd xmm0, xmm2;
 
            // store back result
            movupd [r13], xmm0;
@@ -1031,15 +970,13 @@ asm
    mov r15, iR15;
 
    movupd xmm4, dXMM4;
-   movupd xmm6, dXMM6;
-   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}
 end;
 
 procedure ASMMatrixMultAlignedOddW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 
 {$IFDEF FPC}
@@ -1067,8 +1004,6 @@ asm
    mov iR15, r15;
 
    movupd dXMM4, xmm4;
-   movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -1086,14 +1021,11 @@ asm
    mov r12, r13;
    shl r12, 1;
 
-			// prepare matrix pointers - remove constant offset here instead each time in the loop:
+   // prepare matrix pointers - remove constant offset here instead each time in the loop:
    sub r8, r14;
    sub r9, r14;
    mov r10, r9;
    add r10, r13;
-
-   xorpd xmm2, xmm2;
-   xorpd xmm6, xmm6;
 
    // for y := 0 to height1 - 1:
    mov r11, Height1;
@@ -1106,7 +1038,7 @@ asm
        mov rbx, r15;
        @@fory2label:
            xorpd xmm0, xmm0;   // dest^ := 0
-           xorpd xmm7, xmm7;   // dest + 1 := 0;
+           xorpd xmm2, xmm2;   // dest + 1 := 0;
            // for idx := 0 to width1 div 2 do
            mov rax, r14;
 
@@ -1122,7 +1054,7 @@ asm
                mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
-               addpd xmm7, xmm4;
+               addpd xmm2, xmm4;
 
                // end for idx := 0 to width1 div 2
            add rax, 16;
@@ -1137,14 +1069,10 @@ asm
            mulsd xmm3, xmm1;
            mulsd xmm4, xmm1;
 
-           haddpd xmm0, xmm2;
-           haddpd xmm7, xmm6;
-
+           // final add and compact result
            addsd xmm0, xmm3;
-           addsd xmm7, xmm4;
-
-           // compact result
-           movlhps xmm0, xmm7;
+           addsd xmm2, xmm4;
+           haddpd xmm0, xmm2;
 
            // store back result
            movntdq [r13], xmm0;
@@ -1181,15 +1109,13 @@ asm
    mov r15, iR15;
 
    movupd xmm4, dXMM4;
-   movupd xmm6, dXMM6;
-   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}
 end;
 
 procedure ASMMatrixMultAlignedOddW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 
 {$IFDEF FPC}
@@ -1217,8 +1143,6 @@ asm
    mov iR15, r15;
 
    movupd dXMM4, xmm4;
-   movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -1236,14 +1160,11 @@ asm
    mov r12, r13;
    shl r12, 1;
 
-			// prepare matrix pointers - remove constant offset here instead each time in the loop:
+   // prepare matrix pointers - remove constant offset here instead each time in the loop:
    sub r8, r14;
    sub r9, r14;
    mov r10, r9;
    add r10, r13;
-
-   xorpd xmm2, xmm2;
-   xorpd xmm6, xmm6;
 
    // for y := 0 to height1 - 1:
    mov r11, Height1;
@@ -1259,7 +1180,7 @@ asm
 
        @@fory2label:
            xorpd xmm0, xmm0;   // dest^ := 0
-           xorpd xmm7, xmm7;   // dest + 1 := 0;
+           xorpd xmm2, xmm2;   // dest + 1 := 0;
            // for idx := 0 to width1 div 2 do
            mov rax, r14;
 
@@ -1275,7 +1196,7 @@ asm
                mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
-               addpd xmm7, xmm4;
+               addpd xmm2, xmm4;
 
                // end for idx := 0 to width1 div 2
            add rax, 16;
@@ -1290,14 +1211,10 @@ asm
            mulsd xmm3, xmm1;
            mulsd xmm4, xmm1;
 
-           haddpd xmm0, xmm2;
-           haddpd xmm7, xmm6;
-
+           // final add and compact result
            addsd xmm0, xmm3;
-           addsd xmm7, xmm4;
-
-           // compact result
-           movlhps xmm0, xmm7;
+           addsd xmm2, xmm4;
+           haddpd xmm0, xmm2;
 
            // store back result
            movntdq [r13], xmm0;
@@ -1335,7 +1252,7 @@ asm
        movsd xmm3, [rdi];
 
        mulsd xmm3, xmm1;
-       haddpd xmm0, xmm2;
+       haddpd xmm0, xmm0;
        addsd xmm0, xmm3;
 
        // store back result
@@ -1363,15 +1280,13 @@ asm
    mov r15, iR15;
 
    movupd xmm4, dXMM4;
-   movupd xmm6, dXMM6;
-   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}
 end;
 
 procedure ASMMatrixMultUnAlignedOddW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 
 {$IFDEF FPC}
@@ -1399,14 +1314,12 @@ asm
    mov iR15, r15;
 
    movupd dXMM4, xmm4;
-   movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
 
    // iters1 := height2 div 2;
    mov r15, height2;
    shr r15, 1;
 
-	  // iters2 := -(width1 - 1)*sizeof(double);
+   // iters2 := -(width1 - 1)*sizeof(double);
    mov r14, width1;
    dec r14;
    shl r14, 3;
@@ -1424,9 +1337,6 @@ asm
    mov r10, r9;
    add r10, r13;
 
-   xorpd xmm2, xmm2;
-   xorpd xmm6, xmm6;
-
    // for y := 0 to height1 - 1:
    mov r11, Height1;
    @@forylabel:
@@ -1441,7 +1351,7 @@ asm
 
        @@fory2label:
            xorpd xmm0, xmm0;   // dest^ := 0
-           xorpd xmm7, xmm7;   // dest + 1 := 0;
+           xorpd xmm2, xmm2;   // dest + 1 := 0;
            // for idx := 0 to width1 div 2 do
            mov rax, r14;
 
@@ -1457,7 +1367,7 @@ asm
                mulpd xmm4, xmm1;
 
                addpd xmm0, xmm3;
-               addpd xmm7, xmm4;
+               addpd xmm2, xmm4;
 
                // end for idx := 0 to width1 div 2
            add rax, 16;
@@ -1472,14 +1382,10 @@ asm
            mulsd xmm3, xmm1;
            mulsd xmm4, xmm1;
 
-           haddpd xmm0, xmm2;
-           haddpd xmm7, xmm6;
-
+           // compact and final add
            addsd xmm0, xmm3;
-           addsd xmm7, xmm4;
-
-           // compact result
-           movlhps xmm0, xmm7;
+           addsd xmm2, xmm4;
+           haddpd xmm0, xmm2;
 
            // store back result
            movupd [r13], xmm0;
@@ -1518,7 +1424,7 @@ asm
        movsd xmm3, [rdi];
 
        mulsd xmm3, xmm1;
-       haddpd xmm0, xmm2;
+       haddpd xmm0, xmm0;
        addsd xmm0, xmm3;
 
        // store back result
@@ -1546,8 +1452,6 @@ asm
    mov r15, iR15;
 
    movupd xmm4, dXMM4;
-   movupd xmm6, dXMM6;
-   movupd xmm7, dXMM7;
 {$IFDEF FPC}
 end;
 {$ENDIF}

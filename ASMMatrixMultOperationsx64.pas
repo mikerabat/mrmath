@@ -78,7 +78,7 @@ implementation
 
 {$IFDEF x64}
 procedure ASMMatrixMultAlignedEvenW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
 
 {$IFDEF FPC}
@@ -110,7 +110,6 @@ asm
     movupd dXMM4, xmm4;
     movupd dXMM5, xmm5;
     movupd dXMM6, xmm6;
-    movupd dXMM7, xmm7;
 
 
     //destOffset := destLineWidth - Width2*sizeof(double);
@@ -149,7 +148,7 @@ asm
         @@forxlabel:
 
             xorpd xmm0, xmm0;   // dest^ := 0
-            xorpd xmm7, xmm7;   // (dest + 1)^ := 0;
+            xorpd xmm2, xmm2;   // (dest + 1)^ := 0;
 
             mov rdi, r9;       // valcounter2
 
@@ -179,19 +178,15 @@ asm
                 mulpd xmm3, xmm1;
                 mulpd xmm4, xmm6;
                 addpd xmm0, xmm3;
-                addpd xmm7, xmm4;
+                addpd xmm2, xmm4;
 
                 // end for idx := 0 to width1 div 2
             //dec edx;
             add rdx, 16;
             jnz @@InnerLoop;
 
-            // final horizontal addition
-            haddpd xmm0, xmm0;
-            haddpd xmm7, xmm7;
-
-            // compact result
-            movlhps xmm0, xmm7;
+            // final horizontal addition and compact
+            haddpd xmm0, xmm2;
 
             // store back result
             movntdq [rcx], xmm0;
@@ -233,14 +228,13 @@ asm
     movupd xmm4, dXMM4;
     movupd xmm5, dXMM5;
     movupd xmm6, dXMM6;
-    movupd xmm7, dXMM7;
 end;
 {$IFDEF FPC}
 end;
 {$ENDIF}
 
 procedure ASMMatrixMultUnAlignedEvenW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
 
 {$IFDEF FPC}
@@ -272,7 +266,6 @@ asm
     movupd dXMM4, xmm4;
     movupd dXMM5, xmm5;
     movupd dXMM6, xmm6;
-    movupd dXMM7, xmm7;
     
     //destOffset := destLineWidth - Width2*sizeof(double);
     mov rbx, Width2;
@@ -310,7 +303,7 @@ asm
         @@forxlabel:
 
             xorpd xmm0, xmm0;   // dest^ := 0
-            xorpd xmm7, xmm7;   // (dest + 1)^ := 0;
+            xorpd xmm2, xmm2;   // (dest + 1)^ := 0;
 
             mov rdi, r9;       // valcounter2
 
@@ -340,19 +333,15 @@ asm
                 mulpd xmm3, xmm1;
                 mulpd xmm4, xmm6;
                 addpd xmm0, xmm3;
-                addpd xmm7, xmm4;
+                addpd xmm2, xmm4;
 
                 // end for idx := 0 to width1 div 2
             //dec edx;
             add rdx, 16;
             jnz @@InnerLoop;
 
-            // final horizontal addition
-            haddpd xmm0, xmm0;
-            haddpd xmm7, xmm7;
-
-            // compact result
-            movlhps xmm0, xmm7;
+            // final horizontal addition and compact
+            haddpd xmm0, xmm2;
 
             // store back result
             movupd [rcx], xmm0;
@@ -393,7 +382,6 @@ asm
     movupd xmm4, dXMM4;
     movupd xmm5, dXMM5;
     movupd xmm6, dXMM6;
-    movupd xmm7, dXMM7;
 end;
 {$IFDEF FPC}
 end;
@@ -401,7 +389,7 @@ end;
 
 // the width of the second matrix is uneven -> the last column of mt2 must be handled differently
 procedure ASMMatrixMultAlignedEvenW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
 
 {$IFDEF FPC}
@@ -433,7 +421,6 @@ asm
     movupd dXMM4, xmm4;
     movupd dXMM5, xmm5;
     movupd dXMM6, xmm6;
-    movupd dXMM7, xmm7;
 
     //destOffset := destLineWidth - (Width2 - 1)*sizeof(double);
     mov rbx, Width2;
@@ -472,7 +459,7 @@ asm
         @@forxlabel:
 
             xorpd xmm0, xmm0;   // dest^ := 0
-            xorpd xmm7, xmm7;   // (dest + 1)^ := 0;
+            xorpd xmm2, xmm2;   // (dest + 1)^ := 0;
 
             mov rdi, r9;       // valcounter2
 
@@ -502,19 +489,15 @@ asm
                 mulpd xmm3, xmm1;
                 mulpd xmm4, xmm6;
                 addpd xmm0, xmm3;
-                addpd xmm7, xmm4;
+                addpd xmm2, xmm4;
 
                 // end for idx := 0 to width1 div 2
             //dec edx;
             add rdx, 16;
             jnz @@InnerLoop;
 
-            // final horizontal addition
-            haddpd xmm0, xmm0;
-            haddpd xmm7, xmm7;
-
-            // compact result
-            movlhps xmm0, xmm7;
+            // final horizontal addition compact
+            haddpd xmm0, xmm2;
 
             // store back result
             movntdq [rcx], xmm0;
@@ -574,14 +557,13 @@ asm
     movupd xmm4, dXMM4;
     movupd xmm5, dXMM5;
     movupd xmm6, dXMM6;
-    movupd xmm7, dXMM7;
 end;
 {$IFDEF FPC}
 end;
 {$ENDIF}
 
 procedure ASMMatrixMultUnAlignedEvenW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
 
 {$IFDEF FPC}
@@ -613,7 +595,6 @@ asm
     movupd dXMM4, xmm4;
     movupd dXMM5, xmm5;
     movupd dXMM6, xmm6;
-    movupd dXMM7, xmm7;
 
     //destOffset := destLineWidth - (Width2 - 1)*sizeof(double);
     mov rbx, Width2;
@@ -652,7 +633,7 @@ asm
         @@forxlabel:
 
             xorpd xmm0, xmm0;   // dest^ := 0
-            xorpd xmm7, xmm7;   // (dest + 1)^ := 0;
+            xorpd xmm2, xmm2;   // (dest + 1)^ := 0;
 
             mov rdi, r9;       // valcounter2
 
@@ -682,19 +663,15 @@ asm
                 mulpd xmm3, xmm1;
                 mulpd xmm4, xmm6;
                 addpd xmm0, xmm3;
-                addpd xmm7, xmm4;
+                addpd xmm2, xmm4;
 
                 // end for idx := 0 to width1 div 2
             //dec edx;
             add rdx, 16;
             jnz @@InnerLoop;
 
-            // final horizontal addition
-            haddpd xmm0, xmm0;
-            haddpd xmm7, xmm7;
-
-            // compact result
-            movlhps xmm0, xmm7;
+            // final horizontal addition and compact
+            haddpd xmm0, xmm2;
 
             // store back result
             movupd [rcx], xmm0;
@@ -754,7 +731,6 @@ asm
     movupd xmm4, dXMM4;
     movupd xmm5, dXMM5;
     movupd xmm6, dXMM6;
-    movupd xmm7, dXMM7;
 end;
 {$IFDEF FPC}
 end;
