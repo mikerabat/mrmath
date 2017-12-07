@@ -2039,6 +2039,9 @@ begin
      if width > Height then
         raise Exception.Create('Not implemented');
 
+     if (width = 0) and (height = 0) then
+        exit;
+
      // ###########################################
      // #### Machine constants
      minmn := Min(Width, Height);
@@ -2087,9 +2090,9 @@ begin
      // #### Scale A if max element outside range [smallnum,bignum]
      absMax := abs(MatrixMax(A, width, height, LineWidthA));
 
-     isScaled := (absMax < smallNum) or (absMax > bigNum);
+     isScaled := ((absMax > 0) and (absMax < smallNum)) or (absMax > bigNum);
 
-     if absMax < smallnum
+     if (absMax > 0) and (absMax < smallnum)
      then
          MatrixScaleAndAdd(A, LineWidthA, Width, Height, 0, smallnum/absMax)
      else if absMax > bigNum
