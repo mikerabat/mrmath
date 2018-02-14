@@ -943,8 +943,8 @@ asm
    {$ENDIF}
    lea eax, tmp;
    vmovsd [eax], xmm0;
-   vbroadcastsd ymm2, [eax];
-   // vbroadcastsd ymm2, xmm0; // avx2
+   vbroadcastsd ymm2, [eax];    // vbroadcastsd ymm2, xmm0; // avx2
+
 
    lea eax, cOne;
    vbroadcastsd ymm5, [eax];
@@ -1163,8 +1163,8 @@ asm
    {$ENDIF}
    lea eax, tmp;
    vmovsd [eax], xmm0;
-   vbroadcastsd ymm2, [eax];
-   // vbroadcastsd ymm2, xmm0; // avx2
+   vbroadcastsd ymm2, [eax]; // vbroadcastsd ymm2, xmm0; // avx2
+   
 
    lea eax, cOne;
    vbroadcastsd ymm5, [eax];
@@ -1786,8 +1786,8 @@ asm
 
    lea eax, tmp;
    vmovsd [tmp], xmm0;
-   vbroadcastsd ymm2, [eax];
-   // vbroadcastsd ymm2, xmm0; // avx2
+   vbroadcastsd ymm2, [eax]; // vbroadcastsd ymm2, xmm0; // avx2
+   
 
    lea eax, cOne;
    vbroadcastsd ymm5, [eax];
@@ -2011,8 +2011,8 @@ asm
    {$ENDIF}
    lea eax, tmp;
    vmovsd [eax], xmm0;
-   vbroadcastsd ymm2, [eax];
-   // vbroadcastsd ymm2, xmm0; // avx2
+   vbroadcastsd ymm2, [eax]; // vbroadcastsd ymm2, xmm0; // avx2
+   
 
    lea eax, cOne;
    vbroadcastsd ymm5, [eax];
