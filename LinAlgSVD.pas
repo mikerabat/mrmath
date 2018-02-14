@@ -59,7 +59,7 @@ function MatrixPseudoinverse2(dest : PDouble; const LineWidthDest : TASMNativeIn
 
 implementation
 
-uses BlockSizeSetup, Classes,
+uses BlockSizeSetup, Classes, SimpleMatrixOperations,
      HouseholderReflectors, MatrixRotations, LinAlgQR,
      ThreadedMatrixOperations, MtxThreadPool;
 
@@ -1995,7 +1995,7 @@ begin
 
      mnthr := Trunc( minmn*1.6 );
 
-     Result := 16 + Max(w2*w2*sizeof(double) + w2*sizeof(double) + svdData.SVDMultSize*w2*sizeof(double),
+     Result := 32 + Max(w2*w2*sizeof(double) + w2*sizeof(double) + svdData.SVDMultSize*w2*sizeof(double),
                         sizeof(double)*(w2*w2 + 3*w2)
                         )  +
                      BlockMultMemSize( BlockMatrixCacheSize );
@@ -2004,7 +2004,7 @@ begin
      if (height >= width) and (Height <= mnthr) then
      begin
           // mem for TauP, TauQ, D, E, Bidiagonlaization multiplication memory
-          Result := 16 + sizeof(double)*(  (3 + 5)*w2 + (w2 + height)*SVDBlockSize) + BlockMultMemSize(Max(SVDBlockSize, QRMultBlockSize));
+          Result := 32 + sizeof(double)*(  (3 + 5)*w2 + (w2 + height)*SVDBlockSize) + BlockMultMemSize(Max(SVDBlockSize, QRMultBlockSize));
      end;
 end;
 
@@ -2015,7 +2015,7 @@ end;
 function InternalMatrixSVD( A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt;
                             Height : TASMNativeInt;
                             W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt;
-                            const svdData : TMtxSVDDecompData) : TSVDResult;
+                            const svdData : TMtxSVDDecompData; forceNoQRDecomp : boolean) : TSVDResult;
 var work : PDouble;
     pMem : PByte;
     eps1, smallnum , bignum : double;
@@ -2060,11 +2060,15 @@ begin
 
      mnthr := Trunc( minmn*1.6 );
 
+     // ensure that no QR decomposition is performed
+     if forceNoQRDecomp then
+        mnthr := Max(mnthr, 1 + max(width, height));
+
      // ###########################################
      // #### Allocate workspace for fast algorithm...
      if svdData.pWorkMem = nil then
      begin
-          memNeed := 16 + Max(2*w2*w2*sizeof(double) + w2,
+          memNeed := 32 + Max(2*w2*w2*sizeof(double) + w2,
                               sizeof(double)*(w2*w2 + 3*w2)
                              )  +
                      BlockMultMemSize( BlockMatrixCacheSize );
@@ -2073,7 +2077,7 @@ begin
           if (height >= width) and (Height <= mnthr) then
           begin
                // mem for TauP, TauQ, D, E, Bidiagonlaization multiplication memory
-               memNeed := 16 + sizeof(double)*(  (3 + 5)*w2 + (w2 + height)*SVDBlockSize) + BlockMultMemSize(Max(SVDBlockSize, QRMultBlockSize));
+               memNeed := 32 + sizeof(double)*(  (3 + 5)*w2 + (w2 + height)*SVDBlockSize) + BlockMultMemSize(Max(SVDBlockSize, QRMultBlockSize));
           end;
 
           pMem := MtxAlloc(memNeed);
@@ -2082,8 +2086,8 @@ begin
          pMem := svdData.pWorkMem;
 
      work := PDouble(pMem);
-     if (TASMNativeUInt(work) and $0000000F) <> 0 then
-        work := PDouble(TASMNativeUInt(work) + 16 - TASMNativeUInt(work) and $0F);
+     if (TASMNativeUInt(work) and $0000001F) <> 0 then
+        work := PDouble(TASMNativeUInt(work) + 32 - TASMNativeUInt(work) and $1F);
 
 
      // ###########################################
@@ -2121,10 +2125,12 @@ begin
                // Compute A=Q*R
                if svdData.qrDecomp(A, LineWidthA, width, height, pWorkITau, nil, QRBlockSize, svdData.QRProgress) <> qrOK then
                begin
-                    Result := srNoConvergence;
                     if svdData.pWorkMem = nil then
                        FreeMem(pMem);
-                    exit;
+
+                    // do the procedure again but now force the other path
+                    Result := InternalMatrixSVD(A, LineWidthA, width, height, W, V, LineWidthV, svdData, True);
+                    exit;                    
                end;
 
                // copy R to VT - zeroing out below it
@@ -2391,7 +2397,7 @@ begin
      // #### Allocate workspace for fast algorithm...
      svdData.pWorkMem := MtxAlloc( SVDMemSize(svdData, width, height) );
 
-     Result := InternalMatrixSVD(A, LineWidthA, width, height, W, V, LineWidthV, svdData);
+     Result := InternalMatrixSVD(A, LineWidthA, width, height, W, V, LineWidthV, svdData, False);
 
      svdData.QrProgressObj.Free;
      FreeMem(svdData.pWorkMem);
@@ -2749,7 +2755,7 @@ begin
      // #### Allocate workspace for fast algorithm...
      svdData.pWorkMem := MtxAlloc( SVDMemSizeThr(svdData, width, height) );
 
-     Result := InternalMatrixSVD(A, LineWidthA, width, height, W, V, LineWidthV, svdData);
+     Result := InternalMatrixSVD(A, LineWidthA, width, height, W, V, LineWidthV, svdData, False);
 
      svdData.QrProgressObj.Free;
      FreeMem(svdData.pWorkMem);

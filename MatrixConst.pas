@@ -31,6 +31,13 @@ type
   TLinEquProgress = procedure(Progress : Integer) of Object;
   TLinEquProgressWOObj = procedure(Progress : Integer);
 
+ type
+   TXMMArr = Array[0..1] of double;
+   PXMMArr = ^TXMMArr;
+
+   TYMMArr = Array[0..3] of double;
+   PYMMArr = ^TYMMArr;
+
 const cDefEpsilon : double = 1e-20;
       cMinusOne : double = -1;
       cOne : double = 1;
@@ -38,6 +45,7 @@ const cDefEpsilon : double = 1e-20;
       cDivBy2 : Array[0..1] of double = (0.5, 0.5);
 
       cSignBits : Array[0..1] of int64 = ($7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF);
+      cSignBits4 : Array[0..3] of int64 = ($7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF);
       cNegMaxDouble : double = -1.7e+308;
       cMaxDouble : double = 1.7e+308;
 

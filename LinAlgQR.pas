@@ -635,8 +635,8 @@ begin
      begin
           qrData.pWorkMem := MtxAlloc( QRDecompMemSize(pnlSize, width) );
           qrData.work := PDouble(qrData.pWorkMem);
-          if (NativeUInt(qrData.pWorkMem) and $0000000F) <> 0 then
-             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 16 - NativeUInt(qrData.pWorkMem) and $0F);
+          if (NativeUInt(qrData.pWorkMem) and $00000001F) <> 0 then
+             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 32 - NativeUInt(qrData.pWorkMem) and $1F);
      end;
 
      // it's assumed that the work memory block may also be used
@@ -862,8 +862,8 @@ begin
      begin
           qrData.pWorkMem := MtxAlloc( QRDecompMemSize(qrData.pnlSize, width) );
           qrData.work := PDouble(qrData.pWorkMem);
-          if (NativeUInt(qrData.pWorkMem) and $0000000F) <> 0 then
-             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 16 - NativeUInt(qrData.pWorkMem) and $0F);
+          if (NativeUInt(qrData.pWorkMem) and $0000001F) <> 0 then
+             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 32 - NativeUInt(qrData.pWorkMem) and $1F);
      end;
 
      // it's assumed that the work memory block may also be used
@@ -1228,8 +1228,8 @@ begin
      begin
           qrData.pWorkMem := MtxAlloc(qrData.pnlSize*sizeof(double)*height + 64 + BlockMultMemSize(QRMultBlockSize) );
           qrData.work := PDouble(qrData.pWorkMem);
-          if (NativeUInt(qrData.pWorkMem) and $0000000F) <> 0 then
-             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 16 - NativeUInt(qrData.pWorkMem) and $0F);
+          if (NativeUInt(qrData.pWorkMem) and $00000001F) <> 0 then
+             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 32 - NativeUInt(qrData.pWorkMem) and $1F);
      end;
 
      // it's assumed that the work memory block may also be used
@@ -1239,7 +1239,7 @@ begin
 
      InternalBlkMatrixLeftQFromQRDecomp(A, LineWidthA, width, height, tau, qrData);
      if not Assigned(work) then
-        freeMem(qrData.pWorkMem);
+        FreeMem(qrData.pWorkMem);
 end;
 
 
@@ -1268,7 +1268,7 @@ begin
           qrData.pWorkMem := MtxAlloc(pnlSize*sizeof(double)*height + 64 );
           qrData.work := PDouble(qrData.pWorkMem);
           if (NativeUInt(qrData.pWorkMem) and $0000000F) <> 0 then
-             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 16 - NativeUInt(qrData.pWorkMem) and $0F);
+             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 32 - NativeUInt(qrData.pWorkMem) and $1F);
      end;
 
      qrData.BlkMultMem := GetMemory(numCPUCores*(4 + BlockMultMemSize(QRMultBlockSize)));
@@ -1309,7 +1309,7 @@ begin
           qrData.pWorkMem := MtxAlloc(BlockSize*sizeof(double)*height + 64 );
           qrData.work := PDouble(qrData.pWorkMem);
           if (NativeUInt(qrData.pWorkMem) and $0000000F) <> 0 then
-             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 16 - NativeUInt(qrData.pWorkMem) and $0F);
+             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + $20 - NativeUInt(qrData.pWorkMem) and $1F);
      end;
 
      qrData.BlkMultMem := GetMemory(numCPUCores*(4 + BlockMultMemSize(QRMultBlockSize)));
@@ -1343,7 +1343,7 @@ begin
           qrData.pWorkMem := MtxAlloc(BlockSize*sizeof(double)*height + 64 );
           qrData.work := PDouble(qrData.pWorkMem);
           if (NativeUInt(qrData.pWorkMem) and $0000000F) <> 0 then
-             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 16 - NativeUInt(qrData.pWorkMem) and $0F);
+             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + $20 - NativeUInt(qrData.pWorkMem) and $1F);
      end;
 
      qrData.BlkMultMem := GetMemory(numCPUCores*(4 + BlockMultMemSize(QRMultBlockSize)));
@@ -1400,7 +1400,7 @@ begin
           mem := MtxAlloc( w2*height*sizeof(double) + 32 + 2*w2*sizeof(double) );
           tau := PDouble(mem);
           if TASMNativeUInt( mem ) and $F <> 0 then
-             tau := PDouble(NativeUInt(mem) + 16 - NativeUInt(mem) and $0F);
+             tau := PDouble(TASMNativeUInt(mem) + $20 - TASMNativeUInt(mem) and $1F);
           Q := tau;
           inc(Q, w2);
 

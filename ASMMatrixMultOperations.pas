@@ -1666,8 +1666,6 @@ begin
         // edx = iter
         mov edx, iter;
 
-        xorpd xmm3, xmm3;
-
         // start from bottom
         // ebx: mt2
         // inc(PByte(mt2),(height2 - 1)*LineWidth2);
@@ -1713,7 +1711,7 @@ begin
               add edi, 32;
               jl @@foridxlongloop;
 
-              haddpd xmm0, xmm3;
+              haddpd xmm0, xmm0;
 
               @@foridxloopStart:
               sub edi, 32;

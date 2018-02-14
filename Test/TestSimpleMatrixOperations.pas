@@ -117,7 +117,7 @@ implementation
 {$ENDIF}
 
 uses ASMMatrixOperations, ThreadedMatrixOperations, MtxThreadPool, mtxTimer,
-     BlockSizeSetup, math,
+     BlockSizeSetup, math, BlockedMult,
      {$IFDEF x64}
      ASMMatrixMultOperationsx64, ASMMatrixVectorMultOperationsx64, ASMMatrixMultTransposedOperationsx64,
      ASMMatrixTransposeOperationsx64, ASMMatrixNormOperationsx64, ASMMatrixCumSumDiffOperationsx64,
@@ -163,6 +163,7 @@ end;
 
 procedure TASMMatrixOperations.SetUp;
 begin
+     InitSSEOptFunctions(itSSE);
      MtxThreadPool.InitMtxThreadPool;
 end;
 
@@ -567,7 +568,7 @@ begin
      dest3a := AllocMem(cMtxHeight*cMtxHeight*sizeof(double));
 
      startTime5 := MtxGetTime;
-     BlockedMatrixMultiplication(@dest2[0], cMtxLineWidth2, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, 352);
+     BlockMatrixMultiplication(@dest2[0], cMtxLineWidth2, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, 352);
      endTime5 := MtxGetTime;
 
      startTime1 := MtxGetTime;
@@ -575,7 +576,7 @@ begin
      endTime1 := MtxGetTime;
 
      startTime2 := MtxGetTime;
-     GenericBlockedMatrixMultiplication(@dest2[0], cMtxLineWidth2, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, 352);
+     GenericBlockMatrixMultiplication(@dest2[0], cMtxLineWidth2, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, 352);
      endTime2 := MtxGetTime;
 
      res := CheckMtxIdx(dest1, dest2, idx);
@@ -589,11 +590,11 @@ begin
      check(res);
 
      startTime3 := MtxGetTime;
-     BlockedMatrixMultiplicationDirect(dest2a, cMtxLineWidth2, xa, ya, cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, 352);
+     BlockMatrixMultiplicationDirect(dest2a, cMtxLineWidth2, xa, ya, cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, 352);
      endTime3 := MtxGetTime;
      
      startTime4 := MtxGetTime;
-     BlockedMatrixMultiplication(dest3a, cMtxLineWidth2, xa, ya, cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, 352);
+     BlockMatrixMultiplication(dest3a, cMtxLineWidth2, xa, ya, cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, 352);
      endTime4 := MtxGetTime;
 
      Status(Format('%.2f, %.2f, %.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
@@ -620,7 +621,7 @@ begin
      vecendTime1 := MtxGetTime;
 
      vecstartTime2 := MtxGetTime;
-     BlockedMatrixVectorMultiplication(@dest2[0], sizeof(double), @x[0], @y[0], cMtxWidth, cMtxheight, cMtxWidth, cMtxLinewidth);
+     BlockMatrixVectorMultiplication(@dest2[0], sizeof(double), @x[0], @y[0], cMtxWidth, cMtxheight, cMtxWidth, cMtxLinewidth);
      vecendTime2 := MtxGetTime;
 
      startTime2 := MtxGetTime;
@@ -632,7 +633,7 @@ begin
      endTime3 := MtxGetTime;
 
      vecstartTime3 := MtxGetTime;
-     BlockedMatrixVectorMultiplication(dest2a, sizeof(double), xa, ya, cMtxWidth, cMtxheight, cMtxWidth, cMtxLinewidth);
+     BlockMatrixVectorMultiplication(dest2a, sizeof(double), xa, ya, cMtxWidth, cMtxheight, cMtxWidth, cMtxLinewidth);
      vecendTime3 := MtxGetTime;
 
      Status(Format('%.2f, %.2f, %.2f, %.2f, %.2f',
@@ -691,7 +692,7 @@ begin
      endTime1 := MtxGetTime;
 
      startTime2 := MtxGetTime;
-     BlockedMatrixMultiplicationDirect(@dest2[0], cMtxLineWidth2, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2);
+     BlockMatrixMultiplicationDirect(@dest2[0], cMtxLineWidth2, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2);
      endTime2 := MtxGetTime;
 
      res := CheckMtxIdx(dest1, dest2, idx);
@@ -700,11 +701,11 @@ begin
      check(res);
 
      startTime3 := MtxGetTime;
-     BlockedMatrixMultiplicationDirect(dest2a, cMtxLineWidth2, xa, ya, cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, 256);
+     BlockMatrixMultiplicationDirect(dest2a, cMtxLineWidth2, xa, ya, cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, 256);
      endTime3 := MtxGetTime;
 
      startTime4 := MtxGetTime; 
-     BlockedMatrixMultiplication(dest3a, cMtxLineWidth2, xa, ya, cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, 256);
+     BlockMatrixMultiplication(dest3a, cMtxLineWidth2, xa, ya, cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, 256);
      endTime4 := MtxGetTime;
 
      Status(Format('%.2f, %.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000,
@@ -735,7 +736,7 @@ begin
      vecendTime1 := MtxGetTime;
 
      vecstartTime2 := MtxGetTime;
-     BlockedMatrixVectorMultiplication(@dest2[0], sizeof(double), @x[0], @y[0], cMtxWidth, cMtxheight, cMtxWidth, cMtxLinewidth);
+     BlockMatrixVectorMultiplication(@dest2[0], sizeof(double), @x[0], @y[0], cMtxWidth, cMtxheight, cMtxWidth, cMtxLinewidth);
      vecendTime2 := MtxGetTime;
 
      startTime2 := MtxGetTime;
@@ -747,7 +748,7 @@ begin
      endTime3 := MtxGetTime;
 
      vecstartTime3 := MtxGetTime;;
-     BlockedMatrixVectorMultiplication(dest2a, sizeof(double), xa, ya, cMtxWidth, cMtxheight, cMtxWidth, cMtxLinewidth);
+     BlockMatrixVectorMultiplication(dest2a, sizeof(double), xa, ya, cMtxWidth, cMtxheight, cMtxWidth, cMtxLinewidth);
      vecendTime3 := MtxGetTime;
 
      Status(Format('%.2f, %.2f, %.2f, %.2f, %.2f',
@@ -804,7 +805,7 @@ begin
      endTime2 := MtxGetTime;
 
      startTime1 := MtxGetTime;
-     BlockedMatrixMultiplicationT1(@dest2[0], cMtxLineWidth2, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxWidth, cMtxHeight, cMtxLinewidth, cMtxLinewidth2, 4, doNone, nil);
+     BlockMatrixMultiplicationT1(@dest2[0], cMtxLineWidth2, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxWidth, cMtxHeight, cMtxLinewidth, cMtxLinewidth2, 4, doNone, nil);
      endTime1 := MtxGetTime;
 
      res := CheckMtxIdx(dest1, dest2, idx);
@@ -847,7 +848,7 @@ begin
      endTime2 := MtxGetTime;
 
      startTime1 := MtxGetTime;
-     BlockedMatrixMultiplicationT2(@dest2[0], cMtxHeight*sizeof(double), @x[0], @y[0], cMtxWidth, cMtxheight, cMtxWidth, cMtxHeight, cMtxLinewidth, cMtxLinewidth2, 4, doNone, nil);
+     BlockMatrixMultiplicationT2(@dest2[0], cMtxHeight*sizeof(double), @x[0], @y[0], cMtxWidth, cMtxheight, cMtxWidth, cMtxHeight, cMtxLinewidth, cMtxLinewidth2, 4, doNone, nil);
      endTime1 := MtxGetTime;
 
      res := CheckMtxIdx(dest1, dest2, idx);
@@ -1226,6 +1227,8 @@ begin
      FreeMem(xa);
      FreeMem(ya);
 
+     x := nil;
+     y := nil;
      FillMatrix((cmtxWidth + 1)*cMtxHeight, x, y, xa, ya);
 
      startTime1 := MtxGetTime;
@@ -1434,7 +1437,7 @@ begin
          b[counter] := counter;
 
      GenericTranspMtxMult(@c3[0], cMtxWidth2*sizeof(double), @a[0], @b[0], cMtxWidth, cMtxWidth, cMtxWidth2, cMtxWidth, cMtxWidth*sizeof(double), cMtxWidth2*sizeof(double));
-     GenericBlockedMatrixMultiplicationT1(@c1[0], cMtxWidth2*sizeof(double), @a[0], @b[0], cMtxWidth, cMtxWidth, cMtxWidth2, cMtxWidth, cMtxWidth*sizeof(double), cMtxWidth2*sizeof(double), 4, doNone, nil);
+     GenericBlockMatrixMultiplicationT1(@c1[0], cMtxWidth2*sizeof(double), @a[0], @b[0], cMtxWidth, cMtxWidth, cMtxWidth2, cMtxWidth, cMtxWidth*sizeof(double), cMtxWidth2*sizeof(double), 4, doNone, nil);
      ThrMatrixMultT1Ex(@c2[0], cMtxWidth2*sizeof(double), @a[0], @b[0], cMtxWidth, cMtxWidth, cMtxWidth2, cMtxWidth, cMtxWidth*sizeof(double), cMtxWidth2*sizeof(double), 4, doNone, nil);
 
      Check(CheckMtx(c3, c1), 'GenericBlockedMatrixMultiplicationT1 failed');
@@ -1455,7 +1458,7 @@ begin
          b[counter] := counter;
 
      GenericMtxMultTransp(@c3[0], cMtxWidth2*sizeof(double), @a[0], @b[0], cMtxWidth, cMtxWidth, cMtxWidth, cMtxWidth2, cMtxWidth*sizeof(double), cMtxWidth*sizeof(double));
-     GenericBlockedMatrixMultiplicationT2(@c1[0], cMtxWidth2*sizeof(double), @a[0], @b[0], cMtxWidth, cMtxWidth, cMtxWidth, cMtxWidth2, cMtxWidth*sizeof(double), cMtxWidth*sizeof(double), 4, doNone, nil);
+     GenericBlockMatrixMultiplicationT2(@c1[0], cMtxWidth2*sizeof(double), @a[0], @b[0], cMtxWidth, cMtxWidth, cMtxWidth, cMtxWidth2, cMtxWidth*sizeof(double), cMtxWidth*sizeof(double), 4, doNone, nil);
      ThrMatrixMultT2Ex(@c2[0], cMtxWidth2*sizeof(double), @a[0], @b[0], cMtxWidth, cMtxWidth, cMtxWidth, cMtxWidth2, cMtxWidth*sizeof(double), cMtxWidth*sizeof(double), 4, doNone, nil);
 
      Check(CheckMtx(c3, c1), 'GenericBlockedMatrixMultiplicationT1 failed');
@@ -1477,7 +1480,6 @@ const cMtxWidth = 5010;
       cMtxSize = (cMtxWidth)*cMtxHeight;
       cMtxLinewidth = (cMtxWidth)*sizeof(double);
 begin
-
      randomize;
      FillMatrix(cMtxSize, x, y, xa, ya);
      dest1 := Copy(x, 0, Length(x));
@@ -1598,7 +1600,7 @@ begin
      dest1a := AllocMem(cMtxHeight*cMtxHeight*sizeof(double));
 
      startTime1 := MtxGetTime;
-     BlockedMatrixMultiplication(@dest1[0], cMtxLineWidth2, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2);
+     BlockMatrixMultiplication(@dest1[0], cMtxLineWidth2, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2);
      endTime1 := MtxGetTime;
 
      startTime2 := MtxGetTime;
@@ -1625,6 +1627,8 @@ begin
 
      FreeMem(xa);
      FreeMem(ya);
+     x := nil;
+     y := nil;
 
      FillMatrix(1024*1024*20, x, y, xa, ya);
 
@@ -2148,9 +2152,9 @@ var startTime1: Int64;
 
     xa, ya : PDouble;
 begin
-     InitMathFunctions(False, False);
+     InitMathFunctions(itFPU, False);
      xa := MtxAlloc(48);
-     InitMathFunctions(True, False);
+     InitMathFunctions(itSSE, False);
      ya := MtxAlloc(48);
 
      Check(CompareMem(xa, ya, 48));
@@ -2158,9 +2162,9 @@ begin
      FreeMem(xa);
      FreeMem(ya);
 
-     InitMathFunctions(False, False);
+     InitMathFunctions(itFPU, False);
      xa := MtxAlloc(256);
-     InitMathFunctions(True, False);
+     InitMathFunctions(itSSE, False);
      ya := MtxAlloc(256);
 
      Check(CompareMem(xa, ya, 256));
@@ -2168,12 +2172,12 @@ begin
      FreeMem(xa);
      FreeMem(ya);
 
-     InitMathFunctions(False, False);
+     InitMathFunctions(itFPU, False);
      startTime1 := MtxGetTime;
      xa := MtxAlloc(1000*1001*sizeof(double) + sizeof(double));
      endTime1 := MtxGetTime;
 
-     InitMathFunctions(True, False);
+     InitMathFunctions(itSSE, False);
      startTime2 := MtxGetTime;
      ya := MtxAlloc(1000*1000*sizeof(double) + sizeof(double));
      endTime2 := MtxGetTime;
@@ -3306,7 +3310,7 @@ begin
 
      TryClearCache;
      startTime1 := MtxGetTime;
-     BlockedMatrixMultiplication(@dest1[0], cStrassenHeight*sizeof(double), @x[0], @y[0], cStrassenWidth, cStrassenHeight, cStrassenHeight, cStrassenWidth, cStrassenWidth*sizeof(double), cStrassenHeight*sizeof(double), 256);
+     BlockMatrixMultiplication(@dest1[0], cStrassenHeight*sizeof(double), @x[0], @y[0], cStrassenWidth, cStrassenHeight, cStrassenHeight, cStrassenWidth, cStrassenWidth*sizeof(double), cStrassenHeight*sizeof(double), 256);
      endTime1 := MtxGetTime;
 
      TryClearCache;
@@ -3746,7 +3750,7 @@ begin
           inc(pM);
      end;
 
-					startTime1 := MtxGetTime;
+     startTime1 := MtxGetTime;
      GenericMtxCumulativeSum(@destGen[0], cMtxWidth*sizeof(double), m, cMtxLineWidth, cMtxWidth, cMtxheight, False);
      endTime1 := MtxGetTime;
 

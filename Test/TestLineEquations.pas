@@ -23,6 +23,8 @@ uses
 
 type
  TTestLinearEquations = class(TBaseMatrixTestCase)
+ protected
+   procedure SetUp; override;
  published
   procedure TestMatrixRot;
   procedure TestApplyPlaneRot;
@@ -66,6 +68,12 @@ type
   procedure TestMatrixSolve;
  end;
 
+type
+   TAVXTestLinearEquations = class(TTestLinearEquations)
+   protected
+     procedure Setup; override;
+   end;
+
 implementation
 
 {$IFDEF CPUX64}
@@ -77,13 +85,14 @@ implementation
 
 uses LinearAlgebraicEquations, MtxThreadPool, math, MtxTimer, 
      BlockSizeSetup, LinAlgSVD, LinAlgQR, LinAlgCholesky, LinAlgLU,
-     MatrixRotations,
-     {$IFNDEF x64}
-      ASMMatrixRotations
-     {$ELSE}
-     ASMMatrixRotationsx64
-     {$ENDIF}
-     ;
+     MatrixRotations;
+
+{ TAVXTestLinearEquations }
+
+procedure TAVXTestLinearEquations.Setup;
+begin
+     InitMathFunctions( itAVX, False );
+end;
 
 { TestTDoubleMatrix }
 
@@ -170,7 +179,7 @@ begin
      Result := CheckMtx(X, A3);
 end;
 begin
-     InitMathFunctions(True, False);
+     InitMathFunctions(itSSE, False);
      SetLength(A, cBlkSize);
      SetLength(V, cBlkSize);
      SetLength(W, cBlkWidth);
@@ -234,6 +243,7 @@ var A, A2, A3, W, W2, W3, V, V2, V3 : TDoubleDynArray;
     start3, stop3 : Int64;
     j : Integer;
     iter : integer;
+    origInstrSet : TCPUInstrType;
 function SVDMult(A, W, V : TDoubleDynArray) : boolean;
 var i, j : integer;
     x : TDoubleDynArray;
@@ -249,15 +259,16 @@ begin
      Result := CheckMtx(X, ARef);
 end;
 begin
+     origInstrSet := GetCurCPUInstrType;
      InitMtxThreadPool;
 
      for iter := 0 to 2*Length(cBlkWidths) - 1 do
      begin
           if iter mod 2 = 0
           then
-              InitMathFunctions(False, False)
+              InitMathFunctions(itFPU, False)
           else
-              InitMathFunctions(True, True);
+              InitMathFunctions(origInstrSet, True);
 
           blkWidth := cBlkWidths[iter div 2];
           blkHeight := cBlkHeights[iter div 2];
@@ -345,6 +356,7 @@ var A, A2, A3, W, W2, W3, V, V2, V3 : TDoubleDynArray;
     start3, stop3 : Int64;
     j : Integer;
     iter : integer;
+    origInstrSet : TCPUInstrType;
 function SVDMult(A, W, V : TDoubleDynArray) : boolean;
 var i, j : integer;
     x : TDoubleDynArray;
@@ -362,15 +374,16 @@ begin
      Result := CheckMtx(X, ARef);
 end;
 begin
+     origInstrSet := GetCurCPUInstrType;
      InitMtxThreadPool;
 
      for iter := 0 to 2*Length(cBlkWidths) - 1 do
      begin
           if iter mod 2 = 0
           then
-              InitMathFunctions(False, False)
+              InitMathFunctions(itFPU, False)
           else
-              InitMathFunctions(True, False);
+              InitMathFunctions(origInstrSet, False);
 
           blkWidth := cBlkWidths[iter div 2];
           blkHeight := cBlkHeights[iter div 2];
@@ -770,7 +783,6 @@ var LUDecomp : Array[0..3] of double;
     C : TDoubleDynArray;
 begin
      Move(A, LUDecomp, sizeof(A));
-
 
      res := MatrixLUDecompInPlace(@LUDecomp[0], 2*sizeof(double), 2, @idx[0]);
 
@@ -1507,6 +1519,11 @@ begin
 
 end;
 
+procedure TTestLinearEquations.SetUp;
+begin
+     InitMathFunctions( itSSE, False );
+end;
+
 procedure TTestLinearEquations.TestMatrixRot;
 const cArrSize = 3877;
 var x, y, x1, y1 : Array[0..4] of double;
@@ -1525,13 +1542,13 @@ begin
      Move(y, y1, sizeof(y));
 
      GenericMatrixRotate( Length(x), @x[0], sizeof(Double), @y[0], sizeof(double), 1.2, 0.9);
-     ASMMatrixRotate( Length(x), @x1[0], sizeof(double), @y1[0], sizeof(double), 1.2, 0.9);
+     MatrixRotate( Length(x), @x1[0], sizeof(double), @y1[0], sizeof(double), 1.2, 0.9);
 
      Check( CheckMtx( x, x1 ), 'error asm rotation');
      Check( CheckMtx( y, y1 ), 'error asm rotation');
 
      GenericMatrixRotate( Length(x) - 1, @x[0], sizeof(Double), @y[0], sizeof(double), 1.2, 0.9);
-     ASMMatrixRotate( Length(x)- 1, @x1[0], sizeof(double), @y1[0], sizeof(double), 1.2, 0.9);
+     MatrixRotate( Length(x)- 1, @x1[0], sizeof(double), @y1[0], sizeof(double), 1.2, 0.9);
 
      Check( CheckMtx( x, x1 ), 'error asm rotation');
      Check( CheckMtx( y, y1 ), 'error asm rotation');
@@ -1554,7 +1571,7 @@ begin
      stop1 := MtxGetTime;
 
      start2 := MtxGetTime;
-     ASMMatrixRotate( Length(lx1), @lx1[0], sizeof(double), @ly1[0], sizeof(double), 1.2, 0.9);
+     MatrixRotate( Length(lx1), @lx1[0], sizeof(double), @ly1[0], sizeof(double), 1.2, 0.9);
      stop2 := MtxGetTime;
 
      Status(Format('Matrix Rot took: %.3fms, %.3fms', [ (stop1 - start1)/mtxfreq*1000, (stop2 - start2)/mtxfreq*1000]));
@@ -1576,7 +1593,7 @@ begin
      stop1 := MtxGetTime;
 
      start2 := MtxGetTime;
-     ASMMatrixRotate( Length(lx1) div 2, @lx1[0], 2*sizeof(double), @ly1[0], 2*sizeof(double), 1.2, 0.9);
+     MatrixRotate( Length(lx1) div 2, @lx1[0], 2*sizeof(double), @ly1[0], 2*sizeof(double), 1.2, 0.9);
      stop2 := MtxGetTime;
 
      Status(Format('Matrix Rot took: %.3fms, %.3fms', [ (stop1 - start1)/mtxfreq*1000, (stop2 - start2)/mtxfreq*1000]));
@@ -1639,13 +1656,13 @@ begin
      // #### RVB
      InitArrs(x, x1, s, c);
      GenericApplyPlaneRotSeqRVB(5, 3, @x[0], 5*sizeof(double), @c[0], @s[0]);
-     ASMApplyPlaneRotSeqRVB(5, 3, @x1[0], 5*sizeof(double), @c[0], @s[0]);
+     ApplyPlaneRotSeqRVB(5, 3, @x1[0], 5*sizeof(double), @c[0], @s[0]);
 
      Check( CheckMtx(x, x1), 'Error ASM Plane rotate RVB odd width');
 
      InitArrs(x, x1, s, c);
      GenericApplyPlaneRotSeqRVB(4, 3, @x[0], 5*sizeof(double), @c[0], @s[0]);
-     ASMApplyPlaneRotSeqRVB(4, 3, @x1[0], 5*sizeof(double), @c[0], @s[0]);
+     ApplyPlaneRotSeqRVB(4, 3, @x1[0], 5*sizeof(double), @c[0], @s[0]);
 
      Check( CheckMtx(x, x1), 'Error ASM Plane rotate RVB even width');
 
@@ -1657,7 +1674,7 @@ begin
      stop1 := MtxGetTime;
 
      start2 := MtxGetTime;
-     ASMApplyPlaneRotSeqRVB(cVecSize, cHeight, @lx1[0], cVecSize*sizeof(double), @lc[0], @ls[0]);
+     ApplyPlaneRotSeqRVB(cVecSize, cHeight, @lx1[0], cVecSize*sizeof(double), @lc[0], @ls[0]);
      stop2 := MtxGetTime;
 
      Status(Format('Matrix seq plane rot RVB took: %.3fms, %.3fms', [ (stop1 - start1)/mtxfreq*1000, (stop2 - start2)/mtxfreq*1000]));
@@ -1667,7 +1684,7 @@ begin
      InitArrs2(lx, lx1, ls, lc);
 
      GenericApplyPlaneRotSeqRVB(cVecSize - 1, cHeight, @lx[0], cVecSize*sizeof(double), @lc[0], @ls[0]);
-     ASMApplyPlaneRotSeqRVB(cVecSize - 1, cHeight, @lx1[0], cVecSize*sizeof(double), @lc[0], @ls[0]);
+     ApplyPlaneRotSeqRVB(cVecSize - 1, cHeight, @lx1[0], cVecSize*sizeof(double), @lc[0], @ls[0]);
 
      Check( CheckMtx(lx, lx1), 'Error ASM Plane rotate RVB odd width');
 
@@ -1675,13 +1692,13 @@ begin
      // ### RVF
      InitArrs(x, x1, s, c);
      GenericApplyPlaneRotSeqRVF(5, 3, @x[0], 5*sizeof(double), @c[0], @s[0]);
-     ASMApplyPlaneRotSeqRVF(5, 3, @x1[0], 5*sizeof(double), @c[0], @s[0]);
+     ApplyPlaneRotSeqRVF(5, 3, @x1[0], 5*sizeof(double), @c[0], @s[0]);
 
      Check( CheckMtx(x, x1), 'Error ASM Plane rotate RVF odd width');
 
      InitArrs(x, x1, s, c);
      GenericApplyPlaneRotSeqRVF(4, 3, @x[0], 5*sizeof(double), @c[0], @s[0]);
-     ASMApplyPlaneRotSeqRVF(4, 3, @x1[0], 5*sizeof(double), @c[0], @s[0]);
+     ApplyPlaneRotSeqRVF(4, 3, @x1[0], 5*sizeof(double), @c[0], @s[0]);
 
      Check( CheckMtx(x, x1), 'Error ASM Plane rotate RVF even width');
 
@@ -1693,7 +1710,7 @@ begin
      stop1 := MtxGetTime;
 
      start2 := MtxGetTime;
-     ASMApplyPlaneRotSeqRVF(cVecSize, cHeight, @lx1[0], cVecSize*sizeof(double), @lc[0], @ls[0]);
+     ApplyPlaneRotSeqRVF(cVecSize, cHeight, @lx1[0], cVecSize*sizeof(double), @lc[0], @ls[0]);
      stop2 := MtxGetTime;
 
      Status(Format('Matrix seq plane rot RVF took: %.3fms, %.3fms', [ (stop1 - start1)/mtxfreq*1000, (stop2 - start2)/mtxfreq*1000]));
@@ -1703,7 +1720,7 @@ begin
      InitArrs2(lx, lx1, ls, lc);
 
      GenericApplyPlaneRotSeqRVF(cVecSize - 1, cHeight, @lx[0], cVecSize*sizeof(double), @lc[0], @ls[0]);
-     ASMApplyPlaneRotSeqRVF(cVecSize - 1, cHeight, @lx1[0], cVecSize*sizeof(double), @lc[0], @ls[0]);
+     ApplyPlaneRotSeqRVF(cVecSize - 1, cHeight, @lx1[0], cVecSize*sizeof(double), @lc[0], @ls[0]);
 
      Check( CheckMtx(lx, lx1), 'Error ASM Plane rotate RVF odd width');
 
@@ -1711,13 +1728,13 @@ begin
      // ### LVF
      InitArrs(x, x1, s, c);
      GenericApplyPlaneRotSeqLVF(5, 3, @x[0], 5*sizeof(double), @c[0], @s[0]);
-     ASMApplyPlaneRotSeqLVF(5, 3, @x1[0], 5*sizeof(double), @c[0], @s[0]);
+     ApplyPlaneRotSeqLVF(5, 3, @x1[0], 5*sizeof(double), @c[0], @s[0]);
 
      Check( CheckMtx(x, x1), 'Error ASM Plane rotate LVF odd width');
 
      InitArrs(x, x1, s, c);
      GenericApplyPlaneRotSeqLVF(4, 3, @x[0], 5*sizeof(double), @c[0], @s[0]);
-     ASMApplyPlaneRotSeqLVF(4, 3, @x1[0], 5*sizeof(double), @c[0], @s[0]);
+     ApplyPlaneRotSeqLVF(4, 3, @x1[0], 5*sizeof(double), @c[0], @s[0]);
 
      Check( CheckMtx(x, x1), 'Error ASM Plane rotate LVF even width');
 
@@ -1729,7 +1746,7 @@ begin
      stop1 := MtxGetTime;
 
      start2 := MtxGetTime;
-     ASMApplyPlaneRotSeqLVF(cVecSize, cHeight, @lx1[0], cVecSize*sizeof(double), @lc[0], @ls[0]);
+     ApplyPlaneRotSeqLVF(cVecSize, cHeight, @lx1[0], cVecSize*sizeof(double), @lc[0], @ls[0]);
      stop2 := MtxGetTime;
 
      Status(Format('Matrix seq plane rot LVF took: %.3fms, %.3fms', [ (stop1 - start1)/mtxfreq*1000, (stop2 - start2)/mtxfreq*1000]));
@@ -1739,7 +1756,7 @@ begin
      InitArrs2(lx, lx1, ls, lc);
 
      GenericApplyPlaneRotSeqLVF(cVecSize - 1, cHeight, @lx[0], cVecSize*sizeof(double), @lc[0], @ls[0]);
-     ASMApplyPlaneRotSeqLVF(cVecSize - 1, cHeight, @lx1[0], cVecSize*sizeof(double), @lc[0], @ls[0]);
+     ApplyPlaneRotSeqLVF(cVecSize - 1, cHeight, @lx1[0], cVecSize*sizeof(double), @lc[0], @ls[0]);
 
      Check( CheckMtx(lx, lx1), 'Error ASM Plane rotate LVF odd width');
 
@@ -1747,13 +1764,13 @@ begin
      // ### LVB
      InitArrs(x, x1, s, c);
      GenericApplyPlaneRotSeqLVB(5, 3, @x[0], 5*sizeof(double), @c[0], @s[0]);
-     ASMApplyPlaneRotSeqLVB(5, 3, @x1[0], 5*sizeof(double), @c[0], @s[0]);
+     ApplyPlaneRotSeqLVB(5, 3, @x1[0], 5*sizeof(double), @c[0], @s[0]);
 
      Check( CheckMtx(x, x1), 'Error ASM Plane rotate LVB odd width');
 
      InitArrs(x, x1, s, c);
      GenericApplyPlaneRotSeqLVB(4, 3, @x[0], 5*sizeof(double), @c[0], @s[0]);
-     ASMApplyPlaneRotSeqLVB(4, 3, @x1[0], 5*sizeof(double), @c[0], @s[0]);
+     ApplyPlaneRotSeqLVB(4, 3, @x1[0], 5*sizeof(double), @c[0], @s[0]);
 
      Check( CheckMtx(x, x1), 'Error ASM Plane rotate LVB even width');
 
@@ -1765,7 +1782,7 @@ begin
      stop1 := MtxGetTime;
 
      start2 := MtxGetTime;
-     ASMApplyPlaneRotSeqLVB(cVecSize, cHeight, @lx1[0], cVecSize*sizeof(double), @lc[0], @ls[0]);
+     ApplyPlaneRotSeqLVB(cVecSize, cHeight, @lx1[0], cVecSize*sizeof(double), @lc[0], @ls[0]);
      stop2 := MtxGetTime;
 
      Status(Format('Matrix seq plane rot LVB took: %.3fms, %.3fms', [ (stop1 - start1)/mtxfreq*1000, (stop2 - start2)/mtxfreq*1000]));
@@ -1775,12 +1792,13 @@ begin
      InitArrs2(lx, lx1, ls, lc);
 
      GenericApplyPlaneRotSeqLVB(cVecSize - 1, cHeight, @lx[0], cVecSize*sizeof(double), @lc[0], @ls[0]);
-     ASMApplyPlaneRotSeqLVB(cVecSize - 1, cHeight, @lx1[0], cVecSize*sizeof(double), @lc[0], @ls[0]);
+     ApplyPlaneRotSeqLVB(cVecSize - 1, cHeight, @lx1[0], cVecSize*sizeof(double), @lc[0], @ls[0]);
 
      Check( CheckMtx(lx, lx1), 'Error ASM Plane rotate LVB odd width');
 end;
 
 initialization
   RegisterTest(TTestLinearEquations{$IFNDEF FPC}.Suite{$ENDIF});
+  RegisterTest(TAVXTestLinearEquations{$IFNDEF FPC}.Suite{$ENDIF});
 
 end.

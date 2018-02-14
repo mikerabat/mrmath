@@ -56,7 +56,7 @@ procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; wid
 
 implementation
 
-uses  MtxThreadPool, ASMMatrixOperations, OptimizedFuncs, BlockSizeSetup, Math;
+uses  MtxThreadPool, ASMMatrixOperations, OptimizedFuncs, BlockSizeSetup, Math, BlockedMult;
 
 type
   TMatrixAddSubFunc = procedure(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
@@ -232,7 +232,7 @@ begin
                     TAsyncMultObj(obj).height2, TAsyncMultObj(obj).LineWidth1,
                     TAsyncMultObj(obj).LineWidth2)
      else
-         BlockedMatrixMultiplication(TAsyncMultObj(obj).dest,
+         BlockMatrixMultiplication(TAsyncMultObj(obj).dest,
                     TAsyncMultObj(obj).destLineWidth, TAsyncMultObj(obj).mt1,
                     TAsyncMultObj(obj).mt2, TAsyncMultObj(obj).width1,
                     TAsyncMultObj(obj).height1, TAsyncMultObj(obj).width2,
@@ -254,7 +254,7 @@ begin
                     TAsyncMultObj(obj).height2, TAsyncMultObj(obj).LineWidth1,
                     TAsyncMultObj(obj).LineWidth2)
      else
-         BlockedMatrixMultiplicationT1(TAsyncMultObj(obj).dest,
+         BlockMatrixMultiplicationT1(TAsyncMultObj(obj).dest,
                     TAsyncMultObj(obj).destLineWidth, TAsyncMultObj(obj).mt1,
                     TAsyncMultObj(obj).mt2, TAsyncMultObj(obj).width1,
                     TAsyncMultObj(obj).height1, TAsyncMultObj(obj).width2,
@@ -276,7 +276,7 @@ begin
                     TAsyncMultObj(obj).height2, TAsyncMultObj(obj).LineWidth1,
                     TAsyncMultObj(obj).LineWidth2)
      else
-         BlockedMatrixMultiplicationT2(TAsyncMultObj(obj).dest,
+         BlockMatrixMultiplicationT2(TAsyncMultObj(obj).dest,
                     TAsyncMultObj(obj).destLineWidth, TAsyncMultObj(obj).mt1,
                     TAsyncMultObj(obj).mt2, TAsyncMultObj(obj).width1,
                     TAsyncMultObj(obj).height1, TAsyncMultObj(obj).width2,
@@ -289,7 +289,7 @@ end;
 
 function MatrixMultDirectFunc(obj : TObject) : integer;
 begin
-     BlockedMatrixMultiplicationDirect(TAsyncMultObj(obj).dest,
+     BlockMatrixMultiplicationDirect(TAsyncMultObj(obj).dest,
                                  TAsyncMultObj(obj).destLineWidth, TAsyncMultObj(obj).mt1,
                                  TAsyncMultObj(obj).mt2, TAsyncMultObj(obj).width1,
                                  TAsyncMultObj(obj).height1, TAsyncMultObj(obj).width2,
@@ -420,7 +420,7 @@ begin
 
      if numUsedCores = 1 then
      begin
-          BlockedMatrixMultiplicationDirect(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2);
+          BlockMatrixMultiplicationDirect(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2);
           exit;
      end;
      cpud2 := numUsedCores div 2;

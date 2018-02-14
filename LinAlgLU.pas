@@ -66,9 +66,8 @@ function ThrMatrixLinEQSolve(A : PDouble; const LineWidthA : integer; width : in
    
 implementation
 
-uses
-  OptimizedFuncs, Math, ASMMatrixOperations, SysUtils, Types, MtxThreadPool, 
-  ThreadedMatrixOperations;
+uses OptimizedFuncs, Math, ASMMatrixOperations, SysUtils, Types, MtxThreadPool,
+     ThreadedMatrixOperations, BlockedMult;
 
 // ######################################################
 // #### internaly used objects and definitions
@@ -214,7 +213,8 @@ begin
           // in this case it's faster to have a small block size!
           if (nright > cBlkMultSize) or (height - nleft > cBlkMultSize)
           then
-              BlockedMatrixMultiplication(pB, data.LineWidth, a21, a12, nleft, height - nleft, nright, nleft, data.LineWidth, data.LineWidth, cBlkMultSize, doSub, data.blkMultMem)
+              //BlockMatrixMultiplication(pB, data.LineWidth, a21, a12, nleft, height - nleft, nright, nleft, data.LineWidth, data.LineWidth, cBlkMultSize, doSub, data.blkMultMem)
+              MatrixMultEx(pB, data.LineWidth, a21, a12, nleft, height - nleft, nright, nleft, data.LineWidth, data.LineWidth, cBlkMultSize, doSub, data.blkMultMem)
           else
           begin
                MatrixMult(data.blkMultMem, (nright + nright and $01)*sizeof(double), a21, a12, nleft, height - nleft, nright, nleft, data.LineWidth, data.LineWidth);
@@ -792,14 +792,14 @@ var parity : integer;
     rc : TRecMtxLUDecompData;
     mem : Pointer;
 begin
-     mem := MtxAlloc(4*numCPUCores*(cBlkMultSize + numCPUCores + 2)*cBlkMultSize*sizeof(double) + 32);
+     mem := MtxAlloc(4*numCPUCores*(cBlkMultSize + numCPUCores + 2)*cBlkMultSize*sizeof(double) + $20);
      FillChar(indx^, width*sizeof(integer), 0);
 
      rc.progress := progress;
      rc.numCols := width;
      rc.numCalc := 0;
      rc.LineWidth := LineWidthA;
-     rc.blkMultMem := PDouble(TASMNativeUInt(mem) + 16 - TASMNativeUInt(mem) and $0F);
+     rc.blkMultMem := PDouble(TASMNativeUInt(mem) + $20 - TASMNativeUInt(mem) and $1F);
      parity := 1;
      Result := InternalThrMatrixLUDecomp(A, width, width, indx, parity, rc);
 
@@ -948,14 +948,14 @@ begin
 
      w := width + width and $01;
      LUDecomp := GetMemory(w*w*sizeof(double));
-     mem := MtxAlloc(4*numCPUCores*(cBlkMultSize + numCPUCores + 2)*cBlkMultSize*sizeof(double) + 32);
+     mem := MtxAlloc(4*numCPUCores*(cBlkMultSize + numCPUCores + 2)*cBlkMultSize*sizeof(double) + $20);
      SetLength(indx, width);
      MatrixCopy(LUDecomp, w*sizeof(double), A, LineWidthA, width, width);
 
      rc.progress := progress;
      rc.numCols := width;
      rc.numCalc := 0;
-     rc.blkMultMem := PDouble(TASMNativeUInt(mem) + 16 - TASMNativeUInt(mem) and $0F);
+     rc.blkMultMem := PDouble(TASMNativeUInt(mem) + $20 - TASMNativeUInt(mem) and $1F);
      rc.LineWidth := w*sizeof(double);
 
      parity := 1;

@@ -64,35 +64,29 @@ begin
 
         mov eax, A;
         mov ebx, NumBytes;
-        and ebx, $FFFFFF80;
-        jz @@loopUnrolledEnd;
-
         imul ebx, -1;
         sub eax, ebx;
 
         @@loopUnrolled:
-          movntdq [eax + ebx], xmm0;
-          movntdq [eax + ebx + 16], xmm0;
-          movntdq [eax + ebx + 32], xmm0;
-          movntdq [eax + ebx + 48], xmm0;
-          movntdq [eax + ebx + 64], xmm0;
-          movntdq [eax + ebx + 80], xmm0;
-          movntdq [eax + ebx + 96], xmm0;
-          movntdq [eax + ebx + 112], xmm0;
-
           add ebx, 128;
-        jnz @@loopUnrolled;
+          jg @@loopUnrolledEnd;
+        
+          movntdq [eax + ebx - 128], xmm0;
+          movntdq [eax + ebx - 112], xmm0;
+          movntdq [eax + ebx - 96], xmm0;
+          movntdq [eax + ebx - 80], xmm0;
+          movntdq [eax + ebx - 64], xmm0;
+          movntdq [eax + ebx - 48], xmm0;
+          movntdq [eax + ebx - 32], xmm0;
+          movntdq [eax + ebx - 16], xmm0;
+
+        jmp @@loopUnrolled;
 
         @@loopUnrolledEnd:
 
         // last few bytes
-        mov eax, A;
-        mov ebx, NumBytes;
-        add eax, ebx;
-        and ebx, $7F;
+        sub ebx, 128;
         jz @@exitProc;
-
-        imul ebx, -1;
 
         @@loop:
           movsd [eax + ebx], xmm0;

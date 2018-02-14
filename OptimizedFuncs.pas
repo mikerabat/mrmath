@@ -23,6 +23,10 @@ interface
 uses MatrixConst, Types;
 
 function MtxAlloc( NumBytes : TASMNativeInt ) : Pointer;
+function MtxAllocAlign( NumBytes : TASMNativeInt; var mem : Pointer ) : Pointer; overload;
+function MtxMallocAlign( NumBytes : TASMNativeInt; var mem : Pointer ) : Pointer; overload;
+function MtxAllocAlign( width, height : TASMNativeInt; var LineWidth : TASMNativeInt; var Mem : Pointer) : Pointer; overload;
+procedure MtxMemInit(A : PDouble; NumBytes : TASMNativeInt; const Value : double);
 
 procedure MatrixCopy(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); overload;
 procedure MatrixCopy(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt); overload;
@@ -153,7 +157,7 @@ procedure MatrixSum(dest : PDouble; const destLineWidth : TASMNativeInt; Src : P
 procedure MatrixSum(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean); overload;
 
 procedure MatrixCumulativeSum(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
-procedure MatrixDiff(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean); 
+procedure MatrixDiff(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
 
 procedure MatrixAddAndScale(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
 procedure MatrixScaleAndAdd(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
@@ -178,8 +182,12 @@ procedure ApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const 
 procedure MatrixRotate(N : TASMNativeInt; DX : PDouble; const LineWidthDX : TASMNativeInt; DY : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
 
 
-procedure InitMathFunctions(UseSSEOptFuncs : boolean; useStrassenMult : boolean);
-procedure InitSSEOptFunctions(UseSSEOptFuncs : boolean);
+type
+  TCPUInstrType = (itFPU, itSSE, itAVX);
+
+procedure InitMathFunctions(instrType : TCPUInstrType; useStrassenMult : boolean);
+procedure InitSSEOptFunctions(instrType : TCPUInstrType);
+function GetCurCPUInstrType : TCPUInstrType;
 
 // note: there are cases where the strassen multiplication is slower than a block wise
 // multiplication - e.g. if the tidy up work is too often executed.
@@ -217,7 +225,6 @@ type
   TMatrixRotate = procedure (N : TASMNativeInt; DX : PDouble; const LineWidthDX : TASMNativeInt; DY : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
   TMemInitFunc = procedure(A : PDouble; NumBytes : TASMNativeInt; const Value : double);
 
-
 implementation
 
 {$IFDEF CPUX64}
@@ -227,25 +234,27 @@ implementation
 {$DEFINE x64}
 {$ENDIF}
 
-uses ASMMatrixOperations,
+uses ASMMatrixOperations, BlockedMult,
      {$IFNDEF x64}
      ASMMatrixMultOperations,
      ASMMatrixRotations, ASMMoveOperations,
      ASMMatrixTransposeOperations, ASMMatrixAddSubOperations,
+     AVXMatrixOperations, AVXMatrixMultOperations, AVXMatrixRotations,
+     AVXMatrixAddSubOperations, AVXMoveOperations, AVXMatrixTransposeOperations,
      {$ELSE}
-     ASMMatrixMultOperationsx64,
+     AVXMatrixOperations, ASMMatrixMultOperationsx64, AVXMatrixMultOperationsx64,
+     AVXMatrixAddSubOperationsx64, AVXMoveOperationsx64,
      ASMMatrixRotationsx64, ASMMoveOperationsx64, ASMMatrixAddSubOperationsx64,
+     AVXMatrixRotationsx64, AVXMatrixTransposeOperationsx64,
      ASMMatrixTransposeOperationsx64,
      {$ENDIF}
      BlockSizeSetup, SimpleMatrixOperations, CPUFeatures, MatrixRotations, corr;
-
-var actUseSSEoptions : boolean;
-    actUseStrassenMult : boolean;
 
 var multFunc : TMatrixMultFunc;
     blockedMultFunc : TMatrixBlockedMultfunc;
     blockedMultT1Func : TMatrixBlockedMultfunc;
     blockedMultT2Func : TMatrixBlockedMultfunc;
+    multT2Func : TMatrixMultFunc;
     multTria2T1Func : TMatrixMultTria2T1;
     multTria2TUpperFunc : TMatrixMultTria2T1;
     multTria2T1StoreT1Func : TMatrixMultTriaStoreT1;
@@ -287,6 +296,9 @@ var multFunc : TMatrixMultFunc;
     PlaneRotSeqLVF : TApplyPlaneRotSeqMatrix;
     memInitFunc : TMemInitFunc;
 
+ // current initialization
+var curUsedCPUInstrSet : TCPUInstrType;
+    curUsedStrassenMult : boolean;
 
 function MtxAlloc( NumBytes : TASMNativeInt ) : Pointer;
 begin
@@ -296,25 +308,80 @@ begin
      if NumBytes <= 0 then
         exit;
 
-     // align to next multiple of 16 bytes
-     if NumBytes and $F <> 0 then
-        NumBytes := NumBytes and $FFFFFFF0 + 16;
+     // align to next multiple of 32 bytes
+     if NumBytes and $1F <> 0 then
+        NumBytes := NumBytes and $FFFFFFE0 + 32;
 
      Result := GetMemory(NumBytes);
      if Assigned(Result) then
+        MtxMemInit(Result, NumBytes, 0 );
+end;
+
+function MtxAllocAlign( NumBytes : TASMNativeInt; var mem : Pointer ) : Pointer;
+begin
+     Result := MtxMallocAlign( NumBytes, mem );
+
+     if Assigned(Result) then
+        MtxMemInit(mem, NumBytes, 0 );
+end;
+
+function MtxMallocAlign( NumBytes : TASMNativeInt; var mem : Pointer ) : Pointer;
+begin
+     Result := nil;
+     mem := nil;
+     if NumBytes <= 0 then
+        exit;
+
+     // align to next multiple of 32 bytes
+     inc(NumBytes, $20);
+     if NumBytes and $1F <> 0 then
+        NumBytes := NumBytes and $FFFFFFE0 + $20;
+
+     mem := GetMemory(NumBytes);
+     if Assigned(mem) then
      begin
-          // normally getMemory should return aligned bytes ->
-          // but just in case:
-          if (TASMNativeUInt( Result ) and $F) <> 0 then
-          begin
-               PDouble(Result)^ := 0;
-               inc(PByte(Result), 8);
-               memInitfunc(Result, NumBytes - 8, 0);
-               dec(PByte(Result), 8);
-          end
-          else
-              memInitFunc(Result, NumBytes, 0);
+          Result := mem;
+          if TASMNativeUInt(Result) and $1F <> 0 then
+             Result := Pointer( TASMNativeUInt( Result ) + $20 - TASMNativeUInt( Result ) and $1F );
      end;
+end;
+
+function MtxAllocAlign( width, height : TASMNativeInt; var LineWidth : TASMNativeInt; var Mem : Pointer) : Pointer; overload;
+var numBytes : TASMNativeInt;
+begin
+     if width and $03 <> 0 then
+        width := width + 4 - (width and $03);
+
+     LineWidth := sizeof(double)*width;
+
+     numBytes := $20 + Height*LineWidth;
+     mem := GetMemory( numBytes );
+     if Assigned(mem) then
+     begin
+          Result := mem;
+          if TASMNativeUInt(Result) and $1F <> 0 then
+             Result := Pointer( TASMNativeUInt( Result ) + $20 - TASMNativeUInt( Result ) and $1F );
+
+          MtxMemInit(mem, NumBytes, 0 );
+     end;
+end;
+
+procedure MtxMemInit( A : PDouble; NumBytes : TASMNativeInt; const value : double );
+var ptr : PDouble;
+begin
+     assert(numBytes mod 8 = 0, 'error only multiple of sizeof(double) allowed');
+     // normally getMemory should return aligned bytes ->
+     // but just in case:
+     ptr := A;
+     while (NumBytes > 0) and ( (TASMNativeUInt(ptr) and $1F) <> 0 ) do
+     begin
+          ptr^ := 0;
+          inc(ptr);
+          dec(NumBytes, sizeof(double));
+     end;
+
+     if NumBytes > 0 then
+        memInitfunc(ptr, NumBytes, 0);
 end;
 
 procedure MatrixCopy(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
@@ -539,7 +606,8 @@ procedure MatrixMultT2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1,
 begin
      assert((width1 > 0) and (height1 > 0), 'Dimension Error');
      assert((width2 > 0) and (height2 > 0), 'Dimension Error');
-     blockedMultT2Func(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, BlockMatrixCacheSize, doNone, nil)
+     //blockedMultT2Func(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, BlockMatrixCacheSize, doNone, nil)
+     multT2Func(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2);
 end;
 
 procedure MatrixMultT2Ex(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble); overload;
@@ -933,14 +1001,14 @@ begin
      GenericMtxFunc(dest, destLineWidth, width, height, func);
 end;
 
-procedure InitSSEOptFunctions(UseSSEOptFuncs : boolean);
+procedure InitSSEOptFunctions(instrType : TCPUInstrType);
 begin
-     InitMathFunctions(UseSSEOptFuncs, actUseStrassenMult);
+     InitMathFunctions(instrType, curUsedStrassenMult);
 end;
 
 procedure InitMult(useStrassenMult : boolean);
 begin
-     InitMathFunctions(actUseSSEoptions, useStrassenMult);
+     InitMathFunctions(curUsedCPUInstrSet, useStrassenMult);
 end;
 
 procedure ApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
@@ -967,12 +1035,77 @@ begin
      matrixRot(N, DX, LineWidthDX, DY, LineWidthDY, c, s);
 end;
 
-procedure InitMathFunctions(UseSSEOptFuncs : boolean; useStrassenMult : boolean);
+function GetCurCPUInstrType : TCPUInstrType;
+begin
+     Result := curUsedCPUInstrSet;
+end;
+
+procedure InitMathFunctions(instrType : TCPUInstrType; useStrassenMult : boolean);
 var fpuCtrlWord : Word;
 begin
      // check features
-     if IsSSE3Present and UseSSEOptFuncs then
+     {$IFNDEF FPC}
+     if instrType = itAVX then
+        instrType := itsse;
+     {$ENDIF}
+
+     {$IFDEF FPC}
+     if IsAVXPresent and (instrType = itAVX) then
      begin
+          curUsedCPUInstrSet := itAVX;
+          if useStrassenMult
+          then
+              multFunc := {$IFDEF FPC}@{$ENDIF}AVXStrassenMatrixMultiplication
+          else
+              multFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixMult;
+          addFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixAdd;
+          subFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixSub;
+          subTFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixSubT;
+          elemWiseFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixElemMult;
+          addScaleFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixAddAndScale;
+          scaleAddFunc := {$IFDEF FPC}@{$ENDIF}AVXMAtrixScaleAndAdd;
+          sqrtFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixSQRT;
+          blockedMultFunc := {$IFDEF FPC}@{$ENDIF}BlockMatrixMultiplication;
+          blockedMultT1Func := {$IFDEF FPC}@{$ENDIF}BlockMatrixMultiplicationT1;
+          blockedMultT2Func := {$IFDEF FPC}@{$ENDIF}BlockMatrixMultiplicationT2;
+          copyFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixCopy;
+          minFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixMin;
+          maxFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixMax;
+          transposeFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixTranspose;
+          transposeInplaceFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixTransposeInplace;
+          elemNormFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixElementwiseNorm2;
+          matrixNormalizeFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixNormalize;
+          matrixMeanFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixMean;
+          matrixVarFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixVar;
+          matrixMeanVarFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixMeanVar;
+          matrixSumFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixSum;
+          matrixCumulativeSumFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixCumulativeSum;
+          matrixDiffFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixDifferentiate;
+          rowSwapFunc := {$IFDEF FPC}@{$ENDIF}AVXRowSwap;
+          absFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixAbs;
+          elemWiseDivFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixElemDiv;
+          multT2Func := {$IFDEF FPC}@{$ENDIF}AVXMatrixMultTransposed;
+          multTria2T1Func := {$IFDEF FPC}@{$ENDIF}AVXMtxMultTria2T1;
+          multTria2T1StoreT1Func := {$IFDEF FPC}@{$ENDIF}AVXMtxMultTria2T1StoreT1;
+          multTria2TUpperFunc := {$IFDEF FPC}@{$ENDIF}AVXMtxMultTria2TUpperUnit;
+          multTria2Store1Func := {$IFDEF FPC}@{$ENDIF}AVXMtxMultTria2Store1;
+          multTria2Store1UnitFunc := {$IFDEF FPC}@{$ENDIF}AVXMtxMultTria2Store1Unit;
+          multLowTria2T2Store1Func := {$IFDEF FPC}@{$ENDIF}AVXMtxMultLowTria2T2Store1;
+          MtxVecMultFunc := {$IFDEF FPC}@{$ENDIF}AVXMtxVecMult;
+          MtxVecMultTFunc := {$IFDEF FPC}@{$ENDIF}AVXMtxVecMultT;
+          Rank1UpdateFunc := {$IFDEF FPC}@{$ENDIF}AVXRank1Update;
+          matrixRot := {$IFDEF FPC}@{$ENDIF}AVXMatrixRotate;
+          PlaneRotSeqRVB := {$IFDEF FPC}@{$ENDIF}AVXApplyPlaneRotSeqRVB;
+          PlaneRotSeqRVF := {$IFDEF FPC}@{$ENDIF}AVXApplyPlaneRotSeqRVF;
+          PlaneRotSeqLVB := {$IFDEF FPC}@{$ENDIF}AVXApplyPlaneRotSeqLVB;
+          PlaneRotSeqLVF := {$IFDEF FPC}@{$ENDIF}AVXApplyPlaneRotSeqLVF;
+          memInitFunc := {$IFDEF FPC}@{$ENDIF}AVXInitMemAligned;
+
+          TDynamicTimeWarp.UseSSE := True;
+     end
+     else {$ENDIF} if IsSSE3Present and (instrType = itSSE) then
+     begin
+          curUsedCPUInstrSet := itSSE;
           if useStrassenMult
           then
               multFunc := {$IFDEF FPC}@{$ENDIF}ASMStrassenMatrixMultiplication
@@ -985,9 +1118,10 @@ begin
           addScaleFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixAddAndScale;
           scaleAddFunc := {$IFDEF FPC}@{$ENDIF}ASMMAtrixScaleAndAdd;
           sqrtFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixSQRT;
-          blockedMultFunc := {$IFDEF FPC}@{$ENDIF}BlockedMatrixMultiplication;
-          blockedMultT1Func := {$IFDEF FPC}@{$ENDIF}BlockedMatrixMultiplicationT1;
-          blockedMultT2Func := {$IFDEF FPC}@{$ENDIF}BlockedMatrixMultiplicationT2;
+          blockedMultFunc := {$IFDEF FPC}@{$ENDIF}BlockMatrixMultiplication;
+          blockedMultT1Func := {$IFDEF FPC}@{$ENDIF}BlockMatrixMultiplicationT1;
+          blockedMultT2Func := {$IFDEF FPC}@{$ENDIF}BlockMatrixMultiplicationT2;
+          multT2Func := {$IFDEF FPC}@{$ENDIF}ASMMatrixMultTransposed;
           copyFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixCopy;
           minFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixMin;
           maxFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixMax;
@@ -1024,6 +1158,7 @@ begin
      end
      else
      begin
+          curUsedCPUInstrSet := itFPU;
           if useStrassenMult
           then
               multFunc := {$IFDEF FPC}@{$ENDIF}GenericStrassenMatrixMultiplication
@@ -1036,9 +1171,9 @@ begin
           addScaleFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxAddAndScale;
           scaleAddFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxScaleAndAdd;
           sqrtFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxSqrt;
-          blockedMultFunc := {$IFDEF FPC}@{$ENDIF}GenericBlockedMatrixMultiplication;
-          blockedMultT1Func := {$IFDEF FPC}@{$ENDIF}GenericBlockedMatrixMultiplicationT1;
-          blockedMultT2Func := {$IFDEF FPC}@{$ENDIF}GenericBlockedMatrixMultiplicationT2;
+          blockedMultFunc := {$IFDEF FPC}@{$ENDIF}GenericBlockMatrixMultiplication;
+          blockedMultT1Func := {$IFDEF FPC}@{$ENDIF}GenericBlockMatrixMultiplicationT1;
+          blockedMultT2Func := {$IFDEF FPC}@{$ENDIF}GenericBlockMatrixMultiplicationT2;
           copyFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxCopy;
           minFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMin;
           maxFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMax;
@@ -1061,6 +1196,7 @@ begin
           multLowTria2T2Store1Func := {$IFDEF FPC}@{$ENDIF}GenericMtxMultLowTria2T2Store1;
           multTria2Store1Func := {$IFDEF FPC}@{$ENDIF}GenericMtxMultTria2Store1;
           multTria2Store1UnitFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMultTria2Store1Unit;
+          multT2Func := {$IFDEF FPC}@{$ENDIF}GenericMtxMultTransp;
           MtxVecMultFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxVecMult;
           MtxVecMultTFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxVecMultT;
           Rank1UpdateFunc := {$IFDEF FPC}@{$ENDIF}GenericRank1Update;
@@ -1077,8 +1213,7 @@ begin
      matrixMedianFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMedian;
      matrixSortFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxSort;
 
-     actUseSSEoptions := IsSSE3Present;
-     actUseStrassenMult := useStrassenMult;
+     curUsedStrassenMult := useStrassenMult;
 
      // set only double precission for compatibility
      fpuCtrlWord := Get8087CW;
@@ -1089,9 +1224,9 @@ begin
 end;
 
 initialization
-  actUseSSEoptions := IsSSE3Present;
-  actUseStrassenMult := False;
+  curUsedCPUInstrSet := itAVX;
+  curUsedStrassenMult := False;
 
-  InitMathFunctions(actUseSSEoptions, actUseSSEoptions);
+  InitMathFunctions(curUsedCPUInstrSet, curUsedStrassenMult);
 
 end.

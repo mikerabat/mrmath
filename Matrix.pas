@@ -276,7 +276,7 @@ type
   private
     fMemory : Pointer;
     fData : PLocConstDoubleArr;       // 16 byte aligned pointer:
-    fLineWidth : integer;
+    fLineWidth : TASMNativeInt;
     fWidth : integer;
     fObj : TObject;                // arbitrary object
 
@@ -1884,15 +1884,18 @@ begin
      begin
           // take special care for vectores - there are optimized functions
           // for those types (e.g. vector matrix multiplication)
-          if width > 1
-          then
-              numLineElems := width + width and $01
+          if width > 1 then
+          begin
+               // get an AVX friendly linewidth
+               fData := MtxAllocAlign(width, height, fLineWidth, fMemory);
+          end
           else
-              numLineElems := width;
-          fMemory := MtxAlloc(16 + height*numLineElems*sizeof(double));
-          fData := Pointer(NativeUInt(fMemory) + 16 - NativeUInt(fMemory) and $0F);
-
-          fLineWidth := numLineElems*sizeof(double);
+          begin
+               numLineElems := width;
+               fMemory := MtxAlloc($20 + height*width*sizeof(double));
+               fData := PLocConstDoubleArr( TASMNativeUint( fMemory ) + $20 - TASMNativeUint( fMemory ) and $1F );
+               fLineWidth := sizeof(double);
+          end;
      end;
 end;
 

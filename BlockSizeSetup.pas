@@ -46,7 +46,7 @@ function BlockMultMemSize(blkSize : integer) : integer;
 
 implementation
 
-uses Classes, ASMMatrixOperations, Types, MtxTimer, Math, OptimizedFuncs;
+uses Classes, ASMMatrixOperations, Types, MtxTimer, Math, OptimizedFuncs, BlockedMult;
 
 const cMatrixMaxTestSize = 2048;
       cNumIter = 5;
@@ -124,7 +124,7 @@ var startTime, endTime : Int64;
 begin
      startTime := MtxGetTime;
      for i := 0 to cNumIter - 1 do
-         BlockedMatrixMultiplication(dest, size*sizeof(double), a, b, size, size, size, size, size*sizeof(double), size*sizeof(double), blockSize);
+         BlockMatrixMultiplication(dest, size*sizeof(double), a, b, size, size, size, size, size*sizeof(double), size*sizeof(double), blockSize);
      endTime := MtxGetTime;
 
      Result := endTime - startTime;
@@ -136,7 +136,7 @@ var startTime, endTime : Int64;
 begin
      startTime := MtxGetTime;
      for i := 0 to cNumIter - 1 do
-         BlockedMatrixVectorMultiplication(dest, sizeof(double), a, b, aWidth, aHeight, aWidth, LineWidth1, blockSize);
+         BlockMatrixVectorMultiplication(dest, sizeof(double), a, b, aWidth, aHeight, aWidth, LineWidth1, blockSize);
      endTime := MtxGetTime;
 
      Result := endTime - startTime;

@@ -36,7 +36,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="76">
+    <Units Count="95">
       <Unit0>
         <Filename Value="MathUtilsTestsFPC.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -341,6 +341,82 @@
         <Filename Value="..\Corr.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit75>
+      <Unit76>
+        <Filename Value="TestAVX.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit76>
+      <Unit77>
+        <Filename Value="..\AVXMatrixMultTransposedOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit77>
+      <Unit78>
+        <Filename Value="..\AVXMoveOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit78>
+      <Unit79>
+        <Filename Value="..\AVXMatrixAbsOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit79>
+      <Unit80>
+        <Filename Value="..\AVXMatrixMultOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit80>
+      <Unit81>
+        <Filename Value="..\AVXMatrixOperations.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit81>
+      <Unit82>
+        <Filename Value="..\AVXMatrixScaleOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit82>
+      <Unit83>
+        <Filename Value="..\AVXMatrixTransposeOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit83>
+      <Unit84>
+        <Filename Value="..\AVXMatrixVectorMultOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit84>
+      <Unit85>
+        <Filename Value="..\AVXMatrixRotationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit85>
+      <Unit86>
+        <Filename Value="..\AVXMatrixElementwiseMultOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit86>
+      <Unit87>
+        <Filename Value="..\AVXMatrixMinMaxOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit87>
+      <Unit88>
+        <Filename Value="..\AVXMatrixMeanOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit88>
+      <Unit89>
+        <Filename Value="..\AVXMatrixNormOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit89>
+      <Unit90>
+        <Filename Value="..\AVXMatrixSqrtOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit90>
+      <Unit91>
+        <Filename Value="..\AVXMatrixSumOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit91>
+      <Unit92>
+        <Filename Value="..\BlockedMult.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit92>
+      <Unit93>
+        <Filename Value="..\AVXMatrixAbsOperations.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit93>
+      <Unit94>
+        <Filename Value="..\AVXMatrixAddSubOperations.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit94>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -357,7 +433,15 @@
     <CodeGeneration>
       <TargetCPU Value="x86_64"/>
       <TargetOS Value="win64"/>
+      <Optimizations>
+        <OptimizationLevel Value="3"/>
+      </Optimizations>
     </CodeGeneration>
+    <Linking>
+      <Debugging>
+        <GenerateDebugInfo Value="False"/>
+      </Debugging>
+    </Linking>
     <Other>
       <CompilerMessages>
         <IgnoredMessages idx5057="True"/>

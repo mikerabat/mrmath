@@ -64,8 +64,8 @@ begin
 
         movddup xmm0, cNegMaxDouble;
         movapd xmm1, xmm0;
-   					movapd xmm2, xmm0;
-   					movapd xmm3, xmm0;
+   	movapd xmm2, xmm0;
+   	movapd xmm3, xmm0;
 
         // for y := 0 to height - 1:
         mov edx, Height;
@@ -113,8 +113,8 @@ begin
 
         // final max ->
         maxpd xmm0, xmm1;
-   					maxpd xmm0, xmm2;
-   					maxpd xmm0, xmm3;
+   	maxpd xmm0, xmm2;
+   	maxpd xmm0, xmm3;
         movhlps xmm1, xmm0;
         maxsd xmm0, xmm1;
         movsd Result, xmm0;

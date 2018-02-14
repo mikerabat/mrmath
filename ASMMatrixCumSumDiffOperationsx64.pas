@@ -433,9 +433,9 @@ begin
         mov iRDI, rdi;
         mov iRSI, rsi;
 
-        // if (width <= 0) or (height <= 0) then exit;
+        // if (width <= 1) or (height <= 0) then exit;
         mov rbx, width;
-        cmp rbx, 0;
+        cmp rbx, 1;
         jle @@exitproc;
         mov rsi, height;
         cmp rsi, 0;
@@ -500,12 +500,12 @@ begin
         mov iRDI, rdi;
         mov iRSI, rsi;
 
-        // if (width <= 1) or (height <= 0) then exit;
+        // if (width <= 0) or (height <= 1) then exit;
         mov r11, height;
         cmp r11, 1;
         jle @@exitproc;
         mov r10, width;
-        cmp r10, 1;
+        cmp r10, 0;
         jle @@exitproc;
 
         dec r11;
@@ -568,12 +568,12 @@ begin
         mov iRDI, rdi;
         mov iRSI, rsi;
 
-        // if (width <= 1) or (height <= 0) then exit;
+        // if (width <= 0) or (height <= 1) then exit;
         mov r11, height;
-        cmp r11, 0;
+        cmp r11, 1;
         jle @@exitproc;
         mov r10, width;
-        cmp r10, 1;
+        cmp r10, 0;
         jle @@exitproc;
 
         dec r11;     // height - 1
@@ -658,12 +658,12 @@ begin
         mov iRDI, rdi;
         mov iRSI, rsi;
 
-        // if (width <= 1) or (height <= 0) then exit;
+        // if (width <= 0) or (height <= 1) then exit;
         mov r11, height;
         cmp r11, 1;
         jle @@exitproc;
         mov r10, width;
-        cmp r10, 1;
+        cmp r10, 0;
         jle @@exitproc;
 
         dec r11;     // height - 1
@@ -727,12 +727,12 @@ begin
         mov iRDI, rdi;
         mov iRSI, rsi;
 
-        // if (width <= 1) or (height <= 0) then exit;
+        // if (width <= 0) or (height <= 1) then exit;
         mov r11, height;
-        cmp r11, 0;
+        cmp r11, 1;
         jle @@exitproc;
         mov r10, width;
-        cmp r10, 1;
+        cmp r10, 0;
         jle @@exitproc;
 
         dec r11;     // height - 1

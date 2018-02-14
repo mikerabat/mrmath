@@ -20,6 +20,7 @@ unit CPUFeatures;
 interface
 
 function IsSSE3Present : boolean;
+function IsAVXPresent : boolean;
 function IsHardwareRNDSupport : boolean;
 function IsHardwareRDSeed : boolean;
 
@@ -138,6 +139,20 @@ begin
      end;
 end;
 
+function IsAVXPresent : boolean;
+var reg : TRegisters;
+begin
+     Result := False;
+
+     if IsCPUID_Available then
+     begin
+          GetCPUID($00000001, reg);
+
+          // check for AVX and check 27 bit (OS uses XSAVE/XRSTOR)
+          Result := ((reg.ECX and (1 shl 28)) <> 0) and ((reg.ECX and (1 shl 27)) <> 0);
+          // need to check xgetbv ??
+     end;
+end;
 
 function IsHardwareRNDSupport : boolean;
 var reg : TRegisters;

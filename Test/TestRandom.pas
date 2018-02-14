@@ -123,8 +123,9 @@ begin
 
         for cnt := 0 to 200 - 1 do
         begin
-             s := AnsiString( Format('%10u %10u %10u %10u %10u ' + #13#10, [gen.RandLW($FFFFFFFF) ,
-                         gen.RandLW($FFFFFFFF), gen.RandLW($FFFFFFFF), gen.RandLW($FFFFFFFF), gen.RandLW($FFFFFFFF)], ft));
+             // fpc produces here an range check error?!?!
+             s := AnsiString( Format('%10u %10u %10u %10u %10u ' + #13#10, [Int64(gen.RandLW($FFFFFFFF)) ,
+                         Int64(gen.RandLW($FFFFFFFF)), Int64(gen.RandLW($FFFFFFFF)), Int64(gen.RandLW($FFFFFFFF)), Int64(gen.RandLW($FFFFFFFF))], ft));
              WriteBuffer(s[1], Length(s));
         end;
 

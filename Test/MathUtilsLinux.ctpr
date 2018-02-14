@@ -21,18 +21,15 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="3">
+    <RequiredPackages Count="2">
       <Item1>
         <PackageName Value="lz_fpcunitrunner"/>
       </Item1>
       <Item2>
         <PackageName Value="adLCL"/>
       </Item2>
-      <Item3>
-        <PackageName Value="adFCL"/>
-      </Item3>
     </RequiredPackages>
-    <Units Count="87">
+    <Units Count="122">
       <Unit0>
         <Filename Value="MathUtilsLinux.ppr"/>
         <IsPartOfProject Value="True"/>
@@ -381,6 +378,146 @@
         <Filename Value="../mac/linuxthrpool.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit86>
+      <Unit87>
+        <Filename Value="TestAVX.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit87>
+      <Unit88>
+        <Filename Value="../BlockedMult.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit88>
+      <Unit89>
+        <Filename Value="../AVXMatrixOperations.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit89>
+      <Unit90>
+        <Filename Value="../AVXMoveOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit90>
+      <Unit91>
+        <Filename Value="../AVXMatrixMultTransposedOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit91>
+      <Unit92>
+        <Filename Value="../AVXMatrixAbsOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit92>
+      <Unit93>
+        <Filename Value="../AVXMatrixMultOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit93>
+      <Unit94>
+        <Filename Value="../AVXMatrixScaleOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit94>
+      <Unit95>
+        <Filename Value="../AVXMatrixTransposeOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit95>
+      <Unit96>
+        <Filename Value="../AVXMatrixAddSubOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit96>
+      <Unit97>
+        <Filename Value="../AVXMatrixCumSumDiffOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit97>
+      <Unit98>
+        <Filename Value="../AVXMatrixRotationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit98>
+      <Unit99>
+        <Filename Value="../AVXMatrixVectorMultOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit99>
+      <Unit100>
+        <Filename Value="../AVXMoveOperations.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit100>
+      <Unit101>
+        <Filename Value="../AVXMatrixElementwiseMultOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit101>
+      <Unit102>
+        <Filename Value="../AVXMatrixElementwiseMultOperations.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit102>
+      <Unit103>
+        <Filename Value="../AVXMatrixAbsOperations.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit103>
+      <Unit104>
+        <Filename Value="../AVXMatrixMultOperations.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit104>
+      <Unit105>
+        <Filename Value="../AVXMatrixScaleOperations.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit105>
+      <Unit106>
+        <Filename Value="../AVXMatrixMultTransposedOperations.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit106>
+      <Unit107>
+        <Filename Value="../AVXMatrixTransposeOperations.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit107>
+      <Unit108>
+        <Filename Value="../AVXMatrixVectorMultOperations.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit108>
+      <Unit109>
+        <Filename Value="../AVXMatrixAddSubOperations.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit109>
+      <Unit110>
+        <Filename Value="../AVXMatrixCumSumDiffOperations.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit110>
+      <Unit111>
+        <Filename Value="../AVXMatrixRotations.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit111>
+      <Unit112>
+        <Filename Value="../AVXMatrixMinMaxOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit112>
+      <Unit113>
+        <Filename Value="../AVXMatrixMinMaxOperations.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit113>
+      <Unit114>
+        <Filename Value="../AVXMatrixMeanOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit114>
+      <Unit115>
+        <Filename Value="../AVXMatrixMeanOperations.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit115>
+      <Unit116>
+        <Filename Value="../AVXMatrixNormOperations.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit116>
+      <Unit117>
+        <Filename Value="../AVXMatrixNormOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit117>
+      <Unit118>
+        <Filename Value="../AVXMatrixSqrtOperations.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit118>
+      <Unit119>
+        <Filename Value="../AVXMatrixSqrtOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit119>
+      <Unit120>
+        <Filename Value="../AVXMatrixSumOperations.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit120>
+      <Unit121>
+        <Filename Value="../AVXMatrixSumOperationsx64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit121>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -393,10 +530,19 @@
       <OtherUnitFiles Value="..;../win;../mac"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)/$(LCLWidgetType)"/>
     </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <IncludeAssertionCode Value="True"/>
+      </SyntaxOptions>
+    </Parsing>
     <CodeGeneration>
-      <Optimizations>
-        <OptimizationLevel Value="4"/>
-      </Optimizations>
+      <Checks>
+        <IOChecks Value="True"/>
+        <RangeChecks Value="True"/>
+        <OverflowChecks Value="True"/>
+        <StackChecks Value="True"/>
+      </Checks>
+      <VerifyObjMethodCallValidity Value="True"/>
     </CodeGeneration>
   </CompilerOptions>
   <Debugging>

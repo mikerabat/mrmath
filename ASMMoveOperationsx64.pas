@@ -73,41 +73,32 @@ begin
 
         movddup xmm1, Value;
 
-        mov r10, rdx;
-        and r10, $FFFFFFFFFFFFFF80;
-        jz @@loopUnrolledEnd;
-
-        mov rax, rcx;
-        imul r10, -1;
-        sub rax, r10;
+        imul rdx, -1;
+        sub rcx, rdx;
 
         @@loopUnrolled:
-          movntdq [rax + r10], xmm1;
-          movntdq [rax + r10 + 16], xmm1;
-          movntdq [rax + r10 + 32], xmm1;
-          movntdq [rax + r10 + 48], xmm1;
-          movntdq [rax + r10 + 64], xmm1;
-          movntdq [rax + r10 + 80], xmm1;
-          movntdq [rax + r10 + 96], xmm1;
-          movntdq [rax + r10 + 112], xmm1;
+           add rdx, 128;
+           jg @@loopUnrolledEnd;
 
-          add r10, 128;
-        jnz @@loopUnrolled;
+           movntdq [rcx + rdx - 128], xmm1;
+           movntdq [rcx + rdx - 112], xmm1;
+           movntdq [rcx + rdx - 96], xmm1;
+           movntdq [rcx + rdx - 80], xmm1;
+           movntdq [rcx + rdx - 64], xmm1;
+           movntdq [rcx + rdx - 48], xmm1;
+           movntdq [rcx + rdx - 32], xmm1;
+           movntdq [rcx + rdx - 16], xmm1;
+        jmp @@loopUnrolled;
 
         @@loopUnrolledEnd:
 
-        // last few bytes
-        mov rax, rcx;
-        mov r10, rdx;
-        add rax, r10;
-        and r10, $7F;
+        sub rdx, 128;
+
         jz @@exitProc;
-
-        imul r10, -1;
-
+        
         @@loop:
-          movsd [rax + r10], xmm1;
-          add r10, 8;
+          movsd [rcx + rdx], xmm1;
+          add rdx, 8;
         jnz @@loop;
 
         @@exitProc:

@@ -753,10 +753,10 @@ end;
 {$IFDEF cpux86_64}
 {$DEFINE x64}
 {$ENDIF}
-{$IFDEF x64}
 
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
+{$IFDEF x64}
 // 64bit version
 procedure TDynamicTimeWarp.ReduceByHalfSSE(X : PConstDoubleArr; inLen,
   inOffset: TASMNativeInt; out newLen, newOffset: TASMNativeInt);
@@ -838,6 +838,9 @@ end;
 // 32 bit version
 procedure TDynamicTimeWarp.ReduceByHalfSSE(X : PConstDoubleArr; inLen,
   inOffset: TASMNativeInt; out newLen, newOffset: TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
 asm
    // edx: X, ecx : inlen
    push ebx;
@@ -902,6 +905,9 @@ asm
 
    pop ebx;
 end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 {$ENDIF}
 

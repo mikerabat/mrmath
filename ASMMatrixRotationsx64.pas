@@ -389,12 +389,12 @@ end;
 // rcx = width, rdx = height, r8 : A, r9 = LineWidthA
 procedure ASMApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
 var iRBX, iRDI : TASMNativeInt;
-    dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+    dXMM4, dXMM5, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
-     asm
-        {$IFDEF LINUX}
+asm
+   {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -405,89 +405,86 @@ begin
    mov rdx, rsi;
    {$ENDIF}
 
-        // ##########################################
-        // #### Prolog - stack and base variable init
-        //if (height < 2) or (width < 1) then
-        //exit;
-        cmp rcx, 2;
-        jl @@endproc;
+   // ##########################################
+   // #### Prolog - stack and base variable init
+   //if (height < 2) or (width < 1) then
+   //exit;
+   cmp rcx, 2;
+   jl @@endproc;
 
-        cmp rdx, 1;
-        jl @@endproc;
+   cmp rdx, 1;
+   jl @@endproc;
 
-        mov iRBX, rbx;
-        mov iRDI, rdi;
-        movupd dXMM4, xmm4;
-        movupd dXMM5, xmm5;
-        movupd dXMM6, xmm6;
-        movupd dXMM7, xmm7;
+   mov iRBX, rbx;
+   mov iRDI, rdi;
+   movupd dXMM4, xmm4;
+   movupd dXMM5, xmm5;
+   movupd dXMM7, xmm7;
 
-        dec rcx;
-        imul rcx, 8; //iter := (width - 1)*sizeof(double)
+   dec rcx;
+   imul rcx, 8; //iter := (width - 1)*sizeof(double)
 
-        mov rax, c;
-        mov rbx, s;
+   mov rax, c;
+   mov rbx, s;
 
-        movupd xmm7, [rip + cMulM1Bits];
-        xorpd xmm6, xmm6;  // haddpd zero extend
+   movupd xmm7, [rip + cMulM1Bits];
 
-        @@foryloop:
+   @@foryloop:
 
-           mov rdi, rcx;
-           movhpd xmm2, [r8 + rdi];
+       mov rdi, rcx;
+       movhpd xmm2, [r8 + rdi];
 
-           // for x := width - 2 downto 0
-           @@forxloop:
-              movsd xmm4, [rax + rdi - 8];  // store c
-              movsd xmm3, [rbx + rdi - 8];  // store s
+       // for x := width - 2 downto 0
+       @@forxloop:
+           movsd xmm4, [rax + rdi - 8];  // store c
+           movsd xmm3, [rbx + rdi - 8];  // store s
 
-              movlpd xmm2, [r8 + rdi - 8]; // a[x], a[x+1]
+           movlpd xmm2, [r8 + rdi - 8]; // a[x], a[x+1]
 
-              // handle x, x+1
-              // ####################################
-              // #### x, x+ 1
-              movlhps xmm3, xmm4;
-              movlhps xmm4, xmm3;
+           // handle x, x+1
+           // ####################################
+           // #### x, x+ 1
+           movlhps xmm3, xmm4;
+           movlhps xmm4, xmm3;
 
-              xorpd xmm3, xmm7;  // -s, c
-              mulpd xmm3, xmm2; // a[x+1)*c[x] - s[x]*a[x]
-              haddpd xmm3, xmm6;
+           xorpd xmm3, xmm7;  // -s, c
+           mulpd xmm3, xmm2; // a[x+1)*c[x] - s[x]*a[x]
+           haddpd xmm3, xmm3;
 
-              mulpd xmm4, xmm2; // a[x+1]*s[x] + a[x]*c[x]
-              haddpd xmm4, xmm6;
+           mulpd xmm4, xmm2; // a[x+1]*s[x] + a[x]*c[x]
+           haddpd xmm4, xmm4;
 
-              // write back first two values
-              movlhps xmm2, xmm4;
-              movsd [r8 + rdi], xmm3;
+           // write back first two values
+           movlhps xmm2, xmm4;
+           movsd [r8 + rdi], xmm3;
 
-           // next one
-           sub rdi, 8;
-           jnz @@forxloop;
+       // next one
+       sub rdi, 8;
+       jnz @@forxloop;
 
-           movsd [r8 + rdi], xmm4;
+       movsd [r8 + rdi], xmm4;
 
-           add r8, LineWidthA;
+       add r8, LineWidthA;
 
-        dec rdx;
-        jnz @@foryloop;
+   dec rdx;
+   jnz @@foryloop;
 
-        // epilog
-        mov rbx, iRBX;
-        mov rdi, iRDI;
-        movupd xmm4, dXMM4;
-        movupd xmm5, dXMM5;
-        movupd xmm6, dXMM6;
-        movupd xmm7, dXMM7;
+   // epilog
+   mov rbx, iRBX;
+   mov rdi, iRDI;
+   movupd xmm4, dXMM4;
+   movupd xmm5, dXMM5;
+   movupd xmm7, dXMM7;
 
-        @@endproc:
-     end;
+   @@endproc:
+end;
 {$IFDEF FPC}
 end;
 {$ENDIF}
 
 procedure ASMApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
 var iRBX, iRDI : TASMNativeInt;
-    dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+    dXMM4, dXMM5, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -517,7 +514,6 @@ begin
         mov iRDI, rdi;
         movupd dXMM4, xmm4;
         movupd dXMM5, xmm5;
-        movupd dXMM6, xmm6;
         movupd dXMM7, xmm7;
 
         dec rcx;
@@ -531,7 +527,6 @@ begin
         sub r8, rcx;
 
         movupd xmm7, [rip + cMulM1Bits];
-        xorpd xmm6, xmm6;  // haddpd zero extend
 
         @@foryloop:
 
@@ -553,10 +548,10 @@ begin
 
               xorpd xmm3, xmm7;  // -s, c
               mulpd xmm3, xmm2; // a[x+1)*c[x] - s[x]*a[x]
-              haddpd xmm3, xmm6;
+              haddpd xmm3, xmm3;
 
               mulpd xmm4, xmm2; // a[x+1]*s[x] + a[x]*c[x]
-              haddpd xmm4, xmm6;
+              haddpd xmm4, xmm4;
 
               // write back first two values
               movsd xmm2, xmm3;
@@ -578,7 +573,6 @@ begin
         mov rdi, iRDI;
         movupd xmm4, dXMM4;
         movupd xmm5, dXMM5;
-        movupd xmm6, dXMM6;
         movupd xmm7, dXMM7;
 
         @@endproc:
@@ -698,7 +692,7 @@ end;
 // rcx = N, RDX = X, R8 = LineWidthDX, R9 = Y; 
 procedure ASMMatrixRotateUnaligned(N : TASMNativeInt; X : PDouble; const LineWidthDX : TASMNativeInt;
   Y : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
-var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -719,7 +713,6 @@ begin
         movupd dXMM4, xmm4;
         movupd dXMM5, xmm5;
         movupd dXMM6, xmm6;
-        movupd dXMM7, xmm7;
      
         movsd xmm2, s;
         mulsd xmm2, [rip + cMinusOne];
@@ -728,8 +721,6 @@ begin
         movddup xmm1, c;
 
         movddup xmm2, s;
-
-        xorpd xmm7, xmm7;
 
         mov r10, LineWidthDY;
 
@@ -742,13 +733,10 @@ begin
 
            @@forNloop:
               // do a full load -> intermediate store in xmm5, and xmm6
-              movsd xmm5, [rdx];    // load x, x+1
-              movsd xmm3, [rdx + r8];
-              movsd xmm6, [r9];    // load y, y+1
-              movsd xmm4, [r9 + r10];
-
-              movlhps xmm5, xmm3;
-              movlhps xmm6, xmm4;
+              movlpd xmm5, [rdx];
+              movhpd xmm5, [rdx + r8];
+              movlpd xmm6, [r9];
+              movhpd xmm6, [r9 + r10];
 
               movapd xmm3, xmm5;
               movapd xmm4, xmm6;
@@ -763,14 +751,11 @@ begin
 
 
               // write back
-              movhlps xmm6, xmm5;
-              movhlps xmm4, xmm3;
+              movlpd [rdx], xmm5;
+              movhpd [rdx + r8], xmm5;
 
-              movsd [rdx], xmm5;
-              movsd [rdx + r8], xmm6;
-
-              movsd [r9], xmm3;
-              movsd [r9 + r10], xmm4;
+              movlpd [r9], xmm3;
+              movhpd [r9 + r10], xmm3;
 
               add rdx, r8;
               add rdx, r8;
@@ -816,7 +801,6 @@ begin
         movupd xmm4, dXMM4;
         movupd xmm5, dXMM5;
         movupd xmm6, dXMM6;
-        movupd xmm7, dXMM7;
      end;
 {$IFDEF FPC}
 end;
