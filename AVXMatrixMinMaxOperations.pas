@@ -39,12 +39,12 @@ implementation
 
 {$IFNDEF x64}
 
+{$WARNINGS OFF}
+
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 function AVXMatrixMaxAligned(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-{$IFDEF FPC}
 begin
-{$ENDIF}
 asm
    // prolog - simulate stack
    push ebx;
@@ -60,9 +60,9 @@ asm
 
    // init result
    lea eax, cNegMaxDouble;
-   vbroadcastsd ymm0, [eax];
-   vmovapd ymm3, ymm0;
-   vmovapd ymm4, ymm0;
+   {$IFDEF FPC}vbroadcastsd ymm0, [eax];{$ELSE}db $C4,$E2,$7D,$19,$00;{$ENDIF} 
+   {$IFDEF FPC}vmovapd ymm3, ymm0;{$ELSE}db $C5,$FD,$28,$D8;{$ENDIF} 
+   {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$28,$E0;{$ENDIF} 
 
    // for y := 0 to height - 1:
    mov ebx, Height;
@@ -78,20 +78,20 @@ asm
            // prefetch [ecx + eax];
 
            // max:
-           vmaxpd ymm3, ymm3, [ecx + eax - 128];
-           vmaxpd ymm4, ymm4, [ecx + eax - 96];
-           vmaxpd ymm3, ymm3, [ecx + eax - 64];
-           vmaxpd ymm4, ymm4, [ecx + eax - 32];
+           {$IFDEF FPC}vmaxpd ymm3, ymm3, [ecx + eax - 128];{$ELSE}db $C5,$E5,$5F,$5C,$01,$80;{$ENDIF} 
+           {$IFDEF FPC}vmaxpd ymm4, ymm4, [ecx + eax - 96];{$ELSE}db $C5,$DD,$5F,$64,$01,$A0;{$ENDIF} 
+           {$IFDEF FPC}vmaxpd ymm3, ymm3, [ecx + eax - 64];{$ELSE}db $C5,$E5,$5F,$5C,$01,$C0;{$ENDIF} 
+           {$IFDEF FPC}vmaxpd ymm4, ymm4, [ecx + eax - 32];{$ELSE}db $C5,$DD,$5F,$64,$01,$E0;{$ENDIF} 
 
        add eax, 128;
        jle @addforxloop;
 
-       vextractf128 xmm2, ymm3, 1;
-       vmaxpd xmm2, xmm2, xmm3;
-       vmaxpd xmm0, xmm0, xmm2;
-       vextractf128 xmm2, ymm4, 1;
-       vmaxpd xmm2, xmm2, xmm4;
-       vmaxpd xmm0, xmm0, xmm2;
+       {$IFDEF FPC}vextractf128 xmm2, ymm3, 1;{$ELSE}db $C4,$E3,$7D,$19,$DA,$01;{$ENDIF} 
+       {$IFDEF FPC}vmaxpd xmm2, xmm2, xmm3;{$ELSE}db $C5,$E9,$5F,$D3;{$ENDIF} 
+       {$IFDEF FPC}vmaxpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$5F,$C2;{$ENDIF} 
+       {$IFDEF FPC}vextractf128 xmm2, ymm4, 1;{$ELSE}db $C4,$E3,$7D,$19,$E2,$01;{$ENDIF} 
+       {$IFDEF FPC}vmaxpd xmm2, xmm2, xmm4;{$ELSE}db $C5,$E9,$5F,$D4;{$ENDIF} 
+       {$IFDEF FPC}vmaxpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$5F,$C2;{$ENDIF} 
 
        @loopEnd:
 
@@ -103,7 +103,7 @@ asm
            add eax, 16;
            jg @addforxloop2end;
 
-           vmaxpd xmm0, xmm0, [ecx + eax - 16];
+           {$IFDEF FPC}vmaxpd xmm0, xmm0, [ecx + eax - 16];{$ELSE}db $C5,$F9,$5F,$44,$01,$F0;{$ENDIF} 
        jmp @addforxloop2;
 
        @addforxloop2end:
@@ -111,8 +111,8 @@ asm
        sub eax, 16;
        jz @nextLine;
 
-       vmovsd xmm2, [ecx + eax];
-       vmaxsd xmm0, xmm0, xmm2;
+       {$IFDEF FPC}vmovsd xmm2, [ecx + eax];{$ELSE}db $C5,$FB,$10,$14,$01;{$ENDIF} 
+       {$IFDEF FPC}vmaxsd xmm0, xmm0, xmm2;{$ELSE}db $C5,$FB,$5F,$C2;{$ENDIF} 
 
        @nextLine:
 
@@ -124,25 +124,21 @@ asm
    jnz @@addforyloop;
 
    // final max ->
-   vmovhlps xmm1, xmm1, xmm0;
-   vmaxsd xmm0, xmm0, xmm1;
+   {$IFDEF FPC}vmovhlps xmm1, xmm1, xmm0;{$ELSE}db $C5,$F0,$12,$C8;{$ENDIF} 
+   {$IFDEF FPC}vmaxsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$5F,$C1;{$ENDIF} 
 
-   vmovsd Result, xmm0;
+   {$IFDEF FPC}vmovsd Result, xmm0;{$ELSE}db $C5,$FB,$11,$45,$E8;{$ENDIF} 
 
    // epilog - cleanup stack
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 
    pop ebx;
    pop edi;
-{$IFDEF FPC}
 end;
-{$ENDIF}
 end;
 
 function AVXMatrixMaxUnAligned(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-{$IFDEF FPC}
 begin
-{$ENDIF}
 asm
    // prolog - simulate stack
    push ebx;
@@ -158,9 +154,9 @@ asm
 
    // init result
    lea eax, cNegMaxDouble;
-   vbroadcastsd ymm0, [eax];
-   vmovapd ymm3, ymm0;
-   vmovapd ymm4, ymm0;
+   {$IFDEF FPC}vbroadcastsd ymm0, [eax];{$ELSE}db $C4,$E2,$7D,$19,$00;{$ENDIF} 
+   {$IFDEF FPC}vmovapd ymm3, ymm0;{$ELSE}db $C5,$FD,$28,$D8;{$ENDIF} 
+   {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$28,$E0;{$ENDIF} 
 
    // for y := 0 to height - 1:
    mov ebx, Height;
@@ -177,23 +173,23 @@ asm
            // prefetch [ecx + eax];
 
            // max:
-           vmovupd ymm2, [ecx + eax - 128];
-           vmaxpd ymm3, ymm3, ymm2;
-           vmovupd ymm2, [ecx + eax - 96];
-           vmaxpd ymm4, ymm4, ymm2;
-           vmovupd ymm2, [ecx + eax - 64];
-           vmaxpd ymm3, ymm3, ymm2;
-           vmovupd ymm2, [ecx + eax - 32];
-           vmaxpd ymm4, ymm4, ymm2;
+           {$IFDEF FPC}vmovupd ymm2, [ecx + eax - 128];{$ELSE}db $C5,$FD,$10,$54,$01,$80;{$ENDIF} 
+           {$IFDEF FPC}vmaxpd ymm3, ymm3, ymm2;{$ELSE}db $C5,$E5,$5F,$DA;{$ENDIF} 
+           {$IFDEF FPC}vmovupd ymm2, [ecx + eax - 96];{$ELSE}db $C5,$FD,$10,$54,$01,$A0;{$ENDIF} 
+           {$IFDEF FPC}vmaxpd ymm4, ymm4, ymm2;{$ELSE}db $C5,$DD,$5F,$E2;{$ENDIF} 
+           {$IFDEF FPC}vmovupd ymm2, [ecx + eax - 64];{$ELSE}db $C5,$FD,$10,$54,$01,$C0;{$ENDIF} 
+           {$IFDEF FPC}vmaxpd ymm3, ymm3, ymm2;{$ELSE}db $C5,$E5,$5F,$DA;{$ENDIF} 
+           {$IFDEF FPC}vmovupd ymm2, [ecx + eax - 32];{$ELSE}db $C5,$FD,$10,$54,$01,$E0;{$ENDIF} 
+           {$IFDEF FPC}vmaxpd ymm4, ymm4, ymm2;{$ELSE}db $C5,$DD,$5F,$E2;{$ENDIF} 
        add eax, 128;
        jle @addforxloop;
 
-       vextractf128 xmm2, ymm3, 1;
-       vmaxpd xmm2, xmm2, xmm3;
-       vmaxpd xmm0, xmm0, xmm2;
-       vextractf128 xmm2, ymm4, 1;
-       vmaxpd xmm2, xmm2, xmm4;
-       vmaxpd xmm0, xmm0, xmm2;
+       {$IFDEF FPC}vextractf128 xmm2, ymm3, 1;{$ELSE}db $C4,$E3,$7D,$19,$DA,$01;{$ENDIF} 
+       {$IFDEF FPC}vmaxpd xmm2, xmm2, xmm3;{$ELSE}db $C5,$E9,$5F,$D3;{$ENDIF} 
+       {$IFDEF FPC}vmaxpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$5F,$C2;{$ENDIF} 
+       {$IFDEF FPC}vextractf128 xmm2, ymm4, 1;{$ELSE}db $C4,$E3,$7D,$19,$E2,$01;{$ENDIF} 
+       {$IFDEF FPC}vmaxpd xmm2, xmm2, xmm4;{$ELSE}db $C5,$E9,$5F,$D4;{$ENDIF} 
+       {$IFDEF FPC}vmaxpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$5F,$C2;{$ENDIF} 
 
        @loopEnd:
 
@@ -205,8 +201,8 @@ asm
            add eax, 16;
            jg @addforxloop2end;
 
-           vmovupd xmm2, [ecx + eax - 16];
-           vmaxpd xmm0, xmm0, xmm2;
+           {$IFDEF FPC}vmovupd xmm2, [ecx + eax - 16];{$ELSE}db $C5,$F9,$10,$54,$01,$F0;{$ENDIF} 
+           {$IFDEF FPC}vmaxpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$5F,$C2;{$ENDIF} 
        jmp @addforxloop2;
 
        @addforxloop2end:
@@ -214,8 +210,8 @@ asm
        sub eax, 16;
        jz @nextLine;
 
-       vmovsd xmm2, [ecx + eax];
-       vmaxsd xmm0, xmm0, xmm2;
+       {$IFDEF FPC}vmovsd xmm2, [ecx + eax];{$ELSE}db $C5,$FB,$10,$14,$01;{$ENDIF} 
+       {$IFDEF FPC}vmaxsd xmm0, xmm0, xmm2;{$ELSE}db $C5,$FB,$5F,$C2;{$ENDIF} 
 
        @nextLine:
 
@@ -227,24 +223,20 @@ asm
    jnz @@addforyloop;
 
    // final max ->
-   vmovhlps xmm1, xmm1, xmm0;
-   vmaxsd xmm0, xmm0, xmm1;
-   vmovsd Result, xmm0;
+   {$IFDEF FPC}vmovhlps xmm1, xmm1, xmm0;{$ELSE}db $C5,$F0,$12,$C8;{$ENDIF} 
+   {$IFDEF FPC}vmaxsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$5F,$C1;{$ENDIF} 
+   {$IFDEF FPC}vmovsd Result, xmm0;{$ELSE}db $C5,$FB,$11,$45,$E8;{$ENDIF} 
 
    // epilog - cleanup stack
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 
    pop ebx;
    pop edi;
-{$IFDEF FPC}
 end;
-{$ENDIF}
 end;
 
 function AVXMatrixMinAligned(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-{$IFDEF FPC}
 begin
-{$ENDIF}
 asm
    // prolog - simulate stack
    push ebx;
@@ -260,9 +252,9 @@ asm
 
    // init result
    lea eax, cMaxDouble;
-   vbroadcastsd ymm0, [eax];
-   vmovapd ymm3, ymm0;
-   vmovapd ymm4, ymm0;
+   {$IFDEF FPC}vbroadcastsd ymm0, [eax];{$ELSE}db $C4,$E2,$7D,$19,$00;{$ENDIF} 
+   {$IFDEF FPC}vmovapd ymm3, ymm0;{$ELSE}db $C5,$FD,$28,$D8;{$ENDIF} 
+   {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$28,$E0;{$ENDIF} 
 
    // for y := 0 to height - 1:
    mov ebx, Height;
@@ -278,20 +270,20 @@ asm
            // prefetch [ecx + eax];
 
            // max:
-           vminpd ymm3, ymm3, [ecx + eax - 128];
-           vminpd ymm4, ymm4, [ecx + eax - 96];
-           vminpd ymm3, ymm3, [ecx + eax - 64];
-           vminpd ymm4, ymm4, [ecx + eax - 32];
+           {$IFDEF FPC}vminpd ymm3, ymm3, [ecx + eax - 128];{$ELSE}db $C5,$E5,$5D,$5C,$01,$80;{$ENDIF} 
+           {$IFDEF FPC}vminpd ymm4, ymm4, [ecx + eax - 96];{$ELSE}db $C5,$DD,$5D,$64,$01,$A0;{$ENDIF} 
+           {$IFDEF FPC}vminpd ymm3, ymm3, [ecx + eax - 64];{$ELSE}db $C5,$E5,$5D,$5C,$01,$C0;{$ENDIF} 
+           {$IFDEF FPC}vminpd ymm4, ymm4, [ecx + eax - 32];{$ELSE}db $C5,$DD,$5D,$64,$01,$E0;{$ENDIF} 
 
        add eax, 128;
        jle @addforxloop;
 
-       vextractf128 xmm2, ymm3, 1;
-       vminpd xmm2, xmm2, xmm3;
-       vminpd xmm0, xmm0, xmm2;
-       vextractf128 xmm2, ymm4, 1;
-       vminpd xmm2, xmm2, xmm4;
-       vminpd xmm0, xmm0, xmm2;
+       {$IFDEF FPC}vextractf128 xmm2, ymm3, 1;{$ELSE}db $C4,$E3,$7D,$19,$DA,$01;{$ENDIF} 
+       {$IFDEF FPC}vminpd xmm2, xmm2, xmm3;{$ELSE}db $C5,$E9,$5D,$D3;{$ENDIF} 
+       {$IFDEF FPC}vminpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$5D,$C2;{$ENDIF} 
+       {$IFDEF FPC}vextractf128 xmm2, ymm4, 1;{$ELSE}db $C4,$E3,$7D,$19,$E2,$01;{$ENDIF} 
+       {$IFDEF FPC}vminpd xmm2, xmm2, xmm4;{$ELSE}db $C5,$E9,$5D,$D4;{$ENDIF} 
+       {$IFDEF FPC}vminpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$5D,$C2;{$ENDIF} 
 
        @loopEnd:
 
@@ -303,7 +295,7 @@ asm
            add eax, 16;
            jg @addforxloop2end;
 
-           vminpd xmm0, xmm0, [ecx + eax - 16];
+           {$IFDEF FPC}vminpd xmm0, xmm0, [ecx + eax - 16];{$ELSE}db $C5,$F9,$5D,$44,$01,$F0;{$ENDIF} 
        jmp @addforxloop2;
 
        @addforxloop2end:
@@ -311,8 +303,8 @@ asm
        sub eax, 16;
        jz @nextLine;
 
-       vmovsd xmm2, [ecx + eax];
-       vminsd xmm0, xmm0, xmm2;
+       {$IFDEF FPC}vmovsd xmm2, [ecx + eax];{$ELSE}db $C5,$FB,$10,$14,$01;{$ENDIF} 
+       {$IFDEF FPC}vminsd xmm0, xmm0, xmm2;{$ELSE}db $C5,$FB,$5D,$C2;{$ENDIF} 
 
        @nextLine:
 
@@ -324,24 +316,20 @@ asm
    jnz @@addforyloop;
 
    // final max ->
-   vmovhlps xmm1, xmm1, xmm0;
-   vminsd xmm0, xmm0, xmm1;
-   vmovsd Result, xmm0;
+   {$IFDEF FPC}vmovhlps xmm1, xmm1, xmm0;{$ELSE}db $C5,$F0,$12,$C8;{$ENDIF} 
+   {$IFDEF FPC}vminsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$5D,$C1;{$ENDIF} 
+   {$IFDEF FPC}vmovsd Result, xmm0;{$ELSE}db $C5,$FB,$11,$45,$E8;{$ENDIF} 
 
    // epilog - cleanup stack
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 
    pop ebx;
    pop edi;
-{$IFDEF FPC}
 end;
-{$ENDIF}
 end;
 
 function AVXMatrixMinUnAligned(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-{$IFDEF FPC}
 begin
-{$ENDIF}
 asm
    // prolog - simulate stack
    push ebx;
@@ -357,9 +345,9 @@ asm
 
    // init result
    lea eax, cMaxDouble;
-   vbroadcastsd ymm0, [eax];
-   vmovapd ymm3, ymm0;
-   vmovapd ymm4, ymm0;
+   {$IFDEF FPC}vbroadcastsd ymm0, [eax];{$ELSE}db $C4,$E2,$7D,$19,$00;{$ENDIF} 
+   {$IFDEF FPC}vmovapd ymm3, ymm0;{$ELSE}db $C5,$FD,$28,$D8;{$ENDIF} 
+   {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$28,$E0;{$ENDIF} 
 
    // for y := 0 to height - 1:
    mov ebx, Height;
@@ -376,23 +364,23 @@ asm
            // prefetch [ecx + eax];
 
            // max:
-           vmovupd ymm2, [ecx + eax - 128];
-           vminpd ymm3, ymm3, ymm2;
-           vmovupd ymm2, [ecx + eax - 96];
-           vminpd ymm4, ymm4, ymm2;
-           vmovupd ymm2, [ecx + eax - 64];
-           vminpd ymm3, ymm3, ymm2;
-           vmovupd ymm2, [ecx + eax - 32];
-           vminpd ymm4, ymm4, ymm2;
+           {$IFDEF FPC}vmovupd ymm2, [ecx + eax - 128];{$ELSE}db $C5,$FD,$10,$54,$01,$80;{$ENDIF} 
+           {$IFDEF FPC}vminpd ymm3, ymm3, ymm2;{$ELSE}db $C5,$E5,$5D,$DA;{$ENDIF} 
+           {$IFDEF FPC}vmovupd ymm2, [ecx + eax - 96];{$ELSE}db $C5,$FD,$10,$54,$01,$A0;{$ENDIF} 
+           {$IFDEF FPC}vminpd ymm4, ymm4, ymm2;{$ELSE}db $C5,$DD,$5D,$E2;{$ENDIF} 
+           {$IFDEF FPC}vmovupd ymm2, [ecx + eax - 64];{$ELSE}db $C5,$FD,$10,$54,$01,$C0;{$ENDIF} 
+           {$IFDEF FPC}vminpd ymm3, ymm3, ymm2;{$ELSE}db $C5,$E5,$5D,$DA;{$ENDIF} 
+           {$IFDEF FPC}vmovupd ymm2, [ecx + eax - 32];{$ELSE}db $C5,$FD,$10,$54,$01,$E0;{$ENDIF} 
+           {$IFDEF FPC}vminpd ymm4, ymm4, ymm2;{$ELSE}db $C5,$DD,$5D,$E2;{$ENDIF} 
        add eax, 128;
        jle @addforxloop;
 
-       vextractf128 xmm2, ymm3, 1;
-       vminpd xmm2, xmm2, xmm3;
-       vminpd xmm0, xmm0, xmm2;
-       vextractf128 xmm2, ymm4, 1;
-       vminpd xmm2, xmm2, xmm4;
-       vminpd xmm0, xmm0, xmm2;
+       {$IFDEF FPC}vextractf128 xmm2, ymm3, 1;{$ELSE}db $C4,$E3,$7D,$19,$DA,$01;{$ENDIF} 
+       {$IFDEF FPC}vminpd xmm2, xmm2, xmm3;{$ELSE}db $C5,$E9,$5D,$D3;{$ENDIF} 
+       {$IFDEF FPC}vminpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$5D,$C2;{$ENDIF} 
+       {$IFDEF FPC}vextractf128 xmm2, ymm4, 1;{$ELSE}db $C4,$E3,$7D,$19,$E2,$01;{$ENDIF} 
+       {$IFDEF FPC}vminpd xmm2, xmm2, xmm4;{$ELSE}db $C5,$E9,$5D,$D4;{$ENDIF} 
+       {$IFDEF FPC}vminpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$5D,$C2;{$ENDIF} 
 
        @loopEnd:
 
@@ -404,8 +392,8 @@ asm
            add eax, 16;
            jg @addforxloop2end;
 
-           vmovupd xmm2, [ecx + eax - 16];
-           vminpd xmm0, xmm0, xmm2;
+           {$IFDEF FPC}vmovupd xmm2, [ecx + eax - 16];{$ELSE}db $C5,$F9,$10,$54,$01,$F0;{$ENDIF} 
+           {$IFDEF FPC}vminpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$5D,$C2;{$ENDIF} 
        jmp @addforxloop2;
 
        @addforxloop2end:
@@ -413,8 +401,8 @@ asm
        sub eax, 16;
        jz @nextLine;
 
-       vmovsd xmm2, [ecx + eax];
-       vminsd xmm0, xmm0, xmm2;
+       {$IFDEF FPC}vmovsd xmm2, [ecx + eax];{$ELSE}db $C5,$FB,$10,$14,$01;{$ENDIF} 
+       {$IFDEF FPC}vminsd xmm0, xmm0, xmm2;{$ELSE}db $C5,$FB,$5D,$C2;{$ENDIF} 
 
        @nextLine:
 
@@ -426,18 +414,16 @@ asm
    jnz @@addforyloop;
 
    // final max ->
-   vmovhlps xmm1, xmm1, xmm0;
-   vminsd xmm0, xmm0, xmm1;
-   vmovsd Result, xmm0;
+   {$IFDEF FPC}vmovhlps xmm1, xmm1, xmm0;{$ELSE}db $C5,$F0,$12,$C8;{$ENDIF} 
+   {$IFDEF FPC}vminsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$5D,$C1;{$ENDIF} 
+   {$IFDEF FPC}vmovsd Result, xmm0;{$ELSE}db $C5,$FB,$11,$45,$E8;{$ENDIF} 
 
    // epilog - cleanup stack
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 
    pop ebx;
    pop edi;
-{$IFDEF FPC}
 end;
-{$ENDIF}
 end;
 
 {$ENDIF}

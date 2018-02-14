@@ -69,9 +69,9 @@ asm
    mov iRSI, rsi;
    mov iRDI, rdi;
 
-   vmovupd dXMM5, xmm5;
-   vmovupd dXMM6, xmm6;
-   vmovupd dXMM7, xmm7;
+   {$IFDEF FPC}vmovupd dXMM5, xmm5;{$ELSE}db $C5,$F9,$11,$6D,$90;{$ENDIF} 
+   {$IFDEF FPC}vmovupd dXMM6, xmm6;{$ELSE}db $C5,$F9,$11,$75,$80;{$ENDIF} 
+   {$IFDEF FPC}vmovupd dXMM7, xmm7;{$ELSE}db $C5,$F9,$11,$BD,$FF,$FF,$FF,$70;{$ENDIF} 
 
 
    // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
@@ -114,29 +114,29 @@ asm
          add rax, 32;
          jg @loopend4;
 
-         vmovapd ymm0, [r12 + rax - 32];
-         vmovapd ymm1, [r13 + rax - 32];
-         vmovapd ymm2, [r14 + rax - 32];
-         vmovapd ymm3, [r15 + rax - 32];
+         {$IFDEF FPC}vmovapd ymm0, [r12 + rax - 32];{$ELSE}db $C4,$C1,$7D,$28,$44,$04,$E0;{$ENDIF} 
+         {$IFDEF FPC}vmovapd ymm1, [r13 + rax - 32];{$ELSE}db $C4,$C1,$7D,$28,$4C,$05,$E0;{$ENDIF} 
+         {$IFDEF FPC}vmovapd ymm2, [r14 + rax - 32];{$ELSE}db $C4,$C1,$7D,$28,$54,$06,$E0;{$ENDIF} 
+         {$IFDEF FPC}vmovapd ymm3, [r15 + rax - 32];{$ELSE}db $C4,$C1,$7D,$28,$5C,$07,$E0;{$ENDIF} 
 
-         vunpckhpd ymm4, ymm0, ymm1;
-         vunpckhpd ymm5, ymm2, ymm3;
-         vunpcklpd ymm7, ymm2, ymm3;
+         {$IFDEF FPC}vunpckhpd ymm4, ymm0, ymm1;{$ELSE}db $C5,$FD,$15,$E1;{$ENDIF} 
+         {$IFDEF FPC}vunpckhpd ymm5, ymm2, ymm3;{$ELSE}db $C5,$ED,$15,$EB;{$ENDIF} 
+         {$IFDEF FPC}vunpcklpd ymm7, ymm2, ymm3;{$ELSE}db $C5,$ED,$14,$FB;{$ENDIF} 
 
-         vperm2f128 ymm3, ymm4, ymm5, $31;
+         {$IFDEF FPC}vperm2f128 ymm3, ymm4, ymm5, $31;{$ELSE}db $C4,$E3,$5D,$06,$DD,$31;{$ENDIF} 
 
-         vunpcklpd ymm6, ymm0, ymm1;
-         vinsertf128 ymm1, ymm4, xmm5, 1;
-         vperm2f128 ymm2, ymm6, ymm7, $31;
-         vinsertf128 ymm0, ymm6, xmm7, 1;
+         {$IFDEF FPC}vunpcklpd ymm6, ymm0, ymm1;{$ELSE}db $C5,$FD,$14,$F1;{$ENDIF} 
+         {$IFDEF FPC}vinsertf128 ymm1, ymm4, xmm5, 1;{$ELSE}db $C4,$E3,$5D,$18,$CD,$01;{$ENDIF} 
+         {$IFDEF FPC}vperm2f128 ymm2, ymm6, ymm7, $31;{$ELSE}db $C4,$E3,$4D,$06,$D7,$31;{$ENDIF} 
+         {$IFDEF FPC}vinsertf128 ymm0, ymm6, xmm7, 1;{$ELSE}db $C4,$E3,$4D,$18,$C7,$01;{$ENDIF} 
 
-         vmovapd [rsi], ymm0;
+         {$IFDEF FPC}vmovapd [rsi], ymm0;{$ELSE}db $C5,$FD,$29,$06;{$ENDIF} 
          add rsi, rdx;
-         vmovapd [rsi], ymm1;
+         {$IFDEF FPC}vmovapd [rsi], ymm1;{$ELSE}db $C5,$FD,$29,$0E;{$ENDIF} 
          add rsi, rdx;
-         vmovapd [rsi], ymm2;
+         {$IFDEF FPC}vmovapd [rsi], ymm2;{$ELSE}db $C5,$FD,$29,$16;{$ENDIF} 
          add rsi, rdx;
-         vmovapd [rsi], ymm3;
+         {$IFDEF FPC}vmovapd [rsi], ymm3;{$ELSE}db $C5,$FD,$29,$1E;{$ENDIF} 
          add rsi, rdx;
       jmp @forxloop4;
 
@@ -146,17 +146,17 @@ asm
 
        // handle the missing columns
       @forxloop:
-         vmovsd xmm0, [r12 + rax];
-         vmovsd [rsi], xmm0;
+         {$IFDEF FPC}vmovsd xmm0, [r12 + rax];{$ELSE}db $C4,$C1,$7B,$10,$04,$04;{$ENDIF} 
+         {$IFDEF FPC}vmovsd [rsi], xmm0;{$ELSE}db $C5,$FB,$11,$06;{$ENDIF} 
 
-         vmovsd xmm0, [r13 + rax];
-         vmovsd [rsi + 8], xmm0;
+         {$IFDEF FPC}vmovsd xmm0, [r13 + rax];{$ELSE}db $C4,$C1,$7B,$10,$44,$05,$00;{$ENDIF} 
+         {$IFDEF FPC}vmovsd [rsi + 8], xmm0;{$ELSE}db $C5,$FB,$11,$46,$08;{$ENDIF} 
 
-         vmovsd xmm0, [r14 + rax];
-         vmovsd [rsi + 16], xmm0;
+         {$IFDEF FPC}vmovsd xmm0, [r14 + rax];{$ELSE}db $C4,$C1,$7B,$10,$04,$06;{$ENDIF} 
+         {$IFDEF FPC}vmovsd [rsi + 16], xmm0;{$ELSE}db $C5,$FB,$11,$46,$10;{$ENDIF} 
 
-         vmovsd xmm0, [r15 + rax];
-         vmovsd [rsi + 24], xmm0;
+         {$IFDEF FPC}vmovsd xmm0, [r15 + rax];{$ELSE}db $C4,$C1,$7B,$10,$04,$07;{$ENDIF} 
+         {$IFDEF FPC}vmovsd [rsi + 24], xmm0;{$ELSE}db $C5,$FB,$11,$46,$18;{$ENDIF} 
          add rsi, rdx;
 
       add rax, 8;
@@ -182,8 +182,8 @@ asm
       mov rax, r10;
 
       @@forxloop:
-         vmovsd xmm0, [r8 + rax];
-         vmovsd [rsi], xmm0;
+         {$IFDEF FPC}vmovsd xmm0, [r8 + rax];{$ELSE}db $C4,$C1,$7B,$10,$04,$00;{$ENDIF} 
+         {$IFDEF FPC}vmovsd [rsi], xmm0;{$ELSE}db $C5,$FB,$11,$06;{$ENDIF} 
          add rsi, rdx;
       add rax, 8;
       jnz @@forxloop;
@@ -205,10 +205,10 @@ asm
    mov rsi, iRSI;
    mov rdi, iRDI;
 
-   vmovupd xmm5, dXMM5;
-   vmovupd xmm6, dXMM6;
-   vmovupd xmm7, dXMM7;
-   vzeroupper;
+   {$IFDEF FPC}vmovupd xmm5, dXMM5;{$ELSE}db $C5,$F9,$10,$6D,$90;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm6, dXMM6;{$ELSE}db $C5,$F9,$10,$75,$80;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm7, dXMM7;{$ELSE}db $C5,$F9,$10,$BD,$FF,$FF,$FF,$70;{$ENDIF} 
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 {$IFDEF FPC}
 end;
@@ -242,9 +242,9 @@ asm
    mov iRSI, rsi;
    mov iRDI, rdi;
 
-   vmovupd dXMM5, xmm5;
-   vmovupd dXMM6, xmm6;
-   vmovupd dXMM7, xmm7;
+   {$IFDEF FPC}vmovupd dXMM5, xmm5;{$ELSE}db $C5,$F9,$11,$6D,$90;{$ENDIF} 
+   {$IFDEF FPC}vmovupd dXMM6, xmm6;{$ELSE}db $C5,$F9,$11,$75,$80;{$ENDIF} 
+   {$IFDEF FPC}vmovupd dXMM7, xmm7;{$ELSE}db $C5,$F9,$11,$BD,$FF,$FF,$FF,$70;{$ENDIF} 
 
 
    // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
@@ -287,29 +287,29 @@ asm
          add rax, 32;
          jg @loopend4;
 
-         vmovupd ymm0, [r12 + rax - 32];
-         vmovupd ymm1, [r13 + rax - 32];
-         vmovupd ymm2, [r14 + rax - 32];
-         vmovupd ymm3, [r15 + rax - 32];
+         {$IFDEF FPC}vmovupd ymm0, [r12 + rax - 32];{$ELSE}db $C4,$C1,$7D,$10,$44,$04,$E0;{$ENDIF} 
+         {$IFDEF FPC}vmovupd ymm1, [r13 + rax - 32];{$ELSE}db $C4,$C1,$7D,$10,$4C,$05,$E0;{$ENDIF} 
+         {$IFDEF FPC}vmovupd ymm2, [r14 + rax - 32];{$ELSE}db $C4,$C1,$7D,$10,$54,$06,$E0;{$ENDIF} 
+         {$IFDEF FPC}vmovupd ymm3, [r15 + rax - 32];{$ELSE}db $C4,$C1,$7D,$10,$5C,$07,$E0;{$ENDIF} 
 
-         vunpckhpd ymm4, ymm0, ymm1;
-         vunpckhpd ymm5, ymm2, ymm3;
-         vunpcklpd ymm7, ymm2, ymm3;
+         {$IFDEF FPC}vunpckhpd ymm4, ymm0, ymm1;{$ELSE}db $C5,$FD,$15,$E1;{$ENDIF} 
+         {$IFDEF FPC}vunpckhpd ymm5, ymm2, ymm3;{$ELSE}db $C5,$ED,$15,$EB;{$ENDIF} 
+         {$IFDEF FPC}vunpcklpd ymm7, ymm2, ymm3;{$ELSE}db $C5,$ED,$14,$FB;{$ENDIF} 
 
-         vperm2f128 ymm3, ymm4, ymm5, $31;
+         {$IFDEF FPC}vperm2f128 ymm3, ymm4, ymm5, $31;{$ELSE}db $C4,$E3,$5D,$06,$DD,$31;{$ENDIF} 
 
-         vunpcklpd ymm6, ymm0, ymm1;
-         vinsertf128 ymm1, ymm4, xmm5, 1;
-         vperm2f128 ymm2, ymm6, ymm7, $31;
-         vinsertf128 ymm0, ymm6, xmm7, 1;
+         {$IFDEF FPC}vunpcklpd ymm6, ymm0, ymm1;{$ELSE}db $C5,$FD,$14,$F1;{$ENDIF} 
+         {$IFDEF FPC}vinsertf128 ymm1, ymm4, xmm5, 1;{$ELSE}db $C4,$E3,$5D,$18,$CD,$01;{$ENDIF} 
+         {$IFDEF FPC}vperm2f128 ymm2, ymm6, ymm7, $31;{$ELSE}db $C4,$E3,$4D,$06,$D7,$31;{$ENDIF} 
+         {$IFDEF FPC}vinsertf128 ymm0, ymm6, xmm7, 1;{$ELSE}db $C4,$E3,$4D,$18,$C7,$01;{$ENDIF} 
 
-         vmovupd [rsi], ymm0;
+         {$IFDEF FPC}vmovupd [rsi], ymm0;{$ELSE}db $C5,$FD,$11,$06;{$ENDIF} 
          add rsi, rdx;
-         vmovupd [rsi], ymm1;
+         {$IFDEF FPC}vmovupd [rsi], ymm1;{$ELSE}db $C5,$FD,$11,$0E;{$ENDIF} 
          add rsi, rdx;
-         vmovupd [rsi], ymm2;
+         {$IFDEF FPC}vmovupd [rsi], ymm2;{$ELSE}db $C5,$FD,$11,$16;{$ENDIF} 
          add rsi, rdx;
-         vmovupd [rsi], ymm3;
+         {$IFDEF FPC}vmovupd [rsi], ymm3;{$ELSE}db $C5,$FD,$11,$1E;{$ENDIF} 
          add rsi, rdx;
       jmp @forxloop4;
 
@@ -319,17 +319,17 @@ asm
 
        // handle the missing columns
       @forxloop:
-         vmovsd xmm0, [r12 + rax];
-         vmovsd [rsi], xmm0;
+         {$IFDEF FPC}vmovsd xmm0, [r12 + rax];{$ELSE}db $C4,$C1,$7B,$10,$04,$04;{$ENDIF} 
+         {$IFDEF FPC}vmovsd [rsi], xmm0;{$ELSE}db $C5,$FB,$11,$06;{$ENDIF} 
 
-         vmovsd xmm0, [r13 + rax];
-         vmovsd [rsi + 8], xmm0;
+         {$IFDEF FPC}vmovsd xmm0, [r13 + rax];{$ELSE}db $C4,$C1,$7B,$10,$44,$05,$00;{$ENDIF} 
+         {$IFDEF FPC}vmovsd [rsi + 8], xmm0;{$ELSE}db $C5,$FB,$11,$46,$08;{$ENDIF} 
 
-         vmovsd xmm0, [r14 + rax];
-         vmovsd [rsi + 16], xmm0;
+         {$IFDEF FPC}vmovsd xmm0, [r14 + rax];{$ELSE}db $C4,$C1,$7B,$10,$04,$06;{$ENDIF} 
+         {$IFDEF FPC}vmovsd [rsi + 16], xmm0;{$ELSE}db $C5,$FB,$11,$46,$10;{$ENDIF} 
 
-         vmovsd xmm0, [r15 + rax];
-         vmovsd [rsi + 24], xmm0;
+         {$IFDEF FPC}vmovsd xmm0, [r15 + rax];{$ELSE}db $C4,$C1,$7B,$10,$04,$07;{$ENDIF} 
+         {$IFDEF FPC}vmovsd [rsi + 24], xmm0;{$ELSE}db $C5,$FB,$11,$46,$18;{$ENDIF} 
          add rsi, rdx;
 
       add rax, 8;
@@ -355,8 +355,8 @@ asm
       mov rax, r10;
 
       @@forxloop:
-         vmovsd xmm0, [r8 + rax];
-         vmovsd [rsi], xmm0;
+         {$IFDEF FPC}vmovsd xmm0, [r8 + rax];{$ELSE}db $C4,$C1,$7B,$10,$04,$00;{$ENDIF} 
+         {$IFDEF FPC}vmovsd [rsi], xmm0;{$ELSE}db $C5,$FB,$11,$06;{$ENDIF} 
          add rsi, rdx;
       add rax, 8;
       jnz @@forxloop;
@@ -378,10 +378,10 @@ asm
    mov rsi, iRSI;
    mov rdi, iRDI;
 
-   vmovupd xmm5, dXMM5;
-   vmovupd xmm6, dXMM6;
-   vmovupd xmm7, dXMM7;
-   vzeroupper;
+   {$IFDEF FPC}vmovupd xmm5, dXMM5;{$ELSE}db $C5,$F9,$10,$6D,$90;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm6, dXMM6;{$ELSE}db $C5,$F9,$10,$75,$80;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm7, dXMM7;{$ELSE}db $C5,$F9,$10,$BD,$FF,$FF,$FF,$70;{$ENDIF} 
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 {$IFDEF FPC}
 end;
@@ -433,11 +433,11 @@ asm
       mov rsi, rbx;
       // for x := y + 1 to n-1 do
       @@forxloop:
-         vmovsd xmm0, [rcx + rdi];
-         vmovsd xmm1, [rsi];
+         {$IFDEF FPC}vmovsd xmm0, [rcx + rdi];{$ELSE}db $C5,$FB,$10,$04,$39;{$ENDIF} 
+         {$IFDEF FPC}vmovsd xmm1, [rsi];{$ELSE}db $C5,$FB,$10,$0E;{$ENDIF} 
 
-         vmovsd [rcx + rdi], xmm1;
-         vmovsd [rsi], xmm0;
+         {$IFDEF FPC}vmovsd [rcx + rdi], xmm1;{$ELSE}db $C5,$FB,$11,$0C,$39;{$ENDIF} 
+         {$IFDEF FPC}vmovsd [rsi], xmm0;{$ELSE}db $C5,$FB,$11,$06;{$ENDIF} 
 
          add rsi, rdx;
       add rdi, 8;
@@ -459,7 +459,7 @@ asm
    mov rdi, iRDI;
    mov rsi, iRSI;
 
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 {$IFDEF FPC}
 end;

@@ -74,23 +74,23 @@ begin
         sub edx, iter;
 
         lea ecx, cOne;
-        vmovsd xmm7, [ecx];
+        {$IFDEF FPC}vmovsd xmm7, [ecx];{$ELSE}db $C5,$FB,$10,$39;{$ENDIF} 
 
         mov ecx, edx;   // A[y][x]
         sub ecx, LineWidthA;
 
-        vxorpd xmm6, xmm6, xmm6;  // compare reference
+        {$IFDEF FPC}vxorpd xmm6, xmm6, xmm6;  {$ELSE}db $C5,$C9,$57,$F6;{$ENDIF} // compare reference
 
         @@foryloop:
-           vmovddup xmm0, [eax];  // c[y]
-           vmovddup xmm1, [ebx];  // s[y]
+           {$IFDEF FPC}vmovddup xmm0, [eax];  {$ELSE}db $C5,$FB,$12,$00;{$ENDIF} // c[y]
+           {$IFDEF FPC}vmovddup xmm1, [ebx];  {$ELSE}db $C5,$FB,$12,$0B;{$ENDIF} // s[y]
 
            // ###########################################
            // #### if (ctemp <> 1) or (stemp <> 0) then
-           vcomisd xmm0, xmm7; // = 1
+           {$IFDEF FPC}vcomisd xmm0, xmm7; {$ELSE}db $C5,$F9,$2F,$C7;{$ENDIF} // = 1
            jne @@beginXLoop;
 
-           vcomisd xmm1, xmm6; // = 0
+           {$IFDEF FPC}vcomisd xmm1, xmm6; {$ELSE}db $C5,$F9,$2F,$CE;{$ENDIF} // = 0
            jne @@beginXLoop;
 
            jmp @@nextLine; // c=1 and stemp=0 next line -> the statement
@@ -111,28 +111,28 @@ begin
               //     pcAy1^[x + 1] := cTemp*temp1 - stemp*pcAy1[x + 1];
 
               // evaluate 2 values
-              vmovupd xmm2, [ecx + edi];
-              vmovupd xmm3, [edx + edi];
+              {$IFDEF FPC}vmovupd xmm2, [ecx + edi];{$ELSE}db $C5,$F9,$10,$14,$39;{$ENDIF} 
+              {$IFDEF FPC}vmovupd xmm3, [edx + edi];{$ELSE}db $C5,$F9,$10,$1C,$3A;{$ENDIF} 
 
               // temp store...
-              vmovapd xmm4, xmm2
-              vmovapd xmm5, xmm3;
+              {$IFDEF FPC}vmovapd xmm4, xmm2{$ELSE}db $C5,$F9,$28,$E2;{$ENDIF} 
+              {$IFDEF FPC}vmovapd xmm5, xmm3;{$ELSE}db $C5,$F9,$28,$EB;{$ENDIF} 
 
-              vmulpd xmm3, xmm3, xmm0; // ctemp*pcay1^[x] and ctemp*a[x+1]
-              vmulpd xmm2, xmm2, xmm1;  // stemp*pcAy^[x] and stemp*a[x+1]
+              {$IFDEF FPC}vmulpd xmm3, xmm3, xmm0; {$ELSE}db $C5,$E1,$59,$D8;{$ENDIF} // ctemp*pcay1^[x] and ctemp*a[x+1]
+              {$IFDEF FPC}vmulpd xmm2, xmm2, xmm1;  {$ELSE}db $C5,$E9,$59,$D1;{$ENDIF} // stemp*pcAy^[x] and stemp*a[x+1]
 
-              vsubpd xmm3, xmm3, xmm2;
+              {$IFDEF FPC}vsubpd xmm3, xmm3, xmm2;{$ELSE}db $C5,$E1,$5C,$DA;{$ENDIF} 
 
               //     pcAy^[x] := stemp*temp + ctemp*pcAy^[x];
               //     pcAy^[x + 1] := stemp*temp1 + ctemp*pcAy^[x + 1]
-              vmulpd xmm4, xmm4, xmm0;
-              vmulpd xmm5, xmm5, xmm1;
+              {$IFDEF FPC}vmulpd xmm4, xmm4, xmm0;{$ELSE}db $C5,$D9,$59,$E0;{$ENDIF} 
+              {$IFDEF FPC}vmulpd xmm5, xmm5, xmm1;{$ELSE}db $C5,$D1,$59,$E9;{$ENDIF} 
 
-              vaddpd xmm5, xmm5, xmm4;
+              {$IFDEF FPC}vaddpd xmm5, xmm5, xmm4;{$ELSE}db $C5,$D1,$58,$EC;{$ENDIF} 
 
               // write back...
-              vmovupd [ecx + edi], xmm5;
-              vmovupd [edx + edi], xmm3;
+              {$IFDEF FPC}vmovupd [ecx + edi], xmm5;{$ELSE}db $C5,$F9,$11,$2C,$39;{$ENDIF} 
+              {$IFDEF FPC}vmovupd [edx + edi], xmm3;{$ELSE}db $C5,$F9,$11,$1C,$3A;{$ENDIF} 
 
               add edi, 16;
            jnz @@forxloop;
@@ -146,24 +146,24 @@ begin
            jz @@nextLine;
 
            // same as above but with single elements
-           vmovsd xmm2, [ecx];
-           vmovsd xmm3, [edx];
+           {$IFDEF FPC}vmovsd xmm2, [ecx];{$ELSE}db $C5,$FB,$10,$11;{$ENDIF} 
+           {$IFDEF FPC}vmovsd xmm3, [edx];{$ELSE}db $C5,$FB,$10,$1A;{$ENDIF} 
 
-           vmovapd xmm4, xmm2;
-           vmovapd xmm5, xmm3;
+           {$IFDEF FPC}vmovapd xmm4, xmm2;{$ELSE}db $C5,$F9,$28,$E2;{$ENDIF} 
+           {$IFDEF FPC}vmovapd xmm5, xmm3;{$ELSE}db $C5,$F9,$28,$EB;{$ENDIF} 
 
-           vmulsd xmm3, xmm3, xmm0;
-           vmulsd xmm2, xmm2, xmm1;
+           {$IFDEF FPC}vmulsd xmm3, xmm3, xmm0;{$ELSE}db $C5,$E3,$59,$D8;{$ENDIF} 
+           {$IFDEF FPC}vmulsd xmm2, xmm2, xmm1;{$ELSE}db $C5,$EB,$59,$D1;{$ENDIF} 
 
-           vsubsd xmm3, xmm3, xmm2;
+           {$IFDEF FPC}vsubsd xmm3, xmm3, xmm2;{$ELSE}db $C5,$E3,$5C,$DA;{$ENDIF} 
 
-           vmulsd xmm4, xmm4, xmm0;
-           vmulsd xmm5, xmm5, xmm1;
+           {$IFDEF FPC}vmulsd xmm4, xmm4, xmm0;{$ELSE}db $C5,$DB,$59,$E0;{$ENDIF} 
+           {$IFDEF FPC}vmulsd xmm5, xmm5, xmm1;{$ELSE}db $C5,$D3,$59,$E9;{$ENDIF} 
 
-           vaddsd xmm5, xmm5, xmm4;
+           {$IFDEF FPC}vaddsd xmm5, xmm5, xmm4;{$ELSE}db $C5,$D3,$58,$EC;{$ENDIF} 
 
-           vmovsd [ecx], xmm5;
-           vmovsd [edx], xmm3;
+           {$IFDEF FPC}vmovsd [ecx], xmm5;{$ELSE}db $C5,$FB,$11,$29;{$ENDIF} 
+           {$IFDEF FPC}vmovsd [edx], xmm3;{$ELSE}db $C5,$FB,$11,$1A;{$ENDIF} 
 
            // ###########################################
            // #### next y
@@ -178,7 +178,7 @@ begin
 
         pop edi;
         pop ebx;
-        vzeroupper;
+        {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
      end;
 end;
 
@@ -201,22 +201,22 @@ begin
         sub ecx, iter;
 
         lea edx, cOne;
-        vmovsd xmm7, [edx];
+        {$IFDEF FPC}vmovsd xmm7, [edx];{$ELSE}db $C5,$FB,$10,$3A;{$ENDIF} 
 
         mov edx, ecx;   // A[y+1][x]
         add edx, LineWidthA;
 
 
         @@foryloop:
-           vmovddup xmm0, [eax];  // c[y]
-           vmovddup xmm1, [ebx];  // s[y]
+           {$IFDEF FPC}vmovddup xmm0, [eax];  {$ELSE}db $C5,$FB,$12,$00;{$ENDIF} // c[y]
+           {$IFDEF FPC}vmovddup xmm1, [ebx];  {$ELSE}db $C5,$FB,$12,$0B;{$ENDIF} // s[y]
 
            // ###########################################
            // #### if (ctemp <> 1) or (stemp <> 0) then
-           vcomisd xmm0, xmm7; // = 1
+           {$IFDEF FPC}vcomisd xmm0, xmm7; {$ELSE}db $C5,$F9,$2F,$C7;{$ENDIF} // = 1
            jne @@beginXLoop;
 
-           vcomisd xmm1, xmm6; // = 0
+           {$IFDEF FPC}vcomisd xmm1, xmm6; {$ELSE}db $C5,$F9,$2F,$CE;{$ENDIF} // = 0
            jne @@beginXLoop;
 
            jmp @@nextLine; // c=1 and stemp=0 next line -> the statement
@@ -237,26 +237,26 @@ begin
               //     pcAy1^[x + 1] := cTemp*temp1 - stemp*pcAy1[x + 1];
 
               // evaluate 2 values
-              vmovupd xmm2, [ecx + edi];
-              vmovupd xmm3, [edx + edi];
+              {$IFDEF FPC}vmovupd xmm2, [ecx + edi];{$ELSE}db $C5,$F9,$10,$14,$39;{$ENDIF} 
+              {$IFDEF FPC}vmovupd xmm3, [edx + edi];{$ELSE}db $C5,$F9,$10,$1C,$3A;{$ENDIF} 
 
-              vmulpd xmm5, xmm3, xmm0;  // ctemp*pcay1^[x] and ctemp*a[x+1]
-              vmulpd xmm4, xmm2, xmm1;  // stemp*pcAy^[x] and stemp*a[x+1]
+              {$IFDEF FPC}vmulpd xmm5, xmm3, xmm0;  {$ELSE}db $C5,$E1,$59,$E8;{$ENDIF} // ctemp*pcay1^[x] and ctemp*a[x+1]
+              {$IFDEF FPC}vmulpd xmm4, xmm2, xmm1;  {$ELSE}db $C5,$E9,$59,$E1;{$ENDIF} // stemp*pcAy^[x] and stemp*a[x+1]
 
               //subpd xmm3, xmm2;
-              vsubpd xmm5, xmm5, xmm4;
+              {$IFDEF FPC}vsubpd xmm5, xmm5, xmm4;{$ELSE}db $C5,$D1,$5C,$EC;{$ENDIF} 
 
               //     pcAy^[x] := stemp*temp + ctemp*pcAy^[x];
               //     pcAy^[x + 1] := stemp*temp1 + ctemp*pcAy^[x + 1]
-              vmulpd xmm2, xmm2, xmm0;
-              vmulpd xmm3, xmm3, xmm1;
+              {$IFDEF FPC}vmulpd xmm2, xmm2, xmm0;{$ELSE}db $C5,$E9,$59,$D0;{$ENDIF} 
+              {$IFDEF FPC}vmulpd xmm3, xmm3, xmm1;{$ELSE}db $C5,$E1,$59,$D9;{$ENDIF} 
 
               //addpd xmm5, xmm4;
-              vaddpd xmm3, xmm3, xmm2;
+              {$IFDEF FPC}vaddpd xmm3, xmm3, xmm2;{$ELSE}db $C5,$E1,$58,$DA;{$ENDIF} 
 
               // write back...
-              vmovupd [ecx + edi], xmm3;
-              vmovupd [edx + edi], xmm5;
+              {$IFDEF FPC}vmovupd [ecx + edi], xmm3;{$ELSE}db $C5,$F9,$11,$1C,$39;{$ENDIF} 
+              {$IFDEF FPC}vmovupd [edx + edi], xmm5;{$ELSE}db $C5,$F9,$11,$2C,$3A;{$ENDIF} 
 
               add edi, 16;
            jnz @@forxloop;
@@ -270,21 +270,21 @@ begin
            jz @@nextLine;
 
            // same as above but with single elements
-           vmovsd xmm4, [ecx];
-           vmovsd xmm5, [edx];
+           {$IFDEF FPC}vmovsd xmm4, [ecx];{$ELSE}db $C5,$FB,$10,$21;{$ENDIF} 
+           {$IFDEF FPC}vmovsd xmm5, [edx];{$ELSE}db $C5,$FB,$10,$2A;{$ENDIF} 
 
-           vmulsd xmm3, xmm5, xmm0;
-           vmulsd xmm2, xmm4, xmm1;
+           {$IFDEF FPC}vmulsd xmm3, xmm5, xmm0;{$ELSE}db $C5,$D3,$59,$D8;{$ENDIF} 
+           {$IFDEF FPC}vmulsd xmm2, xmm4, xmm1;{$ELSE}db $C5,$DB,$59,$D1;{$ENDIF} 
 
-           vsubsd xmm3, xmm3, xmm2;
+           {$IFDEF FPC}vsubsd xmm3, xmm3, xmm2;{$ELSE}db $C5,$E3,$5C,$DA;{$ENDIF} 
 
-           vmulsd xmm4, xmm4, xmm0;
-           vmulsd xmm5, xmm5, xmm1;
+           {$IFDEF FPC}vmulsd xmm4, xmm4, xmm0;{$ELSE}db $C5,$DB,$59,$E0;{$ENDIF} 
+           {$IFDEF FPC}vmulsd xmm5, xmm5, xmm1;{$ELSE}db $C5,$D3,$59,$E9;{$ENDIF} 
 
-           vaddsd xmm5, xmm5, xmm4;
+           {$IFDEF FPC}vaddsd xmm5, xmm5, xmm4;{$ELSE}db $C5,$D3,$58,$EC;{$ENDIF} 
 
-           vmovsd [ecx], xmm5;
-           vmovsd [edx], xmm3;
+           {$IFDEF FPC}vmovsd [ecx], xmm5;{$ELSE}db $C5,$FB,$11,$29;{$ENDIF} 
+           {$IFDEF FPC}vmovsd [edx], xmm3;{$ELSE}db $C5,$FB,$11,$1A;{$ENDIF} 
 
            // ###########################################
            // #### next y
@@ -321,42 +321,42 @@ begin
         mov ecx, A;
 
         lea edi, cMulM1Bits;
-        vmovupd xmm7, [edi];
+        {$IFDEF FPC}vmovupd xmm7, [edi];{$ELSE}db $C5,$F9,$10,$3F;{$ENDIF} 
 
         @@foryloop:
 
            mov edi, iter;
-           vmovhpd xmm2, xmm2, [ecx + edi];
+           {$IFDEF FPC}vmovhpd xmm2, xmm2, [ecx + edi];{$ELSE}db $C5,$E9,$16,$14,$39;{$ENDIF} 
 
            // for x := width - 2 downto 0
            @@forxloop:
-              vmovsd xmm4, [eax + edi - 8];  // store c
-              vmovsd xmm3, [ebx + edi - 8];  // store s
+              {$IFDEF FPC}vmovsd xmm4, [eax + edi - 8];  {$ELSE}db $C5,$FB,$10,$64,$38,$F8;{$ENDIF} // store c
+              {$IFDEF FPC}vmovsd xmm3, [ebx + edi - 8];  {$ELSE}db $C5,$FB,$10,$5C,$3B,$F8;{$ENDIF} // store s
 
-              vmovlpd xmm2, xmm2, [ecx + edi - 8]; // a[x], a[x+1]
+              {$IFDEF FPC}vmovlpd xmm2, xmm2, [ecx + edi - 8]; {$ELSE}db $C5,$E9,$12,$54,$39,$F8;{$ENDIF} // a[x], a[x+1]
 
               // handle x, x+1
               // ####################################
               // #### x, x+ 1
-              vmovlhps xmm3, xmm3, xmm4;
-              vmovlhps xmm4, xmm4, xmm3;
+              {$IFDEF FPC}vmovlhps xmm3, xmm3, xmm4;{$ELSE}db $C5,$E0,$16,$DC;{$ENDIF} 
+              {$IFDEF FPC}vmovlhps xmm4, xmm4, xmm3;{$ELSE}db $C5,$D8,$16,$E3;{$ENDIF} 
 
-              vxorpd xmm3, xmm3, xmm7;  // -s, c
-              vmulpd xmm3, xmm3, xmm2; // a[x+1)*c[x] - s[x]*a[x]
-              vhaddpd xmm3, xmm3, xmm3;
+              {$IFDEF FPC}vxorpd xmm3, xmm3, xmm7;  {$ELSE}db $C5,$E1,$57,$DF;{$ENDIF} // -s, c
+              {$IFDEF FPC}vmulpd xmm3, xmm3, xmm2; {$ELSE}db $C5,$E1,$59,$DA;{$ENDIF} // a[x+1)*c[x] - s[x]*a[x]
+              {$IFDEF FPC}vhaddpd xmm3, xmm3, xmm3;{$ELSE}db $C5,$E1,$7C,$DB;{$ENDIF} 
 
-              vmulpd xmm4, xmm4, xmm2; // a[x+1]*s[x] + a[x]*c[x]
-              vhaddpd xmm4, xmm4, xmm4;
+              {$IFDEF FPC}vmulpd xmm4, xmm4, xmm2; {$ELSE}db $C5,$D9,$59,$E2;{$ENDIF} // a[x+1]*s[x] + a[x]*c[x]
+              {$IFDEF FPC}vhaddpd xmm4, xmm4, xmm4;{$ELSE}db $C5,$D9,$7C,$E4;{$ENDIF} 
 
               // write back first two values
-              vmovlhps xmm2, xmm2, xmm4;
-              vmovsd [ecx + edi], xmm3;
+              {$IFDEF FPC}vmovlhps xmm2, xmm2, xmm4;{$ELSE}db $C5,$E8,$16,$D4;{$ENDIF} 
+              {$IFDEF FPC}vmovsd [ecx + edi], xmm3;{$ELSE}db $C5,$FB,$11,$1C,$39;{$ENDIF} 
 
            // next one
            sub edi, 8;
            jnz @@forxloop;
 
-           vmovsd [ecx + edi], xmm4;
+           {$IFDEF FPC}vmovsd [ecx + edi], xmm4;{$ELSE}db $C5,$FB,$11,$24,$39;{$ENDIF} 
 
            add ecx, LineWidthA;
 
@@ -364,7 +364,7 @@ begin
         jnz @@foryloop;
 
         // epilog
-        vzeroupper;
+        {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
         pop edi;
         pop ebx;
      end;
@@ -396,7 +396,7 @@ begin
         sub ecx, iter;
 
         lea edi, cMulM1Bits;
-        vmovupd xmm7, [edi];
+        {$IFDEF FPC}vmovupd xmm7, [edi];{$ELSE}db $C5,$F9,$10,$3F;{$ENDIF} 
 
         @@foryloop:
 
@@ -404,32 +404,32 @@ begin
            movsd xmm2, [ecx + edi];
 
            @@forxloop:
-              vmovsd xmm4, [eax + edi];  // store c
-              vmovhpd xmm4, xmm4, [ebx + edi];  // store s
+              {$IFDEF FPC}vmovsd xmm4, [eax + edi];  {$ELSE}db $C5,$FB,$10,$24,$38;{$ENDIF} // store c
+              {$IFDEF FPC}vmovhpd xmm4, xmm4, [ebx + edi];  {$ELSE}db $C5,$D9,$16,$24,$3B;{$ENDIF} // store s
 
-              vshufpd xmm3, xmm4, xmm4, 1;
-              vmovhpd xmm2, xmm2, [ecx + edi + 8]; // a[x], a[x+1]
+              {$IFDEF FPC}vshufpd xmm3, xmm4, xmm4, 1;{$ELSE}db $C5,$D9,$C6,$DC,$01;{$ENDIF} 
+              {$IFDEF FPC}vmovhpd xmm2, xmm2, [ecx + edi + 8]; {$ELSE}db $C5,$E9,$16,$54,$39,$08;{$ENDIF} // a[x], a[x+1]
 
               // handle x, x+1
               // ####################################
               // #### x, x+ 1
 
-              vxorpd xmm3, xmm3, xmm7;  // -s, c
-              vmulpd xmm3, xmm3, xmm2; // a[x+1)*c[x] - s[x]*a[x]
-              vhaddpd xmm3, xmm3, xmm3;
+              {$IFDEF FPC}vxorpd xmm3, xmm3, xmm7;  {$ELSE}db $C5,$E1,$57,$DF;{$ENDIF} // -s, c
+              {$IFDEF FPC}vmulpd xmm3, xmm3, xmm2; {$ELSE}db $C5,$E1,$59,$DA;{$ENDIF} // a[x+1)*c[x] - s[x]*a[x]
+              {$IFDEF FPC}vhaddpd xmm3, xmm3, xmm3;{$ELSE}db $C5,$E1,$7C,$DB;{$ENDIF} 
 
-              vmulpd xmm4, xmm4, xmm2; // a[x+1]*s[x] + a[x]*c[x]
-              vhaddpd xmm4, xmm4, xmm4;
+              {$IFDEF FPC}vmulpd xmm4, xmm4, xmm2; {$ELSE}db $C5,$D9,$59,$E2;{$ENDIF} // a[x+1]*s[x] + a[x]*c[x]
+              {$IFDEF FPC}vhaddpd xmm4, xmm4, xmm4;{$ELSE}db $C5,$D9,$7C,$E4;{$ENDIF} 
 
               // write back first two values
-              vmovsd xmm2, xmm2, xmm3;
-              vmovsd [ecx + edi], xmm4;
+              {$IFDEF FPC}vmovsd xmm2, xmm2, xmm3;{$ELSE}db $C5,$EB,$10,$D3;{$ENDIF} 
+              {$IFDEF FPC}vmovsd [ecx + edi], xmm4;{$ELSE}db $C5,$FB,$11,$24,$39;{$ENDIF} 
 
            // next one
            add edi, 8;
            jnz @@forxloop;
 
-           vmovsd [ecx + edi], xmm2;
+           {$IFDEF FPC}vmovsd [ecx + edi], xmm2;{$ELSE}db $C5,$FB,$11,$14,$39;{$ENDIF} 
 
            add ecx, esi;
 
@@ -437,7 +437,7 @@ begin
         jnz @@foryloop;
 
         // epilog
-        vzeroupper;
+        {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
         pop esi;
         pop edi;
         pop ebx;
@@ -453,15 +453,15 @@ begin
         push esi;
 
         lea ebx, s;
-        vmovsd xmm2, [ebx];
+        {$IFDEF FPC}vmovsd xmm2, [ebx];{$ELSE}db $C5,$FB,$10,$13;{$ENDIF} 
         lea eax, cMinusOne;
-        vmulsd xmm2, xmm2, [eax];
+        {$IFDEF FPC}vmulsd xmm2, xmm2, [eax];{$ELSE}db $C5,$EB,$59,$10;{$ENDIF} 
 
-        vmovddup xmm0, xmm2;
+        {$IFDEF FPC}vmovddup xmm0, xmm2;{$ELSE}db $C5,$FB,$12,$C2;{$ENDIF} 
         lea eax, C;
-        vmovddup xmm1, [eax];
+        {$IFDEF FPC}vmovddup xmm1, [eax];{$ELSE}db $C5,$FB,$12,$08;{$ENDIF} 
 
-        vmovddup xmm2, [ebx];
+        {$IFDEF FPC}vmovddup xmm2, [ebx];{$ELSE}db $C5,$FB,$12,$13;{$ENDIF} 
 
         mov eax, X;
         mov ebx, Y;
@@ -474,20 +474,20 @@ begin
 
            @@forNloop:
               // do a full load -> intermediate store in xmm5, and xmm6
-              vmovupd xmm5, [eax + esi];      // x, x+1
-              vmovupd xmm6, [ebx + esi];      // y, y+1
+              {$IFDEF FPC}vmovupd xmm5, [eax + esi];      {$ELSE}db $C5,$F9,$10,$2C,$30;{$ENDIF} // x, x+1
+              {$IFDEF FPC}vmovupd xmm6, [ebx + esi];      {$ELSE}db $C5,$F9,$10,$34,$33;{$ENDIF} // y, y+1
 
-              vmulpd xmm3, xmm5, xmm0;  // x, x+1 * -s
-              vmulpd xmm5, xmm5, xmm1;  // x, x+1 * c
-              vmulpd xmm4, xmm6, xmm1;  // y, y+1 * c
-              vmulpd xmm6, xmm6, xmm2;  // y, y+1 * s
+              {$IFDEF FPC}vmulpd xmm3, xmm5, xmm0;  {$ELSE}db $C5,$D1,$59,$D8;{$ENDIF} // x, x+1 * -s
+              {$IFDEF FPC}vmulpd xmm5, xmm5, xmm1;  {$ELSE}db $C5,$D1,$59,$E9;{$ENDIF} // x, x+1 * c
+              {$IFDEF FPC}vmulpd xmm4, xmm6, xmm1;  {$ELSE}db $C5,$C9,$59,$E1;{$ENDIF} // y, y+1 * c
+              {$IFDEF FPC}vmulpd xmm6, xmm6, xmm2;  {$ELSE}db $C5,$C9,$59,$F2;{$ENDIF} // y, y+1 * s
 
-              vaddpd xmm5, xmm5, xmm6;  // c*x + s*y  , c*(x+1) + s*(y+1)
-              vaddpd xmm3, xmm3, xmm4;  // -s*x + c*y, -s(x+1) + c*(y+1)
+              {$IFDEF FPC}vaddpd xmm5, xmm5, xmm6;  {$ELSE}db $C5,$D1,$58,$EE;{$ENDIF} // c*x + s*y  , c*(x+1) + s*(y+1)
+              {$IFDEF FPC}vaddpd xmm3, xmm3, xmm4;  {$ELSE}db $C5,$E1,$58,$DC;{$ENDIF} // -s*x + c*y, -s(x+1) + c*(y+1)
 
               // write back
-              vmovupd [eax + esi], xmm5;
-              vmovupd [ebx + esi], xmm3;
+              {$IFDEF FPC}vmovupd [eax + esi], xmm5;{$ELSE}db $C5,$F9,$11,$2C,$30;{$ENDIF} 
+              {$IFDEF FPC}vmovupd [ebx + esi], xmm3;{$ELSE}db $C5,$F9,$11,$1C,$33;{$ENDIF} 
 
               add esi, 16;
 
@@ -501,28 +501,28 @@ begin
         jz @@endProc;
 
         // handle last element
-        vmovsd xmm5, [eax + esi];
-        vmovsd xmm6, [ebx + esi];
+        {$IFDEF FPC}vmovsd xmm5, [eax + esi];{$ELSE}db $C5,$FB,$10,$2C,$30;{$ENDIF} 
+        {$IFDEF FPC}vmovsd xmm6, [ebx + esi];{$ELSE}db $C5,$FB,$10,$34,$33;{$ENDIF} 
 
         //dtemp := c*pX^[i] + s*pY^[i];
         //pY^[i] := - s*pX^[i] + c*pY^[i];
         //px^[i] := dtemp;
 
-        vmulsd xmm3, xmm5, xmm0;  // x * -s
-        vmulsd xmm4, xmm6, xmm1;  // y * c
-        vmulsd xmm5, xmm5, xmm1;  // x * c
-        vmulsd xmm6, xmm6, xmm2;  // y * s
+        {$IFDEF FPC}vmulsd xmm3, xmm5, xmm0;  {$ELSE}db $C5,$D3,$59,$D8;{$ENDIF} // x * -s
+        {$IFDEF FPC}vmulsd xmm4, xmm6, xmm1;  {$ELSE}db $C5,$CB,$59,$E1;{$ENDIF} // y * c
+        {$IFDEF FPC}vmulsd xmm5, xmm5, xmm1;  {$ELSE}db $C5,$D3,$59,$E9;{$ENDIF} // x * c
+        {$IFDEF FPC}vmulsd xmm6, xmm6, xmm2;  {$ELSE}db $C5,$CB,$59,$F2;{$ENDIF} // y * s
 
-        vaddsd xmm5, xmm5, xmm6;  // c*x + s*y
-        vaddsd xmm3, xmm3, xmm4;  // -s*x + c*y
+        {$IFDEF FPC}vaddsd xmm5, xmm5, xmm6;  {$ELSE}db $C5,$D3,$58,$EE;{$ENDIF} // c*x + s*y
+        {$IFDEF FPC}vaddsd xmm3, xmm3, xmm4;  {$ELSE}db $C5,$E3,$58,$DC;{$ENDIF} // -s*x + c*y
 
         // write back
-        vmovsd [eax + esi], xmm5;
-        vmovsd [ebx + esi], xmm3;
+        {$IFDEF FPC}vmovsd [eax + esi], xmm5;{$ELSE}db $C5,$FB,$11,$2C,$30;{$ENDIF} 
+        {$IFDEF FPC}vmovsd [ebx + esi], xmm3;{$ELSE}db $C5,$FB,$11,$1C,$33;{$ENDIF} 
 
         @@endProc:
 
-        vzeroupper;
+        {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
         pop esi;
         pop ebx;
      end;
@@ -538,16 +538,16 @@ begin
         push esi;
 
         lea ebx, S;
-        vmovsd xmm2, [ebx];
+        {$IFDEF FPC}vmovsd xmm2, [ebx];{$ELSE}db $C5,$FB,$10,$13;{$ENDIF} 
         lea eax, cMinusOne;
-        vmulsd xmm2, xmm2, [eax];
+        {$IFDEF FPC}vmulsd xmm2, xmm2, [eax];{$ELSE}db $C5,$EB,$59,$10;{$ENDIF} 
 
-        vmovddup xmm0, xmm2;
+        {$IFDEF FPC}vmovddup xmm0, xmm2;{$ELSE}db $C5,$FB,$12,$C2;{$ENDIF} 
         lea eax, C;
-        vmovddup xmm1, [eax];
+        {$IFDEF FPC}vmovddup xmm1, [eax];{$ELSE}db $C5,$FB,$12,$08;{$ENDIF} 
 
         lea eax, S;
-        vmovddup xmm2, [eax];
+        {$IFDEF FPC}vmovddup xmm2, [eax];{$ELSE}db $C5,$FB,$12,$10;{$ENDIF} 
 
         mov eax, X;
         mov ebx, Y;
@@ -561,25 +561,25 @@ begin
 
            @@forNloop:
               // do a full load -> intermediate store in xmm5, and xmm6
-              vmovlpd xmm5, xmm5, [eax];    // load x, x+1
-              vmovhpd xmm5, xmm5, [eax + esi];
-              vmovlpd xmm6, xmm6, [ebx];    // load y, y+1
-              vmovhpd xmm6, xmm6, [ebx + edi];
+              {$IFDEF FPC}vmovlpd xmm5, xmm5, [eax];    {$ELSE}db $C5,$D1,$12,$28;{$ENDIF} // load x, x+1
+              {$IFDEF FPC}vmovhpd xmm5, xmm5, [eax + esi];{$ELSE}db $C5,$D1,$16,$2C,$30;{$ENDIF} 
+              {$IFDEF FPC}vmovlpd xmm6, xmm6, [ebx];    {$ELSE}db $C5,$C9,$12,$33;{$ENDIF} // load y, y+1
+              {$IFDEF FPC}vmovhpd xmm6, xmm6, [ebx + edi];{$ELSE}db $C5,$C9,$16,$34,$3B;{$ENDIF} 
 
-              vmulpd xmm3, xmm5, xmm0;  // x, x+1 * -s
-              vmulpd xmm5, xmm5, xmm1;  // x, x+1 * c
-              vmulpd xmm4, xmm6, xmm1;  // y, y+1 * c
-              vmulpd xmm6, xmm6, xmm2;  // y, y+1 * s
+              {$IFDEF FPC}vmulpd xmm3, xmm5, xmm0;  {$ELSE}db $C5,$D1,$59,$D8;{$ENDIF} // x, x+1 * -s
+              {$IFDEF FPC}vmulpd xmm5, xmm5, xmm1;  {$ELSE}db $C5,$D1,$59,$E9;{$ENDIF} // x, x+1 * c
+              {$IFDEF FPC}vmulpd xmm4, xmm6, xmm1;  {$ELSE}db $C5,$C9,$59,$E1;{$ENDIF} // y, y+1 * c
+              {$IFDEF FPC}vmulpd xmm6, xmm6, xmm2;  {$ELSE}db $C5,$C9,$59,$F2;{$ENDIF} // y, y+1 * s
 
-              vaddpd xmm5, xmm5, xmm6;  // c*x + s*y  , c*(x+1) + s*(y+1)
-              vaddpd xmm3, xmm3, xmm4;  // -s*x + c*y, -s(x+1) + c*(y+1)
+              {$IFDEF FPC}vaddpd xmm5, xmm5, xmm6;  {$ELSE}db $C5,$D1,$58,$EE;{$ENDIF} // c*x + s*y  , c*(x+1) + s*(y+1)
+              {$IFDEF FPC}vaddpd xmm3, xmm3, xmm4;  {$ELSE}db $C5,$E1,$58,$DC;{$ENDIF} // -s*x + c*y, -s(x+1) + c*(y+1)
 
               // write back
-              vmovlpd [eax], xmm5;
-              vmovhpd [eax + esi], xmm5;
+              {$IFDEF FPC}vmovlpd [eax], xmm5;{$ELSE}db $C5,$F9,$13,$28;{$ENDIF} 
+              {$IFDEF FPC}vmovhpd [eax + esi], xmm5;{$ELSE}db $C5,$F9,$17,$2C,$30;{$ENDIF} 
 
-              vmovlpd [ebx], xmm3;
-              vmovhpd [ebx + edi], xmm3;
+              {$IFDEF FPC}vmovlpd [ebx], xmm3;{$ELSE}db $C5,$F9,$13,$1B;{$ENDIF} 
+              {$IFDEF FPC}vmovhpd [ebx + edi], xmm3;{$ELSE}db $C5,$F9,$17,$1C,$3B;{$ENDIF} 
 
               add eax, esi;
               add eax, esi;
@@ -596,26 +596,26 @@ begin
         jz @@endProc;
 
         // handle last element
-        vmovsd xmm5, [eax];
-        vmovsd xmm6, [ebx];
+        {$IFDEF FPC}vmovsd xmm5, [eax];{$ELSE}db $C5,$FB,$10,$28;{$ENDIF} 
+        {$IFDEF FPC}vmovsd xmm6, [ebx];{$ELSE}db $C5,$FB,$10,$33;{$ENDIF} 
 
         //dtemp := c*pX^[i] + s*pY^[i];
         //pY^[i] := - s*pX^[i] + c*pY^[i];
         //px^[i] := dtemp;
-        vmulsd xmm3, xmm5, xmm0;  // x * -s
-        vmulsd xmm5, xmm5, xmm1;  // x * c
-        vmulsd xmm4, xmm6, xmm1;  // y * c
-        vmulsd xmm6, xmm6, xmm2;  // y * s
+        {$IFDEF FPC}vmulsd xmm3, xmm5, xmm0;  {$ELSE}db $C5,$D3,$59,$D8;{$ENDIF} // x * -s
+        {$IFDEF FPC}vmulsd xmm5, xmm5, xmm1;  {$ELSE}db $C5,$D3,$59,$E9;{$ENDIF} // x * c
+        {$IFDEF FPC}vmulsd xmm4, xmm6, xmm1;  {$ELSE}db $C5,$CB,$59,$E1;{$ENDIF} // y * c
+        {$IFDEF FPC}vmulsd xmm6, xmm6, xmm2;  {$ELSE}db $C5,$CB,$59,$F2;{$ENDIF} // y * s
 
-        vaddsd xmm5, xmm5, xmm6;  // c*x + s*y
-        vaddsd xmm3, xmm3, xmm4;  // -s*x + c*y
+        {$IFDEF FPC}vaddsd xmm5, xmm5, xmm6;  {$ELSE}db $C5,$D3,$58,$EE;{$ENDIF} // c*x + s*y
+        {$IFDEF FPC}vaddsd xmm3, xmm3, xmm4;  {$ELSE}db $C5,$E3,$58,$DC;{$ENDIF} // -s*x + c*y
 
         // write back
-        vmovsd [eax], xmm5;
-        vmovsd [ebx], xmm3;
+        {$IFDEF FPC}vmovsd [eax], xmm5;{$ELSE}db $C5,$FB,$11,$28;{$ENDIF} 
+        {$IFDEF FPC}vmovsd [ebx], xmm3;{$ELSE}db $C5,$FB,$11,$1B;{$ENDIF} 
 
         @@endProc:
-        vzeroupper;
+        {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
         pop esi;
         pop edi;
         pop ebx;

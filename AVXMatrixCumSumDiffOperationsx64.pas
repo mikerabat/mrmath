@@ -88,11 +88,11 @@ asm
    @@foryloop:
       mov rax, rbx;
 
-      vxorpd xmm0, xmm0, xmm0;
+      {$IFDEF FPC}vxorpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
       @@forxloop:
-         vmovsd xmm1, [r8 + rax];
-         vaddsd xmm0, xmm0, xmm1;
-         vmovsd [rcx + rax], xmm0;
+         {$IFDEF FPC}vmovsd xmm1, [r8 + rax];{$ELSE}db $C4,$C1,$7B,$10,$0C,$00;{$ENDIF} 
+         {$IFDEF FPC}vaddsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$58,$C1;{$ENDIF} 
+         {$IFDEF FPC}vmovsd [rcx + rax], xmm0;{$ELSE}db $C5,$FB,$11,$04,$01;{$ENDIF} 
       add rax, 8;
       jnz @@forxloop;
 
@@ -106,7 +106,7 @@ asm
    mov rbx, iRBX;
    mov rdi, iRDI;
    mov rsi, iRSI;
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 {$IFDEF FPC}
 end;
@@ -145,15 +145,15 @@ asm
 
    @@forxloop:
        mov rax, r11;
-       vxorpd ymm0, ymm0, ymm0;
+       {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;{$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} 
        xor rdi, rdi;
        xor rsi, rsi;
 
        // 4 values at once
        @@foryloop:
-           vmovupd ymm1, [r8 + rdi];
-           vaddpd ymm0, ymm0, ymm1;
-           vmovupd [rcx + rsi], ymm0;
+           {$IFDEF FPC}vmovupd ymm1, [r8 + rdi];{$ELSE}db $C4,$C1,$7D,$10,$0C,$38;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm0, ymm0, ymm1;{$ELSE}db $C5,$FD,$58,$C1;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [rcx + rsi], ymm0;{$ELSE}db $C5,$FD,$11,$04,$31;{$ENDIF} 
 
            add rdi, r9;
            add rsi, rdx;
@@ -171,15 +171,15 @@ asm
 
    @@forxloopshort:
        mov rax, r11;
-       vxorpd xmm0, xmm0, xmm0;
+       {$IFDEF FPC}vxorpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
        xor rdi, rdi;
        xor rsi, rsi;
 
        // 4 values at once
        @@foryloopshort:
-           vmovsd xmm1, [r8 + rdi];
-           vaddsd xmm0, xmm0, xmm1;
-           vmovsd [rcx + rsi], xmm0;
+           {$IFDEF FPC}vmovsd xmm1, [r8 + rdi];{$ELSE}db $C4,$C1,$7B,$10,$0C,$38;{$ENDIF} 
+           {$IFDEF FPC}vaddsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$58,$C1;{$ENDIF} 
+           {$IFDEF FPC}vmovsd [rcx + rsi], xmm0;{$ELSE}db $C5,$FB,$11,$04,$31;{$ENDIF} 
 
            add rdi, r9;
            add rsi, rdx;
@@ -195,7 +195,7 @@ asm
    // epilog - stack cleanup
    mov rdi, iRDI;
    mov rsi, iRSI;
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 {$IFDEF FPC}
 end;
@@ -234,15 +234,15 @@ asm
 
    @@forxloop:
        mov rax, r11;
-       vxorpd ymm0, ymm0, ymm0;
+       {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;{$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} 
        xor rdi, rdi;
        xor rsi, rsi;
 
        // 4 values at once
        @@foryloop:
-           vmovapd ymm1, [r8 + rdi];
-           vaddpd ymm0, ymm0, ymm1;
-           vmovapd [rcx + rsi], ymm0;
+           {$IFDEF FPC}vmovapd ymm1, [r8 + rdi];{$ELSE}db $C4,$C1,$7D,$28,$0C,$38;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm0, ymm0, ymm1;{$ELSE}db $C5,$FD,$58,$C1;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [rcx + rsi], ymm0;{$ELSE}db $C5,$FD,$29,$04,$31;{$ENDIF} 
 
            add rdi, r9;
            add rsi, rdx;
@@ -260,15 +260,15 @@ asm
 
    @@forxloopshort:
        mov rax, r11;
-       vxorpd xmm0, xmm0, xmm0;
+       {$IFDEF FPC}vxorpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
        xor rdi, rdi;
        xor rsi, rsi;
 
        // 4 values at once
        @@foryloopshort:
-           vmovsd xmm1, [r8 + rdi];
-           vaddsd xmm0, xmm0, xmm1;
-           vmovsd [rcx + rsi], xmm0;
+           {$IFDEF FPC}vmovsd xmm1, [r8 + rdi];{$ELSE}db $C4,$C1,$7B,$10,$0C,$38;{$ENDIF} 
+           {$IFDEF FPC}vaddsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$58,$C1;{$ENDIF} 
+           {$IFDEF FPC}vmovsd [rcx + rsi], xmm0;{$ELSE}db $C5,$FB,$11,$04,$31;{$ENDIF} 
 
            add rdi, r9;
            add rsi, rdx;
@@ -284,7 +284,7 @@ asm
    // epilog - stack cleanup
    mov rdi, iRDI;
    mov rsi, iRSI;
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 {$IFDEF FPC}
 end;
@@ -331,12 +331,12 @@ asm
    add rbx, 8;
    @@foryloop:
        mov rax, rbx;
-       vmovsd xmm1, [r8 + rax - 8];
+       {$IFDEF FPC}vmovsd xmm1, [r8 + rax - 8];{$ELSE}db $C4,$C1,$7B,$10,$4C,$00,$F8;{$ENDIF} 
        @@forxloop:
-           vmovsd xmm0, [r8 + rax];
-           vsubsd xmm2, xmm0, xmm1;
-           vmovsd [rcx + rax - 8], xmm2;
-           vmovapd xmm1, xmm0;
+           {$IFDEF FPC}vmovsd xmm0, [r8 + rax];{$ELSE}db $C4,$C1,$7B,$10,$04,$00;{$ENDIF} 
+           {$IFDEF FPC}vsubsd xmm2, xmm0, xmm1;{$ELSE}db $C5,$FB,$5C,$D1;{$ENDIF} 
+           {$IFDEF FPC}vmovsd [rcx + rax - 8], xmm2;{$ELSE}db $C5,$FB,$11,$54,$01,$F8;{$ENDIF} 
+           {$IFDEF FPC}vmovapd xmm1, xmm0;{$ELSE}db $C5,$F9,$28,$C8;{$ENDIF} 
        add rax, 8;
        jnz @@forxloop;
 
@@ -349,7 +349,7 @@ asm
    // epilog - stack cleanup
    mov rbx, iRBX;
    mov rsi, iRSI;
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 {$IFDEF FPC}
 end;
@@ -391,19 +391,19 @@ asm
 
    @@forxloop:
        mov rax, r11;
-       vxorpd ymm0, ymm0, ymm0;
+       {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;{$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} 
        mov rdi, r9;
        xor rsi, rsi;
 
-       vmovupd ymm0, [r8];
+       {$IFDEF FPC}vmovupd ymm0, [r8];{$ELSE}db $C4,$C1,$7D,$10,$00;{$ENDIF} 
 
        // 4 values at once
        @@foryloop:
-           vmovupd ymm1, [r8 + rdi];
-           vsubpd ymm2, ymm1, ymm0;
-           vmovupd [rcx + rsi], ymm2;
+           {$IFDEF FPC}vmovupd ymm1, [r8 + rdi];{$ELSE}db $C4,$C1,$7D,$10,$0C,$38;{$ENDIF} 
+           {$IFDEF FPC}vsubpd ymm2, ymm1, ymm0;{$ELSE}db $C5,$F5,$5C,$D0;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [rcx + rsi], ymm2;{$ELSE}db $C5,$FD,$11,$14,$31;{$ENDIF} 
 
-           vmovapd ymm0, ymm1;
+           {$IFDEF FPC}vmovapd ymm0, ymm1;{$ELSE}db $C5,$FD,$28,$C1;{$ENDIF} 
 
            add rdi, r9;
            add rsi, rdx;
@@ -423,19 +423,19 @@ asm
    // #### last < 4 columns
    @@forxloopshort:
       mov rax, r11;
-      vxorpd xmm0, xmm0, xmm0;
+      {$IFDEF FPC}vxorpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
       mov rdi, r9;
       xor rsi, rsi;
 
-      vmovsd xmm0, [r8];
+      {$IFDEF FPC}vmovsd xmm0, [r8];{$ELSE}db $C4,$C1,$7B,$10,$00;{$ENDIF} 
 
       // one column value:
       @@foryloopshort:
-          vmovsd xmm1, [r8 + rdi];
-          vsubsd xmm2, xmm1, xmm0;
-          vmovsd [rcx + rsi], xmm2;
+          {$IFDEF FPC}vmovsd xmm1, [r8 + rdi];{$ELSE}db $C4,$C1,$7B,$10,$0C,$38;{$ENDIF} 
+          {$IFDEF FPC}vsubsd xmm2, xmm1, xmm0;{$ELSE}db $C5,$F3,$5C,$D0;{$ENDIF} 
+          {$IFDEF FPC}vmovsd [rcx + rsi], xmm2;{$ELSE}db $C5,$FB,$11,$14,$31;{$ENDIF} 
 
-          vmovsd xmm0, xmm0, xmm1;
+          {$IFDEF FPC}vmovsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$10,$C1;{$ENDIF} 
 
           add rdi, r9;
           add rsi, rdx;
@@ -494,19 +494,19 @@ asm
 
    @@forxloop:
        mov rax, r11;
-       vxorpd ymm0, ymm0, ymm0;
+       {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;{$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} 
        mov rdi, r9;
        xor rsi, rsi;
 
-       vmovupd ymm0, [r8];
+       {$IFDEF FPC}vmovupd ymm0, [r8];{$ELSE}db $C4,$C1,$7D,$10,$00;{$ENDIF} 
 
        // 4 values at once
        @@foryloop:
-           vmovapd ymm1, [r8 + rdi];
-           vsubpd ymm2, ymm1, ymm0;
-           vmovapd [rcx + rsi], ymm2;
+           {$IFDEF FPC}vmovapd ymm1, [r8 + rdi];{$ELSE}db $C4,$C1,$7D,$28,$0C,$38;{$ENDIF} 
+           {$IFDEF FPC}vsubpd ymm2, ymm1, ymm0;{$ELSE}db $C5,$F5,$5C,$D0;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [rcx + rsi], ymm2;{$ELSE}db $C5,$FD,$29,$14,$31;{$ENDIF} 
 
-           vmovapd ymm0, ymm1;
+           {$IFDEF FPC}vmovapd ymm0, ymm1;{$ELSE}db $C5,$FD,$28,$C1;{$ENDIF} 
 
            add rdi, r9;
            add rsi, rdx;
@@ -526,19 +526,19 @@ asm
    // #### last < 4 columns
    @@forxloopshort:
       mov rax, r11;
-      vxorpd xmm0, xmm0, xmm0;
+      {$IFDEF FPC}vxorpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
       mov rdi, r9;
       xor rsi, rsi;
 
-      vmovsd xmm0, [r8];
+      {$IFDEF FPC}vmovsd xmm0, [r8];{$ELSE}db $C4,$C1,$7B,$10,$00;{$ENDIF} 
 
       // one column value:
       @@foryloopshort:
-          vmovsd xmm1, [r8 + rdi];
-          vsubsd xmm2, xmm1, xmm0;
-          vmovsd [rcx + rsi], xmm2;
+          {$IFDEF FPC}vmovsd xmm1, [r8 + rdi];{$ELSE}db $C4,$C1,$7B,$10,$0C,$38;{$ENDIF} 
+          {$IFDEF FPC}vsubsd xmm2, xmm1, xmm0;{$ELSE}db $C5,$F3,$5C,$D0;{$ENDIF} 
+          {$IFDEF FPC}vmovsd [rcx + rsi], xmm2;{$ELSE}db $C5,$FB,$11,$14,$31;{$ENDIF} 
 
-          vmovsd xmm0, xmm0, xmm1;
+          {$IFDEF FPC}vmovsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$10,$C1;{$ENDIF} 
 
           add rdi, r9;
           add rsi, rdx;

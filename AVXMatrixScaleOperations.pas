@@ -48,9 +48,7 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
 
 procedure AVXMatrixAddScaleAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
-{$IFDEF FPC}
 begin
-{$ENDIF}
 asm
    // prolog - simulate stack
    push ebx;
@@ -64,9 +62,9 @@ asm
    imul edi, -8;
 
    lea eax, dOffset;
-   vbroadcastsd ymm3, [eax];
+   {$IFDEF FPC}vbroadcastsd ymm3, [eax];{$ELSE}db $C4,$E2,$7D,$19,$18;{$ENDIF} 
    lea eax, scale;
-   vbroadcastsd ymm4, [eax];
+   {$IFDEF FPC}vbroadcastsd ymm4, [eax];{$ELSE}db $C4,$E2,$7D,$19,$20;{$ENDIF} 
 
 
    // helper registers for the mt1, mt2 and dest pointers
@@ -87,25 +85,25 @@ asm
            // prefetchw [ecx + eax];
 
            // add mul
-           vmovapd ymm0, [ecx + eax - 128];
-           vaddpd ymm0, ymm0, ymm3;
-           vmulpd ymm0, ymm0, ymm4;
-           vmovapd [ecx + eax - 128], ymm0;
+           {$IFDEF FPC}vmovapd ymm0, [ecx + eax - 128];{$ELSE}db $C5,$FD,$28,$44,$01,$80;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm0, ymm0, ymm4;{$ELSE}db $C5,$FD,$59,$C4;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [ecx + eax - 128], ymm0;{$ELSE}db $C5,$FD,$29,$44,$01,$80;{$ENDIF} 
 
-           vmovapd ymm2, [ecx + eax - 96];
-           vaddpd ymm2, ymm2, ymm3;
-           vmulpd ymm2, ymm2, ymm4;
-           vmovapd [ecx + eax - 96], ymm2;
+           {$IFDEF FPC}vmovapd ymm2, [ecx + eax - 96];{$ELSE}db $C5,$FD,$28,$54,$01,$A0;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm2, ymm2, ymm3;{$ELSE}db $C5,$ED,$58,$D3;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$59,$D4;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [ecx + eax - 96], ymm2;{$ELSE}db $C5,$FD,$29,$54,$01,$A0;{$ENDIF} 
 
-           vmovapd ymm0, [ecx + eax - 64];
-           vaddpd ymm0, ymm0, ymm3;
-           vmulpd ymm0, ymm0, ymm4;
-           vmovapd [ecx + eax - 64], ymm0;
+           {$IFDEF FPC}vmovapd ymm0, [ecx + eax - 64];{$ELSE}db $C5,$FD,$28,$44,$01,$C0;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm0, ymm0, ymm4;{$ELSE}db $C5,$FD,$59,$C4;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [ecx + eax - 64], ymm0;{$ELSE}db $C5,$FD,$29,$44,$01,$C0;{$ENDIF} 
 
-           vmovapd ymm2, [ecx + eax - 32];
-           vaddpd ymm2, ymm2, ymm3;
-           vmulpd ymm2, ymm2, ymm4;
-           vmovapd [ecx + eax - 32], ymm2;
+           {$IFDEF FPC}vmovapd ymm2, [ecx + eax - 32];{$ELSE}db $C5,$FD,$28,$54,$01,$E0;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm2, ymm2, ymm3;{$ELSE}db $C5,$ED,$58,$D3;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$59,$D4;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [ecx + eax - 32], ymm2;{$ELSE}db $C5,$FD,$29,$54,$01,$E0;{$ENDIF} 
 
        jmp @addforxloop
 
@@ -116,11 +114,11 @@ asm
        jz @nextLine;
 
        @addforxloop2:
-           vmovapd xmm0, [ecx + eax];
-           vaddpd xmm0, xmm0, xmm3;
-           vmulpd xmm0, xmm0, xmm4;
+           {$IFDEF FPC}vmovapd xmm0, [ecx + eax];{$ELSE}db $C5,$F9,$28,$04,$01;{$ENDIF} 
+           {$IFDEF FPC}vaddpd xmm0, xmm0, xmm3;{$ELSE}db $C5,$F9,$58,$C3;{$ENDIF} 
+           {$IFDEF FPC}vmulpd xmm0, xmm0, xmm4;{$ELSE}db $C5,$F9,$59,$C4;{$ENDIF} 
 
-           vmovapd [ecx + eax], xmm0;
+           {$IFDEF FPC}vmovapd [ecx + eax], xmm0;{$ELSE}db $C5,$F9,$29,$04,$01;{$ENDIF} 
        add eax, 16;
        jnz @addforxloop2;
 
@@ -134,20 +132,16 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 
    pop esi;
    pop edi;
    pop ebx;
-{$IFDEF FPC}
 end;
-{$ENDIF}
 end;
 
 procedure AVXMatrixAddScaleUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
-{$IFDEF FPC}
 begin
-{$ENDIF}
 asm
    // prolog - simulate stack
    push ebx;
@@ -161,9 +155,9 @@ asm
    imul edi, -8;
 
    lea eax, dOffset;
-   vbroadcastsd ymm3, [eax];
+   {$IFDEF FPC}vbroadcastsd ymm3, [eax];{$ELSE}db $C4,$E2,$7D,$19,$18;{$ENDIF} 
    lea eax, scale;
-   vbroadcastsd ymm4, [eax];
+   {$IFDEF FPC}vbroadcastsd ymm4, [eax];{$ELSE}db $C4,$E2,$7D,$19,$20;{$ENDIF} 
 
    // helper registers for the mt1, mt2 and dest pointers
    mov ecx, dest;
@@ -183,25 +177,25 @@ asm
            // prefetchw [ecx + eax];
 
            // add mul
-           vmovupd ymm0, [ecx + eax - 128];
-           vaddpd ymm0, ymm0, ymm3;
-           vmulpd ymm0, ymm0, ymm4;
-           vmovupd [ecx + eax - 128], ymm0;
+           {$IFDEF FPC}vmovupd ymm0, [ecx + eax - 128];{$ELSE}db $C5,$FD,$10,$44,$01,$80;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm0, ymm0, ymm4;{$ELSE}db $C5,$FD,$59,$C4;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [ecx + eax - 128], ymm0;{$ELSE}db $C5,$FD,$11,$44,$01,$80;{$ENDIF} 
 
-           vmovupd ymm2, [ecx + eax - 96];
-           vaddpd ymm2, ymm2, ymm3;
-           vmulpd ymm2, ymm2, ymm4;
-           vmovupd [ecx + eax - 96], ymm2;
+           {$IFDEF FPC}vmovupd ymm2, [ecx + eax - 96];{$ELSE}db $C5,$FD,$10,$54,$01,$A0;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm2, ymm2, ymm3;{$ELSE}db $C5,$ED,$58,$D3;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$59,$D4;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [ecx + eax - 96], ymm2;{$ELSE}db $C5,$FD,$11,$54,$01,$A0;{$ENDIF} 
 
-           vmovupd ymm0, [ecx + eax - 64];
-           vaddpd ymm0, ymm0, ymm3;
-           vmulpd ymm0, ymm0, ymm4;
-           vmovupd [ecx + eax - 64], ymm0;
+           {$IFDEF FPC}vmovupd ymm0, [ecx + eax - 64];{$ELSE}db $C5,$FD,$10,$44,$01,$C0;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm0, ymm0, ymm4;{$ELSE}db $C5,$FD,$59,$C4;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [ecx + eax - 64], ymm0;{$ELSE}db $C5,$FD,$11,$44,$01,$C0;{$ENDIF} 
 
-           vmovupd ymm2, [ecx + eax - 32];
-           vaddpd ymm2, ymm2, ymm3;
-           vmulpd ymm2, ymm2, ymm4;
-           vmovupd [ecx + eax - 32], ymm2;
+           {$IFDEF FPC}vmovupd ymm2, [ecx + eax - 32];{$ELSE}db $C5,$FD,$10,$54,$01,$E0;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm2, ymm2, ymm3;{$ELSE}db $C5,$ED,$58,$D3;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$59,$D4;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [ecx + eax - 32], ymm2;{$ELSE}db $C5,$FD,$11,$54,$01,$E0;{$ENDIF} 
 
        jmp @addforxloop
 
@@ -212,11 +206,11 @@ asm
        jz @nextLine;
 
        @addforxloop2:
-           vmovupd xmm0, [ecx + eax];
-           vaddpd xmm0, xmm0, xmm3;
-           vmulpd xmm0, xmm0, xmm4;
+           {$IFDEF FPC}vmovupd xmm0, [ecx + eax];{$ELSE}db $C5,$F9,$10,$04,$01;{$ENDIF} 
+           {$IFDEF FPC}vaddpd xmm0, xmm0, xmm3;{$ELSE}db $C5,$F9,$58,$C3;{$ENDIF} 
+           {$IFDEF FPC}vmulpd xmm0, xmm0, xmm4;{$ELSE}db $C5,$F9,$59,$C4;{$ENDIF} 
 
-           vmovupd [ecx + eax], xmm0;
+           {$IFDEF FPC}vmovupd [ecx + eax], xmm0;{$ELSE}db $C5,$F9,$11,$04,$01;{$ENDIF} 
        add eax, 16;
        jnz @addforxloop2;
 
@@ -230,21 +224,17 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 
    pop esi;
    pop edi;
    pop ebx;
-{$IFDEF FPC}
 end;
-{$ENDIF}
 end;
 
 
 procedure AVXMatrixAddScaleAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
-{$IFDEF FPC}
 begin
-{$ENDIF}
 asm
 // prolog - simulate stack
    push ebx;
@@ -259,9 +249,9 @@ asm
    imul edi, -8;
 
    lea eax, dOffset;
-   vbroadcastsd ymm3, [eax];
+   {$IFDEF FPC}vbroadcastsd ymm3, [eax];{$ELSE}db $C4,$E2,$7D,$19,$18;{$ENDIF} 
    lea eax, scale;
-   vbroadcastsd ymm4, [eax];
+   {$IFDEF FPC}vbroadcastsd ymm4, [eax];{$ELSE}db $C4,$E2,$7D,$19,$20;{$ENDIF} 
 
    // helper registers for the mt1, mt2 and dest pointers
    mov ecx, dest;
@@ -281,25 +271,25 @@ asm
            // prefetchw [ecx + eax];
 
            // add mul
-           vmovapd ymm0, [ecx + eax - 128];
-           vaddpd ymm0, ymm0, ymm3;
-           vmulpd ymm0, ymm0, ymm4;
-           vmovapd [ecx + eax - 128], ymm0;
+           {$IFDEF FPC}vmovapd ymm0, [ecx + eax - 128];{$ELSE}db $C5,$FD,$28,$44,$01,$80;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm0, ymm0, ymm4;{$ELSE}db $C5,$FD,$59,$C4;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [ecx + eax - 128], ymm0;{$ELSE}db $C5,$FD,$29,$44,$01,$80;{$ENDIF} 
 
-           vmovapd ymm2, [ecx + eax - 96];
-           vaddpd ymm2, ymm2, ymm3;
-           vmulpd ymm2, ymm2, ymm4;
-           vmovapd [ecx + eax - 96], ymm2;
+           {$IFDEF FPC}vmovapd ymm2, [ecx + eax - 96];{$ELSE}db $C5,$FD,$28,$54,$01,$A0;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm2, ymm2, ymm3;{$ELSE}db $C5,$ED,$58,$D3;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$59,$D4;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [ecx + eax - 96], ymm2;{$ELSE}db $C5,$FD,$29,$54,$01,$A0;{$ENDIF} 
 
-           vmovapd ymm0, [ecx + eax - 64];
-           vaddpd ymm0, ymm0, ymm3;
-           vmulpd ymm0, ymm0, ymm4;
-           vmovapd [ecx + eax - 64], ymm0;
+           {$IFDEF FPC}vmovapd ymm0, [ecx + eax - 64];{$ELSE}db $C5,$FD,$28,$44,$01,$C0;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm0, ymm0, ymm4;{$ELSE}db $C5,$FD,$59,$C4;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [ecx + eax - 64], ymm0;{$ELSE}db $C5,$FD,$29,$44,$01,$C0;{$ENDIF} 
 
-           vmovapd ymm2, [ecx + eax - 32];
-           vaddpd ymm2, ymm2, ymm3;
-           vmulpd ymm2, ymm2, ymm4;
-           vmovapd [ecx + eax - 32], ymm2;
+           {$IFDEF FPC}vmovapd ymm2, [ecx + eax - 32];{$ELSE}db $C5,$FD,$28,$54,$01,$E0;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm2, ymm2, ymm3;{$ELSE}db $C5,$ED,$58,$D3;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$59,$D4;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [ecx + eax - 32], ymm2;{$ELSE}db $C5,$FD,$29,$54,$01,$E0;{$ENDIF} 
 
        jmp @addforxloop
 
@@ -310,21 +300,21 @@ asm
        jz @nextLine;
 
        @addforxloop2:
-           vmovapd xmm0, [ecx + eax];
-           vaddpd xmm0, xmm0, xmm3;
-           vmulpd xmm0, xmm0, xmm4;
+           {$IFDEF FPC}vmovapd xmm0, [ecx + eax];{$ELSE}db $C5,$F9,$28,$04,$01;{$ENDIF} 
+           {$IFDEF FPC}vaddpd xmm0, xmm0, xmm3;{$ELSE}db $C5,$F9,$58,$C3;{$ENDIF} 
+           {$IFDEF FPC}vmulpd xmm0, xmm0, xmm4;{$ELSE}db $C5,$F9,$59,$C4;{$ENDIF} 
 
-           vmovapd [ecx + eax], xmm0;
+           {$IFDEF FPC}vmovapd [ecx + eax], xmm0;{$ELSE}db $C5,$F9,$29,$04,$01;{$ENDIF} 
        add eax, 16;
        jnz @addforxloop2;
 
        @nextLine:
 
        // special care of the last column:
-       vmovsd xmm0, [ecx];
-       vaddsd xmm0, xmm0, xmm3;
-       vmulsd xmm0, xmm0, xmm4;
-       vmovsd [ecx], xmm0;
+       {$IFDEF FPC}vmovsd xmm0, [ecx];{$ELSE}db $C5,$FB,$10,$01;{$ENDIF} 
+       {$IFDEF FPC}vaddsd xmm0, xmm0, xmm3;{$ELSE}db $C5,$FB,$58,$C3;{$ENDIF} 
+       {$IFDEF FPC}vmulsd xmm0, xmm0, xmm4;{$ELSE}db $C5,$FB,$59,$C4;{$ENDIF} 
+       {$IFDEF FPC}vmovsd [ecx], xmm0;{$ELSE}db $C5,$FB,$11,$01;{$ENDIF} 
 
        // next line:
        add ecx, edx;
@@ -334,20 +324,16 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 
    pop esi;
    pop edi;
    pop ebx;
-{$IFDEF FPC}
 end;
-{$ENDIF}
 end;
 
 procedure AVXMatrixAddScaleUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
-{$IFDEF FPC}
 begin
-{$ENDIF}
 asm
    // prolog - simulate stack
    push ebx;
@@ -362,9 +348,9 @@ asm
    imul edi, -8;
 
    lea eax, dOffset;
-   vbroadcastsd ymm3, [eax];
+   {$IFDEF FPC}vbroadcastsd ymm3, [eax];{$ELSE}db $C4,$E2,$7D,$19,$18;{$ENDIF} 
    lea eax, scale;
-   vbroadcastsd ymm4, [eax];
+   {$IFDEF FPC}vbroadcastsd ymm4, [eax];{$ELSE}db $C4,$E2,$7D,$19,$20;{$ENDIF} 
 
    // helper registers for the mt1, mt2 and dest pointers
    mov ecx, dest;
@@ -384,25 +370,25 @@ asm
            // prefetchw [ecx + eax];
 
            // add mul
-           vmovupd ymm0, [ecx + eax - 128];
-           vaddpd ymm0, ymm0, ymm3;
-           vmulpd ymm0, ymm0, ymm4;
-           vmovupd [ecx + eax - 128], ymm0;
+           {$IFDEF FPC}vmovupd ymm0, [ecx + eax - 128];{$ELSE}db $C5,$FD,$10,$44,$01,$80;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm0, ymm0, ymm4;{$ELSE}db $C5,$FD,$59,$C4;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [ecx + eax - 128], ymm0;{$ELSE}db $C5,$FD,$11,$44,$01,$80;{$ENDIF} 
 
-           vmovupd ymm2, [ecx + eax - 96];
-           vaddpd ymm2, ymm2, ymm3;
-           vmulpd ymm2, ymm2, ymm4;
-           vmovupd [ecx + eax - 96], ymm2;
+           {$IFDEF FPC}vmovupd ymm2, [ecx + eax - 96];{$ELSE}db $C5,$FD,$10,$54,$01,$A0;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm2, ymm2, ymm3;{$ELSE}db $C5,$ED,$58,$D3;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$59,$D4;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [ecx + eax - 96], ymm2;{$ELSE}db $C5,$FD,$11,$54,$01,$A0;{$ENDIF} 
 
-           vmovupd ymm0, [ecx + eax - 64];
-           vaddpd ymm0, ymm0, ymm3;
-           vmulpd ymm0, ymm0, ymm4;
-           vmovupd [ecx + eax - 64], ymm0;
+           {$IFDEF FPC}vmovupd ymm0, [ecx + eax - 64];{$ELSE}db $C5,$FD,$10,$44,$01,$C0;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm0, ymm0, ymm4;{$ELSE}db $C5,$FD,$59,$C4;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [ecx + eax - 64], ymm0;{$ELSE}db $C5,$FD,$11,$44,$01,$C0;{$ENDIF} 
 
-           vmovupd ymm2, [ecx + eax - 32];
-           vaddpd ymm2, ymm2, ymm3;
-           vmulpd ymm2, ymm2, ymm4;
-           vmovupd [ecx + eax - 32], ymm2;
+           {$IFDEF FPC}vmovupd ymm2, [ecx + eax - 32];{$ELSE}db $C5,$FD,$10,$54,$01,$E0;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm2, ymm2, ymm3;{$ELSE}db $C5,$ED,$58,$D3;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$59,$D4;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [ecx + eax - 32], ymm2;{$ELSE}db $C5,$FD,$11,$54,$01,$E0;{$ENDIF} 
 
        jmp @addforxloop
 
@@ -413,21 +399,21 @@ asm
        jz @nextLine;
 
        @addforxloop2:
-           vmovupd xmm0, [ecx + eax];
-           vaddpd xmm0, xmm0, xmm3;
-           vmulpd xmm0, xmm0, xmm4;
+           {$IFDEF FPC}vmovupd xmm0, [ecx + eax];{$ELSE}db $C5,$F9,$10,$04,$01;{$ENDIF} 
+           {$IFDEF FPC}vaddpd xmm0, xmm0, xmm3;{$ELSE}db $C5,$F9,$58,$C3;{$ENDIF} 
+           {$IFDEF FPC}vmulpd xmm0, xmm0, xmm4;{$ELSE}db $C5,$F9,$59,$C4;{$ENDIF} 
 
-           vmovupd [ecx + eax], xmm0;
+           {$IFDEF FPC}vmovupd [ecx + eax], xmm0;{$ELSE}db $C5,$F9,$11,$04,$01;{$ENDIF} 
        add eax, 16;
        jnz @addforxloop2;
 
        @nextLine:
 
        // special care of the last column:
-       vmovsd xmm0, [ecx];
-       vaddsd xmm0, xmm0, xmm3;
-       vmulsd xmm0, xmm0, xmm4;
-       vmovsd [ecx], xmm0;
+       {$IFDEF FPC}vmovsd xmm0, [ecx];{$ELSE}db $C5,$FB,$10,$01;{$ENDIF} 
+       {$IFDEF FPC}vaddsd xmm0, xmm0, xmm3;{$ELSE}db $C5,$FB,$58,$C3;{$ENDIF} 
+       {$IFDEF FPC}vmulsd xmm0, xmm0, xmm4;{$ELSE}db $C5,$FB,$59,$C4;{$ENDIF} 
+       {$IFDEF FPC}vmovsd [ecx], xmm0;{$ELSE}db $C5,$FB,$11,$01;{$ENDIF} 
 
        // next line:
        add ecx, edx;
@@ -437,21 +423,17 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 
    pop esi;
    pop edi;
    pop ebx;
-{$IFDEF FPC}
 end;
-{$ENDIF}
 end;
 
 
 procedure AVXMatrixScaleAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
-{$IFDEF FPC}
 begin
-{$ENDIF}
 asm
    // prolog - simulate stack
    push ebx;
@@ -465,9 +447,9 @@ asm
    imul edi, -8;
 
    lea eax, dOffset;
-   vbroadcastsd ymm3, [eax];
+   {$IFDEF FPC}vbroadcastsd ymm3, [eax];{$ELSE}db $C4,$E2,$7D,$19,$18;{$ENDIF} 
    lea eax, scale;
-   vbroadcastsd ymm4, [eax];
+   {$IFDEF FPC}vbroadcastsd ymm4, [eax];{$ELSE}db $C4,$E2,$7D,$19,$20;{$ENDIF} 
 
    // helper registers for the mt1, mt2 and dest pointers
    mov ecx, dest;
@@ -487,25 +469,25 @@ asm
            // prefetchw [ecx + eax];
 
            // addition:
-           vmovapd ymm0, [ecx + eax - 128];
-           vmulpd ymm0, ymm0, ymm4;
-           vaddpd ymm0, ymm0, ymm3;
-           vmovapd [ecx + eax - 128], ymm0;
+           {$IFDEF FPC}vmovapd ymm0, [ecx + eax - 128];{$ELSE}db $C5,$FD,$28,$44,$01,$80;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm0, ymm0, ymm4;{$ELSE}db $C5,$FD,$59,$C4;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [ecx + eax - 128], ymm0;{$ELSE}db $C5,$FD,$29,$44,$01,$80;{$ENDIF} 
 
-           vmovapd ymm2, [ecx + eax - 96];
-           vmulpd ymm2, ymm2, ymm4;
-           vaddpd ymm2, ymm2, ymm3;
-           vmovapd [ecx + eax - 96], ymm2;
+           {$IFDEF FPC}vmovapd ymm2, [ecx + eax - 96];{$ELSE}db $C5,$FD,$28,$54,$01,$A0;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$59,$D4;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm2, ymm2, ymm3;{$ELSE}db $C5,$ED,$58,$D3;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [ecx + eax - 96], ymm2;{$ELSE}db $C5,$FD,$29,$54,$01,$A0;{$ENDIF} 
 
-           vmovapd ymm0, [ecx + eax - 64];
-           vmulpd ymm0, ymm0, ymm4;
-           vaddpd ymm0, ymm0, ymm3;
-           vmovapd [ecx + eax - 64], ymm0;
+           {$IFDEF FPC}vmovapd ymm0, [ecx + eax - 64];{$ELSE}db $C5,$FD,$28,$44,$01,$C0;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm0, ymm0, ymm4;{$ELSE}db $C5,$FD,$59,$C4;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [ecx + eax - 64], ymm0;{$ELSE}db $C5,$FD,$29,$44,$01,$C0;{$ENDIF} 
 
-           vmovapd ymm2, [ecx + eax - 32];
-           vmulpd ymm2, ymm2, ymm4;
-           vaddpd ymm2, ymm2, ymm3;
-           vmovapd [ecx + eax - 32], ymm2;
+           {$IFDEF FPC}vmovapd ymm2, [ecx + eax - 32];{$ELSE}db $C5,$FD,$28,$54,$01,$E0;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$59,$D4;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm2, ymm2, ymm3;{$ELSE}db $C5,$ED,$58,$D3;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [ecx + eax - 32], ymm2;{$ELSE}db $C5,$FD,$29,$54,$01,$E0;{$ENDIF} 
 
        jmp @addforxloop
 
@@ -516,11 +498,11 @@ asm
        jz @nextLine;
 
        @addforxloop2:
-           vmovapd xmm0, [ecx + eax];
-           vmulpd xmm0, xmm0, xmm4;
-           vaddpd xmm0, xmm0, xmm3;
+           {$IFDEF FPC}vmovapd xmm0, [ecx + eax];{$ELSE}db $C5,$F9,$28,$04,$01;{$ENDIF} 
+           {$IFDEF FPC}vmulpd xmm0, xmm0, xmm4;{$ELSE}db $C5,$F9,$59,$C4;{$ENDIF} 
+           {$IFDEF FPC}vaddpd xmm0, xmm0, xmm3;{$ELSE}db $C5,$F9,$58,$C3;{$ENDIF} 
 
-           vmovapd [ecx + eax], xmm0;
+           {$IFDEF FPC}vmovapd [ecx + eax], xmm0;{$ELSE}db $C5,$F9,$29,$04,$01;{$ENDIF} 
        add eax, 16;
        jnz @addforxloop2;
 
@@ -534,20 +516,16 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 
    pop esi;
    pop edi;
    pop ebx;
-{$IFDEF FPC}
 end;
-{$ENDIF}
 end;
 
 procedure AVXMatrixScaleAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
-{$IFDEF FPC}
 begin
-{$ENDIF}
 asm
    // prolog - simulate stack
    push ebx;
@@ -561,9 +539,9 @@ asm
    imul edi, -8;
 
    lea eax, dOffset;
-   vbroadcastsd ymm3, [eax];
+   {$IFDEF FPC}vbroadcastsd ymm3, [eax];{$ELSE}db $C4,$E2,$7D,$19,$18;{$ENDIF} 
    lea eax, scale;
-   vbroadcastsd ymm4, [eax];
+   {$IFDEF FPC}vbroadcastsd ymm4, [eax];{$ELSE}db $C4,$E2,$7D,$19,$20;{$ENDIF} 
 
    // helper registers for the mt1, mt2 and dest pointers
    mov ecx, dest;
@@ -583,25 +561,25 @@ asm
            // prefetchw [ecx + eax];
 
            // addition:
-           vmovupd ymm0, [ecx + eax - 128];
-           vmulpd ymm0, ymm0, ymm4;
-           vaddpd ymm0, ymm0, ymm3;
-           vmovupd [ecx + eax - 128], ymm0;
+           {$IFDEF FPC}vmovupd ymm0, [ecx + eax - 128];{$ELSE}db $C5,$FD,$10,$44,$01,$80;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm0, ymm0, ymm4;{$ELSE}db $C5,$FD,$59,$C4;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [ecx + eax - 128], ymm0;{$ELSE}db $C5,$FD,$11,$44,$01,$80;{$ENDIF} 
 
-           vmovupd ymm2, [ecx + eax - 96];
-           vmulpd ymm2, ymm2, ymm4;
-           vaddpd ymm2, ymm2, ymm3;
-           vmovupd [ecx + eax - 96], ymm2;
+           {$IFDEF FPC}vmovupd ymm2, [ecx + eax - 96];{$ELSE}db $C5,$FD,$10,$54,$01,$A0;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$59,$D4;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm2, ymm2, ymm3;{$ELSE}db $C5,$ED,$58,$D3;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [ecx + eax - 96], ymm2;{$ELSE}db $C5,$FD,$11,$54,$01,$A0;{$ENDIF} 
 
-           vmovupd ymm0, [ecx + eax - 64];
-           vmulpd ymm0, ymm0, ymm4;
-           vaddpd ymm0, ymm0, ymm3;
-           vmovupd [ecx + eax - 64], ymm0;
+           {$IFDEF FPC}vmovupd ymm0, [ecx + eax - 64];{$ELSE}db $C5,$FD,$10,$44,$01,$C0;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm0, ymm0, ymm4;{$ELSE}db $C5,$FD,$59,$C4;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [ecx + eax - 64], ymm0;{$ELSE}db $C5,$FD,$11,$44,$01,$C0;{$ENDIF} 
 
-           vmovupd ymm2, [ecx + eax - 32];
-           vmulpd ymm2, ymm2, ymm4;
-           vaddpd ymm2, ymm2, ymm3;
-           vmovupd [ecx + eax - 32], ymm2;
+           {$IFDEF FPC}vmovupd ymm2, [ecx + eax - 32];{$ELSE}db $C5,$FD,$10,$54,$01,$E0;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$59,$D4;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm2, ymm2, ymm3;{$ELSE}db $C5,$ED,$58,$D3;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [ecx + eax - 32], ymm2;{$ELSE}db $C5,$FD,$11,$54,$01,$E0;{$ENDIF} 
 
        jmp @addforxloop
 
@@ -612,11 +590,11 @@ asm
        jz @nextLine;
 
        @addforxloop2:
-           vmovupd xmm0, [ecx + eax];
-           vmulpd xmm0, xmm0, xmm4;
-           vaddpd xmm0, xmm0, xmm3;
+           {$IFDEF FPC}vmovupd xmm0, [ecx + eax];{$ELSE}db $C5,$F9,$10,$04,$01;{$ENDIF} 
+           {$IFDEF FPC}vmulpd xmm0, xmm0, xmm4;{$ELSE}db $C5,$F9,$59,$C4;{$ENDIF} 
+           {$IFDEF FPC}vaddpd xmm0, xmm0, xmm3;{$ELSE}db $C5,$F9,$58,$C3;{$ENDIF} 
 
-           vmovupd [ecx + eax], xmm0;
+           {$IFDEF FPC}vmovupd [ecx + eax], xmm0;{$ELSE}db $C5,$F9,$11,$04,$01;{$ENDIF} 
        add eax, 16;
        jnz @addforxloop2;
 
@@ -630,20 +608,16 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 
    pop esi;
    pop edi;
    pop ebx;
-{$IFDEF FPC}
 end;
-{$ENDIF}
 end;
 
 procedure AVXMatrixScaleAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
-{$IFDEF FPC}
 begin
-{$ENDIF}
 asm
    // prolog - simulate stack
    push ebx;
@@ -658,9 +632,9 @@ asm
    imul edi, -8;
 
    lea eax, dOffset;
-   vbroadcastsd ymm3, [eax];
+   {$IFDEF FPC}vbroadcastsd ymm3, [eax];{$ELSE}db $C4,$E2,$7D,$19,$18;{$ENDIF} 
    lea eax, scale;
-   vbroadcastsd ymm4, [eax];
+   {$IFDEF FPC}vbroadcastsd ymm4, [eax];{$ELSE}db $C4,$E2,$7D,$19,$20;{$ENDIF} 
 
    // helper registers for the mt1, mt2 and dest pointers
    mov ecx, dest;
@@ -680,25 +654,25 @@ asm
            // prefetchw [ecx + eax];
 
            // addition:
-           vmovapd ymm0, [ecx + eax - 128];
-           vmulpd ymm0, ymm0, ymm4;
-           vaddpd ymm0, ymm0, ymm3;
-           vmovapd [ecx + eax - 128], ymm0;
+           {$IFDEF FPC}vmovapd ymm0, [ecx + eax - 128];{$ELSE}db $C5,$FD,$28,$44,$01,$80;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm0, ymm0, ymm4;{$ELSE}db $C5,$FD,$59,$C4;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [ecx + eax - 128], ymm0;{$ELSE}db $C5,$FD,$29,$44,$01,$80;{$ENDIF} 
 
-           vmovapd ymm2, [ecx + eax - 96];
-           vmulpd ymm2, ymm2, ymm4;
-           vaddpd ymm2, ymm2, ymm3;
-           vmovapd [ecx + eax - 96], ymm2;
+           {$IFDEF FPC}vmovapd ymm2, [ecx + eax - 96];{$ELSE}db $C5,$FD,$28,$54,$01,$A0;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$59,$D4;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm2, ymm2, ymm3;{$ELSE}db $C5,$ED,$58,$D3;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [ecx + eax - 96], ymm2;{$ELSE}db $C5,$FD,$29,$54,$01,$A0;{$ENDIF} 
 
-           vmovapd ymm0, [ecx + eax - 64];
-           vmulpd ymm0, ymm0, ymm4;
-           vaddpd ymm0, ymm0, ymm3;
-           vmovapd [ecx + eax - 64], ymm0;
+           {$IFDEF FPC}vmovapd ymm0, [ecx + eax - 64];{$ELSE}db $C5,$FD,$28,$44,$01,$C0;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm0, ymm0, ymm4;{$ELSE}db $C5,$FD,$59,$C4;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [ecx + eax - 64], ymm0;{$ELSE}db $C5,$FD,$29,$44,$01,$C0;{$ENDIF} 
 
-           vmovapd ymm2, [ecx + eax - 32];
-           vmulpd ymm2, ymm2, ymm4;
-           vaddpd ymm2, ymm2, ymm3;
-           vmovapd [ecx + eax - 32], ymm2;
+           {$IFDEF FPC}vmovapd ymm2, [ecx + eax - 32];{$ELSE}db $C5,$FD,$28,$54,$01,$E0;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$59,$D4;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm2, ymm2, ymm3;{$ELSE}db $C5,$ED,$58,$D3;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [ecx + eax - 32], ymm2;{$ELSE}db $C5,$FD,$29,$54,$01,$E0;{$ENDIF} 
 
 
        jmp @addforxloop
@@ -710,21 +684,21 @@ asm
        jz @nextLine;
 
        @addforxloop2:
-           vmovapd xmm0, [ecx + eax];
-           vmulpd xmm0, xmm0, xmm4;
-           vaddpd xmm0, xmm0, xmm3;
+           {$IFDEF FPC}vmovapd xmm0, [ecx + eax];{$ELSE}db $C5,$F9,$28,$04,$01;{$ENDIF} 
+           {$IFDEF FPC}vmulpd xmm0, xmm0, xmm4;{$ELSE}db $C5,$F9,$59,$C4;{$ENDIF} 
+           {$IFDEF FPC}vaddpd xmm0, xmm0, xmm3;{$ELSE}db $C5,$F9,$58,$C3;{$ENDIF} 
 
-           vmovapd [ecx + eax], xmm0;
+           {$IFDEF FPC}vmovapd [ecx + eax], xmm0;{$ELSE}db $C5,$F9,$29,$04,$01;{$ENDIF} 
        add eax, 16;
        jnz @addforxloop2;
 
        @nextLine:
 
        // special care of the last column:
-       vmovsd xmm0, [ecx];
-       vmulsd xmm0, xmm0, xmm4;
-       vaddsd xmm0, xmm0, xmm3;
-       vmovsd [ecx], xmm0;
+       {$IFDEF FPC}vmovsd xmm0, [ecx];{$ELSE}db $C5,$FB,$10,$01;{$ENDIF} 
+       {$IFDEF FPC}vmulsd xmm0, xmm0, xmm4;{$ELSE}db $C5,$FB,$59,$C4;{$ENDIF} 
+       {$IFDEF FPC}vaddsd xmm0, xmm0, xmm3;{$ELSE}db $C5,$FB,$58,$C3;{$ENDIF} 
+       {$IFDEF FPC}vmovsd [ecx], xmm0;{$ELSE}db $C5,$FB,$11,$01;{$ENDIF} 
 
        // next line:
        add ecx, edx;
@@ -734,20 +708,16 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 
    pop esi;
    pop edi;
    pop ebx;
-{$IFDEF FPC}
 end;
-{$ENDIF}
 end;
 
 procedure AVXMatrixScaleAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
-{$IFDEF FPC}
 begin
-{$ENDIF}
 asm
    // prolog - simulate stack
    push ebx;
@@ -762,9 +732,9 @@ asm
    imul edi, -8;
 
    lea eax, dOffset;
-   vbroadcastsd ymm3, [eax];
+   {$IFDEF FPC}vbroadcastsd ymm3, [eax];{$ELSE}db $C4,$E2,$7D,$19,$18;{$ENDIF} 
    lea eax, scale;
-   vbroadcastsd ymm4, [eax];
+   {$IFDEF FPC}vbroadcastsd ymm4, [eax];{$ELSE}db $C4,$E2,$7D,$19,$20;{$ENDIF} 
 
    // helper registers for the mt1, mt2 and dest pointers
    mov ecx, dest;
@@ -784,25 +754,25 @@ asm
            // prefetchw [ecx + eax];
 
            // addition:
-           vmovupd ymm0, [ecx + eax - 128];
-           vmulpd ymm0, ymm0, ymm4;
-           vaddpd ymm0, ymm0, ymm3;
-           vmovupd [ecx + eax - 128], ymm0;
+           {$IFDEF FPC}vmovupd ymm0, [ecx + eax - 128];{$ELSE}db $C5,$FD,$10,$44,$01,$80;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm0, ymm0, ymm4;{$ELSE}db $C5,$FD,$59,$C4;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [ecx + eax - 128], ymm0;{$ELSE}db $C5,$FD,$11,$44,$01,$80;{$ENDIF} 
 
-           vmovupd ymm2, [ecx + eax - 96];
-           vmulpd ymm2, ymm2, ymm4;
-           vaddpd ymm2, ymm2, ymm3;
-           vmovupd [ecx + eax - 96], ymm2;
+           {$IFDEF FPC}vmovupd ymm2, [ecx + eax - 96];{$ELSE}db $C5,$FD,$10,$54,$01,$A0;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$59,$D4;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm2, ymm2, ymm3;{$ELSE}db $C5,$ED,$58,$D3;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [ecx + eax - 96], ymm2;{$ELSE}db $C5,$FD,$11,$54,$01,$A0;{$ENDIF} 
 
-           vmovupd ymm0, [ecx + eax - 64];
-           vmulpd ymm0, ymm0, ymm4;
-           vaddpd ymm0, ymm0, ymm3;
-           vmovupd [ecx + eax - 64], ymm0;
+           {$IFDEF FPC}vmovupd ymm0, [ecx + eax - 64];{$ELSE}db $C5,$FD,$10,$44,$01,$C0;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm0, ymm0, ymm4;{$ELSE}db $C5,$FD,$59,$C4;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [ecx + eax - 64], ymm0;{$ELSE}db $C5,$FD,$11,$44,$01,$C0;{$ENDIF} 
 
-           vmovupd ymm2, [ecx + eax - 32];
-           vmulpd ymm2, ymm2, ymm4;
-           vaddpd ymm2, ymm2, ymm3;
-           vmovupd [ecx + eax - 32], ymm2;
+           {$IFDEF FPC}vmovupd ymm2, [ecx + eax - 32];{$ELSE}db $C5,$FD,$10,$54,$01,$E0;{$ENDIF} 
+           {$IFDEF FPC}vmulpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$59,$D4;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm2, ymm2, ymm3;{$ELSE}db $C5,$ED,$58,$D3;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [ecx + eax - 32], ymm2;{$ELSE}db $C5,$FD,$11,$54,$01,$E0;{$ENDIF} 
 
        jmp @addforxloop
 
@@ -813,21 +783,21 @@ asm
        jz @nextLine;
 
        @addforxloop2:
-           vmovupd xmm0, [ecx + eax];
-           vmulpd xmm0, xmm0, xmm4;
-           vaddpd xmm0, xmm0, xmm3;
+           {$IFDEF FPC}vmovupd xmm0, [ecx + eax];{$ELSE}db $C5,$F9,$10,$04,$01;{$ENDIF} 
+           {$IFDEF FPC}vmulpd xmm0, xmm0, xmm4;{$ELSE}db $C5,$F9,$59,$C4;{$ENDIF} 
+           {$IFDEF FPC}vaddpd xmm0, xmm0, xmm3;{$ELSE}db $C5,$F9,$58,$C3;{$ENDIF} 
 
-           vmovupd [ecx + eax], xmm0;
+           {$IFDEF FPC}vmovupd [ecx + eax], xmm0;{$ELSE}db $C5,$F9,$11,$04,$01;{$ENDIF} 
        add eax, 16;
        jnz @addforxloop2;
 
        @nextLine:
 
        // special care of the last column:
-       vmovsd xmm0, [ecx];
-       vmulsd xmm0, xmm0, xmm4;
-       vaddsd xmm0, xmm0, xmm3;
-       vmovsd [ecx], xmm0;
+       {$IFDEF FPC}vmovsd xmm0, [ecx];{$ELSE}db $C5,$FB,$10,$01;{$ENDIF} 
+       {$IFDEF FPC}vmulsd xmm0, xmm0, xmm4;{$ELSE}db $C5,$FB,$59,$C4;{$ENDIF} 
+       {$IFDEF FPC}vaddsd xmm0, xmm0, xmm3;{$ELSE}db $C5,$FB,$58,$C3;{$ENDIF} 
+       {$IFDEF FPC}vmovsd [ecx], xmm0;{$ELSE}db $C5,$FB,$11,$01;{$ENDIF} 
 
        // next line:
        add ecx, edx;
@@ -837,15 +807,14 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 
    pop esi;
    pop edi;
    pop ebx;
-{$IFDEF FPC}
 end;
-{$ENDIF}
 end;
+
 {$ENDIF}
 
 end.

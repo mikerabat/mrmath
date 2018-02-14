@@ -2269,6 +2269,7 @@ begin
                FreeMem(pMt);
                FreeMem(pDest2);
                FreeMem(pDest1);
+               FreeMem(pDest3);
           end;
      end;
 end;

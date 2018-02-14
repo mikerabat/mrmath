@@ -72,8 +72,8 @@ asm
    // for y := 0 to height - 1:
    mov r11, Height;
    @@addforyloop:
-       vxorpd ymm0, ymm0, ymm0;
-       vxorpd ymm1, ymm1, ymm1;
+       {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;{$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} 
+       {$IFDEF FPC}vxorpd ymm1, ymm1, ymm1;{$ELSE}db $C5,$F5,$57,$C9;{$ENDIF} 
 
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -85,17 +85,17 @@ asm
            // prefetch [r8 + rax];
 
            // addition:
-           vaddpd ymm0, ymm0, [r8 + rax - 128];
-           vaddpd ymm1, ymm1, [r8 + rax - 96];
-           vaddpd ymm0, ymm0, [r8 + rax - 64];
-           vaddpd ymm1, ymm1, [r8 + rax - 32];
+           {$IFDEF FPC}vaddpd ymm0, ymm0, [r8 + rax - 128];{$ELSE}db $C4,$C1,$7D,$58,$44,$00,$80;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm1, ymm1, [r8 + rax - 96];{$ELSE}db $C4,$C1,$75,$58,$4C,$00,$A0;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm0, ymm0, [r8 + rax - 64];{$ELSE}db $C4,$C1,$7D,$58,$44,$00,$C0;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm1, ymm1, [r8 + rax - 32];{$ELSE}db $C4,$C1,$75,$58,$4C,$00,$E0;{$ENDIF} 
        jmp @addforxloop
 
        @loopEnd:
 
-       vaddpd ymm0, ymm0, ymm1;
-       vextractf128 xmm2, ymm0, 1;
-       vhaddpd xmm0, xmm0, xmm2;
+       {$IFDEF FPC}vaddpd ymm0, ymm0, ymm1;{$ELSE}db $C5,$FD,$58,$C1;{$ENDIF} 
+       {$IFDEF FPC}vextractf128 xmm2, ymm0, 1;{$ELSE}db $C4,$E3,$7D,$19,$C2,$01;{$ENDIF} 
+       {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$7C,$C2;{$ENDIF} 
 
        sub rax, 128;
 
@@ -105,7 +105,7 @@ asm
            add rax, 16;
            jg @@addforxloop2end;
 
-           vaddpd xmm0, xmm0, [r8 + rax - 16];
+           {$IFDEF FPC}vaddpd xmm0, xmm0, [r8 + rax - 16];{$ELSE}db $C4,$C1,$79,$58,$44,$00,$F0;{$ENDIF} 
        jmp @addforxloop2;
 
        @@addforxloop2end:
@@ -113,15 +113,15 @@ asm
        sub rax, 16;
        jz @buildRes;
 
-       vaddsd xmm0, xmm0, [r8 + rax];
+       {$IFDEF FPC}vaddsd xmm0, xmm0, [r8 + rax];{$ELSE}db $C4,$C1,$7B,$58,$04,$00;{$ENDIF} 
 
        @buildRes:
 
        // build result
-       vhaddpd xmm0, xmm0, xmm0;
+       {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$7C,$C0;{$ENDIF} 
 
        // write result
-       vmovsd [rcx], xmm0;
+       {$IFDEF FPC}vmovsd [rcx], xmm0;{$ELSE}db $C5,$FB,$11,$01;{$ENDIF} 
 
        // next line:
        add r8, r9;
@@ -132,7 +132,7 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -169,8 +169,8 @@ asm
    // for y := 0 to height - 1:
    mov r11, Height;
    @@addforyloop:
-       vxorpd ymm0, ymm0, ymm0;
-       vxorpd ymm1, ymm1, ymm1;
+       {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;{$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} 
+       {$IFDEF FPC}vxorpd ymm1, ymm1, ymm1;{$ELSE}db $C5,$F5,$57,$C9;{$ENDIF} 
 
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -182,21 +182,21 @@ asm
            // prefetch [r8 + rax];
 
            // addition:
-           vmovupd ymm2, [r8 + rax - 128];
-           vaddpd ymm0, ymm0, ymm2;
-           vmovupd ymm2, [r8 + rax - 96];
-           vaddpd ymm1, ymm1, ymm2;
-           vmovupd ymm2, [r8 + rax - 64];
-           vaddpd ymm0, ymm0, ymm2;
-           vmovupd ymm2, [r8 + rax - 32];
-           vaddpd ymm1, ymm1, ymm2;
+           {$IFDEF FPC}vmovupd ymm2, [r8 + rax - 128];{$ELSE}db $C4,$C1,$7D,$10,$54,$00,$80;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm0, ymm0, ymm2;{$ELSE}db $C5,$FD,$58,$C2;{$ENDIF} 
+           {$IFDEF FPC}vmovupd ymm2, [r8 + rax - 96];{$ELSE}db $C4,$C1,$7D,$10,$54,$00,$A0;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm1, ymm1, ymm2;{$ELSE}db $C5,$F5,$58,$CA;{$ENDIF} 
+           {$IFDEF FPC}vmovupd ymm2, [r8 + rax - 64];{$ELSE}db $C4,$C1,$7D,$10,$54,$00,$C0;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm0, ymm0, ymm2;{$ELSE}db $C5,$FD,$58,$C2;{$ENDIF} 
+           {$IFDEF FPC}vmovupd ymm2, [r8 + rax - 32];{$ELSE}db $C4,$C1,$7D,$10,$54,$00,$E0;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm1, ymm1, ymm2;{$ELSE}db $C5,$F5,$58,$CA;{$ENDIF} 
        jmp @addforxloop
 
        @loopEnd:
 
-       vaddpd ymm0, ymm0, ymm1;
-       vextractf128 xmm2, ymm0, 1;
-       vhaddpd xmm0, xmm0, xmm2;
+       {$IFDEF FPC}vaddpd ymm0, ymm0, ymm1;{$ELSE}db $C5,$FD,$58,$C1;{$ENDIF} 
+       {$IFDEF FPC}vextractf128 xmm2, ymm0, 1;{$ELSE}db $C4,$E3,$7D,$19,$C2,$01;{$ENDIF} 
+       {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$7C,$C2;{$ENDIF} 
 
        sub rax, 128;
 
@@ -206,8 +206,8 @@ asm
            add rax, 16;
            jg @@addforxloop2end;
 
-           vmovupd xmm2, [r8 + rax - 16];
-           vaddpd xmm0, xmm0, xmm2;
+           {$IFDEF FPC}vmovupd xmm2, [r8 + rax - 16];{$ELSE}db $C4,$C1,$79,$10,$54,$00,$F0;{$ENDIF} 
+           {$IFDEF FPC}vaddpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$58,$C2;{$ENDIF} 
        jmp @addforxloop2;
 
        @@addforxloop2end:
@@ -215,15 +215,15 @@ asm
        sub rax, 16;
        jz @buildRes;
 
-       vaddsd xmm0, xmm0, [r8 + rax];
+       {$IFDEF FPC}vaddsd xmm0, xmm0, [r8 + rax];{$ELSE}db $C4,$C1,$7B,$58,$04,$00;{$ENDIF} 
 
        @buildRes:
 
        // build result
-       vhaddpd xmm0, xmm0, xmm0;
+       {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$7C,$C0;{$ENDIF} 
 
        // write result
-       vmovsd [rcx], xmm0;
+       {$IFDEF FPC}vmovsd [rcx], xmm0;{$ELSE}db $C5,$FB,$11,$01;{$ENDIF} 
 
        // next line:
        add r8, r9;
@@ -234,7 +234,7 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -271,18 +271,18 @@ asm
 
    // 4 columns at once
    @@addforxloop4:
-       vxorpd ymm1, ymm1, ymm1;
+       {$IFDEF FPC}vxorpd ymm1, ymm1, ymm1;{$ELSE}db $C5,$F5,$57,$C9;{$ENDIF} 
 
        // for y := 0 to height - 1;
        // prepare for reverse loop
        mov rax, r10;
        @addforyloop4:
-           vaddpd ymm1, ymm1, [r8 + rax];
+           {$IFDEF FPC}vaddpd ymm1, ymm1, [r8 + rax];{$ELSE}db $C4,$C1,$75,$58,$0C,$00;{$ENDIF} 
        add rax, r9;
        jnz @addforyloop4;
 
        // build result
-       vmovapd [rcx], ymm1;
+       {$IFDEF FPC}vmovapd [rcx], ymm1;{$ELSE}db $C5,$FD,$29,$09;{$ENDIF} 
 
        // next columns:
        add rcx, 32;
@@ -300,18 +300,18 @@ asm
    sub r11, 2;
    jl @@lastcolumn;
 
-   vxorpd xmm1, xmm1, xmm1;
+   {$IFDEF FPC}vxorpd xmm1, xmm1, xmm1;{$ELSE}db $C5,$F1,$57,$C9;{$ENDIF} 
 
    // for y := 0 to height - 1;
    // prepare for reverse loop
    mov rax, r10;
    @addforyloop2:
-       vaddpd xmm1, xmm1, [r8 + rax];
+       {$IFDEF FPC}vaddpd xmm1, xmm1, [r8 + rax];{$ELSE}db $C4,$C1,$71,$58,$0C,$00;{$ENDIF} 
    add rax, r9;
    jnz @addforyloop2;
 
    // build result
-   vmovapd [rcx], xmm1;
+   {$IFDEF FPC}vmovapd [rcx], xmm1;{$ELSE}db $C5,$F9,$29,$09;{$ENDIF} 
 
    // next columns:
    add rcx, 16;
@@ -322,21 +322,21 @@ asm
 
    @@lastcolumn:
 
-   vxorpd xmm1, xmm1, xmm1;
+   {$IFDEF FPC}vxorpd xmm1, xmm1, xmm1;{$ELSE}db $C5,$F1,$57,$C9;{$ENDIF} 
 
    // for y := 0 to height - 1;
    // prepare for reverse loop
    mov rax, r10;
    @addforyloop:
-       vaddsd xmm1, xmm1, [r8 + rax];
+       {$IFDEF FPC}vaddsd xmm1, xmm1, [r8 + rax];{$ELSE}db $C4,$C1,$73,$58,$0C,$00;{$ENDIF} 
    add rax, r9;
    jnz @addforyloop;
 
    // build result
-   vmovsd [rcx], xmm1;
+   {$IFDEF FPC}vmovsd [rcx], xmm1;{$ELSE}db $C5,$FB,$11,$09;{$ENDIF} 
 
    @@endProc:
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -373,19 +373,19 @@ asm
 
    // 4 columns at once
    @@addforxloop4:
-       vxorpd ymm1, ymm1, ymm1;
+       {$IFDEF FPC}vxorpd ymm1, ymm1, ymm1;{$ELSE}db $C5,$F5,$57,$C9;{$ENDIF} 
 
        // for y := 0 to height - 1;
        // prepare for reverse loop
        mov rax, r10;
        @addforyloop4:
-           vmovupd ymm0, [r8 + rax];
-           vaddpd ymm1, ymm1, ymm0;
+           {$IFDEF FPC}vmovupd ymm0, [r8 + rax];{$ELSE}db $C4,$C1,$7D,$10,$04,$00;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm1, ymm1, ymm0;{$ELSE}db $C5,$F5,$58,$C8;{$ENDIF} 
        add rax, r9;
        jnz @addforyloop4;
 
        // build result
-       vmovupd [rcx], ymm1;
+       {$IFDEF FPC}vmovupd [rcx], ymm1;{$ELSE}db $C5,$FD,$11,$09;{$ENDIF} 
 
        // next columns:
        add rcx, 32;
@@ -403,19 +403,19 @@ asm
    sub r11, 2;
    jl @@lastcolumn;
 
-   vxorpd xmm1, xmm1, xmm1;
+   {$IFDEF FPC}vxorpd xmm1, xmm1, xmm1;{$ELSE}db $C5,$F1,$57,$C9;{$ENDIF} 
 
    // for y := 0 to height - 1;
    // prepare for reverse loop
    mov rax, r10;
    @addforyloop2:
-       vmovupd xmm0, [r8 + rax];
-       vaddpd xmm1, xmm1, [r8 + rax];
+       {$IFDEF FPC}vmovupd xmm0, [r8 + rax];{$ELSE}db $C4,$C1,$79,$10,$04,$00;{$ENDIF} 
+       {$IFDEF FPC}vaddpd xmm1, xmm1, [r8 + rax];{$ELSE}db $C4,$C1,$71,$58,$0C,$00;{$ENDIF} 
    add rax, r9;
    jnz @addforyloop2;
 
    // build result
-   vmovupd [rcx], xmm1;
+   {$IFDEF FPC}vmovupd [rcx], xmm1;{$ELSE}db $C5,$F9,$11,$09;{$ENDIF} 
 
    // next columns:
    add rcx, 16;
@@ -426,21 +426,21 @@ asm
 
    @@lastcolumn:
 
-   vxorpd xmm1, xmm1, xmm1;
+   {$IFDEF FPC}vxorpd xmm1, xmm1, xmm1;{$ELSE}db $C5,$F1,$57,$C9;{$ENDIF} 
 
    // for y := 0 to height - 1;
    // prepare for reverse loop
    mov rax, r10;
    @addforyloop:
-       vaddsd xmm1, xmm1, [r8 + rax];
+       {$IFDEF FPC}vaddsd xmm1, xmm1, [r8 + rax];{$ELSE}db $C4,$C1,$73,$58,$0C,$00;{$ENDIF} 
    add rax, r9;
    jnz @addforyloop;
 
    // build result
-   vmovsd [rcx], xmm1;
+   {$IFDEF FPC}vmovsd [rcx], xmm1;{$ELSE}db $C5,$FB,$11,$09;{$ENDIF} 
 
    @@endProc:
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
 {$ENDIF}

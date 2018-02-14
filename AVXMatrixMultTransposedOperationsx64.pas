@@ -78,7 +78,7 @@ asm
    mov iR14, r14;
    mov iR15, r15;
 
-   vmovupd dXMM4, xmm4;
+   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -111,8 +111,8 @@ asm
        // for y2 := 0 to height2 - 1:
        mov rbx, r15;
        @@fory2label:
-           vxorpd ymm0, ymm0, ymm0;   // dest^ := 0
-           vxorpd ymm2, ymm2, ymm2;   // dest + 1 := 0;
+           {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;   {$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} // dest^ := 0
+           {$IFDEF FPC}vxorpd ymm2, ymm2, ymm2;   {$ELSE}db $C5,$ED,$57,$D2;{$ENDIF} // dest + 1 := 0;
            // for idx := 0 to width1 div 2 do
            mov rax, r14;
 
@@ -122,60 +122,60 @@ asm
                // prefetch [edi + edx + 128];
                // prefetch [eax + edx + 128];
 
-               vmovapd ymm1, [r8 + rax];
+               {$IFDEF FPC}vmovapd ymm1, [r8 + rax];{$ELSE}db $C4,$C1,$7D,$28,$0C,$00;{$ENDIF} 
 
                // multiply 2x2 and add
-               vmulpd ymm3, ymm1, [rdi + rax];
-               vmulpd ymm4, ymm1, [rsi + rax];
+               {$IFDEF FPC}vmulpd ymm3, ymm1, [rdi + rax];{$ELSE}db $C5,$F5,$59,$1C,$07;{$ENDIF} 
+               {$IFDEF FPC}vmulpd ymm4, ymm1, [rsi + rax];{$ELSE}db $C5,$F5,$59,$24,$06;{$ENDIF} 
 
-               vaddpd ymm0, ymm0, ymm3;
-               vaddpd ymm2, ymm2, ymm4;
+               {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+               {$IFDEF FPC}vaddpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$58,$D4;{$ENDIF} 
 
-               vmovapd ymm1, [r8 + rax + 32];
+               {$IFDEF FPC}vmovapd ymm1, [r8 + rax + 32];{$ELSE}db $C4,$C1,$7D,$28,$4C,$00,$20;{$ENDIF} 
 
                // multiply 2x2 and add
-               vmulpd ymm3, ymm1, [rdi + rax + 32];
-               vmulpd ymm4, ymm1, [rsi + rax + 32];
+               {$IFDEF FPC}vmulpd ymm3, ymm1, [rdi + rax + 32];{$ELSE}db $C5,$F5,$59,$5C,$07,$20;{$ENDIF} 
+               {$IFDEF FPC}vmulpd ymm4, ymm1, [rsi + rax + 32];{$ELSE}db $C5,$F5,$59,$64,$06,$20;{$ENDIF} 
 
-               vaddpd ymm0, ymm0, ymm3;
-               vaddpd ymm2, ymm2, ymm4;
+               {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+               {$IFDEF FPC}vaddpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$58,$D4;{$ENDIF} 
 
-               vmovapd ymm1, [r8 + rax + 64];
+               {$IFDEF FPC}vmovapd ymm1, [r8 + rax + 64];{$ELSE}db $C4,$C1,$7D,$28,$4C,$00,$40;{$ENDIF} 
 
                // load 2x2 block
-               vmovapd ymm3, [rdi + rax + 64];
-               vmovapd ymm4, [rsi + rax + 64];
+               {$IFDEF FPC}vmovapd ymm3, [rdi + rax + 64];{$ELSE}db $C5,$FD,$28,$5C,$07,$40;{$ENDIF} 
+               {$IFDEF FPC}vmovapd ymm4, [rsi + rax + 64];{$ELSE}db $C5,$FD,$28,$64,$06,$40;{$ENDIF} 
 
                // multiply 2x2 and add
-               vmulpd ymm3, ymm3, ymm1;
-               vmulpd ymm4, ymm4, ymm1;
+               {$IFDEF FPC}vmulpd ymm3, ymm3, ymm1;{$ELSE}db $C5,$E5,$59,$D9;{$ENDIF} 
+               {$IFDEF FPC}vmulpd ymm4, ymm4, ymm1;{$ELSE}db $C5,$DD,$59,$E1;{$ENDIF} 
 
-               vaddpd ymm0, ymm0, ymm3;
-               vaddpd ymm2, ymm2, ymm4;
+               {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+               {$IFDEF FPC}vaddpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$58,$D4;{$ENDIF} 
 
-               vmovapd ymm1, [r8 + rax + 96];
+               {$IFDEF FPC}vmovapd ymm1, [r8 + rax + 96];{$ELSE}db $C4,$C1,$7D,$28,$4C,$00,$60;{$ENDIF} 
 
                // multiply 2x2 and add
-               vmulpd ymm3, ymm1, [rdi + rax + 96];
-               vmulpd ymm4, ymm1, [rsi + rax + 96];
+               {$IFDEF FPC}vmulpd ymm3, ymm1, [rdi + rax + 96];{$ELSE}db $C5,$F5,$59,$5C,$07,$60;{$ENDIF} 
+               {$IFDEF FPC}vmulpd ymm4, ymm1, [rsi + rax + 96];{$ELSE}db $C5,$F5,$59,$64,$06,$60;{$ENDIF} 
 
-               vaddpd ymm0, ymm0, ymm3;
-               vaddpd ymm2, ymm2, ymm4;
+               {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+               {$IFDEF FPC}vaddpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$58,$D4;{$ENDIF} 
 
                // end for idx := 0 to width1 div 2
            add rax, 128;
            jnz @@InnerLoop;
 
-           vextractf128 xmm1, ymm0, 1;
-           vextractf128 xmm3, ymm2, 1;
+           {$IFDEF FPC}vextractf128 xmm1, ymm0, 1;{$ELSE}db $C4,$E3,$7D,$19,$C1,$01;{$ENDIF} 
+           {$IFDEF FPC}vextractf128 xmm3, ymm2, 1;{$ELSE}db $C4,$E3,$7D,$19,$D3,$01;{$ENDIF} 
 
-           vhaddpd xmm0, xmm0, xmm1;
-           vhaddpd xmm2, xmm2, xmm3;
+           {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm1;{$ELSE}db $C5,$F9,$7C,$C1;{$ENDIF} 
+           {$IFDEF FPC}vhaddpd xmm2, xmm2, xmm3;{$ELSE}db $C5,$E9,$7C,$D3;{$ENDIF} 
 
-           vhaddpd xmm0, xmm0, xmm2;
+           {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$7C,$C2;{$ENDIF} 
 
            // store back result
-           vmovapd [r13], xmm0;
+           {$IFDEF FPC}vmovapd [r13], xmm0;{$ELSE}db $C4,$C1,$79,$29,$45,$00;{$ENDIF} 
 
            // increment the pointers
            // inc(mt2), inc(dest);
@@ -208,8 +208,8 @@ asm
    mov r14, iR14;
    mov r15, iR15;
 
-   vmovupd xmm4, dXMM4;
-   vzeroupper;
+   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -246,7 +246,7 @@ asm
    mov iR14, r14;
    mov iR15, r15;
 
-   vmovupd dXMM4, xmm4;
+   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -279,8 +279,8 @@ asm
        // for y2 := 0 to height2 div 2 - 1:
        mov rbx, r15;
        @@fory2label:
-           vxorpd ymm0, ymm0, ymm0;   // dest^ := 0
-           vxorpd ymm2, ymm2, ymm2;   // dest + 1 := 0;
+           {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;   {$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} // dest^ := 0
+           {$IFDEF FPC}vxorpd ymm2, ymm2, ymm2;   {$ELSE}db $C5,$ED,$57,$D2;{$ENDIF} // dest + 1 := 0;
            // for idx := 0 to width1 div 2 do
            mov rax, r14;
 
@@ -290,72 +290,72 @@ asm
                // prefetch [edi + edx + 128];
                // prefetch [eax + edx + 128];
 
-               vmovapd ymm1, [r8 + rax];
+               {$IFDEF FPC}vmovapd ymm1, [r8 + rax];{$ELSE}db $C4,$C1,$7D,$28,$0C,$00;{$ENDIF} 
 
                // load 2x2 block
-               vmovapd ymm3, [rdi + rax];
-               vmovapd ymm4, [rsi + rax];
+               {$IFDEF FPC}vmovapd ymm3, [rdi + rax];{$ELSE}db $C5,$FD,$28,$1C,$07;{$ENDIF} 
+               {$IFDEF FPC}vmovapd ymm4, [rsi + rax];{$ELSE}db $C5,$FD,$28,$24,$06;{$ENDIF} 
 
                // multiply 2x2 and add
-               vmulpd ymm3, ymm3, ymm1;
-               vmulpd ymm4, ymm4, ymm1;
+               {$IFDEF FPC}vmulpd ymm3, ymm3, ymm1;{$ELSE}db $C5,$E5,$59,$D9;{$ENDIF} 
+               {$IFDEF FPC}vmulpd ymm4, ymm4, ymm1;{$ELSE}db $C5,$DD,$59,$E1;{$ENDIF} 
 
-               vaddpd ymm0, ymm0, ymm3;
-               vaddpd ymm2, ymm2, ymm4;
+               {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+               {$IFDEF FPC}vaddpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$58,$D4;{$ENDIF} 
 
-               vmovapd ymm1, [r8 + rax + 32];
+               {$IFDEF FPC}vmovapd ymm1, [r8 + rax + 32];{$ELSE}db $C4,$C1,$7D,$28,$4C,$00,$20;{$ENDIF} 
 
                // load 2x2 block
-               vmovapd ymm3, [rdi + rax + 32];
-               vmovapd ymm4, [rsi + rax + 32];
+               {$IFDEF FPC}vmovapd ymm3, [rdi + rax + 32];{$ELSE}db $C5,$FD,$28,$5C,$07,$20;{$ENDIF} 
+               {$IFDEF FPC}vmovapd ymm4, [rsi + rax + 32];{$ELSE}db $C5,$FD,$28,$64,$06,$20;{$ENDIF} 
 
                // multiply 2x2 and add
-               vmulpd ymm3, ymm3, ymm1;
-               vmulpd ymm4, ymm4, ymm1;
+               {$IFDEF FPC}vmulpd ymm3, ymm3, ymm1;{$ELSE}db $C5,$E5,$59,$D9;{$ENDIF} 
+               {$IFDEF FPC}vmulpd ymm4, ymm4, ymm1;{$ELSE}db $C5,$DD,$59,$E1;{$ENDIF} 
 
-               vaddpd ymm0, ymm0, ymm3;
-               vaddpd ymm2, ymm2, ymm4;
+               {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+               {$IFDEF FPC}vaddpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$58,$D4;{$ENDIF} 
 
-               vmovapd ymm1, [r8 + rax + 64];
+               {$IFDEF FPC}vmovapd ymm1, [r8 + rax + 64];{$ELSE}db $C4,$C1,$7D,$28,$4C,$00,$40;{$ENDIF} 
 
                // load 2x2 block
-               vmovapd ymm3, [rdi + rax + 64];
-               vmovapd ymm4, [rsi + rax + 64];
+               {$IFDEF FPC}vmovapd ymm3, [rdi + rax + 64];{$ELSE}db $C5,$FD,$28,$5C,$07,$40;{$ENDIF} 
+               {$IFDEF FPC}vmovapd ymm4, [rsi + rax + 64];{$ELSE}db $C5,$FD,$28,$64,$06,$40;{$ENDIF} 
 
                // multiply 2x2 and add
-               vmulpd ymm3, ymm3, ymm1;
-               vmulpd ymm4, ymm4, ymm1;
+               {$IFDEF FPC}vmulpd ymm3, ymm3, ymm1;{$ELSE}db $C5,$E5,$59,$D9;{$ENDIF} 
+               {$IFDEF FPC}vmulpd ymm4, ymm4, ymm1;{$ELSE}db $C5,$DD,$59,$E1;{$ENDIF} 
 
-               vaddpd ymm0, ymm0, ymm3;
-               vaddpd ymm2, ymm2, ymm4;
+               {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+               {$IFDEF FPC}vaddpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$58,$D4;{$ENDIF} 
 
-               vmovapd ymm1, [r8 + rax + 96];
+               {$IFDEF FPC}vmovapd ymm1, [r8 + rax + 96];{$ELSE}db $C4,$C1,$7D,$28,$4C,$00,$60;{$ENDIF} 
 
                // load 2x2 block
-               vmovapd ymm3, [rdi + rax + 96];
-               vmovapd ymm4, [rsi + rax + 96];
+               {$IFDEF FPC}vmovapd ymm3, [rdi + rax + 96];{$ELSE}db $C5,$FD,$28,$5C,$07,$60;{$ENDIF} 
+               {$IFDEF FPC}vmovapd ymm4, [rsi + rax + 96];{$ELSE}db $C5,$FD,$28,$64,$06,$60;{$ENDIF} 
 
                // multiply 2x2 and add
-               vmulpd ymm3, ymm3, ymm1;
-               vmulpd ymm4, ymm4, ymm1;
+               {$IFDEF FPC}vmulpd ymm3, ymm3, ymm1;{$ELSE}db $C5,$E5,$59,$D9;{$ENDIF} 
+               {$IFDEF FPC}vmulpd ymm4, ymm4, ymm1;{$ELSE}db $C5,$DD,$59,$E1;{$ENDIF} 
 
-               vaddpd ymm0, ymm0, ymm3;
-               vaddpd ymm2, ymm2, ymm4;
+               {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+               {$IFDEF FPC}vaddpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$58,$D4;{$ENDIF} 
 
                // end for idx := 0 to width1 div 2
            add rax, 128;
            jnz @@InnerLoop;
 
-           vextractf128 xmm1, ymm0, 1;
-           vextractf128 xmm3, ymm2, 1;
+           {$IFDEF FPC}vextractf128 xmm1, ymm0, 1;{$ELSE}db $C4,$E3,$7D,$19,$C1,$01;{$ENDIF} 
+           {$IFDEF FPC}vextractf128 xmm3, ymm2, 1;{$ELSE}db $C4,$E3,$7D,$19,$D3,$01;{$ENDIF} 
 
-           vhaddpd xmm0, xmm0, xmm1;
-           vhaddpd xmm2, xmm2, xmm3;
+           {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm1;{$ELSE}db $C5,$F9,$7C,$C1;{$ENDIF} 
+           {$IFDEF FPC}vhaddpd xmm2, xmm2, xmm3;{$ELSE}db $C5,$E9,$7C,$D3;{$ENDIF} 
 
-           vhaddpd xmm0, xmm0, xmm2;
+           {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$7C,$C2;{$ENDIF} 
 
            // store back result
-           vmovapd [r13], xmm0;
+           {$IFDEF FPC}vmovapd [r13], xmm0;{$ELSE}db $C4,$C1,$79,$29,$45,$00;{$ENDIF} 
 
            // increment the pointers
            // inc(mt2), inc(dest);
@@ -368,7 +368,7 @@ asm
        jnz @@fory2label;
 
        // last odd line:
-       vxorpd ymm0, ymm0, ymm0;   // dest^ := 0
+       {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;   {$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} // dest^ := 0
        // for idx := 0 to width1 div 2 do
        mov rax, r14;
 
@@ -378,38 +378,38 @@ asm
           // prefetch [edi + edx + 128];
           // prefetch [eax + edx + 128];
 
-          vmovapd ymm1, [r8 + rax];
-          vmovapd ymm3, [rdi + rax];
+          {$IFDEF FPC}vmovapd ymm1, [r8 + rax];{$ELSE}db $C4,$C1,$7D,$28,$0C,$00;{$ENDIF} 
+          {$IFDEF FPC}vmovapd ymm3, [rdi + rax];{$ELSE}db $C5,$FD,$28,$1C,$07;{$ENDIF} 
 
           // multiply 2x2 and add
-          vmulpd ymm3, ymm3, ymm1;
-          vaddpd ymm0, ymm0, ymm3;
+          {$IFDEF FPC}vmulpd ymm3, ymm3, ymm1;{$ELSE}db $C5,$E5,$59,$D9;{$ENDIF} 
+          {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
 
-          vmovapd ymm1, [r8 + rax + 32];
-          vmovapd ymm3, [rdi + rax + 32];
-          vmulpd ymm3, ymm3, ymm1;
-          vaddpd ymm0, ymm0, ymm3;
+          {$IFDEF FPC}vmovapd ymm1, [r8 + rax + 32];{$ELSE}db $C4,$C1,$7D,$28,$4C,$00,$20;{$ENDIF} 
+          {$IFDEF FPC}vmovapd ymm3, [rdi + rax + 32];{$ELSE}db $C5,$FD,$28,$5C,$07,$20;{$ENDIF} 
+          {$IFDEF FPC}vmulpd ymm3, ymm3, ymm1;{$ELSE}db $C5,$E5,$59,$D9;{$ENDIF} 
+          {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
 
-          vmovapd ymm1, [r8 + rax + 64];
-          vmovapd ymm3, [rdi + rax + 64];
-          vmulpd ymm3, ymm3, ymm1;
-          vaddpd ymm0, ymm0, ymm3;
+          {$IFDEF FPC}vmovapd ymm1, [r8 + rax + 64];{$ELSE}db $C4,$C1,$7D,$28,$4C,$00,$40;{$ENDIF} 
+          {$IFDEF FPC}vmovapd ymm3, [rdi + rax + 64];{$ELSE}db $C5,$FD,$28,$5C,$07,$40;{$ENDIF} 
+          {$IFDEF FPC}vmulpd ymm3, ymm3, ymm1;{$ELSE}db $C5,$E5,$59,$D9;{$ENDIF} 
+          {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
 
-          vmovapd ymm1, [r8 + rax + 96];
-          vmovapd ymm3, [rdi + rax + 96];
-          vmulpd ymm3, ymm3, ymm1;
-          vaddpd ymm0, ymm0, ymm3;
+          {$IFDEF FPC}vmovapd ymm1, [r8 + rax + 96];{$ELSE}db $C4,$C1,$7D,$28,$4C,$00,$60;{$ENDIF} 
+          {$IFDEF FPC}vmovapd ymm3, [rdi + rax + 96];{$ELSE}db $C5,$FD,$28,$5C,$07,$60;{$ENDIF} 
+          {$IFDEF FPC}vmulpd ymm3, ymm3, ymm1;{$ELSE}db $C5,$E5,$59,$D9;{$ENDIF} 
+          {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
 
           // end for idx := 0 to width1 div 2
        add rax, 128;
        jnz @@InnerLoop2;
 
-       vextractf128 xmm1, ymm0, 1;
-       vhaddpd xmm0, xmm0, xmm1;
-       vhaddpd xmm0, xmm0, xmm0;
+       {$IFDEF FPC}vextractf128 xmm1, ymm0, 1;{$ELSE}db $C4,$E3,$7D,$19,$C1,$01;{$ENDIF} 
+       {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm1;{$ELSE}db $C5,$F9,$7C,$C1;{$ENDIF} 
+       {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$7C,$C0;{$ENDIF} 
 
        // store back result
-       vmovsd [r13], xmm0;
+       {$IFDEF FPC}vmovsd [r13], xmm0;{$ELSE}db $C4,$C1,$7B,$11,$45,$00;{$ENDIF} 
 
        // dec(mt2, Width2);
        // inc(PByte(mt1), LineWidth1);
@@ -432,8 +432,8 @@ asm
    mov r14, iR14;
    mov r15, iR15;
 
-   vmovupd xmm4, dXMM4;
-   vzeroupper;
+   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -469,7 +469,7 @@ asm
    mov iR14, r14;
    mov iR15, r15;
 
-   vmovupd dXMM4, xmm4;
+   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
 
    // height 2
    mov r15, height2;
@@ -504,36 +504,36 @@ asm
        jl @@fory2loopend;
 
        @@fory2label:
-           vxorpd ymm0, ymm0, ymm0;   // dest^ := 0
-           vxorpd ymm2, ymm2, ymm2;   // dest + 1 := 0;
+           {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;   {$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} // dest^ := 0
+           {$IFDEF FPC}vxorpd ymm2, ymm2, ymm2;   {$ELSE}db $C5,$ED,$57,$D2;{$ENDIF} // dest + 1 := 0;
            // for idx := 0 to width1 div 4 do
            mov rax, r14;
            add rax, 32;
            jg @InnerLoopEnd;
 
            @@InnerLoop:
-               vmovupd ymm1, [r8 + rax - 32];
+               {$IFDEF FPC}vmovupd ymm1, [r8 + rax - 32];{$ELSE}db $C4,$C1,$7D,$10,$4C,$00,$E0;{$ENDIF} 
 
                // load 2x2 block
-               vmovupd ymm3, [rdi + rax - 32];
-               vmovupd ymm4, [rsi + rax - 32];
+               {$IFDEF FPC}vmovupd ymm3, [rdi + rax - 32];{$ELSE}db $C5,$FD,$10,$5C,$07,$E0;{$ENDIF} 
+               {$IFDEF FPC}vmovupd ymm4, [rsi + rax - 32];{$ELSE}db $C5,$FD,$10,$64,$06,$E0;{$ENDIF} 
 
                // multiply 2x2 and add
-               vmulpd ymm3, ymm3, ymm1;
-               vmulpd ymm4, ymm4, ymm1;
+               {$IFDEF FPC}vmulpd ymm3, ymm3, ymm1;{$ELSE}db $C5,$E5,$59,$D9;{$ENDIF} 
+               {$IFDEF FPC}vmulpd ymm4, ymm4, ymm1;{$ELSE}db $C5,$DD,$59,$E1;{$ENDIF} 
 
-               vaddpd ymm0, ymm0, ymm3;
-               vaddpd ymm2, ymm2, ymm4;
+               {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+               {$IFDEF FPC}vaddpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$58,$D4;{$ENDIF} 
 
                // end for idx := 0 to width1 div 2
            add rax, 32;
            jle @@InnerLoop;
 
-           vextractf128 xmm1, ymm0, 1;
-           vextractf128 xmm3, ymm2, 1;
+           {$IFDEF FPC}vextractf128 xmm1, ymm0, 1;{$ELSE}db $C4,$E3,$7D,$19,$C1,$01;{$ENDIF} 
+           {$IFDEF FPC}vextractf128 xmm3, ymm2, 1;{$ELSE}db $C4,$E3,$7D,$19,$D3,$01;{$ENDIF} 
 
-           vhaddpd xmm0, xmm0, xmm1;
-           vhaddpd xmm2, xmm2, xmm3;
+           {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm1;{$ELSE}db $C5,$F9,$7C,$C1;{$ENDIF} 
+           {$IFDEF FPC}vhaddpd xmm2, xmm2, xmm3;{$ELSE}db $C5,$E9,$7C,$D3;{$ENDIF} 
 
            @InnerLoopEnd:
 
@@ -542,18 +542,18 @@ asm
 
            // do the final few elements
            @@InnerLoop2:
-               vmovsd xmm1, [r8 + rax];
+               {$IFDEF FPC}vmovsd xmm1, [r8 + rax];{$ELSE}db $C4,$C1,$7B,$10,$0C,$00;{$ENDIF} 
 
                // load 2x2 block
-               vmovsd xmm3, [rdi + rax];
-               vmovsd xmm4, [rsi + rax];
+               {$IFDEF FPC}vmovsd xmm3, [rdi + rax];{$ELSE}db $C5,$FB,$10,$1C,$07;{$ENDIF} 
+               {$IFDEF FPC}vmovsd xmm4, [rsi + rax];{$ELSE}db $C5,$FB,$10,$24,$06;{$ENDIF} 
 
                // multiply 2x2 and add
-               vmulsd xmm3, xmm3, xmm1;
-               vmulsd xmm4, xmm4, xmm1;
+               {$IFDEF FPC}vmulsd xmm3, xmm3, xmm1;{$ELSE}db $C5,$E3,$59,$D9;{$ENDIF} 
+               {$IFDEF FPC}vmulsd xmm4, xmm4, xmm1;{$ELSE}db $C5,$DB,$59,$E1;{$ENDIF} 
 
-               vaddsd xmm0, xmm0, xmm3;
-               vaddsd xmm2, xmm2, xmm4;
+               {$IFDEF FPC}vaddsd xmm0, xmm0, xmm3;{$ELSE}db $C5,$FB,$58,$C3;{$ENDIF} 
+               {$IFDEF FPC}vaddsd xmm2, xmm2, xmm4;{$ELSE}db $C5,$EB,$58,$D4;{$ENDIF} 
 
            add rax, 8;
            jnz @@InnerLoop2;
@@ -561,10 +561,10 @@ asm
            @@InnerLoopEnd2:
 
            // final add and compact result
-           vhaddpd xmm0, xmm0, xmm2;
+           {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$7C,$C2;{$ENDIF} 
 
            // store back result
-           vmovupd [r13], xmm0;
+           {$IFDEF FPC}vmovupd [r13], xmm0;{$ELSE}db $C4,$C1,$79,$11,$45,$00;{$ENDIF} 
 
            // increment the pointers
            // inc(mt2), inc(dest);
@@ -583,7 +583,7 @@ asm
        jz @@NextLine;
 
        // we have an odd height2 -> special treatment for the last line
-       vxorpd ymm0, ymm0, ymm0;   // dest^ := 0
+       {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;   {$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} // dest^ := 0
 
        // for idx := 0 to width1 div 4 do
        mov rax, r14;
@@ -591,22 +591,22 @@ asm
        jg @LastLineInnerLoopEnd;
 
        @@LastLineInnerLoop:
-            vmovupd ymm1, [r8 + rax - 32];
+            {$IFDEF FPC}vmovupd ymm1, [r8 + rax - 32];{$ELSE}db $C4,$C1,$7D,$10,$4C,$00,$E0;{$ENDIF} 
 
             // load block
-            vmovupd ymm3, [rdi + rax - 32];
+            {$IFDEF FPC}vmovupd ymm3, [rdi + rax - 32];{$ELSE}db $C5,$FD,$10,$5C,$07,$E0;{$ENDIF} 
 
             // multiply and add
-            vmulpd ymm3, ymm3, ymm1;
+            {$IFDEF FPC}vmulpd ymm3, ymm3, ymm1;{$ELSE}db $C5,$E5,$59,$D9;{$ENDIF} 
 
-            vaddpd ymm0, ymm0, ymm3;
+            {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
 
             // end for idx := 0 to width1 div 2
        add rax, 32;
        jle @@LastLineInnerLoop;
 
-       vextractf128 xmm1, ymm0, 1;
-       vhaddpd xmm0, xmm0, xmm1;
+       {$IFDEF FPC}vextractf128 xmm1, ymm0, 1;{$ELSE}db $C4,$E3,$7D,$19,$C1,$01;{$ENDIF} 
+       {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm1;{$ELSE}db $C5,$F9,$7C,$C1;{$ENDIF} 
 
        @LastLineInnerLoopEnd:
        sub rax, 32;
@@ -614,12 +614,12 @@ asm
 
        // do the final few elements
        @@LastLineInnerLoop2:
-            vmovsd xmm1, [r8 + rax];
-            vmovsd xmm3, [rdi + rax];
+            {$IFDEF FPC}vmovsd xmm1, [r8 + rax];{$ELSE}db $C4,$C1,$7B,$10,$0C,$00;{$ENDIF} 
+            {$IFDEF FPC}vmovsd xmm3, [rdi + rax];{$ELSE}db $C5,$FB,$10,$1C,$07;{$ENDIF} 
 
             // multiply and add
-            vmulsd xmm3, xmm3, xmm1;
-            vaddsd xmm0, xmm0, xmm3;
+            {$IFDEF FPC}vmulsd xmm3, xmm3, xmm1;{$ELSE}db $C5,$E3,$59,$D9;{$ENDIF} 
+            {$IFDEF FPC}vaddsd xmm0, xmm0, xmm3;{$ELSE}db $C5,$FB,$58,$C3;{$ENDIF} 
        // next element
        add rax, 8;
        jnz @@LastLineInnerLoop2;
@@ -627,10 +627,10 @@ asm
        @@LastLineInnerLoopEnd2:
 
        // final add and compact result
-       vhaddpd xmm0, xmm0, xmm0;
+       {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$7C,$C0;{$ENDIF} 
 
        // store back result
-       vmovsd [r13], xmm0;
+       {$IFDEF FPC}vmovsd [r13], xmm0;{$ELSE}db $C4,$C1,$7B,$11,$45,$00;{$ENDIF} 
 
        // ################################################
        // #### next line of mt1
@@ -656,8 +656,8 @@ asm
    mov r14, iR14;
    mov r15, iR15;
 
-   vmovupd xmm4, dXMM4;
-   vzeroupper;
+   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -692,7 +692,7 @@ asm
    mov iR14, r14;
    mov iR15, r15;
 
-   vmovupd dXMM4, xmm4;
+   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
 
    // height2 helper
    mov r15, height2;
@@ -727,8 +727,8 @@ asm
        jl @@fory2loopend;
 
        @@fory2label:
-           vxorpd ymm0, ymm0, ymm0;   // dest^ := 0
-           vxorpd ymm2, ymm2, ymm2;   // dest + 1 := 0;
+           {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;   {$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} // dest^ := 0
+           {$IFDEF FPC}vxorpd ymm2, ymm2, ymm2;   {$ELSE}db $C5,$ED,$57,$D2;{$ENDIF} // dest + 1 := 0;
 
            // for idx := 0 to width1 div 4 do
            mov rax, r14;
@@ -736,24 +736,24 @@ asm
            jg @InnerLoopEnd;
 
            @@InnerLoop:
-               vmovapd ymm1, [r8 + rax - 32];
+               {$IFDEF FPC}vmovapd ymm1, [r8 + rax - 32];{$ELSE}db $C4,$C1,$7D,$28,$4C,$00,$E0;{$ENDIF} 
 
                // multiply 2x2 and add
-               vmulpd ymm3, ymm1, [rdi + rax - 32];
-               vmulpd ymm4, ymm1, [rsi + rax - 32];
+               {$IFDEF FPC}vmulpd ymm3, ymm1, [rdi + rax - 32];{$ELSE}db $C5,$F5,$59,$5C,$07,$E0;{$ENDIF} 
+               {$IFDEF FPC}vmulpd ymm4, ymm1, [rsi + rax - 32];{$ELSE}db $C5,$F5,$59,$64,$06,$E0;{$ENDIF} 
 
-               vaddpd ymm0, ymm0, ymm3;
-               vaddpd ymm2, ymm2, ymm4;
+               {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+               {$IFDEF FPC}vaddpd ymm2, ymm2, ymm4;{$ELSE}db $C5,$ED,$58,$D4;{$ENDIF} 
 
                // end for idx := 0 to width1 div 2
            add rax, 32;
            jle @@InnerLoop;
 
-           vextractf128 xmm1, ymm0, 1;
-           vextractf128 xmm3, ymm2, 1;
+           {$IFDEF FPC}vextractf128 xmm1, ymm0, 1;{$ELSE}db $C4,$E3,$7D,$19,$C1,$01;{$ENDIF} 
+           {$IFDEF FPC}vextractf128 xmm3, ymm2, 1;{$ELSE}db $C4,$E3,$7D,$19,$D3,$01;{$ENDIF} 
 
-           vhaddpd xmm0, xmm0, xmm1;
-           vhaddpd xmm2, xmm2, xmm3;
+           {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm1;{$ELSE}db $C5,$F9,$7C,$C1;{$ENDIF} 
+           {$IFDEF FPC}vhaddpd xmm2, xmm2, xmm3;{$ELSE}db $C5,$E9,$7C,$D3;{$ENDIF} 
 
            @InnerLoopEnd:
 
@@ -762,18 +762,18 @@ asm
 
            // do the final few elements
            @@InnerLoop2:
-               vmovsd xmm1, [r8 + rax];
+               {$IFDEF FPC}vmovsd xmm1, [r8 + rax];{$ELSE}db $C4,$C1,$7B,$10,$0C,$00;{$ENDIF} 
 
                // load 2x2 block
-               vmovsd xmm3, [rdi + rax];
-               vmovsd xmm4, [rsi + rax];
+               {$IFDEF FPC}vmovsd xmm3, [rdi + rax];{$ELSE}db $C5,$FB,$10,$1C,$07;{$ENDIF} 
+               {$IFDEF FPC}vmovsd xmm4, [rsi + rax];{$ELSE}db $C5,$FB,$10,$24,$06;{$ENDIF} 
 
                // multiply 2x2 and add
-               vmulsd xmm3, xmm3, xmm1;
-               vmulsd xmm4, xmm4, xmm1;
+               {$IFDEF FPC}vmulsd xmm3, xmm3, xmm1;{$ELSE}db $C5,$E3,$59,$D9;{$ENDIF} 
+               {$IFDEF FPC}vmulsd xmm4, xmm4, xmm1;{$ELSE}db $C5,$DB,$59,$E1;{$ENDIF} 
 
-               vaddsd xmm0, xmm0, xmm3;
-               vaddsd xmm2, xmm2, xmm4;
+               {$IFDEF FPC}vaddsd xmm0, xmm0, xmm3;{$ELSE}db $C5,$FB,$58,$C3;{$ENDIF} 
+               {$IFDEF FPC}vaddsd xmm2, xmm2, xmm4;{$ELSE}db $C5,$EB,$58,$D4;{$ENDIF} 
 
            add rax, 8;
            jnz @@InnerLoop2;
@@ -781,10 +781,10 @@ asm
            @@InnerLoopEnd2:
 
            // final add and compact result
-           vhaddpd xmm0, xmm0, xmm2;
+           {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$7C,$C2;{$ENDIF} 
 
            // store back result
-           vmovapd [r13], xmm0;
+           {$IFDEF FPC}vmovapd [r13], xmm0;{$ELSE}db $C4,$C1,$79,$29,$45,$00;{$ENDIF} 
 
            // increment the pointers
            // inc(mt2), inc(dest);
@@ -803,7 +803,7 @@ asm
        jz @@NextLine;
 
        // we have an odd height2 -> special treatment for the last line
-       vxorpd ymm0, ymm0, ymm0;   // dest^ := 0
+       {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;   {$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} // dest^ := 0
 
        // for idx := 0 to width1 div 4 do
        mov rax, r14;
@@ -811,19 +811,19 @@ asm
        jg @LastLineInnerLoopEnd;
 
        @@LastLineInnerLoop:
-            vmovapd ymm1, [r8 + rax - 32];
+            {$IFDEF FPC}vmovapd ymm1, [r8 + rax - 32];{$ELSE}db $C4,$C1,$7D,$28,$4C,$00,$E0;{$ENDIF} 
 
             // multiply and add
-            vmulpd ymm3, ymm1, [rdi + rax - 32];
+            {$IFDEF FPC}vmulpd ymm3, ymm1, [rdi + rax - 32];{$ELSE}db $C5,$F5,$59,$5C,$07,$E0;{$ENDIF} 
 
-            vaddpd ymm0, ymm0, ymm3;
+            {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
 
             // end for idx := 0 to width1 div 2
        add rax, 32;
        jle @@LastLineInnerLoop;
 
-       vextractf128 xmm1, ymm0, 1;
-       vhaddpd xmm0, xmm0, xmm1;
+       {$IFDEF FPC}vextractf128 xmm1, ymm0, 1;{$ELSE}db $C4,$E3,$7D,$19,$C1,$01;{$ENDIF} 
+       {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm1;{$ELSE}db $C5,$F9,$7C,$C1;{$ENDIF} 
 
        @LastLineInnerLoopEnd:
        sub rax, 32;
@@ -831,12 +831,12 @@ asm
 
        // do the final few elements
        @@LastLineInnerLoop2:
-            vmovsd xmm1, [r8 + rax];
-            vmovsd xmm3, [rdi + rax];
+            {$IFDEF FPC}vmovsd xmm1, [r8 + rax];{$ELSE}db $C4,$C1,$7B,$10,$0C,$00;{$ENDIF} 
+            {$IFDEF FPC}vmovsd xmm3, [rdi + rax];{$ELSE}db $C5,$FB,$10,$1C,$07;{$ENDIF} 
 
             // multiply and add
-            vmulsd xmm3, xmm3, xmm1;
-            vaddsd xmm0, xmm0, xmm3;
+            {$IFDEF FPC}vmulsd xmm3, xmm3, xmm1;{$ELSE}db $C5,$E3,$59,$D9;{$ENDIF} 
+            {$IFDEF FPC}vaddsd xmm0, xmm0, xmm3;{$ELSE}db $C5,$FB,$58,$C3;{$ENDIF} 
        // next element
        add rax, 8;
        jnz @@LastLineInnerLoop2;
@@ -844,10 +844,10 @@ asm
        @@LastLineInnerLoopEnd2:
 
        // final add and compact result
-       vhaddpd xmm0, xmm0, xmm0;
+       {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$7C,$C0;{$ENDIF} 
 
        // store back result
-       vmovsd [r13], xmm0;
+       {$IFDEF FPC}vmovsd [r13], xmm0;{$ELSE}db $C4,$C1,$7B,$11,$45,$00;{$ENDIF} 
 
        // ################################################
        // #### next line of mt1
@@ -873,8 +873,8 @@ asm
    mov r14, iR14;
    mov r15, iR15;
 
-   vmovupd xmm4, dXMM4;
-   vzeroupper;
+   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
 {$ENDIF}

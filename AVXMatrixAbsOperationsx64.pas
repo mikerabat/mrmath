@@ -65,7 +65,7 @@ asm
    // helper registers for the dest pointer
    sub rcx, r8;
 
-   vmovupd ymm0, [rip + cSignBits4];
+   {$IFDEF FPC}vmovupd ymm0, [rip + cSignBits4];{$ELSE}db $C5,$FD,$10,$05,$00,$00,$00,$00,$(r,$el,$);{$ENDIF} 
 
    // for y := 0 to height - 1:
    mov r11, Height;
@@ -81,21 +81,21 @@ asm
            //prefetchw [rcx + rax];
 
            // Abs:
-           vmovapd ymm1, [rcx + rax - 128];
-           vAndpd ymm1, ymm1, ymm0;
-           vmovntdq [rcx + rax - 128], ymm1;
+           {$IFDEF FPC}vmovapd ymm1, [rcx + rax - 128];{$ELSE}db $C5,$FD,$28,$4C,$01,$80;{$ENDIF} 
+           {$IFDEF FPC}vAndpd ymm1, ymm1, ymm0;{$ELSE}db $C5,$F5,$54,$C8;{$ENDIF} 
+           {$IFDEF FPC}vmovntdq [rcx + rax - 128], ymm1;{$ELSE}db $C5,$FD,$E7,$4C,$01,$80;{$ENDIF} 
 
-           vmovapd ymm2, [rcx + rax - 96];
-           vandpd ymm2, ymm2, ymm0;
-           vmovntdq [rcx + rax - 96], ymm2;
+           {$IFDEF FPC}vmovapd ymm2, [rcx + rax - 96];{$ELSE}db $C5,$FD,$28,$54,$01,$A0;{$ENDIF} 
+           {$IFDEF FPC}vandpd ymm2, ymm2, ymm0;{$ELSE}db $C5,$ED,$54,$D0;{$ENDIF} 
+           {$IFDEF FPC}vmovntdq [rcx + rax - 96], ymm2;{$ELSE}db $C5,$FD,$E7,$54,$01,$A0;{$ENDIF} 
 
-           vmovapd ymm3, [rcx + rax - 64];
-           vandpd ymm3, ymm3, ymm0;
-           vmovntdq [rcx + rax - 64], ymm3;
+           {$IFDEF FPC}vmovapd ymm3, [rcx + rax - 64];{$ELSE}db $C5,$FD,$28,$5C,$01,$C0;{$ENDIF} 
+           {$IFDEF FPC}vandpd ymm3, ymm3, ymm0;{$ELSE}db $C5,$E5,$54,$D8;{$ENDIF} 
+           {$IFDEF FPC}vmovntdq [rcx + rax - 64], ymm3;{$ELSE}db $C5,$FD,$E7,$5C,$01,$C0;{$ENDIF} 
 
-           vmovapd ymm4, [rcx + rax - 32];
-           vandpd ymm4, ymm4, ymm0;
-           vmovntdq [rcx + rax - 32], ymm4;
+           {$IFDEF FPC}vmovapd ymm4, [rcx + rax - 32];{$ELSE}db $C5,$FD,$28,$64,$01,$E0;{$ENDIF} 
+           {$IFDEF FPC}vandpd ymm4, ymm4, ymm0;{$ELSE}db $C5,$DD,$54,$E0;{$ENDIF} 
+           {$IFDEF FPC}vmovntdq [rcx + rax - 32], ymm4;{$ELSE}db $C5,$FD,$E7,$64,$01,$E0;{$ENDIF} 
        jmp @addforxloop
 
        @loopEnd:
@@ -108,9 +108,9 @@ asm
            add rax, 16;
            jg @loopEnd2;
 
-           vmovapd xmm1, [rcx + rax - 16];
-           vandpd xmm1, xmm1, xmm0;
-           vmovntdq [rcx + rax - 16], xmm1;
+           {$IFDEF FPC}vmovapd xmm1, [rcx + rax - 16];{$ELSE}db $C5,$F9,$28,$4C,$01,$F0;{$ENDIF} 
+           {$IFDEF FPC}vandpd xmm1, xmm1, xmm0;{$ELSE}db $C5,$F1,$54,$C8;{$ENDIF} 
+           {$IFDEF FPC}vmovntdq [rcx + rax - 16], xmm1;{$ELSE}db $C5,$F9,$E7,$4C,$01,$F0;{$ENDIF} 
        jmp @addforxloop2;
 
        @loopEnd2:
@@ -118,9 +118,9 @@ asm
        sub rax, 16;
        jz @nextLine;
 
-       vmovsd xmm1, [rcx + rax];
-       vandpd xmm1, xmm7, xmm0;
-       vmovsd [rcx + rax], xmm1;
+       {$IFDEF FPC}vmovsd xmm1, [rcx + rax];{$ELSE}db $C5,$FB,$10,$0C,$01;{$ENDIF} 
+       {$IFDEF FPC}vandpd xmm1, xmm7, xmm0;{$ELSE}db $C5,$C1,$54,$C8;{$ENDIF} 
+       {$IFDEF FPC}vmovsd [rcx + rax], xmm1;{$ELSE}db $C5,$FB,$11,$0C,$01;{$ENDIF} 
 
        @nextLine:
 
@@ -131,7 +131,7 @@ asm
    dec r11;
    jnz @@addforyloop;
 
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -161,7 +161,7 @@ asm
    // helper registers for the dest pointer
    sub rcx, r8;
 
-   vmovupd ymm0, [rip + cSignBits4];
+   {$IFDEF FPC}vmovupd ymm0, [rip + cSignBits4];{$ELSE}db $C5,$FD,$10,$05,$00,$00,$00,$00,$(r,$el,$);{$ENDIF} 
 
    // for y := 0 to height - 1:
    mov r11, Height;
@@ -177,21 +177,21 @@ asm
            //prefetchw [rcx + rax];
 
            // Abs:
-           vmovupd ymm1, [rcx + rax - 128];
-           vAndpd ymm1, ymm1, ymm0;
-           vmovupd [rcx + rax - 128], ymm1;
+           {$IFDEF FPC}vmovupd ymm1, [rcx + rax - 128];{$ELSE}db $C5,$FD,$10,$4C,$01,$80;{$ENDIF} 
+           {$IFDEF FPC}vAndpd ymm1, ymm1, ymm0;{$ELSE}db $C5,$F5,$54,$C8;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [rcx + rax - 128], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$01,$80;{$ENDIF} 
 
-           vmovupd ymm2, [rcx + rax - 96];
-           vandpd ymm2, ymm2, ymm0;
-           vmovupd [rcx + rax - 96], ymm2;
+           {$IFDEF FPC}vmovupd ymm2, [rcx + rax - 96];{$ELSE}db $C5,$FD,$10,$54,$01,$A0;{$ENDIF} 
+           {$IFDEF FPC}vandpd ymm2, ymm2, ymm0;{$ELSE}db $C5,$ED,$54,$D0;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [rcx + rax - 96], ymm2;{$ELSE}db $C5,$FD,$11,$54,$01,$A0;{$ENDIF} 
 
-           vmovupd ymm3, [rcx + rax - 64];
-           vandpd ymm3, ymm3, ymm0;
-           vmovupd [rcx + rax - 64], ymm3;
+           {$IFDEF FPC}vmovupd ymm3, [rcx + rax - 64];{$ELSE}db $C5,$FD,$10,$5C,$01,$C0;{$ENDIF} 
+           {$IFDEF FPC}vandpd ymm3, ymm3, ymm0;{$ELSE}db $C5,$E5,$54,$D8;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [rcx + rax - 64], ymm3;{$ELSE}db $C5,$FD,$11,$5C,$01,$C0;{$ENDIF} 
 
-           vmovupd ymm4, [rcx + rax - 32];
-           vandpd ymm4, ymm4, ymm0;
-           vmovupd [rcx + rax - 32], ymm4;
+           {$IFDEF FPC}vmovupd ymm4, [rcx + rax - 32];{$ELSE}db $C5,$FD,$10,$64,$01,$E0;{$ENDIF} 
+           {$IFDEF FPC}vandpd ymm4, ymm4, ymm0;{$ELSE}db $C5,$DD,$54,$E0;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [rcx + rax - 32], ymm4;{$ELSE}db $C5,$FD,$11,$64,$01,$E0;{$ENDIF} 
        jmp @addforxloop
 
        @loopEnd:
@@ -204,9 +204,9 @@ asm
            add rax, 16;
            jg @loopEnd2;
 
-           vmovupd xmm1, [rcx + rax - 16];
-           vandpd xmm1, xmm1, xmm0;
-           vmovupd [rcx + rax - 16], xmm1;
+           {$IFDEF FPC}vmovupd xmm1, [rcx + rax - 16];{$ELSE}db $C5,$F9,$10,$4C,$01,$F0;{$ENDIF} 
+           {$IFDEF FPC}vandpd xmm1, xmm1, xmm0;{$ELSE}db $C5,$F1,$54,$C8;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [rcx + rax - 16], xmm1;{$ELSE}db $C5,$F9,$11,$4C,$01,$F0;{$ENDIF} 
        jmp @addforxloop2;
 
        @loopEnd2:
@@ -214,9 +214,9 @@ asm
        sub rax, 16;
        jz @nextLine;
 
-       vmovsd xmm1, [rcx + rax];
-       vandpd xmm1, xmm1, xmm0;
-       vmovsd [rcx + rax], xmm1;
+       {$IFDEF FPC}vmovsd xmm1, [rcx + rax];{$ELSE}db $C5,$FB,$10,$0C,$01;{$ENDIF} 
+       {$IFDEF FPC}vandpd xmm1, xmm1, xmm0;{$ELSE}db $C5,$F1,$54,$C8;{$ENDIF} 
+       {$IFDEF FPC}vmovsd [rcx + rax], xmm1;{$ELSE}db $C5,$FB,$11,$0C,$01;{$ENDIF} 
 
        @nextLine:
 
@@ -227,7 +227,7 @@ asm
    dec r11;
    jnz @@addforyloop;
 
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
 {$ENDIF}

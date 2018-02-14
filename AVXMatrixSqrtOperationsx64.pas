@@ -81,17 +81,17 @@ asm
            // prefetchw [rcx + rax];
 
            // elementwise sqrt
-           vsqrtpd ymm0, [rcx + rax - 128];
-           vmovapd [rcx + rax - 128], ymm0;
+           {$IFDEF FPC}vsqrtpd ymm0, [rcx + rax - 128];{$ELSE}db $C5,$FD,$51,$44,$01,$80;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [rcx + rax - 128], ymm0;{$ELSE}db $C5,$FD,$29,$44,$01,$80;{$ENDIF} 
 
-           vsqrtpd ymm1, [rcx + rax - 96];
-           vmovapd [rcx + rax - 96], ymm1;
+           {$IFDEF FPC}vsqrtpd ymm1, [rcx + rax - 96];{$ELSE}db $C5,$FD,$51,$4C,$01,$A0;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [rcx + rax - 96], ymm1;{$ELSE}db $C5,$FD,$29,$4C,$01,$A0;{$ENDIF} 
 
-           vsqrtpd ymm0, [rcx + rax - 64];
-           vmovapd [rcx + rax - 64], ymm0;
+           {$IFDEF FPC}vsqrtpd ymm0, [rcx + rax - 64];{$ELSE}db $C5,$FD,$51,$44,$01,$C0;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [rcx + rax - 64], ymm0;{$ELSE}db $C5,$FD,$29,$44,$01,$C0;{$ENDIF} 
 
-           vsqrtpd ymm1, [rcx + rax - 32];
-           vmovapd [rcx + rax - 32], ymm1;
+           {$IFDEF FPC}vsqrtpd ymm1, [rcx + rax - 32];{$ELSE}db $C5,$FD,$51,$4C,$01,$E0;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [rcx + rax - 32], ymm1;{$ELSE}db $C5,$FD,$29,$4C,$01,$E0;{$ENDIF} 
 
        jmp @addforxloop
 
@@ -105,8 +105,8 @@ asm
            add rax, 16;
            jg @addforxloop2end;
 
-           vsqrtpd xmm0, [rcx + rax - 16];
-           vmovapd [rcx + rax - 16], xmm0;
+           {$IFDEF FPC}vsqrtpd xmm0, [rcx + rax - 16];{$ELSE}db $C5,$F9,$51,$44,$01,$F0;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [rcx + rax - 16], xmm0;{$ELSE}db $C5,$F9,$29,$44,$01,$F0;{$ENDIF} 
        jmp @addforxloop2;
 
        @addforxloop2end:
@@ -115,9 +115,9 @@ asm
 
        jz @nextLine;
 
-       vmovsd xmm0, [rcx + rax];
-       vsqrtsd xmm0, xmm0, xmm0;
-       vmovsd [rcx + rax], xmm0;
+       {$IFDEF FPC}vmovsd xmm0, [rcx + rax];{$ELSE}db $C5,$FB,$10,$04,$01;{$ENDIF} 
+       {$IFDEF FPC}vsqrtsd xmm0, xmm0, xmm0;{$ELSE}db $C5,$FB,$51,$C0;{$ENDIF} 
+       {$IFDEF FPC}vmovsd [rcx + rax], xmm0;{$ELSE}db $C5,$FB,$11,$04,$01;{$ENDIF} 
 
        @nextLine:
 
@@ -127,7 +127,7 @@ asm
    // loop y end
    dec r11;
    jnz @@addforyloop;
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
 {$ENDIF}
@@ -172,21 +172,21 @@ asm
            // prefetchw [rcx + rax];
 
            // elementwise sqrt
-           vmovupd ymm2, [rcx + rax - 128];
-           vsqrtpd ymm0, ymm2;
-           vmovupd [rcx + rax - 128], ymm0;
+           {$IFDEF FPC}vmovupd ymm2, [rcx + rax - 128];{$ELSE}db $C5,$FD,$10,$54,$01,$80;{$ENDIF} 
+           {$IFDEF FPC}vsqrtpd ymm0, ymm2;{$ELSE}db $C5,$FD,$51,$C2;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [rcx + rax - 128], ymm0;{$ELSE}db $C5,$FD,$11,$44,$01,$80;{$ENDIF} 
 
-           vmovupd ymm3, [rcx + rax - 96];
-           vsqrtpd ymm1, ymm3;
-           vmovupd [rcx + rax - 96], ymm1;
+           {$IFDEF FPC}vmovupd ymm3, [rcx + rax - 96];{$ELSE}db $C5,$FD,$10,$5C,$01,$A0;{$ENDIF} 
+           {$IFDEF FPC}vsqrtpd ymm1, ymm3;{$ELSE}db $C5,$FD,$51,$CB;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [rcx + rax - 96], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$01,$A0;{$ENDIF} 
 
-           vmovupd ymm2, [rcx + rax - 64];
-           vsqrtpd ymm0, ymm2;
-           vmovupd [rcx + rax - 64], ymm0;
+           {$IFDEF FPC}vmovupd ymm2, [rcx + rax - 64];{$ELSE}db $C5,$FD,$10,$54,$01,$C0;{$ENDIF} 
+           {$IFDEF FPC}vsqrtpd ymm0, ymm2;{$ELSE}db $C5,$FD,$51,$C2;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [rcx + rax - 64], ymm0;{$ELSE}db $C5,$FD,$11,$44,$01,$C0;{$ENDIF} 
 
-           vmovupd ymm3, [rcx + rax - 32];
-           vsqrtpd ymm1, ymm3;
-           vmovupd [rcx + rax - 32], ymm1;
+           {$IFDEF FPC}vmovupd ymm3, [rcx + rax - 32];{$ELSE}db $C5,$FD,$10,$5C,$01,$E0;{$ENDIF} 
+           {$IFDEF FPC}vsqrtpd ymm1, ymm3;{$ELSE}db $C5,$FD,$51,$CB;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [rcx + rax - 32], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$01,$E0;{$ENDIF} 
 
        jmp @addforxloop
 
@@ -200,9 +200,9 @@ asm
            add rax, 16;
            jg @addforxloop2end;
 
-           vmovupd xmm1, [rcx + rax - 16];
-           vsqrtpd xmm0, xmm1;
-           vmovupd [rcx + rax - 16], xmm0;
+           {$IFDEF FPC}vmovupd xmm1, [rcx + rax - 16];{$ELSE}db $C5,$F9,$10,$4C,$01,$F0;{$ENDIF} 
+           {$IFDEF FPC}vsqrtpd xmm0, xmm1;{$ELSE}db $C5,$F9,$51,$C1;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [rcx + rax - 16], xmm0;{$ELSE}db $C5,$F9,$11,$44,$01,$F0;{$ENDIF} 
        jmp @addforxloop2;
 
        @addforxloop2end:
@@ -211,9 +211,9 @@ asm
 
        jz @nextLine;
 
-       vmovsd xmm0, [rcx + rax];
-       vsqrtsd xmm0, xmm0, xmm0;
-       vmovsd [rcx + rax], xmm0;
+       {$IFDEF FPC}vmovsd xmm0, [rcx + rax];{$ELSE}db $C5,$FB,$10,$04,$01;{$ENDIF} 
+       {$IFDEF FPC}vsqrtsd xmm0, xmm0, xmm0;{$ELSE}db $C5,$FB,$51,$C0;{$ENDIF} 
+       {$IFDEF FPC}vmovsd [rcx + rax], xmm0;{$ELSE}db $C5,$FB,$11,$04,$01;{$ENDIF} 
 
        @nextLine:
 
@@ -224,7 +224,7 @@ asm
    dec r11;
    jnz @@addforyloop;
 
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
 {$ENDIF}
