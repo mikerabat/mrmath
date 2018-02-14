@@ -1,6 +1,7 @@
 rem ##########################################
 rem #### Process the precompiled object files
 
+mkdir oFiles
 
 echo Copy all object files
 
