@@ -320,7 +320,8 @@ begin
         mov ebx, s;
         mov ecx, A;
 
-        vmovupd xmm7, cMulM1Bits;
+        lea edi, cMulM1Bits;
+        vmovupd xmm7, [edi];
 
         @@foryloop:
 
@@ -394,7 +395,8 @@ begin
         sub ebx, iter;
         sub ecx, iter;
 
-        vmovupd xmm7, cMulM1Bits;
+        lea edi, cMulM1Bits;
+        vmovupd xmm7, [edi];
 
         @@foryloop:
 
