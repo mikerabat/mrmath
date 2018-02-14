@@ -352,6 +352,7 @@ begin
      if width and $03 <> 0 then
         width := width + 4 - (width and $03);
 
+     Result := nil;
      LineWidth := sizeof(double)*width;
 
      numBytes := $20 + Height*LineWidth;

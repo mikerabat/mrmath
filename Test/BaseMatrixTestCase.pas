@@ -34,7 +34,7 @@ type
    {$ENDIF}
 
    procedure FillMatrix(mtxSize : integer; out x, y : TDoubleDynArray; out p1, p2 : PDouble);
-   procedure AllocAlignedMtx(mtxSize : integer; out pX : PDouble; out pMem : PByte);
+   procedure AllocAlignedMtx(mtxSize : integer; out pX : PDouble; out pMem : PByte); overload;
    procedure AllocAlignedMtx(mtxWidth, mtxHeight : integer; out pX : PDouble; out pMem : PByte; out LineWidthAligned : TASMNativeInt); overload;
    procedure FillAlignedMtx(mtxSize : integer; out pX : PDouble; out pMem : PByte); overload;
    procedure FillAlignedMtx(mtxWidth, mtxHeight : integer; out pX : PDouble; out pMem : PByte; out LineWidthAligned : TASMNativeInt); overload;
@@ -363,7 +363,7 @@ end;
 
 
 function TBaseMatrixTestCase.WriteMtx(const data: array of Double;
-  width: integer; prec : integer = 3): string; overload;
+  width: integer; prec : integer = 3): string; 
 var x, y : integer;
 begin
      Result := '';
@@ -377,7 +377,7 @@ begin
      end;
 end;
 
-function TBaseMatrixTestCase.WriteMtx(data : PDouble; LineWidth : TASMNativeInt; width : integer; height : integer; prec : integer = 3) : string; overload;
+function TBaseMatrixTestCase.WriteMtx(data : PDouble; LineWidth : TASMNativeInt; width : integer; height : integer; prec : integer = 3) : string; 
 var x, y : integer;
     pData : PConstDoubleArr;
 begin

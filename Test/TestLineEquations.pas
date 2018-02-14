@@ -71,7 +71,7 @@ type
 type
    TAVXTestLinearEquations = class(TTestLinearEquations)
    protected
-     procedure Setup; override;
+     procedure SetUp; override;
    end;
 
 implementation

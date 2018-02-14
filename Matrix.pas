@@ -1867,7 +1867,6 @@ begin
 end;
 
 procedure TDoubleMatrix.ReserveMem(width, height : integer);
-var numLineElems : integer;
 begin
      // check if we need to reserve memory or if we already have a matrix with this size
      if (fWidth = width) and (fHeight = height) and (width > 0) and (height > 0) and Assigned(fMemory) then
@@ -1891,7 +1890,6 @@ begin
           end
           else
           begin
-               numLineElems := width;
                fMemory := MtxAlloc($20 + height*width*sizeof(double));
                fData := PLocConstDoubleArr( TASMNativeUint( fMemory ) + $20 - TASMNativeUint( fMemory ) and $1F );
                fLineWidth := sizeof(double);

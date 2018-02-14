@@ -29,6 +29,7 @@ uses
   GUITestRunner,
   TextTestRunner,
   TestSimpleMatrixOperations in 'TestSimpleMatrixOperations.pas',
+  TestAVX in 'TestAVX.pas',
   TestLineEquations in 'TestLineEquations.pas',
   TestEigensystems in 'TestEigensystems.pas',
   BaseMatrixTestCase in 'BaseMatrixTestCase.pas',
