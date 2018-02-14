@@ -54,6 +54,10 @@ Gustav Kaiser - special thanks for implementing the PLS algorithm.
 // ###################################################################
 changelog:
 
+Date: 14.02.2018
+* Added AVX support for FPC and Delphi (delphi64 not tested yet)
+* Added AVX asm code to DB code project.
+
 Date: 10.11.2017
 * Spared a few cycles and memory accesses in the matrix multiplications
 

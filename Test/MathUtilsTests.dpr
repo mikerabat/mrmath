@@ -24,7 +24,6 @@ program MathUtilsTests;
 {$ENDIF}
 
 uses
-  FastMM4 in 'D:\Daten\Delphi2010\3rdParty\FastMM4\FastMM4.pas',
   Forms,
   TestFramework,
   GUITestRunner,
@@ -148,8 +147,7 @@ uses
   AVXMatrixVectorMultOperations in '..\AVXMatrixVectorMultOperations.pas',
   AVXMatrixVectorMultOperationsx64 in '..\AVXMatrixVectorMultOperationsx64.pas',
   AVXMoveOperations in '..\AVXMoveOperations.pas',
-  AVXMoveOperationsx64 in '..\AVXMoveOperationsx64.pas',
-  FastMM4Messages in 'D:\Daten\Delphi2010\3rdParty\FastMM4\FastMM4Messages.pas';
+  AVXMoveOperationsx64 in '..\AVXMoveOperationsx64.pas';
 
 {$R *.RES}
 
