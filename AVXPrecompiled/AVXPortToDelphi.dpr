@@ -2,7 +2,7 @@ program AVXPortToDelphi;
 
 {$APPTYPE CONSOLE}
 
-uses madExcept, Windows, SysUtils, Classes, StrUtils;
+uses Windows, SysUtils, Classes, StrUtils;
 
 
 var inpPath : string;

@@ -1045,12 +1045,6 @@ procedure InitMathFunctions(instrType : TCPUInstrType; useStrassenMult : boolean
 var fpuCtrlWord : Word;
 begin
      // check features
-     {$IFNDEF FPC}
-     if instrType = itAVX then
-        instrType := itsse;
-     {$ENDIF}
-
-     {$IFDEF FPC}
      if IsAVXPresent and (instrType = itAVX) then
      begin
           curUsedCPUInstrSet := itAVX;
@@ -1104,7 +1098,7 @@ begin
 
           TDynamicTimeWarp.UseSSE := True;
      end
-     else {$ENDIF} if IsSSE3Present and (instrType = itSSE) then
+     else if IsSSE3Present and (instrType = itSSE) then
      begin
           curUsedCPUInstrSet := itSSE;
           if useStrassenMult
