@@ -59,7 +59,7 @@ function MatrixPseudoinverse2(dest : PDouble; const LineWidthDest : TASMNativeIn
 
 implementation
 
-uses BlockSizeSetup, Classes, SimpleMatrixOperations,
+uses BlockSizeSetup, Classes,
      HouseholderReflectors, MatrixRotations, LinAlgQR,
      ThreadedMatrixOperations, MtxThreadPool;
 
