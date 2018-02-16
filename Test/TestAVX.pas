@@ -85,7 +85,7 @@ uses {$IFDEF x64}
      AVXMatrixAddSubOperations, AVXMatrixCumSumDiffOperations,
      {$ENDIF}
      MatrixConst, MathUtilFunc, MtxTimer, OptimizedFuncs, MtxThreadPool, BlockSizeSetup,
-     LinAlgSVD, Math;
+     LinAlgSVD, Math, CPUFeatures;
 
 { TestAVXMatrixOperations }
 
@@ -2276,7 +2276,8 @@ end;
 
 
 initialization
-  RegisterTest(TestAVXMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});
+  if IsAVXPresent then
+     RegisterTest(TestAVXMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});
 
 end.
 

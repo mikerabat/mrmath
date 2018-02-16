@@ -50,6 +50,9 @@ implementation
 // uses non temporal moves so the cache is not poisned
 // rcx = A, rdx = NumBytes;
 procedure AVXInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; const Value : double);
+{$IFNDEF FPC}
+var tmp : Double;
+{$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -65,7 +68,12 @@ asm
    mov rdx, rsi;
    {$ENDIF}
 
+   {$IFNDEF FPC}
+   movsd tmp, Value;
+   lea rax, tmp;
+   {$ELSE}
    lea rax, Value;
+   {$ENDIF}
    {$IFDEF FPC}vbroadcastsd ymm1, [rax];{$ELSE}db $C4,$E2,$7D,$19,$08;{$ENDIF} 
 
    imul rdx, -1;

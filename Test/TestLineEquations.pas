@@ -85,7 +85,7 @@ implementation
 
 uses LinearAlgebraicEquations, MtxThreadPool, math, MtxTimer, 
      BlockSizeSetup, LinAlgSVD, LinAlgQR, LinAlgCholesky, LinAlgLU,
-     MatrixRotations;
+     MatrixRotations, CPUFeatures;
 
 { TAVXTestLinearEquations }
 
@@ -1799,6 +1799,7 @@ end;
 
 initialization
   RegisterTest(TTestLinearEquations{$IFNDEF FPC}.Suite{$ENDIF});
-  RegisterTest(TAVXTestLinearEquations{$IFNDEF FPC}.Suite{$ENDIF});
+  if IsAVXPresent then
+     RegisterTest(TAVXTestLinearEquations{$IFNDEF FPC}.Suite{$ENDIF});
 
 end.
