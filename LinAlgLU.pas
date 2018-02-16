@@ -393,6 +393,7 @@ end;
 
 function MatrixInverseInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; progress : TLinEquProgress) : TLinEquResult;
 var Y : PDouble;
+    ptrMem : Pointer;
     indx : array of integer;
     i, j : TASMNativeInt;
     pVal : PDouble;
@@ -403,7 +404,7 @@ begin
      Assert(width > 0, 'Dimension error');
 
      w := width + width and $01;
-     Y := GetMemory(w*w*sizeof(double));
+     Y := MtxMallocAlign(w*w*sizeof(double), ptrMem);
      SetLength(indx, width);
      SetLength(col, width);
 
@@ -412,7 +413,7 @@ begin
 
      if Result = leSingular then
      begin
-          FreeMem(Y);
+          FreeMem(ptrMem);
           exit;
      end;
 
@@ -433,7 +434,7 @@ begin
           end;
      end;
 
-     FreeMem(Y);
+     FreeMem(ptrMem);
 end;
 
 function MatrixDeterminant(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; progress : TLinEquProgress) : double;
@@ -444,13 +445,14 @@ var LUDecomp : PDouble;
     parity : TASMNativeInt;
     rc : TRecMtxLUDecompData;
     w : TASMNativeInt;
+    ptrMem : Pointer;
     mem : Array[0..(4+4*cBlkMultSize*cBlkMultSize)] of double;
 begin
      assert(width > 0, 'Dimension error');
      assert(LineWidthA >= width*sizeof(double), 'Dimension error');
 
      w := width + width and $01;
-     LUDecomp := GetMemory(w*w*sizeof(double));
+     LUDecomp := MtxMallocAlign(w*w*sizeof(double), ptrMem);
      SetLength(indx, width);
      MatrixCopy(LUDecomp, w*sizeof(double), A, LineWidthA, width, width);
 
@@ -464,7 +466,7 @@ begin
      if InternalRecursiveMatrixLUDecompInPlace(LUDecomp, width, width, @indx[0], parity, rc) = leSingular then
      begin
           Result := 0;
-          FreeMem(LUDecomp);
+          FreeMem(ptrMem);
           exit;
      end;
      pVal := LUDecomp;
@@ -476,7 +478,7 @@ begin
           inc(PByte(pVal), w*sizeof(double));
      end;
 
-     FreeMem(LUDecomp);
+     FreeMem(ptrMem);
 end;
 
 function MatrixLinEQSolve(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt; X : PDouble;
@@ -811,10 +813,11 @@ var i, j : integer;
     pVal : PDouble;
     width, height : integer;
     col : PConstDoubleArr;
+    ptrMem : Pointer;
 begin
      width := TAsyncMatrixLUBacksup(obj).width;
      height := TAsyncMatrixLUBacksup(obj).height;
-     col := GetMemory(sizeof(double)*height);
+     col := MtxMallocAlign(sizeof(double)*height, ptrMem);
 
      for j := 0 to width - 1 do
      begin
@@ -832,7 +835,7 @@ begin
                inc(PByte(pVal), TAsyncMatrixLUBacksup(obj).LineWidthB);
           end;
      end;
-     FreeMem(col);
+     FreeMem(ptrMem);
 
      Result := 0;
 end;
@@ -868,12 +871,13 @@ var Y : PDouble;
     numUsed : integer;
     calls : IMtxAsyncCallGroup;
     obj : TAsyncMatrixLUBacksup;
+    ptrMem : Pointer;
 begin
      Assert(lineWidthA >= width*sizeof(double), 'Dimension Error');
      Assert(width > 0, 'Dimension error');
 
      w := width + width and $01;
-     Y := GetMemory(w*w*sizeof(double));
+     Y := MtxMallocAlign(w*w*sizeof(double), ptrMem);
      SetLength(indx, 2*width);
 
      MatrixCopy(Y, sizeof(double)*w, A, LineWidthA, width, width);
@@ -881,7 +885,7 @@ begin
 
      if Result = leSingular then
      begin
-          FreeMem(Y);
+          FreeMem(ptrMem);
 
           exit;
      end;
@@ -930,7 +934,7 @@ begin
      if numUsed > 1 then
         calls.SyncAll;
 
-     FreeMem(Y);
+     FreeMem(ptrMem);
 end;
 
 function ThrMatrixDeterminant(A : PDouble; const LineWidthA : integer; width : integer; progress : TLinEquProgress = nil) : double;
@@ -942,13 +946,15 @@ var LUDecomp : PDouble;
     rc : TRecMtxLUDecompData;
     w : integer;
     mem : PDouble;
+    ptrMem1 : Pointer;
+    ptrMem : Pointer;
 begin
      assert(width > 0, 'Dimension error');
      assert(LineWidthA >= width*sizeof(double), 'Dimension error');
 
      w := width + width and $01;
-     LUDecomp := GetMemory(w*w*sizeof(double));
-     mem := MtxAlloc(4*numCPUCores*(cBlkMultSize + numCPUCores + 2)*cBlkMultSize*sizeof(double) + $20);
+     LUDecomp := MtxMallocAlign(w*w*sizeof(double), ptrMem);
+     mem := MtxAllocAlign(4*numCPUCores*(cBlkMultSize + numCPUCores + 2)*cBlkMultSize*sizeof(double) + $20, ptrMem1);
      SetLength(indx, width);
      MatrixCopy(LUDecomp, w*sizeof(double), A, LineWidthA, width, width);
 
@@ -962,8 +968,8 @@ begin
      if InternalThrMatrixLUDecomp(LUDecomp, width, width, @indx[0], parity, rc) = leSingular then
      begin
           Result := 0;
-          FreeMem(LUDecomp);
-          FreeMem(mem);
+          FreeMem(ptrMem);
+          FreeMem(ptrMem1);
           exit;
      end;
      pVal := LUDecomp;
@@ -975,8 +981,8 @@ begin
           inc(PByte(pVal), width*sizeof(double));
      end;
 
-     FreeMem(LUDecomp);
-     FreeMem(mem);
+     FreeMem(ptrMem);
+     FreeMem(ptrMem1);
 end;
 
 function ThrMatrixLinEQSolve(A : PDouble; const LineWidthA : integer; width : integer; B : PDouble; const LineWidthB : integer; X : PDouble;
@@ -999,6 +1005,7 @@ var indx : Array of Integer;
     wSize : integer;
     obj : TAsyncMatrixLUBacksup;
     calls : IMtxAsyncCallGroup;
+    ptrMem : Pointer;
 begin
      progRef := nil;
      progObj := nil;
@@ -1012,7 +1019,7 @@ begin
 
      w := width + width and $01;
 
-     LUDecomp := GetMemory(w*w*sizeof(double));
+     LUDecomp := MtxMallocAlign(w*w*sizeof(double), ptrMem);
      MatrixCopy(LUDecomp, w*sizeof(double), A, LineWidthA, width, width);
 
      SetLength(indx, width);
@@ -1021,7 +1028,7 @@ begin
      if Result = leSingular then
      begin
           progObj.Free;
-          FreeMem(LUDecomp);
+          FreeMem(ptrMem);
           exit;
      end;
 
@@ -1102,7 +1109,7 @@ begin
           end;
      end;
 
-     FreeMem(LUDecomp);
+     FreeMem(ptrMem);
 
      if Assigned(progObj) then
         progObj.Free;

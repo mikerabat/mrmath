@@ -83,6 +83,7 @@ var h : TASMNativeInt;
     h1FitCacheSize : boolean;
     blkHeight : TASMNativeInt;
     gammaWidth : TASMNativeInt;
+    ptrMem : Pointer;
 begin
      if (width1 = 0) or (height1 = 0) or (height2 = 0) then
         exit;
@@ -97,7 +98,7 @@ begin
      h := height1 div blockSize + TASMNativeInt(not h1FitCacheSize) - 1;
      gamma := width1 div blockSize + TASMNativeInt(not w1FitCacheSize) - 1;
 
-     GetMem(actBlk, 2*blockSize*sizeof(double));
+     actBlk := MtxMallocAlign(2*blockSize*sizeof(double), ptrMem );
      multBlk := actBlk;
      inc(multBlk, blockSize);
 
@@ -149,7 +150,7 @@ begin
           inc(PByte(Dest), blkHeight*destLineWidth);
      end;
 
-     FreeMem(actBlk);
+     FreeMem(ptrMem);
 end;
 
 procedure BlockMatrixMultiplicationDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation);
@@ -289,7 +290,8 @@ var w, h : TASMNativeInt;
     gammaWidth : TASMNativeInt;
     blockByteSize : Cardinal;
     blockLineSize : Cardinal;
-    isAligned : boolean;
+    isAligned : boolean;  
+    ptrMem : Pointer;
 begin
      if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
         exit;
@@ -311,8 +313,9 @@ begin
      blockByteSize := blockSize*blockSize*sizeof(double);
 
      actBlk := mem;
+     ptrMem := nil;
      if not Assigned(mem) then
-        GetMem(actBlk, BlockMultMemSize(blockSize));
+        actBlk := MtxMallocAlign(BlockMultMemSize(blockSize), ptrMem );
      multBlk := PDouble(TASMNativeUInt(actBlk) + blockByteSize);
      transBlk := PDouble(TASMNativeUInt(actBlk) + 2*blockByteSize);
      copyBlk := PDouble(TASMNativeUInt(actBlk) + 3*blockByteSize);
@@ -336,7 +339,7 @@ begin
                if (blkIdxX = w) and not w2FitCacheSize then
                   blkWidth := (width2 mod blockSize);
 
-               FillChar(actBlk^, blockByteSize, 0);
+               MtxMemInit(actBlk, blockByteSize, 0);
                pa := mt1;
                pb := pMt2;
 
@@ -385,8 +388,8 @@ begin
           inc(PByte(mt1), blkHeight*LineWidth1);
      end;
 
-     if not Assigned(mem) then
-        FreeMem(actBlk);
+     if Assigned(ptrMem) then
+        FreeMem(ptrMem);
 end;
 
 // calculates mt1'*mt2
@@ -411,6 +414,7 @@ var w, w1 : TASMNativeInt;
     gammaHeight : TASMNativeInt;
     blockByteSize : Cardinal;
     blockLineSize : Cardinal;
+    ptrMem : Pointer;
 begin
      if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
         exit;
@@ -430,8 +434,9 @@ begin
      blockByteSize := blockSize*blockSize*sizeof(double);
 
      actBlk := mem;
+     ptrMem := nil;
      if not Assigned(mem) then
-        GetMem(actBlk, BlockMultMemSize(blockSize));
+        actBlk := MtxMallocAlign(BlockMultMemSize(blockSize), ptrMem );
      multBlk := PDouble(TASMNativeUInt(actBlk) + blockByteSize);
      transBlk1 := PDouble(TASMNativeUInt(actBlk) + 2*blockByteSize);
      transBlk2 := PDouble(TASMNativeUInt(actBlk) + 3*blockByteSize);
@@ -455,7 +460,7 @@ begin
                if (blkIdxX = w) and not w2FitCacheSize then
                   blkWidth := (width2 mod blockSize);
 
-               FillChar(actBlk^, blockByteSize, 0);
+               MtxMemInit(actBlk, blockByteSize, 0);
                pa := mt1;
                pb := pMt2;
 
@@ -498,8 +503,8 @@ begin
           inc(mt1, blkWidth1);
      end;
 
-     if not Assigned(mem) then
-        FreeMem(actBlk);
+     if Assigned(ptrMem) then
+        FreeMem(ptrMem);
 end;
 
 // calculates mt1*mt2'
@@ -525,6 +530,7 @@ var h1, h : TASMNativeInt;
     blockByteSize : Cardinal;
     blockLineSize : Cardinal;
     isAligned : boolean;
+    ptrMem : Pointer;
 begin
      if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
         exit;
@@ -546,8 +552,9 @@ begin
      blockByteSize := blockSize*blockSize*sizeof(double);
 
      actBlk := mem;
+     ptrMem := nil;
      if not Assigned(mem) then
-        GetMem(actBlk, BlockMultMemSize(blockSize));
+        actBlk := MtxMallocAlign(BlockMultMemSize(blockSize), ptrMem );
      multBlk := PDouble(TASMNativeUInt(actBlk) + blockByteSize);
      copyBlk := PDouble(TASMNativeUInt(actBlk) + 2*blockByteSize);
 
@@ -570,7 +577,7 @@ begin
                if (blkIdxX = h1) and not h2FitCacheSize then
                   blkHeight1 := (height2 mod blockSize);
 
-               FillChar(actBlk^, blockByteSize, 0);
+               MtxMemInit(actBlk, blockByteSize, 0);
                pa := mt1;
                pb := pMt2;
 
@@ -617,8 +624,8 @@ begin
           inc(PByte(mt1), blkHeight*LineWidth1);
      end;
 
-     if not Assigned(mem) then
-        FreeMem(actBlk);
+     if Assigned(ptrMem) then
+        FreeMem(ptrMem);
 end;
 
 

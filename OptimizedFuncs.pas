@@ -310,7 +310,7 @@ begin
 
      // align to next multiple of 32 bytes
      if NumBytes and $1F <> 0 then
-        NumBytes := NumBytes and $FFFFFFE0 + 32;
+        NumBytes := NumBytes and $FFFFFFE0 + $20;
 
      Result := GetMemory(NumBytes);
      if Assigned(Result) then
@@ -333,7 +333,7 @@ begin
         exit;
 
      // align to next multiple of 32 bytes
-     inc(NumBytes, $20);
+     inc(NumBytes, $40);
      if NumBytes and $1F <> 0 then
         NumBytes := NumBytes and $FFFFFFE0 + $20;
 

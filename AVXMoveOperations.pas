@@ -68,7 +68,7 @@ asm
 
    @@loopUnrolledEnd:
 
-   sub edx, 256;
+   sub edx, 128;
    jz @@exitProc;
 
    add edx, 32;

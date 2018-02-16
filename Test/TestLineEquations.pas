@@ -377,84 +377,86 @@ begin
      origInstrSet := GetCurCPUInstrType;
      InitMtxThreadPool;
 
-     for iter := 0 to 2*Length(cBlkWidths) - 1 do
-     begin
-          if iter mod 2 = 0
-          then
-              InitMathFunctions(itFPU, False)
-          else
-              InitMathFunctions(origInstrSet, False);
+     try
+        for iter := 0 to 2*Length(cBlkWidths) - 1 do
+        begin
+             if iter mod 2 = 0
+             then
+                 InitMathFunctions(itFPU, False)
+             else
+                 InitMathFunctions(origInstrSet, False);
 
-          blkWidth := cBlkWidths[iter div 2];
-          blkHeight := cBlkHeights[iter div 2];
-          blkSize := blkWidth*blkHeight;
+             blkWidth := cBlkWidths[iter div 2];
+             blkHeight := cBlkHeights[iter div 2];
+             blkSize := blkWidth*blkHeight;
 
-          SetLength(A, BlkSize);
-          SetLength(V, BlkSize);
-          SetLength(W, blkHeight);
-          SetLength(V2, BlkSize);
-          SetLength(W2, blkHeight);
-          SetLength(V3, BlkSize);
-          SetLength(W3, blkHeight);
+             SetLength(A, BlkSize);
+             SetLength(V, BlkSize);
+             SetLength(W, blkHeight);
+             SetLength(V2, BlkSize);
+             SetLength(W2, blkHeight);
+             SetLength(V3, BlkSize);
+             SetLength(W3, blkHeight);
 
-          RandSeed := 15;
-          for i := 0 to BlkHeight - 1 do
-          begin
-               for j := 0 to BlkWidth - 1 do
-                   A[i*BlkWidth + j] := Random - 0.5;
-          end;
+             RandSeed := 15;
+             for i := 0 to BlkHeight - 1 do
+             begin
+                  for j := 0 to BlkWidth - 1 do
+                      A[i*BlkWidth + j] := Random - 0.5;
+             end;
 
-          A2 := Copy(A, 0, Length(A));
-          A3 := Copy(A, 0, Length(A));
-          ARef := Copy(A, 0, Length(A));
+             A2 := Copy(A, 0, Length(A));
+             A3 := Copy(A, 0, Length(A));
+             ARef := Copy(A, 0, Length(A));
 
-          //WriteMatlabData('D:\svdinp.txt', A3, BlkWidth);
+             //WriteMatlabData('D:\svdinp.txt', A3, BlkWidth);
 
-          QRBlockSize := BlkWidth;
-          SVDBlockSize := BlkWidth;
+             QRBlockSize := BlkWidth;
+             SVDBlockSize := BlkWidth;
 
-          start1 := MtxGetTime;
-          MatrixSVDInPlace2(@A2[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W2[0]), @V2[0], blkWidth*sizeof(double), BlkWidth, nil);
-          stop1 := MtxGetTime;
+             start1 := MtxGetTime;
+             MatrixSVDInPlace2(@A2[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W2[0]), @V2[0], blkWidth*sizeof(double), BlkWidth, nil);
+             stop1 := MtxGetTime;
 
-          SVDBlockSize := 24;
-          QRBlockSize := 32;
+             SVDBlockSize := 24;
+             QRBlockSize := 32;
 
-          start2 := MtxGetTime;
-          MatrixSVDInPlace2(@A[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W[0]), @V[0], blkWidth*sizeof(double), SVDBlockSize, nil);
-          stop2 := MtxGetTime;
+             start2 := MtxGetTime;
+             MatrixSVDInPlace2(@A[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W[0]), @V[0], blkWidth*sizeof(double), SVDBlockSize, nil);
+             stop2 := MtxGetTime;
 
-          start3 := MtxGetTime;
-          ThrMatrixSVDInPlace(@A3[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W3[0]), @V3[0], blkWidth*sizeof(double), SVDBlockSize, nil);
-          stop3 := MtxGetTime;
+             start3 := MtxGetTime;
+             ThrMatrixSVDInPlace(@A3[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W3[0]), @V3[0], blkWidth*sizeof(double), SVDBlockSize, nil);
+             stop3 := MtxGetTime;
 
 
-          Status(Format('BigSVD took (%d, %d): %.3fms, %.3fms, %.3fms', [blkWidth, blkHeight, (stop1 - start1)/mtxfreq*1000, (stop2 - start2)/mtxfreq*1000, (stop3 - start3)/mtxfreq*1000]));
+             Status(Format('BigSVD took (%d, %d): %.3fms, %.3fms, %.3fms', [blkWidth, blkHeight, (stop1 - start1)/mtxfreq*1000, (stop2 - start2)/mtxfreq*1000, (stop3 - start3)/mtxfreq*1000]));
 
-          //WriteMatlabData('D:\U2.txt', A, BlkWidth);
-//          WriteMatlabData('D:\W2.txt', W, 1);
-//          WriteMatlabData('D:\V2.txt', V, BlkWidth);
-//
-//          WriteMatlabData('D:\U1.txt', A2, BlkWidth);
-//          WriteMatlabData('D:\W1.txt', W2, 1);
-//          WriteMatlabData('D:\V1.txt', V2, BlkWidth);
+             //WriteMatlabData('D:\U2.txt', A, BlkWidth);
+   //          WriteMatlabData('D:\W2.txt', W, 1);
+   //          WriteMatlabData('D:\V2.txt', V, BlkWidth);
+   //
+   //          WriteMatlabData('D:\U1.txt', A2, BlkWidth);
+   //          WriteMatlabData('D:\W1.txt', W2, 1);
+   //          WriteMatlabData('D:\V1.txt', V2, BlkWidth);
 
-          // check the back multiplied matrices
-          Check( CheckMtx(W2, W, -1, -1, 1e-6), 'Iter: ' + intToStr(iter) + ' - Blocked SVD version failed in W');
-          Check( SVDMult(A2, W2, V2), 'Iter: ' + intToStr(iter) + ' - Error non blocked SVD');
-          Check( SVDMult(A, W, V), 'Iter: ' + intToStr(iter) + ' - Error blocked SVD');
-          Check( SVDMult(A3, W3, V3), 'Iter: ' + intToStr(iter) + ' - Error threaded SVD');
+             // check the back multiplied matrices
+             Check( CheckMtx(W2, W, -1, -1, 1e-6), 'Iter: ' + intToStr(iter) + ' - Blocked SVD version failed in W');
+             Check( SVDMult(A2, W2, V2), 'Iter: ' + intToStr(iter) + ' - Error non blocked SVD');
+             Check( SVDMult(A, W, V), 'Iter: ' + intToStr(iter) + ' - Error blocked SVD');
+             Check( SVDMult(A3, W3, V3), 'Iter: ' + intToStr(iter) + ' - Error threaded SVD');
 
-          // note: the matrices a and v may have different signs (the final multiplication works though) -> compare the absolute values only
-          MatrixAbs(@A2[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight);
-          MatrixAbs(@A[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight);
-          MatrixAbs(@V2[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight);
-          MatrixAbs(@V[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight);
-          Check( CheckMtx(A2, A, -1, -1, 1e-6), 'Iter: ' + intToStr(iter) + ' - Blocked SVD version failed in A');
-          Check( CheckMtx(V2, V, -1, -1, 1e-6), 'Iter: ' + intToStr(iter) + ' - Blocked SVD version failed in V');
+             // note: the matrices a and v may have different signs (the final multiplication works though) -> compare the absolute values only
+             MatrixAbs(@A2[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight);
+             MatrixAbs(@A[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight);
+             MatrixAbs(@V2[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight);
+             MatrixAbs(@V[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight);
+             Check( CheckMtx(A2, A, -1, -1, 1e-6), 'Iter: ' + intToStr(iter) + ' - Blocked SVD version failed in A');
+             Check( CheckMtx(V2, V, -1, -1, 1e-6), 'Iter: ' + intToStr(iter) + ' - Blocked SVD version failed in V');
+        end;
+     finally
+            FinalizeMtxThreadPool;
      end;
-
-     FinalizeMtxThreadPool;
 end;
 
 

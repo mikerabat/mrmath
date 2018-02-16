@@ -926,6 +926,7 @@ end;
 
 procedure AVXStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var mem : PDouble;
+    ptrMem : Pointer;
     memSize : TASMNativeInt;
     m, k, n : TASMNativeInt;
     lev : TASMNativeInt;
@@ -954,11 +955,11 @@ begin
           // additional memory used for the transposition
           memSize := memSize + Max(cStrassenMinSize*cStrassenMinSize, n*k)*sizeof(double);
 
-          mem := GetMemory(memSize);
+          mem := MtxMallocAlign(memSize, ptrMem);
           try
              InternalAVXStrassenMult(Dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, mem);
           finally
-                 FreeMem(mem);
+                 FreeMem(ptrMem);
           end;
      end;
 end;

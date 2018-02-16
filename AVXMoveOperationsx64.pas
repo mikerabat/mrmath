@@ -91,7 +91,7 @@ asm
 
    @@loopUnrolledEnd:
 
-   sub rdx, 256;
+   sub rdx, 128;
    jz @@exitProc;
 
    add rdx, 32;
