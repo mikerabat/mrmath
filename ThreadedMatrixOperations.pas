@@ -225,12 +225,12 @@ function MatrixMultFunc(obj : TObject) : integer;
 begin
      if (TAsyncMultObj(obj).op = doNone) and not Assigned(TAsyncMultObj(obj).mem)
      then
-         MatrixMult(TAsyncMultObj(obj).dest,
+         MatrixMultEx(TAsyncMultObj(obj).dest,
                     TAsyncMultObj(obj).destLineWidth, TAsyncMultObj(obj).mt1,
                     TAsyncMultObj(obj).mt2, TAsyncMultObj(obj).width1,
                     TAsyncMultObj(obj).height1, TAsyncMultObj(obj).width2,
                     TAsyncMultObj(obj).height2, TAsyncMultObj(obj).LineWidth1,
-                    TAsyncMultObj(obj).LineWidth2)
+                    TAsyncMultObj(obj).LineWidth2, BlockMatrixCacheSize, doNone, nil)
      else
          BlockMatrixMultiplication(TAsyncMultObj(obj).dest,
                     TAsyncMultObj(obj).destLineWidth, TAsyncMultObj(obj).mt1,
@@ -247,12 +247,12 @@ function MatrixMultT1Func(obj : TObject) : integer;
 begin
      if (TAsyncMultObj(obj).op = doNone) and not Assigned(TAsyncMultObj(obj).mem)
      then
-         MatrixMultT1(TAsyncMultObj(obj).dest,
+         MatrixMultT1Ex(TAsyncMultObj(obj).dest,
                     TAsyncMultObj(obj).destLineWidth, TAsyncMultObj(obj).mt1,
                     TAsyncMultObj(obj).mt2, TAsyncMultObj(obj).width1,
                     TAsyncMultObj(obj).height1, TAsyncMultObj(obj).width2,
                     TAsyncMultObj(obj).height2, TAsyncMultObj(obj).LineWidth1,
-                    TAsyncMultObj(obj).LineWidth2)
+                    TAsyncMultObj(obj).LineWidth2, BlockMatrixCacheSize, doNone, nil)
      else
          BlockMatrixMultiplicationT1(TAsyncMultObj(obj).dest,
                     TAsyncMultObj(obj).destLineWidth, TAsyncMultObj(obj).mt1,
@@ -269,12 +269,12 @@ function MatrixMultT2Func(obj : TObject) : integer;
 begin
      if (TAsyncMultObj(obj).op = doNone) and not Assigned(TAsyncMultObj(obj).mem)
      then
-         MatrixMultT2(TAsyncMultObj(obj).dest,
+         MatrixMultT2Ex(TAsyncMultObj(obj).dest,
                     TAsyncMultObj(obj).destLineWidth, TAsyncMultObj(obj).mt1,
                     TAsyncMultObj(obj).mt2, TAsyncMultObj(obj).width1,
                     TAsyncMultObj(obj).height1, TAsyncMultObj(obj).width2,
                     TAsyncMultObj(obj).height2, TAsyncMultObj(obj).LineWidth1,
-                    TAsyncMultObj(obj).LineWidth2)
+                    TAsyncMultObj(obj).LineWidth2, BlockMatrixCacheSize, TAsyncMultObj(obj).op, nil )
      else
          BlockMatrixMultiplicationT2(TAsyncMultObj(obj).dest,
                     TAsyncMultObj(obj).destLineWidth, TAsyncMultObj(obj).mt1,

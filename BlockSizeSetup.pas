@@ -25,7 +25,7 @@ interface
 // nice values for processors:
 // core2 ~ 256
 // AMD A8 ~ 128
-const cDefCacheBlkSize = 256;
+const cDefCacheBlkSize = 128;
 
 var BlockMatrixCacheSize : integer = cDefCacheBlkSize;
 

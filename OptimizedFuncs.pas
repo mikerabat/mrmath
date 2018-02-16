@@ -607,7 +607,6 @@ procedure MatrixMultT2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1,
 begin
      assert((width1 > 0) and (height1 > 0), 'Dimension Error');
      assert((width2 > 0) and (height2 > 0), 'Dimension Error');
-     //blockedMultT2Func(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, BlockMatrixCacheSize, doNone, nil)
      multT2Func(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2);
 end;
 

@@ -1653,8 +1653,8 @@ begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
      Result := ResultClass.Create(Value.fSubWidth, fSubWidth);
 
-     MatrixMultT1(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight,
-                Value.fSubWidth, Value.fSubHeight, LineWidth, Value.LineWidth);
+     MatrixMultT1Ex(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight,
+                Value.fSubWidth, Value.fSubHeight, LineWidth, Value.LineWidth, BlockMatrixCacheSize, doNone, nil);
 end;
 
 function TDoubleMatrix.MultT2(Value: TDoubleMatrix): TDoubleMatrix;
@@ -1662,8 +1662,8 @@ begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
      Result := ResultClass.Create(Value.fSubHeight, fSubHeight);
 
-     MatrixMultT2(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight,
-                Value.fSubWidth, Value.fSubHeight, LineWidth, Value.LineWidth);
+     MatrixMultT2Ex(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight,
+                Value.fSubWidth, Value.fSubHeight, LineWidth, Value.LineWidth, BlockMatrixCacheSize, doNone, nil);
 end;
 
 function TDoubleMatrix.Scale(const Value: double): TDoubleMatrix;

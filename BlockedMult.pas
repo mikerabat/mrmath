@@ -590,7 +590,7 @@ begin
                     if (blkHeight1 > 3) and (blkHeight > 3) then
                     begin
                          // it is faster to copy the block rather then multply it unaligned!
-                         if (not isAligned) or ((LineWidth1 and $0000000F) <> 0) then
+                         if (not isAligned) or ((LineWidth1 and $0000001F) <> 0) then
                          begin
                               MatrixCopy(copyBlk, blockLineSize, pa, LineWidth1, gammaWidth, blkHeight);
                               MatrixMultT2(multblk, blockLineSize, copyBlk, pb, gammaWidth, blkHeight, gammaWidth, blkHeight1, blockLineSize, LineWidth2);
