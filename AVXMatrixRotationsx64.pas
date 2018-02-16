@@ -429,7 +429,8 @@ asm
    mov rax, c;
    mov rbx, s;
 
-   {$IFDEF FPC}vmovupd xmm7, [rip + cMulM1Bits];{$ELSE}db $C5,$F9,$10,$3D,$00,$00,$00,$00,$(r,$el,$);{$ENDIF} 
+   lea rdi, [rip + cMulM1Bits];
+   {$IFDEF FPC}vmovupd xmm7, [rdi];{$ELSE}db $C5,$F9,$10,$3F;{$ENDIF} 
 
    @@foryloop:
 
@@ -529,7 +530,8 @@ asm
    sub rbx, rcx;
    sub r8, rcx;
 
-   {$IFDEF FPC}vmovupd xmm7, [rip + cMulM1Bits];{$ELSE}db $C5,$F9,$10,$3D,$00,$00,$00,$00,$(r,$el,$);{$ENDIF} 
+   lea rdi, [rip + cMulM1Bits];
+   {$IFDEF FPC}vmovupd xmm7, [rdi];{$ELSE}db $C5,$F9,$10,$3F;{$ENDIF} 
 
    @@foryloop:
 
@@ -604,6 +606,8 @@ asm
    mov rdx, rsi;
    {$ENDIF}
 
+   // note c: xmm0
+
    // ###########################################
    // #### Stack push
    {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
@@ -611,15 +615,14 @@ asm
    {$IFDEF FPC}vmovupd dXMM6, xmm6;{$ELSE}db $C5,$F9,$11,$75,$B0;{$ENDIF} 
 
    // init
+   {$IFDEF FPC}vmovddup xmm1, xmm0;{$ELSE}db $C5,$FB,$12,$C8;{$ENDIF} 
+
    lea rax, s;
    {$IFDEF FPC}vmovsd xmm2, [rax];{$ELSE}db $C5,$FB,$10,$10;{$ENDIF} 
    lea rax, [rip + cMinusOne];
    {$IFDEF FPC}vmulsd xmm2, xmm2, [rax];{$ELSE}db $C5,$EB,$59,$10;{$ENDIF} 
 
    {$IFDEF FPC}vmovddup xmm0, xmm2;{$ELSE}db $C5,$FB,$12,$C2;{$ENDIF} 
-   lea rax, c;
-   {$IFDEF FPC}vmovddup xmm1, [rax];{$ELSE}db $C5,$FB,$12,$08;{$ENDIF} 
-
    lea rax, s;
    {$IFDEF FPC}vmovddup xmm2, [rax];{$ELSE}db $C5,$FB,$12,$10;{$ENDIF} 
 
@@ -717,14 +720,15 @@ asm
    {$IFDEF FPC}vmovupd dXMM5, xmm5;{$ELSE}db $C5,$F9,$11,$6D,$C0;{$ENDIF} 
    {$IFDEF FPC}vmovupd dXMM6, xmm6;{$ELSE}db $C5,$F9,$11,$75,$B0;{$ENDIF} 
 
+   lea rax, c;
+   {$IFDEF FPC}vmovddup xmm1, [rax];{$ELSE}db $C5,$FB,$12,$08;{$ENDIF} 
+
    lea rax, s;
    {$IFDEF FPC}vmovsd xmm2, [rax];{$ELSE}db $C5,$FB,$10,$10;{$ENDIF} 
    lea rax, [rip + cMinusOne];
    {$IFDEF FPC}vmulsd xmm2, xmm2, [rax];{$ELSE}db $C5,$EB,$59,$10;{$ENDIF} 
 
    {$IFDEF FPC}vmovddup xmm0, xmm2;{$ELSE}db $C5,$FB,$12,$C2;{$ENDIF} 
-   lea rax, c;
-   {$IFDEF FPC}vmovddup xmm1, [rax];{$ELSE}db $C5,$FB,$12,$08;{$ENDIF} 
 
    lea rax, s;
    {$IFDEF FPC}vmovddup xmm2, [rax];{$ELSE}db $C5,$FB,$12,$10;{$ENDIF} 
