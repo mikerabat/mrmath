@@ -65,7 +65,8 @@ asm
    // helper registers for the dest pointer
    sub rcx, r8;
 
-   {$IFDEF FPC}vmovupd ymm0, [rip + cSignBits4];{$ELSE}db $C5,$FD,$10,$05,$00,$00,$00,$00,$(r,$el,$);{$ENDIF} 
+   lea rax, [rip + cSignBits4];
+   {$IFDEF FPC}vmovupd ymm0, [rax];{$ELSE}db $C5,$FD,$10,$00;{$ENDIF} 
 
    // for y := 0 to height - 1:
    mov r11, Height;
@@ -161,7 +162,8 @@ asm
    // helper registers for the dest pointer
    sub rcx, r8;
 
-   {$IFDEF FPC}vmovupd ymm0, [rip + cSignBits4];{$ELSE}db $C5,$FD,$10,$05,$00,$00,$00,$00,$(r,$el,$);{$ENDIF} 
+   lea rax, [rip + cSignBits4];
+   {$IFDEF FPC}vmovupd ymm0, [rax];{$ELSE}db $C5,$FD,$10,$00;{$ENDIF} 
 
    // for y := 0 to height - 1:
    mov r11, Height;

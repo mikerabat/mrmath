@@ -309,8 +309,7 @@ asm
    {$ENDIF}
    lea rax, tmp;
    {$IFDEF FPC}vmovsd [rax], xmm0;{$ELSE}db $C5,$FB,$11,$00;{$ENDIF} 
-   {$IFDEF FPC}vbroadcastsd ymm2, [rax];{$ELSE}db $C4,$E2,$7D,$19,$10;{$ENDIF} 
-   // vbroadcastsd ymm2, xmm0; // avx2
+   {$IFDEF FPC}vbroadcastsd ymm2, [rax];{$ELSE}db $C4,$E2,$7D,$19,$10;{$ENDIF} // vbroadcastsd ymm2, xmm0; // avx2
 
    // for x := 0 to width - 1:
    mov r11, Width;
@@ -968,11 +967,10 @@ asm
    {$ENDIF}
    lea rax, tmp;
    {$IFDEF FPC}vmovsd [rax], xmm0;{$ELSE}db $C5,$FB,$11,$00;{$ENDIF} 
-   {$IFDEF FPC}vbroadcastsd ymm2, [rax];{$ELSE}db $C4,$E2,$7D,$19,$10;{$ENDIF} 
-      {$IFDEF FPC}{$ELSE}db $C4,$E2,$7D,$19,$28;{$ENDIF} // vbroadcastsd ymm2, xmm0;  // is avx2
+   {$IFDEF FPC}vbroadcastsd ymm2, [rax];{$ELSE}db $C4,$E2,$7D,$19,$10;{$ENDIF} // vbroadcastsd ymm2, xmm0;  // is avx2
 
    lea rax, [rip + cOne];
-   vbroadcastsd ymm5, [rax];
+   {$IFDEF FPC}vbroadcastsd ymm5, [rax];{$ELSE}db $C4,$E2,$7D,$19,$28;{$ENDIF} 
 
 
    // for x := 0 to width - 1:
@@ -1194,11 +1192,10 @@ asm
    {$ENDIF}
    lea rax, tmp;
    {$IFDEF FPC}vmovsd [rax], xmm0;{$ELSE}db $C5,$FB,$11,$00;{$ENDIF} 
-   {$IFDEF FPC}vbroadcastsd ymm2, [rax];{$ELSE}db $C4,$E2,$7D,$19,$10;{$ENDIF} 
-      {$IFDEF FPC}{$ELSE}db $C4,$E2,$7D,$19,$28;{$ENDIF} // vbroadcastsd ymm2, xmm0; // avx2
+   {$IFDEF FPC}vbroadcastsd ymm2, [rax];{$ELSE}db $C4,$E2,$7D,$19,$10;{$ENDIF} // vbroadcastsd ymm2, xmm0; // avx2
 
    lea rax, [rip + cOne];
-   vbroadcastsd ymm5, [rax];
+   {$IFDEF FPC}vbroadcastsd ymm5, [rax];{$ELSE}db $C4,$E2,$7D,$19,$28;{$ENDIF} 
 
    // for x := 0 to width - 1:
    mov r11, Width;
@@ -1826,11 +1823,10 @@ asm
    {$ENDIF}
    lea rax, tmp;
    {$IFDEF FPC}vmovsd [rax], xmm0;{$ELSE}db $C5,$FB,$11,$00;{$ENDIF} 
-   {$IFDEF FPC}vbroadcastsd ymm2, [rax];{$ELSE}db $C4,$E2,$7D,$19,$10;{$ENDIF} 
-      {$IFDEF FPC}{$ELSE}db $C4,$E2,$7D,$19,$28;{$ENDIF} // vbroadcastsd ymm2, xmm0;  // avx2
+   {$IFDEF FPC}vbroadcastsd ymm2, [rax];{$ELSE}db $C4,$E2,$7D,$19,$10;{$ENDIF} // vbroadcastsd ymm2, xmm0;  // avx2
 
    lea rax, [rip + cOne];
-   vbroadcastsd ymm5, [rax];
+   {$IFDEF FPC}vbroadcastsd ymm5, [rax];{$ELSE}db $C4,$E2,$7D,$19,$28;{$ENDIF} 
 
 
    // for x := 0 to width - 1:
@@ -2054,12 +2050,10 @@ asm
    {$ENDIF}
    lea rax, tmp;
    {$IFDEF FPC}vmovsd [rax], xmm0;{$ELSE}db $C5,$FB,$11,$00;{$ENDIF} 
-   {$IFDEF FPC}vbroadcastsd ymm2, [rax];{$ELSE}db $C4,$E2,$7D,$19,$10;{$ENDIF} 
-
-     {$IFDEF FPC}{$ELSE}db $C4,$E2,$7D,$19,$28;{$ENDIF} //vbroadcastsd ymm2, xmm0; // avx2
+   {$IFDEF FPC}vbroadcastsd ymm2, [rax];{$ELSE}db $C4,$E2,$7D,$19,$10;{$ENDIF} //vbroadcastsd ymm2, xmm0; // avx2
 
    lea rax, [rip + cOne];
-   vbroadcastsd ymm5, [rax];
+   {$IFDEF FPC}vbroadcastsd ymm5, [rax];{$ELSE}db $C4,$E2,$7D,$19,$28;{$ENDIF} 
 
    // for x := 0 to width - 1:
    mov r11, Width;

@@ -491,7 +491,7 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="4"/>
         <TopLine Value="143"/>
-        <CursorPos Y="148"/>
+        <CursorPos X="20" Y="164"/>
         <UsageCount Value="57"/>
         <Loaded Value="True"/>
       </Unit55>
@@ -1077,7 +1077,7 @@
     </JumpHistory>
   </ProjectSession>
   <Debugging>
-    <BreakPoints Count="3">
+    <BreakPoints Count="1">
       <Item1>
         <Kind Value="bpkSource"/>
         <WatchScope Value="wpsLocal"/>
@@ -1085,20 +1085,6 @@
         <Source Value="MathUtilsTestsFPC32.lpr"/>
         <Line Value="23"/>
       </Item1>
-      <Item2>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="..\AVXMatrixAbsOperations.pas"/>
-        <Line Value="164"/>
-      </Item2>
-      <Item3>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="..\AVXMatrixAbsOperations.pas"/>
-        <Line Value="148"/>
-      </Item3>
     </BreakPoints>
     <Watches Count="2">
       <Item1>
