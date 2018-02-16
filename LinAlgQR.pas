@@ -118,7 +118,7 @@ uses BlockSizeSetup, Classes, HouseholderReflectors, Math, ThreadedMatrixOperati
 
 type
   TRecMtxQRDecompData = record
-    pWorkMem : PByte;
+    pWorkMem : Pointer;
     work : PDouble;
     LineWidthWork : TASMNativeInt;
     BlkMultMem : PDouble;
@@ -244,9 +244,6 @@ end;
 
 function MatrixQRDecomp(dest : PDouble; const LineWidthDest : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt;
   C : PDouble; const LineWidthC : TASMNativeInt; D : PDouble; const LineWidthD : TASMNativeInt; progress : TLinEquProgress) : TQRResult;
-var pDest : PDouble;
-    pA : PDouble;
-    i : TASMNativeInt;
 begin
      assert(LineWidthA >= width*sizeof(double), 'Dimension error');
      assert(LineWidthDest >= width*sizeof(double), 'Dimension error');
@@ -254,15 +251,7 @@ begin
      assert(LineWidthD >= sizeof(double), 'Dimension error');
 
      // copy A to dest
-     pA := A;
-     pDest := Dest;
-     for i := 0 to width - 1 do
-     begin
-          Move(pA^, pDest^, sizeof(double)*width);
-          inc(PByte(pDest), LineWidthDest);
-          inc(PByte(pA), LineWidthA);
-     end;
-
+     MatrixCopy(dest, LineWidthDest, A, LineWidthA, width, width);
      Result := MatrixQRDecompInPlace(dest, LineWidthDest, width, C, LineWidthC, D, LineWidthD, progress);
 end;
 
@@ -475,7 +464,7 @@ begin
                inc(pDest, i);
                for y := 0 to i - 1 do
                begin
-                    pT1 := PConstdoubleArr(GenPtr(T, 0, y, qrData.LineWidthWork));
+                    pT1 := PConstDoubleArr(GenPtr(T, 0, y, qrData.LineWidthWork));
                     pT2 := pDest;
                     tmp := 0;
                     for x := y to i - 1 do
@@ -632,12 +621,7 @@ begin
      qrData.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}MatrixMultT2Ex;
 
      if work = nil then
-     begin
-          qrData.pWorkMem := MtxAlloc( QRDecompMemSize(pnlSize, width) );
-          qrData.work := PDouble(qrData.pWorkMem);
-          if (NativeUInt(qrData.pWorkMem) and $00000001F) <> 0 then
-             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 32 - NativeUInt(qrData.pWorkMem) and $1F);
-     end;
+        qrData.work := MtxAllocAlign( QRDecompMemSize(pnlSize, width), qrData.pWorkMem );
 
      // it's assumed that the work memory block may also be used
      // as blocked multiplication memory storage!
@@ -859,12 +843,7 @@ begin
      qrData.MatrixMultEx := {$IFDEF FPC}@{$ENDIF}MatrixMultEx;
 
      if work = nil then
-     begin
-          qrData.pWorkMem := MtxAlloc( QRDecompMemSize(qrData.pnlSize, width) );
-          qrData.work := PDouble(qrData.pWorkMem);
-          if (NativeUInt(qrData.pWorkMem) and $0000001F) <> 0 then
-             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 32 - NativeUInt(qrData.pWorkMem) and $1F);
-     end;
+        qrData.work := MtxAllocAlign(QRDecompMemSize(qrData.pnlSize, width), qrData.pWorkMem);
 
      // it's assumed that the work memory block may also be used
      // as blocked multiplication memory storage!
@@ -873,7 +852,7 @@ begin
 
      InternalBlkMatrixQFromQRDecomp(A, LineWidthA, width, height, tau, qrData);
      if not Assigned(work) then
-        freeMem(qrData.pWorkMem);
+        FreeMem(qrData.pWorkMem);
 end;
 
 // dlarfb 'Right', 'Transpose', 'Forward', 'Rowwise'
@@ -1225,12 +1204,7 @@ begin
      qrData.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}MatrixMultT2Ex;
      qrData.MatrixMultEx := {$IFDEF FPC}@{$ENDIF}MatrixMultEx;
      if work = nil then
-     begin
-          qrData.pWorkMem := MtxAlloc(qrData.pnlSize*sizeof(double)*height + 64 + BlockMultMemSize(QRMultBlockSize) );
-          qrData.work := PDouble(qrData.pWorkMem);
-          if (NativeUInt(qrData.pWorkMem) and $00000001F) <> 0 then
-             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 32 - NativeUInt(qrData.pWorkMem) and $1F);
-     end;
+        qrData.work := MtxAllocAlign( qrData.pnlSize*sizeof(double)*height + 64 + BlockMultMemSize(QRMultBlockSize), qrData.pWorkMem);
 
      // it's assumed that the work memory block may also be used
      // as blocked multiplication memory storage!
@@ -1252,7 +1226,6 @@ function ThrMatrixQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width,
 var res : boolean;
     qrData : TRecMtxQRDecompData;
     ptrMem : Pointer;
-    ptrMem1 : Pointer;
 begin
      qrData.pWorkMem := nil;
      qrData.work := work;
@@ -1265,21 +1238,15 @@ begin
      qrData.MatrixMultT1 := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultT1Ex;
      qrData.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultT2Ex;
 
-     ptrMem1 := nil;
      if work = nil then
-     begin
-          qrData.pWorkMem := MtxAllocAlign(pnlSize*sizeof(double)*height + 64, ptrMem1 );
-          qrData.work := PDouble(qrData.pWorkMem);
-          if (NativeUInt(qrData.pWorkMem) and $0000000F) <> 0 then
-             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + 32 - NativeUInt(qrData.pWorkMem) and $1F);
-     end;
+        qrData.work := MtxAllocAlign(pnlSize*sizeof(double)*height + 64, qrData.pWorkMem );
 
      qrData.BlkMultMem := MtxMallocAlign(numCPUCores*(4 + BlockMultMemSize(QRMultBlockSize)), ptrMem);
 
      res := InternalMatrixQRDecompInPlace2(A, LineWidthA, width, height, tau, qrData);
 
-     if ptrMem1 <> nil then
-        FreeMem(ptrMem1);
+     if qrData.pWorkMem <> nil then
+        FreeMem(qrData.pWorkMem);
 
      FreeMem(ptrMem);
 
@@ -1293,7 +1260,7 @@ end;
 procedure ThrMatrixQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
   tau : PDouble; BlockSize : TASMNativeInt; work : PDouble; progress : TLinEquProgress = nil);
 var qrData : TRecMtxQRDecompData;
-    ptrMem, ptrMem1 : Pointer;
+    ptrMem : Pointer;
 begin
      qrData.pWorkMem := nil;
      qrData.work := work;
@@ -1308,20 +1275,14 @@ begin
      qrData.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultT2Ex;
      qrData.MatrixMultEx := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultEx;
 
-     ptrMem1 := nil;
      if work = nil then
-     begin
-          qrData.pWorkMem := MtxAllocAlign(BlockSize*sizeof(double)*height + 64, ptrMem1 );
-          qrData.work := PDouble(qrData.pWorkMem);
-          if (NativeUInt(qrData.pWorkMem) and $0000000F) <> 0 then
-             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + $20 - NativeUInt(qrData.pWorkMem) and $1F);
-     end;
+        qrData.work := MtxAllocAlign(BlockSize*sizeof(double)*height + 64, qrData.pWorkMem );
 
      qrData.BlkMultMem := MtxMallocAlign(numCPUCores*(4 + BlockMultMemSize(QRMultBlockSize)), ptrMem);
 
      InternalBlkMatrixQFromQRDecomp(A, LineWidthA, width, height, tau, qrData);
-     if Assigned(ptrMem1) then
-        FreeMem(ptrMem1);
+     if Assigned(qrData.pWorkMem) then
+        FreeMem(qrData.pWorkMem);
 
      FreeMem(ptrMem);
 end;
@@ -1329,7 +1290,7 @@ end;
 procedure ThrMatrixLeftQFromQRDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
   tau : PDouble; BlockSize : TASMNativeInt; work : PDouble; progress : TLinEquProgress = nil);
 var qrData : TRecMtxQRDecompData;
-    ptrMem, ptrMem1 : Pointer;
+    ptrMem : Pointer;
 begin
      qrData.pWorkMem := nil;
      qrData.work := work;
@@ -1344,20 +1305,14 @@ begin
      qrData.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultT2Ex;
      qrData.MatrixMultEx := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultEx;
 
-     ptrMem1 := nil;
      if work = nil then
-     begin
-          qrData.pWorkMem := MtxAllocAlign(BlockSize*sizeof(double)*height + 64, ptrMem1 );
-          qrData.work := PDouble(qrData.pWorkMem);
-          if (NativeUInt(qrData.pWorkMem) and $0000000F) <> 0 then
-             qrData.work := PDouble(NativeUInt(qrData.pWorkMem) + $20 - NativeUInt(qrData.pWorkMem) and $1F);
-     end;
+        qrData.work := MtxAllocAlign(BlockSize*sizeof(double)*height + 64, qrData.pWorkMem );
 
      qrData.BlkMultMem := MtxMallocAlign(numCPUCores*(4 + BlockMultMemSize(QRMultBlockSize)), ptrMem);
 
      InternalBlkMatrixLeftQFromQRDecomp(A, LineWidthA, width, height, tau, qrData);
-     if Assigned(ptrMem1) then
-        FreeMem(ptrMem1);
+     if Assigned(qrData.pWorkMem) then
+        FreeMem(qrData.pWorkMem);
 
      FreeMem(ptrMem);
 end;
@@ -1367,7 +1322,7 @@ function InternalMatrixQRSolve(x : PDouble; const LineWidthX : TASMNativeInt; A 
     y : PDouble; const LineWidthY : TASMNativeInt; width, height : TASMNativeInt; 
     QRDecompInPlaceFunc : TQRDecompFunc; QFromQRDecompFunc : TQFromQRFunc;
     work : PDouble = nil) : TQRResult;
-var mem : PByte;
+var mem : Pointer;
     tau : PDouble;
     Q : PDouble;
     LineWidthQ : TASMNativeInt;
@@ -1404,10 +1359,7 @@ begin
           w2 := width + width and $1;
 
           // reserve memory for tau and R
-          mem := MtxAlloc( w2*height*sizeof(double) + 32 + 2*w2*sizeof(double));
-          tau := PDouble(mem);
-          if TASMNativeUInt( mem ) and $F <> 0 then
-             tau := PDouble(TASMNativeUInt(mem) + $20 - TASMNativeUInt(mem) and $1F);
+          tau := MtxAllocAlign( w2*height*sizeof(double) + 32 + 2*w2*sizeof(double), mem );
           Q := tau;
           inc(Q, w2);
 

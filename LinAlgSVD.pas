@@ -1990,8 +1990,10 @@ var w2 : TASMNativeInt;
 begin
      minmn := Min(Width, Height);
 
-     // for factors of 2.. (better aligned memory)
-     w2 := width + width and 1;
+     // for factors of 4.. (better aligned memory)
+     w2 := width;
+     if w2 and $03 <> 0 then
+        w2 := width + 4 - width and $03;
 
      mnthr := Trunc( minmn*1.6 );
 
@@ -2331,6 +2333,7 @@ var svdData : TMtxSVDDecompData;
     vT : TDoubleDynArray;
     pA : PConstDoubleArr;
     x, y : TASMNativeInt;
+    ptrMem : Pointer;
 begin
      if width > Height then
      begin
@@ -2395,12 +2398,12 @@ begin
 
      // ###########################################
      // #### Allocate workspace for fast algorithm...
-     svdData.pWorkMem := MtxAlloc( SVDMemSize(svdData, width, height) );
+     svdData.pWorkMem := MtxAllocAlign( SVDMemSize(svdData, width, height), ptrMem );
 
      Result := InternalMatrixSVD(A, LineWidthA, width, height, W, V, LineWidthV, svdData, False);
 
      svdData.QrProgressObj.Free;
-     FreeMem(svdData.pWorkMem);
+     FreeMem(ptrMem);
 end;
 
 // ###################################################
@@ -2416,12 +2419,14 @@ var w2 : TASMNativeInt;
 begin
      minmn := Min(Width, Height);
 
-     // for factors of 2.. (better aligned memory)
-     w2 := width + width and 1;
+     // for factors of 4.. (better aligned memory)
+     w2 := width;
+     if w2 and $03 <> 0 then
+        w2 := width + 4 - width and $03;
 
      mnthr := Trunc( minmn*1.6 );
 
-     Result := 16 + Max(w2*w2*sizeof(double) + w2*sizeof(double) + svdData.SVDMultSize*w2*sizeof(double),
+     Result := 64 + Max(w2*w2*sizeof(double) + w2*sizeof(double) + svdData.SVDMultSize*w2*sizeof(double),
                         sizeof(double)*(w2*w2 + 3*w2)
                         )  +
                     numCPUCores*BlockMultMemSize( BlockMatrixCacheSize );
@@ -2430,7 +2435,7 @@ begin
      if (height >= width) and (Height <= mnthr) then
      begin
           // mem for TauP, TauQ, D, E, Bidiagonlaization multiplication memory
-          Result := 16 + sizeof(double)*(  (3 + 5)*w2 + (w2 + height)*SVDBlockSize) + numCPUCores*BlockMultMemSize(Max(SVDBlockSize, QRMultBlockSize));
+          Result := 64 + sizeof(double)*(  (3 + 5)*w2 + (w2 + height)*SVDBlockSize) + numCPUCores*BlockMultMemSize(Max(SVDBlockSize, QRMultBlockSize));
      end;
 end;
 
@@ -2678,6 +2683,7 @@ var svdData : TMtxSVDDecompData;
     vT : TDoubleDynArray;
     pA : PConstDoubleArr;
     x, y : TASMNativeInt;
+    ptrMem : Pointer;
 begin
      // ###########################################
      // #### check if multithreading is an advantage here
@@ -2753,12 +2759,12 @@ begin
 
      // ###########################################
      // #### Allocate workspace for fast algorithm...
-     svdData.pWorkMem := MtxAlloc( SVDMemSizeThr(svdData, width, height) );
+     svdData.pWorkMem := MtxAllocAlign( SVDMemSizeThr(svdData, width, height), ptrMem );
 
      Result := InternalMatrixSVD(A, LineWidthA, width, height, W, V, LineWidthV, svdData, False);
 
      svdData.QrProgressObj.Free;
-     FreeMem(svdData.pWorkMem);
+     FreeMem(ptrMem);
 end;
 
 // ###########################################

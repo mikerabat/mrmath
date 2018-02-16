@@ -120,7 +120,7 @@ asm
        jz @nextLine;
 
        {$IFDEF FPC}vmovsd xmm1, [rcx + rax];{$ELSE}db $C5,$FB,$10,$0C,$01;{$ENDIF} 
-       {$IFDEF FPC}vandpd xmm1, xmm7, xmm0;{$ELSE}db $C5,$C1,$54,$C8;{$ENDIF} 
+       {$IFDEF FPC}vandpd xmm1, xmm1, xmm0;{$ELSE}db $C5,$F1,$54,$C8;{$ENDIF}  
        {$IFDEF FPC}vmovsd [rcx + rax], xmm1;{$ELSE}db $C5,$FB,$11,$0C,$01;{$ENDIF} 
 
        @nextLine:
