@@ -152,6 +152,7 @@ contains
   AVXMatrixVectorMultOperationsx64 in 'AVXMatrixVectorMultOperationsx64.pas',
   AVXMoveOperations in 'AVXMoveOperations.pas',
   AVXMoveOperationsx64 in 'AVXMoveOperationsx64.pas',
-  BlockedMult in 'BlockedMult.pas';
+  BlockedMult in 'BlockedMult.pas',
+  EM in 'EM.pas';
 
 end.

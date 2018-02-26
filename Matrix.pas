@@ -85,6 +85,7 @@ type
 
     procedure DiagInPlace(createDiagMtx : boolean);
     function Diag(createDiagMtx : boolean) : TDoubleMatrix;
+    function Trace : double;
 
     procedure Normalize(RowWise : boolean);
     function ElementwiseNorm2(doSqrt : boolean = True) : double;   
@@ -346,6 +347,7 @@ type
 
     procedure DiagInPlace(createDiagMtx : boolean);
     function Diag(createDiagMtx : boolean) : TDoubleMatrix;
+    function Trace : double;
 
     procedure Normalize(RowWise : boolean);
     function ElementwiseNorm2(doSqrt : boolean = True) : double;
@@ -511,6 +513,7 @@ type
 
 type
   TDoubleMatrixDynArr = Array of TDoubleMatrix;
+  IMatrixDynArr = Array of IMatrix;
 
 // default class used in derrived methods like in the global subspace methdos:
 // override the class value to use different matrix class implementations
@@ -2374,6 +2377,17 @@ end;
 procedure TDoubleMatrix.TakeOver(Value: IMatrix);
 begin
      TakeOver(Value.GetObjRef);
+end;
+
+function TDoubleMatrix.Trace: double;
+var i : Integer;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+     CheckAndRaiseError((Width = Height), 'Trace only defined on square matrices');
+
+     Result := 0;
+     for i := 0 to Width - 1 do
+         Result := Result + Items[i, i];
 end;
 
 function TDoubleMatrix.Transpose : TDoubleMatrix;

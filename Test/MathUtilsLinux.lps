@@ -3,12 +3,12 @@
   <ProjectSession>
     <Version Value="10"/>
     <BuildModes Active="Default"/>
-    <Units Count="132">
+    <Units Count="134">
       <Unit0>
         <Filename Value="MathUtilsLinux.ppr"/>
         <IsPartOfProject Value="True"/>
-        <TopLine Value="114"/>
-        <CursorPos Y="145"/>
+        <TopLine Value="75"/>
+        <CursorPos X="40" Y="82"/>
         <UsageCount Value="736"/>
         <Loaded Value="True"/>
       </Unit0>
@@ -416,10 +416,12 @@
       <Unit48>
         <Filename Value="../LinAlgLU.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="932"/>
-        <CursorPos X="85" Y="958"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="786"/>
+        <CursorPos X="27" Y="793"/>
         <UsageCount Value="736"/>
+        <Loaded Value="True"/>
       </Unit48>
       <Unit49>
         <Filename Value="../LinAlgQR.pas"/>
@@ -729,7 +731,7 @@
       <Unit87>
         <Filename Value="TestAVX.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="2"/>
         <TopLine Value="163"/>
         <CursorPos X="56" Y="190"/>
         <UsageCount Value="101"/>
@@ -903,8 +905,7 @@
       <Unit108>
         <Filename Value="../AVXMatrixVectorMultOperations.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="3"/>
         <TopLine Value="660"/>
         <CursorPos X="29" Y="667"/>
         <UsageCount Value="47"/>
@@ -1029,76 +1030,94 @@
         <UsageCount Value="47"/>
       </Unit121>
       <Unit122>
+        <Filename Value="TestEM.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit122>
+      <Unit123>
+        <Filename Value="../EM.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit123>
+      <Unit124>
         <Filename Value="../ASMMatrixMultTransposedOperationsx64AVX.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="496"/>
         <CursorPos Y="665"/>
         <UsageCount Value="24"/>
-      </Unit122>
-      <Unit123>
+      </Unit124>
+      <Unit125>
         <Filename Value="AVXMatrixOperations.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="15"/>
         <CursorPos Y="28"/>
         <UsageCount Value="20"/>
-      </Unit123>
-      <Unit124>
+      </Unit125>
+      <Unit126>
         <Filename Value="/usr/local/codetyphon/fpcsrc/packages/fcl-base/src/syncobjs.pp"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="142"/>
         <CursorPos X="26" Y="155"/>
         <UsageCount Value="43"/>
-      </Unit124>
-      <Unit125>
+      </Unit126>
+      <Unit127>
         <Filename Value="/usr/local/codetyphon/fpcsrc/rtl/inc/thread.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="266"/>
         <CursorPos X="3" Y="269"/>
         <UsageCount Value="43"/>
-      </Unit125>
-      <Unit126>
+      </Unit127>
+      <Unit128>
         <Filename Value="/usr/local/codetyphon/typhon/lcl/graphics.pp"/>
         <UnitName Value="Graphics"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="435"/>
         <CursorPos X="10" Y="450"/>
         <UsageCount Value="7"/>
-      </Unit126>
-      <Unit127>
+      </Unit128>
+      <Unit129>
         <Filename Value="/usr/local/codetyphon/typhon/lcl/include/fpimagebitmap.inc"/>
         <EditorIndex Value="-1"/>
         <UsageCount Value="7"/>
-      </Unit127>
-      <Unit128>
+      </Unit129>
+      <Unit130>
         <Filename Value="/usr/local/codetyphon/typhon/lcl/lcltype.pp"/>
         <UnitName Value="LCLType"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="1300"/>
         <CursorPos X="11" Y="1313"/>
         <UsageCount Value="5"/>
-      </Unit128>
-      <Unit129>
+      </Unit130>
+      <Unit131>
         <Filename Value="C:/codetyphon/fpcsrc/packages/fcl-fpcunit/src/fpcunit.pp"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="192"/>
         <CursorPos X="62" Y="206"/>
         <UsageCount Value="5"/>
-      </Unit129>
-      <Unit130>
+      </Unit131>
+      <Unit132>
         <Filename Value="C:/codetyphon/fpcsrc/packages/fcl-fpcunit/src/testregistry.pp"/>
         <EditorIndex Value="-1"/>
         <UsageCount Value="5"/>
-      </Unit130>
-      <Unit131>
+      </Unit132>
+      <Unit133>
         <Filename Value="C:/codetyphon/typhon/components/lz_FpcUnitRunner/source/guitestrunner.pas"/>
         <UnitName Value="GuiTestRunner"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="406"/>
         <CursorPos X="76" Y="416"/>
         <UsageCount Value="9"/>
-      </Unit131>
+      </Unit133>
     </Units>
-    <JumpHistory Count="9" HistoryIndex="8">
+    <JumpHistory Count="10" HistoryIndex="9">
       <Position1>
         <Filename Value="../AVXMatrixVectorMultOperations.pas"/>
         <Caret Line="957" Column="19" TopLine="939"/>
@@ -1135,6 +1154,10 @@
         <Filename Value="../AVXMatrixVectorMultOperations.pas"/>
         <Caret Line="677" Column="18" TopLine="673"/>
       </Position9>
+      <Position10>
+        <Filename Value="MathUtilsLinux.ppr"/>
+        <Caret Line="82" Column="40" TopLine="75"/>
+      </Position10>
     </JumpHistory>
   </ProjectSession>
   <Debugging>

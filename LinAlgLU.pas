@@ -47,9 +47,9 @@ function MatrixLinEQSolve(A : PDouble; const LineWidthA : TASMNativeInt; width :
    Width2 : TASMNativeInt; const NumRefinments : TASMNativeInt = 0; progress : TLinEquProgress = nil) : TLinEquResult;
 
 // threaded function for linear equations
-function ThrMatrixLUDecomp(A : PDouble; const LineWidthA : Integer; width : integer; indx : PIntegerArray; progress : TLinEquProgress = nil) : TLinEquResult;
+function ThrMatrixLUDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width : integer; indx : PIntegerArray; progress : TLinEquProgress = nil) : TLinEquResult;
 // inverse of a matrix by using the LU decomposition
-function ThrMatrixInverse(A : PDouble; const LineWidthA : integer; width : integer; progress : TLinEquProgress = nil) : TLinEquResult;
+function ThrMatrixInverse(A : PDouble; const LineWidthA : TASMNativeInt; width : integer; progress : TLinEquProgress = nil) : TLinEquResult;
 
 // ###########################################
 // #### Threaded versions
@@ -57,11 +57,11 @@ function ThrMatrixInverse(A : PDouble; const LineWidthA : integer; width : integ
 
 // Matrix determinant calculated from the LU decomposition. Returns zero in case of a singular matrix. Drawback is a double
 // memory usage since the LU decomposition must be stored in a temporary matrix.
-function ThrMatrixDeterminant(A : PDouble; const LineWidthA : integer; width : integer; progress : TLinEquProgress = nil) : double;
+function ThrMatrixDeterminant(A : PDouble; const LineWidthA : TASMNativeInt; width : integer; progress : TLinEquProgress = nil) : double;
 
 // uses the threaded version of the LU decomposition and a threaded back substition.
-function ThrMatrixLinEQSolve(A : PDouble; const LineWidthA : integer; width : integer; B : PDouble; const LineWidthB : integer; X : PDouble;
- const LineWidthX : integer;  width2 : integer; const NumRefinments : integer = 0; progress : TLinEquProgress = nil) : TLinEquResult;
+function ThrMatrixLinEQSolve(A : PDouble; const LineWidthA : TASMNativeInt; width : integer; B : PDouble; const LineWidthB : TASMNativeInt; X : PDouble;
+ const LineWidthX : TASMNativeInt;  width2 : integer; const NumRefinments : integer = 0; progress : TLinEquProgress = nil) : TLinEquResult;
 
    
 implementation
@@ -278,7 +278,7 @@ end;
 
 function MatrixLUDecompInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; indx : PIntegerArray; progress : TLinEquProgress) : TLinEquResult;
 var parity : TASMNativeInt;
-    mem : Array[0..(4+4*cBlkMultSize*cBlkMultSize)] of double;
+    mem : Array[0..(8+4*cBlkMultSize*cBlkMultSize)] of double;
     rc : TRecMtxLUDecompData;
 begin
      FillChar(indx^, width*sizeof(integer), 0);
@@ -286,7 +286,7 @@ begin
      rc.progress := progress;
      rc.numCols := width;
      rc.numCalc := 0;
-     rc.blkMultMem := PDouble(TASMNativeUInt(@mem[0]) + 16 - (TASMNativeUInt(@mem[0]) and $0F));
+     rc.blkMultMem := PDouble(TASMNativeUInt(@mem[0]) + $20 - (TASMNativeUInt(@mem[0]) and $1F));
      rc.LineWidth := LineWidthA;
      Result := InternalRecursiveMatrixLUDecompInPlace(A, width, width, indx, parity, rc);
 end;
@@ -676,7 +676,7 @@ begin
 end;
 
 function InternalThrMatrixLUDecomp(A : PDouble; width, height : integer;
- indx : PIntegerArray; parity : TASMNativeInt; var data : TRecMtxLUDecompData) : TLinEquResult;
+ indx : PIntegerArray; var parity : TASMNativeInt; var data : TRecMtxLUDecompData) : TLinEquResult;
 // this is basically a copy of the unthreaded LU decomposition but with threaded parts (LU Backsup and Multiplication)!
 const cMinThrMultSize = 64;
 var mn : TASMNativeInt;
@@ -692,7 +692,6 @@ begin
 
      if mn > 1 then
      begin
-          // the lu backsubstitution function likes it best if the width is bigger than the height!)
           nleft := mn div 2;
           nright := width - nleft;
 
@@ -724,13 +723,13 @@ begin
 
           a21 := A;
           inc(PByte(a21), nleft*data.LineWidth);
-
-          if (height - nleft > cMinThrMultSize) or (nleft > cMinThrMultSize)
+          // in this case it's faster to have a small block size!
+          if (nright > cBlkMultSize) or (height - nleft > cBlkMultSize)
           then
+              //BlockMatrixMultiplication(pB, data.LineWidth, a21, a12, nleft, height - nleft, nright, nleft, data.LineWidth, data.LineWidth, cBlkMultSize, doSub, data.blkMultMem)
               ThrMatrixMultEx(pB, data.LineWidth, a21, a12, nleft, height - nleft, nright, nleft, data.LineWidth, data.LineWidth, cBlkMultSize, doSub, data.blkMultMem)
           else
           begin
-               // avoid multiple getmems occuring in the blocked version
                MatrixMult(data.blkMultMem, (nright + nright and $01)*sizeof(double), a21, a12, nleft, height - nleft, nright, nleft, data.LineWidth, data.LineWidth);
                MatrixSub(pB, data.LineWidth, pB, data.blkMultMem, nright, height - nleft, data.LineWidth, (nright + nright and $01)*sizeof(double));
           end;
@@ -768,6 +767,7 @@ begin
           // now it's time to apply the gauss elimination
           indx^[0] := idx;
 
+          // check for save invertion of maxVal
           if Abs(maxVal) > 10/MaxDouble then
           begin
                MatrixScaleAndAdd(A, data.LineWidth, 1, Height, 0, 1/maxVal);
@@ -789,8 +789,8 @@ begin
      end;
 end;
 
-function ThrMatrixLUDecomp(A : PDouble; const LineWidthA : Integer; width : integer; indx : PIntegerArray; progress : TLinEquProgress = nil) : TLinEquResult;
-var parity : integer;
+function ThrMatrixLUDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width : integer; indx : PIntegerArray; progress : TLinEquProgress = nil) : TLinEquResult;
+var parity : TASMNativeInt;
     rc : TRecMtxLUDecompData;
     mem : Pointer;
 begin
@@ -860,7 +860,7 @@ begin
      Result := 0;
 end;
 
-function ThrMatrixInverse(A : PDouble; const LineWidthA : integer; width : integer; progress : TLinEquProgress = nil) : TLinEquResult;
+function ThrMatrixInverse(A : PDouble; const LineWidthA : TASMNativeInt; width : integer; progress : TLinEquProgress = nil) : TLinEquResult;
 var Y : PDouble;
     indx : array of integer;
     i : Integer;
@@ -872,16 +872,20 @@ var Y : PDouble;
     calls : IMtxAsyncCallGroup;
     obj : TAsyncMatrixLUBacksup;
     ptrMem : Pointer;
+    YLineWidth : TASMNativeInt;
 begin
      Assert(lineWidthA >= width*sizeof(double), 'Dimension Error');
      Assert(width > 0, 'Dimension error');
 
-     w := width + width and $01;
-     Y := MtxMallocAlign(w*w*sizeof(double), ptrMem);
+     w := width;
+     if w and $03 <> 0 then
+        w := w + 4 - width and $03;
+     YLineWidth := w*sizeof(double);
+     Y := MtxMallocAlign(w*width*sizeof(double), ptrMem);
      SetLength(indx, 2*width);
 
-     MatrixCopy(Y, sizeof(double)*w, A, LineWidthA, width, width);
-     Result := ThrMatrixLUDecomp(Y, w*sizeof(double), width, @(indx[0]), progress);
+     MatrixCopy(Y, YLineWidth, A, LineWidthA, width, width);
+     Result := ThrMatrixLUDecomp(Y, YLineWidth, width, @(indx[0]), progress);
 
      if Result = leSingular then
      begin
@@ -905,7 +909,7 @@ begin
 
           obj := TAsyncMatrixLUBacksup.Create;
           obj.A := Y;
-          obj.lineWidthA := w*sizeof(double);
+          obj.lineWidthA := YLineWidth;
           obj.width := Min(wSize, width);
           obj.height := width;
           obj.offset := i*thrSize;
@@ -937,31 +941,36 @@ begin
      FreeMem(ptrMem);
 end;
 
-function ThrMatrixDeterminant(A : PDouble; const LineWidthA : integer; width : integer; progress : TLinEquProgress = nil) : double;
+function ThrMatrixDeterminant(A : PDouble; const LineWidthA : TASMNativeInt; width : integer; progress : TLinEquProgress = nil) : double;
 var LUDecomp : PDouble;
     indx : Array of Integer;
     i : integer;
     pVal : PDouble;
-    parity : integer;
+    parity : TASMNativeInt;
     rc : TRecMtxLUDecompData;
     w : integer;
     mem : PDouble;
     ptrMem1 : Pointer;
     ptrMem : Pointer;
+    LULineWidth : TASMNativeInt;
 begin
      assert(width > 0, 'Dimension error');
      assert(LineWidthA >= width*sizeof(double), 'Dimension error');
 
-     w := width + width and $01;
-     LUDecomp := MtxMallocAlign(w*w*sizeof(double), ptrMem);
+     w := width;
+     if w and $03 <> 0 then
+        w := w + 4 - width and $03;
+     LULineWidth := w*SizeOf(double);
+     LUDecomp := MtxMallocAlign(w*width*sizeof(double), ptrMem);
+
      mem := MtxAllocAlign(4*numCPUCores*(cBlkMultSize + numCPUCores + 2)*cBlkMultSize*sizeof(double) + $20, ptrMem1);
      SetLength(indx, width);
-     MatrixCopy(LUDecomp, w*sizeof(double), A, LineWidthA, width, width);
+     MatrixCopy(LUDecomp, LULineWidth, A, LineWidthA, width, width);
 
      rc.progress := progress;
      rc.numCols := width;
      rc.numCalc := 0;
-     rc.blkMultMem := PDouble(TASMNativeUInt(mem) + $20 - TASMNativeUInt(mem) and $1F);
+     rc.blkMultMem := mem;
      rc.LineWidth := w*sizeof(double);
 
      parity := 1;
@@ -978,15 +987,15 @@ begin
      begin
           Result := Result * pVal^;
           inc(pVal);
-          inc(PByte(pVal), width*sizeof(double));
+          inc(PByte(pVal), LULineWidth);
      end;
 
      FreeMem(ptrMem);
      FreeMem(ptrMem1);
 end;
 
-function ThrMatrixLinEQSolve(A : PDouble; const LineWidthA : integer; width : integer; B : PDouble; const LineWidthB : integer; X : PDouble;
- const LineWidthX : integer;  Width2 : integer; const NumRefinments : integer; progress : TLinEquProgress) : TLinEquResult;
+function ThrMatrixLinEQSolve(A : PDouble; const LineWidthA : TASMNativeInt; width : integer; B : PDouble; const LineWidthB : TASMNativeInt; X : PDouble;
+ const LineWidthX : TASMNativeInt;  Width2 : integer; const NumRefinments : integer; progress : TLinEquProgress) : TLinEquResult;
 var indx : Array of Integer;
     LUDecomp : PDouble;
     sdp : double;
@@ -1006,6 +1015,7 @@ var indx : Array of Integer;
     obj : TAsyncMatrixLUBacksup;
     calls : IMtxAsyncCallGroup;
     ptrMem : Pointer;
+    LULineWidth : integer;
 begin
      progRef := nil;
      progObj := nil;
@@ -1017,13 +1027,16 @@ begin
           progRef := {$IFDEF FPC}@{$ENDIF}progObj.LUDecompSolveProgress;
      end;
 
-     w := width + width and $01;
+     w := width;
+     if w and $03 <> 0 then
+        w := w + 4 - width and $03;
+     LULineWidth := w*SizeOf(double);
 
-     LUDecomp := MtxMallocAlign(w*w*sizeof(double), ptrMem);
-     MatrixCopy(LUDecomp, w*sizeof(double), A, LineWidthA, width, width);
+     LUDecomp := MtxMallocAlign(w*width*sizeof(double), ptrMem);
+     MatrixCopy(LUDecomp, LULineWidth, A, LineWidthA, width, width);
 
      SetLength(indx, width);
-     Result := ThrMatrixLUDecomp(LUDecomp, w*sizeof(double), width, @indx[0], progRef);
+     Result := ThrMatrixLUDecomp(LUDecomp, LULineWidth, width, @indx[0], progRef);
 
      if Result = leSingular then
      begin
@@ -1048,7 +1061,7 @@ begin
 
           obj := TAsyncMatrixLUBacksup.Create;
           obj.A := LUDecomp;
-          obj.lineWidthA := w*sizeof(double);
+          obj.lineWidthA := LULineWidth;
           obj.width := wSize;
           obj.height := width;
           obj.offset := i*thrSize;
@@ -1095,7 +1108,7 @@ begin
                          row[i] := sdp;
                     end;
 
-                    MatrixLUBackSubst(LUDecomp, sizeof(double)*w, width, @indx[0], @row[0], sizeof(double));
+                    MatrixLUBackSubst(LUDecomp, LULineWidth, width, @indx[0], @row[0], sizeof(double));
                     pX := X;
                     for i := 0 to width - 1 do
                     begin

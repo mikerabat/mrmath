@@ -54,6 +54,10 @@ Gustav Kaiser - special thanks for implementing the PLS algorithm.
 // ###################################################################
 changelog:
 
+Date: 26.02.2018
+* Added Expectation Maximation algorithm.
+* Fixed a few things in the threaded LU decomp (parity was not var)
+
 Date: 14.02.2018
 * Added AVX support for FPC and Delphi (delphi64 not tested yet)
 * Added AVX asm code to DB code project.

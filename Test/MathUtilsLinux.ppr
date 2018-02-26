@@ -93,6 +93,7 @@ uses
   LinearAlgebraicEquations in '..\LinearAlgebraicEquations.pas',
   CCA in '..\CCA.pas',
   PCA in '..\PCA.pas',
+  EM in '..\EM.pas',
   MathUtilFunc in '..\MathUtilFunc.pas',
   Matrix in '..\Matrix.pas',
   MatrixConst in '..\MatrixConst.pas',
@@ -138,7 +139,8 @@ uses
   TestICA in 'TestICA.pas',
   TestNMF in 'TestNMF.pas',
   TestRandom in 'TestRandom.pas',
-  TestCorr in 'TestCorr.pas';
+  TestCorr in 'TestCorr.pas',
+  TestEM in 'TestEM.pas';
 
 {$R *.res}
 

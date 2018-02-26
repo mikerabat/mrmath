@@ -16,6 +16,8 @@ unit RandomEng;
 
 interface
 
+uses Types;
+
 // ###########################################
 // #### some simple random number generators
 // ###########################################
@@ -26,7 +28,7 @@ type
     procedure Init(seed : LongWord); virtual; abstract;
     function Random : LongWord; virtual; abstract;
   end;
-  
+
   TRandomAlgorithm = (raSystem, raMersenneTwister, raIntelRAND, raOS);
   TRandomInt = function(const ARange : integer) : LongInt of object;
   TRandomLW = function(const ARange : LongWord) : LongWord of object;
@@ -44,22 +46,22 @@ type
                               // -> each object has it's own seed
 
     fOsRndEngine : TOsRndEngine;
-    
+
     procedure SetRandMethod(const Value: TRandomAlgorithm);
 
     procedure SysRandomize;
-    function SysRand : double;    // calls system.random    
-    function SysRandInt(const aRange : LongInt) : LongInt; 
+    function SysRand : double;    // calls system.random
+    function SysRandInt(const aRange : LongInt) : LongInt;
     function SysRandLw(const aRange : LongWord) : LongWord;
-    
+
 
     // os specific random generators
     procedure OsRandomize;
-    function OsRand : double;    // calls system.random    
-    function OsRandInt(const aRange : LongInt) : LongInt; 
+    function OsRand : double;    // calls system.random
+    function OsRandInt(const aRange : LongInt) : LongInt;
     function OsRandLw(const aRange : LongWord) : LongWord;
-    
-    // Intel random generator (RDRand instruction) - returns false if the instruction is not avail and 
+
+    // Intel random generator (RDRand instruction) - returns false if the instruction is not avail and
     // system.random needed to be executed.
     function RDRandInt(const aRange : LongInt): LongInt;
     function RDRandLW(const aRange : LongWord) : LongWord;
@@ -96,6 +98,10 @@ type
     function RandLW(const aRange : LongWord) : LongWord;
     function RandInt64(const aRange : Int64) : Int64;
     function RandUint64(const aRange : UInt64) : UInt64;
+
+    // Fisher Yates shuffeld index list
+    function RandIndexArr( aFrom, aTo : integer ) : TIntegerDynArray; overload;
+    procedure RandIndexArr( var idx : TIntegerDynArray); overload;
 
     // ###########################################
     // #### Special distributed random numbers:
@@ -642,6 +648,33 @@ begin
      SetRandMethod(aRandMethod);
 
      inherited Create;
+end;
+
+function TRandomGenerator.RandIndexArr(aFrom, aTo: integer): TIntegerDynArray;
+var i: Integer;
+begin
+     SetLength(Result, aTo - aFrom + 1);
+
+     for i := 0 to Length(Result) - 1 do
+         Result[i] := aFrom + i;
+
+     RandIndexArr(Result);
+end;
+
+procedure TRandomGenerator.RandIndexArr(var idx: TIntegerDynArray);
+var i: Integer;
+    index, tmp : integer;
+begin
+     // Fisher yates shuffle:
+     for i := Length(idx) - 1 downto 1 do
+     begin
+          index := RandInt(i + 1);
+
+          tmp := idx[index];
+          idx[index] := idx[i];
+          idx[i] := tmp;
+     end;
+
 end;
 
 end.

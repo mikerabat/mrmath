@@ -147,7 +147,9 @@ uses
   AVXMatrixVectorMultOperations in '..\AVXMatrixVectorMultOperations.pas',
   AVXMatrixVectorMultOperationsx64 in '..\AVXMatrixVectorMultOperationsx64.pas',
   AVXMoveOperations in '..\AVXMoveOperations.pas',
-  AVXMoveOperationsx64 in '..\AVXMoveOperationsx64.pas';
+  AVXMoveOperationsx64 in '..\AVXMoveOperationsx64.pas',
+  TestEM in 'TestEM.pas',
+  EM in '..\EM.pas';
 
 {$R *.RES}
 

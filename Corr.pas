@@ -25,8 +25,8 @@ type
     function InternalCorrelate(w1, w2 : IMatrix) : double;
   public
     function Correlate(x, y : IMatrix) : double; // correlation coefficient between t, r (must have the same length)
-    function Covariance(x, y : IMatrix; Unbiased : boolean = True) : IMatrix; overload; // covariance matrix
-    function Covariance(A : IMatrix; Unbiased : boolean = True) : IMatrix; overload;   // covariance matrix of matrix A
+    class function Covariance(x, y : IMatrix; Unbiased : boolean = True) : IMatrix; overload; // covariance matrix
+    class function Covariance(A : IMatrix; Unbiased : boolean = True) : IMatrix; overload;   // covariance matrix of matrix A
   end;
 
 // see: https://en.wikipedia.org/wiki/Dynamic_time_warping
@@ -142,13 +142,13 @@ begin
      Result := InternalCorrelate(w1, w2);
 end;
 
-function TCorrelation.Covariance(x, y: IMatrix; Unbiased : boolean = True): IMatrix;
+class function TCorrelation.Covariance(x, y: IMatrix; Unbiased : boolean = True): IMatrix;
 var xc, tmp : IMatrix;
 begin
      if x.Width*x.Height <> y.Width*y.Height then
         raise Exception.Create('Error length of x and y must be the same');
 
-     xc := MatrixClass.Create(2, x.Width*x.Height);
+     xc := TDoubleMatrixClass(x.GetObjRef.ClassType).Create(2, x.Width*x.Height);
 
      // build matrix with 2 columns
      if x.Width = 1 
@@ -169,7 +169,7 @@ begin
 end;
 
 // each row is an observation, each column a variable
-function TCorrelation.Covariance(A: IMatrix; Unbiased: boolean): IMatrix;
+class function TCorrelation.Covariance(A: IMatrix; Unbiased: boolean): IMatrix;
 var aMean : IMatrix;
     ac : IMatrix;
     tmp : IMatrix;
@@ -177,7 +177,7 @@ var aMean : IMatrix;
 begin
      aMean := A.Mean(False);
 
-     ac := MatrixClass.Create(A.Width, A.Height);
+     ac := TDoubleMatrixClass(A.GetObjRef.ClassType).Create(A.Width, A.Height);
      for m := 0 to A.Height - 1 do
      begin
           ac.SetSubMatrix(0, m, ac.Width, 1);

@@ -43,6 +43,7 @@ type
    procedure TryClearCache;
    function WriteMtx(const data : Array of Double; width : integer; prec : integer = 3) : string; overload;
    function WriteMtx(data : PDouble; LineWidth : TASMNativeInt; width : integer; height : integer; prec : integer = 3) : string; overload;
+   function WriteMtx(mtx : TDoubleMatrix; prec : integer = 3) : string; overload;
    function CheckMtx(const data1 : Array of Double; const data2 : Array of double; w : integer = -1; h : integer = -1; const epsilon : double = 1e-4) : boolean;
    function CheckMtxIdx(const data1 : Array of Double; const data2 : Array of double; out idx : integer; w : integer = -1; h : integer = -1; const epsilon : double = 1e-4) : boolean; overload;
    function CheckMtxIdx(data1, data2 : PDouble; const mtxSize : integer; out idx : integer; const epsilon : double = 1e-4) : boolean; overload;
@@ -524,6 +525,12 @@ begin
      sl.Free;
 end;
 
+
+function TBaseMatrixTestCase.WriteMtx(mtx: TDoubleMatrix;
+  prec: integer): string;
+begin
+     Result := WriteMtx( mtx.StartElement, mtx.LineWidth, mtx.Width, mtx.Height, prec);
+end;
 
 initialization
   {$IFDEF FPC}

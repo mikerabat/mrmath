@@ -29,7 +29,7 @@
         <PackageName Value="adLCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="122">
+    <Units Count="124">
       <Unit0>
         <Filename Value="MathUtilsLinux.ppr"/>
         <IsPartOfProject Value="True"/>
@@ -518,6 +518,14 @@
         <Filename Value="../AVXMatrixSumOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit121>
+      <Unit122>
+        <Filename Value="TestEM.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit122>
+      <Unit123>
+        <Filename Value="../EM.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit123>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
