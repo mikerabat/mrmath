@@ -41,7 +41,7 @@ implementation
 
 {$WARNINGS OFF}
 
-{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
+{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 function AVXMatrixMaxAligned(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 begin

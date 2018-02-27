@@ -64,7 +64,7 @@ procedure AVXMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; m
 
 implementation
 
-{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
+{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 {$IFNDEF x64}
 

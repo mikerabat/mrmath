@@ -43,7 +43,7 @@ implementation
 
 {$IFDEF x64}
 
-{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
+{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 // rcx = width, rdx = height, r8 : A, r9 = LineWidthA
 procedure AVXApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);

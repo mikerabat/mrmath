@@ -38,7 +38,7 @@ type
     EDX: Cardinal;
   end;
 
-{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
+{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 {$IFDEF CPUX64}
 {$DEFINE x64}

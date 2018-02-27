@@ -754,7 +754,7 @@ end;
 {$DEFINE x64}
 {$ENDIF}
 
-{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
+{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 {$IFDEF x64}
 // 64bit version

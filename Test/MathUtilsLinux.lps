@@ -416,10 +416,9 @@
       <Unit48>
         <Filename Value="../LinAlgLU.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <TopLine Value="786"/>
-        <CursorPos X="27" Y="793"/>
+        <CursorPos X="83" Y="796"/>
         <UsageCount Value="736"/>
         <Loaded Value="True"/>
       </Unit48>
@@ -905,9 +904,8 @@
       <Unit108>
         <Filename Value="../AVXMatrixVectorMultOperations.pas"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="3"/>
-        <TopLine Value="660"/>
-        <CursorPos X="29" Y="667"/>
         <UsageCount Value="47"/>
         <Bookmarks Count="1">
           <Item0 X="4" Y="944" ID="1"/>
@@ -1117,7 +1115,7 @@
         <UsageCount Value="9"/>
       </Unit133>
     </Units>
-    <JumpHistory Count="10" HistoryIndex="9">
+    <JumpHistory Count="11" HistoryIndex="10">
       <Position1>
         <Filename Value="../AVXMatrixVectorMultOperations.pas"/>
         <Caret Line="957" Column="19" TopLine="939"/>
@@ -1158,6 +1156,10 @@
         <Filename Value="MathUtilsLinux.ppr"/>
         <Caret Line="82" Column="40" TopLine="75"/>
       </Position10>
+      <Position11>
+        <Filename Value="../AVXMatrixVectorMultOperations.pas"/>
+        <Caret Line="667" Column="29" TopLine="660"/>
+      </Position11>
     </JumpHistory>
   </ProjectSession>
   <Debugging>

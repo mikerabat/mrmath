@@ -135,8 +135,6 @@ begin
      end;
 
      rnd.Free;
-
-     WriteMatlabData('D:\mtl.bin', Result.SubMatrix, Result.Width);
 end;
 
 initialization

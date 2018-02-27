@@ -408,7 +408,7 @@ begin
      Result := RDRandInt(MaxInt)*two2neg32;
 end;
 
-{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
+{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 // from http://stackoverflow.com/questions/28538370/using-intels-rdrand-opcode-in-delphi-6-7
 {$IFNDEF x64}

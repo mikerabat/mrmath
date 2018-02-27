@@ -51,7 +51,7 @@ implementation
 
 {$IFDEF x64}
 
-{$IFDEF FPC} {$ASMMODE intel} {$ENDIF}
+{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 // uses non temporal moves so the cache is not poisned
 // rcx = A, rdx = NumBytes;
