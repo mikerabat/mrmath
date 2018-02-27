@@ -128,7 +128,8 @@ uses
   LinAlgLU in '..\LinAlgLU.pas',
   LinAlgQR in '..\LinAlgQR.pas',
   PLS in '..\PLS.pas',
-  Corr in '..\Corr.pas', lz_fpcunitrunnerconsole,
+  EM in '..\EM.pas',
+  Corr in '..\Corr.pas',
   linuxthrpool in '..\mac\linuxthrpool.pas',
   TestSimpleMatrixOperations in 'TestSimpleMatrixOperations.pas',
   TestAVX in 'TestAVX.pas',
@@ -141,7 +142,8 @@ uses
   TestICA in 'TestICA.pas',
   TestNMF in 'TestNMF.pas',
   TestRandom in 'TestRandom.pas',
-  TestCorr in 'TestCorr.pas';
+  TestCorr in 'TestCorr.pas',
+  TestEM in 'TestEM.pas';
 
 {$R *.res}
 

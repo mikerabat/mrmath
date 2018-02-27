@@ -39,7 +39,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="111">
+    <Units Count="113">
       <Unit0>
         <Filename Value="MathUtilsTestsFPC32.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -484,6 +484,14 @@
         <Filename Value="..\OptimizedFuncs.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit110>
+      <Unit111>
+        <Filename Value="TestEM.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit111>
+      <Unit112>
+        <Filename Value="..\EM.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit112>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

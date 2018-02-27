@@ -4,12 +4,13 @@
     <PathDelim Value="\"/>
     <Version Value="9"/>
     <BuildModes Active="Default"/>
-    <Units Count="116">
+    <Units Count="118">
       <Unit0>
         <Filename Value="MathUtilsTestsFPC32.lpr"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <TopLine Value="127"/>
-        <CursorPos Y="149"/>
+        <CursorPos X="8" Y="138"/>
         <UsageCount Value="57"/>
         <Loaded Value="True"/>
       </Unit0>
@@ -488,7 +489,6 @@
       <Unit55>
         <Filename Value="..\AVXMatrixAbsOperations.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="4"/>
         <TopLine Value="143"/>
         <CursorPos X="20" Y="164"/>
@@ -1008,6 +1008,24 @@
         <CursorPos X="-1" Y="-1"/>
         <UsageCount Value="20"/>
       </Unit115>
+      <Unit116>
+        <Filename Value="TestEM.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit116>
+      <Unit117>
+        <Filename Value="..\EM.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit117>
     </Units>
     <JumpHistory Count="16" HistoryIndex="15">
       <Position1>

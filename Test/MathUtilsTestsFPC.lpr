@@ -20,7 +20,8 @@ program MathUtilsTestsFPC;
 {$mode objfpc}{$H+}
 
 uses
-  Interfaces, Forms, GuiTestRunner,
+  {$IFDEF LINUX} cthreads, {$ENDIF}
+  Interfaces, Forms, GuiTestRunner, lz_fpcunitrunner,
   BaseMatrixTestCase in 'BaseMatrixTestCase.pas',
   ASMMatrixAddSubOperations in '..\ASMMatrixAddSubOperations.pas',
   ASMMatrixAddSubOperationsx64 in '..\ASMMatrixAddSubOperationsx64.pas',
@@ -56,20 +57,36 @@ uses
   ASMMatrixCumSumDiffOperations in '..\ASMMatrixCumSumDiffOperations.pas',
   ASMMatrixCumSumDiffOperationsx64 in '..\ASMMatrixCumSumDiffOperationsx64.pas',
   AVXMoveOperationsx64 in '..\AVXMoveOperationsx64.pas',
+  AVXMoveOperations in '..\AVXMoveOperations.pas',
   AVXMatrixMultTransposedOperationsx64 in '..\AVXMatrixMultTransposedOperationsx64.pas',
   AVXMatrixElementwiseMultOperationsx64 in '..\AVXMatrixElementwiseMultOperationsx64.pas',
+  AVXMatrixElementwiseMultOperations in '..\AVXMatrixElementwiseMultOperations.pas',
   AVXMatrixAbsOperationsx64 in '..\AVXMatrixAbsOperationsx64.pas',
+  AVXMatrixAbsOperations in '..\AVXMatrixAbsOperations.pas',
+  AVXMatrixMultOperations in '..\AVXMatrixMultOperations.pas',
   AVXMatrixMultOperationsx64 in '..\AVXMatrixMultOperationsx64.pas',
+  AVXMatrixScaleOperations in '..\AVXMatrixScaleOperations.pas',
   AVXMatrixScaleOperationsx64 in '..\AVXMatrixScaleOperationsx64.pas',
+  AVXMatrixMultTransposedOperations in '..\AVXMatrixMultTransposedOperations.pas',
+  AVXMatrixTransposeOperations in '..\AVXMatrixTransposeOperations.pas',
   AVXMatrixTransposeOperationsx64 in '..\AVXMatrixTransposeOperationsx64.pas',
+  AVXMatrixVectorMultOperations in '..\AVXMatrixVectorMultOperations.pas',
   AVXMatrixVectorMultOperationsx64 in '..\AVXMatrixVectorMultOperationsx64.pas',
   AVXMatrixAddSubOperationsx64 in '..\AVXMatrixAddSubOperationsx64.pas',
+  AVXMatrixAddSubOperations in '..\AVXMatrixAddSubOperations.pas',
   AVXMatrixCumSumDiffOperationsx64 in '..\AVXMatrixCumSumDiffOperationsx64.pas',
+  AVXMatrixCumSumDiffOperations in '..\AVXMatrixCumSumDiffOperations.pas',
+  AVXMatrixRotations in '..\AVXMatrixRotations.pas',
   AVXMatrixRotationsx64 in '..\AVXMatrixRotationsx64.pas',
   AVXMatrixMinMaxOperationsx64 in '..\AVXMatrixMinMaxOperationsx64.pas',
+  AVXMatrixMinMaxOperations in '..\AVXMatrixMinMaxOperations.pas',
   AVXMatrixMeanOperationsx64 in '..\AVXMatrixMeanOperationsx64.pas',
+  AVXMatrixMeanOperations in '..\AVXMatrixMeanOperations.pas',
+  AVXMatrixNormOperations in '..\AVXMatrixNormOperations.pas',
   AVXMatrixNormOperationsx64 in '..\AVXMatrixNormOperationsx64.pas',
+  AVXMatrixSqrtOperations in '..\AVXMatrixSqrtOperations.pas',
   AVXMatrixSqrtOperationsx64 in '..\AVXMatrixSqrtOperationsx64.pas',
+  AVXMatrixSumOperations in '..\AVXMatrixSumOperations.pas',
   AVXMatrixSumOperationsx64 in '..\AVXMatrixSumOperationsx64.pas',
   AVXMatrixOperations in '..\AVXMatrixOperations.pas',
   BlockSizeSetup in '..\BlockSizeSetup.pas',
@@ -111,6 +128,7 @@ uses
   LinAlgLU in '..\LinAlgLU.pas',
   LinAlgQR in '..\LinAlgQR.pas',
   PLS in '..\PLS.pas',
+  EM in '..\EM.pas',
   Corr in '..\Corr.pas',
   linuxthrpool in '..\mac\linuxthrpool.pas',
   TestSimpleMatrixOperations in 'TestSimpleMatrixOperations.pas',
@@ -124,7 +142,8 @@ uses
   TestICA in 'TestICA.pas',
   TestNMF in 'TestNMF.pas',
   TestRandom in 'TestRandom.pas',
-  TestCorr in 'TestCorr.pas';
+  TestCorr in 'TestCorr.pas',
+  TestEM in 'TestEM.pas';
 
 {$R *.res}
 

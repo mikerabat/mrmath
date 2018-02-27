@@ -36,7 +36,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="95">
+    <Units Count="97">
       <Unit0>
         <Filename Value="MathUtilsTestsFPC.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -417,6 +417,14 @@
         <Filename Value="..\AVXMatrixAddSubOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit94>
+      <Unit95>
+        <Filename Value="TestEM.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit95>
+      <Unit96>
+        <Filename Value="..\EM.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit96>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
