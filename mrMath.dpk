@@ -146,6 +146,7 @@ contains
   AVXMoveOperations in 'AVXMoveOperations.pas',
   AVXMoveOperationsx64 in 'AVXMoveOperationsx64.pas',
   BlockedMult in 'BlockedMult.pas',
-  EM in 'EM.pas';
+  EM in 'EM.pas',
+  RBSplines in 'RBSplines.pas';
 
 end.

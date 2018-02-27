@@ -54,6 +54,9 @@ Gustav Kaiser - special thanks for implementing the PLS algorithm.
 // ###################################################################
 changelog:
 
+Date: 27.02.2018
+* Added Robust B-Spline class.
+
 Date: 26.02.2018
 * Added Expectation Maximation algorithm.
 * Fixed a few things in the threaded LU decomp (parity was not var)

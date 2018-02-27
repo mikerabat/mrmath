@@ -149,7 +149,9 @@ uses
   AVXMoveOperations in '..\AVXMoveOperations.pas',
   AVXMoveOperationsx64 in '..\AVXMoveOperationsx64.pas',
   TestEM in 'TestEM.pas',
-  EM in '..\EM.pas';
+  EM in '..\EM.pas',
+  RBSplines in '..\RBSplines.pas',
+  TestRBSpline in 'TestRBSpline.pas';
 
 {$R *.RES}
 

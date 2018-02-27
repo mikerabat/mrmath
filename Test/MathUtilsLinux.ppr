@@ -127,6 +127,7 @@ uses
   LinAlgQR in '..\LinAlgQR.pas',
   PLS in '..\PLS.pas',
   Corr in '..\Corr.pas',
+  RBSplines in '..\RBSplines.pas',
   linuxthrpool in '..\mac\linuxthrpool.pas',
   TestSimpleMatrixOperations in 'TestSimpleMatrixOperations.pas',
   TestAVX in 'TestAVX.pas',
@@ -140,7 +141,8 @@ uses
   TestNMF in 'TestNMF.pas',
   TestRandom in 'TestRandom.pas',
   TestCorr in 'TestCorr.pas',
-  TestEM in 'TestEM.pas';
+  TestEM in 'TestEM.pas',
+  TestRBSpline in 'TestRBSpline.pas';
 
 {$R *.res}
 

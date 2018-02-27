@@ -17,7 +17,7 @@ unit TestEM;
 interface
 
 // ###########################################
-// #### Simple random generator tests (only functional tests no randomness tests!)
+// #### Simple Expectation maximization tests
 // ###########################################
 
 uses {$IFDEF FPC} testregistry, {$ELSE} TestFramework, {$ENDIF}

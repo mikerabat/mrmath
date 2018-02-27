@@ -3,12 +3,13 @@
   <ProjectSession>
     <Version Value="10"/>
     <BuildModes Active="Default"/>
-    <Units Count="134">
+    <Units Count="136">
       <Unit0>
         <Filename Value="MathUtilsLinux.ppr"/>
         <IsPartOfProject Value="True"/>
-        <TopLine Value="75"/>
-        <CursorPos X="40" Y="82"/>
+        <IsVisibleTab Value="True"/>
+        <TopLine Value="122"/>
+        <CursorPos X="35" Y="130"/>
         <UsageCount Value="736"/>
         <Loaded Value="True"/>
       </Unit0>
@@ -416,7 +417,7 @@
       <Unit48>
         <Filename Value="../LinAlgLU.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="3"/>
         <TopLine Value="786"/>
         <CursorPos X="83" Y="796"/>
         <UsageCount Value="736"/>
@@ -730,7 +731,7 @@
       <Unit87>
         <Filename Value="TestAVX.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="4"/>
         <TopLine Value="163"/>
         <CursorPos X="56" Y="190"/>
         <UsageCount Value="101"/>
@@ -904,8 +905,7 @@
       <Unit108>
         <Filename Value="../AVXMatrixVectorMultOperations.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="5"/>
         <UsageCount Value="47"/>
         <Bookmarks Count="1">
           <Item0 X="4" Y="944" ID="1"/>
@@ -1046,76 +1046,94 @@
         <UsageCount Value="20"/>
       </Unit123>
       <Unit124>
+        <Filename Value="TestRBSpline.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="42"/>
+        <CursorPos X="54" Y="62"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit124>
+      <Unit125>
+        <Filename Value="../RBSplines.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="518"/>
+        <CursorPos X="5" Y="526"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit125>
+      <Unit126>
         <Filename Value="../ASMMatrixMultTransposedOperationsx64AVX.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="496"/>
         <CursorPos Y="665"/>
         <UsageCount Value="24"/>
-      </Unit124>
-      <Unit125>
+      </Unit126>
+      <Unit127>
         <Filename Value="AVXMatrixOperations.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="15"/>
         <CursorPos Y="28"/>
         <UsageCount Value="20"/>
-      </Unit125>
-      <Unit126>
+      </Unit127>
+      <Unit128>
         <Filename Value="/usr/local/codetyphon/fpcsrc/packages/fcl-base/src/syncobjs.pp"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="142"/>
         <CursorPos X="26" Y="155"/>
         <UsageCount Value="43"/>
-      </Unit126>
-      <Unit127>
+      </Unit128>
+      <Unit129>
         <Filename Value="/usr/local/codetyphon/fpcsrc/rtl/inc/thread.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="266"/>
         <CursorPos X="3" Y="269"/>
         <UsageCount Value="43"/>
-      </Unit127>
-      <Unit128>
+      </Unit129>
+      <Unit130>
         <Filename Value="/usr/local/codetyphon/typhon/lcl/graphics.pp"/>
         <UnitName Value="Graphics"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="435"/>
         <CursorPos X="10" Y="450"/>
         <UsageCount Value="7"/>
-      </Unit128>
-      <Unit129>
+      </Unit130>
+      <Unit131>
         <Filename Value="/usr/local/codetyphon/typhon/lcl/include/fpimagebitmap.inc"/>
         <EditorIndex Value="-1"/>
         <UsageCount Value="7"/>
-      </Unit129>
-      <Unit130>
+      </Unit131>
+      <Unit132>
         <Filename Value="/usr/local/codetyphon/typhon/lcl/lcltype.pp"/>
         <UnitName Value="LCLType"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="1300"/>
         <CursorPos X="11" Y="1313"/>
         <UsageCount Value="5"/>
-      </Unit130>
-      <Unit131>
+      </Unit132>
+      <Unit133>
         <Filename Value="C:/codetyphon/fpcsrc/packages/fcl-fpcunit/src/fpcunit.pp"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="192"/>
         <CursorPos X="62" Y="206"/>
         <UsageCount Value="5"/>
-      </Unit131>
-      <Unit132>
+      </Unit133>
+      <Unit134>
         <Filename Value="C:/codetyphon/fpcsrc/packages/fcl-fpcunit/src/testregistry.pp"/>
         <EditorIndex Value="-1"/>
         <UsageCount Value="5"/>
-      </Unit132>
-      <Unit133>
+      </Unit134>
+      <Unit135>
         <Filename Value="C:/codetyphon/typhon/components/lz_FpcUnitRunner/source/guitestrunner.pas"/>
         <UnitName Value="GuiTestRunner"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="406"/>
         <CursorPos X="76" Y="416"/>
         <UsageCount Value="9"/>
-      </Unit133>
+      </Unit135>
     </Units>
-    <JumpHistory Count="11" HistoryIndex="10">
+    <JumpHistory Count="26" HistoryIndex="25">
       <Position1>
         <Filename Value="../AVXMatrixVectorMultOperations.pas"/>
         <Caret Line="957" Column="19" TopLine="939"/>
@@ -1160,6 +1178,65 @@
         <Filename Value="../AVXMatrixVectorMultOperations.pas"/>
         <Caret Line="667" Column="29" TopLine="660"/>
       </Position11>
+      <Position12>
+        <Filename Value="MathUtilsLinux.ppr"/>
+        <Caret Line="130" Column="35" TopLine="107"/>
+      </Position12>
+      <Position13>
+        <Filename Value="../RBSplines.pas"/>
+        <Caret Line="503" Column="37" TopLine="481"/>
+      </Position13>
+      <Position14>
+        <Filename Value="../RBSplines.pas"/>
+        <Caret Line="307" Column="26" TopLine="285"/>
+      </Position14>
+      <Position15>
+        <Filename Value="../RBSplines.pas"/>
+        <Caret Line="526" Column="5" TopLine="503"/>
+      </Position15>
+      <Position16>
+        <Filename Value="../RBSplines.pas"/>
+        <Caret Line="307" Column="26" TopLine="284"/>
+      </Position16>
+      <Position17>
+        <Filename Value="../RBSplines.pas"/>
+        <Caret Line="503" Column="58" TopLine="484"/>
+      </Position17>
+      <Position18>
+        <Filename Value="../RBSplines.pas"/>
+        <Caret Line="526" Column="10" TopLine="507"/>
+      </Position18>
+      <Position19>
+        <Filename Value="../RBSplines.pas"/>
+      </Position19>
+      <Position20>
+        <Filename Value="../RBSplines.pas"/>
+        <Caret Line="43" Column="11" TopLine="11"/>
+      </Position20>
+      <Position21>
+        <Filename Value="../RBSplines.pas"/>
+        <Caret Line="45" Column="56" TopLine="13"/>
+      </Position21>
+      <Position22>
+        <Filename Value="../RBSplines.pas"/>
+        <Caret Line="53" Column="22" TopLine="21"/>
+      </Position22>
+      <Position23>
+        <Filename Value="../RBSplines.pas"/>
+        <Caret Line="54" Column="32" TopLine="22"/>
+      </Position23>
+      <Position24>
+        <Filename Value="../RBSplines.pas"/>
+        <Caret Line="56" Column="41" TopLine="24"/>
+      </Position24>
+      <Position25>
+        <Filename Value="../RBSplines.pas"/>
+        <Caret Line="111" Column="40" TopLine="79"/>
+      </Position25>
+      <Position26>
+        <Filename Value="../RBSplines.pas"/>
+        <Caret Line="526" Column="5" TopLine="518"/>
+      </Position26>
     </JumpHistory>
   </ProjectSession>
   <Debugging>
