@@ -80,7 +80,7 @@ implementation
 {$DEFINE x64}
 {$ENDIF}
 
-uses Math, BlockSizeSetup, SimpleMatrixOperations,
+uses Math, SimpleMatrixOperations,
      {$IFDEF x64}
      ASMMatrixMultOperationsx64, ASMMatrixVectorMultOperationsx64, ASMMatrixAbsOperationsx64,
      ASMMatrixMultTransposedOperationsx64, ASMMatrixAddSubOperationsx64,
@@ -101,7 +101,8 @@ uses Math, BlockSizeSetup, SimpleMatrixOperations,
 
 function ASMMatrixMult(mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
 begin
-					if (width1 = 0) or (height1 = 0) or (width2 = 0) or (height2 = 0) then
+     Result := nil;
+     if (width1 = 0) or (height1 = 0) or (width2 = 0) or (height2 = 0) then
         exit;
 
      assert((width1 > 0) and (height1 > 0) and (width1 = height2), 'Dimension error');
@@ -124,6 +125,7 @@ end;
 
 function ASMMatrixMult(const mt1, mt2 : Array of Double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt) : TDoubleDynArray; overload;
 begin
+     Result := nil;
      if (width1 = 0) or (height1 = 0) or (width2 = 0) or (height2 = 0) then
         exit;
 

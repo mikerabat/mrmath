@@ -56,7 +56,7 @@ procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; wid
 
 implementation
 
-uses  MtxThreadPool, ASMMatrixOperations, OptimizedFuncs, BlockSizeSetup, Math, BlockedMult;
+uses  MtxThreadPool, OptimizedFuncs, BlockSizeSetup, Math, BlockedMult;
 
 type
   TMatrixAddSubFunc = procedure(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);

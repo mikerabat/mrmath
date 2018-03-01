@@ -173,7 +173,7 @@ procedure GenericInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; const Val
 
 implementation
 
-uses Math, BlockSizeSetup, MathUtilFunc;
+uses Math, MathUtilFunc;
 
 procedure GenericInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; const Value : double);
 var numElem : TASMNativeInt;

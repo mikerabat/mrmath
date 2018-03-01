@@ -89,7 +89,7 @@ uses Math,
      AVXMatrixElementwiseMultOperations, AVXMatrixScaleOperations, AVXMatrixSQRTOperations,
      AVXMoveOperations, AVXMatrixMinMaxOperations, AVXMatrixTransposeOperations,
      AVXMatrixNormOperations, AVXMatrixSumOperations,
-     AVXMatrixCumSumDiffOperations, ASMMAtrixOperations, OptimizedFuncs,
+     AVXMatrixCumSumDiffOperations, OptimizedFuncs,
      {$ENDIF}
      SimpleMatrixOperations;
 

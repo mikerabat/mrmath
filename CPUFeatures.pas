@@ -21,6 +21,7 @@ interface
 
 function IsSSE3Present : boolean;
 function IsAVXPresent : boolean;
+function IsFMAPresent : boolean;
 function IsHardwareRNDSupport : boolean;
 function IsHardwareRDSeed : boolean;
 
@@ -135,6 +136,7 @@ begin
      begin
           GetCPUID($00000001, reg);
 
+          // first bit of ECX
           Result := (reg.ECX and $00000001) <> 0;
      end;
 end;
@@ -150,7 +152,20 @@ begin
 
           // check for AVX and check 27 bit (OS uses XSAVE/XRSTOR)
           Result := ((reg.ECX and (1 shl 28)) <> 0) and ((reg.ECX and (1 shl 27)) <> 0);
-          // need to check xgetbv ??
+     end;
+end;
+
+function IsFMAPresent : boolean;
+var reg : TRegisters;
+begin
+     Result := False;
+
+     if IsCPUID_Available then
+     begin
+          GetCPUID($00000001, reg);
+
+          // check for FMA and check 13 bit
+          Result := ((reg.ECX and (1 shl 12)) <> 0) and ((reg.ECX and (1 shl 27)) <> 0);
      end;
 end;
 

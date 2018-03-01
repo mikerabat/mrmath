@@ -13,7 +13,7 @@
 // ###################################################################
 
 
-unit AVXMatrixMultOperationsx64;
+unit FMAMatrixMultOperationsx64;
 
 interface
 
@@ -28,35 +28,26 @@ interface
 uses MatrixConst;
 
 // full matrix operations
-procedure AVXMatrixMultAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-procedure AVXMatrixMultUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure FMAMatrixMultAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure FMAMatrixMultUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 
 // some special types of multiplications used e.g. in QR Decomposition
 // dest = mt1'*mt2; where mt2 is a lower triangular matrix and the operation is transposition
 // the function assumes a unit diagonal (does not touch the real middle elements)
 // width and height values are assumed to be the "original" (non transposed) ones
-procedure AVXMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure FMAMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 // mt1 = mt1*mt2'; where mt2 is an upper triangular matrix
-procedure AVXMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure FMAMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 
 // W = C1*V1*T -> V1 is an upper triangular matrix with assumed unit diagonal entries. Operation on V1 transposition
-procedure AVXMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
-
-// mt1 = mt1*mt2; where mt2 is an upper triangular matrix
-procedure AVXMtxMultTria2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure FMAMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 
 // calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be 1!
-procedure AVXMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure FMAMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
-
-// mt1 = mt1*mt2; where mt2 is an upper triangular matrix - diagonal elements are unit
-procedure AVXMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
-
 
 {$ENDIF}
 
@@ -66,7 +57,7 @@ implementation
 
 {$IFDEF x64}
 
-procedure AVXMatrixMultAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure FMAMatrixMultAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
 {$IFDEF FPC}
@@ -140,7 +131,7 @@ asm
           jg @@Innerloop2Begin;
 
           // for z := 0 to width1 - 1do
-          // AVX part:
+          // FMA part:
           @@InnerLoop1:
              // 4x4 block
              {$IFDEF FPC}vmovapd xmm2, [rbx];{$ELSE}db $C5,$F9,$28,$13;{$ENDIF} 
@@ -173,11 +164,8 @@ asm
              {$IFDEF FPC}vinsertf128 ymm3, ymm3, xmm5, 1;{$ELSE}db $C4,$E3,$65,$18,$DD,$01;{$ENDIF} 
 
              // now multiply and add
-             {$IFDEF FPC}vmulpd ymm2, ymm2, ymm7;{$ELSE}db $C5,$ED,$59,$D7;{$ENDIF} 
-             {$IFDEF FPC}vmulpd ymm3, ymm3, ymm7;{$ELSE}db $C5,$E5,$59,$DF;{$ENDIF} 
-
-             {$IFDEF FPC}vaddpd ymm0, ymm0, ymm2;{$ELSE}db $C5,$FD,$58,$C2;{$ENDIF} 
-             {$IFDEF FPC}vaddpd ymm1, ymm1, ymm3;{$ELSE}db $C5,$F5,$58,$CB;{$ENDIF} 
+             vfmadd231pd ymm0, ymm7, ymm2;
+             vfmadd231pd ymm1, ymm7, ymm3;
           add rax, 32;
           jl @@InnerLoop1;
 
@@ -284,7 +272,7 @@ end;
 end;
 {$ENDIF}
 
-procedure AVXMatrixMultUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure FMAMatrixMultUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
 {$IFDEF FPC}
@@ -359,7 +347,7 @@ asm
            jg @@Innerloop2Begin;
 
            // for z := 0 to width1 - 1do
-           // AVX part:
+           // FMA part:
            @@InnerLoop1:
               // 4x4 block
               {$IFDEF FPC}vmovupd xmm2, [rbx];{$ELSE}db $C5,$F9,$10,$13;{$ENDIF} 
@@ -392,11 +380,8 @@ asm
               {$IFDEF FPC}vinsertf128 ymm3, ymm3, xmm5, 1;{$ELSE}db $C4,$E3,$65,$18,$DD,$01;{$ENDIF} 
 
               // now multiply and add
-              {$IFDEF FPC}vmulpd ymm2, ymm2, ymm7;{$ELSE}db $C5,$ED,$59,$D7;{$ENDIF} 
-              {$IFDEF FPC}vmulpd ymm3, ymm3, ymm7;{$ELSE}db $C5,$E5,$59,$DF;{$ENDIF} 
-
-              {$IFDEF FPC}vaddpd ymm0, ymm0, ymm2;{$ELSE}db $C5,$FD,$58,$C2;{$ENDIF} 
-              {$IFDEF FPC}vaddpd ymm1, ymm1, ymm3;{$ELSE}db $C5,$F5,$58,$CB;{$ENDIF} 
+              vfmadd231pd ymm0, ymm7, ymm2;
+              vfmadd231pd ymm1, ymm7, ymm3;
            add rax, 32;
            jl @@InnerLoop1;
 
@@ -508,127 +493,7 @@ end;
 // #### Special multiplication routines (for now only used in QR Decomposition)
 // ###########################################
 
-// note the result is stored in mt1 again!
-// mt1 = mt1*mt2; where mt2 is an upper triangular matrix
-procedure AVXMtxMultTria2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
-var iRBX, iRDI, iRSI, iR12, iR13 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
-// prolog init stack
-// rcx = mt1, rdx = LineWidth1, r8 = mt2, r9 = LineWidth2
-asm
-   {$IFDEF LINUX}
-   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-   // (note that the 5th and 6th parameter are are on the stack)
-   // The parameters are passed in the following order:
-   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-   mov r8, rdx;
-   mov r9, rcx;
-   mov rcx, rdi;
-   mov rdx, rsi;
-   {$ENDIF}
-
-   // prolog: stack
-   mov iRBX, rbx;
-   mov iRDI, rdi;
-   mov iRSI, rsi;
-   mov iR12, r12;
-   mov iR13, r13;
-
-   // r13 = height1
-   mov r13, height1;
-
-   // wm1: r11
-   mov r11, width2;
-   dec r11;
-
-   // iter: r10
-   mov r10, width1;
-   shl r10, 3;
-   imul r10, -1;
-   // init
-
-   // inc(mt2, width2 - 1);
-   mov rax, r11;
-   shl rax, 3; //sizeof(double)
-   add r8, rax;
-
-
-   // for x := 0 to width2 - 1 do
-   mov r12, width2;
-   @@forxloop:
-      mov rdi, r13;  // height1
-
-      mov rax, rcx;
-      sub rax, r10;
-
-      // for y := 0 to height1 - 1
-      @@foryloop:
-         // tmp := 0;
-         vxorpd xmm0, xmm0, xmm0;
-
-         // r8, mt2
-         mov rbx, r8;
-
-         // for idx := 0 to width1 - x - 1
-         mov rsi, r10;
-
-         // check if we have enough iterations:
-         test rsi, rsi;
-      jz @@foridxloopend;
-
-      @@foridxloop:
-         vmovsd xmm1, [rbx];
-         vmovsd xmm2, [rax + rsi];
-
-         add rbx, r9;  // + linewidth2
-
-         vmulsd xmm1, xmm1, xmm2;
-         vaddsd xmm0, xmm0, xmm1;
-
-         add rsi, 8;
-      jnz @@foridxloop;
-
-      @@foridxloopend:
-
-      // PConstDoubleArr(pmt1)^[width2 - 1 - x] := tmp;
-      mov rbx, rax;
-      add rbx, r10;
-      mov rsi, r12; // r12 = width2
-      dec rsi;
-      vmovsd [rbx + 8*rsi], xmm0;
-
-      // inc(PByte(pmT1), LineWidth1);
-      add rax, rdx;
-
-      dec rdi;
-      jnz @@foryloop;
-
-      // reduce for idx loop
-      add r10, 8;
-      // dec(mt2);
-      sub r8, 8;
-
-   // dec width2
-   dec r12;
-   jnz @@forxloop;
-
-   // cleanup stack
-   vzeroupper;
-
-   mov rbx, iRBX;
-   mov rdi, iRDI;
-   mov rsi, iRSI;
-   mov r12, iR12;
-   mov r13, iR13;
-end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
-
-procedure AVXMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure FMAMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 var iRBX, iRDI, iRSI : TASMNativeInt;
 {$IFDEF FPC}
@@ -682,7 +547,7 @@ asm
 
          // in case x is odd -> handle the first element separately
          and rdi, $E;
-         jz @@foriloopAVX;
+         jz @@foriloopFMA;
 
          // single element handling
          {$IFDEF FPC}vmovsd xmm1, [rcx + rax];{$ELSE}db $C5,$FB,$10,$0C,$01;{$ENDIF} 
@@ -691,19 +556,17 @@ asm
          {$IFDEF FPC}vaddsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$58,$C1;{$ENDIF} 
          add rax, 8;
 
-         @@foriloopAVX:
+         @@foriloopFMA:
             // 4 elements at a time
             add rax, 32;
-            jg @@foriloopAVXend;
+            jg @@foriloopFMAend;
 
             {$IFDEF FPC}vmovupd ymm1, [rcx + rax - 32];{$ELSE}db $C5,$FD,$10,$4C,$01,$E0;{$ENDIF} 
             {$IFDEF FPC}vmovupd ymm2, [rbx + rax - 32];{$ELSE}db $C5,$FD,$10,$54,$03,$E0;{$ENDIF} 
-            {$IFDEF FPC}vmulpd ymm1, ymm1, ymm2;{$ELSE}db $C5,$F5,$59,$CA;{$ENDIF} 
-            {$IFDEF FPC}vaddpd ymm0, ymm0, ymm1;{$ELSE}db $C5,$FD,$58,$C1;{$ENDIF} 
+            vfmadd231pd ymm0, ymm1, ymm2;
+         jmp @@foriloopFMA;
 
-         jmp @@foriloopAVX;
-
-         @@foriloopAVXend:
+         @@foriloopFMAend:
 
          {$IFDEF FPC}vextractf128 xmm2, ymm0, 1;{$ELSE}db $C4,$E3,$7D,$19,$C2,$01;{$ENDIF} 
          {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$7C,$C2;{$ENDIF} 
@@ -716,8 +579,7 @@ asm
             // two elements at a time:
             {$IFDEF FPC}vmovupd xmm1, [rcx + rax];{$ELSE}db $C5,$F9,$10,$0C,$01;{$ENDIF} 
             {$IFDEF FPC}vmovupd xmm2, [rbx + rax];{$ELSE}db $C5,$F9,$10,$14,$03;{$ENDIF} 
-            {$IFDEF FPC}vmulpd xmm1, xmm1, xmm2;{$ELSE}db $C5,$F1,$59,$CA;{$ENDIF} 
-            {$IFDEF FPC}vaddpd xmm0, xmm0, xmm1;{$ELSE}db $C5,$F9,$58,$C1;{$ENDIF} 
+            vfmadd231pd xmm0, xmm1, xmm2;
 
             add rax, 16;
          jnz @@foriloop;
@@ -751,7 +613,7 @@ end;
 {$ENDIF}
 
 
-procedure AVXMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure FMAMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 var iRBX, iRDI, iRSI, iR12, iR13 : TASMNativeInt;
 {$IFDEF FPC}
@@ -850,8 +712,7 @@ asm
              // two elements at a time:
              {$IFDEF FPC}vmovupd ymm1, [r8 + rax - 32];{$ELSE}db $C4,$C1,$7D,$10,$4C,$00,$E0;{$ENDIF} 
              {$IFDEF FPC}vmovupd ymm2, [rbx + rax - 32];{$ELSE}db $C5,$FD,$10,$54,$03,$E0;{$ENDIF} 
-             {$IFDEF FPC}vmulpd ymm1, ymm1, ymm2;{$ELSE}db $C5,$F5,$59,$CA;{$ENDIF} 
-             {$IFDEF FPC}vaddpd ymm0, ymm0, ymm1;{$ELSE}db $C5,$FD,$58,$C1;{$ENDIF} 
+             vfmadd231pd ymm0, ymm1, ymm2;
          jmp @@foriloop;
 
          @@foriloopend:
@@ -865,8 +726,7 @@ asm
          // need to process two more elements:
          {$IFDEF FPC}vmovupd xmm1, [r8 + rax];{$ELSE}db $C4,$C1,$79,$10,$0C,$00;{$ENDIF} 
          {$IFDEF FPC}vmovupd xmm2, [rbx + rax];{$ELSE}db $C5,$F9,$10,$14,$03;{$ENDIF} 
-         {$IFDEF FPC}vmulpd xmm1, xmm1, xmm2;{$ELSE}db $C5,$F1,$59,$CA;{$ENDIF} 
-         {$IFDEF FPC}vaddpd xmm0, xmm0, xmm1;{$ELSE}db $C5,$F9,$58,$C1;{$ENDIF} 
+         vfmadd231pd xmm0, xmm1, xmm2;
 
          @@finalizeloop:
 
@@ -904,7 +764,7 @@ end;
 // dest = mt1'*mt2; where mt2 is a lower triangular matrix and the operation is transposition
 // the function assumes a unit diagonal (does not touch the real middle elements)
 // width and height values are assumed to be the "original" (non transposed) ones
-procedure AVXMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt;
+procedure FMAMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt;
   mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 var pMt2 : PDouble;
@@ -1024,8 +884,7 @@ asm
              {$IFDEF FPC}vmovddup xmm1, [rsi];{$ELSE}db $C5,$FB,$12,$0E;{$ENDIF} 
              {$IFDEF FPC}vmovupd xmm2, [rdi];{$ELSE}db $C5,$F9,$10,$17;{$ENDIF} 
 
-             {$IFDEF FPC}vmulpd xmm2, xmm2, xmm1;{$ELSE}db $C5,$E9,$59,$D1;{$ENDIF} 
-             {$IFDEF FPC}vaddpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$58,$C2;{$ENDIF} 
+             vfmadd231pd xmm0, xmm1, xmm2;
 
              //inc(PByte(valCounter1), LineWidth1);
              //inc(PByte(valCounter2), LineWidth2);
@@ -1106,7 +965,7 @@ end;
 {$ENDIF}
 
 // calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be 1!
-procedure AVXMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure FMAMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 var iRBX, iRDI, iRSI : TASMNativeInt;
 {$IFDEF FPC}
@@ -1165,13 +1024,11 @@ asm
          @@foridxlongloop:
             {$IFDEF FPC}vmovupd ymm1, [rax + rdi - 64];{$ELSE}db $C5,$FD,$10,$4C,$38,$C0;{$ENDIF} 
             {$IFDEF FPC}vmovupd ymm2, [r8 + rdi - 64];{$ELSE}db $C4,$C1,$7D,$10,$54,$38,$C0;{$ENDIF} 
-            {$IFDEF FPC}vmulpd ymm1, ymm1, ymm2;{$ELSE}db $C5,$F5,$59,$CA;{$ENDIF} 
-            {$IFDEF FPC}vaddpd ymm0, ymm0, ymm1;{$ELSE}db $C5,$FD,$58,$C1;{$ENDIF} 
+            vfmadd231pd ymm0, ymm1, ymm2;
 
             {$IFDEF FPC}vmovupd ymm1, [rax + rdi - 32];{$ELSE}db $C5,$FD,$10,$4C,$38,$E0;{$ENDIF} 
             {$IFDEF FPC}vmovupd ymm2, [r8 + rdi - 32];{$ELSE}db $C4,$C1,$7D,$10,$54,$38,$E0;{$ENDIF} 
-            {$IFDEF FPC}vmulpd ymm1, ymm1, ymm2;{$ELSE}db $C5,$F5,$59,$CA;{$ENDIF} 
-            {$IFDEF FPC}vaddpd ymm0, ymm0, ymm1;{$ELSE}db $C5,$FD,$58,$C1;{$ENDIF} 
+            vfmadd231pd ymm0, ymm1, ymm2;
          add rdi, 64;
          jl @@foridxlongloop;
 
@@ -1185,8 +1042,7 @@ asm
          @@foridxSSEloop:
             {$IFDEF FPC}vmovupd xmm1, [rax + rdi - 16];{$ELSE}db $C5,$F9,$10,$4C,$38,$F0;{$ENDIF} 
             {$IFDEF FPC}vmovupd xmm2, [r8 + rdi - 16];{$ELSE}db $C4,$C1,$79,$10,$54,$38,$F0;{$ENDIF} 
-            {$IFDEF FPC}vmulpd xmm1, xmm1, xmm2;{$ELSE}db $C5,$F1,$59,$CA;{$ENDIF} 
-            {$IFDEF FPC}vaddpd xmm0, xmm0, xmm1;{$ELSE}db $C5,$F9,$58,$C1;{$ENDIF} 
+            vfmadd231pd xmm0, xmm1, xmm2;
          add rdi, 16;
          jl @@foridxSSEloop;
 
@@ -1230,123 +1086,6 @@ asm
    mov rbx, iRBX;
    mov rdi, iRDI;
    mov rsi, iRSI;
-   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
-end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
-
-// no avx optimization yet...
-procedure AVXMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
-var iRBX, iRDI, iRSI, iR12 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
-// rcx : mt1, rdx : LineWidth1, r8 : mt2, r9: LineWidth2
-asm
-   {$IFDEF LINUX}
-   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-   // (note that the 5th and 6th parameter are are on the stack)
-   // The parameters are passed in the following order:
-   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-   mov r8, rdx;
-   mov r9, rcx;
-   mov rcx, rdi;
-   mov rdx, rsi;
-   {$ENDIF}
-
-   // prolog - stack
-   mov iRBX, rbx;
-   mov iRDI, rdi;
-   mov iRSI, rsi;
-   mov iR12, r12;
-   // init
-
-   // r12: height1
-   mov r12, height1;
-
-   // r10 : iter := -(width1-1)*sizeof(double);
-   mov r10, width1;
-   dec r10;
-   imul r10, -8;
-
-   // inc(mt2, width2 - 1);
-   mov rax, width2;
-   dec rax;
-   imul rax, 8; //sizeof(double)
-   add r8, rax;
-
-   // r11: width2
-   mov r11, width2;
-   dec r11;
-
-   // for x := 0 to width2 - 2 do
-   @@forxloop:
-       mov rdi, r12;
-
-       mov rax, rcx;
-       sub rax, r10;
-
-       // for y := 0 to height1 - 1
-       @@foryloop:
-           // tmp := 0;
-           {$IFDEF FPC}vxorpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
-
-           // r8, mt2
-           mov rbx, r8;
-
-           // for idx := 0 to width1 - x - 2
-           mov rsi, r10;
-
-           // check if we have enough r10ations:
-           cmp rsi, 0;
-           jge @@foridxloopend;
-
-           @@foridxloop:
-               {$IFDEF FPC}vmovsd xmm1, [rbx];{$ELSE}db $C5,$FB,$10,$0B;{$ENDIF} 
-               {$IFDEF FPC}vmovsd xmm2, [rax + rsi]{$ELSE}db $C5,$FB,$10,$14,$30;{$ENDIF} 
-
-               add rbx, r9;  // + linewidth2
-
-               {$IFDEF FPC}vmulsd xmm1, xmm1, xmm2;{$ELSE}db $C5,$F3,$59,$CA;{$ENDIF} 
-               {$IFDEF FPC}vaddsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$58,$C1;{$ENDIF} 
-
-           add rsi, 8;
-           jnz @@foridxloop;
-
-           @@foridxloopend:
-
-           // last element is unit
-           {$IFDEF FPC}vaddsd xmm0, xmm0, [rax];{$ELSE}db $C5,$FB,$58,$00;{$ENDIF} 
-
-           // PConstDoubleArr(pmt1)^[width2 - 1 - x] := tmp;
-           mov rbx, rax;
-           add rbx, r10;
-           mov rsi, r11;
-           {$IFDEF FPC}vmovsd [rbx + 8*rsi], xmm0;{$ELSE}db $C5,$FB,$11,$04,$F3;{$ENDIF} 
-
-           // inc(PByte(pmT1), LineWidth1);
-           add rax, rdx;
-
-       dec rdi;
-       jnz @@foryloop;
-
-       // reduce for idx loop
-       add r10, 8;
-       // dec(mt2);
-       sub r8, 8;
-
-   dec r11;
-   jnz @@forxloop;
-
-   @@endproc:
-
-   // cleanup stack
-   mov rbx, iRBX;
-   mov rdi, iRDI;
-   mov rsi, iRSI;
-   mov r12, iR12;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 {$IFDEF FPC}

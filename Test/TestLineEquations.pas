@@ -69,10 +69,20 @@ type
  end;
 
 type
-   TAVXTestLinearEquations = class(TTestLinearEquations)
-   protected
-     procedure SetUp; override;
-   end;
+  TAVXTestLinearEquations = class(TTestLinearEquations)
+  protected
+    procedure SetUp; override;
+  end;
+
+type
+
+  { TFMATestLinearEquations }
+
+  TFMATestLinearEquations = class(TTestLinearEquations)
+  protected
+    procedure SetUp; override;
+  end;
+
 
 implementation
 
@@ -86,6 +96,13 @@ implementation
 uses LinearAlgebraicEquations, MtxThreadPool, math, MtxTimer, 
      BlockSizeSetup, LinAlgSVD, LinAlgQR, LinAlgCholesky, LinAlgLU,
      MatrixRotations, CPUFeatures;
+
+{ TFMATestLinearEquations }
+
+procedure TFMATestLinearEquations.SetUp;
+begin
+     InitMathFunctions( itFMA, False );
+end;
 
 { TAVXTestLinearEquations }
 
@@ -1804,5 +1821,7 @@ initialization
   RegisterTest(TTestLinearEquations{$IFNDEF FPC}.Suite{$ENDIF});
   if IsAVXPresent then
      RegisterTest(TAVXTestLinearEquations{$IFNDEF FPC}.Suite{$ENDIF});
+  if IsFMAPresent then
+     RegisterTest(TFMATestLinearEquations{$IFNDEF FPC}.Suite{$ENDIF});
 
 end.

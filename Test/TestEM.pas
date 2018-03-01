@@ -21,7 +21,7 @@ interface
 // ###########################################
 
 uses {$IFDEF FPC} testregistry, {$ELSE} TestFramework, {$ENDIF}
-     BaseMatrixTestCase, Classes, SysUtils, Types, matrix;
+     BaseMatrixTestCase, Classes, SysUtils, matrix;
 
 type
   // testmethoden für die matrix funktionen

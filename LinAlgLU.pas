@@ -66,8 +66,8 @@ function ThrMatrixLinEQSolve(A : PDouble; const LineWidthA : TASMNativeInt; widt
    
 implementation
 
-uses OptimizedFuncs, Math, ASMMatrixOperations, SysUtils, Types, MtxThreadPool,
-     ThreadedMatrixOperations, BlockedMult;
+uses OptimizedFuncs, Math, SysUtils, Types, MtxThreadPool,
+     ThreadedMatrixOperations;
 
 // ######################################################
 // #### internaly used objects and definitions
@@ -662,6 +662,7 @@ begin
 
      // #######################################################
      // #### execute tasks
+     calls := nil;
      if numUsed > 1 then
         calls := MtxInitTaskGroup;
 
@@ -707,7 +708,7 @@ begin
           // lu backsup A12 = L - one*A12
           if nRight > 1 then
           begin
-               if (nRight > 64)
+               if (nRight > cMinThrMultSize)
                then
                    ThrMatrixUSubst(A, nright, nleft, pA, data.LineWidth)
                else
@@ -926,6 +927,7 @@ begin
 
      // ################################################
      // #### Execute tasks
+     calls := nil;
      if numUsed > 1 then
         calls := MtxInitTaskGroup;
 

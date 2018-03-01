@@ -183,7 +183,7 @@ procedure MatrixRotate(N : TASMNativeInt; DX : PDouble; const LineWidthDX : TASM
 
 
 type
-  TCPUInstrType = (itFPU, itSSE, itAVX);
+  TCPUInstrType = (itFPU, itSSE, itAVX, itFMA);
 
 procedure InitMathFunctions(instrType : TCPUInstrType; useStrassenMult : boolean);
 procedure InitSSEOptFunctions(instrType : TCPUInstrType);
@@ -241,12 +241,13 @@ uses ASMMatrixOperations, BlockedMult,
      ASMMatrixTransposeOperations, ASMMatrixAddSubOperations,
      AVXMatrixOperations, AVXMatrixMultOperations, AVXMatrixRotations,
      AVXMatrixAddSubOperations, AVXMoveOperations, AVXMatrixTransposeOperations,
+     FMAMatrixOperations, FMAMatrixMultOperations,
      {$ELSE}
      AVXMatrixOperations, ASMMatrixMultOperationsx64, AVXMatrixMultOperationsx64,
      AVXMatrixAddSubOperationsx64, AVXMoveOperationsx64,
      ASMMatrixRotationsx64, ASMMoveOperationsx64, ASMMatrixAddSubOperationsx64,
      AVXMatrixRotationsx64, AVXMatrixTransposeOperationsx64,
-     ASMMatrixTransposeOperationsx64,
+     ASMMatrixTransposeOperationsx64, FMAMatrixOperations, FMAMatrixMultOperationsx64,
      {$ENDIF}
      BlockSizeSetup, SimpleMatrixOperations, CPUFeatures, MatrixRotations, corr;
 
@@ -1043,8 +1044,14 @@ end;
 procedure InitMathFunctions(instrType : TCPUInstrType; useStrassenMult : boolean);
 var fpuCtrlWord : Word;
 begin
+     // decrease instruction set until we find one suitable
+     if (instrType = itFMA) and not IsFMAPresent then
+        instrType := itAVX;
+     if (instrType = itAVX) and not IsAVXPresent then
+        instrType := itSSE;
+
      // check features
-     if IsAVXPresent and (instrType = itAVX) then
+     if (IsAVXPresent and (instrType = itAVX)) or (IsFMAPresent and (instrType = itFMA)) then
      begin
           curUsedCPUInstrSet := itAVX;
           if useStrassenMult
@@ -1096,6 +1103,28 @@ begin
           memInitFunc := {$IFDEF FPC}@{$ENDIF}AVXInitMemAligned;
 
           TDynamicTimeWarp.UseSSE := True;
+
+          // ##############################################
+          // #### override if fma is requested
+          if instrType = itFMA then
+          begin
+               multT2Func := {$IFDEF FPC}@{$ENDIF}FMAMatrixMultTransposed;
+               multTria2T1Func := {$IFDEF FPC}@{$ENDIF}FMAMtxMultTria2T1;
+               multTria2T1StoreT1Func := {$IFDEF FPC}@{$ENDIF}FMAMtxMultTria2T1StoreT1;
+               multTria2TUpperFunc := {$IFDEF FPC}@{$ENDIF}FMAMtxMultTria2TUpperUnit;
+               multLowTria2T2Store1Func := {$IFDEF FPC}@{$ENDIF}FMAMtxMultLowTria2T2Store1;
+
+               MtxVecMultFunc := {$IFDEF FPC}@{$ENDIF}FMAMtxVecMult;
+               MtxVecMultTFunc := {$IFDEF FPC}@{$ENDIF}FMAMtxVecMultT;
+
+               if useStrassenMult
+               then
+                   multFunc := {$IFDEF FPC}@{$ENDIF}FMAStrassenMatrixMultiplication
+               else
+                   multFunc := {$IFDEF FPC}@{$ENDIF}FMAMatrixMult;
+
+               curUsedCPUInstrSet := itFMA;
+          end;
      end
      else if IsSSE3Present and (instrType = itSSE) then
      begin
@@ -1218,7 +1247,7 @@ begin
 end;
 
 initialization
-  curUsedCPUInstrSet := itAVX;
+  curUsedCPUInstrSet := itFMA;
   curUsedStrassenMult := False;
 
   InitMathFunctions(curUsedCPUInstrSet, curUsedStrassenMult);

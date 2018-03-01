@@ -89,6 +89,13 @@ uses
   AVXMatrixSumOperations in '..\AVXMatrixSumOperations.pas',
   AVXMatrixSumOperationsx64 in '..\AVXMatrixSumOperationsx64.pas',
   AVXMatrixOperations in '..\AVXMatrixOperations.pas',
+  FMAMatrixMultTransposedOperationsx64 in '..\FMAMatrixMultTransposedOperationsx64.pas',
+  FMAMatrixMultOperationsx64 in '..\FMAMatrixMultOperationsx64.pas',
+  FMAMatrixVectorMultOperationsx64 in '..\FMAMatrixVectorMultOperationsx64.pas',
+  FMAMatrixMultTransposedOperations in '..\FMAMatrixMultTransposedOperations.pas',
+  FMAMatrixMultOperations in '..\FMAMatrixMultOperations.pas',
+  FMAMatrixVectorMultOperations in '..\FMAMatrixVectorMultOperations.pas',
+  FMAMatrixOperations in '..\FMAMatrixOperations.pas',
   BlockSizeSetup in '..\BlockSizeSetup.pas',
   BlockedMult in '..\BlockedMult.pas',
   CPUFeatures in '..\CPUFeatures.pas',
@@ -129,10 +136,12 @@ uses
   LinAlgQR in '..\LinAlgQR.pas',
   PLS in '..\PLS.pas',
   EM in '..\EM.pas',
+  RBSplines in '..\RBSplines.pas',
   Corr in '..\Corr.pas',
   linuxthrpool in '..\mac\linuxthrpool.pas',
   TestSimpleMatrixOperations in 'TestSimpleMatrixOperations.pas',
   TestAVX in 'TestAVX.pas',
+  TestFMA in 'TestFMA.pas',
   TestLineEquations in 'TestLineEquations.pas',
   TestEigensystems in 'TestEigensystems.pas',
   TestMatrixClass in 'TestMatrixClass.pas',
@@ -143,7 +152,8 @@ uses
   TestNMF in 'TestNMF.pas',
   TestRandom in 'TestRandom.pas',
   TestCorr in 'TestCorr.pas',
-  TestEM in 'TestEM.pas';
+  TestEM in 'TestEM.pas',
+  TestRBSpline in 'TestRBSpline.pas';
 
 {$R *.res}
 
