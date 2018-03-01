@@ -54,6 +54,10 @@ Gustav Kaiser - special thanks for implementing the PLS algorithm.
 // ###################################################################
 changelog:
 
+Date: 01.03.2018
+* Added Fused Multiply and Add (FMA3) opcodes where appropriate.
+* Removed a few warnings in FPC
+
 Date: 27.02.2018
 * Added Robust B-Spline class.
 

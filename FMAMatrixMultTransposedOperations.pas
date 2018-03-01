@@ -100,26 +100,26 @@ asm
                {$IFDEF FPC}vmovapd ymm1, [edx + eax];{$ELSE}db $C5,$FD,$28,$0C,$02;{$ENDIF} 
 
                // multiply 2x2 and add
-               vfmadd231pd ymm0, ymm1, [ebx + eax];
-               vfmadd231pd ymm2, ymm1, [edi + eax];
+               {$IFDEF FPC}vfmadd231pd ymm0, ymm1, [ebx + eax];{$ELSE}db $C4,$E2,$F5,$B8,$04,$03;{$ENDIF} 
+               {$IFDEF FPC}vfmadd231pd ymm2, ymm1, [edi + eax];{$ELSE}db $C4,$E2,$F5,$B8,$14,$07;{$ENDIF} 
 
                {$IFDEF FPC}vmovapd ymm1, [edx + eax + 32];{$ELSE}db $C5,$FD,$28,$4C,$02,$20;{$ENDIF} 
 
                // multiply 2x2 and add
-               vfmadd231pd ymm0, ymm1, [ebx + eax + 32];
-               vfmadd231pd ymm2, ymm1, [edi + eax + 32];
+               {$IFDEF FPC}vfmadd231pd ymm0, ymm1, [ebx + eax + 32];{$ELSE}db $C4,$E2,$F5,$B8,$44,$03,$20;{$ENDIF} 
+               {$IFDEF FPC}vfmadd231pd ymm2, ymm1, [edi + eax + 32];{$ELSE}db $C4,$E2,$F5,$B8,$54,$07,$20;{$ENDIF} 
 
                {$IFDEF FPC}vmovapd ymm1, [edx + eax + 64];{$ELSE}db $C5,$FD,$28,$4C,$02,$40;{$ENDIF} 
 
                // multiply 2x2 and add
-               vfmadd231pd ymm0, ymm1, [ebx + eax + 64];
-               vfmadd231pd ymm2, ymm1, [edi + eax + 64];
+               {$IFDEF FPC}vfmadd231pd ymm0, ymm1, [ebx + eax + 64];{$ELSE}db $C4,$E2,$F5,$B8,$44,$03,$40;{$ENDIF} 
+               {$IFDEF FPC}vfmadd231pd ymm2, ymm1, [edi + eax + 64];{$ELSE}db $C4,$E2,$F5,$B8,$54,$07,$40;{$ENDIF} 
 
                {$IFDEF FPC}vmovapd ymm1, [edx + eax + 96];{$ELSE}db $C5,$FD,$28,$4C,$02,$60;{$ENDIF} 
 
                // multiply 2x2 and add
-               vfmadd231pd ymm0, ymm1, [ebx + eax + 96];
-               vfmadd231pd ymm2, ymm1, [edi + eax + 96];
+               {$IFDEF FPC}vfmadd231pd ymm0, ymm1, [ebx + eax + 96];{$ELSE}db $C4,$E2,$F5,$B8,$44,$03,$60;{$ENDIF} 
+               {$IFDEF FPC}vfmadd231pd ymm2, ymm1, [edi + eax + 96];{$ELSE}db $C4,$E2,$F5,$B8,$54,$07,$60;{$ENDIF} 
 
                // end for idx := 0 to width1 div 2
            add eax, 128;
@@ -220,26 +220,26 @@ asm
                {$IFDEF FPC}vmovapd ymm1, [edx + eax];{$ELSE}db $C5,$FD,$28,$0C,$02;{$ENDIF} 
 
                // multiply 2x2 and add
-               vfmadd231pd ymm0, ymm1, [ebx + eax];
-               vfmadd231pd ymm2, ymm1, [edi + eax];
+               {$IFDEF FPC}vfmadd231pd ymm0, ymm1, [ebx + eax];{$ELSE}db $C4,$E2,$F5,$B8,$04,$03;{$ENDIF} 
+               {$IFDEF FPC}vfmadd231pd ymm2, ymm1, [edi + eax];{$ELSE}db $C4,$E2,$F5,$B8,$14,$07;{$ENDIF} 
 
                {$IFDEF FPC}vmovapd ymm1, [edx + eax + 32];{$ELSE}db $C5,$FD,$28,$4C,$02,$20;{$ENDIF} 
 
                // multiply 2x2 and add
-               vfmadd231pd ymm0, ymm1, [ebx + eax + 32];
-               vfmadd231pd ymm2, ymm1, [edi + eax + 32];
+               {$IFDEF FPC}vfmadd231pd ymm0, ymm1, [ebx + eax + 32];{$ELSE}db $C4,$E2,$F5,$B8,$44,$03,$20;{$ENDIF} 
+               {$IFDEF FPC}vfmadd231pd ymm2, ymm1, [edi + eax + 32];{$ELSE}db $C4,$E2,$F5,$B8,$54,$07,$20;{$ENDIF} 
 
                {$IFDEF FPC}vmovapd ymm1, [edx + eax + 64];{$ELSE}db $C5,$FD,$28,$4C,$02,$40;{$ENDIF} 
 
                // multiply 2x2 and add
-               vfmadd231pd ymm0, ymm1, [ebx + eax + 64];
-               vfmadd231pd ymm2, ymm1, [edi + eax + 64];
+               {$IFDEF FPC}vfmadd231pd ymm0, ymm1, [ebx + eax + 64];{$ELSE}db $C4,$E2,$F5,$B8,$44,$03,$40;{$ENDIF} 
+               {$IFDEF FPC}vfmadd231pd ymm2, ymm1, [edi + eax + 64];{$ELSE}db $C4,$E2,$F5,$B8,$54,$07,$40;{$ENDIF} 
 
                {$IFDEF FPC}vmovapd ymm1, [edx + eax + 96];{$ELSE}db $C5,$FD,$28,$4C,$02,$60;{$ENDIF} 
 
                // multiply 2x2 and add
-               vfmadd231pd ymm0, ymm1, [ebx + eax + 96];
-               vfmadd231pd ymm2, ymm1, [edi + eax + 96];
+               {$IFDEF FPC}vfmadd231pd ymm0, ymm1, [ebx + eax + 96];{$ELSE}db $C4,$E2,$F5,$B8,$44,$03,$60;{$ENDIF} 
+               {$IFDEF FPC}vfmadd231pd ymm2, ymm1, [edi + eax + 96];{$ELSE}db $C4,$E2,$F5,$B8,$54,$07,$60;{$ENDIF} 
 
                // end for idx := 0 to width1 div 2
            add eax, 128;
@@ -279,16 +279,16 @@ asm
           {$IFDEF FPC}vmovapd ymm1, [edx + eax];{$ELSE}db $C5,$FD,$28,$0C,$02;{$ENDIF} 
 
           // multiply 2x2 and add
-          vfmadd231pd ymm0, ymm1, [ebx + eax];
+          {$IFDEF FPC}vfmadd231pd ymm0, ymm1, [ebx + eax];{$ELSE}db $C4,$E2,$F5,$B8,$04,$03;{$ENDIF} 
 
           {$IFDEF FPC}vmovapd ymm1, [edx + eax + 32];{$ELSE}db $C5,$FD,$28,$4C,$02,$20;{$ENDIF} 
-          vfmadd231pd ymm0, ymm1, [ebx + eax + 32];
+          {$IFDEF FPC}vfmadd231pd ymm0, ymm1, [ebx + eax + 32];{$ELSE}db $C4,$E2,$F5,$B8,$44,$03,$20;{$ENDIF} 
 
           {$IFDEF FPC}vmovapd ymm1, [edx + eax + 64];{$ELSE}db $C5,$FD,$28,$4C,$02,$40;{$ENDIF} 
-          vfmadd231pd ymm0, ymm1, [ebx + eax + 64];
+          {$IFDEF FPC}vfmadd231pd ymm0, ymm1, [ebx + eax + 64];{$ELSE}db $C4,$E2,$F5,$B8,$44,$03,$40;{$ENDIF} 
 
           {$IFDEF FPC}vmovapd ymm1, [edx + eax + 96];{$ELSE}db $C5,$FD,$28,$4C,$02,$60;{$ENDIF} 
-          vfmadd231pd ymm0, ymm1, [ebx + eax + 96];
+          {$IFDEF FPC}vfmadd231pd ymm0, ymm1, [ebx + eax + 96];{$ELSE}db $C4,$E2,$F5,$B8,$44,$03,$60;{$ENDIF} 
 
           // end for idx := 0 to width1 div 2
        add eax, 128;
@@ -369,8 +369,8 @@ asm
                {$IFDEF FPC}vmovupd ymm4, [esi + eax - 32];{$ELSE}db $C5,$FD,$10,$64,$06,$E0;{$ENDIF} 
 
                // multiply 2x2 and add
-               vfmadd231pd ymm0, ymm1, ymm3;
-               vfmadd231pd ymm2, ymm1, ymm4;
+               {$IFDEF FPC}vfmadd231pd ymm0, ymm1, ymm3;{$ELSE}db $C4,$E2,$F5,$B8,$C3;{$ENDIF} 
+               {$IFDEF FPC}vfmadd231pd ymm2, ymm1, ymm4;{$ELSE}db $C4,$E2,$F5,$B8,$D4;{$ENDIF} 
 
                // end for idx := 0 to width1 div 2
            add eax, 32;
@@ -447,7 +447,7 @@ asm
             {$IFDEF FPC}vmovupd ymm3, [edi + eax - 32];{$ELSE}db $C5,$FD,$10,$5C,$07,$E0;{$ENDIF} 
 
             // multiply and add
-            vfmadd231pd ymm0, ymm1, ymm3;
+            {$IFDEF FPC}vfmadd231pd ymm0, ymm1, ymm3;{$ELSE}db $C4,$E2,$F5,$B8,$C3;{$ENDIF} 
 
             // end for idx := 0 to width1 div 2
        add eax, 32;
@@ -547,8 +547,8 @@ asm
                {$IFDEF FPC}vmovapd ymm1, [edx + eax - 32];{$ELSE}db $C5,$FD,$28,$4C,$02,$E0;{$ENDIF} 
 
                // multiply 2x2 and add
-               vfmadd231pd ymm0, ymm1, [edi + eax - 32];
-               vfmadd231pd ymm2, ymm1, [esi + eax - 32];
+               {$IFDEF FPC}vfmadd231pd ymm0, ymm1, [edi + eax - 32];{$ELSE}db $C4,$E2,$F5,$B8,$44,$07,$E0;{$ENDIF} 
+               {$IFDEF FPC}vfmadd231pd ymm2, ymm1, [esi + eax - 32];{$ELSE}db $C4,$E2,$F5,$B8,$54,$06,$E0;{$ENDIF} 
 
                // end for idx := 0 to width1 div 2
            add eax, 32;
@@ -622,7 +622,7 @@ asm
             {$IFDEF FPC}vmovapd ymm1, [edx + eax - 32];{$ELSE}db $C5,$FD,$28,$4C,$02,$E0;{$ENDIF} 
 
             // multiply and add
-            vfmadd231pd ymm0, ymm1, [edi + eax - 32];
+            {$IFDEF FPC}vfmadd231pd ymm0, ymm1, [edi + eax - 32];{$ELSE}db $C4,$E2,$F5,$B8,$44,$07,$E0;{$ENDIF} 
             // end for idx := 0 to width1 div 2
        add eax, 32;
        jle @@LastLineInnerLoop;

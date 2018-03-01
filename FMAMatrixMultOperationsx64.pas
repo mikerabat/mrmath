@@ -164,8 +164,8 @@ asm
              {$IFDEF FPC}vinsertf128 ymm3, ymm3, xmm5, 1;{$ELSE}db $C4,$E3,$65,$18,$DD,$01;{$ENDIF} 
 
              // now multiply and add
-             vfmadd231pd ymm0, ymm7, ymm2;
-             vfmadd231pd ymm1, ymm7, ymm3;
+             {$IFDEF FPC}vfmadd231pd ymm0, ymm7, ymm2;{$ELSE}db $C4,$E2,$C5,$B8,$C2;{$ENDIF} 
+             {$IFDEF FPC}vfmadd231pd ymm1, ymm7, ymm3;{$ELSE}db $C4,$E2,$C5,$B8,$CB;{$ENDIF} 
           add rax, 32;
           jl @@InnerLoop1;
 
@@ -380,8 +380,8 @@ asm
               {$IFDEF FPC}vinsertf128 ymm3, ymm3, xmm5, 1;{$ELSE}db $C4,$E3,$65,$18,$DD,$01;{$ENDIF} 
 
               // now multiply and add
-              vfmadd231pd ymm0, ymm7, ymm2;
-              vfmadd231pd ymm1, ymm7, ymm3;
+              {$IFDEF FPC}vfmadd231pd ymm0, ymm7, ymm2;{$ELSE}db $C4,$E2,$C5,$B8,$C2;{$ENDIF} 
+              {$IFDEF FPC}vfmadd231pd ymm1, ymm7, ymm3;{$ELSE}db $C4,$E2,$C5,$B8,$CB;{$ENDIF} 
            add rax, 32;
            jl @@InnerLoop1;
 
@@ -563,7 +563,7 @@ asm
 
             {$IFDEF FPC}vmovupd ymm1, [rcx + rax - 32];{$ELSE}db $C5,$FD,$10,$4C,$01,$E0;{$ENDIF} 
             {$IFDEF FPC}vmovupd ymm2, [rbx + rax - 32];{$ELSE}db $C5,$FD,$10,$54,$03,$E0;{$ENDIF} 
-            vfmadd231pd ymm0, ymm1, ymm2;
+            {$IFDEF FPC}vfmadd231pd ymm0, ymm1, ymm2;{$ELSE}db $C4,$E2,$F5,$B8,$C2;{$ENDIF} 
          jmp @@foriloopFMA;
 
          @@foriloopFMAend:
@@ -579,7 +579,7 @@ asm
             // two elements at a time:
             {$IFDEF FPC}vmovupd xmm1, [rcx + rax];{$ELSE}db $C5,$F9,$10,$0C,$01;{$ENDIF} 
             {$IFDEF FPC}vmovupd xmm2, [rbx + rax];{$ELSE}db $C5,$F9,$10,$14,$03;{$ENDIF} 
-            vfmadd231pd xmm0, xmm1, xmm2;
+            {$IFDEF FPC}vfmadd231pd xmm0, xmm1, xmm2;{$ELSE}db $C4,$E2,$F1,$B8,$C2;{$ENDIF} 
 
             add rax, 16;
          jnz @@foriloop;
@@ -712,7 +712,7 @@ asm
              // two elements at a time:
              {$IFDEF FPC}vmovupd ymm1, [r8 + rax - 32];{$ELSE}db $C4,$C1,$7D,$10,$4C,$00,$E0;{$ENDIF} 
              {$IFDEF FPC}vmovupd ymm2, [rbx + rax - 32];{$ELSE}db $C5,$FD,$10,$54,$03,$E0;{$ENDIF} 
-             vfmadd231pd ymm0, ymm1, ymm2;
+             {$IFDEF FPC}vfmadd231pd ymm0, ymm1, ymm2;{$ELSE}db $C4,$E2,$F5,$B8,$C2;{$ENDIF} 
          jmp @@foriloop;
 
          @@foriloopend:
@@ -726,7 +726,7 @@ asm
          // need to process two more elements:
          {$IFDEF FPC}vmovupd xmm1, [r8 + rax];{$ELSE}db $C4,$C1,$79,$10,$0C,$00;{$ENDIF} 
          {$IFDEF FPC}vmovupd xmm2, [rbx + rax];{$ELSE}db $C5,$F9,$10,$14,$03;{$ENDIF} 
-         vfmadd231pd xmm0, xmm1, xmm2;
+         {$IFDEF FPC}vfmadd231pd xmm0, xmm1, xmm2;{$ELSE}db $C4,$E2,$F1,$B8,$C2;{$ENDIF} 
 
          @@finalizeloop:
 
@@ -884,7 +884,7 @@ asm
              {$IFDEF FPC}vmovddup xmm1, [rsi];{$ELSE}db $C5,$FB,$12,$0E;{$ENDIF} 
              {$IFDEF FPC}vmovupd xmm2, [rdi];{$ELSE}db $C5,$F9,$10,$17;{$ENDIF} 
 
-             vfmadd231pd xmm0, xmm1, xmm2;
+             {$IFDEF FPC}vfmadd231pd xmm0, xmm1, xmm2;{$ELSE}db $C4,$E2,$F1,$B8,$C2;{$ENDIF} 
 
              //inc(PByte(valCounter1), LineWidth1);
              //inc(PByte(valCounter2), LineWidth2);
@@ -1024,11 +1024,11 @@ asm
          @@foridxlongloop:
             {$IFDEF FPC}vmovupd ymm1, [rax + rdi - 64];{$ELSE}db $C5,$FD,$10,$4C,$38,$C0;{$ENDIF} 
             {$IFDEF FPC}vmovupd ymm2, [r8 + rdi - 64];{$ELSE}db $C4,$C1,$7D,$10,$54,$38,$C0;{$ENDIF} 
-            vfmadd231pd ymm0, ymm1, ymm2;
+            {$IFDEF FPC}vfmadd231pd ymm0, ymm1, ymm2;{$ELSE}db $C4,$E2,$F5,$B8,$C2;{$ENDIF} 
 
             {$IFDEF FPC}vmovupd ymm1, [rax + rdi - 32];{$ELSE}db $C5,$FD,$10,$4C,$38,$E0;{$ENDIF} 
             {$IFDEF FPC}vmovupd ymm2, [r8 + rdi - 32];{$ELSE}db $C4,$C1,$7D,$10,$54,$38,$E0;{$ENDIF} 
-            vfmadd231pd ymm0, ymm1, ymm2;
+            {$IFDEF FPC}vfmadd231pd ymm0, ymm1, ymm2;{$ELSE}db $C4,$E2,$F5,$B8,$C2;{$ENDIF} 
          add rdi, 64;
          jl @@foridxlongloop;
 
@@ -1042,7 +1042,7 @@ asm
          @@foridxSSEloop:
             {$IFDEF FPC}vmovupd xmm1, [rax + rdi - 16];{$ELSE}db $C5,$F9,$10,$4C,$38,$F0;{$ENDIF} 
             {$IFDEF FPC}vmovupd xmm2, [r8 + rdi - 16];{$ELSE}db $C4,$C1,$79,$10,$54,$38,$F0;{$ENDIF} 
-            vfmadd231pd xmm0, xmm1, xmm2;
+            {$IFDEF FPC}vfmadd231pd xmm0, xmm1, xmm2;{$ELSE}db $C4,$E2,$F1,$B8,$C2;{$ENDIF} 
          add rdi, 16;
          jl @@foridxSSEloop;
 

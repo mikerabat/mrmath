@@ -99,11 +99,11 @@ asm
        @@forxloop:
            {$IFDEF FPC}vmovapd ymm4, [ebx];{$ELSE}db $C5,$FD,$28,$23;{$ENDIF} 
 
-           vfmadd231pd ymm0, ymm4, [eax];
-           vfmadd231pd ymm1, ymm4, [eax + esi];
-           vfmadd231pd ymm2, ymm4, [eax + 2*esi];
+           {$IFDEF FPC}vfmadd231pd ymm0, ymm4, [eax];{$ELSE}db $C4,$E2,$DD,$B8,$00;{$ENDIF} 
+           {$IFDEF FPC}vfmadd231pd ymm1, ymm4, [eax + esi];{$ELSE}db $C4,$E2,$DD,$B8,$0C,$30;{$ENDIF} 
+           {$IFDEF FPC}vfmadd231pd ymm2, ymm4, [eax + 2*esi];{$ELSE}db $C4,$E2,$DD,$B8,$14,$70;{$ENDIF} 
            add eax, esi;
-           vfmadd231pd ymm3, ymm4, [eax + 2*esi];
+           {$IFDEF FPC}vfmadd231pd ymm3, ymm4, [eax + 2*esi];{$ELSE}db $C4,$E2,$DD,$B8,$1C,$70;{$ENDIF} 
            sub eax, esi;
 
            add eax, 32;
@@ -214,7 +214,7 @@ asm
 
        @@forxshortloop:
            {$IFDEF FPC}vmovapd ymm4, [ebx];{$ELSE}db $C5,$FD,$28,$23;{$ENDIF} 
-           vfmadd231pd ymm0, ymm4, [eax];
+           {$IFDEF FPC}vfmadd231pd ymm0, ymm4, [eax];{$ELSE}db $C4,$E2,$DD,$B8,$00;{$ENDIF} 
 
            add eax, 32;
            add ebx, 32;
@@ -312,17 +312,17 @@ asm
            {$IFDEF FPC}vmovupd ymm4, [ebx];{$ELSE}db $C5,$FD,$10,$23;{$ENDIF} 
 
            {$IFDEF FPC}vmovupd ymm5, [eax];{$ELSE}db $C5,$FD,$10,$28;{$ENDIF} 
-           vfmadd231pd ymm0, ymm4, ymm5;
+           {$IFDEF FPC}vfmadd231pd ymm0, ymm4, ymm5;{$ELSE}db $C4,$E2,$DD,$B8,$C5;{$ENDIF} 
 
            {$IFDEF FPC}vmovupd ymm5, [eax + esi];{$ELSE}db $C5,$FD,$10,$2C,$30;{$ENDIF} 
-           vfmadd231pd ymm1, ymm4, ymm5;
+           {$IFDEF FPC}vfmadd231pd ymm1, ymm4, ymm5;{$ELSE}db $C4,$E2,$DD,$B8,$CD;{$ENDIF} 
 
            {$IFDEF FPC}vmovupd ymm5, [eax + 2*esi];{$ELSE}db $C5,$FD,$10,$2C,$70;{$ENDIF} 
-           vfmadd231pd ymm2, ymm4, ymm5;
+           {$IFDEF FPC}vfmadd231pd ymm2, ymm4, ymm5;{$ELSE}db $C4,$E2,$DD,$B8,$D5;{$ENDIF} 
 
            add eax, esi;
            {$IFDEF FPC}vmovupd ymm5, [eax + 2*esi];{$ELSE}db $C5,$FD,$10,$2C,$70;{$ENDIF} 
-           vfmadd231pd ymm3, ymm4, ymm5;
+           {$IFDEF FPC}vfmadd231pd ymm3, ymm4, ymm5;{$ELSE}db $C4,$E2,$DD,$B8,$DD;{$ENDIF} 
            sub eax, esi;
 
            add eax, 32;
@@ -434,7 +434,7 @@ asm
        @@forxshortloop:
            {$IFDEF FPC}vmovupd ymm4, [ebx];{$ELSE}db $C5,$FD,$10,$23;{$ENDIF} 
            {$IFDEF FPC}vmovupd ymm5, [eax];{$ELSE}db $C5,$FD,$10,$28;{$ENDIF} 
-           vfmadd231pd ymm0, ymm4, ymm5;
+           {$IFDEF FPC}vfmadd231pd ymm0, ymm4, ymm5;{$ELSE}db $C4,$E2,$DD,$B8,$C5;{$ENDIF} 
 
            add eax, 32;
            add ebx, 32;
@@ -536,22 +536,22 @@ asm
 
            {$IFDEF FPC}vmovupd ymm0, [esp - 128];{$ELSE}db $C5,$FD,$10,$44,$24,$80;{$ENDIF} 
            {$IFDEF FPC}vmovupd ymm4, [eax];{$ELSE}db $C5,$FD,$10,$20;{$ENDIF} 
-           vfmadd231pd ymm0, ymm3, ymm4;
+           {$IFDEF FPC}vfmadd231pd ymm0, ymm3, ymm4;{$ELSE}db $C4,$E2,$E5,$B8,$C4;{$ENDIF} 
            {$IFDEF FPC}vmovupd [esp - 128], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$80;{$ENDIF} 
 
            {$IFDEF FPC}vmovupd ymm1, [esp - 96];{$ELSE}db $C5,$FD,$10,$4C,$24,$A0;{$ENDIF} 
            {$IFDEF FPC}vmovupd ymm4, [eax + 32];{$ELSE}db $C5,$FD,$10,$60,$20;{$ENDIF} 
-           vfmadd231pd ymm1, ymm3, ymm4;
+           {$IFDEF FPC}vfmadd231pd ymm1, ymm3, ymm4;{$ELSE}db $C4,$E2,$E5,$B8,$CC;{$ENDIF} 
            {$IFDEF FPC}vmovupd [esp - 96], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$24,$A0;{$ENDIF} 
 
            {$IFDEF FPC}vmovupd ymm0, [esp - 64];{$ELSE}db $C5,$FD,$10,$44,$24,$C0;{$ENDIF} 
            {$IFDEF FPC}vmovupd ymm4, [eax + 64];{$ELSE}db $C5,$FD,$10,$60,$40;{$ENDIF} 
-           vfmadd231pd ymm0, ymm3, ymm4;
+           {$IFDEF FPC}vfmadd231pd ymm0, ymm3, ymm4;{$ELSE}db $C4,$E2,$E5,$B8,$C4;{$ENDIF} 
            {$IFDEF FPC}vmovupd [esp - 64], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$C0;{$ENDIF} 
 
            {$IFDEF FPC}vmovupd ymm1, [esp - 32];{$ELSE}db $C5,$FD,$10,$4C,$24,$E0;{$ENDIF} 
            {$IFDEF FPC}vmovupd ymm4, [eax + 96];{$ELSE}db $C5,$FD,$10,$60,$60;{$ENDIF} 
-           vfmadd231pd ymm1, ymm3, ymm4;
+           {$IFDEF FPC}vfmadd231pd ymm1, ymm3, ymm4;{$ELSE}db $C4,$E2,$E5,$B8,$CC;{$ENDIF} 
            {$IFDEF FPC}vmovupd [esp - 32], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$24,$E0;{$ENDIF} 
 
            add eax, esi;
@@ -814,22 +814,22 @@ asm
 
            {$IFDEF FPC}vmovupd ymm0, [esp - 128];{$ELSE}db $C5,$FD,$10,$44,$24,$80;{$ENDIF} 
            {$IFDEF FPC}vmovupd ymm4, [eax];{$ELSE}db $C5,$FD,$10,$20;{$ENDIF} 
-           vfmadd231pd ymm0, ymm3, ymm4;
+           {$IFDEF FPC}vfmadd231pd ymm0, ymm3, ymm4;{$ELSE}db $C4,$E2,$E5,$B8,$C4;{$ENDIF} 
            {$IFDEF FPC}vmovupd [esp - 128], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$80;{$ENDIF} 
 
            {$IFDEF FPC}vmovupd ymm1, [esp - 96];{$ELSE}db $C5,$FD,$10,$4C,$24,$A0;{$ENDIF} 
            {$IFDEF FPC}vmovupd ymm4, [eax + 32];{$ELSE}db $C5,$FD,$10,$60,$20;{$ENDIF} 
-           vfmadd231pd ymm1, ymm3, ymm4;
+           {$IFDEF FPC}vfmadd231pd ymm1, ymm3, ymm4;{$ELSE}db $C4,$E2,$E5,$B8,$CC;{$ENDIF} 
            {$IFDEF FPC}vmovupd [esp - 96], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$24,$A0;{$ENDIF} 
 
            {$IFDEF FPC}vmovupd ymm0, [esp - 64];{$ELSE}db $C5,$FD,$10,$44,$24,$C0;{$ENDIF} 
            {$IFDEF FPC}vmovupd ymm4, [eax + 64];{$ELSE}db $C5,$FD,$10,$60,$40;{$ENDIF} 
-           vfmadd231pd ymm0, ymm3, ymm4;
+           {$IFDEF FPC}vfmadd231pd ymm0, ymm3, ymm4;{$ELSE}db $C4,$E2,$E5,$B8,$C4;{$ENDIF} 
            {$IFDEF FPC}vmovupd [esp - 64], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$C0;{$ENDIF} 
 
            {$IFDEF FPC}vmovupd ymm1, [esp - 32];{$ELSE}db $C5,$FD,$10,$4C,$24,$E0;{$ENDIF} 
            {$IFDEF FPC}vmovupd ymm4, [eax + 96];{$ELSE}db $C5,$FD,$10,$60,$60;{$ENDIF} 
-           vfmadd231pd ymm1, ymm3, ymm4;
+           {$IFDEF FPC}vfmadd231pd ymm1, ymm3, ymm4;{$ELSE}db $C4,$E2,$E5,$B8,$CC;{$ENDIF} 
            {$IFDEF FPC}vmovupd [esp - 32], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$24,$E0;{$ENDIF} 
 
            add eax, esi;
@@ -986,7 +986,7 @@ asm
          {$IFDEF FPC}vmovupd ymm2, [ebx];{$ELSE}db $C5,$FD,$10,$13;{$ENDIF} 
 
          // pA^[j] := pA^[j] + tmp*pY1^[j];
-         vfmadd231pd ymm1, ymm2, ymm0;
+         {$IFDEF FPC}vfmadd231pd ymm1, ymm2, ymm0;{$ELSE}db $C4,$E2,$ED,$B8,$C8;{$ENDIF} 
 
          {$IFDEF FPC}vmovupd [eax], ymm1;{$ELSE}db $C5,$FD,$11,$08;{$ENDIF} 
 
@@ -1009,7 +1009,7 @@ asm
       {$IFDEF FPC}vmovupd xmm1, [eax];{$ELSE}db $C5,$F9,$10,$08;{$ENDIF} 
       {$IFDEF FPC}vmovupd xmm2, [ebx];{$ELSE}db $C5,$F9,$10,$13;{$ENDIF} 
 
-      vfmadd231pd xmm1, xmm2, xmm0;
+      {$IFDEF FPC}vfmadd231pd xmm1, xmm2, xmm0;{$ELSE}db $C4,$E2,$E9,$B8,$C8;{$ENDIF} 
       {$IFDEF FPC}vmovupd [eax], xmm1;{$ELSE}db $C5,$F9,$11,$08;{$ENDIF} 
       add eax, 16;
       add ebx, 16;
@@ -1079,7 +1079,7 @@ asm
          {$IFDEF FPC}vmovapd ymm1, [eax];{$ELSE}db $C5,$FD,$28,$08;{$ENDIF} 
 
          // pA^[j] := pA^[j] + tmp*pY1^[j];
-         vfmadd231pd ymm1, ymm0, [ebx];
+         {$IFDEF FPC}vfmadd231pd ymm1, ymm0, [ebx];{$ELSE}db $C4,$E2,$FD,$B8,$0B;{$ENDIF} 
 
          {$IFDEF FPC}vmovapd [eax], ymm1;{$ELSE}db $C5,$FD,$29,$08;{$ENDIF} 
 
@@ -1100,7 +1100,7 @@ asm
 
       // handle 2 elements
       {$IFDEF FPC}vmovapd xmm1, [eax];{$ELSE}db $C5,$F9,$28,$08;{$ENDIF} 
-      vfmadd231pd xmm1, xmm0, [ebx];
+      {$IFDEF FPC}vfmadd231pd xmm1, xmm0, [ebx];{$ELSE}db $C4,$E2,$F9,$B8,$0B;{$ENDIF} 
       {$IFDEF FPC}vmovapd [eax], xmm1;{$ELSE}db $C5,$F9,$29,$08;{$ENDIF} 
       add eax, 16;
       add ebx, 16;

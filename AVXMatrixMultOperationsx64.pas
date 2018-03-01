@@ -567,7 +567,7 @@ asm
       // for y := 0 to height1 - 1
       @@foryloop:
          // tmp := 0;
-         vxorpd xmm0, xmm0, xmm0;
+         {$IFDEF FPC}vxorpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
 
          // r8, mt2
          mov rbx, r8;
@@ -580,13 +580,13 @@ asm
       jz @@foridxloopend;
 
       @@foridxloop:
-         vmovsd xmm1, [rbx];
-         vmovsd xmm2, [rax + rsi];
+         {$IFDEF FPC}vmovsd xmm1, [rbx];{$ELSE}db $C5,$FB,$10,$0B;{$ENDIF} 
+         {$IFDEF FPC}vmovsd xmm2, [rax + rsi];{$ELSE}db $C5,$FB,$10,$14,$30;{$ENDIF} 
 
          add rbx, r9;  // + linewidth2
 
-         vmulsd xmm1, xmm1, xmm2;
-         vaddsd xmm0, xmm0, xmm1;
+         {$IFDEF FPC}vmulsd xmm1, xmm1, xmm2;{$ELSE}db $C5,$F3,$59,$CA;{$ENDIF} 
+         {$IFDEF FPC}vaddsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$58,$C1;{$ENDIF} 
 
          add rsi, 8;
       jnz @@foridxloop;
@@ -598,7 +598,7 @@ asm
       add rbx, r10;
       mov rsi, r12; // r12 = width2
       dec rsi;
-      vmovsd [rbx + 8*rsi], xmm0;
+      {$IFDEF FPC}vmovsd [rbx + 8*rsi], xmm0;{$ELSE}db $C5,$FB,$11,$04,$F3;{$ENDIF} 
 
       // inc(PByte(pmT1), LineWidth1);
       add rax, rdx;
@@ -616,7 +616,7 @@ asm
    jnz @@forxloop;
 
    // cleanup stack
-   vzeroupper;
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 
    mov rbx, iRBX;
    mov rdi, iRDI;

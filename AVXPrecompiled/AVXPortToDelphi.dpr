@@ -83,7 +83,7 @@ begin
      for i := 0 to slIn.Count - 1 do
      begin
           // AVX in the first few characters hints for a procedure/function name
-          if Pos('AVX', slIn[i] ) = 1 then
+          if (Pos('AVX', slIn[i] ) = 1) or (Pos('FMA', slIn[i]) = 1) then
           begin
                // search for the function name in the output file
                s := slIn[i];
@@ -139,11 +139,11 @@ begin
                                    idx := Pos('//', outLine);
                                    cmt := '';
                                    if idx > 0 then
-                                   begin  
+                                   begin
                                         cmt := Copy(outLine, idx, Length(outLine));
                                         outLine := Copy(outLine, 1, idx - 1);
                                    end;
-                                   
+
 
                                    idx := Pos('{$IFDEF FPC}', outLine);
                                    if idx > 0 then

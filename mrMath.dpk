@@ -21,6 +21,7 @@ package mrMath;
 {$ALIGN 8}
 {$ASSERTIONS OFF}
 {$BOOLEVAL OFF}
+{$DEBUGINFO ON}
 {$EXTENDEDSYNTAX ON}
 {$IMPORTEDDATA ON}
 {$IOCHECKS OFF}
@@ -35,7 +36,12 @@ package mrMath;
 {$STACKFRAMES OFF}
 {$TYPEDADDRESS OFF}
 {$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
 {$DESCRIPTION 'mrMath Matrix library'}
+{$RUNONLY}
+{$IMPLICITBUILD ON}
 
 requires
   rtl;
@@ -147,6 +153,13 @@ contains
   AVXMoveOperationsx64 in 'AVXMoveOperationsx64.pas',
   BlockedMult in 'BlockedMult.pas',
   EM in 'EM.pas',
-  RBSplines in 'RBSplines.pas';
+  RBSplines in 'RBSplines.pas',
+  FMAMatrixMultOperations in 'FMAMatrixMultOperations.pas',
+  FMAMatrixMultOperationsx64 in 'FMAMatrixMultOperationsx64.pas',
+  FMAMatrixMultTransposedOperations in 'FMAMatrixMultTransposedOperations.pas',
+  FMAMatrixMultTransposedOperationsx64 in 'FMAMatrixMultTransposedOperationsx64.pas',
+  FMAMatrixOperations in 'FMAMatrixOperations.pas',
+  FMAMatrixVectorMultOperations in 'FMAMatrixVectorMultOperations.pas',
+  FMAMatrixVectorMultOperationsx64 in 'FMAMatrixVectorMultOperationsx64.pas';
 
 end.
