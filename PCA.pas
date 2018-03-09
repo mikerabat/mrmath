@@ -97,6 +97,10 @@ type
     constructor Create(KeepFlags : TPCASaveDataSet); overload;
     constructor Create(const pcaData : TPCAData); overload;
     destructor Destroy; override;
+
+    // single shot pca
+    class function CalcPca( Examples : TDoubleMatrix; CutEps : double; IsRelativeValue : boolean; out aEigVals, aEigVecs, ameanVec : TDoubleMatrix) : boolean;
+    class function CalcPcaIntf( Examples : IMatrix; CutEps : double; IsRelativeValue : boolean; out aEigVals, aEigVecs, ameanVec : IMatrix) : boolean;
   end;
   TMatrixPCAClass = class of TMatrixPCA;
 
@@ -1516,6 +1520,44 @@ begin
      end
      else
          Result := False;
+end;
+
+class function TMatrixPCA.CalcPca(Examples: TDoubleMatrix; CutEps: double;
+  IsRelativeValue: boolean; out aEigVals, aEigVecs,
+  ameanVec: TDoubleMatrix): boolean;
+begin
+     aEigVals := nil;
+     aEigVecs := nil;
+     aMeanVec := nil;
+     with Self.Create([pcaEigVals]) do
+     try
+        Result := PCA( Examples, CutEps, IsRelativeValue );
+        if Result then
+        begin
+             ameanVec := Mean.Clone;
+             aEigVecs := EigVecs.Clone;
+             aEigVals := EigVals.Clone;
+        end;
+     finally
+            Free;
+     end;
+end;
+
+class function TMatrixPCA.CalcPcaIntf(Examples: IMatrix; CutEps: double;
+  IsRelativeValue: boolean; out aEigVals, aEigVecs, ameanVec: IMatrix): boolean;
+var a, b, c : TDoubleMatrix;
+begin
+     aEigVals := nil;
+     aEigVecs := nil;
+     ameanVec := nil;
+
+     Result := CalcPCA( Examples.GetObjRef, CutEPS, IsRelativeValue, a, b, c);
+     if Result then
+     begin
+          aEigVals := a;
+          aEigVecs := b;
+          ameanVec := c;
+     end;
 end;
 
 initialization

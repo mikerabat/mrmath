@@ -20,6 +20,7 @@ uses Matrix;
 
 //  EM algorithm for k multidimensional Gaussian mixture estimation
 type
+  TExpectationMaxUpdate = procedure(Sender : TObject; iter : integer; W, M : IMatrix; V : IMatrixDynArr) of object;
   TExpectationMax = class(TMatrixClass)
   private
     fNumIter : integer;
@@ -30,14 +31,18 @@ type
     fX : IMatrix;
     fS, fU : IMatrix;
 
+    fOnUpdate: TExpectationMaxUpdate;
+
     procedure InitEM;
 
     // ###########################################
     // #### EM steps
     function Likelihood: double;
     function Expectation : IMatrix;
-    procedure Maximization( E : IMatrix );
+    function Maximization( E : IMatrix ) : boolean;  // returns false if invertion failed or no examples in one example
   public
+    property OnUpdate : TExpectationMaxUpdate read fOnUpdate write fOnUpdate;
+
     // estimate weights matrix W, mean vectors M and covariance matrix V on
     // input data X. A data point is presented column wise.
     // k states the number of components.
@@ -45,10 +50,15 @@ type
     function Estimate(X : IMatrix; k : integer; var W, M : IMatrix; var V : IMatrixDynArr) : boolean;
 
     // initialize search with these values
-    procedure Init( W, M : IMatrix; V : IMatrixDynArr );
+    procedure Init( W, M : IMatrix; V : IMatrixDynArr ); overload; // full init with weights, mean and covariances
+    procedure Init( M : IMatrix ); overload;  // initialize centers only
 
     // n: max number of iterations; ltol : percentage of the log likelihood difference between 2 iterations
     constructor Create( n : integer = 1000; ltol : double = 0.1);
+
+    // for a one time em step
+    class function EM(X : IMatrix; k : integer; var W, M : IMatrix; var V : IMatrixDynArr; n : integer = 1000; ltol : double = 0.1 ) : boolean; overload;
+    class function EM(X : IMatrix; k : integer; InitM : IMatrix; var W, M : IMatrix; var V : IMatrixDynArr; n : integer = 1000; ltol : double = 0.1 ) : boolean; overload;
   end;
 
 implementation
@@ -70,7 +80,10 @@ function TExpectationMax.Estimate(X : IMatrix; k : integer; var W, M : IMatrix; 
 var ln, lo : double;
     iter : Integer;
     E : IMatrix;
+    mT : IMatrix;
 begin
+     Result := False;
+
      fX := X;
      fk := k;
 
@@ -78,34 +91,60 @@ begin
      fU.TransposeInPlace;
 
      fS := TCorrelation.Covariance(fX);
-     
+
      // ###########################################
      // #### initialize
      if not Assigned(fW) or not Assigned(fM) or not Assigned(fW) then
         InitEM;
 
-     // ###########################################
-     // #### Expectation maximization 
-     ln := Likelihood;
-     lo := 2*ln;
-
-     iter := 0;
-     while (abs(100*(ln-lo)/lo)>fltol) and (iter < fNumIter) do
+     if Assigned(fOnUpdate) then
      begin
-          // E - Step:
-          E := Expectation;
-
-          // M - Step
-          Maximization(E);
-          lo := ln;
-          ln := Likelihood;
-          inc(iter);
+          mt := fM.Transpose;
+          fOnUpdate(Self, 0, fW, mt, fV);
      end;
 
-     Result := iter < fNumIter;
+     // ###########################################
+     // #### Expectation maximization
+     try
+        ln := Likelihood;
+        lo := 2*ln;
+
+        iter := 0;
+        while (abs(100*(ln-lo)/lo)>fltol) and (iter < fNumIter) do
+        begin
+             // E - Step:
+             E := Expectation;
+
+             // M - Step
+             if not Maximization(E) then
+                exit;
+             lo := ln;
+             ln := Likelihood;
+             inc(iter);
+
+             if Assigned(fOnUpdate) then
+             begin
+                  mt := fM.Transpose;
+                  fOnUpdate(Self, iter, fW, mt, fV);
+             end;
+        end;
+
+        Result := iter < fNumIter;
+     except
+           on D : ELinEQSingularException do
+           begin
+                Result := False;
+           end;
+     else
+         raise;
+     end;
+
+     fX.UseFullMatrix;
 
      if Result then
      begin
+          fM.TransposeInPlace;
+
           W := fW;
           M := fM;
           V := fV;
@@ -202,20 +241,28 @@ var i : integer;
     v : IMatrix;
     lastCenterChanged : double;
     n : integer;
+    doKMeans : boolean;
 begin
-     // random class centers -> create a shuffled random index list and use this as class centers
-     rnd := TRandomGenerator.Create(raSystem);
-     try
-        idx := rnd.RandIndexArr(0, fx.Width - 1);
-     finally
-            rnd.Free;
-     end;
+     if not Assigned(fM) then
+     begin
+          // random class centers -> create a shuffled random index list and use this as class centers
+          rnd := TRandomGenerator.Create(raSystem);
+          try
+             idx := rnd.RandIndexArr(0, fx.Height - 1);
+          finally
+                 rnd.Free;
+          end;
 
-     // take the first k values as class centers
-     fM := MatrixClass.Create( fX.Width, fk );
+          // take the first k values as class centers
+          fM := MatrixClass.Create( fX.Width, fk );
 
-     for i := 0 to fK - 1 do
-         fM.SetRow(i, fX, idx[i]);
+          for i := 0 to fK - 1 do
+              fM.SetRow(i, fX, idx[i]);
+
+          doKMeans := True;
+     end
+     else
+         doKMeans := False;
 
      n := fX.Height;
      centerChanged := MaxDouble;
@@ -261,11 +308,15 @@ begin
                inc( numMVals[minDistIdx] );
           end;
 
+          if not doKMeans then
+             break;
+
           // update centers
           for i := 0 to fK - 1 do
           begin
                newM.SetSubMatrix(0, i, newM.Width, 1);
-               newM.ScaleInPlace(1/numMVals[i]);
+               if numMVals[i] > 0 then
+                  newM.ScaleInPlace(1/numMVals[i]);
           end;
 
           // check the change
@@ -282,6 +333,7 @@ begin
 
      // ###########################################
      // #### We have an estimate for the kmeans centers -> estimate V and W
+     fM.UseFullMatrix;
      fM.TransposeInPlace;
      fW := MatrixClass.Create( 1, fK );
      SetLength(fV, fK);
@@ -338,12 +390,13 @@ begin
      fM.UseFullMatrix;
 end;
 
-procedure TExpectationMax.Maximization(E: IMatrix);
+function TExpectationMax.Maximization(E: IMatrix) : boolean;
 var d, n : integer;
     i, j: Integer;
     tmp : IMatrix;
     dXM : IMatrix;
 begin
+     Result := False;
      fX.UseFullMatrix;
      d := fX.Width;
      n := fX.Height;
@@ -363,9 +416,13 @@ begin
                fX.SetSubMatrix(0, j, d, 1);
                tmp := fX.Transpose;
                tmp.ScaleInPlace( E[i, j] );
-               
+
                fM.AddInplace( tmp );
           end;
+          // check if there are no members left for this center -> todo: remove it
+          if fW.Vec[i] = 0 then
+             exit;
+
           fM.ScaleInPlace(1/fW.Vec[i]);
      end;
 
@@ -379,10 +436,13 @@ begin
                dXM.SubInPlace( fM );
                tmp := dXM.Transpose;
                dXM.MultInPlace(tmp);
-               dXM.ScaleInPlace(E[i , j]); 
+               dXM.ScaleInPlace(E[i , j]);
 
                fV[i].AddInplace(dXM);
           end;
+
+          if fW.Vec[i] = 0 then
+             exit;
 
           fV[i].ScaleInPlace(1/fW.Vec[i]);
      end;
@@ -390,6 +450,37 @@ begin
      fW.ScaleInPlace( 1/n );
      fX.UseFullMatrix;
      fM.UseFullMatrix;
+     Result := True;
+end;
+
+procedure TExpectationMax.Init(M: IMatrix);
+begin
+     fM := M;
+     fV := nil;
+     fW := nil;
+end;
+
+class function TExpectationMax.EM(X: IMatrix; k: integer; var W, M: IMatrix;
+  var V: IMatrixDynArr; n: integer; ltol: double): boolean;
+begin
+     with TExpectationMax.Create(n, ltol) do
+     try
+        Result := Estimate(x, k, W, M, V);
+     finally
+            Free;
+     end;
+end;
+
+class function TExpectationMax.EM(X: IMatrix; k: integer; InitM: IMatrix; var W,
+  M: IMatrix; var V: IMatrixDynArr; n: integer; ltol: double): boolean;
+begin
+     with TExpectationMax.Create(n, ltol) do
+     try
+        Init(InitM);
+        Result := Estimate(x, k, W, M, V);
+     finally
+            Free;
+     end;
 end;
 
 end.
