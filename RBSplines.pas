@@ -62,10 +62,13 @@ type
     function EvalSpline(x : IMatrix) : IMatrix; overload;
 
     // calculates the jth derrivative of the spline at points x
-    function DiffSpline(const x : TDoubleDynArray; j : integer) : TDoubleDynArray;
+    function DiffSpline(const x : TDoubleDynArray; j : integer) : TDoubleDynArray; overload;
+    function DiffSpline(x : IMatrix; j : integer) : IMatrix; overload;
     function IntSpline( const intFrom, intTo : double) : double; overload;      // definitive integral
     function IntSpline(const x : TDoubleDynArray) : TDoubleDynArray; overload;  // indefinite integral @ breaks[0]
     function IntSpline(a : double; const x : TDoubleDynArray) : TDoubleDynArray; overload;  // indefinite integral
+    function IntSpline(x : IMatrix) : IMatrix; overload;  // indefinite integral @ breaks[0]
+    function IntSpline(a : double; x : IMatrix) : IMatrix; overload;  // indefinite integral
 
     // ###########################################
     // #### Just for debugging
@@ -189,6 +192,14 @@ begin
      splineBase(breaks);
 
      Result := fCoefs;
+end;
+
+function TRobustBSpline.DiffSpline(x: IMatrix; j: integer): IMatrix;
+var res : TDoubleDynArray;
+begin
+     res := DiffSpline(x.SubMatrix, j);
+
+     Result := MatrixClass.Create(res, 1, Length(res));
 end;
 
 function TRobustBSpline.DiffSpline(const x: TDoubleDynArray; j: integer): TDoubleDynArray;
@@ -429,6 +440,70 @@ begin
      mtxX := MatrixClass.Create(x, 1, Length(x));
 
      Result := evalPoly(mtxX, 1, iCoefs, dummy).SubMatrix;
+end;
+
+function TRobustBSpline.IntSpline(x: IMatrix): IMatrix;
+var iCoefs : IMatrix;
+    dummy : TIntegerDynArray;
+    mtxX : IMatrix;
+begin
+     iCoefs := IntCoefs;
+
+     if x.Width > 0 
+     then
+         mtxX := x.Transpose
+     else
+         mtxX := x;
+
+     Result := evalPoly(mtxX, 1, iCoefs, dummy);
+end;
+
+function TRobustBSpline.IntSpline(a: double; const x: TDoubleDynArray): TDoubleDynArray;
+var iCoefs : IMatrix;
+    aMtx : IMatrix;
+    i0 : IMatrix;
+    dummy : TIntegerDynArray;
+    mtxX : IMatrix;
+begin
+     iCoefs := IntCoefs;
+
+     // indefinite integral from breaks[0] to a
+     aMtx := MatrixClass.Create(1, 1, a);
+     i0 := evalPoly(aMtx, 1, iCoefs, dummy);
+
+     iCoefs.SetSubMatrix( iCoefs.Width - 1, 0, 1, iCoefs.Height);
+     iCoefs.AddAndScaleInPlace(-i0.Vec[0], 1);
+     iCoefs.UseFullMatrix;
+     
+     mtxX := MatrixClass.Create(x, 1, Length(x));
+
+     Result := evalPoly(mtxX, 1, iCoefs, dummy).SubMatrix;
+end;
+
+function TRobustBSpline.IntSpline(a: double; x: IMatrix): IMatrix;
+var iCoefs : IMatrix;
+    aMtx : IMatrix;
+    i0 : IMatrix;
+    dummy : TIntegerDynArray;
+    mtxX : IMatrix;
+begin
+     iCoefs := IntCoefs;
+
+     // indefinite integral from breaks[0] to a
+     aMtx := MatrixClass.Create(1, 1, a);
+     i0 := evalPoly(aMtx, 1, iCoefs, dummy);
+
+     iCoefs.SetSubMatrix( iCoefs.Width - 1, 0, 1, iCoefs.Height);
+     iCoefs.AddAndScaleInPlace(-i0.Vec[0], 1);
+     iCoefs.UseFullMatrix;
+     
+     if x.Width > 1 
+     then
+         mtxX := x.Transpose
+     else
+         mtxX := x;
+
+     Result := evalPoly(mtxX, 1, iCoefs, dummy);
 end;
 
 function TRobustBSpline.IntSpline(const intFrom, intTo: double): double;
@@ -678,29 +753,5 @@ begin
      fCoefs := aCoefs;
      fBreaks := MatrixClass.Create(breaks, 1, Length(breaks));
 end;
-
-function TRobustBSpline.IntSpline(a: double;
-  const x: TDoubleDynArray): TDoubleDynArray;
-var iCoefs : IMatrix;
-    aMtx : IMatrix;
-    i0 : IMatrix;
-    dummy : TIntegerDynArray;
-    mtxX : IMatrix;
-begin
-     iCoefs := IntCoefs;
-
-     // indefinite integral from breaks[0] to a
-     aMtx := MatrixClass.Create(1, 1, a);
-     i0 := evalPoly(aMtx, 1, iCoefs, dummy);
-
-     iCoefs.SetSubMatrix( iCoefs.Width - 1, 0, 1, iCoefs.Height);
-     iCoefs.AddAndScaleInPlace(-i0.Vec[0], 1);
-     iCoefs.UseFullMatrix;
-     
-     mtxX := MatrixClass.Create(x, 1, Length(x));
-
-     Result := evalPoly(mtxX, 1, iCoefs, dummy).SubMatrix;
-end;
-
 
 end.
