@@ -803,9 +803,12 @@ end;
 
 constructor TDoubleMatrix.CreateDyn(const Data : TDoubleDynArray; aWidth, aHeight : integer);
 begin
+     CheckAndRaiseError((aWidth*aHeight > 0) and (Length(Data) >= aWidth*aHeight), 'Dimension error');
+
      inherited Create;
 
-     Assign(Data, aWidth, aHeight);
+     SetWidthHeight(aWidth, aHeight);
+     MatrixCopy(StartElement, LineWidth, @Data[0], aWidth*sizeof(double), aWidth, aHeight);
 end;
 
 constructor TDoubleMatrix.CreateEye(aWidth: integer);
@@ -1904,8 +1907,8 @@ function TDoubleMatrix.Reshape(newWidth, newHeight: integer; RowMajor : boolean 
 var xOld, yOld : integer;
     x, y : Integer;
 begin
-     CheckAndRaiseError((fWidth > 0) and (fHeight > 0), 'Error operation not allowed on empty matrices');
-     CheckAndRaiseError((newWidth*newHeight) = (fWidth*fHeight), 'Error new dimension does not fit into the old one');
+     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'Error operation not allowed on empty matrices');
+     CheckAndRaiseError((newWidth*newHeight) = (fSubWidth*fSubHeight), 'Error new dimension does not fit into the old one');
 
      Result := ResultClass.Create(newWidth, newHeight);
      try
