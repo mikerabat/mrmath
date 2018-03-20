@@ -44,7 +44,7 @@ type
     property OnUpdate : TExpectationMaxUpdate read fOnUpdate write fOnUpdate;
 
     // estimate weights matrix W, mean vectors M and covariance matrix V on
-    // input data X. A data point is presented column wise.
+    // input data X. A data point is presented row wise.
     // k states the number of components.
     // returns false if search excceeds the maximum number of iterations
     function Estimate(X : IMatrix; k : integer; var W, M : IMatrix; var V : IMatrixDynArr) : boolean;
