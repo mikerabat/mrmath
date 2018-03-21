@@ -45,7 +45,8 @@ Type
     function OnLoadObject(const Name : String; obj : TBaseMathPersistence) : boolean; override;
   public
     destructor Destroy; override;
-    procedure Plsr(Xreg, Yreg: TDoubleMatrix; NInput, NComp: Integer);
+    procedure Plsr(Xreg, Yreg: TDoubleMatrix; NInput, NComp: Integer); overload;
+    procedure Plsr(Xreg, Yreg: TDoubleMatrix; CNComp: Integer); overload;
 
     function Project(x : TDoubleMatrix) : TDoubleMatrix;
     
@@ -264,6 +265,11 @@ begin
          fYRes := obj as TDoubleMatrix
      else
          Result := inherited OnLoadObject(name, obj);
+end;
+
+procedure TMatrixPLS.Plsr(Xreg, Yreg: TDoubleMatrix; CNComp: Integer);
+begin
+     Plsr(Xreg, yReg, YReg.Height, CNComp);
 end;
 
 initialization
