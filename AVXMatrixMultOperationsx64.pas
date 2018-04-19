@@ -546,8 +546,7 @@ asm
 
    // iter: r10
    mov r10, width1;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
    // init
 
    // inc(mt2, width2 - 1);
@@ -1129,13 +1128,14 @@ asm
    mov iRBX, rbx;
    mov iRDI, rdi;
    mov iRSI, rsi;
-        // r11 : height1
+   // r11 : height1
    mov r11, height1;
-        // r10 = iter := -(width2 - 1)*sizeof(double);
+   // r10 = iter := -(width2 - 1)*sizeof(double);
    mov r10, width2;
    dec r10;
    imul r10, -8;
-        // start from bottom
+
+   // start from bottom
    // r8: mt2
    // inc(PByte(mt2),(height2 - 1)*LineWidth2);
    mov rax, height2;
@@ -1274,7 +1274,7 @@ asm
    // inc(mt2, width2 - 1);
    mov rax, width2;
    dec rax;
-   imul rax, 8; //sizeof(double)
+   shl rax, 3; //sizeof(double)
    add r8, rax;
 
    // r11: width2

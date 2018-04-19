@@ -424,7 +424,7 @@ asm
    {$IFDEF FPC}vmovupd dXMM7, xmm7;{$ELSE}db $C5,$F9,$11,$7D,$A0;{$ENDIF} 
 
    dec rcx;
-   imul rcx, 8; //iter := (width - 1)*sizeof(double)
+   shl rcx, 3; //iter := (width - 1)*sizeof(double)
 
    mov rax, c;
    mov rbx, s;

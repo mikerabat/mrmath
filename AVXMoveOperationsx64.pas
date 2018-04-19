@@ -226,8 +226,7 @@ asm
    {$ENDIF}
 
    // note: RCX = a, RDX = b, R8 = width
-   shl r8, 3;
-   imul r8, -1;
+   imul r8, -8;
 
    sub rcx, r8;
    sub rdx, r8;
@@ -318,8 +317,7 @@ asm
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    //iters := -width*sizeof(double);
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
@@ -412,8 +410,7 @@ asm
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    //iters := -width*sizeof(double);
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;

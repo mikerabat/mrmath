@@ -51,7 +51,7 @@ procedure AVXMatrixMultAlignedEvenW1EvenH2TransposedMod16(dest : PDouble; const 
     mt1, mt2 : PDouble; width1 : TASMNativeInt;
     height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
     const LineWidth1, LineWidth2 : TASMNativeInt);
-var dxMM4 : Array[0..1] of double;
+var dXMM4 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 
 {$IFDEF FPC}
@@ -86,8 +86,7 @@ asm
 
    // iters2 := -width1*sizeof(double);
    mov r14, width1;
-   shl r14, 3;
-   imul r14, -1;
+   imul r14, -8;
 
    // LineWidth2_2 := 2*LineWidth2;
    mov r13, LineWidth2;
@@ -254,8 +253,7 @@ asm
 
    // iters2 := -width1*sizeof(double);
    mov r14, width1;
-   shl r14, 3;
-   imul r14, -1;
+   imul r14, -8;
 
    // LineWidth2_2 := 2*LineWidth2;
    mov r13, LineWidth2;

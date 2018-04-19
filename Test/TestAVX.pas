@@ -2191,6 +2191,8 @@ const cA : Array[0..15] of double = (00, 01, 02, 03, 10, 11, 12, 13, 20, 21, 22,
       cMtxWidths : Array[0..7] of integer = (16, 16, 128, 753, 345, 560, 1078, 2048);
       cMtxHeights : Array[0..7] of integer = (8, 9, 65, 764, 345, 561, 890, 2048);
 var cgb, cb : Array[0..15] of double;
+    a, b : Array[0..19] of double;
+    pa, pB : PDouble;
     i, j : integer;
     dl1, dl2, dl3 : TASMNativeint;
     dest1, dest2, dest3 : PDouble;
@@ -2203,8 +2205,14 @@ var cgb, cb : Array[0..15] of double;
 begin
      Status( WriteMtx( cA, 4) );
 
+     pa := PDouble( TASMNativeUInt(@a[0]) + 32 - TASMNativeUInt(@a[0]) and $1F);
+     pb := PDouble( TASMNativeUInt(@b[0]) + 32 - TASMNativeUInt(@b[0]) and $1F);
+
      Move(cA, cgb, sizeof(ca));
      Move(cA, cb, sizeof(ca));
+
+     Move(cA, pA^, sizeof(ca));
+
      GenericMtxTranspose(@cgb[0], 4*sizeof(double), @ca[0], 4*sizeof(double), 2, 4);
 
      Status('');
@@ -2217,7 +2225,7 @@ begin
 
      Check( CheckMtx(cgb, cb), 'error in AVX Tranpsosition');
 
-     for i := 1 to 3 do
+     for i := 1 to 4 do
      begin
           for j := 1 to 4 do
           begin
@@ -2235,6 +2243,21 @@ begin
                GenericMtxTranspose(@cgb[0], 4*sizeof(double), @ca[0], 4*sizeof(double), j, i);
                AVXMatrixTranspose(@cb[0], 4*sizeof(double), @ca[0], 4*sizeof(double), j, i);
                Check( CheckMtx(cgb, cb), Format('error in AVX Tranpsosition: %d, %d', [j, i]));
+
+               Move(ca, pB^, sizeof(cb));
+               Move(ca, cgb, sizeof(ca));
+
+               GenericMtxTranspose(@cgb[0], 4*sizeof(double), @ca[0], 4*sizeof(double), i, j);
+               AVXMatrixTranspose(pB, 4*sizeof(double), pA, 4*sizeof(double), i, j);
+
+               Check( CheckMtxIdx(@cgb[0], pb, 4*sizeof(double), 4*sizeof(double), 4, 4, idx), Format('error in AVX Tranpsosition: %d, %d', [i, j]));
+
+               Move(ca, pB^, sizeof(cb));
+               Move(ca, cgb, sizeof(ca));
+
+               GenericMtxTranspose(@cgb[0], 4*sizeof(double), @ca[0], 4*sizeof(double), j, i);
+               AVXMatrixTranspose(pB, 4*sizeof(double), pA, 4*sizeof(double), j, i);
+               Check( CheckMtxIdx(@cgb[0], pb, 4*sizeof(double), 4*sizeof(double), 4, 4, idx), Format('error in AVX Tranpsosition: %d, %d', [j, i]));
           end;
      end;
 

@@ -98,6 +98,7 @@ begin
                rb.Free;
         end;
      finally
+            TRobustBSpline.DefMatrixClass := TDoubleMatrix;;
             TThreadedMatrix.FinalizeThreadPool;
      end;
 end;

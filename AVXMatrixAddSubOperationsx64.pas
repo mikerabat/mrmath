@@ -70,8 +70,7 @@ asm
 
    //iters := -width*sizeof(double);
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    mov r11, LineWidth1;
    mov r12, LineWidth2;

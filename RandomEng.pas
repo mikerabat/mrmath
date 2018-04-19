@@ -347,10 +347,9 @@ begin
      // m = 2^32; a = $8088405; c = 1
      
      res := fSysRandSeed*$8088405 + 1;
-     fSysRandSeed := res and $FFFFFFFF;
-
+     res := res and $FFFFFFFF;
+     fSysRandSeed := LongWord(Res);
      res := res*aRange;
-
      Result := LongInt(Int64Rec(res).Hi);
 end;
 
@@ -362,10 +361,9 @@ begin
      // m = 2^32; a = $8088405; c = 1
      
      res := fSysRandSeed*$8088405 + 1;
-     fSysRandSeed := res and $00000000FFFFFFFF;
-
+     res := res and $FFFFFFFF;
+     fSysRandSeed := LongWord(Res);
      res := res*aRange;
-
      Result := Int64Rec(res).Hi;
 end;
 

@@ -44,6 +44,7 @@ type
     procedure SetWidth(const Value : integer);
     procedure SetHeight(const Value : integer);
     procedure SetWidthHeight(const Width, Height : integer);
+    procedure Resize(aNewWidth, aNewHeight : Integer);           // setwidthheight with data preserve
     function GetVecLen : integer;
 
     property Width : integer read GetSubWidth write SetWidth;
@@ -191,7 +192,9 @@ type
 
     // matrix inversion (based on LU decomposition)    
     function InvertInPlace : TLinEquResult;
-    function Invert : TDoubleMatrix;
+    function Invert : TDoubleMatrix; overload;
+    function Invert( out InvMtx : TDoubleMatrix ) : TLinEquResult; overload;
+    function Invert( out InvMtx : IMatrix ) : TLinEquResult; overload;
     function PseudoInversionInPlace : TSVDResult;
     function PseudoInversion(out Mtx : TDoubleMatrix) : TSVDResult; overload;
     function PseudoInversion(out Mtx : IMatrix) : TSVDResult; overload;
@@ -218,8 +221,11 @@ type
     function Eig(out EigVals : IMatrix)  : TEigenvalueConvergence; overload;
     function Cholesky(out Chol : TDoubleMatrix) : TCholeskyResult; overload;
     function Cholesky(out Chol : IMatrix) : TCholeskyResult; overload;
-    function QR(out R : TDoubleMatrix; out tau : TDoubleMatrix) : TQRResult; overload;
-    function QR(out R : IMatrix; out tau : IMatrix) : TQRResult; overload;
+    // only internaly used -> use the other QR or QRFull methods instead
+    //function QR(out R : TDoubleMatrix; out tau : TDoubleMatrix) : TQRResult; overload;
+    //function QR(out R : IMatrix; out tau : IMatrix) : TQRResult; overload;
+    function QR(out R : TDoubleMatrix) : TQRResult; overload;
+    function QR(out R : IMatrix) : TQRResult; overload;
     function QRFull(out Q, R : TDoubleMatrix) : TQRResult; overload;
     function QRFull(out Q, R : IMatrix) : TQRResult; overload;
 
@@ -232,6 +238,9 @@ type
     procedure Assign(const Mtx : Array of double; W, H : integer); overload;
     procedure AssignSubMatrix(Value : TDoubleMatrix; X : integer = 0; Y : integer = 0); overload;
     procedure AssignSubMatrix(Value : IMatrix; X : integer = 0; Y : integer = 0); overload;
+
+    procedure Append(Value : IMatrix; appendColumns : boolean); overload;
+    procedure Append(Value : TDoubleMatrix; appendColumns : boolean); overload;
 
     // moves data from Value to self and clears original object
     procedure TakeOver(Value : TDoubleMatrix); overload;
@@ -278,13 +287,13 @@ type
     fMemory : Pointer;
     fData : PLocConstDoubleArr;       // 16 byte aligned pointer:
     fLineWidth : TASMNativeInt;
-    fWidth : integer;
     fObj : TObject;                // arbitrary object
 
     procedure MtxRandWithEng(var value : double);
     procedure MtxRand(var value : double);
   protected
     fHeight : integer;
+    fWidth : integer;
     fName : String;
     fSubWidth : integer;
     fSubHeight : integer;
@@ -303,10 +312,15 @@ type
     function GetSubHeight : integer;
     function GetVecLen : integer;
     function GetObjRef : TDoubleMatrix;
+
+    // qr decomposition without clearing the lower triangular matrix and factors tau
+    function QR(out ecosizeR : TDoubleMatrix; out tau : TDoubleMatrix) : TQRResult; overload; virtual;
+    function QR(out ecosizeR : IMatrix; out tau : IMatrix) : TQRResult; overload;
   public
     property Width : integer read GetSubWidth write SetWidth;
     property Height : integer read GetSubHeight write SetHeight;
     procedure SetWidthHeight(const aWidth, aHeight : integer);
+    procedure Resize(aNewWidth, aNewHeight : Integer);           // setwidthheight with data preserve
 
     property Name : string read fName write fName;
 
@@ -396,7 +410,7 @@ type
     procedure VarianceInPlace(RowWise : boolean; unbiased : boolean = True);
     function Std(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
     procedure StdInPlace(RowWise : boolean; unbiased : boolean = True);
-    
+
      // calculates mean and variance in one step and stores the mean in the first row, the variance in the second
     // if RowWise is selected. If rowwise is false it's vice versa
     function MeanVariance(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
@@ -439,16 +453,18 @@ type
     function SolveLinEQ(Value : IMatrix; numRefinements : integer = 0) : TDoubleMatrix; overload;
     procedure SolveLinEQInPlace(Value : TDoubleMatrix; numRefinements : integer = 0); overload; virtual;
     procedure SolveLinEQInPlace(Value : IMatrix; numRefinements : integer = 0); overload;
-    
+
     // solves least sqaures A*x = b using the QR decomposition
     function SolveLeastSquaresInPlace(out x : TDoubleMatrix; b : TDoubleMatrix) : TQRResult; overload; virtual;
-    function SolveLeastSquaresInPlace(out x : IMatrix; b : IMatrix) : TQRResult; overload; 
+    function SolveLeastSquaresInPlace(out x : IMatrix; b : IMatrix) : TQRResult; overload;
     function SolveLeastSquares(out x : TDoubleMatrix; b : TDoubleMatrix) : TQRResult; overload; virtual;
     function SolveLeastSquares(out x : IMatrix; b : IMatrix) : TQRResult; overload;
 
     // Matrix inversion (via LU decomposition)
     function InvertInPlace : TLinEquResult; virtual;
-    function Invert : TDoubleMatrix; virtual;
+    function Invert : TDoubleMatrix; overload; virtual;
+    function Invert( out InvMtx : TDoubleMatrix ) : TLinEquResult; overload; virtual;
+    function Invert( out InvMtx : IMatrix ) : TLinEquResult; overload; virtual;
     function Determinant : double; virtual;
 
     // pseudoinversion via svd
@@ -476,8 +492,10 @@ type
     function Eig(out EigVals : IMatrix)  : TEigenvalueConvergence; overload;
     function Cholesky(out Chol : TDoubleMatrix) : TCholeskyResult; overload; virtual;
     function Cholesky(out Chol : IMatrix) : TCholeskyResult; overload;
-    function QR(out ecosizeR : TDoubleMatrix; out tau : TDoubleMatrix) : TQRResult; overload; virtual;
-    function QR(out ecosizeR : IMatrix; out tau : IMatrix) : TQRResult; overload;
+
+    // cleared lower triangle qr decomposition -> R only
+    function QR(out R : TDoubleMatrix) : TQRResult; overload;
+    function QR(out R : IMatrix) : TQRResult; overload;
     function QRFull(out Q, R : TDoubleMatrix) : TQRResult; overload; virtual;
     function QRFull(out Q, R : IMatrix) : TQRResult; overload;
 
@@ -491,10 +509,12 @@ type
     procedure AssignSubMatrix(Value : TDoubleMatrix; X : integer = 0; Y : integer = 0); overload;
     procedure AssignSubMatrix(Value : IMatrix; X : integer = 0; Y : integer = 0); overload;
 
+    procedure Append(Value : IMatrix; appendColumns : boolean); overload;
+    procedure Append(Value : TDoubleMatrix; appendColumns : boolean); overload;
+
     // actually the same as assign but it takes over the data and leaves an empty matrix object behind.
     procedure TakeOver(Value : TDoubleMatrix); overload;
     procedure TakeOver(Value : IMatrix); overload;
-
 
     function Clone : TDoubleMatrix;
 
@@ -504,7 +524,7 @@ type
     constructor Create(data : PDouble; aLineWidth : integer; aWidth, aHeight : integer); overload;
     constructor CreateDyn(const Data : TDoubleDynArray; aWidth, aHeight : integer); overload;
     constructor CreateDyn(const Data : TDoubleDynArray; fromDataIdx : integer; aWidth, aHeight : integer); overload;
-    constructor Create(const Mtx : Array of double; W, H : integer); overload; 
+    constructor Create(const Mtx : Array of double; W, H : integer); overload;
     constructor CreateRand(aWidth, aHeight : integer; method : TRandomAlgorithm; seed : LongInt); overload; // uses random engine
     constructor CreateRand(aWidth, aHeight : integer); overload; // uses system default random
     constructor CreateLinSpace(aVecLen : integer; const StartVal : double; const EndVal : double);
@@ -681,6 +701,32 @@ begin
      Assign(Value.GetObjRef);
 end;
 
+procedure TDoubleMatrix.Append(Value: TDoubleMatrix; appendColumns: boolean);
+var pStart : PDouble;
+begin
+     if AppendColumns then
+     begin
+          CheckAndRaiseError(Value.Height = fSubHeight, 'Dimension error, number of rows are not equal');
+          Resize(fSubWidth + Value.Width, fSubHeight);
+          pStart := StartElement;
+          inc(pStart, fSubWidth - Value.Width);
+          MatrixCopy(pStart, LineWidth, Value.StartElement, Value.LineWidth, Value.Width, Value.Height );
+     end
+     else
+     begin
+          CheckAndRaiseError(Value.Width = fSubWidth, 'Dimension error, number of columns are not equal');
+          Resize(fSubWidth, Value.Height + fSubHeight);
+          pStart := GenPtr(StartElement, 0, fSubHeight - Value.Height, LineWidth);
+          MatrixCopy(pStart, LineWidth, Value.StartElement, Value.LineWidth, Value.Width, Value.Height );
+     end;
+end;
+
+procedure TDoubleMatrix.Append(Value: IMatrix; appendColumns: boolean);
+begin
+     Append(Value.GetObjRef, appendColumns);
+end;
+
+
 procedure TDoubleMatrix.AssignSubMatrix(Value: TDoubleMatrix; X, Y: integer);
 var pSelf, pValue : PDouble;
 begin
@@ -688,9 +734,7 @@ begin
      if (Value.Width = 0) or (Value.Height = 0) then
         exit;
 
-     pSelf := StartElement;
-     inc(PByte(pSelf), Y*LineWidth);
-     inc(pSelf, X);
+     pSelf := GenPtr(StartElement, x, y, LineWidth);
      pValue := Value.StartElement;
 
      MatrixCopy(pSelf, LineWidth, pValue, Value.LineWidth, Value.Width, Value.Height);
@@ -1379,6 +1423,27 @@ begin
      end;
 end;
 
+function TDoubleMatrix.Invert(out InvMtx : TDoubleMatrix): TLinEquResult;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+     CheckAndRaiseError(fSubWidth = fSubHeight, 'Operation only allowed on square matrices');
+
+     InvMtx := ResultClass.Create;
+     InvMtx.Assign(Self, True);
+
+     Result := MatrixInverseInPlace(InvMtx.StartElement, InvMtx.LineWidth, fSubWidth, fLinEQProgress);
+     if Result <> leOk then
+        FreeAndNil(invMtx);
+end;
+
+function TDoubleMatrix.Invert(out InvMtx: IMatrix): TLinEquResult;
+var tmp : TDoubleMatrix;
+begin
+     Result := Invert(tmp);
+     InvMtx := tmp;
+end;
+
+
 function TDoubleMatrix.InvertInPlace: TLinEquResult;
 var dt : TDoubleMatrix;
 begin
@@ -1756,6 +1821,30 @@ begin
      end;
 end;
 
+function TDoubleMatrix.QR(out R: IMatrix): TQRResult;
+var outR : TDoubleMatrix;
+begin
+     Result := QR(outR);
+     R := outR;
+end;
+
+
+function TDoubleMatrix.QR(out R: TDoubleMatrix): TQRResult;
+var tmp : TDoubleMatrix;
+    i, j : integer;
+begin
+     Result := QR(R, tmp);
+     tmp.Free;
+     if Result = qrOK then
+     begin
+          R.Resize( Width, Math.Min(Width, Height) );
+          // clear lower triangular matrix of R
+          for i := 1 to R.Height - 1 do
+               for j := 0 to i - 1 do
+                   R[j, i] := 0;
+     end;
+end;
+
 function TDoubleMatrix.QR(out ecosizeR: IMatrix; out tau : IMatrix): TQRResult;
 var outR : TDoubleMatrix;
     outTau : TDoubleMatrix;
@@ -1836,10 +1925,11 @@ end;
 
 function TDoubleMatrix.QR(out ecosizeR: TDoubleMatrix; out tau : TDoubleMatrix): TQRResult;
 begin
-     ecosizeR := ResultClass.Create;
+     // note: the QR decomposition here does not update the resulting matrix size -> it is further used in the Q decomposition and that memory
+     // is needed there. So in any subsequent call one needs to adjust the size self. Also the lower triangular data is not destroyed and set to 0!
+     ecosizeR := Clone;
      tau := ResultClass.Create(width, 1);
      try
-        ecosizeR.Assign(self);
         Result := MatrixQRDecompInPlace2(ecosizeR.StartElement, ecosizeR.LineWidth, width, height, tau.StartElement, fLinEQProgress);
      except
            FreeAndNil(ecosizeR);
@@ -2118,6 +2208,36 @@ procedure TDoubleMatrix.SetWidthHeight(const aWidth, aHeight: integer);
 begin
      InternalSetWidthHeight(aWidth, aHeight, True);
 end;
+
+procedure TDoubleMatrix.Resize(aNewWidth, aNewHeight: Integer);
+var origSubWidth,
+    origSubHeight : integer;
+    origMemory : Pointer;
+    origLineWidth : TASMNativeInt;
+    origStart : PDouble;
+begin
+     CheckAndRaiseError( (aNewWidth > 0) and (aNewHeight > 0), 'Width and height need to be greater than 0');
+     origSubWidth := fSubWidth;
+     origSubHeight := fSubHeight;
+     origMemory := fMemory;
+     origLineWidth := fLineWidth;
+
+     origStart := StartElement;
+
+     fMemory := nil;
+     fData := nil;
+
+     InternalSetWidthHeight(aNewWidth, aNewHeight, True);
+
+     // #######################################
+     // #### copy old memory and free
+     // note only the submatrix stuff is copied
+     MatrixCopy( StartElement, LineWidth, origStart, origLineWidth,
+                 Math.Min(fWidth, origSubWidth), Math.Min( fHeight, origSubHeight ) );
+
+     FreeMem(origMemory);
+end;
+
 
 procedure TDoubleMatrix.InternalSetWidthHeight(const aWidth, aHeight: integer; AssignMem : boolean);
 begin

@@ -66,8 +66,7 @@ asm
 
    //iters := -width*sizeof(double);
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub rcx, r10;
@@ -75,7 +74,7 @@ asm
    {$IFDEF FPC}vxorpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
    {$IFDEF FPC}vxorpd ymm1, ymm1, ymm1;{$ELSE}db $C5,$F5,$57,$C9;{$ENDIF} 
 
-   mov r11, r9
+   mov r11, r9;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -172,8 +171,7 @@ asm
 
    //iters := -width*sizeof(double);
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub rcx, r10;
@@ -279,8 +277,7 @@ asm
 
    //iters := -width*sizeof(double);
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub rcx, r10;
@@ -454,8 +451,7 @@ asm
 
    //iters := -width*sizeof(double);
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub rcx, r10;

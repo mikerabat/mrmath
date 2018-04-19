@@ -159,7 +159,9 @@ uses
   TestRandom in 'TestRandom.pas',
   TestCorr in 'TestCorr.pas',
   TestEM in 'TestEM.pas',
-  TestRBSpline in 'TestRBSpline.pas';
+  TestRBSpline in 'TestRBSpline.pas',
+  TestDist in 'TestDist.pas',
+  Dist in '..\Dist.pas';
 {$R *.res}
 
 begin

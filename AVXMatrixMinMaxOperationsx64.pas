@@ -42,7 +42,7 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 function AVXMatrixMaxAligned(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-var iRBX : TASMNativeInt;
+var dXMM4 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -57,10 +57,9 @@ asm
    mov rcx, rdi;
    mov rdx, rsi;
    {$ENDIF}
-
    // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    // prolog - simulate stack
-   mov iRBX, rbx;
+   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$C8;{$ENDIF} 
 
    imul rdx, -8;
 
@@ -73,7 +72,7 @@ asm
    {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$28,$E0;{$ENDIF} 
 
    // for y := 0 to height - 1:
-   mov rbx, Height;
+   mov r10, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -128,7 +127,7 @@ asm
        add rcx, r9;
 
    // loop y end
-   dec rbx;
+   dec r10;
    jnz @@addforyloop;
 
    // final max ->
@@ -136,7 +135,7 @@ asm
    {$IFDEF FPC}vmaxsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$5F,$C1;{$ENDIF} 
 
    // epilog - cleanup stack
-   mov rbx, iRBX;
+   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$C8;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
@@ -144,7 +143,7 @@ end;
 end;
 
 function AVXMatrixMaxUnAligned(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-var iRBX : TASMNativeInt;
+var dXMM4 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -162,7 +161,7 @@ asm
 
    // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    // prolog - simulate stack
-   mov iRBX, rbx;
+   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$C8;{$ENDIF} 
 
    imul rdx, -8;
 
@@ -175,7 +174,7 @@ asm
    {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$28,$E0;{$ENDIF} 
 
    // for y := 0 to height - 1:
-   mov rbx, Height;
+   mov r10, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -235,7 +234,7 @@ asm
        add rcx, r9;
 
    // loop y end
-   dec rbx;
+   dec r10;
    jnz @@addforyloop;
 
    // final max ->
@@ -243,7 +242,7 @@ asm
    {$IFDEF FPC}vmaxsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$5F,$C1;{$ENDIF} 
 
    // epilog - cleanup stack
-   mov rbx, iRBX;
+   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$C8;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
@@ -251,7 +250,7 @@ end;
 end;
 
 function AVXMatrixMinAligned(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-var iRBX : TASMNativeInt;
+var dXMM4 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -269,7 +268,7 @@ asm
 
    // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    // prolog - simulate stack
-   mov iRBX, rbx;
+   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$C8;{$ENDIF} 
 
    imul rdx, -8;
 
@@ -282,7 +281,7 @@ asm
    {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$28,$E0;{$ENDIF} 
 
    // for y := 0 to height - 1:
-   mov rbx, Height;
+   mov r10, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -335,15 +334,15 @@ asm
        add rcx, r9;
 
    // loop y end
-   dec rbx;
+   dec r10;
    jnz @@addforyloop;
 
-   // final max ->
+   // final min ->
    {$IFDEF FPC}vmovhlps xmm1, xmm1, xmm0;{$ELSE}db $C5,$F0,$12,$C8;{$ENDIF} 
    {$IFDEF FPC}vminsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$5D,$C1;{$ENDIF} 
 
    // epilog - cleanup stack
-   mov rbx, iRBX;
+   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$C8;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
@@ -351,7 +350,7 @@ end;
 end;
 
 function AVXMatrixMinUnAligned(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-var iRBX : TASMNativeInt;
+var dXMM4 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -369,7 +368,7 @@ asm
 
    // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    // prolog - simulate stack
-   mov iRBX, rbx;
+   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$C8;{$ENDIF} 
 
    imul rdx, -8;
 
@@ -382,7 +381,7 @@ asm
    {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$28,$E0;{$ENDIF} 
 
    // for y := 0 to height - 1:
-   mov rbx, Height;
+   mov r10, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -440,7 +439,7 @@ asm
        add rcx, r9;
 
    // loop y end
-   dec rbx;
+   dec r10;
    jnz @@addforyloop;
 
    // final max ->
@@ -448,7 +447,7 @@ asm
    {$IFDEF FPC}vminsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$5D,$C1;{$ENDIF} 
 
    // epilog - cleanup stack
-   mov rbx, iRBX;
+   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$C8;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;

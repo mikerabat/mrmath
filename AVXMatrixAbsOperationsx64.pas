@@ -94,9 +94,9 @@ asm
            {$IFDEF FPC}vandpd ymm3, ymm3, ymm0;{$ELSE}db $C5,$E5,$54,$D8;{$ENDIF} 
            {$IFDEF FPC}vmovntdq [rcx + rax - 64], ymm3;{$ELSE}db $C5,$FD,$E7,$5C,$01,$C0;{$ENDIF} 
 
-           {$IFDEF FPC}vmovapd ymm4, [rcx + rax - 32];{$ELSE}db $C5,$FD,$28,$64,$01,$E0;{$ENDIF} 
-           {$IFDEF FPC}vandpd ymm4, ymm4, ymm0;{$ELSE}db $C5,$DD,$54,$E0;{$ENDIF} 
-           {$IFDEF FPC}vmovntdq [rcx + rax - 32], ymm4;{$ELSE}db $C5,$FD,$E7,$64,$01,$E0;{$ENDIF} 
+           {$IFDEF FPC}vmovapd ymm2, [rcx + rax - 32];{$ELSE}db $C5,$FD,$28,$54,$01,$E0;{$ENDIF} 
+           {$IFDEF FPC}vandpd ymm2, ymm2, ymm0;{$ELSE}db $C5,$ED,$54,$D0;{$ENDIF} 
+           {$IFDEF FPC}vmovntdq [rcx + rax - 32], ymm2;{$ELSE}db $C5,$FD,$E7,$54,$01,$E0;{$ENDIF} 
        jmp @addforxloop
 
        @loopEnd:
@@ -191,9 +191,9 @@ asm
            {$IFDEF FPC}vandpd ymm3, ymm3, ymm0;{$ELSE}db $C5,$E5,$54,$D8;{$ENDIF} 
            {$IFDEF FPC}vmovupd [rcx + rax - 64], ymm3;{$ELSE}db $C5,$FD,$11,$5C,$01,$C0;{$ENDIF} 
 
-           {$IFDEF FPC}vmovupd ymm4, [rcx + rax - 32];{$ELSE}db $C5,$FD,$10,$64,$01,$E0;{$ENDIF} 
-           {$IFDEF FPC}vandpd ymm4, ymm4, ymm0;{$ELSE}db $C5,$DD,$54,$E0;{$ENDIF} 
-           {$IFDEF FPC}vmovupd [rcx + rax - 32], ymm4;{$ELSE}db $C5,$FD,$11,$64,$01,$E0;{$ENDIF} 
+           {$IFDEF FPC}vmovupd ymm2, [rcx + rax - 32];{$ELSE}db $C5,$FD,$10,$54,$01,$E0;{$ENDIF} 
+           {$IFDEF FPC}vandpd ymm2, ymm2, ymm0;{$ELSE}db $C5,$ED,$54,$D0;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [rcx + rax - 32], ymm2;{$ELSE}db $C5,$FD,$11,$54,$01,$E0;{$ENDIF} 
        jmp @addforxloop
 
        @loopEnd:

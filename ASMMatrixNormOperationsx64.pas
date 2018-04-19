@@ -73,15 +73,10 @@ asm
    // prolog - simulate stack
    movupd dXMM4, xmm4;
    movupd dXMM7, xmm7;
-   {
-   .savenv xmm4;
-   .savenv xmm7;
-   }
 
    //iters := -width*sizeof(double);
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub rcx, r10;

@@ -78,8 +78,7 @@ asm
 
    // iters := -width*sizeof(double)
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
@@ -185,8 +184,7 @@ asm
 
    // iters := -width*sizeof(double)
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
@@ -1401,8 +1399,7 @@ asm
 
    // iters := -width*sizeof(double)
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
@@ -1601,8 +1598,7 @@ asm
 
    // iters := -width*sizeof(double)
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;

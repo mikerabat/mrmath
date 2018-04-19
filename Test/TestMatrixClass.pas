@@ -64,6 +64,7 @@ type
    procedure TestNormalize;
    procedure TestRandomInit;
    procedure TestSort;
+   procedure TestAppend;
   end;
 
 type
@@ -114,7 +115,7 @@ implementation
 
 uses BaseMathPersistence, binaryReaderWriter,
      math, MatrixConst, mtxTimer, Dialogs, MathUtilFunc, RandomEng,
-     JSONReaderWriter;
+     JSONReaderWriter, OptimizedFuncs;
 
 { TestTDoubleMatrix }
 
@@ -698,6 +699,33 @@ end;
 procedure TestTDoubleMatrix.OnProgress(Progress: Integer);
 begin
      Status(IntToStr(Progress));
+end;
+
+procedure TestTDoubleMatrix.TestAppend;
+var x : TDoubleMatrix;
+  i: Integer;
+  j: Integer;
+
+begin
+     x := TDoubleMatrix.CreateRand(4, 4);
+     x.Append(x.Clone as IMatrix, False);
+
+     for i := 0 to x.Width - 1 do
+         for j := 0 to x.Height div 2 - 1 do
+             Check( x[i, j] = x[i, j + 4], 'Appending rows failed' );
+
+
+
+     x.Free;
+
+     x := TDoubleMatrix.CreateRand(4, 4);
+     x.Append(x.Clone as IMatrix, True);
+
+     for i := 0 to x.Width div 2 - 1 do
+         for j := 0 to x.Height - 1 do
+             Check( x[i, j] = x[i + 4, j], 'Appending columns failed');
+
+     x.Free;
 end;
 
 { TestTThreadedMatrix }

@@ -41,9 +41,10 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
-procedure AVXMatrixTransposeAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-var iR10, iR11, iR12, iR13, iR14, iR15, iRSI, iRDI : TASMNativeInt;
-    dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+procedure AVXMatrixTransposeAligned(dest : PDouble; const destLineWidth : TASMNativeInt;
+  mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+var iR12, iR13, iR14, iR15, iRSI, iRDI : TASMNativeInt;
+    dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -60,8 +61,6 @@ asm
    {$ENDIF}
 
    // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
-   mov iR10, r10;
-   mov iR11, r11;
    mov iR12, r12;
    mov iR13, r13;
    mov iR14, r14;
@@ -69,16 +68,10 @@ asm
    mov iRSI, rsi;
    mov iRDI, rdi;
 
+   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$A0;{$ENDIF} 
    {$IFDEF FPC}vmovupd dXMM5, xmm5;{$ELSE}db $C5,$F9,$11,$6D,$90;{$ENDIF} 
    {$IFDEF FPC}vmovupd dXMM6, xmm6;{$ELSE}db $C5,$F9,$11,$75,$80;{$ENDIF} 
    {$IFDEF FPC}vmovupd dXMM7, xmm7;{$ELSE}db $C5,$F9,$11,$BD,$FF,$FF,$FF,$70;{$ENDIF} 
-
-
-   // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
-   mov iR12, r12;
-   mov iR13, r13;
-   mov iR14, r14;
-   mov iRDI, rdi;
 
    // iters := -width*sizeof(double);
    mov r10, width;
@@ -196,8 +189,6 @@ asm
    @endproc:
 
    // epilog
-   mov r10, iR10;
-   mov r11, iR11;
    mov r12, iR12;
    mov r13, iR13;
    mov r14, iR14;
@@ -205,6 +196,7 @@ asm
    mov rsi, iRSI;
    mov rdi, iRDI;
 
+   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$A0;{$ENDIF} 
    {$IFDEF FPC}vmovupd xmm5, dXMM5;{$ELSE}db $C5,$F9,$10,$6D,$90;{$ENDIF} 
    {$IFDEF FPC}vmovupd xmm6, dXMM6;{$ELSE}db $C5,$F9,$10,$75,$80;{$ENDIF} 
    {$IFDEF FPC}vmovupd xmm7, dXMM7;{$ELSE}db $C5,$F9,$10,$BD,$FF,$FF,$FF,$70;{$ENDIF} 
@@ -215,8 +207,8 @@ end;
 {$ENDIF}
 
 procedure AVXMatrixTransposeUnaligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-var iR10, iR11, iR12, iR13, iR14, iR15, iRSI, iRDI : TASMNativeInt;
-    dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
+var iR12, iR13, iR14, iR15, iRSI, iRDI : TASMNativeInt;
+    dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -233,8 +225,6 @@ asm
    {$ENDIF}
 
    // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
-   mov iR10, r10;
-   mov iR11, r11;
    mov iR12, r12;
    mov iR13, r13;
    mov iR14, r14;
@@ -242,21 +232,14 @@ asm
    mov iRSI, rsi;
    mov iRDI, rdi;
 
+   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$A0;{$ENDIF} 
    {$IFDEF FPC}vmovupd dXMM5, xmm5;{$ELSE}db $C5,$F9,$11,$6D,$90;{$ENDIF} 
    {$IFDEF FPC}vmovupd dXMM6, xmm6;{$ELSE}db $C5,$F9,$11,$75,$80;{$ENDIF} 
    {$IFDEF FPC}vmovupd dXMM7, xmm7;{$ELSE}db $C5,$F9,$11,$BD,$FF,$FF,$FF,$70;{$ENDIF} 
 
-
-   // rcx = dest, rdx = destLineWidth, r8 = mt, r9 = LineWidth
-   mov iR12, r12;
-   mov iR13, r13;
-   mov iR14, r14;
-   mov iRDI, rdi;
-
    // iters := -width*sizeof(double);
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    sub r8, r10;
 
@@ -369,8 +352,6 @@ asm
    @endproc:
 
    // epilog
-   mov r10, iR10;
-   mov r11, iR11;
    mov r12, iR12;
    mov r13, iR13;
    mov r14, iR14;
@@ -378,6 +359,7 @@ asm
    mov rsi, iRSI;
    mov rdi, iRDI;
 
+   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$A0;{$ENDIF} 
    {$IFDEF FPC}vmovupd xmm5, dXMM5;{$ELSE}db $C5,$F9,$10,$6D,$90;{$ENDIF} 
    {$IFDEF FPC}vmovupd xmm6, dXMM6;{$ELSE}db $C5,$F9,$10,$75,$80;{$ENDIF} 
    {$IFDEF FPC}vmovupd xmm7, dXMM7;{$ELSE}db $C5,$F9,$10,$BD,$FF,$FF,$FF,$70;{$ENDIF} 
@@ -389,7 +371,6 @@ end;
 
 // simple Inplace Trasnposition of an N x N matrix
 procedure AVXMatrixTransposeInplace(mt : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt);
-var iRBX, iRDI, iRSI : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -405,12 +386,7 @@ asm
    mov rcx, rdi;
    mov rdx, rsi;
 {$ENDIF}
-
-   // prolog - stack
-   mov iRBX, rbx;
-   mov iRDI, rdi;
-   mov iRSI, rsi;
-
+   // check if N < 2 -> do nothing an a 1x1 matrix
    cmp r8, 2;
    jl @@exitProc;
 
@@ -418,9 +394,8 @@ asm
    mov rax, r8;
    imul rax, -8;
 
-
-   mov rbx, rcx;  // pDest1: genptr(mt, 0, 1, linewidth)
-   add rbx, rdx;
+   mov r9, rcx;  // pDest1: genptr(mt, 0, 1, linewidth)
+   add r9, rdx;
 
    sub rcx, rax;  // mt + iter
 
@@ -428,36 +403,31 @@ asm
    dec r8;
    @@foryloop:
 
-      mov rdi, rax; // iter aka x
-      add rdi, 8;
-      mov rsi, rbx;
+      mov r10, rax; // iter aka x
+      add r10, 8;
+      mov r11, r9;
       // for x := y + 1 to n-1 do
       @@forxloop:
-         {$IFDEF FPC}vmovsd xmm0, [rcx + rdi];{$ELSE}db $C5,$FB,$10,$04,$39;{$ENDIF} 
-         {$IFDEF FPC}vmovsd xmm1, [rsi];{$ELSE}db $C5,$FB,$10,$0E;{$ENDIF} 
+         {$IFDEF FPC}vmovsd xmm0, [rcx + r10];{$ELSE}db $C4,$A1,$7B,$10,$04,$11;{$ENDIF} 
+         {$IFDEF FPC}vmovsd xmm1, [r11];{$ELSE}db $C4,$C1,$7B,$10,$0B;{$ENDIF} 
 
-         {$IFDEF FPC}vmovsd [rcx + rdi], xmm1;{$ELSE}db $C5,$FB,$11,$0C,$39;{$ENDIF} 
-         {$IFDEF FPC}vmovsd [rsi], xmm0;{$ELSE}db $C5,$FB,$11,$06;{$ENDIF} 
+         {$IFDEF FPC}vmovsd [rcx + r10], xmm1;{$ELSE}db $C4,$A1,$7B,$11,$0C,$11;{$ENDIF} 
+         {$IFDEF FPC}vmovsd [r11], xmm0;{$ELSE}db $C4,$C1,$7B,$11,$03;{$ENDIF} 
 
-         add rsi, rdx;
-      add rdi, 8;
+         add r11, rdx;
+      add r10, 8;
       jnz @@forxloop;
 
       add rax, 8;  // iter + sizeof(double);
       //pDest := PConstDoubleArr( GenPtr(dest, 0, y, destLineWidth) );
       add rcx, rdx;
       // GenPtr(dest, y, y + 1, destLineWidth);
-      add rbx, rdx;
-      add rbx, 8;
+      add r9, rdx;
+      add r9, 8;
    dec r8;
    jnz @@foryloop;
 
    @@exitProc:
-
-   // epilog - cleanup stack
-   mov rbx, iRBX;
-   mov rdi, iRDI;
-   mov rsi, iRSI;
 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;

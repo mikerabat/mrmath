@@ -63,7 +63,9 @@ type
 
     // threaded lin alg functions
     function InvertInPlace : TLinEquResult; override;
-    function Invert : TDoubleMatrix; override;
+    function Invert : TDoubleMatrix; overload; override;
+    function Invert( out InvMtx : TDoubleMatrix ) : TLinEquResult; overload; override;
+
     function SolveLinEQ(Value : TDoubleMatrix; numRefinements : integer = 0) : TDoubleMatrix; override;
     procedure SolveLinEQInPlace(Value : TDoubleMatrix; numRefinements : integer = 0); override;
     function Determinant: double; override;
@@ -223,6 +225,18 @@ begin
      end;
 end;
 
+function TThreadedMatrix.Invert(out InvMtx: TDoubleMatrix): TLinEquResult;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+     CheckAndRaiseError(fSubWidth = fSubHeight, 'Operation only allowed on square matrices');
+
+     InvMtx := ResultClass.Create;
+     InvMtx.Assign(Self, True);
+
+     Result := ThrMatrixInverse(InvMtx.StartElement, InvMtx.LineWidth, fSubWidth, fLinEQProgress);
+     if Result <> leOk then
+        FreeAndNil(invMtx);
+end;
 
 function TThreadedMatrix.InvertInPlace: TLinEquResult;
 var dt : TDoubleMatrix;

@@ -160,6 +160,7 @@ contains
   FMAMatrixMultTransposedOperationsx64 in 'FMAMatrixMultTransposedOperationsx64.pas',
   FMAMatrixOperations in 'FMAMatrixOperations.pas',
   FMAMatrixVectorMultOperations in 'FMAMatrixVectorMultOperations.pas',
-  FMAMatrixVectorMultOperationsx64 in 'FMAMatrixVectorMultOperationsx64.pas';
+  FMAMatrixVectorMultOperationsx64 in 'FMAMatrixVectorMultOperationsx64.pas',
+  Dist in 'Dist.pas';
 
 end.

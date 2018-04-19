@@ -42,7 +42,7 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 procedure AVXMatrixElemMultAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var iRBX, iR11, iR12 : TASMNativeInt;
+var iRBX, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -60,7 +60,6 @@ asm
    // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
    // prolog - simulate stack
    mov iRBX, rbx;
-   mov iR11, r11;
    mov iR12, r12;
 
    //iters := -width*sizeof(double);
@@ -150,7 +149,6 @@ asm
 
    // epilog
    mov rbx, iRBX;
-   mov r11, iR11;
    mov r12, iR12;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
@@ -159,7 +157,7 @@ end;
 end;
 
 procedure AVXMatrixElemMultUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var iRBX, iR11, iR12 : TASMNativeInt;
+var iRBX, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -177,7 +175,6 @@ asm
    // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
    // prolog - simulate stack
    mov iRBX, rbx;
-   mov iR11, r11;
    mov iR12, r12;
 
    //iters := -width*sizeof(double);
@@ -272,7 +269,6 @@ asm
 
    // epilog
    mov rbx, iRBX;
-   mov r11, iR11;
    mov r12, iR12;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
@@ -285,7 +281,7 @@ end;
 // ##############################################################
 
 procedure AVXMatrixElemDivAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var iRBX, iR11, iR12 : TASMNativeInt;
+var iRBX, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -303,13 +299,11 @@ asm
    // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
    // prolog - simulate stack
    mov iRBX, rbx;
-   mov iR11, r11;
    mov iR12, r12;
 
    //iters := -width*sizeof(double);
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    mov r11, LineWidth1;
    mov r12, LineWidth2;
@@ -393,7 +387,6 @@ asm
 
    // epilog
    mov rbx, iRBX;
-   mov r11, iR11;
    mov r12, iR12;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
@@ -402,7 +395,7 @@ end;
 end;
 
 procedure AVXMatrixElemDivUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var iRBX, iR11, iR12 : TASMNativeInt;
+var iRBX, iR12 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -420,13 +413,11 @@ asm
    // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = mt2
    // prolog - simulate stack
    mov iRBX, rbx;
-   mov iR11, r11;
    mov iR12, r12;
 
    //iters := -width*sizeof(double);
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    mov r11, LineWidth1;
    mov r12, LineWidth2;
@@ -515,7 +506,6 @@ asm
 
    // epilog
    mov rbx, iRBX;
-   mov r11, iR11;
    mov r12, iR12;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}

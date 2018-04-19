@@ -50,7 +50,7 @@ implementation
 // ##################################################
 
 procedure AVXMatrixCumulativeSumRow(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iRBX, iRDI, iRSI : TASMNativeint;
+var iRSI : TASMNativeint;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -68,25 +68,24 @@ asm
    {$ENDIF}
 
    // prolog - maintain stack
-   mov iRBX, rbx;
-   mov iRDI, rdi;
    mov iRSI, rsi;
 
    // if (width <= 0) or (height <= 0) then exit;
-   mov rbx, width;
-   cmp rbx, 0;
+   mov r10, width;
+   cmp r10, 0;
    jle @@exitproc;
    mov rsi, height;
    cmp rsi, 0;
    jle @@exitproc;
 
    // iter := -width*sizeof(Double)
-   imul rbx, -8;
+   imul r10, -8;
+
    // prepare counters
-   sub rcx, rbx;
-   sub r8, rbx;
+   sub rcx, r10;
+   sub r8, r10;
    @@foryloop:
-      mov rax, rbx;
+      mov rax, r10;
 
       {$IFDEF FPC}vxorpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
       @@forxloop:
@@ -103,8 +102,6 @@ asm
    @@exitProc:
 
    // epilog - stack cleanup
-   mov rbx, iRBX;
-   mov rdi, iRDI;
    mov rsi, iRSI;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
@@ -119,7 +116,7 @@ begin
 {$ENDIF}
 // rcx: dest, rdx: destlinewidth; r8: src; r9 : srclinewidth
 asm
-{$IFDEF LINUX}
+   {$IFDEF LINUX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -192,6 +189,7 @@ asm
    jg @@forxloopshort;
 
    @@exitProc:
+
    // epilog - stack cleanup
    mov rdi, iRDI;
    mov rsi, iRSI;
@@ -295,7 +293,6 @@ end;
 // ###############################################
 
 procedure AVXMatrixDifferentiateRow(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iRBX, iRDI, iRSI : TASMNativeint;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -313,24 +310,22 @@ asm
 {$ENDIF}
 
    // prolog - maintain stack
-   mov iRBX, rbx;
-   mov iRSI, rsi;
 
    // if (width <= 1) or (height <= 0) then exit;
-   mov rbx, width;
-   cmp rbx, 1;
+   mov r10, width;
+   cmp r10, 1;
    jle @@exitproc;
-   mov rsi, height;
-   cmp rsi, 0;
+   mov r11, height;
+   cmp r11, 0;
    jle @@exitproc;
    // iter := -width*sizeof(Double)
-   imul rbx, -8;
+   imul r10, -8;
    // prepare counters
-   sub rcx, rbx;
-   sub r8, rbx;
-   add rbx, 8;
+   sub rcx, r10;
+   sub r8, r10;
+   add r10, 8;
    @@foryloop:
-       mov rax, rbx;
+       mov rax, r10;
        {$IFDEF FPC}vmovsd xmm1, [r8 + rax - 8];{$ELSE}db $C4,$C1,$7B,$10,$4C,$00,$F8;{$ENDIF} 
        @@forxloop:
            {$IFDEF FPC}vmovsd xmm0, [r8 + rax];{$ELSE}db $C4,$C1,$7B,$10,$04,$00;{$ENDIF} 
@@ -342,13 +337,12 @@ asm
 
        add rcx, rdx;
        add r8, r9;
-   dec rsi;
+   dec r11;
    jnz @@foryloop;
 
    @@exitProc:
+
    // epilog - stack cleanup
-   mov rbx, iRBX;
-   mov rsi, iRSI;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 {$IFDEF FPC}
