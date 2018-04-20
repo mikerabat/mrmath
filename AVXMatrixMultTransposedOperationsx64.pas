@@ -45,15 +45,13 @@ implementation
 
 {$IFDEF x64}
 
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
+{$IFDEF FPC} {$ASMMODE intel} {$S-} {$warnings off} {$ENDIF}
 
 procedure AVXMatrixMultAlignedEvenW1EvenH2TransposedMod16(dest : PDouble; const destLineWidth : TASMNativeInt;
     mt1, mt2 : PDouble; width1 : TASMNativeInt;
     height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
     const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
-
+var iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -78,7 +76,7 @@ asm
    mov iR14, r14;
    mov iR15, r15;
 
-   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -207,7 +205,7 @@ asm
    mov r14, iR14;
    mov r15, iR15;
 
-   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
@@ -218,8 +216,7 @@ procedure AVXMatrixMultAlignedEvenW1OddH2TransposedMod16(dest : PDouble; const d
     mt1, mt2 : PDouble; width1 : TASMNativeInt;
     height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
     const LineWidth1, LineWidth2 : TASMNativeInt);
-var dxMM4 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
+var iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 
 {$IFDEF FPC}
 begin
@@ -245,7 +242,7 @@ asm
    mov iR14, r14;
    mov iR15, r15;
 
-   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -430,7 +427,7 @@ asm
    mov r14, iR14;
    mov r15, iR15;
 
-   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
@@ -440,8 +437,7 @@ end;
 
 // note mt2 is transposed this time -> width1 and width2 must be the same!
 procedure AVXMatrixMultUnAlignedTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
+var iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 
 {$IFDEF FPC}
 begin
@@ -467,7 +463,7 @@ asm
    mov iR14, r14;
    mov iR15, r15;
 
-   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
 
    // height 2
    mov r15, height2;
@@ -654,7 +650,7 @@ asm
    mov r14, iR14;
    mov r15, iR15;
 
-   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
@@ -663,8 +659,7 @@ end;
 
 // note mt2 is transposed this time -> width1 and width2 must be the same!
 procedure AVXMatrixMultAlignedTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var dXMM4 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
+var iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
 
 {$IFDEF FPC}
 begin
@@ -690,7 +685,7 @@ asm
    mov iR14, r14;
    mov iR15, r15;
 
-   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
 
    // height2 helper
    mov r15, height2;
@@ -871,7 +866,7 @@ asm
    mov r14, iR14;
    mov r15, iR15;
 
-   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;

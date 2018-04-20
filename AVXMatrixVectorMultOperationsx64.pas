@@ -55,12 +55,11 @@ implementation
 
 {$IFDEF x64}
 
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
+{$IFDEF FPC} {$ASMMODE intel} {$S-}  {$warnings off} {$ENDIF}
 
 procedure AVXMatrixVectMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
-var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
+var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -77,10 +76,10 @@ asm
    {$ENDIF}
 
    // prolog - simulate stack
-   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM5, xmm5;{$ELSE}db $C5,$F9,$11,$6D,$C0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM6, xmm6;{$ELSE}db $C5,$F9,$11,$75,$B0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM7, xmm7;{$ELSE}db $C5,$F9,$11,$7D,$A0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $40], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$C0;{$ENDIF} 
 
    mov iRBX, rbx;
    mov iRSI, rsi;
@@ -226,10 +225,10 @@ asm
    mov r13, iR13;
    mov r14, iR14;
 
-   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, dXMM5;{$ELSE}db $C5,$F9,$10,$6D,$C0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm6, dXMM6;{$ELSE}db $C5,$F9,$10,$75,$B0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm7, dXMM7;{$ELSE}db $C5,$F9,$10,$7D,$A0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [esp - $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm6, [esp - $30];{$ELSE}db $C5,$F9,$10,$74,$24,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm7, [esp - $40];{$ELSE}db $C5,$F9,$10,$7C,$24,$C0;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 {$IFDEF FPC}
@@ -240,8 +239,7 @@ end;
 // routines with special input layouts: LineWidthV needs to be sizeof(double)
 procedure AVXMatrixVectMultAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
-var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
+var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -265,9 +263,9 @@ asm
    mov iR13, r13;
    mov iR14, r14;
 
-   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM5, xmm5;{$ELSE}db $C5,$F9,$11,$6D,$C0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM6, xmm6;{$ELSE}db $C5,$F9,$11,$75,$B0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$D0;{$ENDIF} 
 
    // for the final multiplication
    lea rbx, alpha;
@@ -487,9 +485,9 @@ asm
    mov r13, iR13;
    mov r14, iR14;
 
-   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, dXMM5;{$ELSE}db $C5,$F9,$10,$6D,$C0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm6, dXMM6;{$ELSE}db $C5,$F9,$10,$75,$B0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [esp - $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm6, [esp - $30];{$ELSE}db $C5,$F9,$10,$74,$24,$D0;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 {$IFDEF FPC}
@@ -498,8 +496,7 @@ end;
 
 procedure AVXMatrixVectMultUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
-var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
+var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -523,9 +520,9 @@ asm
    mov iR13, r13;
    mov iR14, r14;
 
-   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM5, xmm5;{$ELSE}db $C5,$F9,$11,$6D,$C0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM6, xmm6;{$ELSE}db $C5,$F9,$11,$75,$B0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$D0;{$ENDIF} 
 
    // for the final multiplication
    lea rbx, alpha;
@@ -744,9 +741,9 @@ asm
    mov r13, iR13;
    mov r14, iR14;
 
-   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, dXMM5;{$ELSE}db $C5,$F9,$10,$6D,$C0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm6, dXMM6;{$ELSE}db $C5,$F9,$10,$75,$B0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [esp - $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm6, [esp - $30];{$ELSE}db $C5,$F9,$10,$74,$24,$D0;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 {$IFDEF FPC}
@@ -756,8 +753,7 @@ end;
 // this function is not that well suited for use of simd instructions...
 // so only this version exists
 procedure AVXMatrixVectMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
+var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -781,10 +777,10 @@ asm
    mov iR13, r13;
    mov iR14, r14;
 
-   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM5, xmm5;{$ELSE}db $C5,$F9,$11,$6D,$C0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM6, xmm6;{$ELSE}db $C5,$F9,$11,$75,$B0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM7, xmm7;{$ELSE}db $C5,$F9,$11,$7D,$A0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $40], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$C0;{$ENDIF} 
 
 
    // for the final multiplication
@@ -1043,9 +1039,9 @@ asm
    mov r13, iR13;
    mov r14, iR14;
 
-   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm6, dXMM6;{$ELSE}db $C5,$F9,$10,$75,$B0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm7, dXMM7;{$ELSE}db $C5,$F9,$10,$7D,$A0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm6, [esp - $30];{$ELSE}db $C5,$F9,$10,$74,$24,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm7, [esp - $40];{$ELSE}db $C5,$F9,$10,$7C,$24,$C0;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 {$IFDEF FPC}
@@ -1054,8 +1050,7 @@ end;
 
 
 procedure AVXMatrixVecMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
+var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1079,10 +1074,10 @@ asm
    mov iR13, r13;
    mov iR14, r14;
 
-   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM5, xmm5;{$ELSE}db $C5,$F9,$11,$6D,$C0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM6, xmm6;{$ELSE}db $C5,$F9,$11,$75,$B0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM7, xmm7;{$ELSE}db $C5,$F9,$11,$7D,$A0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $40], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$C0;{$ENDIF} 
 
 
    // for the final multiplication
@@ -1236,9 +1231,10 @@ asm
    mov r13, iR13;
    mov r14, iR14;
 
-   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm6, dXMM6;{$ELSE}db $C5,$F9,$10,$75,$B0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm7, dXMM7;{$ELSE}db $C5,$F9,$10,$7D,$A0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [esp - $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm6, [esp - $30];{$ELSE}db $C5,$F9,$10,$74,$24,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm7, [esp - $40];{$ELSE}db $C5,$F9,$10,$7C,$24,$C0;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 {$IFDEF FPC}

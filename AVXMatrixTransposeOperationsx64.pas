@@ -39,12 +39,11 @@ implementation
 
 {$IFDEF x64}
 
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
+{$IFDEF FPC} {$ASMMODE intel} {$S-}  {$warnings off} {$ENDIF}
 
 procedure AVXMatrixTransposeAligned(dest : PDouble; const destLineWidth : TASMNativeInt;
   mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iR12, iR13, iR14, iR15, iRSI, iRDI : TASMNativeInt;
-    dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -68,10 +67,11 @@ asm
    mov iRSI, rsi;
    mov iRDI, rdi;
 
-   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$A0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM5, xmm5;{$ELSE}db $C5,$F9,$11,$6D,$90;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM6, xmm6;{$ELSE}db $C5,$F9,$11,$75,$80;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM7, xmm7;{$ELSE}db $C5,$F9,$11,$BD,$FF,$FF,$FF,$70;{$ENDIF} 
+   // we just take stack here without the esp handling (since we don't call anything else from here gg)
+   {$IFDEF FPC}vmovupd [esp - $40], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $30], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $20], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$F0;{$ENDIF} 
 
    // iters := -width*sizeof(double);
    mov r10, width;
@@ -196,10 +196,10 @@ asm
    mov rsi, iRSI;
    mov rdi, iRDI;
 
-   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$A0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, dXMM5;{$ELSE}db $C5,$F9,$10,$6D,$90;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm6, dXMM6;{$ELSE}db $C5,$F9,$10,$75,$80;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm7, dXMM7;{$ELSE}db $C5,$F9,$10,$BD,$FF,$FF,$FF,$70;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $40];{$ELSE}db $C5,$F9,$10,$64,$24,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [esp - $30];{$ELSE}db $C5,$F9,$10,$6C,$24,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm6, [esp - $20];{$ELSE}db $C5,$F9,$10,$74,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm7, [esp - $10];{$ELSE}db $C5,$F9,$10,$7C,$24,$F0;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 {$IFDEF FPC}
@@ -208,7 +208,6 @@ end;
 
 procedure AVXMatrixTransposeUnaligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iR12, iR13, iR14, iR15, iRSI, iRDI : TASMNativeInt;
-    dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -232,10 +231,10 @@ asm
    mov iRSI, rsi;
    mov iRDI, rdi;
 
-   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$A0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM5, xmm5;{$ELSE}db $C5,$F9,$11,$6D,$90;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM6, xmm6;{$ELSE}db $C5,$F9,$11,$75,$80;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM7, xmm7;{$ELSE}db $C5,$F9,$11,$BD,$FF,$FF,$FF,$70;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $40], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $30], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $20], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$F0;{$ENDIF} 
 
    // iters := -width*sizeof(double);
    mov r10, width;
@@ -359,10 +358,10 @@ asm
    mov rsi, iRSI;
    mov rdi, iRDI;
 
-   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$A0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, dXMM5;{$ELSE}db $C5,$F9,$10,$6D,$90;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm6, dXMM6;{$ELSE}db $C5,$F9,$10,$75,$80;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm7, dXMM7;{$ELSE}db $C5,$F9,$10,$BD,$FF,$FF,$FF,$70;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $40];{$ELSE}db $C5,$F9,$10,$64,$24,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [esp - $30];{$ELSE}db $C5,$F9,$10,$6C,$24,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm6, [esp - $20];{$ELSE}db $C5,$F9,$10,$74,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm7, [esp - $10];{$ELSE}db $C5,$F9,$10,$7C,$24,$F0;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 {$IFDEF FPC}

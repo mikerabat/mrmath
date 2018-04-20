@@ -53,7 +53,7 @@ implementation
 
 {$IFDEF x64}
 
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
+{$IFDEF FPC} {$ASMMODE intel} {$S-} {$warnings off} {$ENDIF}
 
 
 procedure AVXMatrixMeanRowAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
@@ -516,8 +516,7 @@ end;
 
 
 procedure AVXMatrixVarRowAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var dXMM4 : Array[0..1] of double;
-    tmp : double;
+var tmp : double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -536,7 +535,7 @@ asm
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
 
    // prolog
-   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
 
    // iters := -width*sizeof(double)
    mov r10, width;
@@ -711,7 +710,7 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
@@ -719,8 +718,7 @@ end;
 end;
 
 procedure AVXMatrixVarRowUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var dXMM4 : Array[0..1] of double;
-    tmp : double;
+var tmp : double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -739,7 +737,7 @@ asm
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
 
    // prolog
-   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
 
    // iters := -width*sizeof(double)
    mov r10, width;
@@ -919,7 +917,7 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
@@ -927,8 +925,7 @@ end;
 end;
 
 procedure AVXMatrixVarColumnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var dxmm4, dxmm5 : Array[0..1] of double;
-    tmp : double;
+var tmp : double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -945,8 +942,8 @@ asm
    {$ENDIF}
 
    // prolog
-   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dxmm5, xmm5;{$ELSE}db $C5,$F9,$11,$6D,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
 
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    xor r10, r10;
@@ -1143,8 +1140,8 @@ asm
    @@endProc:
 
    // epilog
-   {$IFDEF FPC}vmovupd xmm4, dxmm4;{$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, dxmm5;{$ELSE}db $C5,$F9,$10,$6D,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [esp - $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
@@ -1152,8 +1149,7 @@ end;
 end;
 
 procedure AVXMatrixVarColumnUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var dxmm4, dxmm5 : Array[0..1] of double;
-    tmp : double;
+var tmp : double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1170,8 +1166,8 @@ asm
    {$ENDIF}
 
    // prolog
-   {$IFDEF FPC}vmovupd dxmm4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dxmm5, xmm5;{$ELSE}db $C5,$F9,$11,$6D,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
 
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    xor r10, r10;
@@ -1363,8 +1359,8 @@ asm
 
    @@endProc:
 
-   {$IFDEF FPC}vmovupd xmm4, dxmm4;{$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, dxmm5;{$ELSE}db $C5,$F9,$10,$6D,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [esp - $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
@@ -1376,7 +1372,6 @@ end;
 // #####################################################
 
 procedure AVXMatrixMeanVarRowAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var dXMM4 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1395,7 +1390,7 @@ asm
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
 
    // prolog
-   {$IFDEF FPC}vmovupd dxmm4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
 
    // iters := -width*sizeof(double)
    mov r10, width;
@@ -1567,7 +1562,7 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   {$IFDEF FPC}vmovupd xmm4, dxmm4;{$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
@@ -1575,7 +1570,6 @@ end;
 end;
 
 procedure AVXMatrixMeanVarRowUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var dXMM4 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1594,7 +1588,7 @@ asm
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
 
    // prolog
-   {$IFDEF FPC}vmovupd dxmm4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
 
    // iters := -width*sizeof(double)
    mov r10, width;
@@ -1773,7 +1767,7 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   {$IFDEF FPC}vmovupd xmm4, dxmm4;{$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
@@ -1781,8 +1775,7 @@ end;
 end;
 
 procedure AVXMatrixMeanVarColumnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var dxmm4, dxmm5 : Array[0..1] of double;
-    tmp : double;
+var tmp : double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1799,8 +1792,8 @@ asm
    {$ENDIF}
 
    // prolog
-   {$IFDEF FPC}vmovupd dxmm4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dxmm5, xmm5;{$ELSE}db $C5,$F9,$11,$6D,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
 
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    xor r10, r10;
@@ -1999,8 +1992,8 @@ asm
    @@endProc:
 
    // epilog
-   {$IFDEF FPC}vmovupd xmm4, dxmm4;{$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, dxmm5;{$ELSE}db $C5,$F9,$10,$6D,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [esp - $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;
@@ -2008,8 +2001,7 @@ end;
 end;
 
 procedure AVXMatrixMeanVarColumnUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var dxmm4, dxmm5 : Array[0..1] of double;
-    tmp : double;
+var tmp : double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -2026,8 +2018,8 @@ asm
    {$ENDIF}
 
    // prolog
-   {$IFDEF FPC}vmovupd dxmm4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dxmm5, xmm5;{$ELSE}db $C5,$F9,$11,$6D,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
 
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    xor r10, r10;
@@ -2222,8 +2214,8 @@ asm
 
    @@endProc:
 
-   {$IFDEF FPC}vmovupd xmm4, dxmm4;{$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, dxmm5;{$ELSE}db $C5,$F9,$10,$6D,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [esp - $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
 end;

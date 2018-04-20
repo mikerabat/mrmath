@@ -48,7 +48,6 @@ implementation
 // rcx = width, rdx = height, r8 : A, r9 = LineWidthA
 procedure AVXApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
 var iRBX, iRDI : TASMNativeInt;
-    dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -76,10 +75,10 @@ asm
 
    mov iRBX, rbx;
    mov iRDI, rdi;
-   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$C0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM5, xmm5;{$ELSE}db $C5,$F9,$11,$6D,$B0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM6, xmm6;{$ELSE}db $C5,$F9,$11,$75,$A0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM7, xmm7;{$ELSE}db $C5,$F9,$11,$7D,$90;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $40], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$C0;{$ENDIF} 
 
 
    // iter := -(width and $FFFFFFFE)*sizeof(double);
@@ -211,10 +210,10 @@ asm
    // #### epilog - restore stack
    mov rbx, iRBX;
    mov rdi, iRDI;
-   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$C0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, dXMM5;{$ELSE}db $C5,$F9,$10,$6D,$B0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm6, dXMM6;{$ELSE}db $C5,$F9,$10,$75,$A0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm7, dXMM7;{$ELSE}db $C5,$F9,$10,$7D,$90;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [esp - $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm6, [esp - $30];{$ELSE}db $C5,$F9,$10,$74,$24,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm7, [esp - $40];{$ELSE}db $C5,$F9,$10,$7C,$24,$C0;{$ENDIF} 
 
    @@endproc:
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
@@ -226,7 +225,6 @@ end;
 
 procedure AVXApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
 var iRBX, iRDI : TASMNativeInt;
-    dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -254,10 +252,10 @@ asm
 
    mov iRBX, rbx;
    mov iRDI, rdi;
-   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$C0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM5, xmm5;{$ELSE}db $C5,$F9,$11,$6D,$B0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM6, xmm6;{$ELSE}db $C5,$F9,$11,$75,$A0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM7, xmm7;{$ELSE}db $C5,$F9,$11,$7D,$90;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $40], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$C0;{$ENDIF} 
 
 
    // iter := -(width and $FFFFFFFE)*sizeof(double);
@@ -376,10 +374,10 @@ asm
         // #### epilog - restore stack
         mov rbx, iRBX;
         mov rdi, iRDI;
-        {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$C0;{$ENDIF} 
-        {$IFDEF FPC}vmovupd xmm5, dXMM5;{$ELSE}db $C5,$F9,$10,$6D,$B0;{$ENDIF} 
-        {$IFDEF FPC}vmovupd xmm6, dXMM6;{$ELSE}db $C5,$F9,$10,$75,$A0;{$ENDIF} 
-        {$IFDEF FPC}vmovupd xmm7, dXMM7;{$ELSE}db $C5,$F9,$10,$7D,$90;{$ENDIF} 
+        {$IFDEF FPC}vmovupd xmm4, [esp - $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
+        {$IFDEF FPC}vmovupd xmm5, [esp - $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
+        {$IFDEF FPC}vmovupd xmm6, [esp - $30];{$ELSE}db $C5,$F9,$10,$74,$24,$D0;{$ENDIF} 
+        {$IFDEF FPC}vmovupd xmm7, [esp - $40];{$ELSE}db $C5,$F9,$10,$7C,$24,$C0;{$ENDIF} 
         {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 
         @@endproc:
@@ -391,7 +389,6 @@ end;
 // rcx = width, rdx = height, r8 : A, r9 = LineWidthA
 procedure AVXApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
 var iRBX, iRDI : TASMNativeInt;
-    dXMM4, dXMM5, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -419,9 +416,9 @@ asm
 
    mov iRBX, rbx;
    mov iRDI, rdi;
-   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$C0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM5, xmm5;{$ELSE}db $C5,$F9,$11,$6D,$B0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM7, xmm7;{$ELSE}db $C5,$F9,$11,$7D,$A0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $30], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$D0;{$ENDIF} 
 
    dec rcx;
    shl rcx, 3; //iter := (width - 1)*sizeof(double)
@@ -475,9 +472,9 @@ asm
    // epilog
    mov rbx, iRBX;
    mov rdi, iRDI;
-   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$C0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, dXMM5;{$ELSE}db $C5,$F9,$10,$6D,$B0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm7, dXMM7;{$ELSE}db $C5,$F9,$10,$7D,$A0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [esp - $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm7, [esp - $30];{$ELSE}db $C5,$F9,$10,$7C,$24,$D0;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 
    @@endproc:
@@ -488,7 +485,6 @@ end;
 
 procedure AVXApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
 var iRBX, iRDI : TASMNativeInt;
-    dXMM4, dXMM5, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -516,9 +512,9 @@ asm
 
    mov iRBX, rbx;
    mov iRDI, rdi;
-   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$C0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM5, xmm5;{$ELSE}db $C5,$F9,$11,$6D,$B0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM7, xmm7;{$ELSE}db $C5,$F9,$11,$7D,$A0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $40], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$C0;{$ENDIF} 
 
    dec rcx;
    imul rcx, -8; //iter := (width - 1)*sizeof(double)
@@ -575,9 +571,9 @@ asm
    // epilog
    mov rbx, iRBX;
    mov rdi, iRDI;
-   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$C0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, dXMM5;{$ELSE}db $C5,$F9,$10,$6D,$B0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm7, dXMM7;{$ELSE}db $C5,$F9,$10,$7D,$A0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [esp - $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm7, [esp - $40];{$ELSE}db $C5,$F9,$10,$7C,$24,$C0;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 
    @@endproc:
@@ -589,8 +585,7 @@ end;
 // its assumed that Linewidthdx and linewidthdy = sizeof(double)
 // rcx = N, RDX = X, R8 = Y,
 procedure AVXMatrixRotateAligned(N : TASMNativeInt; X : PDouble;
-  Y : PDouble; const c, s : double);
-var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
+  Y : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -610,12 +605,13 @@ asm
 
    // ###########################################
    // #### Stack push
-   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM5, xmm5;{$ELSE}db $C5,$F9,$11,$6D,$C0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM6, xmm6;{$ELSE}db $C5,$F9,$11,$75,$B0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$D0;{$ENDIF} 
 
    // init
-   {$IFDEF FPC}vmovddup xmm1, xmm0;{$ELSE}db $C5,$FB,$12,$C8;{$ENDIF} 
+   lea rax, c;
+   {$IFDEF FPC}vmovddup xmm1, [rax];{$ELSE}db $C5,$FB,$12,$08;{$ENDIF} 
 
    lea rax, s;
    {$IFDEF FPC}vmovsd xmm2, [rax];{$ELSE}db $C5,$FB,$10,$10;{$ENDIF} 
@@ -686,9 +682,9 @@ asm
 
    // ###########################################
    // #### epilog
-   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, dXMM5;{$ELSE}db $C5,$F9,$10,$6D,$C0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm6, dXMM6;{$ELSE}db $C5,$F9,$10,$75,$B0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [esp - $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm6, [esp - $30];{$ELSE}db $C5,$F9,$10,$74,$24,$D0;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 {$IFDEF FPC}
@@ -698,7 +694,6 @@ end;
 // rcx = N, RDX = X, R8 = LineWidthDX, R9 = Y; 
 procedure AVXMatrixRotateUnaligned(N : TASMNativeInt; X : PDouble; const LineWidthDX : TASMNativeInt;
   Y : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
-var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -716,9 +711,9 @@ asm
 
    // ###########################################
    // #### Stack push
-   {$IFDEF FPC}vmovupd dXMM4, xmm4;{$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM5, xmm5;{$ELSE}db $C5,$F9,$11,$6D,$C0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd dXMM6, xmm6;{$ELSE}db $C5,$F9,$11,$75,$B0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [esp - $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$D0;{$ENDIF} 
 
    lea rax, c;
    {$IFDEF FPC}vmovddup xmm1, [rax];{$ELSE}db $C5,$FB,$12,$08;{$ENDIF} 
@@ -807,9 +802,9 @@ asm
 
    // ###########################################
    // #### Epilog
-   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, dXMM5;{$ELSE}db $C5,$F9,$10,$6D,$C0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm6, dXMM6;{$ELSE}db $C5,$F9,$10,$75,$B0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [esp - $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [esp - $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm6, [esp - $30];{$ELSE}db $C5,$F9,$10,$74,$24,$D0;{$ENDIF} 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 {$IFDEF FPC}
@@ -823,9 +818,9 @@ begin
 
      if (LineWidthDX = sizeof(double)) and (LineWidthDY = sizeof(double))
      then
-         AVXMatrixRotateAligned(N, X, Y, c, s)
+         AVXMatrixRotateAligned(N, X, Y, LineWidthDY, c, s)
      else
-         AVXMatrixRotateUnAligned(N, X, LineWidthDX, Y, LineWidthDY, c, s)
+         AVXMatrixRotateUnAligned(N, X, LineWidthDX, Y, LineWidthDY, c, s);
 end;
 
 
