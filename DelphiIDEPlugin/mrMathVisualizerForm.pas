@@ -416,7 +416,11 @@ end;
 
 procedure TmrMathMtxViewerFrame.ReadSettings;
 begin
+     {$IF (CompilerVersion <= 21)}
      GetLocaleFormatSettings(0, fmtSet);
+     {$ELSE}
+     fmtSet := TFormatSettings.Create;
+     {$ENDIF}
      fmtSet.DecimalSeparator := '.';
      fTextGap := 15;
 

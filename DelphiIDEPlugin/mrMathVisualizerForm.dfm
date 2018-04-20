@@ -1,7 +1,5 @@
 inherited mrMathMtxViewerFrame: TmrMathMtxViewerFrame
   inherited MessageLabel: TLabel
-    Width = 439
-    Height = 312
     Visible = True
   end
   object pnlProperties: TPanel
