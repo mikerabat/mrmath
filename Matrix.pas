@@ -730,7 +730,7 @@ end;
 procedure TDoubleMatrix.AssignSubMatrix(Value: TDoubleMatrix; X, Y: integer);
 var pSelf, pValue : PDouble;
 begin
-     CheckAndRaiseError((Value.Width <= Width) and (Value.Height <= Height), 'Dimension error');
+     CheckAndRaiseError((Value.Width <= Width + x) and (Value.Height <= Height + y), 'Dimension error');
      if (Value.Width = 0) or (Value.Height = 0) then
         exit;
 

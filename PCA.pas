@@ -711,6 +711,9 @@ function TMatrixPCA.ProjectToFeatureSpace(
   Example: TDoubleMatrix): TDoubleMatrix;
 var meanMtx : TDoubleMatrix;
 begin
+     {$IF CompilerVersion <= 21}
+     Result := nil;
+     {$IFEND}
      if not Assigned(fEigVecs) then
         raise EPCAException.Create('PCA object not initialized');
 

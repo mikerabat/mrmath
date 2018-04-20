@@ -703,9 +703,8 @@ end;
 
 procedure TestTDoubleMatrix.TestAppend;
 var x : TDoubleMatrix;
-  i: Integer;
-  j: Integer;
-
+    i: Integer;
+    j: Integer;
 begin
      x := TDoubleMatrix.CreateRand(4, 4);
      x.Append(x.Clone as IMatrix, False);
