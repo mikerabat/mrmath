@@ -77,7 +77,7 @@ asm
    mov iR15, r15;
 
    sub rsp, $10;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $00], xmm4;{$ELSE}db $C5,$F9,$11,$24,$24;{$ENDIF} 
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -206,7 +206,7 @@ asm
    mov r14, iR14;
    mov r15, iR15;
 
-   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [rsp + $00];{$ELSE}db $C5,$F9,$10,$24,$24;{$ENDIF} 
    add rsp, $10;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
@@ -245,7 +245,7 @@ asm
    mov iR15, r15;
 
    sub rsp, $10;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $00], xmm4;{$ELSE}db $C5,$F9,$11,$24,$24;{$ENDIF} 
 
    // iters1 := height2 div 2;
    mov r15, height2;
@@ -430,7 +430,7 @@ asm
    mov r14, iR14;
    mov r15, iR15;
 
-   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [rsp + $00];{$ELSE}db $C5,$F9,$10,$24,$24;{$ENDIF} 
    add rsp, $10;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
@@ -468,7 +468,7 @@ asm
    mov iR15, r15;
 
    sub rsp, $10;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $00], xmm4;{$ELSE}db $C5,$F9,$11,$24,$24;{$ENDIF} 
 
    // height 2
    mov r15, height2;
@@ -655,7 +655,7 @@ asm
    mov r14, iR14;
    mov r15, iR15;
 
-   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [rsp + $00];{$ELSE}db $C5,$F9,$10,$24,$24;{$ENDIF} 
    add rsp, $10;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
@@ -692,7 +692,7 @@ asm
    mov iR15, r15;
 
    sub rsp, $10;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $00], xmm4;{$ELSE}db $C5,$F9,$11,$24,$24;{$ENDIF} 
 
    // height2 helper
    mov r15, height2;
@@ -873,7 +873,7 @@ asm
    mov r14, iR14;
    mov r15, iR15;
 
-   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [rsp + $00];{$ELSE}db $C5,$F9,$10,$24,$24;{$ENDIF} 
    add rsp, $10;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}

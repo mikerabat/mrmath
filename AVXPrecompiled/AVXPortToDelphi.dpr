@@ -12,8 +12,8 @@ var inpPath : string;
     s : string;
 
 function LineToDBStr( aLine : string ) : string;
-var s1, s2, s3, s4, s5 : string;
-    i1, i2 : integer;
+var s1, s2, s3, s4, s5, s6 : string;
+    i1, i2, i3 : integer;
 begin
      aLine := Copy(aLine, Pos(' _ ', aLine) + 3, Length(aLine));
 
@@ -48,12 +48,23 @@ begin
      i1 := i1 + 2;
      s3 := Copy(aLine, i1, Length(aLine));
 
-     s4 := '';
-     while Length(s3) > 0 do
+     // invert the hex codes instead of $00000080 we need $80000000
+     SetLength(s6, Length(s3));
+     i3 := 0;
+     while i3 < Length(s6) do
      begin
-          s4 := s4 + ',$' + Copy(s3, 1, 2);
-          delete(s3, 1, 2);
+          Move( s3[i3 + 1], s6[Length(s6) - i3 - 1], sizeof(char)*2 );
+          inc(i3, 2);
      end;
+      
+     
+     s4 := '';
+     while Length(s6) > 0 do
+     begin
+          s4 := s4 + ',$' + Copy(s6, 1, 2);
+          delete(s6, 1, 2);
+     end;
+    
      Result := Result + ',$' + s1 + ',$' + s2 + s4 + ';';
 end;
 

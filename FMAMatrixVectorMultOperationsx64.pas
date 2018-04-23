@@ -84,9 +84,9 @@ asm
    mov iR14, r14;
 
    sub rsp, $30;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$10;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$20;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$30;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $00], xmm4;{$ELSE}db $C5,$F9,$11,$24,$24;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $10], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $20], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$20;{$ENDIF} 
 
    // for the final multiplication
    lea rbx, alpha;
@@ -291,9 +291,9 @@ asm
    mov r13, iR13;
    mov r14, iR14;
 
-   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$10;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$20;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm6, [rsp + $30];{$ELSE}db $C5,$F9,$10,$74,$24,$30;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [rsp + $00];{$ELSE}db $C5,$F9,$10,$24,$24;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [rsp + $10];{$ELSE}db $C5,$F9,$10,$6C,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm6, [rsp + $20];{$ELSE}db $C5,$F9,$10,$74,$24,$20;{$ENDIF} 
    add rsp, $30;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
@@ -328,9 +328,9 @@ asm
    mov iR14, r14;
 
    sub rsp, $30;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$10;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$20;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$30;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $00], xmm4;{$ELSE}db $C5,$F9,$11,$24,$24;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $10], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $20], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$20;{$ENDIF} 
 
    // for the final multiplication
    lea rbx, alpha;
@@ -544,9 +544,9 @@ asm
    mov r13, iR13;
    mov r14, iR14;
 
-   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$10;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$20;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm6, [rsp + $30];{$ELSE}db $C5,$F9,$10,$74,$24,$30;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [rsp + $00];{$ELSE}db $C5,$F9,$10,$24,$24;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [rsp + $10];{$ELSE}db $C5,$F9,$10,$6C,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm6, [rsp + $20];{$ELSE}db $C5,$F9,$10,$74,$24,$20;{$ENDIF} 
    add rsp, $30;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
@@ -582,10 +582,10 @@ asm
    mov iR14, r14;
 
    sub rsp, $40;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$10;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$20;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$30;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $40], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$40;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $00], xmm4;{$ELSE}db $C5,$F9,$11,$24,$24;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $10], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $20], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$20;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $30], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$30;{$ENDIF} 
 
 
    // for the final multiplication
@@ -604,10 +604,10 @@ asm
    js @@forxloopend;
 
    sub rsp, $40;
-   {$IFDEF FPC}vmovupd [rsp + $10], ymm8;{$ELSE}db $C5,$7D,$11,$44,$24,$10;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $20], ymm9;{$ELSE}db $C5,$7D,$11,$4C,$24,$20;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $30], ymm10;{$ELSE}db $C5,$7D,$11,$54,$24,$30;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $40], ymm11;{$ELSE}db $C5,$7D,$11,$5C,$24,$40;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $00], ymm8;{$ELSE}db $C5,$7D,$11,$04,$24;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $10], ymm9;{$ELSE}db $C5,$7D,$11,$4C,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $20], ymm10;{$ELSE}db $C5,$7D,$11,$54,$24,$20;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $30], ymm11;{$ELSE}db $C5,$7D,$11,$5C,$24,$30;{$ENDIF} 
 
    // init for x := 0 to width - 1:
    @@forxloop:
@@ -793,10 +793,10 @@ asm
    sub r14, 16;
    jns @@forxloop;
 
-   {$IFDEF FPC}vmovupd ymm8, [rsp + $10];{$ELSE}db $C5,$7D,$10,$44,$24,$10;{$ENDIF} 
-   {$IFDEF FPC}vmovupd ymm9, [rsp + $20];{$ELSE}db $C5,$7D,$10,$4C,$24,$20;{$ENDIF} 
-   {$IFDEF FPC}vmovupd ymm10, [rsp + $30];{$ELSE}db $C5,$7D,$10,$54,$24,$30;{$ENDIF} 
-   {$IFDEF FPC}vmovupd ymm11, [rsp + $40];{$ELSE}db $C5,$7D,$10,$5C,$24,$40;{$ENDIF} 
+   {$IFDEF FPC}vmovupd ymm8, [rsp + $00];{$ELSE}db $C5,$7D,$10,$04,$24;{$ENDIF} 
+   {$IFDEF FPC}vmovupd ymm9, [rsp + $10];{$ELSE}db $C5,$7D,$10,$4C,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd ymm10, [rsp + $20];{$ELSE}db $C5,$7D,$10,$54,$24,$20;{$ENDIF} 
+   {$IFDEF FPC}vmovupd ymm11, [rsp + $30];{$ELSE}db $C5,$7D,$10,$5C,$24,$30;{$ENDIF} 
    add rsp, $40;
 
    @@forxloopend:
@@ -852,10 +852,10 @@ asm
    mov r13, iR13;
    mov r14, iR14;
 
-   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$10;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$20;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm6, [rsp + $30];{$ELSE}db $C5,$F9,$10,$74,$24,$30;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm7, [rsp + $40];{$ELSE}db $C5,$F9,$10,$7C,$24,$40;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [rsp + $00];{$ELSE}db $C5,$F9,$10,$24,$24;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [rsp + $10];{$ELSE}db $C5,$F9,$10,$6C,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm6, [rsp + $20];{$ELSE}db $C5,$F9,$10,$74,$24,$20;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm7, [rsp + $30];{$ELSE}db $C5,$F9,$10,$7C,$24,$30;{$ENDIF} 
    add rsp, $40;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
@@ -890,10 +890,10 @@ asm
    mov iR14, r14;
 
    sub rsp, $40;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$10;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$20;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$30;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $40], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$40;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $00], xmm4;{$ELSE}db $C5,$F9,$11,$24,$24;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $10], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $20], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$20;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $30], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$30;{$ENDIF} 
 
 
    // for the final multiplication
@@ -912,10 +912,10 @@ asm
    js @@forxloopend;
 
    sub rsp, $40;
-   {$IFDEF FPC}vmovupd [rsp + $10], ymm8;{$ELSE}db $C5,$7D,$11,$44,$24,$10;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $20], ymm9;{$ELSE}db $C5,$7D,$11,$4C,$24,$20;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $30], ymm10;{$ELSE}db $C5,$7D,$11,$54,$24,$30;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $40], ymm11;{$ELSE}db $C5,$7D,$11,$5C,$24,$40;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $00], ymm8;{$ELSE}db $C5,$7D,$11,$04,$24;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $10], ymm9;{$ELSE}db $C5,$7D,$11,$4C,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $20], ymm10;{$ELSE}db $C5,$7D,$11,$54,$24,$20;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $30], ymm11;{$ELSE}db $C5,$7D,$11,$5C,$24,$30;{$ENDIF} 
 
    // init for x := 0 to width - 1:
    @@forxloop:
@@ -996,10 +996,10 @@ asm
    sub r14, 16;
    jns @@forxloop;
 
-   {$IFDEF FPC}vmovupd ymm8, [rsp + $10];{$ELSE}db $C5,$7D,$10,$44,$24,$10;{$ENDIF} 
-   {$IFDEF FPC}vmovupd ymm9, [rsp + $20];{$ELSE}db $C5,$7D,$10,$4C,$24,$20;{$ENDIF} 
-   {$IFDEF FPC}vmovupd ymm10, [rsp + $30];{$ELSE}db $C5,$7D,$10,$54,$24,$30;{$ENDIF} 
-   {$IFDEF FPC}vmovupd ymm11, [rsp + $40];{$ELSE}db $C5,$7D,$10,$5C,$24,$40;{$ENDIF} 
+   {$IFDEF FPC}vmovupd ymm8, [rsp + $00];{$ELSE}db $C5,$7D,$10,$04,$24;{$ENDIF} 
+   {$IFDEF FPC}vmovupd ymm9, [rsp + $10];{$ELSE}db $C5,$7D,$10,$4C,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd ymm10, [rsp + $20];{$ELSE}db $C5,$7D,$10,$54,$24,$20;{$ENDIF} 
+   {$IFDEF FPC}vmovupd ymm11, [rsp + $30];{$ELSE}db $C5,$7D,$10,$5C,$24,$30;{$ENDIF} 
    add rsp, $40;
 
    @@forxloopend:
@@ -1055,10 +1055,10 @@ asm
    mov r13, iR13;
    mov r14, iR14;
 
-   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$10;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$20;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm6, [rsp + $30];{$ELSE}db $C5,$F9,$10,$74,$24,$30;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm7, [rsp + $40];{$ELSE}db $C5,$F9,$10,$7C,$24,$40;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [rsp + $00];{$ELSE}db $C5,$F9,$10,$24,$24;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [rsp + $10];{$ELSE}db $C5,$F9,$10,$6C,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm6, [rsp + $20];{$ELSE}db $C5,$F9,$10,$74,$24,$20;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm7, [rsp + $30];{$ELSE}db $C5,$F9,$10,$7C,$24,$30;{$ENDIF} 
    add rsp, $40;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
