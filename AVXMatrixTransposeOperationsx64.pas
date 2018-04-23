@@ -69,10 +69,10 @@ asm
 
    // stack handling
    sub rsp, $40;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$C0;{$ENDIF}
-   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$D0;{$ENDIF}
-   {$IFDEF FPC}vmovupd [rsp + $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$E0;{$ENDIF}
-   {$IFDEF FPC}vmovupd [rsp + $40], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$F0;{$ENDIF}
+   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $40], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$F0;{$ENDIF} 
 
    // iters := -width*sizeof(double);
    mov r10, width;
@@ -197,10 +197,10 @@ asm
    mov rsi, iRSI;
    mov rdi, iRDI;
 
-   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$C0;{$ENDIF}
-   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$D0;{$ENDIF}
-   {$IFDEF FPC}vmovupd xmm6, [rsp + $30];{$ELSE}db $C5,$F9,$10,$74,$24,$E0;{$ENDIF}
-   {$IFDEF FPC}vmovupd xmm7, [rsp + $40];{$ELSE}db $C5,$F9,$10,$7C,$24,$F0;{$ENDIF}
+   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm6, [rsp + $30];{$ELSE}db $C5,$F9,$10,$74,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm7, [rsp + $40];{$ELSE}db $C5,$F9,$10,$7C,$24,$F0;{$ENDIF} 
    add rsp, $40;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
@@ -234,10 +234,10 @@ asm
    mov iRDI, rdi;
 
    sub rsp, $40;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$C0;{$ENDIF}
-   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$D0;{$ENDIF}
-   {$IFDEF FPC}vmovupd [rsp + $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$E0;{$ENDIF}
-   {$IFDEF FPC}vmovupd [rsp + $40], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$F0;{$ENDIF}
+   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $40], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$F0;{$ENDIF} 
 
    // iters := -width*sizeof(double);
    mov r10, width;
@@ -361,10 +361,10 @@ asm
    mov rsi, iRSI;
    mov rdi, iRDI;
 
-   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$C0;{$ENDIF}
-   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$D0;{$ENDIF}
-   {$IFDEF FPC}vmovupd xmm6, [rsp + $30];{$ELSE}db $C5,$F9,$10,$74,$24,$E0;{$ENDIF}
-   {$IFDEF FPC}vmovupd xmm7, [rsp + $40];{$ELSE}db $C5,$F9,$10,$7C,$24,$F0;{$ENDIF}
+   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm6, [rsp + $30];{$ELSE}db $C5,$F9,$10,$74,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm7, [rsp + $40];{$ELSE}db $C5,$F9,$10,$7C,$24,$F0;{$ENDIF} 
    add rsp, $40;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;

@@ -420,7 +420,7 @@ begin
      GetLocaleFormatSettings(0, fmtSet);
      {$ELSE}
      fmtSet := TFormatSettings.Create;
-     {$ENDIF}
+     {$IFEND}
      fmtSet.DecimalSeparator := '.';
      fTextGap := 15;
 
