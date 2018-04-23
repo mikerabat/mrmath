@@ -54,6 +54,9 @@ Gustav Kaiser - special thanks for implementing the PLS algorithm.
 // ###################################################################
 changelog:
 
+Date: 23.04.2018
+* Fixed some stack issues to be more conform with the x64 ABI
+
 Date: 19.04.2018
 * Added distance class which implements L1, L2 (Euclid) and Mahalonobis distance
 * Extended matrix class with "Append", "Resize" and updated QR factorization interface.
