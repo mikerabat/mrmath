@@ -603,6 +603,12 @@ asm
    sub r14, 16;
    js @@forxloopend;
 
+   sub rsp, $40;
+   vmovupd [rsp + $10], ymm8;
+   vmovupd [rsp + $20], ymm9;
+   vmovupd [rsp + $30], ymm10;
+   vmovupd [rsp + $40], ymm11;
+
    // init for x := 0 to width - 1:
    @@forxloop:
 
@@ -787,6 +793,12 @@ asm
    sub r14, 16;
    jns @@forxloop;
 
+   vmovupd ymm8, [rsp + $10];
+   vmovupd ymm9, [rsp + $20];
+   vmovupd ymm10, [rsp + $30];
+   vmovupd ymm11, [rsp + $40];
+   add rsp, $40;
+
    @@forxloopend:
 
    // ###########################################
@@ -899,6 +911,12 @@ asm
    sub r14, 16;
    js @@forxloopend;
 
+   sub rsp, $40;
+   vmovupd [rsp + $10], ymm8;
+   vmovupd [rsp + $20], ymm9;
+   vmovupd [rsp + $30], ymm10;
+   vmovupd [rsp + $40], ymm11;
+
    // init for x := 0 to width - 1:
    @@forxloop:
 
@@ -977,6 +995,12 @@ asm
        add r8, 8*16;      // next mt1 element
    sub r14, 16;
    jns @@forxloop;
+
+   vmovupd ymm8, [rsp + $10];
+   vmovupd ymm9, [rsp + $20];
+   vmovupd ymm10, [rsp + $30];
+   vmovupd ymm11, [rsp + $40];
+   add rsp, $40;
 
    @@forxloopend:
 

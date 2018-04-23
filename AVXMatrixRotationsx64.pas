@@ -76,10 +76,10 @@ asm
    mov iRBX, rbx;
    mov iRDI, rdi;
    sub rsp, $40;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $40], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$20;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$30;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $40], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$40;{$ENDIF} 
 
 
    // iter := -(width and $FFFFFFFE)*sizeof(double);
@@ -211,10 +211,10 @@ asm
    // #### epilog - restore stack
    mov rbx, iRBX;
    mov rdi, iRDI;
-   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm6, [rsp + $30];{$ELSE}db $C5,$F9,$10,$74,$24,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm7, [rsp + $40];{$ELSE}db $C5,$F9,$10,$7C,$24,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$20;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm6, [rsp + $30];{$ELSE}db $C5,$F9,$10,$74,$24,$30;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm7, [rsp + $40];{$ELSE}db $C5,$F9,$10,$7C,$24,$40;{$ENDIF} 
    add rsp, $40;
 
    @@endproc:
@@ -255,10 +255,10 @@ asm
    mov iRBX, rbx;
    mov iRDI, rdi;
    sub rsp, $40;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$D0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $40], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$20;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$30;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $40], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$40;{$ENDIF} 
 
 
    // iter := -(width and $FFFFFFFE)*sizeof(double);
@@ -377,10 +377,10 @@ asm
         // #### epilog - restore stack
         mov rbx, iRBX;
         mov rdi, iRDI;
-        {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
-        {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
-        {$IFDEF FPC}vmovupd xmm6, [rsp + $30];{$ELSE}db $C5,$F9,$10,$74,$24,$D0;{$ENDIF} 
-        {$IFDEF FPC}vmovupd xmm7, [rsp + $40];{$ELSE}db $C5,$F9,$10,$7C,$24,$C0;{$ENDIF} 
+        {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$10;{$ENDIF} 
+        {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$20;{$ENDIF} 
+        {$IFDEF FPC}vmovupd xmm6, [rsp + $30];{$ELSE}db $C5,$F9,$10,$74,$24,$30;{$ENDIF} 
+        {$IFDEF FPC}vmovupd xmm7, [rsp + $40];{$ELSE}db $C5,$F9,$10,$7C,$24,$40;{$ENDIF} 
         add rsp, $40;
         {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 
@@ -421,9 +421,9 @@ asm
    mov iRBX, rbx;
    mov iRDI, rdi;
    sub rsp, $30;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $30], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$20;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $30], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$30;{$ENDIF} 
 
    dec rcx;
    shl rcx, 3; //iter := (width - 1)*sizeof(double)
@@ -477,9 +477,9 @@ asm
    // epilog
    mov rbx, iRBX;
    mov rdi, iRDI;
-   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm7, [rsp + $30];{$ELSE}db $C5,$F9,$10,$7C,$24,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$20;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm7, [rsp + $30];{$ELSE}db $C5,$F9,$10,$7C,$24,$30;{$ENDIF} 
    add rsp, $30;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 
@@ -519,9 +519,9 @@ asm
    mov iRBX, rbx;
    mov iRDI, rdi;
    sub rsp, $30;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $30], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$20;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $30], xmm7;{$ELSE}db $C5,$F9,$11,$7C,$24,$30;{$ENDIF} 
 
    dec rcx;
    imul rcx, -8; //iter := (width - 1)*sizeof(double)
@@ -578,9 +578,9 @@ asm
    // epilog
    mov rbx, iRBX;
    mov rdi, iRDI;
-   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm7, [rsp + $30];{$ELSE}db $C5,$F9,$10,$7C,$24,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$20;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm7, [rsp + $30];{$ELSE}db $C5,$F9,$10,$7C,$24,$30;{$ENDIF} 
    add rsp, $30;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 
@@ -614,9 +614,9 @@ asm
    // ###########################################
    // #### Stack push
    sub rsp, $30;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$20;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$30;{$ENDIF} 
 
    // init
    lea rax, c;
@@ -691,9 +691,9 @@ asm
 
    // ###########################################
    // #### epilog
-   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm6, [rsp + $30];{$ELSE}db $C5,$F9,$10,$74,$24,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$20;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm6, [rsp + $30];{$ELSE}db $C5,$F9,$10,$74,$24,$30;{$ENDIF} 
    add rsp, $30;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
@@ -722,9 +722,9 @@ asm
    // ###########################################
    // #### Stack push
    sub rsp, $30;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$20;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $30], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$30;{$ENDIF} 
 
    lea rax, c;
    {$IFDEF FPC}vmovddup xmm1, [rax];{$ELSE}db $C5,$FB,$12,$08;{$ENDIF} 
@@ -813,9 +813,9 @@ asm
 
    // ###########################################
    // #### Epilog
-   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm6, [rsp + $30];{$ELSE}db $C5,$F9,$10,$74,$24,$D0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$20;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm6, [rsp + $30];{$ELSE}db $C5,$F9,$10,$74,$24,$30;{$ENDIF} 
    add rsp, $30;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;

@@ -536,7 +536,7 @@ asm
 
    // prolog
    sub rsp, $10;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$10;{$ENDIF} 
 
    // iters := -width*sizeof(double)
    mov r10, width;
@@ -711,7 +711,7 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$10;{$ENDIF} 
    add rsp, $10;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
@@ -740,7 +740,7 @@ asm
 
    // prolog
    sub rsp, $10;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$10;{$ENDIF} 
 
    // iters := -width*sizeof(double)
    mov r10, width;
@@ -920,7 +920,7 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$10;{$ENDIF} 
    add rsp, $10;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
@@ -947,8 +947,8 @@ asm
 
    // prolog
    sub rsp, $20;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$20;{$ENDIF} 
 
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    xor r10, r10;
@@ -1145,8 +1145,8 @@ asm
    @@endProc:
 
    // epilog
-   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$20;{$ENDIF} 
    add rsp, $20;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
@@ -1173,8 +1173,8 @@ asm
 
    // prolog
    sub rsp, $20;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$20;{$ENDIF} 
 
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    xor r10, r10;
@@ -1366,8 +1366,8 @@ asm
 
    @@endProc:
 
-   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$20;{$ENDIF} 
    add rsp, $20;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
@@ -1399,7 +1399,7 @@ asm
 
    // prolog
    sub rsp, $10;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$10;{$ENDIF} 
 
    // iters := -width*sizeof(double)
    mov r10, width;
@@ -1571,7 +1571,7 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$10;{$ENDIF} 
    add rsp, $10;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
@@ -1599,7 +1599,7 @@ asm
 
    // prolog
    sub rsp, $10;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$10;{$ENDIF} 
 
    // iters := -width*sizeof(double)
    mov r10, width;
@@ -1778,7 +1778,7 @@ asm
    jnz @@addforyloop;
 
    // epilog
-   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$10;{$ENDIF} 
    add rsp, $10;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
@@ -1805,8 +1805,8 @@ asm
 
    // prolog
    sub rsp, $20;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$20;{$ENDIF} 
 
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    xor r10, r10;
@@ -2005,8 +2005,8 @@ asm
    @@endProc:
 
    // epilog
-   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$20;{$ENDIF} 
    add rsp, $20;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
@@ -2033,8 +2033,8 @@ asm
 
    // prolog
    sub rsp, $20;
-   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$F0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $10], xmm4;{$ELSE}db $C5,$F9,$11,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [rsp + $20], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$20;{$ENDIF} 
 
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    xor r10, r10;
@@ -2229,8 +2229,8 @@ asm
 
    @@endProc:
 
-   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$F0;{$ENDIF} 
-   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, [rsp + $10];{$ELSE}db $C5,$F9,$10,$64,$24,$10;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm5, [rsp + $20];{$ELSE}db $C5,$F9,$10,$6C,$24,$20;{$ENDIF} 
    add rsp, $20;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 {$IFDEF FPC}
