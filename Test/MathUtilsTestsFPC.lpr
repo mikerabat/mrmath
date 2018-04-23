@@ -139,7 +139,6 @@ uses
   FMAMatrixOperations in '..\FMAMatrixOperations.pas',
   FMAMatrixVectorMultOperations in '..\FMAMatrixVectorMultOperations.pas',
   FMAMatrixVectorMultOperationsx64 in '..\FMAMatrixVectorMultOperationsx64.pas',
-  BaseMatrixTestCase in 'BaseMatrixTestCase.pas',
   TestSimpleMatrixOperations in 'TestSimpleMatrixOperations.pas',
   TestAVX in 'TestAVX.pas',
   TestFMA in 'TestFMA.pas',

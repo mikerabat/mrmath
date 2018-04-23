@@ -1069,7 +1069,6 @@ begin
      res := CheckMtxIdx(p3, p4, cMtxSize, outidx, 1e-6);
      Check(res, '32x11 Error Matrix mult failed @' + IntToStr(outidx));
 
-
      start1 := MtxGetTime;
      GenericMtxMultTransp(p3, cMtxWidth*sizeof(double), p1, p2, cMtxWidth, cMtxWidth, cMtxWidth, cMtxWidth, cMtxWidth*sizeof(double), cMtxWidth*sizeof(double));
      stop1 := MtxGetTime;

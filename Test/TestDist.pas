@@ -18,7 +18,7 @@ interface
 
 uses
   {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF} ,
-  Classes, SysUtils, Types, Matrix, BaseMatrixTestCase;
+  Classes, SysUtils, Matrix, BaseMatrixTestCase;
 
 type
   TestDistance = class(TBaseMatrixTestCase)
