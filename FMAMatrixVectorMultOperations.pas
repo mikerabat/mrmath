@@ -522,10 +522,10 @@ asm
 
        // init values:
        {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;{$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} 
-       {$IFDEF FPC}vmovupd [esp + 128], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$80;{$ENDIF}
-       {$IFDEF FPC}vmovupd [esp + 96], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$A0;{$ENDIF}
-       {$IFDEF FPC}vmovupd [esp + 64], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$C0;{$ENDIF}
-       {$IFDEF FPC}vmovupd [esp + 32], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$E0;{$ENDIF}
+       {$IFDEF FPC}vmovupd [esp + 128], ymm0;{$ELSE}db $C5,$FD,$11,$84,$24,$00,$00,$00,$80;{$ENDIF} 
+       {$IFDEF FPC}vmovupd [esp + 96], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$60;{$ENDIF} 
+       {$IFDEF FPC}vmovupd [esp + 64], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$40;{$ENDIF} 
+       {$IFDEF FPC}vmovupd [esp + 32], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$20;{$ENDIF} 
 
        mov eax, mt1;       // eax = first matrix element
        mov ebx, V;       // ebx = first vector element
@@ -534,25 +534,25 @@ asm
        @@foryloop:
            {$IFDEF FPC}vbroadcastsd ymm3, [ebx];{$ELSE}db $C4,$E2,$7D,$19,$1B;{$ENDIF} 
 
-           {$IFDEF FPC}vmovupd ymm0, [esp + 128];{$ELSE}db $C5,$FD,$10,$44,$24,$80;{$ENDIF}
+           {$IFDEF FPC}vmovupd ymm0, [esp + 128];{$ELSE}db $C5,$FD,$10,$84,$24,$00,$00,$00,$80;{$ENDIF} 
            {$IFDEF FPC}vmovupd ymm4, [eax];{$ELSE}db $C5,$FD,$10,$20;{$ENDIF} 
            {$IFDEF FPC}vfmadd231pd ymm0, ymm3, ymm4;{$ELSE}db $C4,$E2,$E5,$B8,$C4;{$ENDIF} 
-           {$IFDEF FPC}vmovupd [esp + 128], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$80;{$ENDIF}
+           {$IFDEF FPC}vmovupd [esp + 128], ymm0;{$ELSE}db $C5,$FD,$11,$84,$24,$00,$00,$00,$80;{$ENDIF} 
 
-           {$IFDEF FPC}vmovupd ymm1, [esp + 96];{$ELSE}db $C5,$FD,$10,$4C,$24,$A0;{$ENDIF}
+           {$IFDEF FPC}vmovupd ymm1, [esp + 96];{$ELSE}db $C5,$FD,$10,$4C,$24,$60;{$ENDIF} 
            {$IFDEF FPC}vmovupd ymm4, [eax + 32];{$ELSE}db $C5,$FD,$10,$60,$20;{$ENDIF} 
            {$IFDEF FPC}vfmadd231pd ymm1, ymm3, ymm4;{$ELSE}db $C4,$E2,$E5,$B8,$CC;{$ENDIF} 
-           {$IFDEF FPC}vmovupd [esp + 96], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$24,$A0;{$ENDIF}
+           {$IFDEF FPC}vmovupd [esp + 96], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$24,$60;{$ENDIF} 
 
-           {$IFDEF FPC}vmovupd ymm0, [esp + 64];{$ELSE}db $C5,$FD,$10,$44,$24,$C0;{$ENDIF}
+           {$IFDEF FPC}vmovupd ymm0, [esp + 64];{$ELSE}db $C5,$FD,$10,$44,$24,$40;{$ENDIF} 
            {$IFDEF FPC}vmovupd ymm4, [eax + 64];{$ELSE}db $C5,$FD,$10,$60,$40;{$ENDIF} 
            {$IFDEF FPC}vfmadd231pd ymm0, ymm3, ymm4;{$ELSE}db $C4,$E2,$E5,$B8,$C4;{$ENDIF} 
-           {$IFDEF FPC}vmovupd [esp + 64], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$C0;{$ENDIF}
+           {$IFDEF FPC}vmovupd [esp + 64], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$40;{$ENDIF} 
 
-           {$IFDEF FPC}vmovupd ymm1, [esp + 32];{$ELSE}db $C5,$FD,$10,$4C,$24,$E0;{$ENDIF}
+           {$IFDEF FPC}vmovupd ymm1, [esp + 32];{$ELSE}db $C5,$FD,$10,$4C,$24,$20;{$ENDIF} 
            {$IFDEF FPC}vmovupd ymm4, [eax + 96];{$ELSE}db $C5,$FD,$10,$60,$60;{$ENDIF} 
            {$IFDEF FPC}vfmadd231pd ymm1, ymm3, ymm4;{$ELSE}db $C4,$E2,$E5,$B8,$CC;{$ENDIF} 
-           {$IFDEF FPC}vmovupd [esp + 32], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$24,$E0;{$ENDIF}
+           {$IFDEF FPC}vmovupd [esp + 32], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$24,$20;{$ENDIF} 
 
            add eax, esi;
            add ebx, edi;
@@ -570,7 +570,7 @@ asm
        {$IFDEF FPC}vmovsd xmm4, [ecx + edx];{$ELSE}db $C5,$FB,$10,$24,$11;{$ENDIF} 
        {$IFDEF FPC}vmovlhps xmm3, xmm3, xmm4;{$ELSE}db $C5,$E0,$16,$DC;{$ENDIF} 
 
-       {$IFDEF FPC}vmovupd xmm0, [esp + 128];{$ELSE}db $C5,$F9,$10,$44,$24,$80;{$ENDIF}
+       {$IFDEF FPC}vmovupd xmm0, [esp + 128];{$ELSE}db $C5,$F9,$10,$84,$24,$00,$00,$00,$80;{$ENDIF} 
        {$IFDEF FPC}vmulpd xmm0, xmm0, xmm6;   {$ELSE}db $C5,$F9,$59,$C6;{$ENDIF} // alpha*res
        {$IFDEF FPC}vmulpd xmm3, xmm3, xmm7;   {$ELSE}db $C5,$E1,$59,$DF;{$ENDIF} // dest*beta
 
@@ -587,7 +587,7 @@ asm
        {$IFDEF FPC}vmovlhps xmm3, xmm3, xmm4;{$ELSE}db $C5,$E0,$16,$DC;{$ENDIF} 
 
        //movupd xmm0, res1;
-       {$IFDEF FPC}vmovupd xmm0, [esp + 112];{$ELSE}db $C5,$F9,$10,$44,$24,$90;{$ENDIF}
+       {$IFDEF FPC}vmovupd xmm0, [esp + 112];{$ELSE}db $C5,$F9,$10,$44,$24,$70;{$ENDIF} 
        {$IFDEF FPC}vmulpd xmm0, xmm0, xmm6;   {$ELSE}db $C5,$F9,$59,$C6;{$ENDIF} // alpha*res
        {$IFDEF FPC}vmulpd xmm3, xmm3, xmm7;   {$ELSE}db $C5,$E1,$59,$DF;{$ENDIF} // dest*beta
 
@@ -604,7 +604,7 @@ asm
        {$IFDEF FPC}vmovsd xmm4, [ecx + edx];{$ELSE}db $C5,$FB,$10,$24,$11;{$ENDIF} 
        {$IFDEF FPC}vmovlhps xmm3, xmm3, xmm4;{$ELSE}db $C5,$E0,$16,$DC;{$ENDIF} 
 
-       {$IFDEF FPC}vmovupd xmm0, [esp + 96];{$ELSE}db $C5,$F9,$10,$44,$24,$A0;{$ENDIF}
+       {$IFDEF FPC}vmovupd xmm0, [esp + 96];{$ELSE}db $C5,$F9,$10,$44,$24,$60;{$ENDIF} 
        {$IFDEF FPC}vmulpd xmm0, xmm0, xmm6;   {$ELSE}db $C5,$F9,$59,$C6;{$ENDIF} // alpha*res
        {$IFDEF FPC}vmulpd xmm3, xmm3, xmm7;   {$ELSE}db $C5,$E1,$59,$DF;{$ENDIF} // dest*beta
 
@@ -622,7 +622,7 @@ asm
        {$IFDEF FPC}vmovlhps xmm3, xmm3, xmm4;{$ELSE}db $C5,$E0,$16,$DC;{$ENDIF} 
 
        //movupd xmm0, res3;
-       {$IFDEF FPC}vmovupd xmm0, [esp + 80];{$ELSE}db $C5,$F9,$10,$44,$24,$B0;{$ENDIF}
+       {$IFDEF FPC}vmovupd xmm0, [esp + 80];{$ELSE}db $C5,$F9,$10,$44,$24,$50;{$ENDIF} 
        {$IFDEF FPC}vmulpd xmm0, xmm0, xmm6;   {$ELSE}db $C5,$F9,$59,$C6;{$ENDIF} // alpha*res
        {$IFDEF FPC}vmulpd xmm3, xmm3, xmm7;   {$ELSE}db $C5,$E1,$59,$DF;{$ENDIF} // dest*beta
 
@@ -639,7 +639,7 @@ asm
        {$IFDEF FPC}vmovsd xmm4, [ecx + edx];{$ELSE}db $C5,$FB,$10,$24,$11;{$ENDIF} 
        {$IFDEF FPC}vmovlhps xmm3, xmm3, xmm4;{$ELSE}db $C5,$E0,$16,$DC;{$ENDIF} 
 
-       {$IFDEF FPC}vmovupd xmm0, [esp + 64];{$ELSE}db $C5,$F9,$10,$44,$24,$C0;{$ENDIF}
+       {$IFDEF FPC}vmovupd xmm0, [esp + 64];{$ELSE}db $C5,$F9,$10,$44,$24,$40;{$ENDIF} 
        {$IFDEF FPC}vmulpd xmm0, xmm0, xmm6;   {$ELSE}db $C5,$F9,$59,$C6;{$ENDIF} // alpha*res
        {$IFDEF FPC}vmulpd xmm3, xmm3, xmm7;   {$ELSE}db $C5,$E1,$59,$DF;{$ENDIF} // dest*beta
 
@@ -657,7 +657,7 @@ asm
        {$IFDEF FPC}vmovlhps xmm3, xmm3, xmm4;{$ELSE}db $C5,$E0,$16,$DC;{$ENDIF} 
 
        //movupd xmm0, res5;
-       {$IFDEF FPC}vmovupd xmm0, [esp + 48];{$ELSE}db $C5,$F9,$10,$44,$24,$D0;{$ENDIF}
+       {$IFDEF FPC}vmovupd xmm0, [esp + 48];{$ELSE}db $C5,$F9,$10,$44,$24,$30;{$ENDIF} 
        {$IFDEF FPC}vmulpd xmm0, xmm0, xmm6;   {$ELSE}db $C5,$F9,$59,$C6;{$ENDIF} // alpha*res
        {$IFDEF FPC}vmulpd xmm3, xmm3, xmm7;   {$ELSE}db $C5,$E1,$59,$DF;{$ENDIF} // dest*beta
 
@@ -674,7 +674,7 @@ asm
        {$IFDEF FPC}vmovsd xmm4, [ecx + edx];{$ELSE}db $C5,$FB,$10,$24,$11;{$ENDIF} 
        {$IFDEF FPC}vmovlhps xmm3, xmm3, xmm4;{$ELSE}db $C5,$E0,$16,$DC;{$ENDIF} 
 
-       {$IFDEF FPC}vmovupd xmm0, [esp + 32];{$ELSE}db $C5,$F9,$10,$44,$24,$E0;{$ENDIF}
+       {$IFDEF FPC}vmovupd xmm0, [esp + 32];{$ELSE}db $C5,$F9,$10,$44,$24,$20;{$ENDIF} 
        {$IFDEF FPC}vmulpd xmm0, xmm0, xmm6;   {$ELSE}db $C5,$F9,$59,$C6;{$ENDIF} // alpha*res
        {$IFDEF FPC}vmulpd xmm3, xmm3, xmm7;   {$ELSE}db $C5,$E1,$59,$DF;{$ENDIF} // dest*beta
 
@@ -692,7 +692,7 @@ asm
        {$IFDEF FPC}vmovlhps xmm3, xmm3, xmm4;{$ELSE}db $C5,$E0,$16,$DC;{$ENDIF} 
 
        //movupd xmm0, res7;
-       {$IFDEF FPC}vmovupd xmm0, [esp + 16];{$ELSE}db $C5,$F9,$10,$44,$24,$F0;{$ENDIF}
+       {$IFDEF FPC}vmovupd xmm0, [esp + 16];{$ELSE}db $C5,$F9,$10,$44,$24,$10;{$ENDIF} 
        {$IFDEF FPC}vmulpd xmm0, xmm0, xmm6;   {$ELSE}db $C5,$F9,$59,$C6;{$ENDIF} // alpha*res
        {$IFDEF FPC}vmulpd xmm3, xmm3, xmm7;   {$ELSE}db $C5,$E1,$59,$DF;{$ENDIF} // dest*beta
 
@@ -800,10 +800,10 @@ asm
 
        // init values:
        {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;{$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} 
-       {$IFDEF FPC}vmovupd [esp + 128], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$80;{$ENDIF}
-       {$IFDEF FPC}vmovupd [esp + 96], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$A0;{$ENDIF}
-       {$IFDEF FPC}vmovupd [esp + 64], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$C0;{$ENDIF}
-       {$IFDEF FPC}vmovupd [esp + 32], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$E0;{$ENDIF}
+       {$IFDEF FPC}vmovupd [esp + 128], ymm0;{$ELSE}db $C5,$FD,$11,$84,$24,$00,$00,$00,$80;{$ENDIF} 
+       {$IFDEF FPC}vmovupd [esp + 96], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$60;{$ENDIF} 
+       {$IFDEF FPC}vmovupd [esp + 64], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$40;{$ENDIF} 
+       {$IFDEF FPC}vmovupd [esp + 32], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$20;{$ENDIF} 
 
        mov eax, mt1;       // eax = first matrix element
        mov ebx, v;         // ebx = first vector element
@@ -812,25 +812,25 @@ asm
        @@foryloop:
            {$IFDEF FPC}vbroadcastsd ymm3, [ebx];{$ELSE}db $C4,$E2,$7D,$19,$1B;{$ENDIF} 
 
-           {$IFDEF FPC}vmovupd ymm0, [esp + 128];{$ELSE}db $C5,$FD,$10,$44,$24,$80;{$ENDIF}
+           {$IFDEF FPC}vmovupd ymm0, [esp + 128];{$ELSE}db $C5,$FD,$10,$84,$24,$00,$00,$00,$80;{$ENDIF} 
            {$IFDEF FPC}vmovupd ymm4, [eax];{$ELSE}db $C5,$FD,$10,$20;{$ENDIF} 
            {$IFDEF FPC}vfmadd231pd ymm0, ymm3, ymm4;{$ELSE}db $C4,$E2,$E5,$B8,$C4;{$ENDIF} 
-           {$IFDEF FPC}vmovupd [esp + 128], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$80;{$ENDIF}
+           {$IFDEF FPC}vmovupd [esp + 128], ymm0;{$ELSE}db $C5,$FD,$11,$84,$24,$00,$00,$00,$80;{$ENDIF} 
 
-           {$IFDEF FPC}vmovupd ymm1, [esp + 96];{$ELSE}db $C5,$FD,$10,$4C,$24,$A0;{$ENDIF}
+           {$IFDEF FPC}vmovupd ymm1, [esp + 96];{$ELSE}db $C5,$FD,$10,$4C,$24,$60;{$ENDIF} 
            {$IFDEF FPC}vmovupd ymm4, [eax + 32];{$ELSE}db $C5,$FD,$10,$60,$20;{$ENDIF} 
            {$IFDEF FPC}vfmadd231pd ymm1, ymm3, ymm4;{$ELSE}db $C4,$E2,$E5,$B8,$CC;{$ENDIF} 
-           {$IFDEF FPC}vmovupd [esp + 96], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$24,$A0;{$ENDIF}
+           {$IFDEF FPC}vmovupd [esp + 96], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$24,$60;{$ENDIF} 
 
-           {$IFDEF FPC}vmovupd ymm0, [esp + 64];{$ELSE}db $C5,$FD,$10,$44,$24,$C0;{$ENDIF}
+           {$IFDEF FPC}vmovupd ymm0, [esp + 64];{$ELSE}db $C5,$FD,$10,$44,$24,$40;{$ENDIF} 
            {$IFDEF FPC}vmovupd ymm4, [eax + 64];{$ELSE}db $C5,$FD,$10,$60,$40;{$ENDIF} 
            {$IFDEF FPC}vfmadd231pd ymm0, ymm3, ymm4;{$ELSE}db $C4,$E2,$E5,$B8,$C4;{$ENDIF} 
-           {$IFDEF FPC}vmovupd [esp + 64], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$C0;{$ENDIF}
+           {$IFDEF FPC}vmovupd [esp + 64], ymm0;{$ELSE}db $C5,$FD,$11,$44,$24,$40;{$ENDIF} 
 
-           {$IFDEF FPC}vmovupd ymm1, [esp + 32];{$ELSE}db $C5,$FD,$10,$4C,$24,$E0;{$ENDIF}
+           {$IFDEF FPC}vmovupd ymm1, [esp + 32];{$ELSE}db $C5,$FD,$10,$4C,$24,$20;{$ENDIF} 
            {$IFDEF FPC}vmovupd ymm4, [eax + 96];{$ELSE}db $C5,$FD,$10,$60,$60;{$ENDIF} 
            {$IFDEF FPC}vfmadd231pd ymm1, ymm3, ymm4;{$ELSE}db $C4,$E2,$E5,$B8,$CC;{$ENDIF} 
-           {$IFDEF FPC}vmovupd [esp + 32], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$24,$E0;{$ENDIF}
+           {$IFDEF FPC}vmovupd [esp + 32], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$24,$20;{$ENDIF} 
 
            add eax, esi;
            add ebx, edi;
@@ -845,7 +845,7 @@ asm
        // first 4
        {$IFDEF FPC}vmovupd ymm3, [ecx];{$ELSE}db $C5,$FD,$10,$19;{$ENDIF} 
 
-       {$IFDEF FPC}vmovupd ymm0, [esp + 128];{$ELSE}db $C5,$FD,$10,$44,$24,$80;{$ENDIF}
+       {$IFDEF FPC}vmovupd ymm0, [esp + 128];{$ELSE}db $C5,$FD,$10,$84,$24,$00,$00,$00,$80;{$ENDIF} 
        {$IFDEF FPC}vmulpd ymm0, ymm0, ymm6; {$ELSE}db $C5,$FD,$59,$C6;{$ENDIF} // alpha*res
        {$IFDEF FPC}vmulpd ymm3, ymm3, ymm7; {$ELSE}db $C5,$E5,$59,$DF;{$ENDIF} // dest*beta
        {$IFDEF FPC}vaddpd ymm3, ymm3, ymm0;{$ELSE}db $C5,$E5,$58,$D8;{$ENDIF} 
@@ -855,7 +855,7 @@ asm
        // second 4
        {$IFDEF FPC}vmovupd ymm3, [ecx];{$ELSE}db $C5,$FD,$10,$19;{$ENDIF} 
 
-       {$IFDEF FPC}vmovupd ymm0, [esp + 96];{$ELSE}db $C5,$FD,$10,$44,$24,$A0;{$ENDIF}
+       {$IFDEF FPC}vmovupd ymm0, [esp + 96];{$ELSE}db $C5,$FD,$10,$44,$24,$60;{$ENDIF} 
        {$IFDEF FPC}vmulpd ymm0, ymm0, ymm6; {$ELSE}db $C5,$FD,$59,$C6;{$ENDIF} // alpha*res
        {$IFDEF FPC}vmulpd ymm3, ymm3, ymm7; {$ELSE}db $C5,$E5,$59,$DF;{$ENDIF} // dest*beta
        {$IFDEF FPC}vaddpd ymm3, ymm3, ymm0;{$ELSE}db $C5,$E5,$58,$D8;{$ENDIF} 
@@ -865,7 +865,7 @@ asm
        // third 4
        {$IFDEF FPC}vmovupd ymm3, [ecx];{$ELSE}db $C5,$FD,$10,$19;{$ENDIF} 
 
-       {$IFDEF FPC}vmovupd ymm0, [esp + 64];{$ELSE}db $C5,$FD,$10,$44,$24,$C0;{$ENDIF}
+       {$IFDEF FPC}vmovupd ymm0, [esp + 64];{$ELSE}db $C5,$FD,$10,$44,$24,$40;{$ENDIF} 
        {$IFDEF FPC}vmulpd ymm0, ymm0, ymm6; {$ELSE}db $C5,$FD,$59,$C6;{$ENDIF} // alpha*res
        {$IFDEF FPC}vmulpd ymm3, ymm3, ymm7; {$ELSE}db $C5,$E5,$59,$DF;{$ENDIF} // dest*beta
        {$IFDEF FPC}vaddpd ymm3, ymm3, ymm0;{$ELSE}db $C5,$E5,$58,$D8;{$ENDIF} 
@@ -875,7 +875,7 @@ asm
        // forth 4
        {$IFDEF FPC}vmovupd ymm3, [ecx];{$ELSE}db $C5,$FD,$10,$19;{$ENDIF} 
 
-       {$IFDEF FPC}vmovupd ymm0, [esp + 32];{$ELSE}db $C5,$FD,$10,$44,$24,$E0;{$ENDIF}
+       {$IFDEF FPC}vmovupd ymm0, [esp + 32];{$ELSE}db $C5,$FD,$10,$44,$24,$20;{$ENDIF} 
        {$IFDEF FPC}vmulpd ymm0, ymm0, ymm6; {$ELSE}db $C5,$FD,$59,$C6;{$ENDIF} // alpha*res
        {$IFDEF FPC}vmulpd ymm3, ymm3, ymm7; {$ELSE}db $C5,$E5,$59,$DF;{$ENDIF} // dest*beta
        {$IFDEF FPC}vaddpd ymm3, ymm3, ymm0;{$ELSE}db $C5,$E5,$58,$D8;{$ENDIF} 
