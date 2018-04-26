@@ -375,6 +375,7 @@ var A, A2, A3, W, W2, W3, V, V2, V3 : TDoubleDynArray;
     j : Integer;
     iter : integer;
     origInstrSet : TCPUInstrType;
+    s1, s2 :int64;
 function SVDMult(A, W, V : TDoubleDynArray) : boolean;
 var i, j : integer;
     x : TDoubleDynArray;
@@ -390,8 +391,17 @@ begin
      x := MatrixMult(@A[0], @v[0], blkHeight, blkHeight, blkWidth, blkHeight, blkWidth*sizeof(double), blkWidth*sizeof(double));
 
      Result := CheckMtx(X, ARef);
+
+     if not result then
+     begin
+          WriteMatlabData('D:\aref.txt', aref, blkWidth);
+          WriteMatlabData('D:\xmul.txt', x, blkWidth);
+          WriteMatlabData('D:\a.txt', a, blkheight);
+          WriteMatlabData('D:\v.txt', v, blkWidth);
+     end;
 end;
 begin
+     s1 := timeInSync;
      origInstrSet := GetCurCPUInstrType;
      InitMtxThreadPool;
 
@@ -475,6 +485,11 @@ begin
      finally
             FinalizeMtxThreadPool;
      end;
+
+     s2 := timeInSync;
+
+
+     Status(Format('CreateEvent code took %.3fms', [(s2 - s1)/mtxfreq*1000]));
 end;
 
 

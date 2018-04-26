@@ -44,12 +44,9 @@ type
     FFatalErrorAddr: Pointer;
     fData : TObject;
     fProc : TMtxProc;
-    FForceDifferentThread: Boolean;
     procedure InternExecuteAsyncCall;
     procedure Quit(AReturnValue: Integer);
   protected
-    { Decendants must implement this method. It is called  when the async call
-      should be executed. }
     function ExecuteAsyncCall: Integer;
   public
     constructor Create(proc : TMtxProc; obj : TObject);
@@ -57,12 +54,9 @@ type
     function _Release: Integer; stdcall;
     procedure ExecuteAsync;
 
-    function GetEvent: Cardinal;
-
     function Sync: Integer;
     function Finished: Boolean;
     function GetResult: Integer;
-    procedure ForceDifferentThread;
   end;
 
 type
@@ -72,6 +66,7 @@ type
     fWorking: Boolean;
     FCPUNum : integer;
     fSig : TSimpleEvent;
+    fEvent : THandle;
     fTask : TWinMtxAsyncCall;
     procedure Execute; override;
   public
@@ -109,12 +104,12 @@ type
   private
     fTaskList : IInterfaceList;
   public
-    procedure AddTask(proc : TMtxProc; obj : TObject); 
+    procedure AddTask(proc : TMtxProc; obj : TObject);
     procedure SyncAll;
 
     constructor Create;
   end;
-  
+
 { TSimpleWinThreadGroup }
 
 procedure TSimpleWinThreadGroup.AddTask(proc : TMtxProc; obj : TObject);
@@ -143,7 +138,7 @@ begin
           aTask.Sync;
      end;
 end;
-  
+
 function InitWinThreadGroup : IMtxAsyncCallGroup;
 begin
      Result := TSimpleWinThreadGroup.Create;
@@ -168,6 +163,7 @@ begin
      FCPUNum := CPUNum;
      FreeOnTerminate := True;
      fSig := TSimpleEvent.Create;
+     FEvent := CreateEvent(nil, True, False, nil);
 
      inherited Create(False);
 end;
@@ -220,14 +216,6 @@ begin
 
                fSig.ResetEvent;
                fWorking := False;
-               //asyncCall := ThreadPool.GetNexTWinMtxAsyncCall(Self); // calls Suspend if nothing has to be done.
-               //if asyncCall <> nil then
-//               begin
-//                    try
-//                       asyncCall.InternExecuteAsyncCall;
-//                    except
-//                    end;
-//               end;
           end;
      end;
 end;
@@ -242,6 +230,7 @@ end;
 destructor TWinMtxAsyncCallThread.Destroy;
 begin
      fSig.Free;
+     CloseHandle(fEvent);
 
      inherited;
 end;
@@ -252,6 +241,8 @@ begin
      begin
           fTask := aTask;
           fWorking := True;
+          fTask.FEvent := fEvent;
+          ResetEvent(fEvent);
           fSig.SetEvent;
      end;
 end;
@@ -262,10 +253,14 @@ procedure TMtxThreadPool.AddAsyncCall(call: TWinMtxAsyncCall);
 var List: TList;
     FreeThreadFound: Boolean;
     I: Integer;
+    s1, s2 : INt64;
 begin
      FreeThreadFound := False;
+
      List := fThreadList.LockList;
      try
+        QueryPerformanceCounter(s1);
+
         for I := 0 to List.Count - 1 do
         begin
              if not TWinMtxAsyncCallThread(List[I]).Working then
@@ -279,6 +274,9 @@ begin
         { All threads are busy, we need to allocate another thread if possible }
         if not FreeThreadFound and (List.Count < MaxThreads) then
            AllocThread;
+
+        QueryPerformanceCounter(s2);
+        timeInSync := timeInSync + s2 - s1;
      finally
             fThreadList.UnlockList;
      end;
@@ -332,64 +330,18 @@ begin
      inherited;
 end;
 
-//function TMtxThreadPool.GetNexTWinMtxAsyncCall(
-//  Thread: TWinMtxAsyncCallThread): TWinMtxAsyncCall;
-//var List: TList;
-//begin
-//     List := FAsyncCalls.LockList;
-//     try
-//        if List.Count > 0 then
-//        begin
-//             { Get the "oldest" async call }
-//             Result := TWinMtxAsyncCall(List[0]);
-//             List.Delete(0);
-//        end
-//        else
-//            Result := nil;
-//     finally
-//            FAsyncCalls.UnlockList;
-//     end;
-//     { Nothing to do, go sleeping... }
-//     if Result = nil then
-//        Thread.SuspendThread;
-//end;
-
-//function TMtxThreadPool.RemoveAsyncCall(Call: TWinMtxAsyncCall): Boolean;
-//var List: TList;
-//    Index: Integer;
-//begin
-//     List := FAsyncCalls.LockList;
-//     try
-//       Index := List.IndexOf(Call);
-//       Result := Index >= 0;
-//       if Result then
-//          List.Delete(Index);
-//     finally
-//            FAsyncCalls.UnlockList;
-//     end;
-//end;
-
 constructor TWinMtxAsyncCall.Create(proc : TMtxProc; obj : TObject);
 begin
      inherited Create;
 
-     FEvent := CreateEvent(nil, True, False, nil);
+     FEvent := 0;
+
      fProc := proc;
      fData := obj;
 end;
 
 destructor TWinMtxAsyncCall.Destroy;
 begin
-     if FEvent <> 0 then
-     begin
-          try
-             Sync;
-          finally
-                 CloseHandle(FEvent);
-                 FEvent := 0;
-          end;
-     end;
-
      fData.Free;
 
      inherited Destroy;
@@ -405,16 +357,6 @@ end;
 function TWinMtxAsyncCall.Finished: Boolean;
 begin
      Result := (FEvent = 0) or FFinished or (WaitForSingleObject(FEvent, 0) = WAIT_OBJECT_0);
-end;
-
-procedure TWinMtxAsyncCall.ForceDifferentThread;
-begin
-     FForceDifferentThread := True;
-end;
-
-function TWinMtxAsyncCall.GetEvent: Cardinal;
-begin
-     Result := FEvent;
 end;
 
 procedure TWinMtxAsyncCall.InternExecuteAsyncCall;
@@ -464,6 +406,7 @@ begin
      end;
      Result := FReturnValue;
 
+     FEvent := 0;
      if FFatalException <> nil then
      begin
           E := FFatalException;
