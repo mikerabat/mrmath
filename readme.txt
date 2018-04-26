@@ -54,6 +54,9 @@ Gustav Kaiser - special thanks for implementing the PLS algorithm.
 // ###################################################################
 changelog:
 
+Date: 26.04.2018
+* Optimzed windows thread pool -> Now I try to avoid that a thread runs on the same CPU that is calling it.
+
 Date: 23.04.2018
 * Fixed some stack issues to be more conform with the x64 ABI
 

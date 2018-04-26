@@ -25,6 +25,8 @@ function IsFMAPresent : boolean;
 function IsHardwareRNDSupport : boolean;
 function IsHardwareRDSeed : boolean;
 
+function GetCurrentProcessorNumber : DWord; register;
+
 implementation
 
 // ##############################################################
@@ -85,7 +87,6 @@ end;
 {$ENDIF}
 end;
 
-
 {$ELSE}
 
 function IsCPUID_Available: Boolean; register;
@@ -126,6 +127,21 @@ end;
 {$IFDEF FPC} end; {$ENDIF}
 
 {$ENDIF}
+
+
+function GetCurrentProcessorNumber : DWord; register; // stdcall; external 'Kernel32.dll';
+{$IFDEF FPC}
+begin
+{$ENDIF}
+asm
+   mov eax, 1;
+   DB $0F, $A2;  //cpuid;
+   shr ebx, 24;
+   mov eax, ebx;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+end;
 
 function IsSSE3Present : boolean;
 var reg : TRegisters;

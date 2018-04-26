@@ -32,7 +32,7 @@ function InitWinThreadGroup : IMtxAsyncCallGroup;
 {$ENDIF}
 implementation
 {$IFDEF MSWINDOWS}
-uses Classes, Windows, SyncObjs, winCPUInfo;
+uses Classes, Windows, SyncObjs, winCPUInfo, CPUFeatures;
 
 type
   TWinMtxAsyncCall = class(TInterfacedObject, IMtxAsyncCall)
@@ -161,6 +161,7 @@ end;
 constructor TWinMtxAsyncCallThread.Create(CPUNum: integer);
 begin
      FCPUNum := CPUNum;
+     //fCPUNum := -1;
      FreeOnTerminate := True;
      fSig := TSimpleEvent.Create;
      FEvent := CreateEvent(nil, True, False, nil);
@@ -208,10 +209,10 @@ begin
           begin
                if Assigned(fTask) then
                begin
-                    try
+                    //try
                        fTask.InternExecuteAsyncCall;
-                    except
-                    end;
+                    //except
+                    //end;
                end;
 
                fSig.ResetEvent;
@@ -237,14 +238,13 @@ end;
 
 procedure TWinMtxAsyncCallThread.StartTask(aTask: TWinMtxAsyncCall);
 begin
-     if not fWorking then
-     begin
-          fTask := aTask;
-          fWorking := True;
-          fTask.FEvent := fEvent;
-          ResetEvent(fEvent);
-          fSig.SetEvent;
-     end;
+     assert(not fWorking, 'Though checked for not working - it''s working?!?!');
+
+     fTask := aTask;
+     fWorking := True;
+     fTask.FEvent := fEvent;
+     ResetEvent(fEvent);
+     fSig.SetEvent;
 end;
 
 { TMtxThreadPool }
@@ -253,17 +253,20 @@ procedure TMtxThreadPool.AddAsyncCall(call: TWinMtxAsyncCall);
 var List: TList;
     FreeThreadFound: Boolean;
     I: Integer;
-    s1, s2 : INt64;
+    cpuNum : DWord;
+    obj : TWinMtxAsyncCallThread;
 begin
      FreeThreadFound := False;
 
      List := fThreadList.LockList;
      try
-        QueryPerformanceCounter(s1);
-
+        cpuNum := GetCurrentProcessorNumber;
         for I := 0 to List.Count - 1 do
         begin
-             if not TWinMtxAsyncCallThread(List[I]).Working then
+             obj := TWinMtxAsyncCallThread(List[I]);
+             
+             // since the threads containing a cpunum >= 0 are masked we avoid using the same cpu
+             if not obj.Working and (obj.FCPUNum <> Integer(cpuNum)) then
              begin
                   // Wake up the thread so it can execute the waiting async call.
                   TWinMtxAsyncCallThread(List[I]).StartTask(call);
@@ -274,9 +277,6 @@ begin
         { All threads are busy, we need to allocate another thread if possible }
         if not FreeThreadFound and (List.Count < MaxThreads) then
            AllocThread;
-
-        QueryPerformanceCounter(s2);
-        timeInSync := timeInSync + s2 - s1;
      finally
             fThreadList.UnlockList;
      end;

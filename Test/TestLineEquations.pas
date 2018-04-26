@@ -401,7 +401,6 @@ begin
      end;
 end;
 begin
-     s1 := timeInSync;
      origInstrSet := GetCurCPUInstrType;
      InitMtxThreadPool;
 
@@ -485,11 +484,6 @@ begin
      finally
             FinalizeMtxThreadPool;
      end;
-
-     s2 := timeInSync;
-
-
-     Status(Format('CreateEvent code took %.3fms', [(s2 - s1)/mtxfreq*1000]));
 end;
 
 
