@@ -375,7 +375,6 @@ var A, A2, A3, W, W2, W3, V, V2, V3 : TDoubleDynArray;
     j : Integer;
     iter : integer;
     origInstrSet : TCPUInstrType;
-    s1, s2 :int64;
 function SVDMult(A, W, V : TDoubleDynArray) : boolean;
 var i, j : integer;
     x : TDoubleDynArray;

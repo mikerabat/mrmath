@@ -25,7 +25,7 @@ function IsFMAPresent : boolean;
 function IsHardwareRNDSupport : boolean;
 function IsHardwareRDSeed : boolean;
 
-function GetCurrentProcessorNumber : DWord; register;
+function GetCurrentProcessorNumber : LongWord; register;
 
 implementation
 
@@ -129,7 +129,7 @@ end;
 {$ENDIF}
 
 
-function GetCurrentProcessorNumber : DWord; register; // stdcall; external 'Kernel32.dll';
+function GetCurrentProcessorNumber : LongWord; register; // stdcall; external 'Kernel32.dll';
 {$IFDEF FPC}
 begin
 {$ENDIF}
