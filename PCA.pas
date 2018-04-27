@@ -986,6 +986,11 @@ var x : TDoubleMatrix;
     xhat : TDoubleMatrix;
     i : integer;
 begin
+     {$IFNDEF FPC}
+     {$IF CompilerVersion <= 21}
+     Result := nil;
+     {$IFEND}
+     {$ENDIF}
      xhat := nil;
      a := nil;
      x := MatrixClass.Create(1, fSubMeanElem[idx].Height);

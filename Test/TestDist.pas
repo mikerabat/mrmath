@@ -26,6 +26,7 @@ type
     procedure TestEuclidDist;
     procedure TestMahalonobis;
     procedure TestAbsDist;
+    procedure TestAbsDistRegularized;
     procedure TestPersistence;
   end;
 
@@ -49,6 +50,35 @@ begin
      Status( WriteMtx(d.GetObjRef) );
 
      Check( CheckMtx(d.SubMatrix, cRes), 'Mahalonibis distance calculation failed');
+end;
+
+procedure TestDistance.TestAbsDistRegularized;
+var x : IMatrix;
+    y : IMatrix;
+    d : IMatrix;
+const cRes : Array[0..3] of double = (1.8054, 1.9670, 2.0330, 2.1946);
+begin
+     x := ReadObjFromFile('mahalonobis.dat') as TDoubleMatrix;
+     x.Resize(x.Width, x.Height + 1);
+
+     // add outlier ;)
+     x.SetRow(x.Height - 1, [ 1000, 1000 ]);
+     //WriteMatlabData('D:\xx.txt', x.SubMatrix, x.Width);
+     y := TDoubleMatrix.Create( [1, 1, 1, -1, -1, 1, -1, -1], 2, 4);
+
+     with TDistance.Create do
+     try
+        InitL1DistReg(X, 10, 200, 1e-6);
+
+        status('Iterations needed: ' + intTostr(NumIter));
+
+        d := L1Dist(y);
+     finally
+            Free;
+     end;
+     Status( WriteMtx(d.GetObjRef) );
+
+     Check( CheckMtx(d.SubMatrix, cRes, -1, -1, 0.0001), 'L1 distance calculation failed');
 end;
 
 procedure TestDistance.TestEuclidDist;
@@ -81,8 +111,15 @@ begin
      //WriteMatlabData('D:\xx.txt', x.SubMatrix, x.Width);
      y := TDoubleMatrix.Create( [1, 1, 1, -1, -1, 1, -1, -1], 2, 4);
 
-     d := TDistance.L1(x, y);
-
+     with TDistance.Create do
+     try
+        InitL1Dist(X, 200, 1e-6, 1e-5);
+        status('Iterations needed: ' + intTostr(NumIter));
+        d := L1Dist(y);
+     finally
+            Free;
+     end;
+     
      Status( WriteMtx(d.GetObjRef) );
 
      Check( CheckMtx(d.SubMatrix, cRes, -1, -1, 0.0001), 'L1 distance calculation failed');

@@ -37,7 +37,7 @@ implementation
 uses PCA,
      {$IFDEF MACOS} FMX.Types, {$ENDIF}
      Graphics, BinaryReaderWriter, BaseMathPersistence, IncrementalPCA,
-     JSONReaderWriter, MtxTimer, ThreadedMatrix;
+     JSONReaderWriter, MtxTimer, ThreadedMatrix, MatrixConst;
 
 { TTestEigensystems }
 

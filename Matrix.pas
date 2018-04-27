@@ -155,7 +155,8 @@ type
     function Diff(RowWise : boolean) : TDoubleMatrix;
     procedure DiffInPlace(RowWise : boolean);
     function Sum(RowWise : boolean) : TDoubleMatrix;
-    procedure SumInPlace(RowWise : boolean);
+    procedure SumInPlace(RowWise : boolean); overload;
+    procedure SumInPlace(RowWide : boolean; keepMemory : boolean); overload;
     function CumulativeSum(RowWise : boolean) : TDoubleMatrix;
     procedure CumulativeSumInPlace(RowWise : boolean);
 
@@ -302,7 +303,7 @@ type
 
     fLinEQProgress : TLinEquProgress;
 
-    procedure CheckAndRaiseError(assertionVal : boolean; const msg : string);
+    procedure CheckAndRaiseError(assertionVal : boolean; const msg : string); inline;
 
     procedure SetData(data : PDouble; srcLineWidth, width, height : integer);
     procedure Clear;
@@ -425,7 +426,8 @@ type
     function Diff(RowWise : boolean) : TDoubleMatrix;
     procedure DiffInPlace(RowWise : boolean);
     function Sum(RowWise : boolean) : TDoubleMatrix;
-    procedure SumInPlace(RowWise : boolean);
+    procedure SumInPlace(RowWise : boolean); overload;
+    procedure SumInPlace(RowWise : boolean; keepMemory : boolean); overload;
     function CumulativeSum(RowWise : boolean) : TDoubleMatrix;
     procedure CumulativeSumInPlace(RowWise : boolean);
 
@@ -568,6 +570,12 @@ type
 // ###########################################
 // #### Inline functions (need to be first)
 // ###########################################
+
+procedure TDoubleMatrix.CheckAndRaiseError(assertionVal: boolean; const msg: string);
+begin
+     if not assertionVal then
+        raise EBaseMatrixException.Create(msg);
+end;
 
 procedure TDoubleMatrix.SetItems(x, y: integer; const Value: double);
 var pData : PLocConstDoubleArr;
@@ -2259,7 +2267,7 @@ function TDoubleMatrix.StartElement: PDouble;
 begin
      if (fWidth <> 0) and (fHeight <> 0)
      then
-         Result := PDouble(NativeUInt(fData) + NativeUInt(sizeof(double)*fOffsetX + fOffsetY*fLineWidth))
+         Result := PDouble(NativeUInt(@fData[fOffsetX]) + NativeUInt(fOffsetY*fLineWidth))
      else
          Result := nil;
 end;
@@ -2314,6 +2322,31 @@ begin
           Result := ResultClass.Create(fSubWidth, 1);
 
           MatrixSum(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise);
+     end;
+end;
+
+procedure TDoubleMatrix.SumInPlace(RowWise, keepMemory: boolean);
+begin
+     if not keepMemory 
+     then
+         SumInPlace(RowWise)
+     else
+     begin
+          CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+
+          // inplace sum + do not change the 
+          if RowWise then
+          begin
+               MatrixSum(PDouble(fData), LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise);
+               fOffsetX := 0;
+               fSubWidth := 1;
+          end
+          else
+          begin
+               MatrixSum(PDouble(fData), LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise);
+               fOffsetY := 0;
+               fSubHeight := 1;
+          end;
      end;
 end;
 
@@ -2670,12 +2703,6 @@ begin
      then
          fOffsetY := Value
      else
-end;
-
-procedure TDoubleMatrix.CheckAndRaiseError(assertionVal: boolean; const msg: string);
-begin
-     if not assertionVal then
-        raise EBaseMatrixException.Create(msg);
 end;
 
 function TDoubleMatrix.Cholesky(out Chol: IMatrix): TCholeskyResult;

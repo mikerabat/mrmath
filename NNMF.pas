@@ -143,6 +143,7 @@ var lenOfEigVec : integer;
     dnorm0, dnorm : double;
     lastW, lastH : TDoubleMatrix;
     epsMtx : IMatrix;
+    progress, lastProgress : integer;
 begin
      Result := nmOk;
      Clear;
@@ -185,6 +186,7 @@ begin
              lastH := fH.Clone;
         end;
 
+        lastProgress := -1;
         // ###########################################
         // #### Iterative update of NMF matrix
         for iter := 0 to fProps.MaxIter - 1 do
@@ -316,8 +318,13 @@ begin
                   lastH := fH.Clone;
              end;
              
-             if Assigned(fOnProgress) then
-                fOnProgress(self, (iter + 1)*100 div fProps.MaxIter);
+             progress := (iter + 1)*100 div fProps.MaxIter;
+             
+             if Assigned(fOnProgress) and (lastProgress <> progress) then
+             begin
+                  lastProgress := progress;
+                  fOnProgress(self, progress);
+             end;
         end;
 
         lastW.Free;
