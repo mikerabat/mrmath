@@ -61,9 +61,6 @@ type
 type
   TMathOperationRes = (moSuccess, moFailure);
 
-  EBaseMatrixException = class(Exception);
-  ELinEQSingularException = class(EBaseMatrixException);
-
 type
   TDynArrayofDoubleArray = Array of TDoubleDynArray;
 

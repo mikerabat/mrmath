@@ -23,6 +23,17 @@ interface
 
 uses SysUtils, Classes, Types, MatrixConst, BaseMathPersistence, RandomEng;
 
+{$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+
+type
+  EBaseMatrixException = class(Exception);
+  ELinEQSingularException = class(EBaseMatrixException);
+
 type
   TDoubleMatrix = class;
   IMatrix = interface(IMathPersistence)
@@ -258,6 +269,11 @@ type
     type
       TLocConstDoubleArr = Array[0..MaxInt div sizeof(double) - 1] of double;
       PLocConstDoubleArr = ^TLocConstDoubleArr;
+      {$IFDEF x64}
+      TLocASMNativeInt = NativeInt;
+      {$ELSE}
+      TLocASMNativeInt = integer;
+      {$ENDIF} 
   protected
     // used to determine which class type to use as a result
     // e.g. the threaded class does not override all standard functions but
@@ -287,7 +303,7 @@ type
   private
     fMemory : Pointer;
     fData : PLocConstDoubleArr;       // 16 byte aligned pointer:
-    fLineWidth : TASMNativeInt;
+    fLineWidth : TLocASMNativeInt;
     fObj : TObject;                // arbitrary object
 
     procedure MtxRandWithEng(var value : double);
