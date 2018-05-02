@@ -71,16 +71,15 @@ asm
    sub edx, 128;
    jz @@exitProc;
 
-   add edx, 32;
-   jg @@beginloop3;
-
    @@loop2:
-      {$IFDEF FPC}vmovntdq [ecx + edx - 32], xmm1;{$ELSE}db $C5,$F9,$E7,$4C,$11,$E0;{$ENDIF} 
-      {$IFDEF FPC}vmovntdq [ecx + edx - 16], xmm1;{$ELSE}db $C5,$F9,$E7,$4C,$11,$F0;{$ENDIF} 
-   add edx, 32;
-   jl @@loop2;
+      add edx, 32;
+      jg @@loopEnd2;
 
-   @@beginloop3:
+      {$IFDEF FPC}vmovntdq [ecx + edx - 32], xmm1;{$ELSE}db $C5,$F9,$E7,$4C,$11,$E0;{$ENDIF}
+      {$IFDEF FPC}vmovntdq [ecx + edx - 16], xmm1;{$ELSE}db $C5,$F9,$E7,$4C,$11,$F0;{$ENDIF} 
+   jmp @@loop2;
+
+   @@loopEnd2:
    sub edx, 32;
    jz @@exitProc;
 

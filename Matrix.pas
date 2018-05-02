@@ -2345,7 +2345,7 @@ function TDoubleMatrix.StartElement: PDouble;
 begin
      if (fWidth <> 0) and (fHeight <> 0)
      then
-         Result := PDouble(NativeUInt(@fData[fOffsetX]) + NativeUInt(fOffsetY*fLineWidth))
+         Result := PDouble(NativeUInt(@ (fData^[fOffsetX])) + NativeUInt(fOffsetY*fLineWidth))
      else
          Result := nil;
 end;

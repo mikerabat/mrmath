@@ -107,7 +107,6 @@ var meanNormX : IMatrix;
     N : integer;
     p, q : integer;
     numCC : integer;
-    t1, t2 : IMatrix;
 begin
      N := X.Width;
      p := X.Height;

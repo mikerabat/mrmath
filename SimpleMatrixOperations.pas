@@ -1014,7 +1014,6 @@ begin
      end
      else
      begin
-          pB2 := PDouble(B);
           pA := PConstDoubleArr(A);
           if RowWise then
           begin
@@ -1032,6 +1031,7 @@ begin
           end
           else
           begin
+               pB2 := PDouble(B);
                for y := 0 to Height - 1 do
                begin
                     for x := 0 to width - 1 do
@@ -1079,7 +1079,6 @@ begin
      end
      else
      begin
-          pB2 := PDouble(B);
           pA := PConstDoubleArr(A);
           if RowWise then
           begin
@@ -1097,6 +1096,7 @@ begin
           end
           else
           begin
+               pB2 := PDouble(B);
                for y := 0 to Height - 1 do
                begin
                     for x := 0 to width - 1 do

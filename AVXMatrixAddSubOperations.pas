@@ -107,18 +107,16 @@ asm
 
        jz @nextLine;
 
-       add eax, 16;
-       jg @@lastelem;
-
        @addforxloop2:
+           add eax, 16;
+           jg @loopEnd2;
            {$IFDEF FPC}vmovapd xmm0, [esi + eax - 16];{$ELSE}db $C5,$F9,$28,$44,$06,$F0;{$ENDIF} 
            {$IFDEF FPC}vaddpd xmm0, xmm0, [edi + eax - 16];{$ELSE}db $C5,$F9,$58,$44,$07,$F0;{$ENDIF} 
 
            {$IFDEF FPC}vmovapd [ecx + eax - 16], xmm0;{$ELSE}db $C5,$F9,$29,$44,$01,$F0;{$ENDIF} 
-       add eax, 16;
-       jle @addforxloop2;
+       jmp @addforxloop2;
 
-       @@lastelem:
+       @loopEnd2:
 
        sub eax, 16;
        jz @nextLine;
@@ -213,19 +211,18 @@ asm
 
        jz @nextLine;
 
-       add eax, 16;
-       jg @@lastelem;
-
        @addforxloop2:
+           add eax, 16;
+           jg @loopEnd2;
+
            {$IFDEF FPC}vmovupd xmm0, [esi + eax - 16];{$ELSE}db $C5,$F9,$10,$44,$06,$F0;{$ENDIF} 
            {$IFDEF FPC}vmovupd xmm1, [edi + eax - 16];{$ELSE}db $C5,$F9,$10,$4C,$07,$F0;{$ENDIF} 
            {$IFDEF FPC}vaddpd xmm0, xmm0, xmm1;{$ELSE}db $C5,$F9,$58,$C1;{$ENDIF} 
 
            {$IFDEF FPC}vmovupd [ecx + eax - 16], xmm0;{$ELSE}db $C5,$F9,$11,$44,$01,$F0;{$ENDIF} 
-       add eax, 16;
-       jle @addforxloop2;
+       jmp @addforxloop2;
 
-       @@lastelem:
+       @loopEnd2:
 
        sub eax, 16;
        jz @nextLine;
@@ -316,18 +313,17 @@ asm
 
        jz @nextLine;
 
-       add eax, 16;
-       jg @@lastelem;
-
        @addforxloop2:
+           add eax, 16;
+           jg @loopEnd2;
+
            {$IFDEF FPC}vmovapd xmm0, [esi + eax - 16];{$ELSE}db $C5,$F9,$28,$44,$06,$F0;{$ENDIF} 
            {$IFDEF FPC}vsubpd xmm0, xmm0, [edi + eax - 16];{$ELSE}db $C5,$F9,$5C,$44,$07,$F0;{$ENDIF} 
 
            {$IFDEF FPC}vmovapd [ecx + eax - 16], xmm0;{$ELSE}db $C5,$F9,$29,$44,$01,$F0;{$ENDIF} 
-       add eax, 16;
-       jle @addforxloop2;
+       jmp @addforxloop2;
 
-       @@lastelem:
+       @loopEnd2:
 
        sub eax, 16;
        jz @nextLine;
@@ -422,19 +418,18 @@ asm
 
        jz @nextLine;
 
-       add eax, 16;
-       jg @@lastelem;
-
        @addforxloop2:
+           add eax, 16;
+           jg @loopEnd2;
+
            {$IFDEF FPC}vmovupd xmm0, [esi + eax - 16];{$ELSE}db $C5,$F9,$10,$44,$06,$F0;{$ENDIF} 
            {$IFDEF FPC}vmovupd xmm1, [edi + eax - 16];{$ELSE}db $C5,$F9,$10,$4C,$07,$F0;{$ENDIF} 
            {$IFDEF FPC}vsubpd xmm0, xmm0, xmm1;{$ELSE}db $C5,$F9,$5C,$C1;{$ENDIF} 
 
            {$IFDEF FPC}vmovupd [ecx + eax - 16], xmm0;{$ELSE}db $C5,$F9,$11,$44,$01,$F0;{$ENDIF} 
-       add eax, 16;
-       jle @addforxloop2;
+       jmp @addforxloop2;
 
-       @@lastelem:
+       @loopEnd2:
 
        sub eax, 16;
        jz @nextLine;
