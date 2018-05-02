@@ -75,7 +75,7 @@ asm
       add edx, 32;
       jg @@loopEnd2;
 
-      {$IFDEF FPC}vmovntdq [ecx + edx - 32], xmm1;{$ELSE}db $C5,$F9,$E7,$4C,$11,$E0;{$ENDIF}
+      {$IFDEF FPC}vmovntdq [ecx + edx - 32], xmm1;{$ELSE}db $C5,$F9,$E7,$4C,$11,$E0;{$ENDIF} 
       {$IFDEF FPC}vmovntdq [ecx + edx - 16], xmm1;{$ELSE}db $C5,$F9,$E7,$4C,$11,$F0;{$ENDIF} 
    jmp @@loop2;
 
