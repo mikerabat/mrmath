@@ -109,8 +109,18 @@ type
 
     procedure AddInplace(Value : TDoubleMatrix); overload;
     function Add(Value : TDoubleMatrix) : TDoubleMatrix; overload;
+    procedure AddVecInPlace(Value : TDoubleMatrix; rowWise : Boolean); overload;
+    function AddVec(aVec : TDoubleMatrix; rowWise : Boolean) : TDoubleMatrix; overload;
+    procedure AddVecInPlace(Value : IMatrix; rowWise : Boolean); overload;
+    function AddVec(iVec : IMatrix; rowWise : Boolean) : TDoubleMatrix; overload;
+
     procedure SubInPlace(Value : TDoubleMatrix); overload;
     function Sub(Value : TDoubleMatrix) : TDoubleMatrix; overload;
+    procedure SubVecInPlace(Value : TDoubleMatrix; rowWise : Boolean); overload;
+    function SubVec(aVec : TDoubleMatrix; rowWise : Boolean) : TDoubleMatrix; overload;
+    procedure SubVecInPlace(Value : IMatrix; rowWise : Boolean); overload;
+    function SubVec(iVec : IMatrix; rowWise : Boolean) : TDoubleMatrix; overload;
+
     procedure MultInPlace(Value : TDoubleMatrix); overload;
     function Mult(Value : TDoubleMatrix) : TDoubleMatrix; overload;
 
@@ -390,8 +400,18 @@ type
 
     procedure AddInplace(Value : TDoubleMatrix); overload; virtual;
     function Add(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
+    procedure AddVecInPlace(Value : TDoubleMatrix; rowWise : Boolean); overload;
+    function AddVec(aVec : TDoubleMatrix; rowWise : Boolean) : TDoubleMatrix; overload;
+    procedure AddVecInPlace(Value : IMatrix; rowWise : Boolean); overload;
+    function AddVec(iVec : IMatrix; rowWise : Boolean) : TDoubleMatrix; overload;
+
     procedure SubInPlace(Value : TDoubleMatrix); overload; virtual;
     function Sub(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
+    procedure SubVecInPlace(Value : TDoubleMatrix; rowWise : Boolean); overload;
+    function SubVec(aVec : TDoubleMatrix; rowWise : Boolean) : TDoubleMatrix; overload;
+    procedure SubVecInPlace(Value : IMatrix; rowWise : Boolean); overload;
+    function SubVec(iVec : IMatrix; rowWise : Boolean) : TDoubleMatrix; overload;
+
     procedure MultInPlace(Value : TDoubleMatrix); overload; virtual;
     function Mult(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
     procedure MultInPlaceT1(Value : TDoubleMatrix); overload; virtual;
@@ -790,6 +810,48 @@ begin
      Result := ResultClass.Create(fSubWidth, fSubHeight);
      MatrixAdd(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight, LineWidth, Value.LineWidth);
 end;
+
+procedure TDoubleMatrix.AddVecInPlace(Value: TDoubleMatrix; rowWise: Boolean);
+var incX : TASMNativeInt;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+     if rowWise
+     then
+         CheckAndRaiseError((Value.VecLen = Width), 'Arguments dimension error')
+     else
+         CheckAndRaiseError((Value.VecLen = Height), 'Arguments dimension error');
+     incX := sizeof(double);
+
+     if value.Width = 1 then
+        incX := value.LineWidth;
+
+     MatrixAddVec(StartElement, LineWidth, Value.StartElement, incX, Width, Height, RowWise);
+end;
+
+function TDoubleMatrix.AddVec(aVec: TDoubleMatrix;
+  rowWise: Boolean): TDoubleMatrix;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+     if rowWise
+     then
+         CheckAndRaiseError((aVec.VecLen = Width), 'Arguments dimension error')
+     else
+         CheckAndRaiseError((aVec.VecLen = Height), 'Arguments dimension error');
+
+     Result := Clone;
+     Result.AddVecInPlace(aVec, rowWise);
+end;
+
+procedure TDoubleMatrix.AddVecInPlace(Value: IMatrix; rowWise: Boolean);
+begin
+     AddVecInPlace(Value.getObjRef, RowWise);
+end;
+
+function TDoubleMatrix.AddVec(iVec: IMatrix; rowWise: Boolean): TDoubleMatrix;
+begin
+     Result := AddVec(iVec.GetObjRef, RowWise);
+end;
+
 
 procedure TDoubleMatrix.Assign(Value: TDoubleMatrix);
 begin
@@ -2301,6 +2363,47 @@ procedure TDoubleMatrix.SubInPlace(Value: TDoubleMatrix);
 begin
      CheckAndRaiseError((Value.fSubWidth = fSubWidth) and (Value.fSubHeight = fSubHeight), 'Dimension error');
      MatrixSub(StartElement, LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight, LineWidth, Value.LineWidth);
+end;
+
+procedure TDoubleMatrix.SubVecInPlace(Value: TDoubleMatrix; rowWise : Boolean);
+var incX : TASMNativeInt;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+     if rowWise
+     then
+         CheckAndRaiseError((Value.VecLen = Width), 'Arguments dimension error')
+     else
+         CheckAndRaiseError((Value.VecLen = Height), 'Arguments dimension error');
+
+     incX := sizeof(double);
+
+     if value.Width = 1 then
+        incX := value.LineWidth;
+
+     MatrixSubVec(StartElement, LineWidth, Value.StartElement, incX, Width, Height, RowWise);
+end;
+
+function TDoubleMatrix.SubVec(aVec: TDoubleMatrix; rowWise : Boolean): TDoubleMatrix;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+     if rowWise
+     then
+         CheckAndRaiseError((aVec.VecLen = Width), 'Arguments dimension error')
+     else
+         CheckAndRaiseError((aVec.VecLen = Height), 'Arguments dimension error');
+
+     Result := Clone;
+     Result.SubVecInPlace(aVec, rowWise);
+end;
+
+procedure TDoubleMatrix.SubVecInPlace(Value: IMatrix; rowWise: Boolean);
+begin
+     SubVecInPlace(Value.GetObjRef, RowWise);
+end;
+
+function TDoubleMatrix.SubVec(iVec: IMatrix; rowWise: Boolean): TDoubleMatrix;
+begin
+     Result := SubVec(iVec.GetObjRef, RowWise);
 end;
 
 function TDoubleMatrix.SubMatrix: TDoubleDynArray;

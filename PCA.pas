@@ -577,13 +577,14 @@ begin
         // subtract mean from each column
         fMeanNormExamples.Assign(Examples, True);
         fMeanNormExamples.LineEQProgress := {$IFDEF FPC}@{$ENDIF}OnLineEQProgress;
+        fMeanNormExamples.SubVecInPlace(fMeanElem, False);
 
-        for i := 0 to fMeanNormExamples.Width - 1 do
-        begin
-             fMeanNormExamples.SetSubMatrix(i, 0, 1, fMeanNormExamples.Height);
-             fMeanNormExamples.SubInPlace(fMeanElem);
-        end;
-        fMeanNormExamples.UseFullMatrix;
+        //for i := 0 to fMeanNormExamples.Width - 1 do
+//        begin
+//             fMeanNormExamples.SetSubMatrix(i, 0, 1, fMeanNormExamples.Height);
+//             fMeanNormExamples.SubInPlace(fMeanElem);
+//        end;
+//        fMeanNormExamples.UseFullMatrix;
 
         // calcluated Eigenvectors and eigenvalues using the SVD algorithm
         mv := nil;

@@ -107,6 +107,7 @@ var meanNormX : IMatrix;
     N : integer;
     p, q : integer;
     numCC : integer;
+    t1, t2 : IMatrix;
 begin
      N := X.Width;
      p := X.Height;
@@ -119,24 +120,8 @@ begin
      fMeanX := X.Mean(True);
      fMeanY := Y.Mean(True);
 
-     meanNormX := MatrixClass.Create;
-     meanNormX.Assign(X);
-     meanNormY := MatrixClass.Create;
-     meanNormY.Assign(Y);
-
-     for counter := 0 to X.Width - 1 do
-     begin
-          meanNormX.SetSubMatrix(counter, 0, 1, X.Height);
-          meanNormX.SubInPlace(fmeanX);
-     end;
-     for counter := 0 to Y.Width - 1 do
-     begin
-          meanNormY.SetSubMatrix(counter, 0, 1, Y.Height);
-          meanNormY.SubInPlace(fmeanY);
-     end;
-
-     meanNormX.UseFullMatrix;
-     meanNormY.UseFullMatrix;
+     meanNormX := X.SubVec(fMeanX, False);
+     meanNormY := Y.SubVec(fMeanY, False);
 
      // ##################################################
      // #### overall covariance matrix C = [Cxx Cxy; Cyx Cyy]

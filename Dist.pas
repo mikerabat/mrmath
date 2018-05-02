@@ -87,20 +87,11 @@ uses SysUtils, MatrixConst;
 
 procedure TDistance.InitMahal(X: IMatrix; doTryFastInf : boolean = True);
 var C : IMatrix;
-    i : integer;
     R : IMatrix;
 begin
      fRx := x.Height;
      fMean := X.Mean(False);
-     C := X.Clone;
-
-     for i := 0 to C.Height - 1 do
-     begin
-          C.SetSubMatrix(0, i, C.Width, 1);
-          C.SubInPlace(fMean);
-     end;
-     C.UseFullMatrix;
-
+     C := X.SubVec(fMean, True);
      C.QR(R);
      R.TransposeInPlace;
 
@@ -111,20 +102,12 @@ end;
 
 function TDistance.MahalDist(Y: IMatrix): IMatrix;
 var M : IMatrix;
-    i: Integer;
     ri : IMatrix;
 begin
      if not Assigned(fMean) or not Assigned(fR) then
         raise Exception.Create('Error call InitMahal first');
 
-     M := Y.Clone;
-
-     for i := 0 to Y.Height - 1 do
-     begin
-          M.SetSubMatrix(0, i, M.Width, 1);
-          M.SubInPlace(fMean);
-     end;
-     M.UseFullMatrix;
+     M := Y.SubVec(fMean, True);
      M.TransposeInPlace;
 
      ri := fR.Mult(M);
@@ -175,19 +158,10 @@ end;
 
 function TDistance.EuclidDist(Y: IMatrix): IMatrix;
 var dist : IMatrix;
-    i: Integer;
 begin
      if not Assigned(fMean) then
         raise Exception.Create('Error call InitEuclid first');
-     dist := Y.Clone;
-
-     for i := 0 to Y.Height - 1 do
-     begin
-          dist.SetSubMatrix(0, i, dist.Width, 1);
-          dist.SubInPlace(fMean);
-     end;
-
-     dist.UseFullMatrix;
+     dist := Y.SubVec(fMean, True);
      dist.ElementWiseMultInPlace(dist);
      dist.SumInPlace(True);
 
@@ -233,13 +207,7 @@ begin
           
           // copy data
           data.Assign(X);
-          for I := 0 to X.Height - 1 do
-          begin
-               data.SetSubMatrix(0, i, Data.Width, 1);
-               data.SubInPlace(fMean);
-          end;
-          data.UseFullMatrix;
-
+          data.SubVecInPlace(fMean, True);
           data.ElementWiseMultInPlace(data);
           weights := data.Sum(True);
 
@@ -280,19 +248,10 @@ end;
 
 function TDistance.L1Dist(y: IMatrix): IMatrix;
 var dist : IMatrix;
-    i: Integer;
 begin
      if not Assigned(fMean) then
         raise Exception.Create('Error call InitAbs first');
-     dist := Y.Clone;
-
-     for i := 0 to Y.Height - 1 do
-     begin
-          dist.SetSubMatrix(0, i, dist.Width, 1);
-          dist.SubInPlace(fMean);
-     end;
-
-     dist.UseFullMatrix;
+     dist := Y.SubVec(fMean, True);
      dist.AbsInPlace;
      dist.SumInPlace(True);
 
@@ -456,12 +415,7 @@ begin
           
           // 1 + ||ul - Y*e_j||
           denom.Assign(X);
-          for i := 0 to denom.Height - 1 do
-          begin
-               denom.SetSubMatrix(0, i, denom.Width, 1);
-               denom.SubInPlace(fMean);
-          end;
-          denom.UseFullMatrix;
+          denom.SubVecInPlace(fMean, True);
           denom.ElementWiseMultInPlace(denom);
           denom.SumInPlace(True, True);
           denom.SQRTInPlace;

@@ -38,7 +38,7 @@ type
 implementation
 
 uses CCA, Math, Matrix, PLS, BinaryReaderWriter, BaseMathPersistence, 
-     JSONReaderWriter, ThreadedMatrix, MtxTimer;
+     JSONReaderWriter, ThreadedMatrix, MtxTimer, OptimizedFuncs;
 
 { TTestCCA }
 
@@ -48,6 +48,7 @@ var x, y : TDoubleMatrix;
     yp : IMatrix;
     start, stop : int64;
 begin
+     InitMathFunctions(itFMA, False);
      // load images
      x := LoadImages(w, h, 'CCATest', '*.bmp');
 

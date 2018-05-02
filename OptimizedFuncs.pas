@@ -40,6 +40,8 @@ function MatrixAdd(const mt1, mt2 : array of double; width : TASMNativeInt) : TD
 procedure MatrixAdd(var dest : Array of double; const mt1, mt2 : Array of double; width : TASMNativeInt); overload;
 function MatrixAdd(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
 
+procedure MatrixAddVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+
 procedure MatrixSub(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
 function MatrixSub(const mt1, mt2 : array of double; width : TASMNativeInt) : TDoubleDynArray; overload;
 procedure MatrixSub(var dest : Array of double; const mt1, mt2 : Array of double; width : TASMNativeInt); overload;
@@ -47,6 +49,8 @@ function MatrixSub(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativ
 
 // calculate A = A - B'
 procedure MatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
+// calculate A = A - Repmat(B, 1, height) if rowwise, B is a vector
+procedure MatrixSubVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
 
 // performs mt1 * mt2
 function MatrixMult(mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
@@ -203,6 +207,7 @@ type
   TMatrixAddFunc = procedure(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
   TMatrixSubFunc = TMatrixAddFunc;
   TMatrixSubTFunc = procedure (A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
+  TMatrixSubVecFunc = procedure(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
   TMatrixElemWiseFunc = TMatrixAddFunc;
   TMatrixAddScaleFunc = procedure(dest : PDouble; LineWidth, width, height : TASMNativeInt; const dOffset, Scale : double);
   TMatrixSQRTFunc = procedure(dest : PDouble; LineWidth : TASMNativeInt; width, height : TASMNativeInt);
@@ -267,6 +272,8 @@ var multFunc : TMatrixMultFunc;
     addFunc : TMatrixAddFunc;
     subFunc : TMatrixSubFunc;
     subTFunc : TMatrixSubTFunc;
+    subVecFunc : TMatrixSubVecFunc;
+    addVecFunc : TMatrixSubVecFunc;
     elemWiseFunc : TMatrixElemWiseFunc;
     elemWiseDivFunc : TMatrixElemWiseFunc;
     addScaleFunc : TMatrixAddScaleFunc;
@@ -421,6 +428,11 @@ begin
      addFunc(@Result[0], sizeof(double)*Width, mt1, mt2, width, height, LineWidth1, LineWidth2);
 end;
 
+procedure MatrixAddVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+begin
+     addVecFunc(A, LineWidthA, B, incX, width, Height, rowWise);
+end;
+
 procedure MatrixRowSwap(A, B : PDouble; width : TASMNativeInt);
 begin
      assert((width > 0), 'Dimension error');
@@ -464,6 +476,11 @@ end;
 procedure MatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
 begin
      subTFunc(A, LineWidthA, B, LineWidthB, width, height);
+end;
+
+procedure MatrixSubVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+begin
+     subVecFunc(A, LineWidthA, B, incX, width, height, RowWise);
 end;
 
 procedure MatrixSub(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
@@ -1062,6 +1079,8 @@ begin
           addFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixAdd;
           subFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixSub;
           subTFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixSubT;
+          subVecFunc := {$IFDEF FPC}@{$ENDIF}GenericSubVec;
+          addVecFunc := {$IFDEF FPC}@{$ENDIF}GenericAddVec;
           elemWiseFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixElemMult;
           addScaleFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixAddAndScale;
           scaleAddFunc := {$IFDEF FPC}@{$ENDIF}AVXMAtrixScaleAndAdd;
@@ -1108,20 +1127,20 @@ begin
           // #### override if fma is requested
           if instrType = itFMA then
           begin
-               multT2Func := {$IFDEF FPC}@{$ENDIF}FMAMatrixMultTransposed;
-               multTria2T1Func := {$IFDEF FPC}@{$ENDIF}FMAMtxMultTria2T1;
-               multTria2T1StoreT1Func := {$IFDEF FPC}@{$ENDIF}FMAMtxMultTria2T1StoreT1;
-               multTria2TUpperFunc := {$IFDEF FPC}@{$ENDIF}FMAMtxMultTria2TUpperUnit;
-               multLowTria2T2Store1Func := {$IFDEF FPC}@{$ENDIF}FMAMtxMultLowTria2T2Store1;
+               //multT2Func := {$IFDEF FPC}@{$ENDIF}FMAMatrixMultTransposed;
+               //multTria2T1Func := {$IFDEF FPC}@{$ENDIF}FMAMtxMultTria2T1;
+               //multTria2T1StoreT1Func := {$IFDEF FPC}@{$ENDIF}FMAMtxMultTria2T1StoreT1;
+               //multTria2TUpperFunc := {$IFDEF FPC}@{$ENDIF}FMAMtxMultTria2TUpperUnit;
+               //multLowTria2T2Store1Func := {$IFDEF FPC}@{$ENDIF}FMAMtxMultLowTria2T2Store1;
 
-               MtxVecMultFunc := {$IFDEF FPC}@{$ENDIF}FMAMtxVecMult;
-               MtxVecMultTFunc := {$IFDEF FPC}@{$ENDIF}FMAMtxVecMultT;
+               //MtxVecMultFunc := {$IFDEF FPC}@{$ENDIF}FMAMtxVecMult;
+               //MtxVecMultTFunc := {$IFDEF FPC}@{$ENDIF}FMAMtxVecMultT;
 
-               if useStrassenMult
-               then
-                   multFunc := {$IFDEF FPC}@{$ENDIF}FMAStrassenMatrixMultiplication
-               else
-                   multFunc := {$IFDEF FPC}@{$ENDIF}FMAMatrixMult;
+               //if useStrassenMult
+               //then
+               //    multFunc := {$IFDEF FPC}@{$ENDIF}FMAStrassenMatrixMultiplication
+               //else
+               //    multFunc := {$IFDEF FPC}@{$ENDIF}FMAMatrixMult;
 
                curUsedCPUInstrSet := itFMA;
           end;
@@ -1137,6 +1156,8 @@ begin
           addFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixAdd;
           subFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixSub;
           subTFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixSubT;
+          subVecFunc := {$IFDEF FPC}@{$ENDIF}GenericSubVec;
+          addVecFunc := {$IFDEF FPC}@{$ENDIF}GenericAddVec;
           elemWiseFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixElemMult;
           addScaleFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixAddAndScale;
           scaleAddFunc := {$IFDEF FPC}@{$ENDIF}ASMMAtrixScaleAndAdd;
@@ -1190,6 +1211,8 @@ begin
           addFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxAdd;
           subFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxSub;
           subTFunc := {$IFDEF FPC}@{$ENDIF}GenericMatrixSubT;
+          subVecFunc := {$IFDEF FPC}@{$ENDIF}GenericSubVec;
+          addVecFunc := {$IFDEF FPC}@{$ENDIF}GenericAddVec;
           elemWiseFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxElemMult;
           addScaleFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxAddAndScale;
           scaleAddFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxScaleAndAdd;

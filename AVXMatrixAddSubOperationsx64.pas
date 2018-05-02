@@ -119,18 +119,17 @@ asm
 
        jz @nextLine;
 
-       add rax, 16;
-       jg @@lastelem;
-
        @addforxloop2:
-           {$IFDEF FPC}vmovapd xmm0, [r8 + rax - 16];{$ELSE}db $C4,$C1,$79,$28,$44,$00,$F0;{$ENDIF} 
+           add rax, 16;
+           jg @@loopEnd2;
+
+           {$IFDEF FPC}vmovapd xmm0, [r8 + rax - 16];{$ELSE}db $C4,$C1,$79,$28,$44,$00,$F0;{$ENDIF}
            {$IFDEF FPC}vaddpd xmm0, xmm0, [r9 + rax - 16];{$ELSE}db $C4,$C1,$79,$58,$44,$01,$F0;{$ENDIF} 
 
            {$IFDEF FPC}vmovapd [rcx + rax - 16], xmm0;{$ELSE}db $C5,$F9,$29,$44,$01,$F0;{$ENDIF} 
-       add rax, 16;
-       jle @addforxloop2;
+       jmp @addforxloop2;
 
-       @@lastelem:
+       @@loopEnd2:
 
        sub rax, 16;
        jz @nextLine;
@@ -238,19 +237,18 @@ asm
 
        jz @nextLine;
 
-       add rax, 16;
-       jg @@lastelem;
-
        @addforxloop2:
+           add rax, 16;
+           jg @@loopEnd2;
+
            {$IFDEF FPC}vmovupd xmm0, [r8 + rax - 16];{$ELSE}db $C4,$C1,$79,$10,$44,$00,$F0;{$ENDIF} 
            {$IFDEF FPC}vmovupd xmm1, [r9 + rax - 16];{$ELSE}db $C4,$C1,$79,$10,$4C,$01,$F0;{$ENDIF} 
            {$IFDEF FPC}vaddpd xmm0, xmm0, xmm1;{$ELSE}db $C5,$F9,$58,$C1;{$ENDIF} 
 
            {$IFDEF FPC}vmovupd [rcx + rax - 16], xmm0;{$ELSE}db $C5,$F9,$11,$44,$01,$F0;{$ENDIF} 
-       add rax, 16;
-       jle @addforxloop2;
+       jmp @addforxloop2;
 
-       @@lastelem:
+       @@loopEnd2:
 
        sub rax, 16;
        jz @nextLine;
@@ -304,8 +302,7 @@ asm
 
    //iters := -width*sizeof(double);
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    mov r11, LineWidth1;
    mov r12, LineWidth2;
@@ -354,18 +351,17 @@ asm
 
        jz @nextLine;
 
-       add rax, 16;
-       jg @@lastelem;
-
        @addforxloop2:
+           add rax, 16;
+           jg @@loopEnd2;
+
            {$IFDEF FPC}vmovapd xmm0, [r8 + rax - 16];{$ELSE}db $C4,$C1,$79,$28,$44,$00,$F0;{$ENDIF} 
            {$IFDEF FPC}vsubpd xmm0, xmm0, [r9 + rax - 16];{$ELSE}db $C4,$C1,$79,$5C,$44,$01,$F0;{$ENDIF} 
 
            {$IFDEF FPC}vmovapd [rcx + rax - 16], xmm0;{$ELSE}db $C5,$F9,$29,$44,$01,$F0;{$ENDIF} 
-       add rax, 16;
-       jle @addforxloop2;
+       jmp @addforxloop2;
 
-       @@lastelem:
+       @@loopEnd2:
 
        sub rax, 16;
        jz @nextLine;
@@ -419,8 +415,7 @@ asm
 
    //iters := -width*sizeof(double);
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    mov r11, LineWidth1;
    mov r12, LineWidth2;
@@ -473,19 +468,18 @@ asm
 
        jz @nextLine;
 
-       add rax, 16;
-       jg @@lastelem;
-
        @addforxloop2:
+           add rax, 16;
+           jg @@loopEnd2;
+
            {$IFDEF FPC}vmovupd xmm0, [r8 + rax - 16];{$ELSE}db $C4,$C1,$79,$10,$44,$00,$F0;{$ENDIF} 
            {$IFDEF FPC}vmovupd xmm1, [r9 + rax - 16];{$ELSE}db $C4,$C1,$79,$10,$4C,$01,$F0;{$ENDIF} 
            {$IFDEF FPC}vsubpd xmm0, xmm0, xmm1;{$ELSE}db $C5,$F9,$5C,$C1;{$ENDIF} 
 
            {$IFDEF FPC}vmovupd [rcx + rax - 16], xmm0;{$ELSE}db $C5,$F9,$11,$44,$01,$F0;{$ENDIF} 
-       add rax, 16;
-       jle @addforxloop2;
+       jmp @addforxloop2;
 
-       @@lastelem:
+       @@loopEnd2:
 
        sub rax, 16;
        jz @nextLine;

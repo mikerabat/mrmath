@@ -35,10 +35,15 @@ procedure GenericMtxAdd(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 
 function GenericMtxAdd(const mt1, mt2 : array of double; width : TASMNativeInt) : TDoubleDynArray; overload;
 procedure GenericMtxAdd(var dest : Array of double; const mt1, mt2 : Array of double; width : TASMNativeInt); overload;
 
+procedure GenericAddVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+
 function GenericMtxSub(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
 procedure GenericMtxSub(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt); overload;
 function GenericMtxSub(const mt1, mt2 : array of double; width : TASMNativeInt) : TDoubleDynArray; overload;
 procedure GenericMtxSub(var dest : Array of double; const mt1, mt2 : Array of double; width : TASMNativeInt); overload;
+
+procedure GenericSubVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+
 
 function GenericMtxMult(mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
 procedure GenericMtxMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
@@ -972,6 +977,136 @@ begin
      assert(High(dest) = High(mt1), 'Dimension Error');
 
      GenericMtxSub(@dest[0], width*sizeof(double), @mt1[0], @mt2[0], width, (High(mt1) + 1) div width, width*sizeof(double), width*sizeof(double));
+end;
+
+procedure GenericSubVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+var pB, pA : PConstDoubleArr;
+    pB2 : PDouble;
+    y : Integer;
+    x : Integer;
+begin
+     assert((width > 0) and (height > 0), 'Dimension Error');
+
+     if incX = sizeof(Double) then
+     begin
+          pB := PConstDoubleArr(B);
+          pA := PConstDoubleArr(A);
+          if RowWise then
+          begin
+               for y := 0 to Height - 1 do
+               begin
+                    for x := 0 to Width - 1 do
+                        pA^[x] := pA^[x] - pB^[x];
+
+                    inc(PByte(pA), LineWidthA);
+               end;
+          end
+          else
+          begin
+               for y := 0 to Height - 1 do
+               begin
+                    for x := 0 to width - 1 do
+                        pA^[x] := pA^[x] - pB^[y];
+
+                    inc(PByte(pA), LineWidthA);
+               end;
+          end;
+     end
+     else
+     begin
+          pB2 := PDouble(B);
+          pA := PConstDoubleArr(A);
+          if RowWise then
+          begin
+               for y := 0 to Height - 1 do
+               begin
+                    pB2 := PDouble(B);
+                    for x := 0 to Width - 1 do
+                    begin
+                         pA^[x] := pA^[x] - pB2^;
+                         inc(PByte(pB2), incX);
+                    end;
+
+                    inc(PByte(pA), LineWidthA);
+               end;
+          end
+          else
+          begin
+               for y := 0 to Height - 1 do
+               begin
+                    for x := 0 to width - 1 do
+                        pA^[x] := pA^[x] - pB2^;
+
+                    inc(PByte(pB2), incX);
+                    inc(PByte(pA), LineWidthA);
+               end;
+          end;
+     end;
+end;
+
+procedure GenericAddVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+var pB, pA : PConstDoubleArr;
+    pB2 : PDouble;
+    y : Integer;
+    x : Integer;
+begin
+     assert((width > 0) and (height > 0), 'Dimension Error');
+
+     if incX = sizeof(Double) then
+     begin
+          pB := PConstDoubleArr(B);
+          pA := PConstDoubleArr(A);
+          if RowWise then
+          begin
+               for y := 0 to Height - 1 do
+               begin
+                    for x := 0 to Width - 1 do
+                        pA^[x] := pA^[x] + pB^[x];
+
+                    inc(PByte(pA), LineWidthA);
+               end;
+          end
+          else
+          begin
+               for y := 0 to Height - 1 do
+               begin
+                    for x := 0 to width - 1 do
+                        pA^[x] := pA^[x] + pB^[y];
+
+                    inc(PByte(pA), LineWidthA);
+               end;
+          end;
+     end
+     else
+     begin
+          pB2 := PDouble(B);
+          pA := PConstDoubleArr(A);
+          if RowWise then
+          begin
+               for y := 0 to Height - 1 do
+               begin
+                    pB2 := PDouble(B);
+                    for x := 0 to Width - 1 do
+                    begin
+                         pA^[x] := pA^[x] + pB2^;
+                         inc(PByte(pB2), incX);
+                    end;
+
+                    inc(PByte(pA), LineWidthA);
+               end;
+          end
+          else
+          begin
+               for y := 0 to Height - 1 do
+               begin
+                    for x := 0 to width - 1 do
+                        pA^[x] := pA^[x] + pB2^;
+
+                    inc(PByte(pB2), incX);
+                    inc(PByte(pA), LineWidthA);
+               end;
+          end;
+     end;
 end;
 
 function GenericMtxMult(mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;

@@ -24,6 +24,7 @@ type
   published
    procedure TestAdd;
    procedure TestSub;
+   procedure TestSubAddVec;
    procedure TestMult;
    procedure TestTranspose;
    procedure TestCopy;
@@ -3872,6 +3873,57 @@ begin
      Status(Format('%.5f', [Gamma(-8.1)]));
      Status(Format('%.5f', [Gamma(-1.1)]));
 end;
+
+procedure TestMatrixOperations.TestSubAddVec;
+var A, B, res : TDoubleDynArray;
+    res1 : TDoubleDynArray;
+    i : integer;
+    refVal : double;
+begin
+     SetLength(A, 8*8);
+     SetLength(B, Length(A));
+     SetLength(res, Length(A));
+     SetLength(res1, Length(A));
+
+     for i := 0 to Length(A) - 1 do
+     begin
+          A[i] := i + 1;
+          B[i] := i;
+     end;
+
+     refVal := -7;
+     for i := 0 to Length(A) - 1 do
+     begin
+          if i mod 8 = 0 then
+             refVal := refVal + 8;
+          res1[i] := refVal;
+     end;
+
+
+     res := Copy(A, 0, Length(A));
+     GenericSubVec(@A[0], 8*sizeof(double), @B[0], sizeof(double), 8, 8, True);
+
+     Check(CheckMtx(res1, A), 'Sub Vector failed row');
+
+     GenericAddVec(@A[0], 8*sizeof(double), @B[0], sizeof(double), 8, 8, True);
+     Check(CheckMtx(res, A), 'Add Vector failed row');
+
+     GenericSubVec(@A[0], 8*sizeof(double), @B[0], 8*sizeof(double), 8, 8, True);
+     GenericAddVec(@A[0], 8*sizeof(double), @B[0], 8*sizeof(double), 8, 8, True);
+     Check(CheckMtx(res, A), 'Add Vector failed row');
+
+
+     res := Copy(A, 0, Length(A));
+     GenericSubVec(@A[0], 8*sizeof(double), @B[0], sizeof(double), 8, 8, False);
+     GenericAddVec(@A[0], 8*sizeof(double), @B[0], sizeof(double), 8, 8, False);
+     Check(CheckMtx(res, A), 'Add Vector failed row');
+
+     GenericSubVec(@A[0], 8*sizeof(double), @B[0], 8*sizeof(double), 8, 8, False);
+     GenericAddVec(@A[0], 8*sizeof(double), @B[0], 8*sizeof(double), 8, 8, False);
+     Check(CheckMtx(res, A), 'Add Vector failed row');
+
+end;
+
 
 initialization
   RegisterTest(TestMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});
