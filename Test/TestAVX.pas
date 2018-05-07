@@ -38,6 +38,8 @@ type
     procedure TestAVXAdd;
     procedure TestAVXSub;
     procedure TestAVXSubT;
+    procedure TestAVXSubVec;
+    procedure TestAVXAddVec;
     procedure TestAVXAbs;
     procedure TestAddAndScale;
     procedure TestAVXMinMax;
@@ -1002,6 +1004,196 @@ begin
               FreeMem(pm4);
               FreeMem(pm5);
          end;
+     end;
+end;
+
+procedure TestAVXMatrixOperations.TestAVXSubVec;
+const cMtxWidth : Array[0..11] of integer = (1, 3, 7, 8, 9, 10, 23, 43, 128, 1024, 2048, 2573);
+var pX, pY, pDest, pDest2, pDest3 : PDouble;
+    pm1, pm2, pm3, pm4, pm5 : PByte;
+    LineWidthX, LineWidthY, destLineWidth, destLn2, destLn3 : TASMNativeInt;
+    startTime1, endTime1 : Int64;
+    startTime2, endTime2 : int64;
+    startTime3, endTime3 : int64;
+    j, idx : Integer;
+    mtxWidth, mtxHeight : integer;
+begin
+     for j := 0 to Length(cMtxWidth) -1  do
+     begin
+          mtxWidth := cMtxWidth[j];
+          mtxHeight := cMtxWidth[j];
+          FillAlignedMtx( mtxWidth, mtxHeight, pX, pm1, LineWidthX);
+          FillAlignedMtx( mtxWidth, mtxHeight, pY, pm2, LineWidthY);
+          AllocAlignedMtx(mtxWidth, mtxHeight, pDest, pM3, destLineWidth);
+          AllocAlignedMtx(mtxWidth, mtxHeight, pDest2, pM4, destLn2);
+          AllocAlignedMtx(mtxWidth, mtxHeight, pDest3, pM5, destLn3);
+
+          GenericMtxCopy(pDest, destLinewidth, px, LineWidthX, mtxWidth, mtxHeight);
+          startTime1 := MtxGetTime;
+          GenericSubVec(pDest, destLineWidth, py, sizeof(double), mtxWidth, mtxHeight, True);
+          endTime1 := MtxGetTime;
+
+          GenericMtxCopy(pDest2, destLn2, px, LineWidthX, mtxWidth, mtxHeight);
+          startTime2 := MtxGetTime;
+          ASMMatrixSubVec(pDest2, destLn2, py, sizeof(double), mtxWidth, mtxHeight, True);
+          endTime2 := MtxGetTime;
+
+          GenericMtxCopy(pDest3, destLn3, px, LineWidthX, mtxWidth, mtxHeight);
+          startTime3 := MtxGetTime;
+          AVXMatrixSubVec(pDest3, destLn3, py, sizeof(double), mtxWidth, mtxHeight, True);
+          endTime3 := MtxGetTime;
+
+          Check(CheckMtxIdx(pDest, pDest2, destLineWidth, destLn2, mtxWidth, mtxHeight, idx), 'ASM Sub vec failed');
+          Check(CheckMtxIdx(pDest, pDest3, destLineWidth, destLn3, mtxWidth, mtxHeight, idx), 'AVX Sub vec failed');
+
+          Status( Format('SubVec Vec: %d, %d took %.3fms, %.3fms, %.3fms', [mtxWidth, mtxHeight,
+             (endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+             (endTime3 - startTime3)/mtxFreq*1000]));
+
+          GenericMtxCopy(pDest, destLinewidth, px, LineWidthX, mtxWidth, mtxHeight);
+          startTime1 := MtxGetTime;
+          GenericSubVec(pDest, destLineWidth, py, LineWidthY, mtxWidth, mtxHeight, True);
+          endTime1 := MtxGetTime;
+
+          GenericMtxCopy(pDest2, destLn2, px, LineWidthX, mtxWidth, mtxHeight);
+          startTime2 := MtxGetTime;
+          ASMMatrixSubVec(pDest2, destLn2, py, LineWidthY, mtxWidth, mtxHeight, True);
+          endTime2 := MtxGetTime;
+
+          GenericMtxCopy(pDest3, destLn3, px, LineWidthX, mtxWidth, mtxHeight);
+          startTime3 := MtxGetTime;
+          AVXMatrixSubVec(pDest3, destLn3, py, LineWidthY, mtxWidth, mtxHeight, True);
+          endTime3 := MtxGetTime;
+
+          Check(CheckMtxIdx(pDest, pDest2, destLineWidth, destLn2, mtxWidth, mtxHeight, idx), 'ASM Sub failed');
+          Check(CheckMtxIdx(pDest, pDest3, destLineWidth, destLn3, mtxWidth, mtxHeight, idx), 'AVX Sub failed');
+
+          Status( Format('SubVec Vec row: %d, %d took %.3fms, %.3fms, %.3fms', [mtxWidth, mtxHeight,
+             (endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+             (endTime3 - startTime3)/mtxFreq*1000]));
+
+          GenericMtxCopy(pDest, destLinewidth, px, LineWidthX, mtxWidth, mtxHeight);
+          startTime1 := MtxGetTime;
+          GenericSubVec(pDest, destLineWidth, py, sizeof(double), mtxWidth, mtxHeight, False);
+          endTime1 := MtxGetTime;
+
+          GenericMtxCopy(pDest2, destLn2, px, LineWidthX, mtxWidth, mtxHeight);
+          startTime2 := MtxGetTime;
+          ASMMatrixSubVec(pDest2, destLn2, py, sizeof(double), mtxWidth, mtxHeight, False);
+          endTime2 := MtxGetTime;
+
+          GenericMtxCopy(pDest3, destLn3, px, LineWidthX, mtxWidth, mtxHeight);
+          startTime3 := MtxGetTime;
+          AVXMatrixSubVec(pDest3, destLn3, py, sizeof(double), mtxWidth, mtxHeight, False);
+          endTime3 := MtxGetTime;
+
+          Check(CheckMtxIdx(pDest, pDest2, destLineWidth, destLn2, mtxWidth, mtxHeight, idx), 'ASM Sub failed');
+          Check(CheckMtxIdx(pDest, pDest3, destLineWidth, destLn3, mtxWidth, mtxHeight, idx), 'AVX Sub failed');
+
+          Status( Format('SubVec Vec col: %d, %d took %.3fms, %.3fms, %.3fms', [mtxWidth, mtxHeight,
+             (endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+             (endTime3 - startTime3)/mtxFreq*1000]));
+
+          FreeMem(pm1);
+          FreeMem(pm2);
+          FreeMem(pm3);
+          FreeMem(pm4);
+          FreeMem(pm5);
+     end;
+end;
+
+procedure TestAVXMatrixOperations.TestAVXAddVec;
+const cMtxWidth : Array[0..11] of integer = (1, 3, 7, 8, 9, 10, 23, 43, 128, 1024, 2048, 2573);
+var pX, pY, pDest, pDest2, pDest3 : PDouble;
+    pm1, pm2, pm3, pm4, pm5 : PByte;
+    LineWidthX, LineWidthY, destLineWidth, destLn2, destLn3 : TASMNativeInt;
+    startTime1, endTime1 : Int64;
+    startTime2, endTime2 : int64;
+    startTime3, endTime3 : int64;
+    j, idx : Integer;
+    mtxWidth, mtxHeight : integer;
+begin
+     for j := 0 to Length(cMtxWidth) -1  do
+     begin
+          mtxWidth := cMtxWidth[j];
+          mtxHeight := cMtxWidth[j];
+          FillAlignedMtx( mtxWidth, mtxHeight, pX, pm1, LineWidthX);
+          FillAlignedMtx( mtxWidth, mtxHeight, pY, pm2, LineWidthY);
+          AllocAlignedMtx(mtxWidth, mtxHeight, pDest, pM3, destLineWidth);
+          AllocAlignedMtx(mtxWidth, mtxHeight, pDest2, pM4, destLn2);
+          AllocAlignedMtx(mtxWidth, mtxHeight, pDest3, pM5, destLn3);
+
+          GenericMtxCopy(pDest, destLinewidth, px, LineWidthX, mtxWidth, mtxHeight);
+          startTime1 := MtxGetTime;
+          GenericAddVec(pDest, destLineWidth, py, sizeof(double), mtxWidth, mtxHeight, True);
+          endTime1 := MtxGetTime;
+
+          GenericMtxCopy(pDest2, destLn2, px, LineWidthX, mtxWidth, mtxHeight);
+          startTime2 := MtxGetTime;
+          ASMMatrixAddVec(pDest2, destLn2, py, sizeof(double), mtxWidth, mtxHeight, True);
+          endTime2 := MtxGetTime;
+
+          GenericMtxCopy(pDest3, destLn3, px, LineWidthX, mtxWidth, mtxHeight);
+          startTime3 := MtxGetTime;
+          AVXMatrixAddVec(pDest3, destLn3, py, sizeof(double), mtxWidth, mtxHeight, True);
+          endTime3 := MtxGetTime;
+
+          Check(CheckMtxIdx(pDest, pDest2, destLineWidth, destLn2, mtxWidth, mtxHeight, idx), 'ASM Sub vec failed');
+          Check(CheckMtxIdx(pDest, pDest3, destLineWidth, destLn3, mtxWidth, mtxHeight, idx), 'AVX Sub vec failed');
+
+          Status( Format('AddVec Vec: %d, %d took %.3fms, %.3fms, %.3fms', [mtxWidth, mtxHeight,
+             (endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+             (endTime3 - startTime3)/mtxFreq*1000]));
+
+          GenericMtxCopy(pDest, destLinewidth, px, LineWidthX, mtxWidth, mtxHeight);
+          startTime1 := MtxGetTime;
+          GenericAddVec(pDest, destLineWidth, py, LineWidthY, mtxWidth, mtxHeight, True);
+          endTime1 := MtxGetTime;
+
+          GenericMtxCopy(pDest2, destLn2, px, LineWidthX, mtxWidth, mtxHeight);
+          startTime2 := MtxGetTime;
+          ASMMatrixAddVec(pDest2, destLn2, py, LineWidthY, mtxWidth, mtxHeight, True);
+          endTime2 := MtxGetTime;
+
+          GenericMtxCopy(pDest3, destLn3, px, LineWidthX, mtxWidth, mtxHeight);
+          startTime3 := MtxGetTime;
+          AVXMatrixAddVec(pDest3, destLn3, py, LineWidthY, mtxWidth, mtxHeight, True);
+          endTime3 := MtxGetTime;
+
+          Check(CheckMtxIdx(pDest, pDest2, destLineWidth, destLn2, mtxWidth, mtxHeight, idx), 'ASM Sub failed');
+          Check(CheckMtxIdx(pDest, pDest3, destLineWidth, destLn3, mtxWidth, mtxHeight, idx), 'AVX Sub failed');
+
+          Status( Format('AddVec Vec col: %d, %d took %.3fms, %.3fms, %.3fms', [mtxWidth, mtxHeight,
+             (endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+             (endTime3 - startTime3)/mtxFreq*1000]));
+
+          GenericMtxCopy(pDest, destLinewidth, px, LineWidthX, mtxWidth, mtxHeight);
+          startTime1 := MtxGetTime;
+          GenericAddVec(pDest, destLineWidth, py, sizeof(double), mtxWidth, mtxHeight, False);
+          endTime1 := MtxGetTime;
+
+          GenericMtxCopy(pDest2, destLn2, px, LineWidthX, mtxWidth, mtxHeight);
+          startTime2 := MtxGetTime;
+          ASMMatrixAddVec(pDest2, destLn2, py, sizeof(double), mtxWidth, mtxHeight, False);
+          endTime2 := MtxGetTime;
+
+          GenericMtxCopy(pDest3, destLn3, px, LineWidthX, mtxWidth, mtxHeight);
+          startTime3 := MtxGetTime;
+          AVXMatrixAddVec(pDest3, destLn3, py, sizeof(double), mtxWidth, mtxHeight, False);
+          endTime3 := MtxGetTime;
+
+          Check(CheckMtxIdx(pDest, pDest2, destLineWidth, destLn2, mtxWidth, mtxHeight, idx), 'ASM Sub failed');
+          Check(CheckMtxIdx(pDest, pDest3, destLineWidth, destLn3, mtxWidth, mtxHeight, idx), 'AVX Sub failed');
+
+          Status( Format('AddVec Vec col: %d, %d took %.3fms, %.3fms, %.3fms', [mtxWidth, mtxHeight,
+             (endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+             (endTime3 - startTime3)/mtxFreq*1000]));
+
+          FreeMem(pm1);
+          FreeMem(pm2);
+          FreeMem(pm3);
+          FreeMem(pm4);
+          FreeMem(pm5);
      end;
 end;
 

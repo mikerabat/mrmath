@@ -42,7 +42,11 @@ procedure AVXRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, h
 // note: the matrix add routine tries to add two values at once and does not carry out any range checks thus the line widhts must
 // be multiple of 16.
 procedure AVXMatrixAdd(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
+procedure AVXMatrixAddVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+
 procedure AVXMatrixSub(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
+procedure AVXMatrixSubVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+
 procedure AVXMatrixElemMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
 procedure AVXMatrixElemDiv(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
 procedure AVXMatrixAddAndScale(Dest : PDouble;  LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
@@ -292,6 +296,76 @@ begin
          AVXMatrixSubAligned(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2)
      else
          AVXMatrixSubUnAligned(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2);
+end;
+
+procedure AVXMatrixSubVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+begin
+     if (width = 0) or (height = 0) then
+        exit;
+
+     if (TASMNativeUInt(A) and $0000001F = 0) and (TASMNativeUInt(B) and $0000001F = 0) and
+        (LineWidthA and $0000001F = 0)
+     then
+     begin
+          if rowWise then
+          begin
+               if incx = sizeof(double)
+               then
+                   AVXMatrixSubVecAlignedVecRow(A, LineWidthA, B, incX, Width, Height)
+               else
+                   AVXMatrixSubVecAlignedRow(A, LineWidthA, B, incX, Width, Height)
+          end
+          else
+              AVXMatrixSubVecAlignedCol(A, LineWidthA, B, incX, Width, Height);
+     end
+     else
+     begin
+          if rowWise then
+          begin
+               if incx = sizeof(double)
+               then
+                   AVXMatrixSubVecUnAlignedVecRow(A, LineWidthA, B, incX, Width, Height)
+               else
+                   AVXMatrixSubVecUnAlignedRow(A, LineWidthA, B, incX, Width, Height)
+          end
+          else
+              AVXMatrixSubVecUnAlignedCol(A, LineWidthA, B, incX, Width, Height)
+     end;
+end;
+
+procedure AVXMatrixAddVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+begin
+     if (width = 0) or (height = 0) then
+        exit;
+
+     if (TASMNativeUInt(A) and $0000001F = 0) and (TASMNativeUInt(B) and $0000001F = 0) and
+        (LineWidthA and $0000001F = 0)
+     then
+     begin
+          if rowWise then
+          begin
+               if incx = sizeof(double)
+               then
+                   AVXMatrixAddVecAlignedVecRow(A, LineWidthA, B, incX, Width, Height)
+               else
+                   AVXMatrixAddVecAlignedRow(A, LineWidthA, B, incX, Width, Height)
+          end
+          else
+              AVXMatrixAddVecAlignedCol(A, LineWidthA, B, incX, Width, Height);
+     end
+     else
+     begin
+          if rowWise then
+          begin
+               if incx = sizeof(double)
+               then
+                   AVXMatrixAddVecUnAlignedVecRow(A, LineWidthA, B, incX, Width, Height)
+               else
+                   AVXMatrixAddVecUnAlignedRow(A, LineWidthA, B, incX, Width, Height)
+          end
+          else
+              AVXMatrixAddVecUnAlignedCol(A, LineWidthA, B, incX, Width, Height)
+     end;
 end;
 
 function AVXMatrixMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;

@@ -1079,8 +1079,8 @@ begin
           addFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixAdd;
           subFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixSub;
           subTFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixSubT;
-          subVecFunc := {$IFDEF FPC}@{$ENDIF}GenericSubVec;
-          addVecFunc := {$IFDEF FPC}@{$ENDIF}GenericAddVec;
+          subVecFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixSubVec;
+          addVecFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixAddVec;
           elemWiseFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixElemMult;
           addScaleFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixAddAndScale;
           scaleAddFunc := {$IFDEF FPC}@{$ENDIF}AVXMAtrixScaleAndAdd;
@@ -1127,20 +1127,20 @@ begin
           // #### override if fma is requested
           if instrType = itFMA then
           begin
-               //multT2Func := {$IFDEF FPC}@{$ENDIF}FMAMatrixMultTransposed;
-               //multTria2T1Func := {$IFDEF FPC}@{$ENDIF}FMAMtxMultTria2T1;
-               //multTria2T1StoreT1Func := {$IFDEF FPC}@{$ENDIF}FMAMtxMultTria2T1StoreT1;
-               //multTria2TUpperFunc := {$IFDEF FPC}@{$ENDIF}FMAMtxMultTria2TUpperUnit;
-               //multLowTria2T2Store1Func := {$IFDEF FPC}@{$ENDIF}FMAMtxMultLowTria2T2Store1;
+               multT2Func := {$IFDEF FPC}@{$ENDIF}FMAMatrixMultTransposed;
+               multTria2T1Func := {$IFDEF FPC}@{$ENDIF}FMAMtxMultTria2T1;
+               multTria2T1StoreT1Func := {$IFDEF FPC}@{$ENDIF}FMAMtxMultTria2T1StoreT1;
+               multTria2TUpperFunc := {$IFDEF FPC}@{$ENDIF}FMAMtxMultTria2TUpperUnit;
+               multLowTria2T2Store1Func := {$IFDEF FPC}@{$ENDIF}FMAMtxMultLowTria2T2Store1;
 
-               //MtxVecMultFunc := {$IFDEF FPC}@{$ENDIF}FMAMtxVecMult;
-               //MtxVecMultTFunc := {$IFDEF FPC}@{$ENDIF}FMAMtxVecMultT;
+               MtxVecMultFunc := {$IFDEF FPC}@{$ENDIF}FMAMtxVecMult;
+               MtxVecMultTFunc := {$IFDEF FPC}@{$ENDIF}FMAMtxVecMultT;
 
-               //if useStrassenMult
-               //then
-               //    multFunc := {$IFDEF FPC}@{$ENDIF}FMAStrassenMatrixMultiplication
-               //else
-               //    multFunc := {$IFDEF FPC}@{$ENDIF}FMAMatrixMult;
+               if useStrassenMult
+               then
+                   multFunc := {$IFDEF FPC}@{$ENDIF}FMAStrassenMatrixMultiplication
+               else
+                   multFunc := {$IFDEF FPC}@{$ENDIF}FMAMatrixMult;
 
                curUsedCPUInstrSet := itFMA;
           end;

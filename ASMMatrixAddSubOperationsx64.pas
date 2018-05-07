@@ -90,10 +90,7 @@ asm
    // prolog - simulate stack
    mov iRBX, rbx;
    mov iR12, r12;
-   {
-   .pushnv rbx;
-   .pushnv r12;
-   }
+
    //iters := -width*sizeof(double);
    mov r10, width;
    shl r10, 3;
@@ -217,10 +214,6 @@ asm
    // prolog - simulate stack
    mov iRBX, rbx;
    mov iR12, r12;
-   {
-   .pushnv rbx;
-   .pushnv r12;
-   }
 
    mov r11, LineWidth1;
    mov r12, LineWidth2;
@@ -354,10 +347,6 @@ asm
    // prolog - simulate stack
    mov iRBX, rbx;
    mov iR12, r12;
-   {
-   .pushnv rbx;
-   .pushnv r12;
-   }
 
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
@@ -489,10 +478,6 @@ asm
    // prolog - simulate stack
    mov iRBX, rbx;
    mov iR12, r12;
-   {
-   .pushnv rbx;
-   .pushnv r12;
-   }
 
    mov r11, LineWidth1;
    mov r12, LineWidth2;
@@ -633,10 +618,6 @@ asm
    // prolog - simulate stack
    mov iRBX, rbx;
    mov iR12, r12;
-   {
-   .pushnv rbx;
-   .pushnv r12;
-   }
 
    //iters := -width*sizeof(double);
    mov r10, width;
@@ -761,10 +742,6 @@ asm
    // prolog - simulate stack
    mov iRBX, rbx;
    mov iR12, r12;
-   {
-   .pushnv rbx;
-   .pushnv r12;
-   }
 
    mov r11, LineWidth1;
    mov r12, LineWidth2;
@@ -898,10 +875,6 @@ asm
    // prolog - simulate stack
    mov iRBX, rbx;
    mov iR12, r12;
-   {
-   .pushnv rbx;
-   .pushnv r12;
-   }
 
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
@@ -1033,10 +1006,6 @@ asm
    // prolog - simulate stack
    mov iRBX, rbx;
    mov iR12, r12;
-   {
-   .pushnv rbx;
-   .pushnv r12;
-   }
 
    mov r11, LineWidth1;
    mov r12, LineWidth2;
@@ -1214,6 +1183,16 @@ procedure ASMMatrixSubVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; 
 begin
 {$ENDIF}
      asm
+        {$IFDEF LINUX}
+        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+        // (note that the 5th and 6th parameter are are on the stack)
+        // The parameters are passed in the following order:
+        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+        mov r8, rdx;
+        mov r9, rcx;
+        mov rcx, rdi;
+        mov rdx, rsi;
+       {$ENDIF}
         // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
         mov r10, width;
         imul r10, -8;
@@ -1278,6 +1257,16 @@ var vecIter : TASMNativeInt;
 begin
 {$ENDIF}
      asm
+        {$IFDEF LINUX}
+        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+        // (note that the 5th and 6th parameter are are on the stack)
+        // The parameters are passed in the following order:
+        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+        mov r8, rdx;
+        mov r9, rcx;
+        mov rcx, rdi;
+        mov rdx, rsi;
+       {$ENDIF}
         // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
         mov r11, width;
 
@@ -1295,50 +1284,6 @@ begin
            mov rax, r10;
            mov r11, vecIter;
 
-           @@forxloopUnrolled:
-              add rax, 64;
-              jg @@EndLoop1;
-
-              movapd xmm0, [rcx + rax - 64];
-              movlpd xmm1, [r8 + r11];
-              add r11, r9;
-              movhpd xmm1, [r8 + r11];
-              add r11, r9;
-              subpd xmm0, xmm1;
-              movapd [rcx + rax - 64], xmm0;
-
-              movapd xmm1, [rcx + rax - 48];
-              movlpd xmm2, [r8 + r11];
-              add r11, r9;
-              movhpd xmm2, [r8 + r11];
-              add r11, r9;
-              subpd xmm1, xmm2;
-              movapd [rcx + rax - 48], xmm1;
-
-              movapd xmm2, [rcx + rax - 32];
-              movlpd xmm3, [r8 + r11];
-              add r11, r9;
-              movhpd xmm3, [r8 + r11];
-              add r11, r9;
-              subpd xmm2, xmm3;
-              movapd [rcx + rax - 32], xmm2;
-
-              movapd xmm3, [rcx + rax - 16];
-              movlpd xmm0, [r8 + r11];
-              add r11, r9;
-              movhpd xmm0, [r8 + r11];
-              add r11, r9;
-              subpd xmm3, xmm0;
-              movapd [rcx + rax - 16], xmm3;
-
-           jmp @@forxloopUnrolled;
-
-           @@EndLoop1:
-
-           sub rax, 64;
-
-           jz @NextLine;
-
            @@forxloop:
               movsd xmm0, [rcx + rax];
               movsd xmm1, [r8 + r11];
@@ -1349,8 +1294,6 @@ begin
               add r11, r9;
               add rax, 8;
            jnz @@forxloop;
-
-           @NextLine:
 
            add rcx, rdx;
         dec Height;
@@ -1365,6 +1308,16 @@ procedure ASMMatrixSubVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B :
 begin
 {$ENDIF}
      asm
+        {$IFDEF LINUX}
+        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+        // (note that the 5th and 6th parameter are are on the stack)
+        // The parameters are passed in the following order:
+        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+        mov r8, rdx;
+        mov r9, rcx;
+        mov rcx, rdi;
+        mov rdx, rsi;
+       {$ENDIF}
         // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
         mov r10, width;
         imul r10, -8;
@@ -1429,6 +1382,17 @@ procedure ASMMatrixSubVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt
 begin
 {$ENDIF}
      asm
+        {$IFDEF LINUX}
+        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+        // (note that the 5th and 6th parameter are are on the stack)
+        // The parameters are passed in the following order:
+        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+        mov r8, rdx;
+        mov r9, rcx;
+        mov rcx, rdi;
+        mov rdx, rsi;
+       {$ENDIF}
+
         // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
         mov r10, width;
         imul r10, -8;
@@ -1497,6 +1461,16 @@ var vecIter : TASMNativeInt;
 begin
 {$ENDIF}
      asm
+        {$IFDEF LINUX}
+        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+        // (note that the 5th and 6th parameter are are on the stack)
+        // The parameters are passed in the following order:
+        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+        mov r8, rdx;
+        mov r9, rcx;
+        mov rcx, rdi;
+        mov rdx, rsi;
+       {$ENDIF}
         // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
         mov r11, width;
 
@@ -1514,50 +1488,6 @@ begin
            mov rax, r10;
            mov r11, vecIter;
 
-           @@forxloopUnrolled:
-              add rax, 64;
-              jg @@EndLoop1;
-
-              movupd xmm0, [rcx + rax - 64];
-              movlpd xmm1, [r8 + r11];
-              add r11, r9;
-              movhpd xmm1, [r8 + r11];
-              add r11, r9;
-              subpd xmm0, xmm1;
-              movupd [rcx + rax - 64], xmm0;
-
-              movupd xmm1, [rcx + rax - 48];
-              movlpd xmm2, [r8 + r11];
-              add r11, r9;
-              movhpd xmm2, [r8 + r11];
-              add r11, r9;
-              subpd xmm1, xmm2;
-              movupd [rcx + rax - 48], xmm1;
-
-              movupd xmm2, [rcx + rax - 32];
-              movlpd xmm3, [r8 + r11];
-              add r11, r9;
-              movhpd xmm3, [r8 + r11];
-              add r11, r9;
-              subpd xmm2, xmm3;
-              movupd [rcx + rax - 32], xmm2;
-
-              movupd xmm3, [rcx + rax - 16];
-              movlpd xmm0, [r8 + r11];
-              add r11, r9;
-              movhpd xmm0, [r8 + r11];
-              add r11, r9;
-              subpd xmm3, xmm0;
-              movupd [rcx + rax - 16], xmm3;
-
-           jmp @@forxloopUnrolled;
-
-           @@EndLoop1:
-
-           sub rax, 64;
-
-           jz @NextLine;
-
            @@forxloop:
               movsd xmm0, [rcx + rax];
               movsd xmm1, [r8 + r11];
@@ -1568,8 +1498,6 @@ begin
               add r11, r9;
               add rax, 8;
            jnz @@forxloop;
-
-           @NextLine:
 
            add rcx, rdx;
         dec Height;
@@ -1584,6 +1512,17 @@ procedure ASMMatrixSubVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B
 begin
 {$ENDIF}
      asm
+        {$IFDEF LINUX}
+        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+        // (note that the 5th and 6th parameter are are on the stack)
+        // The parameters are passed in the following order:
+        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+        mov r8, rdx;
+        mov r9, rcx;
+        mov rcx, rdi;
+        mov rdx, rsi;
+       {$ENDIF}
+
         // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
         mov r10, width;
         imul r10, -8;
@@ -1649,6 +1588,17 @@ procedure ASMMatrixAddVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; 
 begin
 {$ENDIF}
      asm
+        {$IFDEF LINUX}
+        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+        // (note that the 5th and 6th parameter are are on the stack)
+        // The parameters are passed in the following order:
+        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+        mov r8, rdx;
+        mov r9, rcx;
+        mov rcx, rdi;
+        mov rdx, rsi;
+       {$ENDIF}
+
         // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
         mov r10, width;
         imul r10, -8;
@@ -1713,6 +1663,17 @@ var vecIter : TASMNativeInt;
 begin
 {$ENDIF}
      asm
+        {$IFDEF LINUX}
+        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+        // (note that the 5th and 6th parameter are are on the stack)
+        // The parameters are passed in the following order:
+        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+        mov r8, rdx;
+        mov r9, rcx;
+        mov rcx, rdi;
+        mov rdx, rsi;
+       {$ENDIF}
+
         // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
         mov r11, width;
 
@@ -1730,50 +1691,6 @@ begin
            mov rax, r10;
            mov r11, vecIter;
 
-           @@forxloopUnrolled:
-              add rax, 64;
-              jg @@EndLoop1;
-
-              movapd xmm0, [rcx + rax - 64];
-              movlpd xmm1, [r8 + r11];
-              add r11, r9;
-              movhpd xmm1, [r8 + r11];
-              add r11, r9;
-              addpd xmm0, xmm1;
-              movapd [rcx + rax - 64], xmm0;
-
-              movapd xmm1, [rcx + rax - 48];
-              movlpd xmm2, [r8 + r11];
-              add r11, r9;
-              movhpd xmm2, [r8 + r11];
-              add r11, r9;
-              addpd xmm1, xmm2;
-              movapd [rcx + rax - 48], xmm1;
-
-              movapd xmm2, [rcx + rax - 32];
-              movlpd xmm3, [r8 + r11];
-              add r11, r9;
-              movhpd xmm3, [r8 + r11];
-              add r11, r9;
-              addpd xmm2, xmm3;
-              movapd [rcx + rax - 32], xmm2;
-
-              movapd xmm3, [rcx + rax - 16];
-              movlpd xmm0, [r8 + r11];
-              add r11, r9;
-              movhpd xmm0, [r8 + r11];
-              add r11, r9;
-              addpd xmm3, xmm0;
-              movapd [rcx + rax - 16], xmm3;
-
-           jmp @@forxloopUnrolled;
-
-           @@EndLoop1:
-
-           sub rax, 64;
-
-           jz @NextLine;
-
            @@forxloop:
               movsd xmm0, [rcx + rax];
               movsd xmm1, [r8 + r11];
@@ -1784,8 +1701,6 @@ begin
               add r11, r9;
               add rax, 8;
            jnz @@forxloop;
-
-           @NextLine:
 
            add rcx, rdx;
         dec Height;
@@ -1800,6 +1715,17 @@ procedure ASMMatrixAddVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B :
 begin
 {$ENDIF}
      asm
+        {$IFDEF LINUX}
+        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+        // (note that the 5th and 6th parameter are are on the stack)
+        // The parameters are passed in the following order:
+        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+        mov r8, rdx;
+        mov r9, rcx;
+        mov rcx, rdi;
+        mov rdx, rsi;
+       {$ENDIF}
+
         // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
         mov r10, width;
         imul r10, -8;
@@ -1864,6 +1790,17 @@ procedure ASMMatrixAddVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt
 begin
 {$ENDIF}
      asm
+        {$IFDEF LINUX}
+        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+        // (note that the 5th and 6th parameter are are on the stack)
+        // The parameters are passed in the following order:
+        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+        mov r8, rdx;
+        mov r9, rcx;
+        mov rcx, rdi;
+        mov rdx, rsi;
+       {$ENDIF}
+
         // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
         mov r10, width;
         imul r10, -8;
@@ -1932,6 +1869,17 @@ var vecIter : TASMNativeInt;
 begin
 {$ENDIF}
      asm
+        {$IFDEF LINUX}
+        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+        // (note that the 5th and 6th parameter are are on the stack)
+        // The parameters are passed in the following order:
+        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+        mov r8, rdx;
+        mov r9, rcx;
+        mov rcx, rdi;
+        mov rdx, rsi;
+       {$ENDIF}
+
         // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
         mov r11, width;
 
@@ -1949,50 +1897,6 @@ begin
            mov rax, r10;
            mov r11, vecIter;
 
-           @@forxloopUnrolled:
-              add rax, 64;
-              jg @@EndLoop1;
-
-              movupd xmm0, [rcx + rax - 64];
-              movlpd xmm1, [r8 + r11];
-              add r11, r9;
-              movhpd xmm1, [r8 + r11];
-              add r11, r9;
-              addpd xmm0, xmm1;
-              movupd [rcx + rax - 64], xmm0;
-
-              movupd xmm1, [rcx + rax - 48];
-              movlpd xmm2, [r8 + r11];
-              add r11, r9;
-              movhpd xmm2, [r8 + r11];
-              add r11, r9;
-              addpd xmm1, xmm2;
-              movupd [rcx + rax - 48], xmm1;
-
-              movupd xmm2, [rcx + rax - 32];
-              movlpd xmm3, [r8 + r11];
-              add r11, r9;
-              movhpd xmm3, [r8 + r11];
-              add r11, r9;
-              addpd xmm2, xmm3;
-              movupd [rcx + rax - 32], xmm2;
-
-              movupd xmm3, [rcx + rax - 16];
-              movlpd xmm0, [r8 + r11];
-              add r11, r9;
-              movhpd xmm0, [r8 + r11];
-              add r11, r9;
-              addpd xmm3, xmm0;
-              movupd [rcx + rax - 16], xmm3;
-
-           jmp @@forxloopUnrolled;
-
-           @@EndLoop1:
-
-           sub rax, 64;
-
-           jz @NextLine;
-
            @@forxloop:
               movsd xmm0, [rcx + rax];
               movsd xmm1, [r8 + r11];
@@ -2003,8 +1907,6 @@ begin
               add r11, r9;
               add rax, 8;
            jnz @@forxloop;
-
-           @NextLine:
 
            add rcx, rdx;
         dec Height;
@@ -2019,6 +1921,17 @@ procedure ASMMatrixAddVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B
 begin
 {$ENDIF}
      asm
+        {$IFDEF LINUX}
+        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+        // (note that the 5th and 6th parameter are are on the stack)
+        // The parameters are passed in the following order:
+        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+        mov r8, rdx;
+        mov r9, rcx;
+        mov rcx, rdi;
+        mov rdx, rsi;
+       {$ENDIF}
+
         // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
         mov r10, width;
         imul r10, -8;

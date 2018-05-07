@@ -1107,50 +1107,6 @@ begin
            mov eax, ebx;
            mov esi, vecIter;
 
-           @@forxloopUnrolled:
-              add eax, 64;
-              jg @@EndLoop1;
-
-              movapd xmm0, [ecx + eax - 64];
-              movlpd xmm1, [edx + esi];
-              add esi, edi;
-              movhpd xmm1, [edx + esi];
-              add esi, edi;
-              subpd xmm0, xmm1;
-              movapd [ecx + eax - 64], xmm0;
-
-              movapd xmm1, [ecx + eax - 48];
-              movlpd xmm2, [edx + esi];
-              add esi, edi;
-              movhpd xmm2, [edx + esi];
-              add esi, edi;
-              subpd xmm1, xmm2;
-              movapd [ecx + eax - 48], xmm1;
-
-              movapd xmm2, [ecx + eax - 32];
-              movlpd xmm3, [edx + esi];
-              add esi, edi;
-              movhpd xmm3, [edx + esi];
-              add esi, edi;
-              subpd xmm2, xmm3;
-              movapd [ecx + eax - 32], xmm2;
-
-              movapd xmm3, [ecx + eax - 16];
-              movlpd xmm0, [edx + esi];
-              add esi, edi;
-              movhpd xmm0, [edx + esi];
-              add esi, edi;
-              subpd xmm3, xmm0;
-              movapd [ecx + eax - 16], xmm3;
-
-           jmp @@forxloopUnrolled;
-
-           @@EndLoop1:
-
-           sub eax, 64;
-
-           jz @NextLine;
-
            @@forxloop:
               movsd xmm0, [ecx + eax];
               movsd xmm1, [edx + esi];
@@ -1337,50 +1293,6 @@ begin
            mov eax, ebx;
            mov esi, vecIter;
 
-           @@forxloopUnrolled:
-              add eax, 64;
-              jg @@EndLoop1;
-
-              movupd xmm0, [ecx + eax - 64];
-              movlpd xmm1, [edx + esi];
-              add esi, edi;
-              movhpd xmm1, [edx + esi];
-              add esi, edi;
-              subpd xmm0, xmm1;
-              movupd [ecx + eax - 64], xmm0;
-
-              movupd xmm1, [ecx + eax - 48];
-              movlpd xmm2, [edx + esi];
-              add esi, edi;
-              movhpd xmm2, [edx + esi];
-              add esi, edi;
-              subpd xmm1, xmm2;
-              movupd [ecx + eax - 48], xmm1;
-
-              movupd xmm2, [ecx + eax - 32];
-              movlpd xmm3, [edx + esi];
-              add esi, edi;
-              movhpd xmm3, [edx + esi];
-              add esi, edi;
-              subpd xmm2, xmm3;
-              movupd [ecx + eax - 32], xmm2;
-
-              movupd xmm3, [ecx + eax - 16];
-              movlpd xmm0, [edx + esi];
-              add esi, edi;
-              movhpd xmm0, [edx + esi];
-              add esi, edi;
-              subpd xmm3, xmm0;
-              movupd [ecx + eax - 16], xmm3;
-
-           jmp @@forxloopUnrolled;
-
-           @@EndLoop1:
-
-           sub eax, 64;
-
-           jz @NextLine;
-
            @@forxloop:
               movsd xmm0, [ecx + eax];
               movsd xmm1, [edx + esi];
@@ -1563,50 +1475,6 @@ begin
         @@foryloop:
            mov eax, ebx;
            mov esi, vecIter;
-
-           @@forxloopUnrolled:
-              add eax, 64;
-              jg @@EndLoop1;
-
-              movapd xmm0, [ecx + eax - 64];
-              movlpd xmm1, [edx + esi];
-              add esi, edi;
-              movhpd xmm1, [edx + esi];
-              add esi, edi;
-              addpd xmm0, xmm1;
-              movapd [ecx + eax - 64], xmm0;
-
-              movapd xmm1, [ecx + eax - 48];
-              movlpd xmm2, [edx + esi];
-              add esi, edi;
-              movhpd xmm2, [edx + esi];
-              add esi, edi;
-              addpd xmm1, xmm2;
-              movapd [ecx + eax - 48], xmm1;
-
-              movapd xmm2, [ecx + eax - 32];
-              movlpd xmm3, [edx + esi];
-              add esi, edi;
-              movhpd xmm3, [edx + esi];
-              add esi, edi;
-              addpd xmm2, xmm3;
-              movapd [ecx + eax - 32], xmm2;
-
-              movapd xmm3, [ecx + eax - 16];
-              movlpd xmm0, [edx + esi];
-              add esi, edi;
-              movhpd xmm0, [edx + esi];
-              add esi, edi;
-              addpd xmm3, xmm0;
-              movapd [ecx + eax - 16], xmm3;
-
-           jmp @@forxloopUnrolled;
-
-           @@EndLoop1:
-
-           sub eax, 64;
-
-           jz @NextLine;
 
            @@forxloop:
               movsd xmm0, [ecx + eax];
@@ -1793,50 +1661,6 @@ begin
         @@foryloop:
            mov eax, ebx;
            mov esi, vecIter;
-
-           @@forxloopUnrolled:
-              add eax, 64;
-              jg @@EndLoop1;
-
-              movupd xmm0, [ecx + eax - 64];
-              movlpd xmm1, [edx + esi];
-              add esi, edi;
-              movhpd xmm1, [edx + esi];
-              add esi, edi;
-              addpd xmm0, xmm1;
-              movupd [ecx + eax - 64], xmm0;
-
-              movupd xmm1, [ecx + eax - 48];
-              movlpd xmm2, [edx + esi];
-              add esi, edi;
-              movhpd xmm2, [edx + esi];
-              add esi, edi;
-              addpd xmm1, xmm2;
-              movupd [ecx + eax - 48], xmm1;
-
-              movupd xmm2, [ecx + eax - 32];
-              movlpd xmm3, [edx + esi];
-              add esi, edi;
-              movhpd xmm3, [edx + esi];
-              add esi, edi;
-              addpd xmm2, xmm3;
-              movupd [ecx + eax - 32], xmm2;
-
-              movupd xmm3, [ecx + eax - 16];
-              movlpd xmm0, [edx + esi];
-              add esi, edi;
-              movhpd xmm0, [edx + esi];
-              add esi, edi;
-              addpd xmm3, xmm0;
-              movupd [ecx + eax - 16], xmm3;
-
-           jmp @@forxloopUnrolled;
-
-           @@EndLoop1:
-
-           sub eax, 64;
-
-           jz @NextLine;
 
            @@forxloop:
               movsd xmm0, [ecx + eax];
