@@ -46,7 +46,11 @@ procedure ASMRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, h
 // note: the matrix add routine tries to add two values at once and does not carry out any range checks thus the line widhts must
 // be multiple of 16.
 procedure ASMMatrixAdd(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixAddVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+
 procedure ASMMatrixSub(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixSubVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+
 procedure ASMMatrixElemMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
 procedure ASMMatrixElemDiv(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
 procedure ASMMatrixAddAndScale(Dest : PDouble;  LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
@@ -409,6 +413,77 @@ begin
               ASMMatrixSubUnAlignedOddW(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2);
      end;
 end;
+
+procedure ASMMatrixSubVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+begin
+     if (width = 0) or (height = 0) then
+        exit;
+
+     if (TASMNativeUInt(A) and $0000000F = 0) and (TASMNativeUInt(B) and $0000000F = 0) and
+        (LineWidthA and $0000000F = 0)
+     then
+     begin
+          if rowWise then
+          begin
+               if incx = sizeof(double)
+               then
+                   ASMMatrixSubVecAlignedVecRow(A, LineWidthA, B, incX, Width, Height)
+               else
+                   ASMMatrixSubVecAlignedRow(A, LineWidthA, B, incX, Width, Height)
+          end
+          else
+              ASMMatrixSubVecAlignedCol(A, LineWidthA, B, incX, Width, Height);
+     end
+     else
+     begin
+          if rowWise then
+          begin
+               if incx = sizeof(double)
+               then
+                   ASMMatrixSubVecUnAlignedVecRow(A, LineWidthA, B, incX, Width, Height)
+               else
+                   ASMMatrixSubVecUnAlignedRow(A, LineWidthA, B, incX, Width, Height)
+          end
+          else
+              ASMMatrixSubVecUnAlignedCol(A, LineWidthA, B, incX, Width, Height)
+     end;
+end;
+
+procedure ASMMatrixAddVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+begin
+     if (width = 0) or (height = 0) then
+        exit;
+
+     if (TASMNativeUInt(A) and $0000000F = 0) and (TASMNativeUInt(B) and $0000000F = 0) and
+        (LineWidthA and $0000000F = 0)
+     then
+     begin
+          if rowWise then
+          begin
+               if incx = sizeof(double)
+               then
+                   ASMMatrixAddVecAlignedVecRow(A, LineWidthA, B, incX, Width, Height)
+               else
+                   ASMMatrixAddVecAlignedRow(A, LineWidthA, B, incX, Width, Height)
+          end
+          else
+              ASMMatrixAddVecAlignedCol(A, LineWidthA, B, incX, Width, Height);
+     end
+     else
+     begin
+          if rowWise then
+          begin
+               if incx = sizeof(double)
+               then
+                   ASMMatrixAddVecUnAlignedVecRow(A, LineWidthA, B, incX, Width, Height)
+               else
+                   ASMMatrixAddVecUnAlignedRow(A, LineWidthA, B, incX, Width, Height)
+          end
+          else
+              ASMMatrixAddVecUnAlignedCol(A, LineWidthA, B, incX, Width, Height)
+     end;
+end;
+
 
 function ASMMatrixMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 begin

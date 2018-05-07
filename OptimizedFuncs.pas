@@ -1156,8 +1156,8 @@ begin
           addFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixAdd;
           subFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixSub;
           subTFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixSubT;
-          subVecFunc := {$IFDEF FPC}@{$ENDIF}GenericSubVec;
-          addVecFunc := {$IFDEF FPC}@{$ENDIF}GenericAddVec;
+          subVecFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixSubVec;
+          addVecFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixAddVec;
           elemWiseFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixElemMult;
           addScaleFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixAddAndScale;
           scaleAddFunc := {$IFDEF FPC}@{$ENDIF}ASMMAtrixScaleAndAdd;

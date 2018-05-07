@@ -46,6 +46,8 @@ type
     procedure TestMatrixASMCopy;
     procedure TestMatrixAlloc;
     procedure TestASMAdd;
+    procedure TestASMSubVec;
+    procedure TestASMAddVec;
     procedure TestSubT;
     procedure TestBigASMAdd;
     procedure TestAddAndScale;
@@ -252,6 +254,191 @@ begin
 
      Check(CheckMtx(dest, mt3, -1, -1, 1e-10), 'Add Matrix error');
 end;
+
+procedure TASMMatrixOperations.TestASMAddVec;
+var A, B, res : TDoubleDynArray;
+    res1 : TDoubleDynArray;
+    i : integer;
+    refVal : double;
+    aa, ab : PDouble;
+    amem, bmem : Pointer;
+    lnA, lnB : TASMNativeInt;
+begin
+     SetLength(A, 8*8);
+     SetLength(B, Length(A));
+     SetLength(res, Length(A));
+     SetLength(res1, Length(A));
+
+     for i := 0 to Length(A) - 1 do
+     begin
+          A[i] := i + 1;
+          B[i] := i;
+     end;
+
+     refVal := -7;
+     for i := 0 to Length(A) - 1 do
+     begin
+          if i mod 8 = 0 then
+             refVal := refVal + 8;
+          res1[i] := refVal;
+     end;
+
+     aa := MtxAllocAlign( 8, 8, lnA, amem);
+     ab := MtxAllocAlign(8, 8, lnB, bmem);
+
+     GenericMtxCopy(aa, lnA, @A[0], 8*sizeof(double), 8, 8);
+     GenericMtxCopy(ab, lnB, @B[0], 8*sizeof(double), 8, 8);
+
+
+     res := Copy(A, 0, Length(A));
+     GenericAddVec(@A[0], 8*sizeof(double), @B[0], sizeof(double), 8, 8, True);
+     ASMMatrixAddVecUnAlignedVecRow(@res[0], 8*sizeof(double), @B[0], sizeof(double), 8, 8);
+
+     Check(CheckMtx(res, A), 'Add Vector failed row vector');
+
+     GenericAddVec(@A[0], 8*sizeof(double), @B[0], 8*sizeof(double), 8, 8, True);
+     ASMMatrixAddVecUnAlignedRow(@res[0], 8*sizeof(double), @B[0], 8*sizeof(double), 8, 8);
+
+     Check(CheckMtx(res, A), 'Add Vector failed row');
+
+     GenericAddVec(@A[0], 8*sizeof(double), @B[0], 8*sizeof(double), 8, 8, False);
+     ASMMatrixAddVecUnalignedCol(@res[0], 8*sizeof(double), @B[0], 8*sizeof(double), 8, 8);
+
+     Check(CheckMtx(res, A), 'Add Vector failed row');
+
+     GenericMtxCopy(@A[0], 8*sizeof(double), aa, LnA, 8, 8);
+
+     GenericAddVec(@A[0], 8*sizeof(double), @B[0], sizeof(double), 8, 8, True);
+     ASMMatrixAddVecAlignedVecRow(aa, lna, ab, sizeof(double), 8, 8);
+     GenericMtxCopy(@res[0], 8*sizeof(double), aa, lnA, 8, 8);
+     Check(CheckMtx(res, A), 'Add Vector failed row vector');
+
+     GenericAddVec(@A[0], 8*sizeof(double), @B[0], 8*sizeof(double), 8, 8, True);
+     ASMMatrixAddVecAlignedRow(aa, lna, ab, lnb, 8, 8);
+     GenericMtxCopy(@res[0], 8*sizeof(double), aa, lnA, 8, 8);
+     Check(CheckMtx(res, A), 'Add Vector failed row');
+
+     GenericAddVec(@A[0], 8*sizeof(double), @B[0], 8*sizeof(double), 8, 8, False);
+     ASMMatrixAddVecAlignedCol(aa, lna, ab, lnb, 8, 8);
+     GenericMtxCopy(@res[0], 8*sizeof(double), aa, lnA, 8, 8);
+     Check(CheckMtx(res, A), 'Add Vector failed row');
+
+
+     A := Copy(res, 0, Length(res));
+
+     GenericMtxCopy(aa, lnA, @A[0], 8*sizeof(double), 8, 8);
+     GenericMtxCopy(ab, lnB, @B[0], 8*sizeof(double), 8, 8);
+
+     GenericAddVec(@A[0], 8*sizeof(double), @B[0], sizeof(double), 7, 8, True);
+     ASMMatrixAddVecUnAlignedVecRow(@res[0], 8*sizeof(double), @B[0], sizeof(double), 7, 8);
+
+     Check(CheckMtx(res, A), 'Add Vector failed row vector');
+
+     GenericAddVec(@A[0], 8*sizeof(double), @B[0], 8*sizeof(double), 7, 8, True);
+     ASMMatrixAddVecUnAlignedRow(@res[0], 8*sizeof(double), @B[0], 8*sizeof(double), 7, 8);
+
+     Check(CheckMtx(res, A), 'Add Vector failed row');
+
+     GenericAddVec(@A[0], 8*sizeof(double), @B[0], 8*sizeof(double), 7, 8, False);
+     ASMMatrixAddVecUnalignedCol(@res[0], 8*sizeof(double), @B[0], 8*sizeof(double), 7, 8);
+
+     Check(CheckMtx(res, A), 'Add Vector failed row');
+
+     GenericMtxCopy(@A[0], 8*sizeof(double), aa, LnA, 8, 8);
+
+     GenericAddVec(@A[0], 8*sizeof(double), @B[0], sizeof(double), 7, 8, True);
+     ASMMatrixAddVecAlignedVecRow(aa, lna, ab, sizeof(double), 7, 8);
+     GenericMtxCopy(@res[0], 8*sizeof(double), aa, lnA, 8, 8);
+     Check(CheckMtx(res, A), 'Add Vector failed row vector');
+
+     GenericAddVec(@A[0], 8*sizeof(double), @B[0], 8*sizeof(double), 7, 8, True);
+     ASMMatrixAddVecAlignedRow(aa, lna, ab, lnb, 7, 8);
+     GenericMtxCopy(@res[0], 8*sizeof(double), aa, lnA, 8, 8);
+     Check(CheckMtx(res, A), 'Add Vector failed row');
+
+     GenericAddVec(@A[0], 8*sizeof(double), @B[0], 8*sizeof(double), 7, 8, False);
+     ASMMatrixAddVecAlignedCol(aa, lna, ab, lnb, 7, 8);
+     GenericMtxCopy(@res[0], 8*sizeof(double), aa, lnA, 8, 8);
+     Check(CheckMtx(res, A), 'Add Vector failed row');
+
+     FreeMem(amem);
+     FreeMem(bmem);
+end;
+
+
+procedure TASMMatrixOperations.TestASMSubVec;
+var A, B, res : TDoubleDynArray;
+    res1 : TDoubleDynArray;
+    i : integer;
+    refVal : double;
+    aa, ab : PDouble;
+    amem, bmem : Pointer;
+    lnA, lnB : TASMNativeInt;
+begin
+     SetLength(A, 8*8);
+     SetLength(B, Length(A));
+     SetLength(res, Length(A));
+     SetLength(res1, Length(A));
+
+     for i := 0 to Length(A) - 1 do
+     begin
+          A[i] := i + 1;
+          B[i] := i;
+     end;
+
+     refVal := -7;
+     for i := 0 to Length(A) - 1 do
+     begin
+          if i mod 8 = 0 then
+             refVal := refVal + 8;
+          res1[i] := refVal;
+     end;
+
+     aa := MtxAllocAlign( 8, 8, lnA, amem);
+     ab := MtxAllocAlign(8, 8, lnB, bmem);
+
+     GenericMtxCopy(aa, lnA, @A[0], 8*sizeof(double), 8, 8);
+     GenericMtxCopy(ab, lnB, @B[0], 8*sizeof(double), 8, 8);
+
+
+     res := Copy(A, 0, Length(A));
+     GenericSubVec(@A[0], 8*sizeof(double), @B[0], sizeof(double), 8, 8, True);
+     ASMMatrixSubVecUnAlignedVecRow(@res[0], 8*sizeof(double), @B[0], sizeof(double), 8, 8);
+
+     Check(CheckMtx(res, A), 'Sub Vector failed row vector');
+
+     GenericSubVec(@A[0], 8*sizeof(double), @B[0], 8*sizeof(double), 8, 8, True);
+     ASMMatrixSubVecUnAlignedRow(@res[0], 8*sizeof(double), @B[0], 8*sizeof(double), 8, 8);
+
+     Check(CheckMtx(res, A), 'Sub Vector failed row');
+
+     GenericSubVec(@A[0], 8*sizeof(double), @B[0], 8*sizeof(double), 8, 8, False);
+     ASMMatrixSubVecUnalignedCol(@res[0], 8*sizeof(double), @B[0], 8*sizeof(double), 8, 8);
+
+     Check(CheckMtx(res, A), 'Sub Vector failed row');
+
+     GenericMtxCopy(@A[0], 8*sizeof(double), aa, LnA, 8, 8);
+
+     GenericSubVec(@A[0], 8*sizeof(double), @B[0], sizeof(double), 8, 8, True);
+     ASMMatrixSubVecAlignedVecRow(aa, lna, ab, sizeof(double), 8, 8);
+     GenericMtxCopy(@res[0], 8*sizeof(double), aa, lnA, 8, 8);
+     Check(CheckMtx(res, A), 'Sub Vector failed row vector');
+
+     GenericSubVec(@A[0], 8*sizeof(double), @B[0], 8*sizeof(double), 8, 8, True);
+     ASMMatrixSubVecAlignedRow(aa, lna, ab, lnb, 8, 8);
+     GenericMtxCopy(@res[0], 8*sizeof(double), aa, lnA, 8, 8);
+     Check(CheckMtx(res, A), 'Sub Vector failed row');
+
+     GenericSubVec(@A[0], 8*sizeof(double), @B[0], 8*sizeof(double), 8, 8, False);
+     ASMMatrixSubVecAlignedCol(aa, lna, ab, lnb, 8, 8);
+     GenericMtxCopy(@res[0], 8*sizeof(double), aa, lnA, 8, 8);
+     Check(CheckMtx(res, A), 'Sub Vector failed row');
+
+     FreeMem(amem);
+     FreeMem(bmem);
+end;
+
+
 
 procedure TASMMatrixOperations.TestAddAndScale;
 const cBlkWidth = 24;
@@ -3923,7 +4110,6 @@ begin
      Check(CheckMtx(res, A), 'Add Vector failed row');
 
 end;
-
 
 initialization
   RegisterTest(TestMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});

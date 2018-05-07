@@ -44,6 +44,23 @@ procedure ASMMatrixSubAlignedOddW(dest : PDouble; const destLineWidth : TASMNati
 procedure ASMMatrixSubUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 
 procedure ASMMatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
+
+procedure ASMMatrixSubVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure ASMMatrixSubVecAlignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure ASMMatrixSubVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+
+procedure ASMMatrixSubVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure ASMMatrixSubVecUnalignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure ASMMatrixSubVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+
+procedure ASMMatrixAddVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure ASMMatrixAddVecAlignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure ASMMatrixAddVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+
+procedure ASMMatrixAddVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure ASMMatrixAddVecUnalignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure ASMMatrixAddVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+
 {$ENDIF}
 
 implementation
@@ -1140,7 +1157,6 @@ end;
 {$ENDIF}
 
 procedure ASMMatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
-var iRBX : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1157,9 +1173,6 @@ begin
         mov rdx, rsi;
         {$ENDIF}
 
-        // maintain stack
-        mov iRBX, rbx;
-
         // rax: iter := -width*sizeof(double)
         mov rcx, A;
         mov rax, width;
@@ -1169,31 +1182,901 @@ begin
         // for y := 0 to height - 1
         @@foryloop:
            mov r10, r8;
-           mov rbx, rax;
+           mov r11, rax;
 
            // for x := 0 to width - 1
            @@forxloop:
-              movsd xmm0, [rcx + rbx];
+              movsd xmm0, [rcx + r11];
               movsd xmm1, [r10];
 
               subsd xmm0, xmm1;
-              movsd [rcx + rbx], xmm0;
+              movsd [rcx + r11], xmm0;
 
               add r10, r9;
-           add rbx, 8;
+           add r11, 8;
            jnz @@forxloop;
 
            add rcx, rdx;
            add r8, 8;
         dec height;
         jnz @@foryloop;
-
-        mov rbx, iRBX;
      end;
 {$IFDEF FPC}
 end;
 {$ENDIF}
 
+// ########################################################
+// #### Matrix add, sub to vector operations
+// ########################################################
+
+procedure ASMMatrixSubVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
+     asm
+        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+        mov r10, width;
+        imul r10, -8;
+
+        sub rcx, r10;
+        sub r8, r10;
+
+        @@foryloop:
+           mov rax, r10;
+
+           @@forxloopUnrolled:
+              add rax, 64;
+              jg @@EndLoop1;
+
+              movapd xmm0, [rcx + rax - 64];
+              subpd xmm0, [r8 + rax - 64];
+              movapd [rcx + rax - 64], xmm0;
+
+              movapd xmm1, [rcx + rax - 48];
+              subpd xmm1, [r8 + rax - 48];
+              movapd [rcx + rax - 48], xmm1;
+
+              movapd xmm2, [rcx + rax - 32];
+              subpd xmm2, [r8 + rax - 32];
+              movapd [rcx + rax - 32], xmm2;
+
+              movapd xmm3, [rcx + rax - 16];
+              subpd xmm3, [r8 + rax - 16];
+              movapd [rcx + rax - 16], xmm3;
+
+           jmp @@forxloopUnrolled;
+
+           @@EndLoop1:
+
+           sub rax, 64;
+
+           jz @NextLine;
+
+           @@forxloop:
+              movsd xmm0, [rcx + rax];
+              movsd xmm1, [r8 + rax];
+
+              subsd xmm0, xmm1;
+              movsd [rcx + rax], xmm0;
+
+              add rax, 8;
+           jnz @@forxloop;
+
+           @NextLine:
+
+           add rcx, rdx;
+        dec Height;
+        jnz @@foryloop;
+     end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
+procedure ASMMatrixSubVecAlignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+var vecIter : TASMNativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
+     asm
+        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+        mov r11, width;
+
+        imul r11, r9;
+        imul r11, -1;
+        mov vecIter, r11;
+
+        mov r10, width;
+        imul r10, -8;
+
+        sub rcx, r10;
+        sub r8, r11;
+
+        @@foryloop:
+           mov rax, r10;
+           mov r11, vecIter;
+
+           @@forxloopUnrolled:
+              add rax, 64;
+              jg @@EndLoop1;
+
+              movapd xmm0, [rcx + rax - 64];
+              movlpd xmm1, [r8 + r11];
+              add r11, r9;
+              movhpd xmm1, [r8 + r11];
+              add r11, r9;
+              subpd xmm0, xmm1;
+              movapd [rcx + rax - 64], xmm0;
+
+              movapd xmm1, [rcx + rax - 48];
+              movlpd xmm2, [r8 + r11];
+              add r11, r9;
+              movhpd xmm2, [r8 + r11];
+              add r11, r9;
+              subpd xmm1, xmm2;
+              movapd [rcx + rax - 48], xmm1;
+
+              movapd xmm2, [rcx + rax - 32];
+              movlpd xmm3, [r8 + r11];
+              add r11, r9;
+              movhpd xmm3, [r8 + r11];
+              add r11, r9;
+              subpd xmm2, xmm3;
+              movapd [rcx + rax - 32], xmm2;
+
+              movapd xmm3, [rcx + rax - 16];
+              movlpd xmm0, [r8 + r11];
+              add r11, r9;
+              movhpd xmm0, [r8 + r11];
+              add r11, r9;
+              subpd xmm3, xmm0;
+              movapd [rcx + rax - 16], xmm3;
+
+           jmp @@forxloopUnrolled;
+
+           @@EndLoop1:
+
+           sub rax, 64;
+
+           jz @NextLine;
+
+           @@forxloop:
+              movsd xmm0, [rcx + rax];
+              movsd xmm1, [r8 + r11];
+
+              subsd xmm0, xmm1;
+              movsd [rcx + rax], xmm0;
+
+              add r11, r9;
+              add rax, 8;
+           jnz @@forxloop;
+
+           @NextLine:
+
+           add rcx, rdx;
+        dec Height;
+        jnz @@foryloop;
+     end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
+procedure ASMMatrixSubVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
+     asm
+        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+        mov r10, width;
+        imul r10, -8;
+
+        sub rcx, r10;
+
+        @@foryloop:
+           mov rax, r10;
+
+           movddup xmm1, [r8];
+
+           @@forxloopUnrolled:
+              add rax, 64;
+              jg @@EndLoop1;
+
+              movapd xmm0, [rcx + rax - 64];
+              subpd xmm0, xmm1;
+              movapd [rcx + rax - 64], xmm0;
+
+              movapd xmm3, [rcx + rax - 48];
+              subpd xmm3, xmm1;
+              movapd [rcx + rax - 48], xmm3;
+
+              movapd xmm2, [rcx + rax - 32];
+              subpd xmm2, xmm1;
+              movapd [rcx + rax - 32], xmm2;
+
+              movapd xmm3, [rcx + rax - 16];
+              subpd xmm3, xmm1;
+              movapd [rcx + rax - 16], xmm3;
+
+           jmp @@forxloopUnrolled;
+
+           @@EndLoop1:
+
+           sub rax, 64;
+
+           jz @NextLine;
+
+           @@forxloop:
+              movsd xmm0, [rcx + rax];
+
+              subsd xmm0, xmm1;
+              movsd [rcx + rax], xmm0;
+
+              add rax, 8;
+           jnz @@forxloop;
+
+           @NextLine:
+
+           add rcx, rdx;
+           add r8, incX;
+        dec Height;
+        jnz @@foryloop;
+     end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
+procedure ASMMatrixSubVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
+     asm
+        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+        mov r10, width;
+        imul r10, -8;
+
+        sub rcx, r10;
+        sub r8, r10;
+
+        @@foryloop:
+           mov rax, r10;
+
+           @@forxloopUnrolled:
+              add rax, 64;
+              jg @@EndLoop1;
+
+              movupd xmm0, [rcx + rax - 64];
+              movupd xmm1, [r8 + rax - 64];
+              subpd xmm0, xmm1;
+              movupd [rcx + rax - 64], xmm0;
+
+              movupd xmm1, [rcx + rax - 48];
+              movupd xmm2, [r8 + rax - 48];
+              subpd xmm1, xmm2;
+              movupd [rcx + rax - 48], xmm1;
+
+              movupd xmm2, [rcx + rax - 32];
+              movupd xmm3, [r8 + rax - 32];
+              subpd xmm2, xmm3;
+              movupd [rcx + rax - 32], xmm2;
+
+              movupd xmm3, [rcx + rax - 16];
+              movupd xmm0, [r8 + rax - 16];
+              subpd xmm3, xmm0;
+              movupd [rcx + rax - 16], xmm3;
+
+           jmp @@forxloopUnrolled;
+
+           @@EndLoop1:
+
+           sub rax, 64;
+
+           jz @NextLine;
+
+           @@forxloop:
+              movsd xmm0, [rcx + rax];
+              movsd xmm1, [r8 + rax];
+
+              subsd xmm0, xmm1;
+              movsd [rcx + rax], xmm0;
+
+              add rax, 8;
+           jnz @@forxloop;
+
+           @NextLine:
+
+           add rcx, rdx;
+        dec Height;
+        jnz @@foryloop;
+     end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
+procedure ASMMatrixSubVecUnalignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+var vecIter : TASMNativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
+     asm
+        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+        mov r11, width;
+
+        imul r11, r9;
+        imul r11, -1;
+        mov vecIter, r11;
+
+        mov r10, width;
+        imul r10, -8;
+
+        sub rcx, r10;
+        sub r8, r11;
+
+        @@foryloop:
+           mov rax, r10;
+           mov r11, vecIter;
+
+           @@forxloopUnrolled:
+              add rax, 64;
+              jg @@EndLoop1;
+
+              movupd xmm0, [rcx + rax - 64];
+              movlpd xmm1, [r8 + r11];
+              add r11, r9;
+              movhpd xmm1, [r8 + r11];
+              add r11, r9;
+              subpd xmm0, xmm1;
+              movupd [rcx + rax - 64], xmm0;
+
+              movupd xmm1, [rcx + rax - 48];
+              movlpd xmm2, [r8 + r11];
+              add r11, r9;
+              movhpd xmm2, [r8 + r11];
+              add r11, r9;
+              subpd xmm1, xmm2;
+              movupd [rcx + rax - 48], xmm1;
+
+              movupd xmm2, [rcx + rax - 32];
+              movlpd xmm3, [r8 + r11];
+              add r11, r9;
+              movhpd xmm3, [r8 + r11];
+              add r11, r9;
+              subpd xmm2, xmm3;
+              movupd [rcx + rax - 32], xmm2;
+
+              movupd xmm3, [rcx + rax - 16];
+              movlpd xmm0, [r8 + r11];
+              add r11, r9;
+              movhpd xmm0, [r8 + r11];
+              add r11, r9;
+              subpd xmm3, xmm0;
+              movupd [rcx + rax - 16], xmm3;
+
+           jmp @@forxloopUnrolled;
+
+           @@EndLoop1:
+
+           sub rax, 64;
+
+           jz @NextLine;
+
+           @@forxloop:
+              movsd xmm0, [rcx + rax];
+              movsd xmm1, [r8 + r11];
+
+              subsd xmm0, xmm1;
+              movsd [rcx + rax], xmm0;
+
+              add r11, r9;
+              add rax, 8;
+           jnz @@forxloop;
+
+           @NextLine:
+
+           add rcx, rdx;
+        dec Height;
+        jnz @@foryloop;
+     end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
+procedure ASMMatrixSubVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
+     asm
+        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+        mov r10, width;
+        imul r10, -8;
+
+        sub rcx, r10;
+
+        @@foryloop:
+           mov rax, r10;
+
+           movddup xmm1, [r8];
+
+           @@forxloopUnrolled:
+              add rax, 64;
+              jg @@EndLoop1;
+
+              movupd xmm0, [rcx + rax - 64];
+              subpd xmm0, xmm1;
+              movupd [rcx + rax - 64], xmm0;
+
+              movupd xmm3, [rcx + rax - 48];
+              subpd xmm3, xmm1;
+              movupd [rcx + rax - 48], xmm3;
+
+              movupd xmm2, [rcx + rax - 32];
+              subpd xmm2, xmm1;
+              movupd [rcx + rax - 32], xmm2;
+
+              movupd xmm3, [rcx + rax - 16];
+              subpd xmm3, xmm1;
+              movupd [rcx + rax - 16], xmm3;
+
+           jmp @@forxloopUnrolled;
+
+           @@EndLoop1:
+
+           sub rax, 64;
+
+           jz @NextLine;
+
+           @@forxloop:
+              movsd xmm0, [rcx + rax];
+
+              subsd xmm0, xmm1;
+              movsd [rcx + rax], xmm0;
+
+              add rax, 8;
+           jnz @@forxloop;
+
+           @NextLine:
+
+           add rcx, rdx;
+           add r8, incX;
+        dec Height;
+        jnz @@foryloop;
+     end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
+
+procedure ASMMatrixAddVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
+     asm
+        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+        mov r10, width;
+        imul r10, -8;
+
+        sub rcx, r10;
+        sub r8, r10;
+
+        @@foryloop:
+           mov rax, r10;
+
+           @@forxloopUnrolled:
+              add rax, 64;
+              jg @@EndLoop1;
+
+              movapd xmm0, [rcx + rax - 64];
+              addpd xmm0, [r8 + rax - 64];
+              movapd [rcx + rax - 64], xmm0;
+
+              movapd xmm1, [rcx + rax - 48];
+              addpd xmm1, [r8 + rax - 48];
+              movapd [rcx + rax - 48], xmm1;
+
+              movapd xmm2, [rcx + rax - 32];
+              addpd xmm2, [r8 + rax - 32];
+              movapd [rcx + rax - 32], xmm2;
+
+              movapd xmm3, [rcx + rax - 16];
+              addpd xmm3, [r8 + rax - 16];
+              movapd [rcx + rax - 16], xmm3;
+
+           jmp @@forxloopUnrolled;
+
+           @@EndLoop1:
+
+           sub rax, 64;
+
+           jz @NextLine;
+
+           @@forxloop:
+              movsd xmm0, [rcx + rax];
+              movsd xmm1, [r8 + rax];
+
+              addsd xmm0, xmm1;
+              movsd [rcx + rax], xmm0;
+
+              add rax, 8;
+           jnz @@forxloop;
+
+           @NextLine:
+
+           add rcx, rdx;
+        dec Height;
+        jnz @@foryloop;
+     end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
+procedure ASMMatrixAddVecAlignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+var vecIter : TASMNativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
+     asm
+        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+        mov r11, width;
+
+        imul r11, r9;
+        imul r11, -1;
+        mov vecIter, r11;
+
+        mov r10, width;
+        imul r10, -8;
+
+        sub rcx, r10;
+        sub r8, r11;
+
+        @@foryloop:
+           mov rax, r10;
+           mov r11, vecIter;
+
+           @@forxloopUnrolled:
+              add rax, 64;
+              jg @@EndLoop1;
+
+              movapd xmm0, [rcx + rax - 64];
+              movlpd xmm1, [r8 + r11];
+              add r11, r9;
+              movhpd xmm1, [r8 + r11];
+              add r11, r9;
+              addpd xmm0, xmm1;
+              movapd [rcx + rax - 64], xmm0;
+
+              movapd xmm1, [rcx + rax - 48];
+              movlpd xmm2, [r8 + r11];
+              add r11, r9;
+              movhpd xmm2, [r8 + r11];
+              add r11, r9;
+              addpd xmm1, xmm2;
+              movapd [rcx + rax - 48], xmm1;
+
+              movapd xmm2, [rcx + rax - 32];
+              movlpd xmm3, [r8 + r11];
+              add r11, r9;
+              movhpd xmm3, [r8 + r11];
+              add r11, r9;
+              addpd xmm2, xmm3;
+              movapd [rcx + rax - 32], xmm2;
+
+              movapd xmm3, [rcx + rax - 16];
+              movlpd xmm0, [r8 + r11];
+              add r11, r9;
+              movhpd xmm0, [r8 + r11];
+              add r11, r9;
+              addpd xmm3, xmm0;
+              movapd [rcx + rax - 16], xmm3;
+
+           jmp @@forxloopUnrolled;
+
+           @@EndLoop1:
+
+           sub rax, 64;
+
+           jz @NextLine;
+
+           @@forxloop:
+              movsd xmm0, [rcx + rax];
+              movsd xmm1, [r8 + r11];
+
+              addsd xmm0, xmm1;
+              movsd [rcx + rax], xmm0;
+
+              add r11, r9;
+              add rax, 8;
+           jnz @@forxloop;
+
+           @NextLine:
+
+           add rcx, rdx;
+        dec Height;
+        jnz @@foryloop;
+     end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
+procedure ASMMatrixAddVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
+     asm
+        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+        mov r10, width;
+        imul r10, -8;
+
+        sub rcx, r10;
+
+        @@foryloop:
+           mov rax, r10;
+
+           movddup xmm1, [r8];
+
+           @@forxloopUnrolled:
+              add rax, 64;
+              jg @@EndLoop1;
+
+              movapd xmm0, [rcx + rax - 64];
+              addpd xmm0, xmm1;
+              movapd [rcx + rax - 64], xmm0;
+
+              movapd xmm3, [rcx + rax - 48];
+              addpd xmm3, xmm1;
+              movapd [rcx + rax - 48], xmm3;
+
+              movapd xmm2, [rcx + rax - 32];
+              addpd xmm2, xmm1;
+              movapd [rcx + rax - 32], xmm2;
+
+              movapd xmm3, [rcx + rax - 16];
+              addpd xmm3, xmm1;
+              movapd [rcx + rax - 16], xmm3;
+
+           jmp @@forxloopUnrolled;
+
+           @@EndLoop1:
+
+           sub rax, 64;
+
+           jz @NextLine;
+
+           @@forxloop:
+              movsd xmm0, [rcx + rax];
+
+              addsd xmm0, xmm1;
+              movsd [rcx + rax], xmm0;
+
+              add rax, 8;
+           jnz @@forxloop;
+
+           @NextLine:
+
+           add rcx, rdx;
+           add r8, incX;
+        dec Height;
+        jnz @@foryloop;
+     end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
+procedure ASMMatrixAddVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
+     asm
+        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+        mov r10, width;
+        imul r10, -8;
+
+        sub rcx, r10;
+        sub r8, r10;
+
+        @@foryloop:
+           mov rax, r10;
+
+           @@forxloopUnrolled:
+              add rax, 64;
+              jg @@EndLoop1;
+
+              movupd xmm0, [rcx + rax - 64];
+              movupd xmm1, [r8 + rax - 64];
+              addpd xmm0, xmm1;
+              movupd [rcx + rax - 64], xmm0;
+
+              movupd xmm1, [rcx + rax - 48];
+              movupd xmm2, [r8 + rax - 48];
+              addpd xmm1, xmm2;
+              movupd [rcx + rax - 48], xmm1;
+
+              movupd xmm2, [rcx + rax - 32];
+              movupd xmm3, [r8 + rax - 32];
+              addpd xmm2, xmm3;
+              movupd [rcx + rax - 32], xmm2;
+
+              movupd xmm3, [rcx + rax - 16];
+              movupd xmm0, [r8 + rax - 16];
+              addpd xmm3, xmm0;
+              movupd [rcx + rax - 16], xmm3;
+
+           jmp @@forxloopUnrolled;
+
+           @@EndLoop1:
+
+           sub rax, 64;
+
+           jz @NextLine;
+
+           @@forxloop:
+              movsd xmm0, [rcx + rax];
+              movsd xmm1, [r8 + rax];
+
+              addsd xmm0, xmm1;
+              movsd [rcx + rax], xmm0;
+
+              add rax, 8;
+           jnz @@forxloop;
+
+           @NextLine:
+
+           add rcx, rdx;
+        dec Height;
+        jnz @@foryloop;
+     end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
+procedure ASMMatrixAddVecUnalignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+var vecIter : TASMNativeInt;
+{$IFDEF FPC}
+begin
+{$ENDIF}
+     asm
+        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+        mov r11, width;
+
+        imul r11, r9;
+        imul r11, -1;
+        mov vecIter, r11;
+
+        mov r10, width;
+        imul r10, -8;
+
+        sub rcx, r10;
+        sub r8, r11;
+
+        @@foryloop:
+           mov rax, r10;
+           mov r11, vecIter;
+
+           @@forxloopUnrolled:
+              add rax, 64;
+              jg @@EndLoop1;
+
+              movupd xmm0, [rcx + rax - 64];
+              movlpd xmm1, [r8 + r11];
+              add r11, r9;
+              movhpd xmm1, [r8 + r11];
+              add r11, r9;
+              addpd xmm0, xmm1;
+              movupd [rcx + rax - 64], xmm0;
+
+              movupd xmm1, [rcx + rax - 48];
+              movlpd xmm2, [r8 + r11];
+              add r11, r9;
+              movhpd xmm2, [r8 + r11];
+              add r11, r9;
+              addpd xmm1, xmm2;
+              movupd [rcx + rax - 48], xmm1;
+
+              movupd xmm2, [rcx + rax - 32];
+              movlpd xmm3, [r8 + r11];
+              add r11, r9;
+              movhpd xmm3, [r8 + r11];
+              add r11, r9;
+              addpd xmm2, xmm3;
+              movupd [rcx + rax - 32], xmm2;
+
+              movupd xmm3, [rcx + rax - 16];
+              movlpd xmm0, [r8 + r11];
+              add r11, r9;
+              movhpd xmm0, [r8 + r11];
+              add r11, r9;
+              addpd xmm3, xmm0;
+              movupd [rcx + rax - 16], xmm3;
+
+           jmp @@forxloopUnrolled;
+
+           @@EndLoop1:
+
+           sub rax, 64;
+
+           jz @NextLine;
+
+           @@forxloop:
+              movsd xmm0, [rcx + rax];
+              movsd xmm1, [r8 + r11];
+
+              addsd xmm0, xmm1;
+              movsd [rcx + rax], xmm0;
+
+              add r11, r9;
+              add rax, 8;
+           jnz @@forxloop;
+
+           @NextLine:
+
+           add rcx, rdx;
+        dec Height;
+        jnz @@foryloop;
+     end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
+procedure ASMMatrixAddVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+{$IFDEF FPC}
+begin
+{$ENDIF}
+     asm
+        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+        mov r10, width;
+        imul r10, -8;
+
+        sub rcx, r10;
+
+        @@foryloop:
+           mov rax, r10;
+
+           movddup xmm1, [r8];
+
+           @@forxloopUnrolled:
+              add rax, 64;
+              jg @@EndLoop1;
+
+              movupd xmm0, [rcx + rax - 64];
+              addpd xmm0, xmm1;
+              movupd [rcx + rax - 64], xmm0;
+
+              movupd xmm3, [rcx + rax - 48];
+              addpd xmm3, xmm1;
+              movupd [rcx + rax - 48], xmm3;
+
+              movupd xmm2, [rcx + rax - 32];
+              addpd xmm2, xmm1;
+              movupd [rcx + rax - 32], xmm2;
+
+              movupd xmm3, [rcx + rax - 16];
+              addpd xmm3, xmm1;
+              movupd [rcx + rax - 16], xmm3;
+
+           jmp @@forxloopUnrolled;
+
+           @@EndLoop1:
+
+           sub rax, 64;
+
+           jz @NextLine;
+
+           @@forxloop:
+              movsd xmm0, [rcx + rax];
+
+              addsd xmm0, xmm1;
+              movsd [rcx + rax], xmm0;
+
+              add rax, 8;
+           jnz @@forxloop;
+
+           @NextLine:
+
+           add rcx, rdx;
+           add r8, incX;
+        dec Height;
+        jnz @@foryloop;
+     end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
 
 {$ENDIF}
 
