@@ -26,7 +26,8 @@ var mtxFreq : Int64;
 
 implementation
 
-uses {$IFDEF MSWINDOWS}Windows{$ENDIF}{$IFDEF MACOS}System.Diagnostics{$ENDIF}{$IFDEF LINUX}unixtype, linux{$ENDIF};
+uses {$IFDEF MSWINDOWS} {$IF CompilerVersion >= 23.0} Winapi.Windows {$ELSE} Windows {$ENDIF} {$ENDIF}
+     {$IFDEF MACOS}System.Diagnostics{$ENDIF}{$IFDEF LINUX}unixtype, linux{$ENDIF};
 
 {$IFDEF MACOS}
 var sw:  TStopWatch; //wrc
