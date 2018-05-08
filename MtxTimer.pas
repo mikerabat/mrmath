@@ -26,7 +26,7 @@ var mtxFreq : Int64;
 
 implementation
 
-uses {$IFDEF MSWINDOWS} {$IF CompilerVersion >= 23.0} Winapi.Windows {$ELSE} Windows {$ENDIF} {$ENDIF}
+uses {$IFDEF MSWINDOWS} {$IF CompilerVersion >= 23.0} Winapi.Windows {$ELSE} Windows {$IFEND} {$ENDIF}
      {$IFDEF MACOS}System.Diagnostics{$ENDIF}{$IFDEF LINUX}unixtype, linux{$ENDIF};
 
 {$IFDEF MACOS}

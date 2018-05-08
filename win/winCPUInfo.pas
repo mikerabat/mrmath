@@ -18,7 +18,7 @@ interface
 
 {$IFDEF MSWINDOWS}
 
-uses {$IF CompilerVersion >= 23.0} Winapi.Windows {$ELSE} Windows {$ENDIF};
+uses {$IF CompilerVersion >= 23.0} Winapi.Windows {$ELSE} Windows {$IFEND};
 
 // ###########################################
 // #### get logical cpu information and determine a good initial block size
