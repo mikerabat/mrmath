@@ -21,7 +21,7 @@ program MathUtilsTestsFPC;
 
 uses
   {$IFDEF LINUX} cthreads, {$ENDIF}
-  Interfaces, Forms, GuiTestRunner, lz_fpcunitrunner,
+  Interfaces, Forms, GuiTestRunner, fpcunittestrunner,
   BaseMatrixTestCase in 'BaseMatrixTestCase.pas',
   ASMMatrixAddSubOperations in '..\ASMMatrixAddSubOperations.pas',
   ASMMatrixAddSubOperationsx64 in '..\ASMMatrixAddSubOperationsx64.pas',

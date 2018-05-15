@@ -32,7 +32,11 @@ function InitWinThreadGroup : IMtxAsyncCallGroup;
 {$ENDIF}
 implementation
 {$IFDEF MSWINDOWS}
-uses Classes, Windows, SyncObjs, winCPUInfo, CPUFeatures;
+uses Classes, 
+     {$IFDEF FPC} Windows 
+     {$ELSE} 
+     {$IF CompilerVersion >= 23.0} Winapi.Windows {$ELSE} Windows {$IFEND} 
+     {$ENDIF}, SyncObjs, winCPUInfo, CPUFeatures;
 
 type
   TWinMtxAsyncCall = class(TInterfacedObject, IMtxAsyncCall)

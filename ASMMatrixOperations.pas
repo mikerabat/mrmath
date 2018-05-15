@@ -88,14 +88,14 @@ uses Math, SimpleMatrixOperations,
      {$IFDEF x64}
      ASMMatrixMultOperationsx64, ASMMatrixVectorMultOperationsx64, ASMMatrixAbsOperationsx64,
      ASMMatrixMultTransposedOperationsx64, ASMMatrixAddSubOperationsx64,
-     ASMMatrixElementwiseMultOperationsx64, ASMMatrixScaleOperationsx64, ASMMatrixSQRTOperationsx64,
+     ASMMatrixElementwiseMultOperationsx64, ASMMatrixScaleOperationsx64, ASMMatrixSqrtOperationsx64,
      ASMMoveOperationsx64, ASMMatrixMinMaxOperationsx64, ASMMatrixTransposeOperationsx64,
      ASMMatrixNormOperationsx64, ASMMatrixMeanOperationsx64, ASMMatrixSumOperationsx64,
      ASMMatrixCumSumDiffOperationsx64
      {$ELSE}
      ASMMatrixMultOperations, ASMMatrixVectorMultOperations, ASMMatrixAbsOperations,
      ASMMatrixMultTransposedOperations, ASMMatrixAddSubOperations,
-     ASMMatrixElementwiseMultOperations, ASMMatrixScaleOperations, ASMMatrixSQRTOperations,
+     ASMMatrixElementwiseMultOperations, ASMMatrixScaleOperations, ASMMatrixSqrtOperations,
      ASMMoveOperations, ASMMatrixMinMaxOperations, ASMMatrixTransposeOperations,
      ASMMatrixNormOperations, ASMMatrixMeanOperations, ASMMatrixSumOperations,
      ASMMatrixCumSumDiffOperations

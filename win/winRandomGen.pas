@@ -34,7 +34,7 @@ implementation
 
 {$IFDEF MSWINDOWS}
 
-uses sysutils, windows;
+uses sysutils, {$IFDEF FPC} Windows {$ELSE} {$IF CompilerVersion >= 23.0} Winapi.Windows {$ELSE} Windows {$IFEND} {$ENDIF};
 
 // ###########################################
 // #### Function definitions

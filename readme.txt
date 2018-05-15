@@ -50,9 +50,13 @@ Developer:
 Rabatscher Michael - main windows and core development - contact via www.mrsoft.com
 William Cantrall - special thanks for making the library MacOs compatible. 
 Gustav Kaiser - special thanks for implementing the PLS algorithm.
+Andrea Mauri - pointing out a few issues with FPC and conditional compilation and helped fixing them.
 
 // ###################################################################
 changelog:
+
+Date: 15.05.2018
+* thanks to Andrea Mauri for pointing out the problems on FPC (lazarus) -> fixing some ifdefs and uppercase issues.
 
 Date: 07.05.2018
 * A few new SSE, AVX optimized Matrix-Vector sub/add routines

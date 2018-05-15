@@ -254,7 +254,7 @@ uses ASMMatrixOperations, BlockedMult,
      AVXMatrixRotationsx64, AVXMatrixTransposeOperationsx64,
      ASMMatrixTransposeOperationsx64, FMAMatrixOperations, FMAMatrixMultOperationsx64,
      {$ENDIF}
-     BlockSizeSetup, SimpleMatrixOperations, CPUFeatures, MatrixRotations, corr;
+     BlockSizeSetup, SimpleMatrixOperations, CPUFeatures, MatrixRotations, Corr;
 
 var multFunc : TMatrixMultFunc;
     blockedMultFunc : TMatrixBlockedMultfunc;

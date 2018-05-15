@@ -29,7 +29,12 @@ function InitWinThreadGroup : IMtxAsyncCallGroup;
 implementation
 
 {$IFDEF MSWINDOWS}
+
+{$IFDEF FPC}
 uses Windows, Classes, winCPUInfo;
+{$ELSE}
+uses {$IF CompilerVersion >= 23.0} Winapi.Windows {$ELSE} Windows {$IFEND}, Classes, winCPUInfo;
+{$ENDIF}
 
 {$IF Defined(FPC) or (CompilerVersion <= 20)}
 type
