@@ -129,7 +129,7 @@ begin
              try
                 img := Reconstruct(feature);
                 try
-                   ImageFromMatrix(img, w, h, Format('%s\bmpr_%d.bmp', [ExtractFilePath(ParamStr(0)), i - 2]));
+                   ImageFromMatrix(img, w, h, Format('%s%sbmpr_%d.bmp', [ExtractFilePath(ParamStr(0)), PathDelim, i - 2]));
                 finally
                        img.Free;
                 end;
@@ -143,7 +143,7 @@ begin
              try
                 img := Reconstruct(feature);
                 try
-                   ImageFromMatrix(img, w, h, Format('%s\bmpnr_%d.bmp', [ExtractFilePath(ParamStr(0)), i - 2]));
+                   ImageFromMatrix(img, w, h, Format('%s%sbmpnr_%d.bmp', [ExtractFilePath(ParamStr(0)), PathDelim, i - 2]));
                 finally
                        img.Free;
                 end;
@@ -212,7 +212,7 @@ begin
              try
                 img := Reconstruct(feature);
                 try
-                   ImageFromMatrix(img, w, h, Format('%s\incrBmpr_%d.bmp', [ExtractFilePath(ParamStr(0)), i - 2]));
+                   ImageFromMatrix(img, w, h, Format('%s%sincrBmpr_%d.bmp', [ExtractFilePath(ParamStr(0)), PathDelim, i - 2]));
                 finally
                        img.Free;
                 end;
@@ -226,7 +226,7 @@ begin
              try
                 img := Reconstruct(feature);
                 try
-                   ImageFromMatrix(img, w, h, Format('%s\incrBmpnr_%d.bmp', [ExtractFilePath(ParamStr(0)), i - 2]));
+                   ImageFromMatrix(img, w, h, Format('%s%sincrBmpnr_%d.bmp', [ExtractFilePath(ParamStr(0)), PathDelim, i - 2]));
                 finally
                        img.Free;
                 end;
@@ -277,7 +277,7 @@ begin
                 feature[0, 0] := (i - 2)*sqrt(EigVals[0,0]);
                 img := Reconstruct(feature);
                 try
-                   ImageFromMatrix(img, w, h, Format('%s\bmp1_%d.bmp', [ExtractFilePath(ParamStr(0)), i - 2]));
+                   ImageFromMatrix(img, w, h, Format('%s%sbmp1_%d.bmp', [ExtractFilePath(ParamStr(0)), PathDelim, i - 2]));
                 finally
                        img.Free;
                 end;
@@ -321,7 +321,7 @@ begin
                 feature[0, 0] := (i - 2)*sqrt(EigVals[0,0])/3;
                 img := Reconstruct(feature);
                 try
-                   ImageFromMatrix(img, w, h, Format('%s\bmp_inc_%d.bmp', [ExtractFilePath(ParamStr(0)), i - 2]));
+                   ImageFromMatrix(img, w, h, Format('%s%sbmp_inc_%d.bmp', [ExtractFilePath(ParamStr(0)), PathDelim, i - 2]));
                 finally
                        img.Free;
                 end;
@@ -361,7 +361,7 @@ begin
                 feature[0, 0] := (i - 2)*sqrt(EigVals[0,0]);
                 img := Reconstruct(feature);
                 try
-                   ImageFromMatrix(img, w, h, Format('%s\bmp2_%d.bmp', [ExtractFilePath(ParamStr(0)), i - 2]));
+                   ImageFromMatrix(img, w, h, Format('%s%sbmp2_%d.bmp', [ExtractFilePath(ParamStr(0)), PathDelim, i - 2]));
                 finally
                        img.Free;
                 end;
@@ -407,7 +407,7 @@ begin
                 feature[0, 0] := (i - 2)*sqrt(EigVals[0,0]);
                 img := Reconstruct(feature);
                 try
-                   ImageFromMatrix(img, w, h, Format('%s\bmp_incw_%d.bmp', [ExtractFilePath(ParamStr(0)), i - 2]));
+                   ImageFromMatrix(img, w, h, Format('%s%sbmp_incw_%d.bmp', [ExtractFilePath(ParamStr(0)), PathDelim, i - 2]));
                 finally
                        img.Free;
                 end;
@@ -453,7 +453,7 @@ begin
                 feature[0, 0] := (i - 2)*sqrt(EigVals[0,0]);
                 img := Reconstruct(feature);
                 try
-                   ImageFromMatrix(img, w, h, Format('%s\bmp1t_%d.bmp', [ExtractFilePath(ParamStr(0)), i - 2]));
+                   ImageFromMatrix(img, w, h, Format('%s%sbmp1t_%d.bmp', [ExtractFilePath(ParamStr(0)), PathDelim, i - 2]));
                 finally
                        img.Free;
                 end;

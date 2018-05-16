@@ -76,7 +76,7 @@ begin
         for i := 0 to imgs.Width - 1 do
         begin
              imgs.SetSubMatrix(i, 0, 1, imgs.Height);
-             ImageFromMatrix(imgs, w, h, Format('%s\nmf_%d.bmp', [ExtractFilePath(ParamStr(0)), i]));
+             ImageFromMatrix(imgs, w, h, Format('%s%snmf_%d.bmp', [ExtractFilePath(ParamStr(0)), PathDelim, i]));
         end;
 
         for i := 0 to nmf.W.Width - 1 do
@@ -84,7 +84,7 @@ begin
              nmf.W.SetSubMatrix(i, 0, 1, nmf.W.Height);
              maxval := nmf.W.Max;
              nmf.W.ScaleInPlace(255/maxVal);
-             ImageFromMatrix(nmf.W, w, h, Format('%s\nmf_w_%d.bmp', [ExtractFilePath(ParamStr(0)), i]));
+             ImageFromMatrix(nmf.W, w, h, Format('%s%snmf_w_%d.bmp', [ExtractFilePath(ParamStr(0)), PathDelim, i]));
         end;
 
         imgs.Free;

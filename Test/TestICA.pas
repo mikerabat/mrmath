@@ -55,7 +55,7 @@ begin
              projMtx := ica.ProjectToFeatureSpace(Examples);
              reconMtx := ica.Reconstruct(projMtx.GetObjRef);
 
-             ImageFromMatrix(reconMtx.GetObjRef, w, h, Format('%s\ica_%d.bmp', [ExtractFilePath(ParamStr(0)), counter]));
+             ImageFromMatrix(reconMtx.GetObjRef, w, h, Format('%s%sica_%d.bmp', [ExtractFilePath(ParamStr(0)), PathDelim, counter]));
         end;
      finally
             ica.Free;
