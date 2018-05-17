@@ -75,7 +75,7 @@ var iRBX, iR12 : TASMNativeInt;
 begin
   {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -199,7 +199,7 @@ var iRBX, iR12 : TASMNativeInt;
 begin
   {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -332,7 +332,7 @@ var iRBX, iR12 : TASMNativeInt;
 begin
   {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -463,7 +463,7 @@ var iRBX, iR12 : TASMNativeInt;
 begin
   {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -603,7 +603,7 @@ var iRBX, iR12 : TASMNativeInt;
 begin
   {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -727,7 +727,7 @@ var iRBX, iR12 : TASMNativeInt;
 begin
   {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -860,7 +860,7 @@ var iRBX, iR12 : TASMNativeInt;
 begin
   {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -991,7 +991,7 @@ var iRBX, iR12 : TASMNativeInt;
 begin
   {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -1131,7 +1131,7 @@ begin
 {$ENDIF}
      // rcx : A, rdx : LineWidthA, r8 : B, r9 : LineWidthB;
      asm
-        {$IFDEF LINUX}
+        {$IFDEF UNIX}
         // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
         // (note that the 5th and 6th parameter are are on the stack)
         // The parameters are passed in the following order:
@@ -1183,7 +1183,7 @@ procedure ASMMatrixSubVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; 
 begin
 {$ENDIF}
      asm
-        {$IFDEF LINUX}
+        {$IFDEF UNIX}
         // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
         // (note that the 5th and 6th parameter are are on the stack)
         // The parameters are passed in the following order:
@@ -1257,7 +1257,7 @@ var vecIter : TASMNativeInt;
 begin
 {$ENDIF}
      asm
-        {$IFDEF LINUX}
+        {$IFDEF UNIX}
         // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
         // (note that the 5th and 6th parameter are are on the stack)
         // The parameters are passed in the following order:
@@ -1308,7 +1308,7 @@ procedure ASMMatrixSubVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B :
 begin
 {$ENDIF}
      asm
-        {$IFDEF LINUX}
+        {$IFDEF UNIX}
         // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
         // (note that the 5th and 6th parameter are are on the stack)
         // The parameters are passed in the following order:
@@ -1382,7 +1382,7 @@ procedure ASMMatrixSubVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt
 begin
 {$ENDIF}
      asm
-        {$IFDEF LINUX}
+        {$IFDEF UNIX}
         // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
         // (note that the 5th and 6th parameter are are on the stack)
         // The parameters are passed in the following order:
@@ -1461,7 +1461,7 @@ var vecIter : TASMNativeInt;
 begin
 {$ENDIF}
      asm
-        {$IFDEF LINUX}
+        {$IFDEF UNIX}
         // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
         // (note that the 5th and 6th parameter are are on the stack)
         // The parameters are passed in the following order:
@@ -1512,7 +1512,7 @@ procedure ASMMatrixSubVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B
 begin
 {$ENDIF}
      asm
-        {$IFDEF LINUX}
+        {$IFDEF UNIX}
         // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
         // (note that the 5th and 6th parameter are are on the stack)
         // The parameters are passed in the following order:
@@ -1588,7 +1588,7 @@ procedure ASMMatrixAddVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; 
 begin
 {$ENDIF}
      asm
-        {$IFDEF LINUX}
+        {$IFDEF UNIX}
         // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
         // (note that the 5th and 6th parameter are are on the stack)
         // The parameters are passed in the following order:
@@ -1663,7 +1663,7 @@ var vecIter : TASMNativeInt;
 begin
 {$ENDIF}
      asm
-        {$IFDEF LINUX}
+        {$IFDEF UNIX}
         // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
         // (note that the 5th and 6th parameter are are on the stack)
         // The parameters are passed in the following order:
@@ -1715,7 +1715,7 @@ procedure ASMMatrixAddVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B :
 begin
 {$ENDIF}
      asm
-        {$IFDEF LINUX}
+        {$IFDEF UNIX}
         // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
         // (note that the 5th and 6th parameter are are on the stack)
         // The parameters are passed in the following order:
@@ -1790,7 +1790,7 @@ procedure ASMMatrixAddVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt
 begin
 {$ENDIF}
      asm
-        {$IFDEF LINUX}
+        {$IFDEF UNIX}
         // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
         // (note that the 5th and 6th parameter are are on the stack)
         // The parameters are passed in the following order:
@@ -1869,7 +1869,7 @@ var vecIter : TASMNativeInt;
 begin
 {$ENDIF}
      asm
-        {$IFDEF LINUX}
+        {$IFDEF UNIX}
         // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
         // (note that the 5th and 6th parameter are are on the stack)
         // The parameters are passed in the following order:
@@ -1921,7 +1921,7 @@ procedure ASMMatrixAddVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B
 begin
 {$ENDIF}
      asm
-        {$IFDEF LINUX}
+        {$IFDEF UNIX}
         // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
         // (note that the 5th and 6th parameter are are on the stack)
         // The parameters are passed in the following order:

@@ -61,7 +61,7 @@ procedure AVXMatrixMeanRowAligned(dest : PDouble; const destLineWidth : TASMNati
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -167,7 +167,7 @@ procedure AVXMatrixMeanRowUnAligned(dest : PDouble; const destLineWidth : TASMNa
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -279,7 +279,7 @@ var tmp : double;
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -396,7 +396,7 @@ var tmp : double; // for broadcastsd
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -521,7 +521,7 @@ var tmp : double;
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -725,7 +725,7 @@ var tmp : double;
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -934,7 +934,7 @@ var tmp : double;
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -1160,7 +1160,7 @@ var tmp : double;
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -1384,7 +1384,7 @@ procedure AVXMatrixMeanVarRowAligned(dest : PDouble; const destLineWidth : TASMN
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -1584,7 +1584,7 @@ procedure AVXMatrixMeanVarRowUnAligned(dest : PDouble; const destLineWidth : TAS
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -1792,7 +1792,7 @@ var tmp : double;
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -2020,7 +2020,7 @@ var tmp : double;
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:

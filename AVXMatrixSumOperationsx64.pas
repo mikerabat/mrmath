@@ -46,7 +46,7 @@ procedure AVXMatrixSumRowAligned(dest : PDouble; const destLineWidth : TASMNativ
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -142,7 +142,7 @@ procedure AVXMatrixSumRowUnAligned(dest : PDouble; const destLineWidth : TASMNat
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -243,7 +243,7 @@ procedure AVXMatrixSumColumnAligned(dest : PDouble; const destLineWidth : TASMNa
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -345,7 +345,7 @@ procedure AVXMatrixSumColumnUnAligned(dest : PDouble; const destLineWidth : TASM
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:

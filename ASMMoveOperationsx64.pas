@@ -60,7 +60,7 @@ procedure ASMInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; const Value :
 begin
 {$ENDIF}
      asm
-        {$IFDEF LINUX}
+        {$IFDEF UNIX}
         // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
         // (note that the 5th and 6th parameter are are on the stack)
         // The parameters are passed in the following order:
@@ -112,7 +112,7 @@ procedure ASMRowSwapAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -190,7 +190,7 @@ procedure ASMRowSwapUnAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -264,7 +264,7 @@ procedure ASMRowSwapAlignedOddW(A, B : PDouble; width : TASMNativeInt);
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -351,7 +351,7 @@ procedure ASMRowSwapUnAlignedOddW(A, B : PDouble; width : TASMNativeInt);
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -433,7 +433,7 @@ procedure ASMMatrixCopyAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNa
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -525,7 +525,7 @@ procedure ASMMatrixCopyUnAlignedEvenW(Dest : PDouble; const destLineWidth : TASM
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -613,7 +613,7 @@ procedure ASMMatrixCopyAlignedOddW(Dest : PDouble; const destLineWidth : TASMNat
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -710,7 +710,7 @@ procedure ASMMatrixCopyUnAlignedOddW(Dest : PDouble; const destLineWidth : TASMN
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:

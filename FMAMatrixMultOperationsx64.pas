@@ -63,7 +63,7 @@ var iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
 begin
 {$ENDIF}
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -280,7 +280,7 @@ begin
 {$ENDIF}
 
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -503,7 +503,7 @@ begin
 {$ENDIF}
 // rcx = mt1, rdx = LineWidth1, r8 = mt2, r9 = LineWidth2
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -623,7 +623,7 @@ begin
 {$ENDIF}
 // rcx = dest, rdx = LineWidthDest, r8 = mt1, r9 = LineWidth1
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -777,7 +777,7 @@ begin
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = LineWidth1
 // prolog - simulate stack
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -975,7 +975,7 @@ begin
 {$ENDIF}
 // rcx: mt1, rdx: LineWidth1, r8 : mt2, r9 : LineWidth2
 asm
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
