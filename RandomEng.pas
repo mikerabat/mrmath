@@ -443,7 +443,7 @@ asm
    xor rax,rax
    ret
 @success:
-   {$IFDEF LINUX}
+   {$IFDEF UNIX}
    mov [rdi], eax
    {$ELSE}
    mov [rcx], eax
