@@ -21,9 +21,18 @@ unit GCDDispatch;
 
 interface
 
+{$IFDEF DARWIN}
+{$DEFINE MACOS}
+{$ENDIF}
+
 {$IFDEF MACOS}
 
-uses system.sysutils;
+uses
+{$IFDEF FPC}
+  sysutils;
+{$ELSE}
+  system.sysutils;
+{$ENDIF}
 
 type
   dispatch_object_t = IntPtr;
@@ -32,7 +41,7 @@ type
   dispatch_time_t = UInt64;
   size_t = Integer;
   dispatch_function_t =  procedure(context:  pointer)cdecl;
-  dispatch_block_t  = TProc;
+  //dispatch_block_t  = TProc;
 const
   libdispatch = '/usr/lib/system/libdispatch.dylib';
   DISPATCH_QUEUE_SERIAL = nil;

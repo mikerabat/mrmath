@@ -23,9 +23,21 @@ interface
 // #### for the MacOs system
 // ###########################################
 
+{$IFDEF DARWIN}
+{$DEFINE MACOS}
+{$ENDIF}
+
 {$IFDEF MACOS}
 
-uses MtxThreadPool, GCDDispatch,Macapi.Foundation,system.sysutils,System.Classes; 
+uses
+  MtxThreadPool, GCDDispatch,
+  {$IFDEF FPC}
+  sysutils, classes
+  {$ELSE}
+  Macapi.Foundation,system.sysutils,System.Classes
+  {$ENDIF}
+  ;
+
 procedure InitMacMtxThreadPool;
 procedure FinalizeMacMtxThreadPool;
 
@@ -137,7 +149,7 @@ end;
 procedure TMacMtxAsyncCall.ExecuteAsync;
 begin
      assert(Assigned(Pointer(macThrPool)), 'Error no thread pool avail: call InitMtxThreadPool first');
-     dispatch_group_async_f(fGroup, macThrPool, self, LocThreadProc );
+     dispatch_group_async_f(fGroup, macThrPool, self, {$IFDEF FPC}@{$ENDIF}LocThreadProc );
 end;
 
 procedure TMacMtxAsyncCall.ExecuteProc;
@@ -155,7 +167,21 @@ begin
      // do nothing here...
 end;
 
-var cpuInfo : NSProcessInfo;     
+{$IFDEF FPC}
+
+initialization
+  numCPUCores := GetCPUCount;
+  if numCpuCores > 64 then
+     numCpuCores := 64;
+  numRealCores := numCPUCores;
+
+  numCoresForSimpleFuncs := numRealCores;
+  if numCoresForSimpleFuncs > 3 then
+     numCoresForSimpleFuncs := 3;
+     
+{$ELSE}
+
+var cpuInfo : NSProcessInfo;
 
 initialization
   cpuInfo := TNSProcessInfo.Create;
@@ -170,7 +196,9 @@ initialization
      numCoresForSimpleFuncs := 3;
 
 finalization
-  cpuInfo.release; 
+  cpuInfo.release;
+{$ENDIF}
+
 {$ENDIF}
 
 end.
