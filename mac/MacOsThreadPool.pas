@@ -54,6 +54,8 @@ type
   TMacMtxAsyncCall = class(TInterfacedObject, IMtxAsyncCall)
   private
     fResult : integer;
+    fRecProc : TMtxRecProc;
+    fRec : Pointer;
     fProc : TMtxProc;
     fData : TObject;
     fGroup: dispatch_object_t;  
@@ -64,7 +66,8 @@ type
     function Sync: Integer;
     function GetResult : integer;
 
-    constructor Create(proc : TMtxProc; obj : TObject; group: dispatch_object_t); virtual;
+    constructor Create(proc : TMtxProc; obj : TObject; group: dispatch_object_t);
+    constructor CreateRec(proc : TMtxRecProc; rec : Pointer; group : dispatch_object_t);
     destructor Destroy; override;
   end;
 
@@ -75,11 +78,12 @@ type
     fTaskList : IInterfaceList;
   public
     procedure AddTask(proc : TMtxProc; obj : TObject); 
+    procedure AddTaskRec(proc : TMtxRecProc; rec : Pointer);
     procedure SyncAll;
 
     constructor Create;
   end;
-  
+
 procedure TMacMtxAsyncGroup.AddTask(proc : TMtxProc; obj : TObject);
 var aTask : IMtxAsyncCall;
 begin
@@ -87,10 +91,20 @@ begin
      fTaskList.Add(aTask);
      aTask.ExecuteAsync;
 end;
+
+procedure TSimpleLinuxThreadGroup.AddTaskRec(proc : TMtxRecProc; rec : Pointer);
+var aTask : IMtxAsyncCall;
+begin
+     aTask := TMacMtxAsyncCall.CreateRec(proc, rec);
+     fTaskList.Add(aTask);
+     aTask.ExecuteAsync;
+end;
+
 function InitMacMtxGroup : IMtxAsyncCallGroup;
 begin
      Result := TMacMtxAsyncGroup.Create;
 end;
+
 constructor TMacMtxAsyncGroup.Create;
 begin
      fTaskList := TInterfaceList.Create;
@@ -139,6 +153,16 @@ begin
      fGroup := group;
 end;
 
+constructor TMacMtxAsyncCall.CreateRec(proc : TMtxRecProc; rec : Pointer; group : dispatch_object_t);
+begin
+     inherited Create;
+
+     fRecProc := proc;
+     fRec := obj;
+     fGroup := group;
+end;
+
+
 destructor TMacMtxAsyncCall.Destroy;
 begin
      fData.Free;
@@ -154,7 +178,11 @@ end;
 
 procedure TMacMtxAsyncCall.ExecuteProc;
 begin
-     fResult := fProc(fData);
+     if not Assigned(fData)
+     then
+         fResult := fRecProc(fRec)
+     else
+         fResult := fProc(fData);
 end;
 
 function TMacMtxAsyncCall.GetResult: integer;

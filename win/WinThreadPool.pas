@@ -48,12 +48,16 @@ type
     FFatalErrorAddr: Pointer;
     fData : TObject;
     fProc : TMtxProc;
+    fRec : Pointer;
+    fRecProc : TMtxRecProc;
+
     procedure InternExecuteAsyncCall;
     procedure Quit(AReturnValue: Integer);
   protected
     function ExecuteAsyncCall: Integer;
   public
     constructor Create(proc : TMtxProc; obj : TObject);
+    constructor CreateRec(proc : TMtxRecProc; rec : Pointer);
     destructor Destroy; override;
     function _Release: Integer; stdcall;
     procedure ExecuteAsync;
@@ -108,6 +112,7 @@ type
   private
     fTaskList : IInterfaceList;
   public
+    procedure AddTaskRec(proc : TMtxRecProc; rec : Pointer);
     procedure AddTask(proc : TMtxProc; obj : TObject);
     procedure SyncAll;
 
@@ -159,6 +164,15 @@ begin
      Assert(Assigned(threadPool), 'Error thread pool not initialized. Call InitMtxThreadPool first');
      FreeAndNil(threadPool);
 end;
+
+procedure TSimpleWinThreadGroup.AddTaskRec(proc: TMtxRecProc; rec: Pointer);
+var aTask : IMtxAsyncCall;
+begin
+     aTask := TWinMtxAsyncCall.CreateRec(proc, rec);
+     fTaskList.Add(aTask);
+     aTask.ExecuteAsync;
+end;
+
 
 { TWinMtxAsyncCallThread }
 
@@ -344,6 +358,17 @@ begin
      fData := obj;
 end;
 
+constructor TWinMtxAsyncCall.CreateRec(proc: TMtxRecProc; rec: Pointer);
+begin
+     inherited Create;
+
+     FEvent := 0;
+
+     fRecProc := proc;
+     fRec := rec;
+end;
+
+
 destructor TWinMtxAsyncCall.Destroy;
 begin
      fData.Free;
@@ -427,7 +452,11 @@ end;
 
 function TWinMtxAsyncCall.ExecuteAsyncCall: Integer;
 begin
-     Result := fProc(fData);
+     if Assigned(fRec)
+     then
+         Result := fRecProc(fRec)
+     else
+         Result := fProc(fData);
 end;
 
 

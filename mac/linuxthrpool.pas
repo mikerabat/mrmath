@@ -47,6 +47,8 @@ type
     FFatalErrorAddr: Pointer;
     fData : TObject;
     fProc : TMtxProc;
+    fRecProc : TMtxRecProc;
+    fRec : Pointer;
     FForceDifferentThread: Boolean;
     procedure InternExecuteAsyncCall;
     procedure Quit(AReturnValue: Integer);
@@ -56,6 +58,8 @@ type
     function ExecuteAsyncCall: Integer;
   public
     constructor Create(proc : TMtxProc; obj : TObject);
+    constructor CreateRec(proc : TMtxRecProc; rec : pointer);
+
     destructor Destroy; override;
     function _Release: Integer; stdcall;
     procedure ExecuteAsync;
@@ -113,6 +117,7 @@ type
     fTaskList : IInterfaceList;
   public
     procedure AddTask(proc : TMtxProc; obj : TObject); 
+    procedure AddTaskRec(proc : TMtxRecProc; rec : Pointer);
     procedure SyncAll;
 
     constructor Create;
@@ -127,6 +132,16 @@ begin
      fTaskList.Add(aTask);
      aTask.ExecuteAsync;
 end;
+
+procedure TSimpleLinuxThreadGroup.AddTaskRec(proc : TMtxRecProc; rec : Pointer);
+var aTask : IMtxAsyncCall;
+begin
+    aTask := TLinuxMtxAsyncCall.CreateRec(proc, rec);
+    fTaskList.Add(aTask);
+    aTask.ExecuteAsync;
+end;
+
+
 
 constructor TSimpleLinuxThreadGroup.Create;
 begin
@@ -312,6 +327,15 @@ begin
      fData := obj;
 end;
 
+constructor TLinuxMtxAsyncCall.CreateRec(proc : TMtxRecProc; rec : pointer);
+begin
+     inherited Create;
+
+     FEvent := TEvent.Create(nil, True, False, '');
+     fRecProc := proc;
+     fRec := rec;
+end;
+
 destructor TLinuxMtxAsyncCall.Destroy;
 begin
      if Assigned(fEvent) then
@@ -413,7 +437,11 @@ end;
 
 function TLinuxMtxAsyncCall.ExecuteAsyncCall: Integer;
 begin
-     Result := fProc(fData);
+     if not Assigned(fData)
+     then
+         Result := fRecProc(fRec)
+     else
+         Result := fProc(fData);
 end;
 
 initialization

@@ -28,6 +28,7 @@ uses MatrixConst;
 
 type
   TMtxProc = function(obj : TObject) : integer;
+  TMtxRecProc = function(rec : Pointer) : integer;
 
 type
   IMtxAsyncCall = interface
@@ -39,6 +40,7 @@ type
   IMtxAsyncCallGroup = interface
    ['{11438431-7A6A-4FB9-B67A-58CE23E324DB}']
    procedure AddTask(proc : TMtxProc; obj : TObject); 
+   procedure AddTaskRec(proc : TMtxRecProc; rec : Pointer);
    procedure SyncAll;
   end;
 

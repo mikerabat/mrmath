@@ -18,8 +18,11 @@ unit BaseMatrixTestCase;
 interface
 
 uses
-  {$IFDEF LINUX}lcltype, {$ELSE} Windows, {$ENDIF}
-  {$IFDEF FPC} fpcunit, testregistry, {$ELSE} TestFramework, {$ENDIF}
+  {$IFNDEF FPC} Windows, TestFramework,
+  {$ELSE}
+  fpcunit, testregistry,
+  {$IFDEF MSWINDOWS} Windows, {$ELSE} lcltype, {$ENDIF}
+  {$ENDIF}
   Classes, SysUtils, Types, Matrix, MatrixConst;
 
 type

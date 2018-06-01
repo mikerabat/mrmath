@@ -52,6 +52,8 @@ type
     fResult : integer;
     fProc : TMtxProc;
     fData : TObject;
+    fRecProc : TMtxRecProc;
+    fRec : Pointer;
     fEvt : TSimpleEvent;
   protected
     procedure ExecuteProc;
@@ -59,8 +61,9 @@ type
     procedure ExecuteAsync;
     function Sync: Integer;
     function GetResult : integer;
-  
-    constructor Create(proc : TMtxProc; obj : TObject); virtual; 
+
+    constructor Create(proc : TMtxProc; obj : TObject);
+    constructor CreateRec(proc : TMtxRecProc; rec : pointer);
     destructor Destroy; override;
 
   end;
@@ -71,6 +74,7 @@ type
     fTaskList : IInterfaceList;
   public
     procedure AddTask(proc : TMtxProc; obj : TObject); 
+    procedure AddTaskRec(proc : TMtxRecProc; rec : Pointer);
     procedure SyncAll;
 
     constructor Create;
@@ -85,6 +89,15 @@ begin
      fTaskList.Add(aTask);
      aTask.ExecuteAsync;
 end;
+
+procedure TSimpleWinThreadGroup.AddTaskRec(proc: TMtxRecProc; rec: Pointer);
+var aTask : IMtxAsyncCall;
+begin
+     aTask := TSimpleWinMtxAsyncCall.CreateRec(proc, rec);
+     fTaskList.Add(aTask);
+     aTask.ExecuteAsync;
+end;
+
 
 constructor TSimpleWinThreadGroup.Create;
 begin
@@ -140,16 +153,27 @@ begin
      Result := 0;
 end;
 
+
 { TSimpleWinMtxAsyncCall }
 
 constructor TSimpleWinMtxAsyncCall.Create(proc: TMtxProc; obj: TObject);
 begin
      inherited Create;
-     
+
      fEvt := TSimpleEvent.Create;
      fProc := proc;
      fData := obj;
 end;
+
+constructor TSimpleWinMtxAsyncCall.CreateRec(proc: TMtxRecProc; rec: pointer);
+begin
+     inherited Create;
+
+     fEvt := TSimpleEvent.Create;
+     fRecProc := proc;
+     fRec := rec;
+end;
+
 
 destructor TSimpleWinMtxAsyncCall.Destroy;
 begin
@@ -166,7 +190,11 @@ end;
 
 procedure TSimpleWinMtxAsyncCall.ExecuteProc;
 begin
-     fResult := fProc(fData);
+     if not Assigned(fData)
+     then
+         fResult := fRecProc(fRec)
+     else
+         fResult := fProc(fData);
 end;
 
 function TSimpleWinMtxAsyncCall.GetResult: integer;
