@@ -29,7 +29,7 @@ implementation
 uses {$IFDEF FPC}
        {$IFDEF MSWINDOWS} Windows {$ENDIF}
        {$IFDEF LINUX} unixtype, linux {$ENDIF}
-
+       {$IFDEF DARWIN} unixtype {$ENDIF}
      {$ELSE}
        {$IF CompilerVersion >= 23.0} Winapi.Windows {$ELSE} Windows {$IFEND}
        {$IFDEF MACOS}System.Diagnostics{$ENDIF}
@@ -39,6 +39,20 @@ uses {$IFDEF FPC}
 {$IFDEF MACOS}
 var sw:  TStopWatch; //wrc
 {$ENDIF}
+
+{$IFDEF FPC}{$IFDEF DARWIN}
+type
+  TTimebaseInfoData = packed record
+    numer: UInt32;
+    denom: UInt32;
+  end;
+
+var timeInfo : TTimebaseInfoData;
+  
+function mach_timebase_info(var TimebaseInfoData: TTimebaseInfoData): Integer; cdecl; external 'libc';
+function mach_absolute_time: QWORD; cdecl; external 'libc';
+{$ENDIF}{$ENDIF}
+  
 
 function MtxGetTime: Int64;
 {$IFDEF LINUX}
@@ -58,6 +72,10 @@ begin
    Result := 0;
    QueryPerformanceCounter(Result);
    {$ENDIF}
+
+   {$IFDEF FPC}{$IFDEF DARWIN}
+   Result := Int64( mach_absolute_time*QWORD(timeInfo.numer) div QWORD(timeInfo.denom) );
+   {$ENDIF}{$ENDIF}
 end;
 
 initialization
@@ -68,6 +86,10 @@ initialization
   {$IFDEF LINUX}
   mtxFreq := 1000000000;
   {$ENDIF}
+
+  {$IFDEF FPC}{$IFDEF DARWIN}
+  mtxFreq := 1000000000;
+  {$ENDIF}{$ENDIF}
 
   {$IFDEF MACOS}
   sw := TStopWatch.Create() ;
