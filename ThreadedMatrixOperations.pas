@@ -16,6 +16,8 @@ unit ThreadedMatrixOperations;
 
 interface
 
+{$IFDEF FPC} {$MODESWITCH ADVANCEDRECORDS} {$ENDIF}
+
 uses MatrixConst;
 
 procedure ThrMatrixMultDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
@@ -63,7 +65,6 @@ type
 
 type
   TAsyncMultRec = record //class(TObject)
-  public
     thrIdx : TASMNativeInt;
 
     op : TMatrixMultDestOperation;
