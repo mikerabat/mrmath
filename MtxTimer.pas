@@ -89,6 +89,9 @@ initialization
 
   {$IFDEF FPC}{$IFDEF DARWIN}
   mtxFreq := 1000000000;
+  {AM}
+  mach_timebase_info(timeInfo);
+  {AM}
   {$ENDIF}{$ENDIF}
 
   {$IFDEF MACOS}

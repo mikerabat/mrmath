@@ -20,8 +20,8 @@ program MathUtilsTestsFPC32;
 {$mode objfpc}{$H+}
 
 uses
-  {$IFDEF LINUX} cthreads, {$ENDIF}
-  Interfaces, Forms, GuiTestRunner, lz_fpcunitrunner,
+  {$IFDEF UNIX} cthreads, {$ENDIF}
+  Interfaces, Forms, fpcunitconsolerunner, GuiTestRunner, fpcunittestrunner,
   BaseMatrixTestCase in 'BaseMatrixTestCase.pas',
   ASMMatrixAddSubOperations in '..\ASMMatrixAddSubOperations.pas',
   ASMMatrixAddSubOperationsx64 in '..\ASMMatrixAddSubOperationsx64.pas',

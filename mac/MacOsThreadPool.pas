@@ -67,7 +67,7 @@ type
     function GetResult : integer;
 
     constructor Create(proc : TMtxProc; obj : TObject; group: dispatch_object_t);
-    constructor CreateRec(proc : TMtxRecProc; rec : Pointer; group : dispatch_object_t);
+    constructor CreateRec(proc : TMtxRecProc; rec : Pointer);
     destructor Destroy; override;
   end;
 
@@ -92,13 +92,15 @@ begin
      aTask.ExecuteAsync;
 end;
 
-procedure TSimpleLinuxThreadGroup.AddTaskRec(proc : TMtxRecProc; rec : Pointer);
+{AM}
+procedure TMacMtxAsyncGroup.AddTaskRec(proc : TMtxRecProc; rec : Pointer);
 var aTask : IMtxAsyncCall;
 begin
      aTask := TMacMtxAsyncCall.CreateRec(proc, rec);
      fTaskList.Add(aTask);
      aTask.ExecuteAsync;
 end;
+{AM}
 
 function InitMacMtxGroup : IMtxAsyncCallGroup;
 begin
@@ -153,13 +155,14 @@ begin
      fGroup := group;
 end;
 
-constructor TMacMtxAsyncCall.CreateRec(proc : TMtxRecProc; rec : Pointer; group : dispatch_object_t);
+constructor TMacMtxAsyncCall.CreateRec(proc: TMtxRecProc; rec: Pointer);
 begin
      inherited Create;
 
      fRecProc := proc;
-     fRec := obj;
-     fGroup := group;
+     {AM}
+     fRec := rec;
+     {AM}
 end;
 
 

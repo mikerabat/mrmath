@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="10"/>
     <PathDelim Value="\"/>
     <General>
       <SessionStorage Value="InProjectDir"/>
@@ -9,14 +9,10 @@
       <Title Value="MathUtilsTestsFPC32"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
-      <Icon Value="0"/>
     </General>
     <i18n>
       <EnableI18N LFM="False"/>
     </i18n>
-    <VersionInfo>
-      <StringTable ProductVersion=""/>
-    </VersionInfo>
     <BuildModes Count="1">
       <Item1 Name="Default" Default="True"/>
     </BuildModes>
@@ -30,16 +26,16 @@
     </RunParams>
     <RequiredPackages Count="3">
       <Item1>
-        <PackageName Value="lz_fpcunitrunner"/>
+        <PackageName Value="fpcunittestrunner"/>
       </Item1>
       <Item2>
-        <PackageName Value="lz_fpcunitrunnerconsole"/>
+        <PackageName Value="fpcunitconsolerunner"/>
       </Item2>
       <Item3>
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="121">
+    <Units Count="133">
       <Unit0>
         <Filename Value="MathUtilsTestsFPC32.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -524,6 +520,54 @@
         <Filename Value="TestFMA.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit120>
+      <Unit121>
+        <Filename Value="..\SimpleMatrixOperations.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit121>
+      <Unit122>
+        <Filename Value="..\ThreadedMatrixOperations.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit122>
+      <Unit123>
+        <Filename Value="TestRBSpline.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit123>
+      <Unit124>
+        <Filename Value="..\PCA.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit124>
+      <Unit125>
+        <Filename Value="..\MtxThreadPool.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit125>
+      <Unit126>
+        <Filename Value="..\ThreadedMatrix.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit126>
+      <Unit127>
+        <Filename Value="..\NonLinearFit.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit127>
+      <Unit128>
+        <Filename Value="..\MtxTimer.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit128>
+      <Unit129>
+        <Filename Value="..\NNMF.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit129>
+      <Unit130>
+        <Filename Value="..\RandomEng.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit130>
+      <Unit131>
+        <Filename Value="..\PLS.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit131>
+      <Unit132>
+        <Filename Value="..\RBSplines.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit132>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -556,6 +600,7 @@
       <ConfigFile>
         <ConfigFilePath Value="mrmathFPC.cfg"/>
       </ConfigFile>
+      <CustomOptions Value="-Cg-"/>
     </Other>
   </CompilerOptions>
   <Debugging>

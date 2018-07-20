@@ -42,7 +42,7 @@ function ThrMatrixCholeskyDecomp(A : PDouble; const LineWidthA : TASMNativeInt; 
 implementation
 
 uses OptimizedFuncs, SimpleMatrixOperations, BlockSizeSetup, Math, 
-  MtxThreadPool, ThreadedMatrixOperations;
+     MtxThreadPool, ThreadedMatrixOperations;
 
 // ##########################################################
 // #### Cholesky routines

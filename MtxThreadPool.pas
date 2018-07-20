@@ -113,6 +113,10 @@ end;
 // #### MACOS Thread pooling
 // ###########################################
 
+{$IFDEF FPC} {$IFDEF DARWIN}
+  {$DEFINE MACOS}   // delphi defines macos, fpc darwin
+{$ENDIF}{$ENDIF}
+// delphi define
 {$IFDEF MACOS }
 
 uses MacOsThreadPool;
