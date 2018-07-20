@@ -95,6 +95,7 @@ type
     property W2 : IMatrix read fW2;
 
     property Path[index : integer] : TCoordRec read GetPathByIndex;
+    property PathLen : integer read fNumPath;
   
     property MaxPathLen : integer read fMaxPathLen;
     property MaxWinLen : integer read fMaxWinLen;
@@ -120,7 +121,7 @@ type
 
 implementation
 
-uses OptimizedFuncs;
+uses OptimizedFuncs, MathUtilFunc;
 
 // ###########################################
 // #### Correlation (base implementation)
@@ -244,8 +245,10 @@ function TDynamicTimeWarp.DTW(t, r: IMatrix; var dist: double; MaxSearchWin : in
 var n, m : integer;
     counter: Integer;
 begin
+     // ###########################################
+     // #### Mask overflow
      fMaxSearchWin := MaxSearchWin;
-     
+
      // ###########################################
      // #### Prepare memory
      if not Assigned(fd) or (fd.Width <> t.Width) or (fd.Height <> r.Width) then
@@ -257,6 +260,9 @@ begin
           fW2 := MatrixClass.Create(Length(fWindow), 1);
      end;
      fNumW := 0;
+
+     if fMaxSearchWin = 0 then
+        fMaxSearchWin := Max(fd.Width, fd.Height);
 
      // ###########################################
      // #### prepare distance matrix
@@ -311,11 +317,20 @@ begin
                     dec(n);
                     dec(m);
                end
-               else if fAccDist[m, n - 1] < fAccDist[m - 1, n] 
-               then
-                   dec(n)
+               else if fAccDist[m, n - 1] < fAccDist[m - 1, n] then
+               begin
+                    dec(n);
+
+                    if m - n > fMaxSearchWin then
+                       dec(m);
+               end
                else
-                   dec(m);
+               begin
+                    dec(m);
+
+                    if n - m > fMaxSearchWin then
+                       dec(n);
+               end;
           end;
 
           fWindow[fNumW].i := m;
@@ -1003,6 +1018,10 @@ begin
      end;
      fNumW := 0;
 
+     if fMaxSearchWin = 0 then
+        fMaxSearchWin := Max(Length(t), Length(r));
+     
+
      // ###########################################
      // #### prepare distance matrix
      fd.SetValue(MaxDouble);
@@ -1010,7 +1029,7 @@ begin
      begin
           for n := 0 to fd.Width - 1 do
           begin
-               if (fMaxSearchWin <= 0) or ( abs(n - m) <= fMaxSearchWin) then
+               //if (fMaxSearchWin <= 0) or ( abs(n - m) <= fMaxSearchWin) then
                begin
                     case fMethod of
                       dtwSquared: fd[n, m] := sqr( t[n] - r[m] );
@@ -1024,14 +1043,14 @@ begin
      fAccDist.SetValue(0);
      fAccDist[0, 0] := fd[0, 0];
 
-     for n := 1 to fd.Width - 1 do
+     for n := 1 to fd.Width - 1 do          
          fAccDist[n, 0] := fd[n, 0] + fAccDist[n - 1, 0];
      for m := 1 to fd.Height - 1 do
          fAccDist[0, m] := fd[0, m] + fAccDist[0, m - 1];
      for n := 1 to fd.Height - 1 do
          for m := 1 to fd.Width - 1 do
              fAccDist[m, n] := fD[m, n] + min( fAccDist[ m, n - 1 ], min( fAccDist[m - 1, n - 1], fAccDist[ m - 1, n] ));
-     
+
      dist := fAccDist[fd.Width - 1, fd.Height - 1];
 
      fNumW := 0;
@@ -1056,11 +1075,22 @@ begin
                     dec(n);
                     dec(m);
                end
-               else if fAccDist[m, n - 1] < fAccDist[m - 1, n] 
-               then
-                   dec(n)
-               else
-                   dec(m);
+               else 
+               begin
+                    if fAccDist[m, n - 1] < fAccDist[m - 1, n] then
+                    begin
+                         dec(n);
+                         if m - n > fMaxSearchWin then
+                            dec(m);
+                    end
+                    else
+                    begin
+                         dec(m);
+
+                         if n - m > fMaxSearchWin then
+                            dec(n);
+                    end;
+               end;
           end;
 
           fWindow[fNumW].i := m;

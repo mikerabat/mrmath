@@ -1432,8 +1432,8 @@ begin
 
           sizeFits := (width mod maxNumCores) = 0;
           thrSize := width div maxNumCores + TASMNativeInt(not sizeFits);
-          GetMem(mem, maxNumCores*height*sizeof(double));
-          hlpMem := mem;
+          GetMem(mem, $20 + maxNumCores*height*sizeof(double));
+          hlpMem := AlignPtr32(mem);
 
           for i := 0 to maxNumCores - 1 do
           begin
@@ -1519,8 +1519,8 @@ begin
 
           sizeFits := (width mod maxNumCores) = 0;
           thrSize := width div maxNumCores + TASMNativeInt(not sizeFits);
-          GetMem(mem, maxNumCores*height*sizeof(double));
-          hlpMem := mem;
+          GetMem(mem, $20 + maxNumCores*height*sizeof(double));
+          hlpMem := AlignPtr32( mem );
 
           for i := 0 to maxNumCores - 1 do
           begin
@@ -1546,8 +1546,8 @@ begin
      begin
           maxNumCores := Min(height, numCoresForSimpleFuncs);
 
-          GetMem(mem, maxNumCores*width*sizeof(double));
-          hlpMem := mem;
+          GetMem(mem, $20 + maxNumCores*width*sizeof(double));
+          hlpMem := AlignPtr32( mem );
 
           sizeFits := (height mod maxNumCores) = 0;
           thrSize := height div maxNumCores + TASMNativeInt(not sizeFits);

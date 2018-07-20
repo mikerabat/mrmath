@@ -176,6 +176,8 @@ var w, h : TASMNativeInt;
     blkWidth : TASMNativeInt;
     gammaWidth : TASMNativeInt;
     sizeVal : TASMNativeInt;
+    m1, m2 : Pointer;
+    blockByteSize : TASMNativeInt;
 begin
      if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
         exit;
@@ -201,8 +203,9 @@ begin
      w := width2 div blockSize + TASMNativeInt(not w2FitCacheSize) - 1;
      gamma := width1 div blockSize + TASMNativeInt(not w1FitCacheSize) - 1;
 
-     GetMem(actBlk, blockSize*blockSize*sizeof(double));
-     GetMem(multBlk, blockSize*blockSize*sizeof(double));
+     blockByteSize := blockSize*blockSize*sizeof(double);
+     actBlk := MtxMallocAlign(blockByteSize, m1);
+     multBlk := MtxMallocAlign(blockByteSize, m2);
 
      blkHeight := blockSize;
 
@@ -221,7 +224,7 @@ begin
                if (blkIdxX = w) and not w2FitCacheSize then
                   blkWidth := (width2 mod blockSize);
 
-               FillChar(actBlk^, blockSize*blockSize*sizeof(double), 0);
+               MtxMemInit(actBlk, blockByteSize, 0 );
                pa := mt1;
                pb := pMt2;
 
@@ -260,8 +263,8 @@ begin
           inc(PByte(mt1), blkHeight*LineWidth1);
      end;
 
-     FreeMem(actBlk);
-     FreeMem(multBlk);
+     FreeMem(m1);
+     FreeMem(m2);
 end;
 
 procedure BlockMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation);

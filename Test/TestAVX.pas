@@ -194,7 +194,7 @@ begin
 
      // test aligned data
      mem := GetMemory(sizeof(mt1) + 64);
-     data := PDouble(NativeUInt(mem) + 32 - NativeUInt(mem) and $1F);
+     data := AlignPtr32(mem);
      data1 := data;
      inc(data1, 4);
 

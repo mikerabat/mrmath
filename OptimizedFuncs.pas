@@ -347,11 +347,7 @@ begin
 
      mem := GetMemory(NumBytes);
      if Assigned(mem) then
-     begin
-          Result := mem;
-          if TASMNativeUInt(Result) and $1F <> 0 then
-             Result := Pointer( TASMNativeUInt( Result ) + $20 - TASMNativeUInt( Result ) and $1F );
-     end;
+        Result := AlignPtr32( mem );
 end;
 
 function MtxAllocAlign( width, height : TASMNativeInt; var LineWidth : TASMNativeInt; var Mem : Pointer) : Pointer; overload;
@@ -367,10 +363,7 @@ begin
      mem := GetMemory( numBytes );
      if Assigned(mem) then
      begin
-          Result := mem;
-          if TASMNativeUInt(Result) and $1F <> 0 then
-             Result := Pointer( TASMNativeUInt( Result ) + $20 - TASMNativeUInt( Result ) and $1F );
-
+          Result := AlignPtr32( mem );
           MtxMemInit(mem, NumBytes, 0 );
      end;
 end;

@@ -2087,10 +2087,7 @@ begin
      else
          pMem := svdData.pWorkMem;
 
-     work := PDouble(pMem);
-     if (TASMNativeUInt(work) and $0000001F) <> 0 then
-        work := PDouble(TASMNativeUInt(work) + 32 - TASMNativeUInt(work) and $1F);
-
+     work := AlignPtr32(pMem);
 
      // ###########################################
      // #### Scale A if max element outside range [smallnum,bignum]

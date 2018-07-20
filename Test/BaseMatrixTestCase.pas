@@ -280,7 +280,7 @@ begin
      pMem := AllocMem(mtxSize*sizeof(double) + $20);
 
      // allign to 32 bytes
-     pX := PDouble( TASMNativeUINT(pMem) + $20 - (TASMNativeUINT(pMem) and $1F));
+     pX := AlignPtr32(pMem);
 end;
 
 procedure TBaseMatrixTestCase.AllocAlignedMtx(mtxWidth, mtxHeight: integer; out
@@ -295,7 +295,7 @@ begin
      LineWidthAligned := sizeof(double)*widthAligned;
 
      // allign to 32 bytes
-     pX := PDouble( TASMNativeUINT(pMem) + $20 - (TASMNativeUINT(pMem) and $1F));
+     pX := AlignPtr32(pMem);
 end;
 
 procedure TBaseMatrixTestCase.FillAlignedMtx(mtxSize: integer; out pX: PDouble;
@@ -306,7 +306,7 @@ begin
      pMem := GetMemory(mtxSize*sizeof(double) + $20);
 
      // allign to 32 bytes
-     pX := PDouble( TASMNativeUINT(pMem) + $20 - (TASMNativeUINT(pMem) and $1F));
+     pX := AlignPtr32(pMem);
      ptr := PConstDoubleArr(pX);
 
      for counter := 0 to mtxSize - 1 do
@@ -327,7 +327,7 @@ begin
      LineWidthAligned := sizeof(double)*widthAligned;
 
      // allign to 32 bytes
-     pX := PDouble( TASMNativeUINT(pMem) + $20 - (TASMNativeUINT(pMem) and $1F));
+     pX := AlignPtr32(pMem);
      ptr := PConstDoubleArr(pX);
 
      for y := 0 to mtxHeight - 1 do

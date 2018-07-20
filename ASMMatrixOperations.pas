@@ -1404,6 +1404,7 @@ var mem : PDouble;
     memSize : TASMNativeInt;
     m, k, n : TASMNativeInt;
     lev : TASMNativeInt;
+    work : PDouble;
 begin
      // check the cutoff criterion:
      if (width1 <= cStrassenMinSize) or (height1 <= cStrassenMinSize) or (height2 <= cStrassenMinSize)
@@ -1427,11 +1428,12 @@ begin
                lev := lev shr 1;
           end;
           // additional memory used for the transposition
-          memSize := memSize + Max(cStrassenMinSize*cStrassenMinSize, n*k)*sizeof(double);
+          memSize := $20 + memSize + Max(cStrassenMinSize*cStrassenMinSize, n*k)*sizeof(double);
 
           mem := GetMemory(memSize);
           try
-             InternalASMStrassenMult(Dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, mem);
+             work := AlignPtr32(mem);
+             InternalASMStrassenMult(Dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, work);
           finally
                  FreeMem(mem);
           end;

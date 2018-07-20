@@ -2073,7 +2073,7 @@ begin
           else
           begin
                fMemory := MtxAlloc($20 + height*width*sizeof(double));
-               fData := PLocConstDoubleArr( TASMNativeUint( fMemory ) + $20 - TASMNativeUint( fMemory ) and $1F );
+               fData := AlignPtr32( fMemory ); 
                fLineWidth := sizeof(double);
           end;
      end;

@@ -255,12 +255,9 @@ begin
         
      data := work;
      if work = nil then
-        data := MtxAlloc(numCPUCores*( 4 + BlockMultMemSize(pnlSize) ) );
+        data := MtxAlloc(numCPUCores*( $20 + BlockMultMemSize(pnlSize) ) );
 
-     multMem := data;
-     if (NativeUInt(data) and $0000000F) <> 0 then
-        multMem := PDouble(NativeUInt(data) + 16 - NativeUInt(data) and $0F); 
-
+     multMem := AlignPtr32(data);
      Result := InternalBlkCholeskyInPlace(A, LineWidthA, width, pnlSize, {$IFDEF FPC}@{$ENDIF}ThrMatrixMultT2Ex, multMem, progress);
 
      if work = nil then

@@ -286,7 +286,7 @@ begin
      rc.progress := progress;
      rc.numCols := width;
      rc.numCalc := 0;
-     rc.blkMultMem := PDouble(TASMNativeUInt(@mem[0]) + $20 - (TASMNativeUInt(@mem[0]) and $1F));
+     rc.blkMultMem := AlignPtr32( @mem[0] ); 
      rc.LineWidth := LineWidthA;
      Result := InternalRecursiveMatrixLUDecompInPlace(A, width, width, indx, parity, rc);
 end;
@@ -802,7 +802,7 @@ begin
      rc.numCols := width;
      rc.numCalc := 0;
      rc.LineWidth := LineWidthA;
-     rc.blkMultMem := PDouble(TASMNativeUInt(mem) + $20 - TASMNativeUInt(mem) and $1F);
+     rc.blkMultMem := AlignPtr32(mem);
      parity := 1;
      Result := InternalThrMatrixLUDecomp(A, width, width, indx, parity, rc);
 
