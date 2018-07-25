@@ -156,12 +156,12 @@ begin
      master := ReadObjFromFile('dyntimeWarp2.bin') as TDoubleMatrix;
      
      dtw := TDynamicTimeWarp.Create;
-     dtw.DTW(tpl, master, dist);
+     dtw.DTW(tpl.SubMatrix, master.SubMatrix, dist);
 
      Check(dist > 0, 'error distance <= 0');
 
      // check correlation
-     cr := dtw.DTWCorr(tpl, master);
+     cr := dtw.DTWCorr(tpl.SubMatrix, master.SubMatrix);
      crBase := dtw.Correlate(tpl, master);
      Status( Format('Plain: %.5f, DWTCorr: %.5f', [crBase, cr] ));
 

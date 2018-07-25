@@ -58,43 +58,40 @@ implementation
 procedure ASMInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; const Value : double);
 begin
      asm
-        push ebx;
-
         movddup xmm0, Value;
 
         mov eax, A;
-        mov ebx, NumBytes;
-        imul ebx, -1;
-        sub eax, ebx;
+        mov ecx, NumBytes;
+        imul ecx, -1;
+        sub eax, ecx;
 
         @@loopUnrolled:
-          add ebx, 128;
+          add ecx, 128;
           jg @@loopUnrolledEnd;
         
-          movntdq [eax + ebx - 128], xmm0;
-          movntdq [eax + ebx - 112], xmm0;
-          movntdq [eax + ebx - 96], xmm0;
-          movntdq [eax + ebx - 80], xmm0;
-          movntdq [eax + ebx - 64], xmm0;
-          movntdq [eax + ebx - 48], xmm0;
-          movntdq [eax + ebx - 32], xmm0;
-          movntdq [eax + ebx - 16], xmm0;
+          movntdq [eax + ecx - 128], xmm0;
+          movntdq [eax + ecx - 112], xmm0;
+          movntdq [eax + ecx - 96], xmm0;
+          movntdq [eax + ecx - 80], xmm0;
+          movntdq [eax + ecx - 64], xmm0;
+          movntdq [eax + ecx - 48], xmm0;
+          movntdq [eax + ecx - 32], xmm0;
+          movntdq [eax + ecx - 16], xmm0;
 
         jmp @@loopUnrolled;
 
         @@loopUnrolledEnd:
 
         // last few bytes
-        sub ebx, 128;
+        sub ecx, 128;
         jz @@exitProc;
 
         @@loop:
-          movsd [eax + ebx], xmm0;
-          add ebx, 8;
+          movsd [eax + ecx], xmm0;
+          add ecx, 8;
         jnz @@loop;
 
         @@exitProc:
-        pop ebx;
      end;
 end;
 

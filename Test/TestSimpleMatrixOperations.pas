@@ -1635,11 +1635,27 @@ end;
 procedure TASMMatrixOperations.TestThreadedMatrixMultT2;
 const cMtxWidth = 24;
       cMtxWidth2 = 617;
-var a : Array[0..cMtxWidth*cMtxWidth - 1] of double;
-    b : Array[0..cMtxWidth*cMtxWidth2 - 1] of double;
+var a : TDoubleDynArray;
+    b : TDoubleDynArray; 
     counter: Integer;
-    c1, c2, c3 : Array[0..cMtxWidth*cMtxWidth2-1] of double;
+    c1, c2, c3 : TDoubleDynArray; 
+
+    aa : PDouble;
+    ab : PDouble;
+    ac1, ac2, ac3 : PDouble;
+
+    aamem, abmem, ac1mem, ac2mem, ac3mem : PByte;
+    aaLineWidth, abLineWidth, ac1LineWidth, ac2LineWidth, ac3LineWidth : TASMNativeInt;
+    idx : integer;
+
+    pA, pB : PConstDoubleArr;
 begin
+     SetLength(a, cMtxWidth*cMtxWidth2);
+     SetLength(b, cMtxWidth*cMtxWidth2);
+     SetLength(c1, cMtxWidth*cMtxWidth2);
+     SetLength(c2, cMtxWidth*cMtxWidth2);
+     SetLength(c3, cMtxWidth*cMtxWidth2);
+
      for counter := 0 to High(a) do
          a[counter] := counter;
      for counter := 0 to High(b) do
@@ -1651,6 +1667,37 @@ begin
 
      Check(CheckMtx(c3, c1), 'GenericBlockedMatrixMultiplicationT1 failed');
      Check(CheckMtx(c3, c2), 'ThrMatrixMultT1Ex failed');
+
+     // test aligned
+     AllocAlignedMtx(cMtxWidth, cMtxWidth2, aa, aamem, aaLineWidth);
+     AllocAlignedMtx(cMtxWidth, cMtxWidth2, ab, abmem, abLineWidth);
+     AllocAlignedMtx(cMtxWidth2, cMtxWidth, ac1, ac1mem, ac1LineWidth);
+     AllocAlignedMtx(cMtxWidth2, cMtxWidth, ac2, ac2mem, ac2LineWidth);
+     AllocAlignedMtx(cMtxWidth2, cMtxWidth, ac3, ac3mem, ac3LineWidth);
+
+     for counter := 0 to cMtxWidth - 1 do
+     begin
+          pA := PConstDoubleArr( GenPtr( aa, 0, counter, aaLineWidth) ); 
+          pB := PConstDoubleArr( GenPtr( ab, 0, counter, aaLineWidth) ); 
+          for idx := 0 to cMtxWidth2 - 1 do
+          begin
+               pA^[idx] := counter*cMtxWidth + idx;
+               pB^[idx] := pA^[idx];
+          end;
+     end;
+     
+     GenericMtxMultTransp(ac3, ac3LineWidth, aa, ab, cMtxWidth, cMtxWidth, cMtxWidth, cMtxWidth2, aaLineWidth, abLineWidth);
+     GenericBlockMatrixMultiplicationT2(ac1, ac1LineWidth, aa, ab, cMtxWidth, cMtxWidth, cMtxWidth, cMtxWidth2, aaLineWidth, abLineWidth, 4, doNone, nil);
+     ThrMatrixMultT2Ex(ac2, ac2LineWidth, aa, ab, cMtxWidth, cMtxWidth, cMtxWidth, cMtxWidth2, aaLineWidth, abLineWidth, 4, doNone, nil);
+
+     Check(CheckMtxIdx(ac3, ac1, ac3LineWidth, ac1LineWidth, cMtxWidth2, cMtxWidth, idx), 'Algined GenericBlockedMatrixMultiplicationT1 failed');
+     Check(CheckMtxIdx(ac3, ac2, ac3LineWidth, ac2LineWidth, cMtxWidth2, cMtxWidth, idx), 'Algined ThrMatrixMultT1Ex failed');
+
+     FreeMem(aamem);
+     FreeMem(abmem);
+     FreeMem(ac1mem);
+     FreeMem(ac2mem);
+     FreeMem(ac3mem);
 end;
 
 

@@ -22,6 +22,7 @@ uses SysUtils, Math, MatrixConst, Matrix, BaseMathPersistence, Types;
 type
   TCorrelation = class(TMatrixClass)
   protected
+    function InternalCorrelateArr( w1, w2 : PDouble; len : integer) : Double;
     function InternalCorrelate(w1, w2 : IMatrix) : double;
   public
     function Correlate(x, y : IMatrix) : double; // correlation coefficient between t, r (must have the same length)
@@ -51,9 +52,10 @@ type
         dist : double;
       end;
   private
-    fd : IMatrix;
-    fAccDist : IMatrix;
+    fd : TDoubleDynArray;
+    fAccDist : TDoubleDynArray;
     fW1, fW2 : IMatrix;
+    fW1Arr, fW2Arr : TDoubleDynArray;
     fNumW : integer;
     fMaxSearchWin : integer;
     fMethod : TDynamicTimeWarpDistMethod;
@@ -117,6 +119,7 @@ type
     function FastDTWCorr(t, r : TDoubleDynArray; var dist : double; Radius : integer = 1) : double; overload; 
     
     constructor Create(DistMethod : TDynamicTimeWarpDistMethod = dtwSquared); // -> 0 = infinity
+    destructor Destroy; override;
   end;
 
 implementation
@@ -218,6 +221,25 @@ begin
      Result := Result/sqrt(meanVar1[1]*meanVar2[1])/(w1.Width - 1);
 end;
 
+function TCorrelation.InternalCorrelateArr(w1, w2: PDouble;
+  len: integer): Double;
+var meanVar1 : Array[0..1] of double;
+    meanVar2 : Array[0..1] of double;
+begin
+     // note the routine avoids memory allocations thus it runs on the raw optimized functions:
+     
+     // calc: 1/(n-1)/(var_w1*var_w2) sum_i=0_n (w1_i - mean_w1)*(w2_i - mean_w2)
+     MatrixMeanVar( @meanVar1[0], 2*sizeof(double), w1, len*sizeof(double), len, 1, True, True);
+     MatrixMeanVar( @meanVar2[0], 2*sizeof(double), w2, len*sizeof(double), len, 1, True, True);
+
+     MatrixAddAndScale( w1, len*sizeof(double), len, 1, -meanVar1[0], 1 );
+     MatrixAddAndScale( w2, len*sizeof(double), len, 1, -meanVar2[0], 1 );
+     
+     // dot product:
+     MatrixMult( @Result, sizeof(double), w1, w2, len, 1, 1, len, len*sizeof(double), sizeof(double));
+     Result := Result/sqrt(meanVar1[1]*meanVar2[1])/(len - 1);
+end;
+
 // ###########################################
 // #### Dynamic time warping
 // ###########################################
@@ -242,113 +264,13 @@ end;
 // ###########################################
 
 function TDynamicTimeWarp.DTW(t, r: IMatrix; var dist: double; MaxSearchWin : integer = 0): IMatrix;
-var n, m : integer;
-    counter: Integer;
 begin
-     // ###########################################
-     // #### Mask overflow
-     fMaxSearchWin := MaxSearchWin;
+     DTW( t.SubMatrix, r.SubMatrix, dist, MaxSearchWin);
 
-     // ###########################################
-     // #### Prepare memory
-     if not Assigned(fd) or (fd.Width <> t.Width) or (fd.Height <> r.Width) then
-     begin
-          fd := MatrixClass.Create( t.Width, r.Width );
-          fAccDist := MatrixClass.Create(t.Width, r.Width);
-          SetLength(fWindow, 2*max(r.Width, t.Width));
-          fW1 := MatrixClass.Create(Length(fWindow), 1);
-          fW2 := MatrixClass.Create(Length(fWindow), 1);
-     end;
-     fNumW := 0;
-
-     if fMaxSearchWin = 0 then
-        fMaxSearchWin := Max(fd.Width, fd.Height);
-
-     // ###########################################
-     // #### prepare distance matrix
-     fd.SetValue(MaxDouble);
-     for m := 0 to fd.Height - 1 do
-     begin
-          for n := 0 to fd.Width - 1 do
-          begin
-               if (fMaxSearchWin <= 0) or ( abs(n - m) <= fMaxSearchWin) then
-               begin
-                    case fMethod of
-                      dtwSquared: fd[n, m] := sqr( t.Vec[n] - r.Vec[m] );
-                      dtwAbsolute: fd[n, m] := abs( t.Vec[n] - r.Vec[m] );
-                      dtwSymKullbackLeibler: fd[n, m] := (t.Vec[n] - r.Vec[m])*(ln(t.Vec[n]) - ln(r.Vec[m]));
-                    end;
-               end;
-          end;
-     end;
+     fW1 := TDoubleMatrix.Create( Copy( fW1Arr, 0, fNumW ), fNumW, 1);
+     fW2 := TDoubleMatrix.Create( Copy( fW2Arr, 0, fNumW ), fNumW, 1);
      
-     fAccDist.SetValue(0);
-     fAccDist[0, 0] := fd[0, 0];
-
-     for n := 1 to fd.Width - 1 do
-         fAccDist[n, 0] := fd[n, 0] + fAccDist[n - 1, 0];
-     for m := 1 to fd.Height - 1 do
-         fAccDist[0, m] := fd[0, m] + fAccDist[0, m - 1];
-     for n := 1 to fd.Height - 1 do
-         for m := 1 to fd.Width - 1 do
-             fAccDist[m, n] := fD[m, n] + min( fAccDist[ m, n - 1 ], min( fAccDist[m - 1, n - 1], fAccDist[ m - 1, n] ));
-     
-     dist := fAccDist[fd.Width - 1, fd.Height - 1];
-
-     fNumW := 0;
-     m := t.Width - 1;
-     n := r.Width - 1;
-     fWindow[fNumW].i := m;
-     fWindow[fNumW].j := n;
-     inc(fNumW);
-     
-     while (n + m) > 1 do
-     begin
-          if n - 1 <= 0 
-          then
-              dec(m)
-          else if m - 1 <= 0 
-          then
-              dec(n)
-          else
-          begin
-               if fAccDist[m - 1, n - 1] < Min(fAccDist[m, n - 1], fAccDist[m - 1, n]) then
-               begin
-                    dec(n);
-                    dec(m);
-               end
-               else if fAccDist[m, n - 1] < fAccDist[m - 1, n] then
-               begin
-                    dec(n);
-
-                    if m - n > fMaxSearchWin then
-                       dec(m);
-               end
-               else
-               begin
-                    dec(m);
-
-                    if n - m > fMaxSearchWin then
-                       dec(n);
-               end;
-          end;
-
-          fWindow[fNumW].i := m;
-          fWindow[fNumW].j := n;
-
-          inc(fNumW);
-     end;
-
-     // ###########################################
-     // #### Build final warped vector
-     fw1.SetSubMatrix(0, 0, fNumW, 1);
-     fw2.SetSubMatrix(0, 0, fNumW, 1);
-     Result := fW1;
-     for counter := 0 to fNumW - 1 do
-     begin
-          fw1.Vec[counter] := r.Vec[ fWindow[fNumW - 1 - counter].j ];
-          fw2.Vec[counter] := t.Vec[ fWindow[fNumW - 1 - counter].i ]; 
-     end;
+     Result := fw1;
 end;
 
 function TDynamicTimeWarp.DTWCorr(t, r: IMatrix; MaxSearchWin : integer = 0): double;
@@ -546,6 +468,17 @@ begin
                break;
           end;
      end;
+end;
+
+destructor TDynamicTimeWarp.Destroy;
+begin
+     fW1 := nil;
+     fW2 := nil;
+     fAccDist := nil;
+     fW1Arr := nil;
+     fW2Arr := nil;
+     
+     inherited;
 end;
 
 procedure TDynamicTimeWarp.DictNewCoords(var i, j : integer; var MaxDictIdx : integer); 
@@ -1003,55 +936,79 @@ function TDynamicTimeWarp.DTW(t, r: TDoubleDynArray; var dist: double;
   MaxSearchWin: integer): TDoubleDynArray;
 var n, m : integer;
     counter: Integer;
+    w, h : integer;
+    startIdx, endIdx : integer;
 begin
      fMaxSearchWin := MaxSearchWin;
      
      // ###########################################
      // #### Prepare memory
-     if not Assigned(fd) or (fd.Width <> Length(t)) or (fd.Height <> Length(r)) then
+     if not Assigned(fd) or (Length(fd) <> Length(t)*Length(r)) then
      begin
-          fd := TDoubleMatrix.Create( Length(t), Length(r) );
-          fAccDist := TDoubleMatrix.Create(Length(t), Length(r) );
+          SetLength(fd, Length(t)*Length(r));
+          SetLength(fAccDist, Length(t)*Length(r));
           SetLength(fWindow, 2*Max(Length(r), Length(t)));
-          fW1 := TDoubleMatrix.Create(Length(fWindow), 1);
-          fW2 := TDoubleMatrix.Create(Length(fWindow), 1);
+          SetLength(fW1Arr, Length(fWindow));
+          SetLength(fW2Arr, Length(fWindow));
      end;
      fNumW := 0;
 
      if fMaxSearchWin = 0 then
         fMaxSearchWin := Max(Length(t), Length(r));
+     w := Length(t);
+     h := Length(r);
      
 
      // ###########################################
      // #### prepare distance matrix
-     fd.SetValue(MaxDouble);
-     for m := 0 to fd.Height - 1 do
+     counter := 0;
+     for m := 0 to h - 1 do // fd.Height - 1 do
      begin
-          for n := 0 to fd.Width - 1 do
+          for n := 0 to w - 1 do // fd.Width - 1 do
           begin
                //if (fMaxSearchWin <= 0) or ( abs(n - m) <= fMaxSearchWin) then
                begin
                     case fMethod of
-                      dtwSquared: fd[n, m] := sqr( t[n] - r[m] );
-                      dtwAbsolute: fd[n, m] := abs( t[n] - r[m] );
-                      dtwSymKullbackLeibler: fd[n, m] := (t[n] - r[m])*(ln(t[n]) - ln(r[m]));
+                      dtwSquared: fd[counter] := sqr( t[n] - r[m] );
+                      dtwAbsolute: fd[counter] := abs( t[n] - r[m] );
+                      dtwSymKullbackLeibler: fd[counter] := (t[n] - r[m])*(ln(t[n]) - ln(r[m]));
                     end;
                end;
+               inc(counter);
           end;
      end;
-     
-     fAccDist.SetValue(0);
-     fAccDist[0, 0] := fd[0, 0];
 
-     for n := 1 to fd.Width - 1 do          
-         fAccDist[n, 0] := fd[n, 0] + fAccDist[n - 1, 0];
-     for m := 1 to fd.Height - 1 do
-         fAccDist[0, m] := fd[0, m] + fAccDist[0, m - 1];
-     for n := 1 to fd.Height - 1 do
-         for m := 1 to fd.Width - 1 do
-             fAccDist[m, n] := fD[m, n] + min( fAccDist[ m, n - 1 ], min( fAccDist[m - 1, n - 1], fAccDist[ m - 1, n] ));
+     for n := 0 to Length(fAccDist) - 1 do
+         fAccDist[n] := 0;
 
-     dist := fAccDist[fd.Width - 1, fd.Height - 1];
+     //fAccDist.SetValue(0);
+     fAccDist[0] := fd[0];
+     //fAccDist[0, 0] := fd[0, 0];
+
+     for n := 1 to w - 1 do // fd.Width - 1 do
+         fAccDist[n] := fd[n] + fAccDist[n - 1];
+         //fAccDist[n, 0] := fd[n, 0] + fAccDist[n - 1, 0];
+
+     for m := 1 to h - 1 do // fd.Height - 1 do
+         //fAccDist[0, m] := fd[0, m] + fAccDist[0, m - 1];
+         fAccDist[m*w] := fd[m*w] + fAccDist[(m - 1)*w];
+
+     for n := 1 to h - 1 do // fd.Height - 1 do
+     begin
+          startIdx := Max(1, n - fMaxSearchWin);
+          endIdx := Min(n + fMaxSearchWin,  w - 1);
+          if startIdx > 1 then
+             fAccDist[startIdx + n*w - 1] := MaxDouble;
+          if endIdx < w - 1 then
+             fAccDist[endIdx + 1 + n*w] := MaxDouble;
+          for m := Max(1, n - fMaxSearchWin) to Min(n + fMaxSearchWin,  w - 1) do 
+          //for m := 1 to w - 1 do 
+              fAccDist[m + n*w] := fD[m + n*w] + min( fAccDist[ m + (n - 1)*w ], min( fAccDist[(m - 1) + (n - 1)*w], fAccDist[ (m - 1) + n*w] ));
+              //fAccDist[m, n] := fD[m, n] + min( fAccDist[ m, n - 1 ], min( fAccDist[m - 1, n - 1], fAccDist[ m - 1, n] ));
+     end;
+
+     //dist := fAccDist[fd.Width - 1, fd.Height - 1];
+     dist := fAccDist[w - 1 + (h-1)*w];
 
      fNumW := 0;
      m := Length(t) - 1;
@@ -1070,14 +1027,15 @@ begin
               dec(n)
           else
           begin
-               if fAccDist[m - 1, n - 1] < Min(fAccDist[m, n - 1], fAccDist[m - 1, n]) then
+               //if fAccDist[m - 1, n - 1] < Min(fAccDist[m, n - 1], fAccDist[m - 1, n]) then
+               if fAccDist[(m - 1) + (n - 1)*w] < Min(fAccDist[m + (n - 1)*w], fAccDist[(m - 1) + n*w]) then
                begin
                     dec(n);
                     dec(m);
                end
                else 
                begin
-                    if fAccDist[m, n - 1] < fAccDist[m - 1, n] then
+                    if fAccDist[m + (n - 1)*w] < fAccDist[(m - 1) + n*w] then
                     begin
                          dec(n);
                          if m - n > fMaxSearchWin then
@@ -1101,15 +1059,18 @@ begin
 
      // ###########################################
      // #### Build final warped vector
-     fw1.SetSubMatrix(0, 0, fNumW, 1);
-     fw2.SetSubMatrix(0, 0, fNumW, 1);
+     //fw1.SetSubMatrix(0, 0, fNumW, 1);
+     //fw2.SetSubMatrix(0, 0, fNumW, 1);
      for counter := 0 to fNumW - 1 do
      begin
-          fw1.Vec[counter] := r[ fWindow[fNumW - 1 - counter].j ];
-          fw2.Vec[counter] := t[ fWindow[fNumW - 1 - counter].i ]; 
+          fW1Arr[counter] := r[ fWindow[fNumW - 1 - counter].j ];
+          fW2Arr[counter] := t[ fWindow[fNumW - 1 - counter].i ]; 
+          
+          //fw1.Vec[counter] := r[ fWindow[fNumW - 1 - counter].j ];
+          //fw2.Vec[counter] := t[ fWindow[fNumW - 1 - counter].i ]; 
      end;
 
-     Result := fW1.SubMatrix;
+     Result := fw1Arr; // fW1.SubMatrix;
 end;
 
 function TDynamicTimeWarp.DTWCorr(t, r: TDoubleDynArray;
@@ -1122,7 +1083,7 @@ begin
      
      // ###########################################
      // #### Calculate correlation
-     Result := InternalCorrelate(fw1, fw2);
+     Result := InternalCorrelateArr(@fw1Arr[0], @fw2Arr[0], fNumW);
 end;
 
 end.
