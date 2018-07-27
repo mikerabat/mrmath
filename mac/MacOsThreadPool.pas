@@ -195,6 +195,7 @@ end;
 
 function TMacMtxAsyncCall.Sync: Integer;
 begin
+     Result := 0;
      // do nothing here...
 end;
 

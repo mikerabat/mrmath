@@ -31,7 +31,7 @@ uses {$IFDEF FPC}
        {$IFDEF LINUX} unixtype, linux {$ENDIF}
        {$IFDEF DARWIN} unixtype {$ENDIF}
      {$ELSE}
-       {$IF CompilerVersion >= 23.0} Winapi.Windows {$ELSE} Windows {$IFEND}
+       {$IFDEF MSWINDOWS} {$IF CompilerVersion >= 23.0} Winapi.Windows {$ELSE} Windows {$IFEND} {$ENDIF}
        {$IFDEF MACOS}System.Diagnostics{$ENDIF}
        {$IFDEF LINUX}unixtype, linux{$ENDIF}
      {$ENDIF};

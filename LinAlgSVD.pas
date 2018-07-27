@@ -950,8 +950,10 @@ begin
           pAij := PConstDoubleArr(GenPtr(A, 0, j, LineWidthA));
           pAi1j := PConstDoubleArr(GenPtr(A, 0, j - 1, LineWidthA));
 
-          for i := j to width - 1 do // cols
-              pAij^[i] := pAi1j^[i];
+          Move( pAi1j^[j], pAij^[j], (width - j)*sizeof(double));
+
+          //for i := j to width - 1 do // cols
+          //    pAij^[i] := pAi1j^[i];
      end;
 
      pAij := PConstDoubleArr(A);
