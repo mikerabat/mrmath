@@ -47,6 +47,8 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
+const cLocOne : double = 1;
+
 function AVXMatrixElementwiseNorm2Aligned(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
 begin
 asm
@@ -334,7 +336,7 @@ asm
        {$IFDEF FPC}vsqrtsd xmm0, xmm0, xmm0;{$ELSE}db $C5,$FB,$51,$C0;{$ENDIF} 
 
        //1/sqrt(norm)
-       lea eax, cOne;
+       lea eax, cLocOne;
        {$IFDEF FPC}vmovsd xmm1, [eax];{$ELSE}db $C5,$FB,$10,$08;{$ENDIF} 
        {$IFDEF FPC}vdivsd xmm1, xmm1, xmm0;{$ELSE}db $C5,$F3,$5E,$C8;{$ENDIF} 
 
@@ -499,7 +501,7 @@ asm
        {$IFDEF FPC}vsqrtsd xmm0, xmm0, xmm0;{$ELSE}db $C5,$FB,$51,$C0;{$ENDIF} 
 
        //1/sqrt(norm)
-       lea eax, cOne;
+       lea eax, cLocOne;
        {$IFDEF FPC}vmovsd xmm1, [eax];{$ELSE}db $C5,$FB,$10,$08;{$ENDIF} 
        {$IFDEF FPC}vdivsd xmm1, xmm1, xmm0;{$ELSE}db $C5,$F3,$5E,$C8;{$ENDIF} 
 
@@ -617,7 +619,7 @@ asm
        jnz @addforyloop4;
 
        // normalization factor
-       lea eax, cOne;
+       lea eax, cLocOne;
        {$IFDEF FPC}vbroadcastsd ymm2, [eax];{$ELSE}db $C4,$E2,$7D,$19,$10;{$ENDIF} 
        {$IFDEF FPC}vsqrtpd ymm1, ymm1;{$ELSE}db $C5,$FD,$51,$C9;{$ENDIF} 
        {$IFDEF FPC}vdivpd ymm0, ymm2, ymm1;{$ELSE}db $C5,$ED,$5E,$C1;{$ENDIF} 
@@ -664,7 +666,7 @@ asm
    jnz @addforyloop2;
 
    // normalization factor
-   lea eax, cOne;
+   lea eax, cLocOne;
    {$IFDEF FPC}vmovddup xmm2, [eax];{$ELSE}db $C5,$FB,$12,$10;{$ENDIF} 
    {$IFDEF FPC}vsqrtpd xmm1, xmm1;{$ELSE}db $C5,$F9,$51,$C9;{$ENDIF} 
    {$IFDEF FPC}vdivpd xmm0, xmm2, xmm1;{$ELSE}db $C5,$E9,$5E,$C1;{$ENDIF} 
@@ -704,7 +706,7 @@ asm
 
 
    // build result
-   lea eax, cOne;
+   lea eax, cLocOne;
    {$IFDEF FPC}vmovsd xmm2, [eax];{$ELSE}db $C5,$FB,$10,$10;{$ENDIF} 
    {$IFDEF FPC}vsqrtsd xmm1, xmm1, xmm1;{$ELSE}db $C5,$F3,$51,$C9;{$ENDIF} 
    {$IFDEF FPC}vdivsd xmm0, xmm2, xmm1;{$ELSE}db $C5,$EB,$5E,$C1;{$ENDIF} 
@@ -771,7 +773,7 @@ asm
        jnz @addforyloop4;
 
        // normalization factor
-       lea eax, cOne;
+       lea eax, cLocOne;
        {$IFDEF FPC}vbroadcastsd ymm2, [eax];{$ELSE}db $C4,$E2,$7D,$19,$10;{$ENDIF} 
        {$IFDEF FPC}vsqrtpd ymm1, ymm1;{$ELSE}db $C5,$FD,$51,$C9;{$ENDIF} 
        {$IFDEF FPC}vdivpd ymm0, ymm2, ymm1;{$ELSE}db $C5,$ED,$5E,$C1;{$ENDIF} 
@@ -818,7 +820,7 @@ asm
    jnz @addforyloop2;
 
    // normalization factor
-   lea eax, [cOne];
+   lea eax, [cLocOne];
    {$IFDEF FPC}vmovddup xmm2, [eax];{$ELSE}db $C5,$FB,$12,$10;{$ENDIF} 
    {$IFDEF FPC}vsqrtpd xmm1, xmm1;{$ELSE}db $C5,$F9,$51,$C9;{$ENDIF} 
    {$IFDEF FPC}vdivpd xmm0, xmm2, xmm1;{$ELSE}db $C5,$E9,$5E,$C1;{$ENDIF} 
@@ -858,7 +860,7 @@ asm
 
 
    // build result
-   lea eax, cOne;
+   lea eax, cLocOne;
    {$IFDEF FPC}vmovsd xmm2, [eax];{$ELSE}db $C5,$FB,$10,$10;{$ENDIF} 
    {$IFDEF FPC}vsqrtsd xmm1, xmm1, xmm1;{$ELSE}db $C5,$F3,$51,$C9;{$ENDIF} 
    {$IFDEF FPC}vdivsd xmm0, xmm2, xmm1;{$ELSE}db $C5,$EB,$5E,$C1;{$ENDIF} 

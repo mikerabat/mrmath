@@ -34,8 +34,8 @@ type
 // based on Timothy Felty's matlab script (google timothy felty dynamic time warping)
 // -> enhanced with maximum search window
 // -> enhanced with different distance methods
-// Added the recursive fast dtw method based on 
-//    FastDTW: Toward Accurate Dynamic Time Warping in Linear Time and Space 
+// Added the recursive fast dtw method based on
+//    FastDTW: Toward Accurate Dynamic Time Warping in Linear Time and Space
 type
   TDynamicTimeWarpDistMethod = (dtwSquared, dtwAbsolute, dtwSymKullbackLeibler);
   TDynamicTimeWarepReduceFunc = procedure (X : PConstDoubleArr; inLen, inOffset : TASMNativeInt; out newLen, newOffset : TASMNativeInt) of object;
@@ -60,12 +60,12 @@ type
     fMaxSearchWin : integer;
     fMethod : TDynamicTimeWarpDistMethod;
 
-    fMemX : IMatrix;       // holds the aligned memory 
+    fMemX : IMatrix;       // holds the aligned memory
     fMemY : IMatrix;
-    
+
     fX : PConstDoubleArr;  // fast access to fMemx and fMemY (sse aligned)
     fY : PConstDoubleArr;
-    
+
     fWindow : Array of TCoordRec; // pairs of x and y indices. Used in dtw and fastdtw
     fDistIdx : Array of TDistRec;
     fPath : Array of TCoordRec;    // i, j that build up the path
@@ -98,26 +98,26 @@ type
 
     property Path[index : integer] : TCoordRec read GetPathByIndex;
     property PathLen : integer read fNumPath;
-  
+
     property MaxPathLen : integer read fMaxPathLen;
     property MaxWinLen : integer read fMaxWinLen;
-  
+
     function DTW(t, r : IMatrix; var dist : double; MaxSearchWin : integer = 0) : IMatrix; overload;
     function DTWCorr(t, r : IMatrix; MaxSearchWin : integer = 0) : double; overload;  // calculate the correlation coefficient between both warped vectors
 
     function FastDTW(x, y : IMatrix; var dist : double; Radius : integer = 1)  : IMatrix; overload; // applies fastdtw
     function FastDTWCorr(t, r : IMatrix; Radius : integer = 1) : double; overload;  // calculate the correlation coefficient between both warped vectors
-    function FastDTWCorr(t, r : IMatrix; var dist : double; Radius : integer = 1) : double; overload;  
-    
+    function FastDTWCorr(t, r : IMatrix; var dist : double; Radius : integer = 1) : double; overload;
+
 
     // same Methods but with dynamic arrays
     function DTW(t, r : TDoubleDynArray; var dist : double; MaxSearchWin : integer = 0) : TDoubleDynArray; overload;
-    function DTWCorr(t, r : TDoubleDynArray; MaxSearchWin : integer = 0) : double; overload; 
+    function DTWCorr(t, r : TDoubleDynArray; MaxSearchWin : integer = 0) : double; overload;
 
     function FastDTW(x, y : TDoubleDynArray; var dist : double; Radius : integer = 1)  : TDoubleDynArray; overload;
-    function FastDTWCorr(t, r : TDoubleDynArray; Radius : integer = 1) : double; overload; 
-    function FastDTWCorr(t, r : TDoubleDynArray; var dist : double; Radius : integer = 1) : double; overload; 
-    
+    function FastDTWCorr(t, r : TDoubleDynArray; Radius : integer = 1) : double; overload;
+    function FastDTWCorr(t, r : TDoubleDynArray; var dist : double; Radius : integer = 1) : double; overload;
+
     constructor Create(DistMethod : TDynamicTimeWarpDistMethod = dtwSquared); // -> 0 = infinity
     destructor Destroy; override;
   end;
@@ -125,6 +125,8 @@ type
 implementation
 
 uses OptimizedFuncs, MathUtilFunc;
+
+const cLocDivBy2 : Array[0..1] of double = (0.5, 0.5);
 
 // ###########################################
 // #### Correlation (base implementation)
@@ -808,7 +810,7 @@ asm
    mov ebx, newLen;
    mov [ebx], ecx;
 
-   movupd xmm3, cDivBy2;
+   movupd xmm3, cLocDivBy2;
 
    // eax := counter for x[idx]
    // edx := counter for x[counter];

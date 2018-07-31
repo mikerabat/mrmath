@@ -44,6 +44,9 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
+const cLocMinusOne : double = -1;
+      cLocOne : double = 1;
+      cLocMulM1Bits : Array[0..1] of Int64 = ($8000000000000000, $0);
 
 procedure ASMApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
 var y2 : TASMNativeInt;
@@ -76,7 +79,7 @@ begin
         mov ecx, edx;   // A[y][x]
         sub ecx, LineWidthA;
 
-        movsd xmm7, cOne;
+        movsd xmm7, cLocOne;
         xorpd xmm6, xmm6;  // haddpd zero extend
 
         @@foryloop:
@@ -200,7 +203,7 @@ begin
         mov edx, ecx;   // A[y+1][x]
         add edx, LineWidthA;
 
-        movsd xmm7, cOne;
+        movsd xmm7, cLocOne;
         xorpd xmm6, xmm6;  // haddpd zero extend
 
         @@foryloop:
@@ -321,7 +324,7 @@ begin
         mov ebx, s;
         mov ecx, A;
 
-        movupd xmm7, cMulM1Bits;
+        movupd xmm7, cLocMulM1Bits;
         xorpd xmm6, xmm6;  // haddpd zero extend
 
         @@foryloop:
@@ -395,7 +398,7 @@ begin
         sub ebx, iter;
         sub ecx, iter;
 
-        movupd xmm7, cMulM1Bits;
+        movupd xmm7, cLocMulM1Bits;
         xorpd xmm6, xmm6;  // haddpd zero extend
 
         @@foryloop:
@@ -454,7 +457,7 @@ begin
         push esi;
 
         movsd xmm2, s;
-        mulsd xmm2, cMinusOne;
+        mulsd xmm2, cLocMinusOne;
 
         movddup xmm0, xmm2;
         movddup xmm1, c;
@@ -542,7 +545,7 @@ begin
         push esi;
 
         movsd xmm2, s;
-        mulsd xmm2, cMinusOne;
+        mulsd xmm2, cLocMinusOne;
 
         movddup xmm0, xmm2;
         movddup xmm1, c;

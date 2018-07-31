@@ -44,6 +44,8 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
+const cLocSignBits : Array[0..1] of int64 = ($7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF);
+
 procedure ASMMatrixAbsAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
 var iters : TASMNativeInt;
 begin
@@ -56,7 +58,7 @@ begin
         // helper registers for the mt1, mt2 and dest pointers
         mov ecx, dest;
         sub ecx, iters;
-        movupd xmm0, cSignBits;
+        movupd xmm0, cLocSignBits;
 
         // for y := 0 to height - 1:
         mov edx, Height;
@@ -141,7 +143,7 @@ begin
         mov ecx, dest;
         sub ecx, iters;
 
-        movupd xmm0, cSignBits;
+        movupd xmm0, cLocSignBits;
 
         // for y := 0 to height - 1:
         mov edx, Height;
@@ -225,7 +227,7 @@ begin
         mov ecx, dest;
         sub ecx, iters;
 
-        movupd xmm0, cSignBits;
+        movupd xmm0, cLocSignBits;
 
         // for y := 0 to height - 1:
         mov edx, Height;
@@ -316,7 +318,7 @@ begin
         mov ecx, dest;
         sub ecx, iters;
 
-        movupd xmm0, cSignBits;
+        movupd xmm0, cLocSignBits;
 
         // for y := 0 to height - 1:
         mov edx, Height;

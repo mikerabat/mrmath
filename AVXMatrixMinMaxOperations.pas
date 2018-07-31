@@ -43,6 +43,9 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
+const cLocNegMaxDouble : double = -1.7e+308;
+      cLocMaxDouble : double = 1.7e+308;
+
 function AVXMatrixMaxAligned(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 begin
 asm
@@ -59,7 +62,7 @@ asm
    sub ecx, edx;
 
    // init result
-   lea eax, cNegMaxDouble;
+   lea eax, cLocNegMaxDouble;
    {$IFDEF FPC}vbroadcastsd ymm0, [eax];{$ELSE}db $C4,$E2,$7D,$19,$00;{$ENDIF} 
    {$IFDEF FPC}vmovapd ymm3, ymm0;{$ELSE}db $C5,$FD,$28,$D8;{$ENDIF} 
    {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$28,$E0;{$ENDIF} 
@@ -153,7 +156,7 @@ asm
    sub ecx, edx;
 
    // init result
-   lea eax, cNegMaxDouble;
+   lea eax, cLocNegMaxDouble;
    {$IFDEF FPC}vbroadcastsd ymm0, [eax];{$ELSE}db $C4,$E2,$7D,$19,$00;{$ENDIF} 
    {$IFDEF FPC}vmovapd ymm3, ymm0;{$ELSE}db $C5,$FD,$28,$D8;{$ENDIF} 
    {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$28,$E0;{$ENDIF} 
@@ -251,7 +254,7 @@ asm
    sub ecx, edx;
 
    // init result
-   lea eax, cMaxDouble;
+   lea eax, cLocMaxDouble;
    {$IFDEF FPC}vbroadcastsd ymm0, [eax];{$ELSE}db $C4,$E2,$7D,$19,$00;{$ENDIF} 
    {$IFDEF FPC}vmovapd ymm3, ymm0;{$ELSE}db $C5,$FD,$28,$D8;{$ENDIF} 
    {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$28,$E0;{$ENDIF} 
@@ -344,7 +347,7 @@ asm
    sub ecx, edx;
 
    // init result
-   lea eax, cMaxDouble;
+   lea eax, cLocMaxDouble;
    {$IFDEF FPC}vbroadcastsd ymm0, [eax];{$ELSE}db $C4,$E2,$7D,$19,$00;{$ENDIF} 
    {$IFDEF FPC}vmovapd ymm3, ymm0;{$ELSE}db $C5,$FD,$28,$D8;{$ENDIF} 
    {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$28,$E0;{$ENDIF} 

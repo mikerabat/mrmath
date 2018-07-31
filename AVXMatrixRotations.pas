@@ -45,6 +45,10 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
+const cLocMinusOne : double = -1;
+      cLocOne : double = 1;
+      cLocMulM1Bits : Array[0..1] of Int64 = ($8000000000000000, $0);
+
 procedure AVXApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
 var y2 : TASMNativeInt;
     iter : TASMNativeInt;
@@ -73,7 +77,7 @@ begin
         add edx, edi;
         sub edx, iter;
 
-        lea ecx, cOne;
+        lea ecx, cLocOne;
         {$IFDEF FPC}vmovsd xmm7, [ecx];{$ELSE}db $C5,$FB,$10,$39;{$ENDIF} 
 
         mov ecx, edx;   // A[y][x]
@@ -200,7 +204,7 @@ begin
         mov ecx, A;     // A[y][x]
         sub ecx, iter;
 
-        lea edx, cOne;
+        lea edx, cLocOne;
         {$IFDEF FPC}vmovsd xmm7, [edx];{$ELSE}db $C5,$FB,$10,$3A;{$ENDIF} 
 
         mov edx, ecx;   // A[y+1][x]
@@ -320,7 +324,7 @@ begin
         mov ebx, s;
         mov ecx, A;
 
-        lea edi, cMulM1Bits;
+        lea edi, cLocMulM1Bits;
         {$IFDEF FPC}vmovupd xmm7, [edi];{$ELSE}db $C5,$F9,$10,$3F;{$ENDIF} 
 
         @@foryloop:
@@ -395,7 +399,7 @@ begin
         sub ebx, iter;
         sub ecx, iter;
 
-        lea edi, cMulM1Bits;
+        lea edi, cLocMulM1Bits;
         {$IFDEF FPC}vmovupd xmm7, [edi];{$ELSE}db $C5,$F9,$10,$3F;{$ENDIF} 
 
         @@foryloop:
@@ -454,7 +458,7 @@ begin
 
         lea ebx, s;
         {$IFDEF FPC}vmovsd xmm2, [ebx];{$ELSE}db $C5,$FB,$10,$13;{$ENDIF} 
-        lea eax, cMinusOne;
+        lea eax, cLocMinusOne;
         {$IFDEF FPC}vmulsd xmm2, xmm2, [eax];{$ELSE}db $C5,$EB,$59,$10;{$ENDIF} 
 
         {$IFDEF FPC}vmovddup xmm0, xmm2;{$ELSE}db $C5,$FB,$12,$C2;{$ENDIF} 
@@ -539,7 +543,7 @@ begin
 
         lea ebx, S;
         {$IFDEF FPC}vmovsd xmm2, [ebx];{$ELSE}db $C5,$FB,$10,$13;{$ENDIF} 
-        lea eax, cMinusOne;
+        lea eax, cLocMinusOne;
         {$IFDEF FPC}vmulsd xmm2, xmm2, [eax];{$ELSE}db $C5,$EB,$59,$10;{$ENDIF} 
 
         {$IFDEF FPC}vmovddup xmm0, xmm2;{$ELSE}db $C5,$FB,$12,$C2;{$ENDIF} 

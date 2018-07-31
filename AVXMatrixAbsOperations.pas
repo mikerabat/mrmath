@@ -41,6 +41,8 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
+const cLocSignBits4 : Array[0..3] of int64 = ($7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF);
+
 procedure AVXMatrixAbsAligned(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
 var iters : TASMNativeInt;
 begin
@@ -54,7 +56,7 @@ asm
    mov ecx, dest;
    sub ecx, eax;
 
-   lea edx, cSignBits4;
+   lea edx, cLocSignBits4;
    {$IFDEF FPC}vmovupd ymm0, [edx];{$ELSE}db $C5,$FD,$10,$02;{$ENDIF} 
 
    // for y := 0 to height - 1:
@@ -140,7 +142,7 @@ asm
    mov ecx, Dest;
    sub ecx, eax;
 
-   lea edx, cSignBits4;
+   lea edx, cLocSignBits4;
    {$IFDEF FPC}vmovupd ymm0, [edx];{$ELSE}db $C5,$FD,$10,$02;{$ENDIF} 
 
    // for y := 0 to height - 1:

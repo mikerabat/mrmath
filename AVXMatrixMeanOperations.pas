@@ -55,6 +55,8 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
+const cLocOne : double = 1;
+
 procedure AVXMatrixMeanRowAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 begin
 asm
@@ -657,7 +659,7 @@ asm
        cmp unbiased, 0;
        jz @@dobiased;
 
-       lea eax, cOne;
+       lea eax, cLocOne;
        {$IFDEF FPC}vmovsd xmm2, [eax];{$ELSE}db $C5,$FB,$10,$10;{$ENDIF} 
        {$IFDEF FPC}vsubsd xmm4, xmm3, xmm2;{$ELSE}db $C5,$E3,$5C,$E2;{$ENDIF} 
        {$IFDEF FPC}vmaxsd xmm4, xmm4, xmm2;{$ELSE}db $C5,$DB,$5F,$E2;{$ENDIF} 
@@ -853,7 +855,7 @@ asm
        cmp unbiased, 0;
        jz @@dobiased;
 
-       lea eax, cOne;
+       lea eax, cLocOne;
        {$IFDEF FPC}vmovsd xmm2, [eax];{$ELSE}db $C5,$FB,$10,$10;{$ENDIF} 
        {$IFDEF FPC}vsubsd xmm4, xmm3, xmm2;{$ELSE}db $C5,$E3,$5C,$E2;{$ENDIF} 
        {$IFDEF FPC}vmaxsd xmm4, xmm4, xmm2;{$ELSE}db $C5,$DB,$5F,$E2;{$ENDIF} 
@@ -919,7 +921,7 @@ asm
    {$IFDEF FPC}vbroadcastsd ymm2, [eax];    {$ELSE}db $C4,$E2,$7D,$19,$10;{$ENDIF} // vbroadcastsd ymm2, xmm0; // avx2
 
 
-   lea eax, cOne;
+   lea eax, cLocOne;
    {$IFDEF FPC}vbroadcastsd ymm5, [eax];{$ELSE}db $C4,$E2,$7D,$19,$28;{$ENDIF} 
 
    // for x := 0 to width - 1:
@@ -959,7 +961,7 @@ asm
        cmp unbiased, 0;
        jz @@dobiased_4;
 
-       lea eax, cOne;
+       lea eax, cLocOne;
 
        {$IFDEF FPC}vbroadcastsd ymm1, [eax];{$ELSE}db $C4,$E2,$7D,$19,$08;{$ENDIF} 
        {$IFDEF FPC}vsubpd ymm3, ymm2, ymm1;{$ELSE}db $C5,$ED,$5C,$D9;{$ENDIF} 
@@ -1135,7 +1137,7 @@ asm
    {$IFDEF FPC}vbroadcastsd ymm2, [eax]; {$ELSE}db $C4,$E2,$7D,$19,$10;{$ENDIF} // vbroadcastsd ymm2, xmm0; // avx2
    
 
-   lea eax, cOne;
+   lea eax, cLocOne;
    {$IFDEF FPC}vbroadcastsd ymm5, [eax];{$ELSE}db $C4,$E2,$7D,$19,$28;{$ENDIF} 
 
    // for x := 0 to width - 1:
@@ -1176,7 +1178,7 @@ asm
        cmp unbiased, 0;
        jz @@dobiased_4;
 
-       lea eax, cOne;
+       lea eax, cLocOne;
        {$IFDEF FPC}vbroadcastsd ymm1, [eax];{$ELSE}db $C4,$E2,$7D,$19,$08;{$ENDIF} 
        {$IFDEF FPC}vsubpd ymm3, ymm2, ymm1;{$ELSE}db $C5,$ED,$5C,$D9;{$ENDIF} 
        {$IFDEF FPC}vmaxpd ymm3, ymm3, ymm1;{$ELSE}db $C5,$E5,$5F,$D9;{$ENDIF} 
@@ -1482,7 +1484,7 @@ asm
        cmp unbiased, 0;
        jz @@dobiased;
 
-       lea eax, cOne;
+       lea eax, cLocOne;
        {$IFDEF FPC}vmovsd xmm2, [eax];{$ELSE}db $C5,$FB,$10,$10;{$ENDIF} 
        {$IFDEF FPC}vsubsd xmm4, xmm3, xmm2;{$ELSE}db $C5,$E3,$5C,$E2;{$ENDIF} 
        {$IFDEF FPC}vmaxsd xmm4, xmm4, xmm2;{$ELSE}db $C5,$DB,$5F,$E2;{$ENDIF} 
@@ -1679,7 +1681,7 @@ asm
        cmp unbiased, 0;
        jz @@dobiased;
 
-       lea eax, cOne;
+       lea eax, cLocOne;
        {$IFDEF FPC}vmovsd xmm2, [eax];{$ELSE}db $C5,$FB,$10,$10;{$ENDIF} 
        {$IFDEF FPC}vsubsd xmm4, xmm3, xmm2;{$ELSE}db $C5,$E3,$5C,$E2;{$ENDIF} 
        {$IFDEF FPC}vmaxsd xmm4, xmm4, xmm2;{$ELSE}db $C5,$DB,$5F,$E2;{$ENDIF} 
@@ -1742,7 +1744,7 @@ asm
    {$IFDEF FPC}vbroadcastsd ymm2, [eax]; {$ELSE}db $C4,$E2,$7D,$19,$10;{$ENDIF} // vbroadcastsd ymm2, xmm0; // avx2
    
 
-   lea eax, cOne;
+   lea eax, cLocOne;
    {$IFDEF FPC}vbroadcastsd ymm5, [eax];{$ELSE}db $C4,$E2,$7D,$19,$28;{$ENDIF} 
 
    // for x := 0 to width - 1:
@@ -1783,7 +1785,7 @@ asm
        cmp unbiased, 0;
        jz @@dobiased_4;
 
-       lea eax, cOne;
+       lea eax, cLocOne;
 
        {$IFDEF FPC}vbroadcastsd ymm1, [eax];{$ELSE}db $C4,$E2,$7D,$19,$08;{$ENDIF} 
        {$IFDEF FPC}vsubpd ymm3, ymm2, ymm1;{$ELSE}db $C5,$ED,$5C,$D9;{$ENDIF} 
@@ -1960,7 +1962,7 @@ asm
    {$IFDEF FPC}vbroadcastsd ymm2, [eax]; {$ELSE}db $C4,$E2,$7D,$19,$10;{$ENDIF} // vbroadcastsd ymm2, xmm0; // avx2
    
 
-   lea eax, cOne;
+   lea eax, cLocOne;
    {$IFDEF FPC}vbroadcastsd ymm5, [eax];{$ELSE}db $C4,$E2,$7D,$19,$28;{$ENDIF} 
 
    // for x := 0 to width - 1:
@@ -2002,7 +2004,7 @@ asm
        cmp unbiased, 0;
        jz @@dobiased_4;
 
-       lea eax, cOne;
+       lea eax, cLocOne;
        {$IFDEF FPC}vbroadcastsd ymm1, [eax];{$ELSE}db $C4,$E2,$7D,$19,$08;{$ENDIF} 
        {$IFDEF FPC}vsubpd ymm3, ymm2, ymm1;{$ELSE}db $C5,$ED,$5C,$D9;{$ENDIF} 
        {$IFDEF FPC}vmaxpd ymm3, ymm3, ymm1;{$ELSE}db $C5,$E5,$5F,$D9;{$ENDIF} 

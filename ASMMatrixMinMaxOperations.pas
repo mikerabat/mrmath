@@ -47,6 +47,9 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
+const cLocNegMaxDouble : double = -1.7e+308;
+      cLocMaxDouble : double = 1.7e+308;
+
 function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 var iters : TASMNativeInt;
 begin
@@ -62,10 +65,10 @@ begin
         mov ecx, mt;
         sub ecx, iters;
 
-        movddup xmm0, cNegMaxDouble;
+        movddup xmm0, cLocNegMaxDouble;
         movapd xmm1, xmm0;
-   	movapd xmm2, xmm0;
-   	movapd xmm3, xmm0;
+       	movapd xmm2, xmm0;
+       	movapd xmm3, xmm0;
 
         // for y := 0 to height - 1:
         mov edx, Height;
@@ -134,7 +137,7 @@ begin
         mov ecx, mt;
         sub ecx, iters;
 
-        movddup xmm0, cNegMaxDouble;
+        movddup xmm0, cLocNegMaxDouble;
         movapd xmm3, xmm0;
 
         // for y := 0 to height - 1:
@@ -210,7 +213,7 @@ begin
         mov ecx, mt;
         sub ecx, iters;
 
-        movddup xmm0, cNegMaxDouble;
+        movddup xmm0, cLocNegMaxDouble;
         movapd xmm1, xmm0;
    					movapd xmm2, xmm0;
    					movapd xmm3, xmm0;
@@ -286,7 +289,7 @@ begin
         mov ecx, mt;
         sub ecx, iters;
 
-        movddup xmm0, cNegMaxDouble;
+        movddup xmm0, cLocNegMaxDouble;
         movapd xmm3, xmm0;
 
         // for y := 0 to height - 1:
@@ -366,7 +369,7 @@ begin
         mov ecx, mt;
         sub ecx, iters;
 
-        movddup xmm0, cMaxDouble;
+        movddup xmm0, cLocMaxDouble;
         movapd xmm1, xmm0;
    					movapd xmm2, xmm0;
    					movapd xmm3, xmm0;
@@ -438,7 +441,7 @@ begin
         mov ecx, mt;
         sub ecx, iters;
 
-        movddup xmm0, cMaxDouble;
+        movddup xmm0, cLocMaxDouble;
         movapd xmm3, xmm0;
 
         // for y := 0 to height - 1:
@@ -514,7 +517,7 @@ begin
         mov ecx, mt;
         sub ecx, iters;
 
-        movddup xmm0, cMaxDouble;
+        movddup xmm0, cLocMaxDouble;
         movapd xmm1, xmm0;
    					movapd xmm2, xmm0;
    					movapd xmm3, xmm0;
@@ -590,7 +593,7 @@ begin
         mov ecx, mt;
         sub ecx, iters;
 
-        movddup xmm0, cMaxDouble;
+        movddup xmm0, cLocMaxDouble;
         movapd xmm3, xmm0;
 
         // for y := 0 to height - 1:

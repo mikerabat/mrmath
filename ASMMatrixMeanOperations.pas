@@ -68,6 +68,9 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
+const cLocOne : double = 1;
+      cLocOnes : Array[0..1] of double = (1, 1);
+
 procedure ASMMatrixMeanRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
 var iters : TASMNativeInt;
 begin
@@ -870,8 +873,8 @@ begin
             jz @@dobiased;
 
             movsd xmm4, xmm5;
-            subsd xmm4, cOne;
-            maxsd xmm4, cOne;
+            subsd xmm4, cLocOne;
+            maxsd xmm4, cLocOne;
 
             divsd xmm0, xmm4;
 
@@ -1055,8 +1058,8 @@ begin
             jz @@dobiased;
 
             movsd xmm4, xmm5;
-            subsd xmm4, cOne;
-            maxsd xmm4, cOne;
+            subsd xmm4, cLocOne;
+            maxsd xmm4, cLocOne;
 
             divsd xmm0, xmm4;
 
@@ -1249,8 +1252,8 @@ begin
             jz @@dobiased;
 
             movsd xmm4, xmm5;
-            subsd xmm4, cOne;
-            maxsd xmm4, cOne;
+            subsd xmm4, cLocOne;
+            maxsd xmm4, cLocOne;
 
             divsd xmm0, xmm4;
 
@@ -1446,8 +1449,8 @@ begin
             jz @@dobiased;
 
             movsd xmm4, xmm5;
-            subsd xmm4, cOne;
-            maxsd xmm4, cOne;
+            subsd xmm4, cLocOne;
+            maxsd xmm4, cLocOne;
 
             divsd xmm0, xmm4;
 
@@ -1491,7 +1494,7 @@ begin
         sub ecx, iters;
         mov ebx, dest;
 
-        movupd xmm2, cOnes;
+        movupd xmm2, cLocOnes;
 
         {$IFDEF FPC}
         mov eax, height;
@@ -1581,7 +1584,7 @@ begin
         sub ecx, iters;
         mov ebx, dest;
 
-        movupd xmm2, cOnes;
+        movupd xmm2, cLocOnes;
 
         {$IFDEF FPC}
         mov eax, height;
@@ -1672,7 +1675,7 @@ begin
         sub ecx, iters;
         mov ebx, dest;
 
-        movupd xmm2, cOnes;
+        movupd xmm2, cLocOnes;
 
         {$IFDEF FPC}
         mov eax, height;
@@ -1774,8 +1777,8 @@ begin
         jz @@dobiased2;
 
         movapd xmm4, xmm6;
-        subsd xmm4, cOne;
-        maxsd xmm4, cOne;
+        subsd xmm4, cLocOne;
+        maxsd xmm4, cLocOne;
 
         divsd xmm0, xmm4;
 
@@ -1809,7 +1812,7 @@ begin
         sub ecx, iters;
         mov ebx, dest;
 
-        movupd xmm2, cOnes;
+        movupd xmm2, cLocOnes;
 
         {$IFDEF FPC}
         mov eax, height;
@@ -1912,8 +1915,8 @@ begin
         jz @@dobiased2;
 
         movapd xmm4, xmm6;
-        subsd xmm4, cOne;
-        maxsd xmm4, cOne;
+        subsd xmm4, cLocOne;
+        maxsd xmm4, cLocOne;
 
         divsd xmm0, xmm4;
 
@@ -2093,8 +2096,8 @@ begin
             jz @@dobiased;
 
             movsd xmm4, xmm5;
-            subsd xmm4, cOne;
-            maxsd xmm4, cOne;
+            subsd xmm4, cLocOne;
+            maxsd xmm4, cLocOne;
 
             divsd xmm0, xmm4;
 
@@ -2279,8 +2282,8 @@ begin
             jz @@dobiased;
 
             movsd xmm4, xmm5;
-            subsd xmm4, cOne;
-            maxsd xmm4, cOne;
+            subsd xmm4, cLocOne;
+            maxsd xmm4, cLocOne;
 
             divsd xmm0, xmm4;
 
@@ -2473,8 +2476,8 @@ begin
             jz @@dobiased;
 
             movsd xmm4, xmm5;
-            subsd xmm4, cOne;
-            maxsd xmm4, cOne;
+            subsd xmm4, cLocOne;
+            maxsd xmm4, cLocOne;
 
             divsd xmm0, xmm4;
 
@@ -2672,8 +2675,8 @@ begin
             jz @@dobiased;
 
             movsd xmm4, xmm5;
-            subsd xmm4, cOne;
-            maxsd xmm4, cOne;
+            subsd xmm4, cLocOne;
+            maxsd xmm4, cLocOne;
 
             divsd xmm0, xmm4;
 
@@ -2717,7 +2720,7 @@ begin
         sub ecx, iters;
         mov ebx, dest;
 
-        movupd xmm2, cOnes;
+        movupd xmm2, cLocOnes;
 
         {$IFDEF FPC}
         mov eax, height;
@@ -2809,7 +2812,7 @@ begin
         sub ecx, iters;
         mov ebx, dest;
 
-        movupd xmm2, cOnes;
+        movupd xmm2, cLocOnes;
 
         {$IFDEF FPC}
         mov eax, height;
@@ -2902,7 +2905,7 @@ begin
         sub ecx, iters;
         mov ebx, dest;
 
-        movupd xmm2, cOnes;
+        movupd xmm2, cLocOnes;
 
         {$IFDEF FPC}
         mov eax, height;
@@ -3007,8 +3010,8 @@ begin
         jz @@dobiased2;
 
         movapd xmm4, xmm6;
-        subsd xmm4, cOne;
-        maxsd xmm4, cOne;
+        subsd xmm4, cLocOne;
+        maxsd xmm4, cLocOne;
 
         divsd xmm0, xmm4;
 
@@ -3043,7 +3046,7 @@ begin
         sub ecx, iters;
         mov ebx, dest;
 
-        movupd xmm2, cOnes;
+        movupd xmm2, cLocOnes;
 
         {$IFDEF FPC}
         mov eax, height;
@@ -3149,8 +3152,8 @@ begin
         jz @@dobiased2;
 
         movapd xmm4, xmm6;
-        subsd xmm4, cOne;
-        maxsd xmm4, cOne;
+        subsd xmm4, cLocOne;
+        maxsd xmm4, cLocOne;
 
         divsd xmm0, xmm4;
 
