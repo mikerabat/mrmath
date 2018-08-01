@@ -31,6 +31,8 @@ type
 
  TBaseMatrixTestCase = class(TTestCase)
  protected
+   function BaseDataPath : string;
+
    {$IFDEF FPC}
    procedure CheckEqualsMem(p1, p2 : PByte; memSize : integer; const msg : string);
    procedure Status(const msg : string);
@@ -462,13 +464,17 @@ var imgNum : integer;
     numImg : integer;
     sl : TStringList;
     i : integer;
+    basePath : string;
 begin
      // load a bunch of images and calculate a PCA. Note the images
      Result := nil;
      imgNum := 0;
      w := 0;
      h := 0;
-     path := IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter( ExtractFilePath(ParamStr(0)) ) + path);
+
+     basePath := BaseDataPath;
+
+     path := IncludeTrailingPathDelimiter(basePath + path);
      sl := TStringList.Create;
 
      numImg := 0;
@@ -533,6 +539,15 @@ function TBaseMatrixTestCase.WriteMtx(mtx: TDoubleMatrix;
   prec: integer): string;
 begin
      Result := WriteMtx( mtx.StartElement, mtx.LineWidth, mtx.Width, mtx.Height, prec);
+end;
+
+function TBaseMatrixTestCase.BaseDataPath: string;
+begin
+     if ParamCount > 0
+     then
+         Result := IncludeTrailingPathDelimiter(ParamStr(1))
+     else
+         Result := IncludeTrailingPathDelimiter( ExtractFilePath(ParamStr(0)) );
 end;
 
 initialization

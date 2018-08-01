@@ -42,7 +42,7 @@ var x : IMatrix;
     y : IMatrix;
     d : IMatrix;
 begin
-     x := ReadObjFromFile('mahalonobis.dat') as TDoubleMatrix;
+     x := ReadObjFromFile(BaseDataPath + 'mahalonobis.dat') as TDoubleMatrix;
      y := TDoubleMatrix.Create( [1, 1, 1, -1, -1, 1, -1, -1], 2, 4);
 
      d := TDistance.Mahalonobis(x, y);
@@ -58,7 +58,7 @@ var x : IMatrix;
     d : IMatrix;
 const cRes : Array[0..3] of double = (1.8054, 1.9670, 2.0330, 2.1946);
 begin
-     x := ReadObjFromFile('mahalonobis.dat') as TDoubleMatrix;
+     x := ReadObjFromFile(BaseDataPath + 'mahalonobis.dat') as TDoubleMatrix;
      x.Resize(x.Width, x.Height + 1);
 
      // add outlier ;)
@@ -87,7 +87,7 @@ var x : IMatrix;
     y : IMatrix;
     d : IMatrix;
 begin
-     x := ReadObjFromFile('mahalonobis.dat') as TDoubleMatrix;
+     x := ReadObjFromFile(BaseDataPath + 'mahalonobis.dat') as TDoubleMatrix;
      y := TDoubleMatrix.Create( [1, 1, 1, -1, -1, 1, -1, -1], 2, 4);
 
      d := TDistance.Euclid(x, y);
@@ -103,7 +103,7 @@ var x : IMatrix;
     d : IMatrix;
 const cRes : Array[0..3] of double = (1.8054, 1.9670, 2.0330, 2.1946);
 begin
-     x := ReadObjFromFile('mahalonobis.dat') as TDoubleMatrix;
+     x := ReadObjFromFile(BaseDataPath + 'mahalonobis.dat') as TDoubleMatrix;
      x.Resize(x.Width, x.Height + 1);
 
      // add outlier ;)
@@ -133,7 +133,7 @@ var x : IMatrix;
     dist : TDistance;
 const cRes : Array[0..3] of double = (0.6288, 19.3520, 21.1384, 0.9404);
 begin
-     x := ReadObjFromFile('mahalonobis.dat') as TDoubleMatrix;
+     x := ReadObjFromFile(BaseDataPath + 'mahalonobis.dat') as TDoubleMatrix;
      y := TDoubleMatrix.Create( [1, 1, 1, -1, -1, 1, -1, -1], 2, 4);
 
      dist := TDistance.Create;

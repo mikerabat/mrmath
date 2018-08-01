@@ -2716,7 +2716,7 @@ begin
 
      GenericMtxNormalize(@dest1[0], 4*sizeof(double), @mt1[0], 4*sizeof(double), 3, 4, False);
      ASMMatrixNormalizeColumnUnAlignedOddW(@dest2[0], 4*sizeof(double), @mt1[0], 4*sizeof(double), 3, 4);
-     ASMMatrixNormalizeColumnUnAlignedOddW(dest, 4*sizeof(double), m, 4*sizeof(double), 3, 4);
+     ASMMatrixNormalizeColumnAlignedOddW(dest, 4*sizeof(double), m, 4*sizeof(double), 3, 4);
 
      Check(checkMtx(dest1, dest2), 'Error row wise Matrix normalize');
      Move(dest^, dest2, sizeof(dest2));
@@ -2748,7 +2748,7 @@ begin
 
      GenericMtxNormalize(@dest1[0], 4*sizeof(double), @mt1[0], 4*sizeof(double), 3, 4, True);
      ASMMatrixNormalizeRowUnAlignedOddW(@dest2[0], 4*sizeof(double), @mt1[0], 4*sizeof(double), 3, 4);
-     ASMMatrixNormalizeRowUnAlignedOddW(dest, 4*sizeof(double), m, 4*sizeof(double), 3, 4);
+     ASMMatrixNormalizeRowAlignedOddW(dest, 4*sizeof(double), m, 4*sizeof(double), 3, 4);
 
      Check(checkMtx(dest1, dest2), 'Error row wise Matrix normalize');
      Move(dest^, dest2, sizeof(dest2));

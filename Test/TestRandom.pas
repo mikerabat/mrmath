@@ -143,7 +143,7 @@ begin
      gen.Free;
 
      // now do a binary compare of the original and the current file
-     with TFileStream.Create('marsenneTwistOrig.txt', fmOpenRead) do
+     with TFileStream.Create(BaseDataPath + 'marsenneTwistOrig.txt', fmOpenRead) do
      try
         SetLength(buf1, Size);
         ReadBuffer(buf1[0], Size);

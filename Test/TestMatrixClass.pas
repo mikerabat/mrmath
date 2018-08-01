@@ -126,8 +126,8 @@ end;
 
 procedure TestTDoubleMatrix.SetUp;
 begin
-     fRefMatrix1 := ReadObjFromFile('MatrixData1.txt') as TDoubleMatrix;
-     fRefMatrix2 := ReadObjFromFile('MatrixData2.txt') as TDoubleMatrix;
+     fRefMatrix1 := ReadObjFromFile(BaseDataPath + 'MatrixData1.txt') as TDoubleMatrix;
+     fRefMatrix2 := ReadObjFromFile(BaseDataPath + 'MatrixData2.txt') as TDoubleMatrix;
 end;
 
 procedure TestTDoubleMatrix.TearDown;
@@ -1088,8 +1088,8 @@ end;
 
 procedure TestIMatrix.SetUp;
 begin
-     fRefMatrix1 := ReadObjFromFile('MatrixData1.txt') as IMatrix;
-     fRefMatrix2 := ReadObjFromFile('MatrixData2.txt') as IMatrix;
+     fRefMatrix1 := ReadObjFromFile(BaseDataPath + 'MatrixData1.txt') as IMatrix;
+     fRefMatrix2 := ReadObjFromFile(BaseDataPath + 'MatrixData2.txt') as IMatrix;
 end;
 
 procedure TestIMatrix.TearDown;
@@ -1330,10 +1330,10 @@ end;
 procedure TestTDoubleMatrixPersistence.TestRead;
 var mtx : TDoubleMatrix;
 begin
-     mtx := ReadObjFromFile('matrixData1.dat') as  TDoubleMatrix;
+     mtx := ReadObjFromFile(BaseDataPath + 'matrixData1.dat') as  TDoubleMatrix;
      Check((mtx.Width = 5) and (mtx.Height = 10), 'Error matrix dimension are not correct');
      mtx.Free;
-     mtx := ReadObjFromFile('matrixData2.dat') as  TDoubleMatrix;
+     mtx := ReadObjFromFile(BaseDataPath + 'matrixData2.dat') as  TDoubleMatrix;
      Check((mtx.Width = 5) and (mtx.Height = 10), 'Error matrix dimension are not correct');
      mtx.Free;
 end;

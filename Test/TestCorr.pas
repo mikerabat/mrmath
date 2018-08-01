@@ -152,8 +152,8 @@ var master, tpl : IMatrix;
     crBase : double;
 begin
      // ecg templates
-     tpl := ReadObjFromFile('dyntimeWarp1.bin') as TDoubleMatrix;
-     master := ReadObjFromFile('dyntimeWarp2.bin') as TDoubleMatrix;
+     tpl := ReadObjFromFile(BaseDataPath + 'dyntimeWarp1.bin') as TDoubleMatrix;
+     master := ReadObjFromFile(BaseDataPath + 'dyntimeWarp2.bin') as TDoubleMatrix;
      
      dtw := TDynamicTimeWarp.Create;
      dtw.DTW(tpl.SubMatrix, master.SubMatrix, dist);
@@ -235,8 +235,8 @@ var master, tpl : IMatrix;
     crBase : double;
 begin
      // ecg templates
-     tpl := ReadObjFromFile('dyntimeWarp1.bin') as TDoubleMatrix;
-     master := ReadObjFromFile('dyntimeWarp2.bin') as TDoubleMatrix;
+     tpl := ReadObjFromFile(BaseDataPath + 'dyntimeWarp1.bin') as TDoubleMatrix;
+     master := ReadObjFromFile(BaseDataPath + 'dyntimeWarp2.bin') as TDoubleMatrix;
      
      dtw := TDynamicTimeWarp.Create;
      dtw.DTW(tpl, master, dist);
