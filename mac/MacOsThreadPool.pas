@@ -94,7 +94,7 @@ begin
 end;
 
 {AM}
-procedure TMacMtxAsyncGroup.AddTaskRec(proc : TMtxRecProc; rec : Pointer; group: dispatch_object_t);
+procedure TMacMtxAsyncGroup.AddTaskRec(proc : TMtxRecProc; rec : Pointer);
 var aTask : IMtxAsyncCall;
 begin
      aTask := TMacMtxAsyncCall.CreateRec(proc, rec, fgroup);
