@@ -67,7 +67,7 @@ type
     function GetResult : integer;
 
     constructor Create(proc : TMtxProc; obj : TObject; group: dispatch_object_t);
-    constructor CreateRec(proc : TMtxRecProc; rec : Pointer);
+    constructor CreateRec(proc : TMtxRecProc; rec : Pointer; group: dispatch_object_t);
     destructor Destroy; override;
   end;
 
@@ -82,6 +82,7 @@ type
     procedure SyncAll;
 
     constructor Create;
+    destructor Destroy; override;
   end;
 
 procedure TMacMtxAsyncGroup.AddTask(proc : TMtxProc; obj : TObject);
@@ -93,10 +94,10 @@ begin
 end;
 
 {AM}
-procedure TMacMtxAsyncGroup.AddTaskRec(proc : TMtxRecProc; rec : Pointer);
+procedure TMacMtxAsyncGroup.AddTaskRec(proc : TMtxRecProc; rec : Pointer; group: dispatch_object_t);
 var aTask : IMtxAsyncCall;
 begin
-     aTask := TMacMtxAsyncCall.CreateRec(proc, rec);
+     aTask := TMacMtxAsyncCall.CreateRec(proc, rec, fgroup);
      fTaskList.Add(aTask);
      aTask.ExecuteAsync;
 end;
@@ -117,10 +118,16 @@ begin
      inherited Create;
 end;
 
+destructor TMAcMtxAsyncGroup.Destroy;
+begin
+     dispatch_release(fGroup);
+     
+     inherited;
+end;
+
 procedure TMacMtxAsyncGroup.SyncAll;
 begin
      dispatch_group_wait(fGroup, DISPATCH_TIME_FOREVER);
-     dispatch_release(fGroup);
 end;
   
 procedure InitMacMtxThreadPool;
