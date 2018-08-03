@@ -155,7 +155,7 @@ begin
      fGroup := group;
 end;
 
-constructor TMacMtxAsyncCall.CreateRec(proc: TMtxRecProc; rec: Pointer);
+constructor TMacMtxAsyncCall.CreateRec(proc: TMtxRecProc; rec: Pointer; group: dispatch_object_t);
 begin
      inherited Create;
 
@@ -163,6 +163,7 @@ begin
      {AM}
      fRec := rec;
      {AM}
+     fGroup := group;
 end;
 
 
