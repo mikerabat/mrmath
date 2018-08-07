@@ -100,7 +100,7 @@ uses Math, SimpleMatrixOperations,
      ASMMatrixNormOperations, ASMMatrixMeanOperations, ASMMatrixSumOperations,
      ASMMatrixCumSumDiffOperations
      {$ENDIF}
-     ;
+     , OptimizedFuncs;
 
 
 function ASMMatrixMult(mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
@@ -1098,7 +1098,8 @@ end;
 procedure ASMMatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; mem : PDouble); overload;
 var mtx : PDouble;
     mtxLineWidth : TASMNativeInt;
-    help : TASMNativeInt;
+    help : TASMNativeInt;  
+    aMem : Pointer;
 begin
      if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
      	  exit;
@@ -1123,12 +1124,14 @@ begin
           // ########################################################################
           // ####  For all "bigger" matrices transpose first then multiply. It's always faster
           mtxLineWidth := (height2 + height2 and $00000001)*sizeof(double);
+          aMem := nil;
           if Assigned(mem)
           then
               mtx := mem
           else
-              GetMem(mtx, width2*mtxLineWidth);
-          assert(assigned(mtx), 'Error could not reserver transpose memory');
+              mtx := MtxMallocAlign(width2*mtxLineWidth, aMem);
+              
+          assert(assigned(mtx), 'Error could not reserve transpose memory');
           ASMMatrixTranspose(mtx, mtxLineWidth, mt2, LineWidth2, width2, height2);
           help := width2;
           width2 := height2;
@@ -1180,8 +1183,8 @@ begin
                end;
           end;
 
-          if not Assigned(mem) then
-             FreeMem(mtx);
+          if Assigned(aMem) then
+             FreeMem(aMem);
      end;
 end;
 

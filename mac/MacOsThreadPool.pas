@@ -133,7 +133,8 @@ end;
 procedure InitMacMtxThreadPool;
 begin
      //wrc Assert(not Assigned(macThrPool), 'Error: initialize pool twice. Call FinalizeMtxThreadPool first.');
-     macThrPool := dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT,0);
+     if macThrPool = nil then
+        macThrPool := dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT,0);
 end;
 
 //wrc Note: You do not need to retain or release any of the global dispatch queues,
