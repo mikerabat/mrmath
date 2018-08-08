@@ -4174,9 +4174,9 @@ end;
 
 initialization
 {$IFNDEF FMX}
-  RegisterTestFixture(TestMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});
-  RegisterTestFixture(TASMMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});
-  RegisterTestFixture(TASMatrixBlockSizeSetup{$IFNDEF FPC}.Suite{$ENDIF});
+  RegisterTest(TestMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});
+  RegisterTest(TASMMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});
+  RegisterTest(TASMatrixBlockSizeSetup{$IFNDEF FPC}.Suite{$ENDIF});
 {$ENDIF}
 end.
 

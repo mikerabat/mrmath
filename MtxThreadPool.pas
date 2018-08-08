@@ -116,7 +116,7 @@ end;
   {$DEFINE MACOS}   // delphi defines macos, fpc darwin
 {$ENDIF}{$ENDIF}
 // delphi define
-{$IFDEF MACOS }
+{$IFDEF MACOS}
 
 uses MacOsThreadPool;
 
