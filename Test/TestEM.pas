@@ -20,11 +20,16 @@ interface
 // #### Simple Expectation maximization tests
 // ###########################################
 
-uses {$IFDEF FPC} testregistry, {$ELSE} TestFramework, {$ENDIF}
+{$IFDEF MACOS}
+  {$DEFINE FMX}
+{$ENDIF}
+
+uses {$IFDEF FPC} testregistry, {$ELSE} {$IFDEF FMX}DUnitX.TestFramework {$ELSE}TestFramework {$ENDIF}, {$ENDIF}
      BaseMatrixTestCase, Classes, SysUtils, matrix;
 
 type
   // testmethoden für die matrix funktionen
+  {$IFDEF FMX} [TestFixture] {$ENDIF}
   TTestEM = class(TBaseMatrixTestCase)
   private
     function PrepareEM( cl : TDoubleMatrixClass ) : IMatrix;
@@ -138,6 +143,8 @@ begin
 end;
 
 initialization
+{$IFNDEF FMX}
   RegisterTest(TTestEM{$IFNDEF FPC}.Suite{$ENDIF});
+{$ENDIF}
 
 end.

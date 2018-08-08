@@ -16,11 +16,16 @@ unit TestDist;
 
 interface
 
+{$IFDEF MACOS}
+  {$DEFINE FMX}
+{$ENDIF}
+
 uses
-  {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF} ,
+  {$IFDEF FPC} testregistry {$ELSE} {$IFDEF FMX}DUnitX.TestFramework {$ELSE}TestFramework {$ENDIF} {$ENDIF} ,
   Classes, SysUtils, Matrix, BaseMatrixTestCase;
 
 type
+  {$IFDEF FMX} [TestFixture] {$ENDIF}
   TestDistance = class(TBaseMatrixTestCase)
   published
     procedure TestEuclidDist;
@@ -153,6 +158,8 @@ end;
 
 
 initialization
+{$IFNDEF FMX}
   RegisterTest(TestDistance{$IFNDEF FPC}.Suite{$ENDIF});
+{$ENDIF}
 
 end.

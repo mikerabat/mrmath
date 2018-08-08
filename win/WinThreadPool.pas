@@ -148,6 +148,7 @@ end;
 
 function InitWinThreadGroup : IMtxAsyncCallGroup;
 begin
+     Assert(Assigned(threadPool), 'Error thread pool not initialized. Call InitMtxThreadPool first');
      Result := TSimpleWinThreadGroup.Create;
 end;
 

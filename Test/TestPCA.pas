@@ -16,10 +16,15 @@ unit TestPCA;
 
 interface
 
-uses {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF},
+{$IFDEF MACOS}
+   {$DEFINE FMX}
+{$ENDIF}
+
+uses {$IFDEF FPC} testregistry {$ELSE} {$IFDEF FMX}DUnitX.TestFramework {$ELSE}TestFramework {$ENDIF} {$ENDIF},
      Classes, SysUtils, BaseMatrixTestCase, Matrix;
 
 type
+{$IFDEF FMX} [TestFixture] {$ENDIF}
  TTestPCA = class(TBaseImgTestCase)
  published
    procedure TestPCASimple;
@@ -34,9 +39,13 @@ type
 
 implementation
 
+{$IFDEF MACOS}
+   {$DEFINE FMX}
+{$ENDIF}
+
 uses PCA,
-     {$IFDEF MACOS} FMX.Types, FMX.Graphics, {$ENDIF}   //wrc
-     {$IFDEF Windows} Graphics, {$ENDIF}
+     {$IFDEF FMX} FMX.Types, FMX.Graphics, {$ENDIF}   //wrc
+     {$IFNDEF FMX} {$IFDEF Windows} Graphics, {$ENDIF} {$ENDIF}
      BinaryReaderWriter, BaseMathPersistence, IncrementalPCA,
      JSONReaderWriter, MtxTimer, ThreadedMatrix;
 
@@ -472,6 +481,8 @@ end;
 
 
 initialization
+{$IFNDEF FMX}
   RegisterTest(TTestPCA{$IFNDEF FPC}.Suite{$ENDIF});
+{$ENDIF}
 
 end.

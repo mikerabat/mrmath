@@ -16,10 +16,15 @@ unit TestICA;
 
 interface
 
-uses {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF},
+{$IFDEF MACOS}
+  {$DEFINE FMX}
+{$ENDIF}
+
+uses {$IFDEF FPC} testregistry {$ELSE} {$IFDEF FMX}DUnitX.TestFramework {$ELSE}TestFramework {$ENDIF} {$ENDIF},
      Classes, SysUtils, Types, Matrix, BaseMatrixTestCase;
 
 type
+  {$IFDEF FMX} [TestFixture] {$ENDIF}
   TTestICA = class(TBaseImgTestCase)
   published
     procedure TestSimpleICA;
@@ -103,6 +108,8 @@ begin
 end;
 
 initialization
+{$IFNDEF FMX}
   RegisterTest(TTestICA{$IFNDEF FPC}.Suite{$ENDIF});
+{$ENDIF};
 
 end.

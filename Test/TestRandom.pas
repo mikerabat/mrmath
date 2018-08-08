@@ -16,15 +16,20 @@ unit TestRandom;
 
 interface
 
+
+{$IFDEF MACOS}
+   {$DEFINE FMX}
+{$ENDIF}
+
 // ###########################################
 // #### Simple random generator tests (only functional tests no randomness tests!)
 // ###########################################
 
-uses {$IFDEF FPC} testregistry, {$ELSE} TestFramework, {$ENDIF}
+uses {$IFDEF FPC} testregistry, {$ELSE} {$IFDEF FMX}DUnitX.TestFramework {$ELSE}TestFramework {$ENDIF}, {$ENDIF}
      BaseMatrixTestCase, Classes, SysUtils, Types;
 
 type
-  // testmethoden für die matrix funktionen
+  {$IFDEF FMX} [TestFixture] {$ENDIF}
   TestRandomOperations = class(TBaseMatrixTestCase)
   published
     procedure TestSystemRandom;
@@ -238,6 +243,8 @@ begin
 end;
 
 initialization
+{$IFNDEF FMX}
   RegisterTest(TestRandomOperations{$IFNDEF FPC}.Suite{$ENDIF});
+{$ENDIF}
 
 end.

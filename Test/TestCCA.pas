@@ -16,10 +16,15 @@ unit TestCCA;
 
 interface
 
-uses {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF} ,
+{$IFDEF MACOS}
+  {$DEFINE FMX}
+{$ENDIF}
+
+uses {$IFDEF FPC} testregistry {$ELSE} {$IFDEF FMX}DUnitX.TestFramework {$ELSE}TestFramework {$ENDIF} {$ENDIF} ,
      Classes, SysUtils, BaseMatrixTestCase;
 
 type
+  {$IFDEF FMX} [TestFixture] {$ENDIF}
   TTestCCA = class(TBaseImgTestCase)
   published
     procedure TestCCAImages;
@@ -28,6 +33,7 @@ type
   end;
 
 type
+  {$IFDEF FMX} [TestFixture] {$ENDIF}
   TTestPLS = class(TBaseImgTestCase)
   published
     procedure TestPLS;
@@ -38,7 +44,7 @@ type
 implementation
 
 uses CCA, Math, Matrix, PLS, BinaryReaderWriter, BaseMathPersistence, 
-     JSONReaderWriter, ThreadedMatrix, MtxTimer, OptimizedFuncs;
+     JSONReaderWriter, ThreadedMatrix, MtxTimer, OptimizedFuncs, MtxThreadPool;
 
 { TTestCCA }
 
@@ -348,7 +354,9 @@ begin
 end;
 
 initialization
+{$IFNDEF FMX}
   RegisterTest(TTestCCA{$IFNDEF FPC}.Suite{$ENDIF});
   RegisterTest(TTestPLS{$IFNDEF FPC}.Suite{$ENDIF});
+{$ENDIF}
 
 end.

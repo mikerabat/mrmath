@@ -162,6 +162,7 @@ end;
   
 function InitLinuxThreadGroup : IMtxAsyncCallGroup;
 begin
+     Assert(Assigned(threadPool), 'Error thread pool not initialized. Call InitMtxThreadPool first');
      Result := TSimpleLinuxThreadGroup.Create;
 end;
 

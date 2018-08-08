@@ -103,6 +103,7 @@ end;
 
 function InitMacMtxGroup : IMtxAsyncCallGroup;
 begin
+     assert(macThrPool <> dispatch_group_t(nil), 'Error thread pool not initialized. Call InitMtxThreadPool first');
      Result := TMacMtxAsyncGroup.Create;
 end;
 

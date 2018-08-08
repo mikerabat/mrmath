@@ -16,10 +16,15 @@ unit TestNonLinFit;
 
 interface
 
-uses {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF} ,
+{$IFDEF MACOS}
+   {$DEFINE FMX}
+{$ENDIF}
+
+uses {$IFDEF FPC} testregistry {$ELSE}  {$IFDEF FMX}DUnitX.TestFramework {$ELSE}TestFramework {$ENDIF} {$ENDIF} ,
      Classes, SysUtils, Matrix, BaseMatrixTestCase;
 
 type
+  {$IFDEF FMX} [TestFixture] {$ENDIF}
   TestNonLinFitOptimization = class(TBaseMatrixTestCase)
   private
     procedure OnAtanIterate(Sender : TObject; a, x, y : IMatrix);
@@ -163,6 +168,8 @@ begin
 end;
 
 initialization
+{$IFNDEF FMX}
   RegisterTest(TestNonLinFitOptimization{$IFNDEF FPC}.Suite{$ENDIF});
+{$ENDIF}
 
 end.

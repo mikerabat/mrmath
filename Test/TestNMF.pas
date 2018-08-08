@@ -16,10 +16,15 @@ unit TestNMF;
 
 interface
 
-uses {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF} ,
+{$IFDEF MACOS}
+   {$DEFINE FMX}
+{$ENDIF}
+
+uses {$IFDEF FPC} testregistry {$ELSE} {$IFDEF FMX}DUnitX.TestFramework {$ELSE}TestFramework {$ENDIF} {$ENDIF} ,
      Classes, SysUtils, BaseMatrixTestCase;
 
 type
+ {$IFDEF FMX} [TestFixture] {$ENDIF}
  TTestNMF = class(TBaseImgTestCase)
  private
    procedure OnNMFProgress(Sender : TObject; progress : integer);
@@ -275,6 +280,8 @@ begin
 end;
 
 initialization
+{$IFNDEF FMX}
   RegisterTest(TTestNMF{$IFNDEF FPC}.Suite{$ENDIF});
+{$ENDIF}
 
 end.

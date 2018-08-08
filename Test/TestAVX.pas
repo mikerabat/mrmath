@@ -23,14 +23,17 @@ interface
 {$DEFINE x64}
 {$ENDIF}
 
-uses {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF}
+{$IFDEF MACOS}
+  {$DEFINE FMX}
+{$ENDIF}
+
+uses {$IFDEF FPC} testregistry {$ELSE} {$IFDEF FMX}DUnitX.TestFramework {$ELSE}TestFramework {$ENDIF} {$ENDIF}
      , Classes, SysUtils, Types, SimpleMatrixOperations, Matrix,
      ASMMatrixOperations, BaseMatrixTestCase;
 
 type
-
   { TestAVXMatrixOperations }
-
+  {$IFDEF FMX} [TestFixture] {$ENDIF}
   TestAVXMatrixOperations = class(TBaseMatrixTestCase)
   published
     procedure TestAVXMove;
@@ -2490,8 +2493,10 @@ end;
 
 
 initialization
+{$IFNDEF FMX}
   if IsAVXPresent then
      RegisterTest(TestAVXMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});
+{$ENDIF}
 
 end.
 

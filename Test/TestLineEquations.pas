@@ -16,12 +16,17 @@ unit TestLineEquations;
 
 interface
 
+{$IFDEF MACOS}
+  {$DEFINE FMX}
+{$ENDIF}
+
 uses
-  {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF} ,
+  {$IFDEF FPC} testregistry {$ELSE} {$IFDEF FMX}DUnitX.TestFramework {$ELSE}TestFramework {$ENDIF} {$ENDIF} ,
   Classes, SysUtils, Types, OptimizedFuncs, BaseMatrixTestCase,
   MatrixConst;
 
 type
+ {$IFDEF FMX} [TestFixture] {$ENDIF}
  TTestLinearEquations = class(TBaseMatrixTestCase)
  protected
    procedure SetUp; override;
@@ -69,15 +74,15 @@ type
  end;
 
 type
+  {$IFDEF FMX} [TestFixture] {$ENDIF}
   TAVXTestLinearEquations = class(TTestLinearEquations)
   protected
     procedure SetUp; override;
   end;
 
 type
-
-  { TFMATestLinearEquations }
-
+  // remove if you know that the cpu is capable of FMA instructions
+//  {$IFDEF FMX} [TestFixture] {$ENDIF}
   TFMATestLinearEquations = class(TTestLinearEquations)
   protected
     procedure SetUp; override;
@@ -1560,6 +1565,8 @@ var x, y, x1, y1 : Array[0..4] of double;
     start1, stop1 : Int64;
     start2, stop2 : int64;
 begin
+     Setup;
+
      for cnt:= 0 to High(x) do
      begin
           x[cnt] := cnt + 1;
@@ -1826,10 +1833,12 @@ begin
 end;
 
 initialization
+{$IFNDEF FMX}
   RegisterTest(TTestLinearEquations{$IFNDEF FPC}.Suite{$ENDIF});
   if IsAVXPresent then
      RegisterTest(TAVXTestLinearEquations{$IFNDEF FPC}.Suite{$ENDIF});
   if IsFMAPresent then
      RegisterTest(TFMATestLinearEquations{$IFNDEF FPC}.Suite{$ENDIF});
+{$ENDIF}
 
 end.

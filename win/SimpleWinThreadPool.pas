@@ -46,6 +46,8 @@ function QueueUserWorkItem(func: TThreadStartRoutine; Context: Pointer; Flags: U
 
 {$IFEND}
 
+var threadPoolInit : boolean = False;
+
 type
   TSimpleWinMtxAsyncCall = class(TInterfacedObject, IMtxAsyncCall)
   private
@@ -117,6 +119,7 @@ end;
   
 function InitWinThreadGroup : IMtxAsyncCallGroup;
 begin
+     Assert(threadPoolInit, 'Error thread pool not initialized. Call InitMtxThreadPool first');
      Result := TSimpleWinThreadGroup.Create;
 end;
   
@@ -130,9 +133,14 @@ end;
 procedure InitWinMtxThreadPool;
 var i: Integer;
 begin
-     // queue empty procedures -> initialize the pool
-     for i := 0 to numCPUCores - 1 do
-         QueueUserWorkItem(@EmptyThreadProc, nil, WT_EXECUTEDEFAULT);        
+     if not threadPoolInit then
+     begin
+          // queue empty procedures -> initialize the pool
+          for i := 0 to numCPUCores - 1 do
+              QueueUserWorkItem(@EmptyThreadProc, nil, WT_EXECUTEDEFAULT);
+
+          threadPoolInit := True;
+     end;
 end;
 
 procedure FinalizeWinMtxThreadPool;

@@ -16,6 +16,10 @@ unit TestFMA;
 
 interface
 
+{$IFDEF MACOS}
+  {$DEFINE FMX}
+{$ENDIF}
+
 {$IFDEF CPUX64}
 {$DEFINE x64}
 {$ENDIF}
@@ -23,12 +27,14 @@ interface
 {$DEFINE x64}
 {$ENDIF}
 
-uses {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF}
+uses {$IFDEF FPC} testregistry {$ELSE} {$IFDEF FMX}DUnitX.TestFramework {$ELSE}TestFramework {$ENDIF} {$ENDIF}
      , Classes, SysUtils, Types, SimpleMatrixOperations, Matrix,
      BaseMatrixTestCase;
 
 type
   { TestFMAMatrixOperations }
+  // remove the comment in case you test the suit on a FMA compatible processor
+//  {$IFDEF FMX} [TestFixture] {$ENDIF}
   TestFMAMatrixOperations = class(TBaseMatrixTestCase)
   published
     procedure TestFMAMultMod16;
@@ -568,8 +574,10 @@ end;
 
 
 initialization
+{$IFNDEF FMX}
   if IsFMAPresent then
      RegisterTest(TestFMAMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});
+{$ENDIF}
 
 end.
 

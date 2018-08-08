@@ -16,12 +16,17 @@ unit TestMatrixClass;
 
 interface
 
+{$IFDEF MACOS}
+   {$DEFINE FMX}
+{$ENDIF}
+
 uses
-  {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF} ,
+  {$IFDEF FPC} testregistry {$ELSE} {$IFDEF FMX}DUnitX.TestFramework {$ELSE}TestFramework {$ENDIF} {$ENDIF} ,
   Classes, SysUtils, Types, Matrix, BaseMatrixTestCase,
   ThreadedMatrix;
 
 type
+  {$IFDEF FMX} [TestFixture] {$ENDIF}
   TestTDoubleMatrixPersistence = class(TBaseMatrixTestCase)
   published
     procedure TestWrite;
@@ -32,6 +37,7 @@ type
   end;
 
 type
+  {$IFDEF FMX} [TestFixture] {$ENDIF}
   TestTDoubleMatrix = class(TBaseMatrixTestCase)
   private
    fRefMatrix2 : TDoubleMatrix;
@@ -68,6 +74,7 @@ type
   end;
 
 type
+  {$IFDEF FMX} [TestFixture] {$ENDIF}
   TestIMatrix = class(TBaseMatrixTestCase)
   private
     fRefMatrix2 : IMatrix;
@@ -89,6 +96,7 @@ type
   end;
 
 type
+  {$IFDEF FMX} [TestFixture] {$ENDIF}
   TestTThreadedMatrix = class(TBaseMatrixTestCase)
   private
     fRefMatrix2 : TDoubleMatrix;
@@ -115,7 +123,7 @@ implementation
 
 uses BaseMathPersistence, binaryReaderWriter,
      math, MatrixConst, mtxTimer,
-     {$IFNDEF MACOS}
+     {$IFNDEF FMX}
      Dialogs,
      {$ENDIF}
      MathUtilFunc, RandomEng,
@@ -145,6 +153,7 @@ var mtx : TDoubleMatrix;
     dx : Array[0..49] of double;
     i : Integer;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
      // create reference
      for i := 0 to High(dx) do
          dx[i] := 3 + i*2;
@@ -167,6 +176,8 @@ begin
      finally
             mtx.Free;
      end;
+
+     {$IFDEF FMX} TearDown; {$ENDIF};
 end;
 
 procedure ElemWiseSqrt(var value : double);
@@ -177,6 +188,8 @@ end;
 procedure TestTDoubleMatrix.TestApplyFunc;
 var mtx : TDoubleMatrix;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
+
      mtx := TDoubleMatrix.Create;
      try
         mtx.Assign(fRefMatrix1);
@@ -187,6 +200,8 @@ begin
      finally
             mtx.Free;
      end;
+
+     {$IFDEF FMX} TearDown; {$ENDIF};
 end;
 
 procedure TestTDoubleMatrix.TestCholesky;
@@ -219,20 +234,20 @@ var mtx : IMatrix;
     dynData : TDoubleDynArray;
 begin
      mtx := TDoubleMatrix.Create;
-     assert(mtx.width = 1, 'Error');
+     Check(mtx.width = 1, 'Error');
 
      mtx := TDoubleMatrix.Create(3, 3, 3);
 
-     assert(mtx.width = 3, 'Error');
-     assert(mtx[2, 2] = 3, 'Error');
+     Check(mtx.width = 3, 'Error');
+     Check(mtx[2, 2] = 3, 'Error');
 
      data := GetMemory(4*3*sizeof(double));  // create a 16 byte row wise aligned matrix
      FillChar(data^, 0, 4*3*sizeof(double)); // fill with zeros
      mtx := TDoubleMatrix.Create(data, 4*sizeof(double), 3, 3);
 
      mtx[0, 0] := 1;
-     assert(data^ = 1, 'Error');
-     assert(mtx.width = 3, 'Error');
+     Check(data^ = 1, 'Error');
+     Check(mtx.width = 3, 'Error');
 
      SetLength(dynData, 9); //3x3 matrix
      for i := 0 to Length(dynData) - 1 do
@@ -240,8 +255,8 @@ begin
 
      mtx := TDoubleMatrix.CreateDyn(dynData, 3, 3);
 
-     assert(mtx.width = 3, 'Error');
-     assert(mtx[2, 2] = 8, 'Error');
+     Check(mtx.width = 3, 'Error');
+     Check(mtx[2, 2] = 8, 'Error');
 end;
 
 procedure TestTDoubleMatrix.TestCovariance;
@@ -251,6 +266,8 @@ var meanMtx : TDoubleMatrix;
     c1 : TDoubleMatrix;
     data : Array[0..99] of double;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
+
      meanMtx := fRefMatrix1.Mean(True);
 
      cov := TDoubleMatrix.Create;
@@ -279,6 +296,8 @@ begin
      c1.Free;
      cov.Free;
      meanMtx.Free;
+
+     {$IFDEF FMX} TearDown; {$ENDIF};
 end;
 
 procedure TestTDoubleMatrix.TestEig;
@@ -339,6 +358,7 @@ procedure TestTDoubleMatrix.TestMult;
 var mtx : TDoubleMatrix;
     mtx1 : TDoubleMatrix;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
      mtx1 := fRefMatrix2.Transpose;
      mtx := fRefMatrix1.Mult(mtx1);
      try
@@ -347,6 +367,8 @@ begin
             mtx.Free;
             mtx1.Free;
      end;
+
+     {$IFDEF FMX} TearDown; {$ENDIF};
 end;
 
 procedure TestTDoubleMatrix.TestMult2;
@@ -405,6 +427,8 @@ procedure TestTDoubleMatrix.TestMultT1;
 var mtx : TDoubleMatrix;
     mtx1 : TDoubleMatrix;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
+
      mtx1 := TDoubleMatrix.Create;
      mtx1.Assign(fRefMatrix1);
      mtx := fRefMatrix1.MultT1(mtx1);
@@ -414,12 +438,15 @@ begin
             mtx.Free;
             mtx1.Free;
      end;
+
+     {$IFDEF FMX} TearDown; {$ENDIF};
 end;
 
 procedure TestTDoubleMatrix.TestMultT2;
 var mtx : TDoubleMatrix;
     mtx1 : TDoubleMatrix;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
      mtx1 := TDoubleMatrix.Create;
      mtx1.Assign(fRefMatrix1);
      mtx := fRefMatrix1.MultT2(mtx1);
@@ -429,6 +456,7 @@ begin
             mtx.Free;
             mtx1.Free;
      end;
+     {$IFDEF FMX} TearDown; {$ENDIF};
 end;
 
 
@@ -584,6 +612,7 @@ var mtx : TDoubleMatrix;
     dx : Array[0..49] of double;
     i : Integer;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
      // create reference
      for i := 0 to High(dx) do
          dx[i] := 1;
@@ -603,6 +632,7 @@ begin
      finally
             mtx.Free;
      end;
+     {$IFDEF FMX} TearDown; {$ENDIF};
 end;
 
 procedure TestTDoubleMatrix.TestSumInPlace;
@@ -684,6 +714,7 @@ end;
 procedure TestTDoubleMatrix.TestTranspose;
 var mtx : TDoubleMatrix;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
      mtx := TDoubleMatrix.Create;
      try
         mtx.Assign(fRefMatrix1);
@@ -698,6 +729,7 @@ begin
      finally
             mtx.Free;
      end;
+     {$IFDEF FMX} TearDown; {$ENDIF};
 end;
 
 procedure TestTDoubleMatrix.OnProgress(Progress: Integer);
@@ -758,6 +790,7 @@ begin
              fRefmatrix2[x, y] := Random;
 end;
 
+
 procedure TestTThreadedMatrix.TearDown;
 begin
      fRefMatrix1.Free;
@@ -771,6 +804,7 @@ var dest1, dest2 : IMatrix;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : Int64;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
      startTime1 := MtxGetTime;
      dest1 := fRefMatrix1.ElementwiseFunc({$IFDEF FPC}@{$ENDIF}ElemWiseSqr);
      endTime1 := MtxGetTime;
@@ -784,6 +818,7 @@ begin
      status(Format('%.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000]));
 
      Check(CheckMtx(dest1.SubMatrix, dest2.SubMatrix));
+     {$IFDEF FMX} TearDown; {$ENDIF};
 end;
 
 procedure TestTThreadedMatrix.TestCholesky;
@@ -791,22 +826,24 @@ var a, b, c : IMatrix;
     res : TCholeskyResult;
     startTime, endTime : Int64;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
      a := TThreadedMatrix.CreateRand(2047, 2047);
      b := a.Transpose;
      a.MultInPlace(b);
-     
+
      startTime := MtxGetTime;
      res := a.Cholesky(b);
      endTime := MtxGetTime;
 
      status(Format('Cholesky decomp of 2047x2047 matrix: %.2f', [(endTime - startTime)/mtxFreq*1000]));
-     
+
      check(res = crOk, 'Error cholesky decomposition failed');
 
      c := b.Transpose;
      b.MultInPlace(c);
 
      check( CheckMtx(a.SubMatrix, b.SubMatrix), 'Cholesky error L*LT does not result in the original matrix');
+     {$IFDEF FMX} TearDown; {$ENDIF};
 end;
 
 
@@ -819,6 +856,7 @@ var x : TDoubleDynArray;
     det, detThr : double;
     m1, m2 : IMatrix;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
      // big inversion
      SetLength(x, cBlkSize);
      RandSeed := 15;
@@ -844,6 +882,7 @@ begin
      // seems that the threaded version has a different error propagation than the single
      // threaded version so the difference is about 1e-10 (on that big matrix)
      Check(SameValue(det, detThr, Abs(det/1e10)), 'Error Determinatnts differ too much');
+     {$IFDEF FMX} TearDown; {$ENDIF};
 end;
 
 
@@ -855,6 +894,7 @@ var x : TDoubleDynArray;
     start, stop : Int64;
     m1, m2 : IMatrix;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
      // big inversion
      SetLength(x, cBlkSize);
      RandSeed := 15;
@@ -876,6 +916,7 @@ begin
      Status(Format('Big threaded inversion: %.2fms', [(stop - start)/mtxfreq*1000]));
 
      Check(CheckMtx(m1.SubMatrix, m2.SubMatrix), 'Error threaded inverion differs from original one');
+     {$IFDEF FMX} TearDown; {$ENDIF};
 end;
 
 procedure TestTThreadedMatrix.TestLeastSquares;
@@ -888,6 +929,7 @@ var x : TDoubleDynArray;
     y : IMatrix;
     x1, x2 : IMatrix;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
      // big inversion
      SetLength(x, cBlkSize);
      RandSeed := 15;
@@ -912,6 +954,7 @@ begin
 
      Check(CheckMtx(m1.SubMatrix, m2.SubMatrix), 'Error threaded inverion differs from original one');
      Check(CheckMtx(x1.SubMatrix, x2.SubMatrix), 'Error least squares result is different');
+     {$IFDEF FMX} TearDown; {$ENDIF};
 end;
 
 procedure TestTThreadedMatrix.TestMatrixSolve;
@@ -924,6 +967,7 @@ var a, x1, x2, b : TDoubleDynArray;
     m1, m2 : IMatrix;
     mb : IMatrix;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
      SetLength(a, cBlkSize);
      SetLength(b, 3*cBlkWidth);
      SetLength(x1, 3*cBlkWidth);
@@ -952,6 +996,7 @@ begin
 
      index := 0;
      Check(CheckMtxIdx(m1.SubMatrix, m2.SubMatrix, index), Format('error Lin equation solve. Error at x[%d] = %.5f, y[%d] = %.5f', [index, x1[index], index, x2[index]]));
+     {$IFDEF FMX} TearDown; {$ENDIF};
 end;
 
 procedure TestTThreadedMatrix.TestMedian;
@@ -962,6 +1007,7 @@ var a : TDoubleDynArray;
     start, stop : int64;
     m1, m2 : IMatrix;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
      SetLength(a, cBlkSize);
 
      RandSeed := 15;
@@ -981,6 +1027,7 @@ begin
      Status(Format('Multi Thr Median: %.2fms', [(stop - start)/mtxfreq*1000]));
 
      Check(CheckMtx(m1.SubMatrix, m2.SubMatrix), 'Error calculating threaded median');
+     {$IFDEF FMX} TearDown; {$ENDIF};
 end;
 
 procedure TestTThreadedMatrix.TestSort;
@@ -991,6 +1038,7 @@ var a : TDoubleDynArray;
     start, stop : int64;
     m1, m2 : IMatrix;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
      SetLength(a, cBlkSize);
 
      RandSeed := 15;
@@ -1024,6 +1072,7 @@ begin
      Status(Format('Multi Thr Sort: %.2fms', [(stop - start)/mtxfreq*1000]));
 
      Check(CheckMtx(m1.SubMatrix, m2.SubMatrix), 'Error calculating threaded sorted matrix');
+     {$IFDEF FMX} TearDown; {$ENDIF};
 end;
 
 
@@ -1038,6 +1087,7 @@ var a : TDoubleDynArray;
     u1, v1, w1 : IMatrix;
     u2, v2, w2 : IMatrix;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
      SetLength(a, cBlkSize);
 
      RandSeed := 15;
@@ -1065,6 +1115,7 @@ begin
      
      Check( CheckMtx( u1.SubMatrix, a ), 'Error non Threaded SVD');
      Check( CheckMtx( u2.SubMatrix, a ), 'Error threade SVD');
+     {$IFDEF FMX} TearDown; {$ENDIF};
 end;
 
 procedure TestTThreadedMatrix.TestThreadMult;
@@ -1073,6 +1124,7 @@ var dest1, dest2 : IMatrix;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : Int64;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
      startTime1 := MtxGetTime;
      dest1 := fRefMatrix1.Mult(fRefMatrix2);
      endTime1 := MtxGetTime;
@@ -1086,6 +1138,7 @@ begin
      status(Format('%.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000]));
 
      Check(CheckMtx(dest1.SubMatrix, dest2.SubMatrix));
+     {$IFDEF FMX} TearDown; {$ENDIF};
 end;
 
 { TestIMatrix }
@@ -1106,6 +1159,7 @@ procedure TestIMatrix.TesMedian;
 var mtx1 : IMatrix;
     mtx2 : IMatrix;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
      mtx1 := fRefMatrix1.Median(True);
 
      mtx2 := fRefmatrix1.Clone;
@@ -1113,6 +1167,7 @@ begin
      mtx2.MedianInPlace(False);
 
      Check( CheckMtx(mtx1.SubMatrix, mtx2.SubMatrix), 'Median failed');
+     {$IFDEF FMX}  TearDown; {$ENDIF};
 end;
 
 procedure TestIMatrix.TestAdd;
@@ -1120,6 +1175,7 @@ var mtx : IMatrix;
     dx : Array[0..49] of double;
     i : Integer;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
      // create reference
      for i := 0 to High(dx) do
          dx[i] := 3 + i*2;
@@ -1135,6 +1191,7 @@ begin
      mtx.ScaleInPlace(-1);
      mtx.AddInplace(fRefMatrix2);
      Check(CheckMtx(mtx.SubMatrix, dx), 'Add2 was wrong ' + WriteMtxDyn(mtx.SubMatrix, mtx.width));
+     {$IFDEF FMX} TearDown; {$ENDIF};
 end;
 
 procedure TestIMatrix.TestAssign;
@@ -1168,6 +1225,7 @@ var meanMtx : IMatrix;
     c1 : IMatrix;
     data : Array[0..99] of double;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
      meanMtx := fRefMatrix1.Mean(True);
 
      cov := TDoubleMatrix.Create;
@@ -1192,6 +1250,7 @@ begin
          data[i] := 2;
 
      Check(CheckMtx(data, cov.SubMatrix), 'Error wrong covariance');
+     {$IFDEF FMX} TearDown; {$ENDIF};
 end;
 
 
@@ -1274,9 +1333,11 @@ procedure TestIMatrix.TestMult;
 var mtx : IMatrix;
     mtx1 : IMatrix;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
      mtx1 := fRefMatrix2.Transpose;
      mtx := fRefMatrix1.Mult(mtx1);
      Check((mtx.width = mtx.height) and (mtx.width = 10), 'Mult Matrix dimension error');
+     {$IFDEF FMX} TearDown; {$ENDIF};
 end;
 
 procedure TestIMatrix.TestMult2;
@@ -1301,6 +1362,7 @@ var mtx : IMatrix;
     dx : Array[0..49] of double;
     i : Integer;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
      // create reference
      for i := 0 to High(dx) do
          dx[i] := 1;
@@ -1312,12 +1374,14 @@ begin
      mtx.Assign(fRefMatrix2);
      mtx.SubInplace(fRefMatrix1);
      Check(CheckMtx(mtx.SubMatrix, dx), 'sub2 was wrong: ' + WriteMtxDyn(mtx.SubMatrix, mtx.width));
+     {$IFDEF FMX} TearDown; {$ENDIF};
 end;
 
 
 procedure TestIMatrix.TestTranspose;
 var mtx : IMatrix;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF};
      mtx := TDoubleMatrix.Create;
      mtx.Assign(fRefMatrix1);
      mtx.TransposeInPlace;
@@ -1326,6 +1390,7 @@ begin
 
      mtx := fRefMatrix1.Transpose;
      Check((mtx.Width = 10) and (mtx.Height = 5), 'Dimension error');
+     {$IFDEF FMX} TearDown; {$ENDIF};
 end;
 
 
@@ -1433,9 +1498,11 @@ begin
 end;
 
 initialization
+{$IFNDEF FMX}
   RegisterTest(TestTDoubleMatrix{$IFNDEF FPC}.Suite{$ENDIF});
   RegisterTest(TestTDoubleMatrixPersistence{$IFNDEF FPC}.Suite{$ENDIF});
   RegisterTest(TestIMatrix{$IFNDEF FPC}.Suite{$ENDIF});
   RegisterTest(TestTThreadedMatrix{$IFNDEF FPC}.Suite{$ENDIF});
+{$ENDIF}
 
 end.

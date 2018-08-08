@@ -16,11 +16,16 @@ unit TestCorr;
 
 interface
 
+{$IFDEF MACOS}
+  {$DEFINE FMX}
+{$ENDIF}
+
 uses
-  {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF} ,
+  {$IFDEF FPC} testregistry {$ELSE} {$IFDEF FMX}DUnitX.TestFramework {$ELSE}TestFramework {$ENDIF} {$ENDIF} ,
   Classes, SysUtils, Types, Matrix, BaseMatrixTestCase;
 
 type
+  {$IFDEF FMX} [TestFixture] {$ENDIF}
   TestCorrelation = class(TBaseMatrixTestCase)
   published
     procedure TestCorrelation;
@@ -334,6 +339,8 @@ begin
 end;
 
 initialization
+{$IFNDEF FMX}
   RegisterTest(TestCorrelation{$IFNDEF FPC}.Suite{$ENDIF});
+{$ENDIF}
 
 end.

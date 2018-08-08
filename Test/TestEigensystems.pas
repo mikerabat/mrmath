@@ -17,10 +17,15 @@ unit TestEigensystems;
 
 interface
 
-uses {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF} ,
+{$IFDEF MACOS}
+  {$DEFINE FMX}
+{$ENDIF}
+
+uses {$IFDEF FPC} testregistry {$ELSE} {$IFDEF FMX}DUnitX.TestFramework {$ELSE}TestFramework {$ENDIF} {$ENDIF} ,
      Classes, SysUtils, BaseMatrixTestCase;
 
 type
+ {$IFDEF FMX} [TestFixture] {$ENDIF}
  TTestEigensystems = class(TBaseMatrixTestCase)
  published
   procedure TestTridiagonalHousholderMethod;
@@ -233,7 +238,9 @@ begin
 end;
 
 initialization
+{$IFNDEF FMX}
   // Alle Testfälle beim Test-Runner registrieren
   RegisterTest(TTestEigensystems{$IFNDEF FPC}.Suite{$ENDIF});
+{$ENDIF}
 
 end.

@@ -16,10 +16,15 @@ unit TestSimpleMatrixOperations;
 
 interface
 
-uses {$IFDEF FPC} testregistry {$ELSE} TestFramework {$ENDIF}
+{$IFDEF MACOS}
+   {$DEFINE FMX}
+{$ENDIF}
+
+uses {$IFDEF FPC} testregistry {$ELSE} {$IFDEF FMX}DUnitX.TestFramework {$ELSE}TestFramework {$ENDIF} {$ENDIF}
      , Classes, SysUtils, Types, SimpleMatrixOperations, Matrix, BaseMatrixTestCase;
 
 type
+  {$IFDEF FMX} [TestFixture] {$ENDIF}
   TestMatrixOperations = class(TBaseMatrixTestCase)
   published
    procedure TestAdd;
@@ -38,6 +43,7 @@ type
    procedure TestGamma;
   end;
 
+  {$IFDEF FMX} [TestFixture] {$ENDIF}
   TASMMatrixOperations = class(TBaseMatrixTestCase)
   public
     procedure SetUp; override;
@@ -104,6 +110,7 @@ type
     procedure TestDiagMtxMult1;
   end;
 
+  {$IFDEF FMX} [TestFixture] {$ENDIF}
   TASMatrixBlockSizeSetup = class(TBaseMatrixTestCase)
   published
     procedure TestSetupBestBlockSize;
@@ -1619,6 +1626,7 @@ var a : Array[0..cMtxWidth*cMtxWidth - 1] of double;
     counter: Integer;
     c1, c2, c3 : Array[0..cMtxWidth*cMtxWidth2-1] of double;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF}
      for counter := 0 to High(a) do
          a[counter] := counter;
      for counter := 0 to High(b) do
@@ -1630,6 +1638,7 @@ begin
 
      Check(CheckMtx(c3, c1), 'GenericBlockedMatrixMultiplicationT1 failed');
      Check(CheckMtx(c3, c2), 'ThrMatrixMultT1Ex failed');
+     {$IFDEF FMX} TearDown; {$ENDIF}
 end;
 
 procedure TASMMatrixOperations.TestThreadedMatrixMultT2;
@@ -1650,6 +1659,7 @@ var a : TDoubleDynArray;
 
     pA, pB : PConstDoubleArr;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF}
      SetLength(a, cMtxWidth*cMtxWidth2);
      SetLength(b, cMtxWidth*cMtxWidth2);
      SetLength(c1, cMtxWidth*cMtxWidth2);
@@ -1698,6 +1708,7 @@ begin
      FreeMem(ac1mem);
      FreeMem(ac2mem);
      FreeMem(ac3mem);
+     {$IFDEF FMX} TearDown; {$ENDIF}
 end;
 
 
@@ -1715,6 +1726,7 @@ const cMtxWidth = 5010;
       cMtxSize = (cMtxWidth)*cMtxHeight;
       cMtxLinewidth = (cMtxWidth)*sizeof(double);
 begin
+     {$IFDEF FMX} Setup; {$ENDIF}
      randomize;
      FillMatrix(cMtxSize, x, y, xa, ya);
      dest1 := Copy(x, 0, Length(x));
@@ -1751,6 +1763,7 @@ begin
      if not res then
         Status(IntToStr(idx));
      check(res);
+     {$IFDEF FMX} TearDown; {$ENDIF}
 end;
 
 procedure TASMMatrixOperations.TestThreadMatrixAddSub;
@@ -1769,6 +1782,7 @@ const cMtxWidth = 1000;
       cMtxSize = (cMtxWidth)*cMtxHeight;
       cMtxLinewidth = (cMtxWidth)*sizeof(double);
 begin
+     {$IFDEF FMX} Setup; {$ENDIF}
      randomize;
      FillMatrix(cMtxSize, x, y, xa, ya);
      SetLength(dest1, cMtxSize);
@@ -1804,6 +1818,8 @@ begin
      FreeMem(xa);
      FreeMem(ya);
      FreeMem(dest2a);
+
+     {$IFDEF FMX} TearDown; {$ENDIF}
 end;
 
 procedure TASMMatrixOperations.TestThreadMatrixMult;
@@ -1827,6 +1843,7 @@ const //cMtxWidth = 10*cCacheMtxSize;
       cMtxLinewidth = cMtxWidth*8;
       cMtxLineWidth2 = cMtxHeight*8;
 begin
+     {$IFDEF FMX} Setup; {$ENDIF}
      randomize;
      FillMatrix(cMtxSize, x, y, xa, ya);
      SetLength(dest1, cMtxHeight*cMtxHeight);
@@ -1899,6 +1916,8 @@ begin
      FreeMem(ya);
      FreeMem(dest2a);
      FreeMem(dest1a);
+
+     {$IFDEF FMX} TearDown; {$ENDIF}
 end;
 
 procedure TASMMatrixOperations.TestTransposeASSMOddWOddH;
@@ -2442,7 +2461,6 @@ const cMtxWidth = 2000;
       cMtxSize = cMtxWidth*cMtxHeight;
       cMtxLinewidth = cMtxWidth*sizeof(double);
 begin
-     //SetThreadAffinityMask(GetCurrentThread, 1);
      randomize;
      SetLength(x, cMtxSize);
      SetLength(dest1, cMtxSize);
@@ -2520,7 +2538,6 @@ const cMtxWidth = 2000;
       cMtxSize = cMtxWidth*cMtxHeight;
       cMtxLinewidth = cMtxWidth*sizeof(double);
 begin
-     //SetThreadAffinityMask(GetCurrentThread, 1);
      randomize;
      SetLength(x, cMtxSize);
      GetMem(xa, cMtxSize*sizeof(double));
@@ -2627,7 +2644,6 @@ const cMtxWidth = 2000;
       cMtxSize = cMtxWidth*cMtxHeight;
       cMtxLinewidth = cMtxWidth*sizeof(double);
 begin
-     //SetThreadAffinityMask(GetCurrentThread, 1);
      randomize;
      SetLength(x, cMtxSize);
      GetMem(xa, cMtxSize*sizeof(double));
@@ -2981,8 +2997,6 @@ const cMtxWidth = 2000;
       cMtxSize = cMtxWidth*cMtxHeight;
       cMtxLinewidth = cMtxWidth*sizeof(double);
 begin
-     //SetThreadAffinityMask(GetCurrentThread, 1);
-
      blk := AllocMem((16 + 8)*sizeof(double) + 16);
      m := blk;
      inc(PByte(m), 16 - TASMNativeUint(blk) and $F);
@@ -4159,8 +4173,10 @@ begin
 end;
 
 initialization
-  RegisterTest(TestMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});
-  RegisterTest(TASMMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});
-  RegisterTest(TASMatrixBlockSizeSetup{$IFNDEF FPC}.Suite{$ENDIF});
+{$IFNDEF FMX}
+  RegisterTestFixture(TestMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});
+  RegisterTestFixture(TASMMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});
+  RegisterTestFixture(TASMatrixBlockSizeSetup{$IFNDEF FPC}.Suite{$ENDIF});
+{$ENDIF}
 end.
 
