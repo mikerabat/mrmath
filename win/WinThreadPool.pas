@@ -42,7 +42,6 @@ type
   TWinMtxAsyncCall = class(TInterfacedObject, IMtxAsyncCall)
   private
     FEvent: THandle;
-    FReturnValue: Integer;
     FFinished: Boolean;
     FFatalException: Exception;
     FFatalErrorAddr: Pointer;
@@ -52,9 +51,9 @@ type
     fRecProc : TMtxRecProc;
 
     procedure InternExecuteAsyncCall;
-    procedure Quit(AReturnValue: Integer);
+    procedure Quit;
   protected
-    function ExecuteAsyncCall: Integer;
+    procedure ExecuteAsyncCall;
   public
     constructor Create(proc : TMtxProc; obj : TObject);
     constructor CreateRec(proc : TMtxRecProc; rec : Pointer);
@@ -62,9 +61,8 @@ type
     function _Release: Integer; stdcall;
     procedure ExecuteAsync;
 
-    function Sync: Integer;
+    procedure Sync;
     function Finished: Boolean;
-    function GetResult: Integer;
   end;
 
 type
@@ -389,43 +387,24 @@ begin
 end;
 
 procedure TWinMtxAsyncCall.InternExecuteAsyncCall;
-var Value: Integer;
 begin
-     Value := 0;
      assert(FFinished = False, 'Error finished may not be true');
      try
-        Value := ExecuteAsyncCall;
+        ExecuteAsyncCall;
      except
            FFatalErrorAddr := ErrorAddr;
            FFatalException := Exception(AcquireExceptionObject);
      end;
-     Quit(Value);
+     Quit;
 end;
 
-procedure TWinMtxAsyncCall.Quit(AReturnValue: Integer);
+procedure TWinMtxAsyncCall.Quit;
 begin
-     FReturnValue := AReturnValue;
      FFinished := True;
      SetEvent(FEvent);
 end;
 
-function TWinMtxAsyncCall.GetResult: Integer;
-var E: Exception;
-begin
-     if not Finished then
-        raise Exception.Create('IAsyncCall.ReturnValue');
-
-     Result := FReturnValue;
-
-     if FFatalException <> nil then
-     begin
-          E := FFatalException;
-          FFatalException := nil;
-          raise E at FFatalErrorAddr;
-     end;
-end;
-
-function TWinMtxAsyncCall.Sync: Integer;
+procedure TWinMtxAsyncCall.Sync;
 var E: Exception;
 begin
      if not Finished then
@@ -433,7 +412,6 @@ begin
           if WaitForSingleObject(FEvent, INFINITE) <> WAIT_OBJECT_0 then
              raise Exception.Create('IAsyncCall.Sync');
      end;
-     Result := FReturnValue;
 
      FEvent := 0;
      if FFatalException <> nil then
@@ -450,13 +428,13 @@ begin
      ThreadPool.AddAsyncCall(Self);
 end;
 
-function TWinMtxAsyncCall.ExecuteAsyncCall: Integer;
+procedure TWinMtxAsyncCall.ExecuteAsyncCall;
 begin
      if Assigned(fRec)
      then
-         Result := fRecProc(fRec)
+         fRecProc(fRec)
      else
-         Result := fProc(fData);
+         fProc(fData);
 end;
 
 

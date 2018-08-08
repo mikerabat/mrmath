@@ -599,16 +599,17 @@ end;
 // ###########################################
 
 type
-  TAsyncMatrixUSubst = class(TObject)
+  TAsyncMatrixUSubst = record
     A, B : PDouble;
     lineWidth : TASMNativeInt;
     width, height : TASMNativeInt;
 
     constructor Create(aA : PDouble; awidth, aheight : TASMNativeInt; aB : PDouble; const aLineWidth : TASMNativeInt);
   end;
+  PAsyncMatrixUSubst = ^TAsyncMatrixUSubst;
 
 type
-  TAsyncMatrixLUBacksup = class(TObject)
+  TAsyncMatrixLUBacksup = record
     A, B : PDouble;
     lineWidthA : TASMNativeInt;
     lineWidthB : TASMNativeInt;
@@ -616,19 +617,19 @@ type
     indx : PIntegerArray;
     offset : integer;
   end;
+  PAsyncMatrixLUBacksup = ^TAsyncMatrixLUBacksup;
 
-function MatrixLUBacksupFunc(obj : TObject) : integer;
+function MatrixLUBacksupFunc(obj : Pointer) : integer;
 begin
-     LUBacksup(TAsyncMatrixUSubst(obj).A, TAsyncMatrixUSubst(obj).width,
-               TAsyncMatrixUSubst(obj).height, TAsyncMatrixUSubst(obj).B,
-               TAsyncMatrixUSubst(obj).lineWidth);
+     LUBacksup(PAsyncMatrixUSubst(obj)^.A, PAsyncMatrixUSubst(obj)^.width,
+               PAsyncMatrixUSubst(obj)^.height, PAsyncMatrixUSubst(obj)^.B,
+               PAsyncMatrixUSubst(obj)^.lineWidth);
 
      Result := 0;
 end;
 
 procedure ThrMatrixUSubst(A : PDouble; width, height : integer; B : PDouble; const LineWidth : TASMNativeInt);
 var i: TASMNativeInt;
-    obj : TAsyncMatrixUSubst;
     calls : IMtxAsyncCallGroup;
     wSize : integer;
     thrSize : Integer;
@@ -647,8 +648,7 @@ begin
           if wSize*(i + 1) >= width then
              wSize := width - i*thrSize;
 
-          obj := TAsyncMatrixUSubst.Create(A, wSize, height, B, LineWidth);
-          objs[numUsed] := obj;
+          objs[numUsed].Create(A, wSize, height, B, LineWidth);
           inc(numUsed);
 
           if thrSize*(i + 1) >= width then
@@ -667,10 +667,9 @@ begin
         calls := MtxInitTaskGroup;
 
      for i := 0 to numUsed - 2 do
-         calls.AddTask(@MatrixLUBacksupFunc, objs[i]);
+         calls.AddTaskRec(@MatrixLUBacksupFunc, @objs[i]);
 
-     MatrixLUBacksupFunc(objs[numUsed - 1]);
-     objs[numUsed - 1].Free;
+     MatrixLUBacksupFunc(@objs[numUsed - 1]);
 
      if numUsed > 1 then
         calls.SyncAll;
@@ -809,31 +808,31 @@ begin
      FreeMem(mem);
 end;
 
-function MatrixLUInvertCall(obj : TObject) : integer;
+function MatrixLUInvertCall(obj : Pointer) : integer;
 var i, j : integer;
     pVal : PDouble;
     width, height : integer;
     col : PConstDoubleArr;
     ptrMem : Pointer;
 begin
-     width := TAsyncMatrixLUBacksup(obj).width;
-     height := TAsyncMatrixLUBacksup(obj).height;
+     width := PAsyncMatrixLUBacksup(obj)^.width;
+     height := PAsyncMatrixLUBacksup(obj)^.height;
      col := MtxMallocAlign(sizeof(double)*height, ptrMem);
 
      for j := 0 to width - 1 do
      begin
           FillChar(col^[0], height*sizeof(double), 0);
-          col^[j + TAsyncMatrixLUBacksup(obj).offset] := 1;
-          MatrixLUBackSubst(TAsyncMatrixLUBacksup(obj).A, TAsyncMatrixLUBacksup(obj).lineWidthA, height,
-                            TAsyncMatrixLUBacksup(obj).indx, PDouble(col), sizeof(double));
+          col^[j + PAsyncMatrixLUBacksup(obj)^.offset] := 1;
+          MatrixLUBackSubst(PAsyncMatrixLUBacksup(obj)^.A, PAsyncMatrixLUBacksup(obj)^.lineWidthA, height,
+                            PAsyncMatrixLUBacksup(obj)^.indx, PDouble(col), sizeof(double));
 
-          pVal := TAsyncMatrixLUBacksup(obj).B;
-          inc(pVal, TAsyncMatrixLUBacksup(obj).offset + j);
+          pVal := PAsyncMatrixLUBacksup(obj)^.B;
+          inc(pVal, PAsyncMatrixLUBacksup(obj)^.offset + j);
 
           for i := 0 to height - 1 do
           begin
                pVal^ := col^[i];
-               inc(PByte(pVal), TAsyncMatrixLUBacksup(obj).LineWidthB);
+               inc(PByte(pVal), PAsyncMatrixLUBacksup(obj)^.LineWidthB);
           end;
      end;
      FreeMem(ptrMem);
@@ -841,24 +840,22 @@ begin
      Result := 0;
 end;
 
-function MatrixLUBacksupCall(obj : TObject) : integer;
+procedure MatrixLUBacksupCall(obj : Pointer);
 var j : integer;
     pVal : PDouble;
     width, height : integer;
 begin
-     width := TAsyncMatrixLUBacksup(obj).width;
-     height := TAsyncMatrixLUBacksup(obj).height;
+     width := PAsyncMatrixLUBacksup(obj)^.width;
+     height := PAsyncMatrixLUBacksup(obj)^.height;
 
-     pVal := TAsyncMatrixLUBacksup(obj).B;
-     inc(pVal, TAsyncMatrixLUBacksup(obj).offset);
+     pVal := PAsyncMatrixLUBacksup(obj)^.B;
+     inc(pVal, PAsyncMatrixLUBacksup(obj)^.offset);
      for j := 0 to width - 1 do
      begin
-          MatrixLUBackSubst(TAsyncMatrixLUBacksup(obj).A, TAsyncMatrixLUBacksup(obj).lineWidthA, height,
-                            TAsyncMatrixLUBacksup(obj).indx, pVal, TAsyncMatrixLUBacksup(obj).LineWidthB);
+          MatrixLUBackSubst(PAsyncMatrixLUBacksup(obj)^.A, PAsyncMatrixLUBacksup(obj)^.lineWidthA, height,
+                            PAsyncMatrixLUBacksup(obj)^.indx, pVal, PAsyncMatrixLUBacksup(obj)^.LineWidthB);
           inc(pVal);
      end;
-
-     Result := 0;
 end;
 
 function ThrMatrixInverse(A : PDouble; const LineWidthA : TASMNativeInt; width : integer; progress : TLinEquProgress = nil) : TLinEquResult;
@@ -871,7 +868,6 @@ var Y : PDouble;
     objs : Array[0..63] of TAsyncMatrixLUBacksup;
     numUsed : integer;
     calls : IMtxAsyncCallGroup;
-    obj : TAsyncMatrixLUBacksup;
     ptrMem : Pointer;
     YLineWidth : TASMNativeInt;
 begin
@@ -908,17 +904,15 @@ begin
           if wSize*(i+1) > width then
              wSize := width - i*thrSize;
 
-          obj := TAsyncMatrixLUBacksup.Create;
-          obj.A := Y;
-          obj.lineWidthA := YLineWidth;
-          obj.width := Min(wSize, width);
-          obj.height := width;
-          obj.offset := i*thrSize;
-          obj.B := A;
-          obj.LineWidthB := LineWidthA;
-          obj.indx := @indx[0];
+          objs[numUsed].A := Y;
+          objs[numUsed].lineWidthA := YLineWidth;
+          objs[numUsed].width := Min(wSize, width);
+          objs[numUsed].height := width;
+          objs[numUsed].offset := i*thrSize;
+          objs[numUsed].B := A;
+          objs[numUsed].LineWidthB := LineWidthA;
+          objs[numUsed].indx := @indx[0];
 
-          objs[numUsed] := obj;
           inc(numUsed);
 
           if (i + 1)*thrSize >= width then
@@ -932,10 +926,9 @@ begin
         calls := MtxInitTaskGroup;
 
      for i := 0 to numUsed - 2 do
-         calls.AddTask(@MatrixLUInvertCall, objs[i]);
+         calls.AddTaskRec(@MatrixLUInvertCall, @objs[i]);
 
-     MatrixLUInvertCall(objs[numUsed - 1]);
-     objs[numUsed - 1].Free;
+     MatrixLUInvertCall(@objs[numUsed - 1]);
 
      if numUsed > 1 then
         calls.SyncAll;
@@ -1014,7 +1007,8 @@ var indx : Array of Integer;
     w : TASMNativeInt;
     thrSize : integer;
     wSize : integer;
-    obj : TAsyncMatrixLUBacksup;
+    objs : Array[0..63] of TAsyncMatrixLUBacksup;
+    numUsed : integer;
     calls : IMtxAsyncCallGroup;
     ptrMem : Pointer;
     LULineWidth : integer;
@@ -1053,7 +1047,10 @@ begin
      MatrixCopy(X, LineWidthX, B, LineWidthB, width2, width);
 
      // now distribute the computaions accross all cpu's
-     calls := MtxInitTaskGroup;
+     calls := nil;
+     if Min(thrSize, numCPUCores) > 1 then
+        calls := MtxInitTaskGroup;
+     numUsed := 0;
      
      for i := 0 to Min(thrSize, numCPUCores) - 1 do
      begin
@@ -1061,20 +1058,24 @@ begin
           if i = Min(thrSize, numCPUCores) - 1 then
              wSize := width2 - i*thrSize;
 
-          obj := TAsyncMatrixLUBacksup.Create;
-          obj.A := LUDecomp;
-          obj.lineWidthA := LULineWidth;
-          obj.width := wSize;
-          obj.height := width;
-          obj.offset := i*thrSize;
-          obj.B := X;
-          obj.LineWidthB := LineWidthX;
-          obj.indx := @indx[0];
-
-          calls.AddTask(@MatrixLUBacksupCall, obj);
+          objs[numUsed].A := LUDecomp;
+          objs[numUsed].lineWidthA := LULineWidth;
+          objs[numUsed].width := wSize;
+          objs[numUsed].height := width;
+          objs[numUsed].offset := i*thrSize;
+          objs[numUsed].B := X;
+          objs[numUsed].LineWidthB := LineWidthX;
+          objs[numUsed].indx := @indx[0];
+          inc(numUsed);
      end;
 
-     calls.SyncAll;
+     for i := 0 to numUsed - 2 do
+         calls.AddTaskRec(@MatrixLUBacksupCall, @objs[i]);
+
+     MatrixLUBacksupCall( @objs[numUsed - 1] );
+
+     if calls <> nil then
+        calls.SyncAll;
      calls := nil;
      
      // todo: thread this part too?

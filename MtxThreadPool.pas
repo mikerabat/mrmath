@@ -27,15 +27,14 @@ interface
 uses MatrixConst;
 
 type
-  TMtxProc = function(obj : TObject) : integer;
-  TMtxRecProc = function(rec : Pointer) : integer;
+  TMtxProc = procedure(obj : TObject);
+  TMtxRecProc = procedure(rec : Pointer);
 
 type
   IMtxAsyncCall = interface
    ['{B5263EB3-FFDE-4D66-B556-31D5E0D05BAC}']
-    function GetResult : integer;
     procedure ExecuteAsync;
-    function Sync: Integer;
+    procedure Sync;
   end;
   IMtxAsyncCallGroup = interface
    ['{11438431-7A6A-4FB9-B67A-58CE23E324DB}']

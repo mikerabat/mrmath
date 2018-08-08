@@ -49,7 +49,6 @@ function QueueUserWorkItem(func: TThreadStartRoutine; Context: Pointer; Flags: U
 type
   TSimpleWinMtxAsyncCall = class(TInterfacedObject, IMtxAsyncCall)
   private
-    fResult : integer;
     fProc : TMtxProc;
     fData : TObject;
     fRecProc : TMtxRecProc;
@@ -59,8 +58,7 @@ type
     procedure ExecuteProc;
   public
     procedure ExecuteAsync;
-    function Sync: Integer;
-    function GetResult : integer;
+    procedure Sync;
 
     constructor Create(proc : TMtxProc; obj : TObject);
     constructor CreateRec(proc : TMtxRecProc; rec : pointer);
@@ -192,20 +190,14 @@ procedure TSimpleWinMtxAsyncCall.ExecuteProc;
 begin
      if not Assigned(fData)
      then
-         fResult := fRecProc(fRec)
+         fRecProc(fRec)
      else
-         fResult := fProc(fData);
+         fProc(fData);
 end;
 
-function TSimpleWinMtxAsyncCall.GetResult: integer;
-begin
-     Result := fResult;
-end;
-
-function TSimpleWinMtxAsyncCall.Sync: Integer;
+procedure TSimpleWinMtxAsyncCall.Sync;
 begin
      fEvt.WaitFor(INFINITE);
-     Result := fResult;
 end;
 
 {$ENDIF}

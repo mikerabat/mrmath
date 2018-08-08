@@ -53,7 +53,6 @@ var macThrPool : dispatch_queue_t = IntPtr(nil);
 type
   TMacMtxAsyncCall = class(TInterfacedObject, IMtxAsyncCall)
   private
-    fResult : integer;
     fRecProc : TMtxRecProc;
     fRec : Pointer;
     fProc : TMtxProc;
@@ -63,8 +62,7 @@ type
     procedure ExecuteProc;
   public
     procedure ExecuteAsync;
-    function Sync: Integer;
-    function GetResult : integer;
+    procedure Sync;
 
     constructor Create(proc : TMtxProc; obj : TObject; group: dispatch_object_t);
     constructor CreateRec(proc : TMtxRecProc; rec : Pointer; group: dispatch_object_t);
@@ -133,7 +131,7 @@ end;
 procedure InitMacMtxThreadPool;
 begin
      //wrc Assert(not Assigned(macThrPool), 'Error: initialize pool twice. Call FinalizeMtxThreadPool first.');
-     if macThrPool = nil then
+     if macThrPool = dispatch_group_t(nil) then
         macThrPool := dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT,0);
 end;
 
@@ -192,20 +190,14 @@ procedure TMacMtxAsyncCall.ExecuteProc;
 begin
      if not Assigned(fData)
      then
-         fResult := fRecProc(fRec)
+         fRecProc(fRec)
      else
-         fResult := fProc(fData);
+         fProc(fData);
 end;
 
-function TMacMtxAsyncCall.GetResult: integer;
+procedure TMacMtxAsyncCall.Sync;
 begin
-     Result := fResult;
-end;
-
-function TMacMtxAsyncCall.Sync: Integer;
-begin
-     Result := 0;
-     // do nothing here...
+     // do nothing here... -> on the group objects syncall the waiting happens
 end;
 
 {$IFDEF FPC}

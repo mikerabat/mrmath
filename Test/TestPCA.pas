@@ -35,8 +35,9 @@ type
 implementation
 
 uses PCA,
-     {$IFDEF MACOS} FMX.Types, {$ENDIF}
-     Graphics, BinaryReaderWriter, BaseMathPersistence, IncrementalPCA,
+     {$IFDEF MACOS} FMX.Types, FMX.Graphics, {$ENDIF}   //wrc
+     {$IFDEF Windows} Graphics, {$ENDIF}
+     BinaryReaderWriter, BaseMathPersistence, IncrementalPCA,
      JSONReaderWriter, MtxTimer, ThreadedMatrix;
 
 { TTestEigensystems }

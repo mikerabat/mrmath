@@ -41,7 +41,6 @@ type
   TLinuxMtxAsyncCall = class(TInterfacedObject, IMtxAsyncCall)
   private
     FEvent: TEvent;
-    FReturnValue: Integer;
     FFinished: Boolean;
     FFatalException: Exception;
     FFatalErrorAddr: Pointer;
@@ -51,11 +50,11 @@ type
     fRec : Pointer;
     FForceDifferentThread: Boolean;
     procedure InternExecuteAsyncCall;
-    procedure Quit(AReturnValue: Integer);
+    procedure Quit;
   protected
     { Decendants must implement this method. It is called  when the async call
       should be executed. }
-    function ExecuteAsyncCall: Integer;
+    procedure ExecuteAsyncCall;
   public
     constructor Create(proc : TMtxProc; obj : TObject);
     constructor CreateRec(proc : TMtxRecProc; rec : pointer);
@@ -66,9 +65,8 @@ type
 
     function GetEvent: TEvent;
 
-    function Sync: Integer;
-    function Finished: Boolean;
-    function GetResult: Integer;
+    procedure Sync;
+    function Finished : Boolean;
     procedure ForceDifferentThread;
   end;
 
@@ -375,43 +373,24 @@ begin
 end;
 
 procedure TLinuxMtxAsyncCall.InternExecuteAsyncCall;
-var Value: Integer;
 begin
-     Value := 0;
      assert(FFinished = False, 'Error finished may not be true');
      try
-        Value := ExecuteAsyncCall;
+        ExecuteAsyncCall;
      except
            FFatalErrorAddr := ErrorAddr;
            FFatalException := Exception(AcquireExceptionObject);
      end;
-     Quit(Value);
+     Quit;
 end;
 
-procedure TLinuxMtxAsyncCall.Quit(AReturnValue: Integer);
+procedure TLinuxMtxAsyncCall.Quit;
 begin
-     FReturnValue := AReturnValue;
      FFinished := True;
      fEvent.SetEvent;
 end;
 
-function TLinuxMtxAsyncCall.GetResult: Integer;
-var E: Exception;
-begin
-     if not Finished then
-        raise Exception.Create('IAsyncCall.ReturnValue');
-
-     Result := FReturnValue;
-
-     if FFatalException <> nil then
-     begin
-          E := FFatalException;
-          FFatalException := nil;
-          raise E at FFatalErrorAddr;
-     end;
-end;
-
-function TLinuxMtxAsyncCall.Sync: Integer;
+procedure TLinuxMtxAsyncCall.Sync;
 var E: Exception;
 begin
      if not Finished then
@@ -419,7 +398,6 @@ begin
           if fEvent.WaitFor(INFINITE) <> wrSignaled  then
              raise Exception.Create('IAsyncCall.Sync');
      end;
-     Result := FReturnValue;
 
      if FFatalException <> nil then
      begin
@@ -435,13 +413,13 @@ begin
      ThreadPool.AddAsyncCall(Self);
 end;
 
-function TLinuxMtxAsyncCall.ExecuteAsyncCall: Integer;
+procedure TLinuxMtxAsyncCall.ExecuteAsyncCall;
 begin
      if not Assigned(fData)
      then
-         Result := fRecProc(fRec)
+         fRecProc(fRec)
      else
-         Result := fProc(fData);
+         fProc(fData);
 end;
 
 initialization

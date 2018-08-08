@@ -110,8 +110,7 @@ begin
         //iters2 := -(width1 div 2)*2*sizeof(double);
         mov edx, width1;
         and edx, $FFFFFFFE;
-        shl edx, 3;
-        imul edx, -1;
+        imul edx, -8;
         mov iters2, edx;
 
         //bytesWidth2 := width2*sizeof(double);

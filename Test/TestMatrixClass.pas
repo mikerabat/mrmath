@@ -114,7 +114,11 @@ type
 implementation
 
 uses BaseMathPersistence, binaryReaderWriter,
-     math, MatrixConst, mtxTimer, Dialogs, MathUtilFunc, RandomEng,
+     math, MatrixConst, mtxTimer,
+     {$IFNDEF MACOS}
+     Dialogs,
+     {$ENDIF}
+     MathUtilFunc, RandomEng,
      JSONReaderWriter, OptimizedFuncs;
 
 { TestTDoubleMatrix }

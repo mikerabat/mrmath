@@ -2440,7 +2440,7 @@ end;
 
 // for matrix rotation and rotation update
 type
-  TMatrixRotateObj = class(TObject)
+  TMatrixRotateRec = record
     u : PDouble;
     LineWidthU : TASMNativeInt;
     vt : PDouble;
@@ -2462,8 +2462,9 @@ type
                               aw1, aw2,
                               aw3, aw4 : PConstDoubleArr); overload;
   end;
+  PMatrixRotateRec = ^TMatrixRotateRec;
 
-constructor TMatrixRotateObj.CreateRot(aU : PDouble; const aLineWidthU : TASMNativeInt;
+constructor TMatrixRotateRec.CreateRot(aU : PDouble; const aLineWidthU : TASMNativeInt;
                        aVt : PDouble; const aLineWidthVT : TASMNativeInt;
                        am, anru, ancvt : TASMNativeInt; const acosl, asinl, acosr, asinr : double);
 begin
@@ -2481,7 +2482,7 @@ begin
      sinr := asinr;
 end;
 
-constructor TMatrixRotateObj.Create(aU : PDouble; const aLineWidthU : TASMNativeInt;
+constructor TMatrixRotateRec.Create(aU : PDouble; const aLineWidthU : TASMNativeInt;
                                     aVt : PDouble; const aLineWidthVT : TASMNativeInt;
                                     aNM, anru, ancvt : TASMNativeInt;
                                     aw1, aw2,
@@ -2500,67 +2501,57 @@ begin
      w4 := aW4;
 end;
 
-function ThrApplyPlaneRotSeqLVB(obj : TObject) : integer;
+procedure ThrApplyPlaneRotSeqLVB(obj : Pointer);
 begin
-     if TMatrixRotateObj(obj).ncvt > 0 then
-        ApplyPlaneRotSeqLVB(TMatrixRotateObj(obj).ncvt, TMatrixRotateObj(obj).mm,
-                  TMatrixRotateObj(obj).vt, TMatrixRotateObj(obj).LineWidthVT,
-                  TMatrixRotateObj(obj).w1, TMatrixRotateObj(obj).w2);
-
-     Result := 0;
+     if PMatrixRotateRec(obj)^.ncvt > 0 then
+        ApplyPlaneRotSeqLVB(PMatrixRotateRec(obj)^.ncvt, PMatrixRotateRec(obj)^.mm,
+                  PMatrixRotateRec(obj)^.vt, PMatrixRotateRec(obj)^.LineWidthVT,
+                  PMatrixRotateRec(obj)^.w1, PMatrixRotateRec(obj)^.w2);
 end;
 
-function ThrApplyPlaneRotSeqRVB(obj : TObject) : integer;
+procedure ThrApplyPlaneRotSeqRVB(obj : Pointer);
 begin
-     if TMatrixRotateObj(obj).nru > 0 then
-        ApplyPlaneRotSeqRVB(TMatrixRotateObj(obj).mm, TMatrixRotateObj(obj).nru, TMatrixRotateObj(obj).U,
-                  TMatrixRotateObj(obj).LineWidthU,
-                  TMatrixRotateObj(obj).w3, TMatrixRotateObj(obj).w4);
-
-     Result := 0;
+     if PMatrixRotateRec(obj)^.nru > 0 then
+        ApplyPlaneRotSeqRVB(PMatrixRotateRec(obj)^.mm, PMatrixRotateRec(obj)^.nru, PMatrixRotateRec(obj)^.U,
+                  PMatrixRotateRec(obj)^.LineWidthU,
+                  PMatrixRotateRec(obj)^.w3, PMatrixRotateRec(obj)^.w4);
 end;
 
-function ThrApplyPlaneRotSeqLVF(obj : TObject) : integer;
+procedure ThrApplyPlaneRotSeqLVF(obj : Pointer);
 begin
-     if TMatrixRotateObj(obj).ncvt > 0 then
-        ApplyPlaneRotSeqLVF(TMatrixRotateObj(obj).ncvt, TMatrixRotateObj(obj).mm,
-                  TMatrixRotateObj(obj).vt, TMatrixRotateObj(obj).LineWidthVT,
-                  TMatrixRotateObj(obj).w1, TMatrixRotateObj(obj).w2);
-
-     Result := 0;
+     if PMatrixRotateRec(obj)^.ncvt > 0 then
+        ApplyPlaneRotSeqLVF(PMatrixRotateRec(obj)^.ncvt, PMatrixRotateRec(obj)^.mm,
+                  PMatrixRotateRec(obj)^.vt, PMatrixRotateRec(obj)^.LineWidthVT,
+                  PMatrixRotateRec(obj)^.w1, PMatrixRotateRec(obj)^.w2);
 end;
 
-function ThrApplyPlaneRotSeqRVF(obj : TObject) : integer;
+procedure ThrApplyPlaneRotSeqRVF(obj : Pointer);
 begin
-     if TMatrixRotateObj(obj).nru > 0 then
-        ApplyPlaneRotSeqRVF(TMatrixRotateObj(obj).mm, TMatrixRotateObj(obj).nru,
-                  TMatrixRotateObj(obj).U, TMatrixRotateObj(obj).LineWidthU,
-                  TMatrixRotateObj(obj).w3, TMatrixRotateObj(obj).w4);
-
-     Result := 0;
+     if PMatrixRotateRec(obj)^.nru > 0 then
+        ApplyPlaneRotSeqRVF(PMatrixRotateRec(obj)^.mm, PMatrixRotateRec(obj)^.nru,
+                  PMatrixRotateRec(obj)^.U, PMatrixRotateRec(obj)^.LineWidthU,
+                  PMatrixRotateRec(obj)^.w3, PMatrixRotateRec(obj)^.w4);
 end;
 
-function ThrRot_VT(obj : TObject) : integer;
+procedure ThrRot_VT(obj : Pointer);
 begin
-     if TMatrixRotateObj(obj).ncvt > 0 then
-        MatrixRotate(TMatrixRotateObj(obj).ncvt, GenPtr(TMatrixRotateObj(obj).vt, 0, TMatrixRotateObj(obj).mm - 1, TMatrixRotateObj(obj).LineWidthVT), sizeof(double),
-             GenPtr(TMatrixRotateObj(obj).vt, 0, TMatrixRotateObj(obj).mm, TMatrixRotateObj(obj).LineWidthVT),
-             sizeof(double), TMatrixRotateObj(obj).cosr, TMatrixRotateObj(obj).sinr);
-
-     Result := 0;
+     if PMatrixRotateRec(obj)^.ncvt > 0 then
+        MatrixRotate(PMatrixRotateRec(obj)^.ncvt, GenPtr(PMatrixRotateRec(obj)^.vt, 0, PMatrixRotateRec(obj)^.mm - 1, PMatrixRotateRec(obj)^.LineWidthVT), sizeof(double),
+             GenPtr(PMatrixRotateRec(obj)^.vt, 0, PMatrixRotateRec(obj)^.mm, PMatrixRotateRec(obj)^.LineWidthVT),
+             sizeof(double), PMatrixRotateRec(obj)^.cosr, PMatrixRotateRec(obj)^.sinr);
 end;
 
 procedure ThrMatrixRotate(u : PDouble; const LineWidthU : TASMNativeInt;
                        vt : PDouble; const LineWidthVT : TASMNativeInt;
                        m, nru, ncvt : TASMNativeInt; const cosl, sinl, cosr, sinr : double);
-var obj : TMatrixRotateObj;
+var obj : TMatrixRotateRec;
     calls : IMtxAsyncCallGroup;
 begin
-     obj := TMatrixRotateObj.CreateRot(U, LineWidthU, Vt, LineWidthVT,
-                                   m, nru, ncvt, cosl, sinl, cosr, sinr);
+     obj.CreateRot(U, LineWidthU, Vt, LineWidthVT,
+                   m, nru, ncvt, cosl, sinl, cosr, sinr);
 
      calls := MtxInitTaskGroup;
-     calls.AddTask({$IFDEF FPC}@{$ENDIF}ThrRot_VT, obj);
+     calls.AddTaskRec({$IFDEF FPC}@{$ENDIF}ThrRot_VT, @obj);
      if NRU > 0 then
         MatrixRotate(nru, GenPtr(u, m - 1, 0, LineWidthU), LineWidthU, GenPtr(u, m, 0, LineWidthU), LineWidthU, cosl, sinl);
      calls.SyncAll;
@@ -2572,8 +2563,8 @@ procedure ThrMatrixRotateUpdB(aU : PDouble; const aLineWidthU : TASMNativeInt;
                               aNM, anru, ancvt : TASMNativeInt;
                               aw1, aw2,
                               aw3, aw4 : PConstDoubleArr);
-var obj : TMatrixRotateObj;
-    objs : Array[0..63] of TMatrixRotateObj;
+var obj : TMatrixRotateRec;
+    objs : Array[0..63] of TMatrixRotateRec;
     numUsed : integer;
     calls : IMtxAsyncCallGroup;
     counter: TASMNativeInt;
@@ -2588,36 +2579,32 @@ begin
      // check if threading is speeding up the process
      if (numUsed < 2) or (aNM < 4*numUsed) then
      begin
-          obj := TMatrixRotateObj.Create(aU, aLineWidthU, aVt, aLineWidthVT,
-                                   aNM, anru, ancvt, aw1, aw2, aw3, aw4);
+          obj.Create(aU, aLineWidthU, aVt, aLineWidthVT,
+                     aNM, anru, ancvt, aw1, aw2, aw3, aw4);
 
-          ThrApplyPlaneRotSeqLVF(obj);
-          ThrApplyPlaneRotSeqRVF(obj);
-          obj.Free;
+          ThrApplyPlaneRotSeqLVF(@obj);
+          ThrApplyPlaneRotSeqRVF(@obj);
           exit;
      end;
 
      numNRU := anru div numUsed;
      for counter := 0 to numUsed - 1 do
      begin
-          obj := TMatrixRotateObj.Create(aU, aLineWidthU, aVt, aLineWidthVT,
-                                   aNM, numNRU, ancvt, aw1, aw2, aw3, aw4);
-          obj.u := GenPtr(aU, 0, counter*numNRU, aLineWidthU);
-          objs[counter] := obj;
+          objs[counter].Create(aU, aLineWidthU, aVt, aLineWidthVT,
+                               aNM, numNRU, ancvt, aw1, aw2, aw3, aw4);
+          objs[counter].u := GenPtr(aU, 0, counter*numNRU, aLineWidthU);
      end;
 
      objs[numUsed - 1].nru := anru - (numUsed - 1)*numNRU;
-     obj := TMatrixRotateObj.Create(aU, aLineWidthU, aVt, aLineWidthVT,
-                                   aNM, aNru, ancvt, aw1, aw2, aw3, aw4);
+     obj.Create(aU, aLineWidthU, aVt, aLineWidthVT,
+                aNM, aNru, ancvt, aw1, aw2, aw3, aw4);
 
      calls := MtxInitTaskGroup;
-     calls.AddTask({$IFDEF FPC}@{$ENDIF}ThrApplyPlaneRotSeqLVB, obj);
+     calls.AddTaskRec({$IFDEF FPC}@{$ENDIF}ThrApplyPlaneRotSeqLVB, @obj);
      for counter := 0 to numUsed - 2 do
-         calls.AddTask({$IFDEF FPC}@{$ENDIF}ThrApplyPlaneRotSeqRVB, objs[counter]);
-     ThrApplyPlaneRotSeqRVB(objs[numUsed - 1]);
+         calls.AddTaskRec({$IFDEF FPC}@{$ENDIF}ThrApplyPlaneRotSeqRVB, @objs[counter]);
+     ThrApplyPlaneRotSeqRVB(@objs[numUsed - 1]);
      calls.SyncAll;
-
-     objs[numUsed - 1].Free;
 end;
 
 procedure ThrMatrixRotateUpdF(aU : PDouble; const aLineWidthU : TASMNativeInt;
@@ -2625,8 +2612,8 @@ procedure ThrMatrixRotateUpdF(aU : PDouble; const aLineWidthU : TASMNativeInt;
                               aNM, anru, ancvt : TASMNativeInt;
                               aw1, aw2,
                               aw3, aw4 : PConstDoubleArr);
-var obj : TMatrixRotateObj;
-    objs : Array[0..63] of TMatrixRotateObj;
+var obj : TMatrixRotateRec;
+    objs : Array[0..63] of TMatrixRotateRec;
     numUsed : integer;
     calls : IMtxAsyncCallGroup;
     counter: TASMNativeInt;
@@ -2641,36 +2628,32 @@ begin
      // check if threading is speeding up the process
      if (numUsed < 2) or (aNM < 4*numUsed) then
      begin
-          obj := TMatrixRotateObj.Create(aU, aLineWidthU, aVt, aLineWidthVT,
+          obj := TMatrixRotateRec.Create(aU, aLineWidthU, aVt, aLineWidthVT,
                                    aNM, anru, ancvt, aw1, aw2, aw3, aw4);
 
-          ThrApplyPlaneRotSeqLVF(obj);
-          ThrApplyPlaneRotSeqRVF(obj);
-          obj.Free;
+          ThrApplyPlaneRotSeqLVF(@obj);
+          ThrApplyPlaneRotSeqRVF(@obj);
           exit;
      end;
 
      numNRU := anru div numUsed;
      for counter := 0 to numUsed - 1 do
      begin
-          obj := TMatrixRotateObj.Create(aU, aLineWidthU, aVt, aLineWidthVT,
-                                   aNM, numNRU, ancvt, aw1, aw2, aw3, aw4);
-          obj.u := GenPtr(aU, 0, counter*numNRU, aLineWidthU);
-          objs[counter] := obj;
+          objs[counter].Create(aU, aLineWidthU, aVt, aLineWidthVT,
+                               aNM, numNRU, ancvt, aw1, aw2, aw3, aw4);
+          objs[counter].u := GenPtr(aU, 0, counter*numNRU, aLineWidthU);
      end;
 
      objs[numUsed - 1].nru := anru - (numUsed - 1)*numNRU;
-     obj := TMatrixRotateObj.Create(aU, aLineWidthU, aVt, aLineWidthVT,
-                                   aNM, aNru, ancvt, aw1, aw2, aw3, aw4);
+     obj.Create(aU, aLineWidthU, aVt, aLineWidthVT,
+                aNM, aNru, ancvt, aw1, aw2, aw3, aw4);
 
      calls := MtxInitTaskGroup;
-     calls.AddTask({$IFDEF FPC}@{$ENDIF}ThrApplyPlaneRotSeqLVF, obj);
+     calls.AddTaskRec({$IFDEF FPC}@{$ENDIF}ThrApplyPlaneRotSeqLVF, @obj);
      for counter := 0 to numUsed - 2 do
-         calls.AddTask({$IFDEF FPC}@{$ENDIF}ThrApplyPlaneRotSeqRVF, objs[counter]);
-     ThrApplyPlaneRotSeqRVF(objs[numUsed - 1]);
+         calls.AddTaskRec({$IFDEF FPC}@{$ENDIF}ThrApplyPlaneRotSeqRVF, @objs[counter]);
+     ThrApplyPlaneRotSeqRVF(@objs[numUsed - 1]);
      calls.SyncAll;
-
-     objs[numUsed - 1].Free;
 end;
 
 

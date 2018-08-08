@@ -18,7 +18,12 @@ unit BaseMatrixTestCase;
 interface
 
 uses
-  {$IFNDEF FPC} Windows, TestFramework,
+
+  {$IFNDEF FPC}
+  {$IFDEF MSWINDOWS} //wrc
+  Windows,
+  {$ENDIF}     //wrc
+  TestFramework,
   {$ELSE}
   fpcunit, testregistry,
   {$IFDEF MSWINDOWS} Windows, {$ELSE} lcltype, {$ENDIF}
@@ -66,8 +71,12 @@ type
 
 implementation
 
-uses Graphics, {$IFNDEF FPC} JPEG, {$ENDIF} Math;
+uses {$IFDEF MACOS}
+ System.UIConsts, System.UITypes, FMX.Graphics, FMX.utils, FMX.Types,  Math;
+ {$ELSE}
 
+ Graphics, {$IFNDEF FPC} JPEG, {$ENDIF} Math;
+ {$ENDIF}
 { TBaseMatrixTestCase }
 
 {$IFDEF FPC}
@@ -415,7 +424,7 @@ begin
      end;
 end;
 
-
+{$IFNDEF MACOS}
 procedure TBaseImgTestCase.ImageFromMatrix(img: TDoubleMatrix; w, h : integer;
   const FileName: string);
 var bmp : TBitmap;
@@ -451,8 +460,55 @@ begin
             bmp.Free;
      end;
 end;
+{$ENDIF}
+{$IFDEF MACOS}
+procedure TBaseImgTestCase.ImageFromMatrix(img: TDoubleMatrix; w, h : integer;
+  const FileName: string);
+var bmp : TBitmap;
+    x, y : integer;
+    idx : integer;
+    //pScanLine : PRGBQUAD;
+    Color :  TAlphaColor;
+    bd1 : TBitMapData;
+    p1 : PAlphaColorArray;
+begin
+     // create an image from the reconstructed matrix
+     bmp := TBitmap.Create;
+     try
+        bmp.Width := W;
+        bmp.Height := H;
+        //bmp.PixelFormat := pf32bit;
+       // bmp.PixelFormat := RGBA32F;
+        bmp.Map(TMapAccess.ReadWrite, bd1);
+        idx := 0;
+        for y := 0 to bmp.Height - 1 do
+        begin
 
 
+             //pScanLine := bmp.ScanLine[y];
+             p1 := PAlphaColorArray(bd1.GetScanline(y));
+             for x := 0 to bmp.Width - 1 do
+             begin
+
+                  TAlphaColorRec(Color).B := Max(0, Min(255, Round(img[0, idx])));
+                  TAlphaColorRec(Color).R := TAlphaColorRec(Color).B;
+                  TAlphaColorRec(Color).G := TAlphaColorRec(Color).B;
+                  p1[x] := Color;
+                //   Result[imgNum, idx] := Round(TAlphaColorRec(PixelToAlphaColor(@p1,img.PixelFormat)).B*0.1140 + TAlphaColorRec(PixelToAlphaColor(@p1,img.pixelformat)).R*0.2989 + TAlphaColorRec(PixelToAlphaColor(@p1,img.Pixelformat)).G*0.5870);
+                  inc(p1);
+                  inc(idx);
+             end;
+        end;
+
+        bmp.SaveToFile(FileName);
+     finally
+            bmp.Unmap(bd1);
+            bmp.Free;
+     end;
+end;
+{$ENDIF}
+
+{$IFNDEF MACOS}
 function TBaseImgTestCase.LoadImages(out w, h : integer; path : string = 'Images'; ext : string = '*.jpg' ): TDoubleMatrix;
 var imgNum : integer;
     img : TPicture;
@@ -533,8 +589,100 @@ begin
      end;
      sl.Free;
 end;
+{$ENDIF}
+{$IFDEF MACOS}
+function TBaseImgTestCase.LoadImages(out w, h : integer; path : string = 'Images'; ext : string = '*.jpg' ): TDoubleMatrix;
+var imgNum : integer;
+    img : TBitmap;
+   // bmp : TBitmap;
+    sr : TSearchRec;
+    bd1 : TBitMapData;
+    p1 : PAlphaColorArray;
+    //pScanLine : PRGBQUAD;
+    idx : integer;
+    x, y : integer;
+    numImg : integer;
+    sl : TStringList;
+    i : integer;
+    basePath : string;
+begin
+     // load a bunch of images and calculate a PCA. Note the images
+     Result := nil;
+     imgNum := 0;
+     w := 0;
+     h := 0;
+     basePath := BaseDataPath;
 
+     path := IncludeTrailingPathDelimiter(basePath + path);
+    // path := IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter( ExtractFilePath(ParamStr(0)) ) + path);
+   // path :=  '/Users/williamcantrall/PAServer/scratch-dir/William Cantrall-OSX Sierra/' + path + '/';
+     sl := TStringList.Create;
 
+     numImg := 0;
+     if FindFirst(Path + ext, 0, sr) = 0 then
+     begin
+          repeat
+                sl.Add( Path + sr.Name );
+                inc(numImg);
+          until FindNext(sr) <> 0;
+     end;
+
+     FindClose(sr);
+
+     sl.Sort;
+
+     for i := 0 to sl.Count - 1 do
+     begin
+          //img := TPicture.Create;
+           img := TBitMap.Create;
+          try
+             img.LoadFromFile(sl[i]);
+
+            // bmp := TBitmap.Create;
+
+            // try
+                //bmp.SetSize(img.Width, img.Height);
+                //bmp.PixelFormat := pf32bit;
+               // bmp.PixelFormat := img.PixelFormat;
+                //bmp.Canvas.Draw(0, 0, img.Graphic);
+                 // bmp.Canvas.BeginScene;
+  // draws on the rectangle specified by MyRect the area from MyBitmap specified by MyRect
+ // bmp.Canvas.DrawBitmap(img, MyRect, MyRect, 20);
+ // Image1.Bitmap.Canvas.EndScene;
+                if not Assigned(Result) then
+                begin
+                     w := img.Width;
+                     h := img.Height;
+                     Result := TDoubleMatrix.Create(numImg,img.Width*img.Height);
+                end;
+                img.Map(TMapAccess.Read, bd1);
+                // create matrix from image
+                idx := 0;
+                for y := 0 to img.Height - 1 do
+                begin
+                    // pScanLine := bmp.bitmapdata.ScanLine[y];
+                     p1 := PAlphaColorArray(bd1.GetScanline(y));
+                     for x := 0 to img.Width - 1 do
+                     begin
+                          //Result[imgNum, idx] := Round(pScanline^.rgbBlue*0.1140 + pScanline^.rgbRed*0.2989 + pScanline^.rgbGreen*0.5870);
+                          Result[imgNum, idx] := Round(TAlphaColorRec(PixelToAlphaColor(@p1,img.PixelFormat)).B*0.1140 + TAlphaColorRec(PixelToAlphaColor(@p1,img.pixelformat)).R*0.2989 + TAlphaColorRec(PixelToAlphaColor(@p1,img.Pixelformat)).G*0.5870);
+                          inc(p1);
+                          inc(idx);
+                     end;
+                end;
+                img.Unmap(bd1);
+                inc(imgNum);
+            // finally
+                   // bmp.Free;
+            // end;
+          finally
+
+                 img.Free;
+          end;
+     end;
+     sl.Free;
+end;
+{$ENDIF}
 function TBaseMatrixTestCase.WriteMtx(mtx: TDoubleMatrix;
   prec: integer): string;
 begin
