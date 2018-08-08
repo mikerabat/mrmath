@@ -16,6 +16,8 @@ unit LinAlgLU;
 
 interface
 
+{$IFDEF FPC} {$MODESWITCH ADVANCEDRECORDS} {$ENDIF}
+
 uses MatrixConst;
 
 // interface functions (used in different parts - don't call them directly)
@@ -600,11 +602,12 @@ end;
 
 type
   TAsyncMatrixUSubst = record
+  public
     A, B : PDouble;
     lineWidth : TASMNativeInt;
     width, height : TASMNativeInt;
 
-    constructor Create(aA : PDouble; awidth, aheight : TASMNativeInt; aB : PDouble; const aLineWidth : TASMNativeInt);
+    procedure Create(aA : PDouble; awidth, aheight : TASMNativeInt; aB : PDouble; const aLineWidth : TASMNativeInt);
   end;
   PAsyncMatrixUSubst = ^TAsyncMatrixUSubst;
 
@@ -619,13 +622,11 @@ type
   end;
   PAsyncMatrixLUBacksup = ^TAsyncMatrixLUBacksup;
 
-function MatrixLUBacksupFunc(obj : Pointer) : integer;
+procedure MatrixLUBacksupFunc(obj : Pointer);
 begin
      LUBacksup(PAsyncMatrixUSubst(obj)^.A, PAsyncMatrixUSubst(obj)^.width,
                PAsyncMatrixUSubst(obj)^.height, PAsyncMatrixUSubst(obj)^.B,
                PAsyncMatrixUSubst(obj)^.lineWidth);
-
-     Result := 0;
 end;
 
 procedure ThrMatrixUSubst(A : PDouble; width, height : integer; B : PDouble; const LineWidth : TASMNativeInt);
@@ -808,7 +809,7 @@ begin
      FreeMem(mem);
 end;
 
-function MatrixLUInvertCall(obj : Pointer) : integer;
+procedure MatrixLUInvertCall(obj : Pointer);
 var i, j : integer;
     pVal : PDouble;
     width, height : integer;
@@ -836,8 +837,6 @@ begin
           end;
      end;
      FreeMem(ptrMem);
-
-     Result := 0;
 end;
 
 procedure MatrixLUBacksupCall(obj : Pointer);
@@ -1135,7 +1134,7 @@ end;
 
 { TAsyncMatrixLUBacksupobj }
 
-constructor TAsyncMatrixUSubst.Create(aA: PDouble;
+procedure TAsyncMatrixUSubst.Create(aA: PDouble;
   awidth, aheight: TASMNativeInt; aB: PDouble;
   const aLineWidth: TASMNativeInt);
 begin

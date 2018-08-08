@@ -187,47 +187,43 @@ type
   end;
   PAsyncMatrixFuncRefObjRec = ^TAsyncMatrixFuncRefObjRec;
 
-function MatrixFuncFunc(obj : Pointer) : integer;
+procedure MatrixFuncFunc(obj : Pointer);
 begin
      MatrixFunc(PAsyncMatrixFuncRec(obj)^.dest,
                 PAsyncMatrixFuncRec(obj)^.destLineWidth,
                 PAsyncMatrixFuncRec(obj)^.width,
                 PAsyncMatrixFuncRec(obj)^.height,
                 PAsyncMatrixFuncRec(obj)^.func);
-     Result := 0;
 end;
 
-function MatrixFuncObjFunc(obj : Pointer) : integer;
+procedure MatrixFuncObjFunc(obj : Pointer);
 begin
      MatrixFunc(PAsyncMatrixFuncObjRec(obj)^.dest,
                 PAsyncMatrixFuncObjRec(obj)^.destLineWidth,
                 PAsyncMatrixFuncObjRec(obj)^.width,
                 PAsyncMatrixFuncObjRec(obj)^.height,
                 PAsyncMatrixFuncObjRec(obj)^.func);
-     Result := 0;
 end;
 
-function MatrixFuncRefFunc(obj : Pointer) : integer;
+procedure MatrixFuncRefFunc(obj : Pointer);
 begin
      MatrixFunc(PAsyncMatrixFuncRefRec(obj)^.dest,
                 PAsyncMatrixFuncRefRec(obj)^.destLineWidth,
                 PAsyncMatrixFuncRefRec(obj)^.width,
                 PAsyncMatrixFuncRefRec(obj)^.height,
                 PAsyncMatrixFuncRefRec(obj)^.func);
-     Result := 0;
 end;
 
-function MatrixFuncRefObjFunc(obj : Pointer) : integer;
+procedure MatrixFuncRefObjFunc(obj : Pointer);
 begin
      MatrixFunc(PAsyncMatrixFuncRefObjRec(obj)^.dest,
                 PAsyncMatrixFuncRefObjRec(obj)^.destLineWidth,
                 PAsyncMatrixFuncRefObjRec(obj)^.width,
                 PAsyncMatrixFuncRefObjRec(obj)^.height,
                 PAsyncMatrixFuncRefObjRec(obj)^.func);
-     Result := 0;
 end;
 
-function MatrixMultFunc(obj : Pointer) : integer;
+procedure MatrixMultFunc(obj : Pointer);
 begin
      if (PAsyncMultRec(obj)^.op = doNone) and not Assigned(PAsyncMultRec(obj)^.mem)
      then
@@ -245,11 +241,9 @@ begin
                     PAsyncMultRec(obj)^.height2, PAsyncMultRec(obj)^.LineWidth1,
                     PAsyncMultRec(obj)^.LineWidth2, PAsyncMultRec(obj)^.BlockSize, PAsyncMultRec(obj)^.op,
                     PAsyncMultRec(obj)^.mem);
-
-     Result := 0;
 end;
 
-function MatrixMultT1Func(obj : Pointer) : integer;
+procedure MatrixMultT1Func(obj : Pointer);
 begin
      if (PAsyncMultRec(obj)^.op = doNone) and not Assigned(PAsyncMultRec(obj)^.mem)
      then
@@ -267,11 +261,9 @@ begin
                     PAsyncMultRec(obj)^.height2, PAsyncMultRec(obj)^.LineWidth1,
                     PAsyncMultRec(obj)^.LineWidth2, PAsyncMultRec(obj)^.BlockSize, PAsyncMultRec(obj)^.op,
                     PAsyncMultRec(obj)^.mem);
-
-     Result := 0;
 end;
 
-function MatrixMultT2Func(obj : Pointer) : integer;
+procedure MatrixMultT2Func(obj : Pointer);
 begin
      if (PAsyncMultRec(obj)^.op = doNone) and not Assigned(PAsyncMultRec(obj)^.mem)
      then
@@ -289,11 +281,9 @@ begin
                     PAsyncMultRec(obj)^.height2, PAsyncMultRec(obj)^.LineWidth1,
                     PAsyncMultRec(obj)^.LineWidth2, PAsyncMultRec(obj)^.BlockSize, PAsyncMultRec(obj)^.op,
                     PAsyncMultRec(obj)^.mem);
-
-     Result := 0;
 end;
 
-function MatrixMultDirectFunc(obj : Pointer) : integer;
+procedure MatrixMultDirectFunc(obj : Pointer);
 begin
      BlockMatrixMultiplicationDirect(PAsyncMultRec(obj)^.dest,
                                  PAsyncMultRec(obj)^.destLineWidth, PAsyncMultRec(obj)^.mt1,
@@ -301,11 +291,9 @@ begin
                                  PAsyncMultRec(obj)^.height1, PAsyncMultRec(obj)^.width2,
                                  PAsyncMultRec(obj)^.height2, PAsyncMultRec(obj)^.LineWidth1,
                                  PAsyncMultRec(obj)^.LineWidth2);
-
-     Result := 0;
 end;
 
-function MatrixVectorMultFunc(obj : Pointer) : integer;
+procedure MatrixVectorMultFunc(obj : Pointer);
 begin
      MatrixMtxVecMult(PAsyncMatrixVectorMultRec(obj)^.dest,
                       PAsyncMatrixVectorMultRec(obj)^.destLineWidth,
@@ -317,11 +305,9 @@ begin
                       PAsyncMatrixVectorMultRec(obj)^.height,
                       PAsyncMatrixVectorMultRec(obj)^.Alpha,
                       PAsyncMatrixVectorMultRec(obj)^.Beta);
-
-     Result := 0;
 end;
 
-function MatrixAddAndScaleFunc(obj : Pointer) : integer;
+procedure MatrixAddAndScaleFunc(obj : Pointer);
 begin
      MatrixAddAndScale(PAsyncMatrixAddAndScaleRec(obj)^.dest,
                        PAsyncMatrixAddAndScaleRec(obj)^.destLineWidth,
@@ -329,11 +315,9 @@ begin
                        PAsyncMatrixAddAndScaleRec(obj)^.Height,
                        PAsyncMatrixAddAndScaleRec(obj)^.Offset,
                        PAsyncMatrixAddAndScaleRec(obj)^.Scale);
-
-     Result := 0;
 end;
 
-function MatrixScaleAndAddFunc(obj : Pointer) : integer;
+procedure MatrixScaleAndAddFunc(obj : Pointer);
 begin
      MatrixScaleAndAdd(PAsyncMatrixAddAndScaleRec(obj)^.dest,
                        PAsyncMatrixAddAndScaleRec(obj)^.destLineWidth,
@@ -341,12 +325,10 @@ begin
                        PAsyncMatrixAddAndScaleRec(obj)^.Height,
                        PAsyncMatrixAddAndScaleRec(obj)^.Offset,
                        PAsyncMatrixAddAndScaleRec(obj)^.Scale);
-
-     Result := 0;
 end;
 
 
-function MatrixMedianFunc(obj : Pointer) : integer;
+procedure MatrixMedianFunc(obj : Pointer);
 begin
      MatrixMedian(PAsyncMatrixMedianRec(obj)^.dest,
                   PAsyncMatrixMedianRec(obj)^.destLineWidth,
@@ -356,11 +338,9 @@ begin
                   PAsyncMatrixMedianRec(obj)^.height,
                   PAsyncMatrixMedianRec(obj)^.rowWise,
                   PAsyncMatrixMedianRec(obj)^.hlpMem);
-
-     Result := 0;
 end;
 
-function MatrixSortFunc(obj : Pointer) : integer;
+procedure MatrixSortFunc(obj : Pointer);
 begin
      MatrixSort(PAsyncMatrixSortRec(obj)^.dest,
                 PAsyncMatrixSortRec(obj)^.destLineWidth,
@@ -368,12 +348,10 @@ begin
                 PAsyncMatrixSortRec(obj)^.height,
                 PAsyncMatrixSortRec(obj)^.rowWise,
                 PAsyncMatrixSortRec(obj)^.hlpMem);
-
-     Result := 0;
 end;
 
 
-function MatrixAddSubFunc(obj : Pointer) : integer;
+procedure MatrixAddSubFunc(obj : Pointer);
 begin
      PAsyncMatrixAddSubRec(obj)^.func(
                PAsyncMatrixAddSubRec(obj)^.dest,
@@ -384,8 +362,6 @@ begin
                PAsyncMatrixAddSubRec(obj)^.height,
                PAsyncMatrixAddSubRec(obj)^.LineWidth1,
                PAsyncMatrixAddSubRec(obj)^.LineWidth2);
-
-     Result := 0;
 end;
 
 function NumCoresToUseForMult(width1, height1, width2, height2, blockSize : TASMNativeInt) : integer;

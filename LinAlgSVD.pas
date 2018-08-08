@@ -20,6 +20,8 @@ unit LinAlgSVD;
 
 interface
 
+{$IFDEF FPC} {$MODESWITCH ADVANCEDRECORDS} {$ENDIF}
+
 uses SysUtils, Types, MatrixConst, OptimizedFuncs, Math, MathUtilFunc;
 
 // Inplace svd decomposition of a Matrix A
@@ -116,6 +118,69 @@ type
 
 
     constructor Create(aSVDData : PMtxSVDDecompData; aFrom, aTo : Integer);
+  end;
+
+  // for matrix rotation and rotation update
+type
+    TMatrixRotateRec = record
+    public
+      u : PDouble;
+      LineWidthU : TASMNativeInt;
+      vt : PDouble;
+      LineWidthVT : TASMNativeInt;
+      mm, nru, ncvt : TASMNativeInt;
+      w1, w2,
+      w3, w4 : PConstDoubleArr;
+
+      cosl, sinl,
+      cosr, sinr : double;
+
+      procedure CreateRot(aU : PDouble; const aLineWidthU : TASMNativeInt;
+                         aVt : PDouble; const aLineWidthVT : TASMNativeInt;
+                         am, anru, ancvt : TASMNativeInt; const acosl, asinl, acosr, asinr : double);
+
+      procedure Create(aU : PDouble; const aLineWidthU : TASMNativeInt;
+                                aVt : PDouble; const aLineWidthVT : TASMNativeInt;
+                                aNM, anru, ancvt : TASMNativeInt;
+                                aw1, aw2,
+                                aw3, aw4 : PConstDoubleArr);
+    end;
+    PMatrixRotateRec = ^TMatrixRotateRec;
+
+  procedure TMatrixRotateRec.CreateRot(aU : PDouble; const aLineWidthU : TASMNativeInt;
+                         aVt : PDouble; const aLineWidthVT : TASMNativeInt;
+                         am, anru, ancvt : TASMNativeInt; const acosl, asinl, acosr, asinr : double);
+  begin
+       u := aU;
+       LineWidthU := aLineWidthU;
+       vt := aVt;
+       LineWidthVT := aLineWidthVT;
+       mm := aM;
+       nru := anru;
+       ncvt := ancvt;
+
+       cosl := acosl;
+       cosr := acosr;
+       sinl := asinl;
+       sinr := asinr;
+  end;
+
+  procedure TMatrixRotateRec.Create(aU : PDouble; const aLineWidthU : TASMNativeInt;
+                                      aVt : PDouble; const aLineWidthVT : TASMNativeInt;
+                                      aNM, anru, ancvt : TASMNativeInt;
+                                      aw1, aw2, aw3, aw4 : PConstDoubleArr);
+  begin
+       u := aU;
+       LineWidthU := aLineWidthU;
+       vt := aVt;
+       LineWidthVT := aLineWidthVT;
+       mm := aNM;
+       nru := anru;
+       ncvt := ancvt;
+       w1 := aw1;
+       w2 := aW2;
+       w3 := aw3;
+       w4 := aW4;
   end;
 
 
@@ -2438,69 +2503,6 @@ begin
      end;
 end;
 
-// for matrix rotation and rotation update
-type
-  TMatrixRotateRec = record
-    u : PDouble;
-    LineWidthU : TASMNativeInt;
-    vt : PDouble;
-    LineWidthVT : TASMNativeInt;
-    mm, nru, ncvt : TASMNativeInt;
-    w1, w2,
-    w3, w4 : PConstDoubleArr;
-
-    cosl, sinl,
-    cosr, sinr : double;
-
-    constructor CreateRot(aU : PDouble; const aLineWidthU : TASMNativeInt;
-                       aVt : PDouble; const aLineWidthVT : TASMNativeInt;
-                       am, anru, ancvt : TASMNativeInt; const acosl, asinl, acosr, asinr : double);
-
-    constructor Create(aU : PDouble; const aLineWidthU : TASMNativeInt;
-                              aVt : PDouble; const aLineWidthVT : TASMNativeInt;
-                              aNM, anru, ancvt : TASMNativeInt;
-                              aw1, aw2,
-                              aw3, aw4 : PConstDoubleArr); overload;
-  end;
-  PMatrixRotateRec = ^TMatrixRotateRec;
-
-constructor TMatrixRotateRec.CreateRot(aU : PDouble; const aLineWidthU : TASMNativeInt;
-                       aVt : PDouble; const aLineWidthVT : TASMNativeInt;
-                       am, anru, ancvt : TASMNativeInt; const acosl, asinl, acosr, asinr : double);
-begin
-     u := aU;
-     LineWidthU := aLineWidthU;
-     vt := aVt;
-     LineWidthVT := aLineWidthVT;
-     mm := aM;
-     nru := anru;
-     ncvt := ancvt;
-
-     cosl := acosl;
-     cosr := acosr;
-     sinl := asinl;
-     sinr := asinr;
-end;
-
-constructor TMatrixRotateRec.Create(aU : PDouble; const aLineWidthU : TASMNativeInt;
-                                    aVt : PDouble; const aLineWidthVT : TASMNativeInt;
-                                    aNM, anru, ancvt : TASMNativeInt;
-                                    aw1, aw2,
-                                    aw3, aw4 : PConstDoubleArr);
-begin
-     u := aU;
-     LineWidthU := aLineWidthU;
-     vt := aVt;
-     LineWidthVT := aLineWidthVT;
-     mm := aNM;
-     nru := anru;
-     ncvt := ancvt;
-     w1 := aw1;
-     w2 := aW2;
-     w3 := aw3;
-     w4 := aW4;
-end;
-
 procedure ThrApplyPlaneRotSeqLVB(obj : Pointer);
 begin
      if PMatrixRotateRec(obj)^.ncvt > 0 then
@@ -2628,8 +2630,8 @@ begin
      // check if threading is speeding up the process
      if (numUsed < 2) or (aNM < 4*numUsed) then
      begin
-          obj := TMatrixRotateRec.Create(aU, aLineWidthU, aVt, aLineWidthVT,
-                                   aNM, anru, ancvt, aw1, aw2, aw3, aw4);
+          obj.Create(aU, aLineWidthU, aVt, aLineWidthVT,
+                     aNM, anru, ancvt, aw1, aw2, aw3, aw4);
 
           ThrApplyPlaneRotSeqLVF(@obj);
           ThrApplyPlaneRotSeqRVF(@obj);
