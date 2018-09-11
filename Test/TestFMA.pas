@@ -44,6 +44,7 @@ type
     procedure TestFMAMult;
     procedure TestFMADiagMtxMult;
     procedure TestFMABigMult;
+    procedure TestConvolveBig;
   end;
 
 implementation
@@ -572,6 +573,51 @@ begin
      end;
 end;
 
+procedure TestFMAMatrixOperations.TestConvolveBig;
+const cBSize : Array[0..6] of integer = (1, 2, 7, 19, 24, 39, 48);
+      cASize : Array[0..5] of integer = (48, 53, 179, 2430, 5133, 8192);
+var i: Integer;
+    j: Integer;
+    s1, e1, s2, e2 : Int64;
+    freq : Int64;
+    pA, pB : PDouble;
+    Dest, DestSSE : TDoubleDynArray;
+    pMem1, pMem2 : PByte;
+    LineWidthA, LineWidthB : TASMNativeInt;
+    idx : integer;
+begin
+     freq := mtxFreq;
+     for i := 0 to Length(cBSize) - 1 do
+     begin
+          FillAlignedMtx(cBSize[i], 1, pB, pMem1, LineWidthB);
+
+          for j := 0 to Length(cASize) - 1 do
+          begin
+               SetLength(Dest, cASize[j]);
+               SetLength(DestSSE, cASize[j]);
+               FillAlignedMtx(cASize[j], 1, pA, pMem2, LineWidthA);
+
+               InitMathFunctions(itFPU, False);
+               s1 := MtxGetTime;
+               MatrixConvolve(@dest[0], cASize[j]*sizeof(double), pA, pB, LineWidthA, cASize[j], 1, cBSize[i]);
+               e1 := MtxGetTime;
+
+               InitMathFunctions(itFMA, False);
+               s2 := MtxGetTime;
+               MatrixConvolve(@destSSE[0], cASize[j]*sizeof(double), pA, pB, LineWidthA, cASize[j], 1, cBSize[i]);
+               e2 := MtxGetTime;
+
+               Status( Format('Conv (%d x %d) took: %.3f ms, %.3fms', [cBSize[i], cASize[j], (e1 - s1)/freq*1000, (e2 - s2)/freq*1000] ));
+
+               if not CheckMtxIdx(dest, DestSSE, idx) then
+                  check(false, 'error in asm convolution @' + IntToStr(idx));
+
+               FreeMem(pMem2);
+          end;
+
+          FreeMem(pMem1);
+     end;
+end;
 
 initialization
 {$IFNDEF FMX}

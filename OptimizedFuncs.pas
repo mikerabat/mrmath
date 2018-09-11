@@ -185,6 +185,11 @@ procedure ApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const 
 
 procedure MatrixRotate(N : TASMNativeInt; DX : PDouble; const LineWidthDX : TASMNativeInt; DY : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
 
+// convolution
+// performs the convolution on a matrix rowwise!
+// A is either a vector or a matrix, B is always a vector (length is veclen)!
+// if memory is provided the memory needs to be at least as long as length(b) + 8 (for memory alignment and cpu alignment)
+procedure MatrixConvolve(dest : PDouble; const LineWidthDest : TASMNativeInt; A, B : PDouble; const LineWidthA : TASMNativeInt; width, height, veclen : TASMNativeInt; mem : Pointer = nil);
 
 type
   TCPUInstrType = (itFPU, itSSE, itAVX, itFMA);
@@ -224,11 +229,13 @@ type
   TMatrixSortFunc = procedure (dest : PDouble; destLineWidth : TASMNativeInt; width, height : integer; RowWise : boolean; tmp : PDouble = nil);
   TMatrixVecMultFunc = procedure (dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
   TMatrixRank1UpdateFunc = procedure (A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-                                      const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+                                      X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
 
   TApplyPlaneRotSeqMatrix = procedure (width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
   TMatrixRotate = procedure (N : TASMNativeInt; DX : PDouble; const LineWidthDX : TASMNativeInt; DY : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
   TMemInitFunc = procedure(A : PDouble; NumBytes : TASMNativeInt; const Value : double);
+  TVecConvolve = procedure (dest : PDouble; A, B : PDouble; aLen, bLen : TASMNativeInt);
+
 
 implementation
 
@@ -239,20 +246,23 @@ implementation
 {$DEFINE x64}
 {$ENDIF}
 
+{$IFDEF FPC} {$S-} {$ENDIF}
+
 uses ASMMatrixOperations, BlockedMult,
      {$IFNDEF x64}
      ASMMatrixMultOperations,
-     ASMMatrixRotations, ASMMoveOperations,
+     ASMMatrixRotations, ASMMoveOperations, ASMVecConvolve, AVXVecConvolve,
      ASMMatrixTransposeOperations, ASMMatrixAddSubOperations,
      AVXMatrixOperations, AVXMatrixMultOperations, AVXMatrixRotations,
      AVXMatrixAddSubOperations, AVXMoveOperations, AVXMatrixTransposeOperations,
-     FMAMatrixOperations, FMAMatrixMultOperations,
+     FMAMatrixOperations, FMAMatrixMultOperations, FMAVecConvolve,
      {$ELSE}
      AVXMatrixOperations, ASMMatrixMultOperationsx64, AVXMatrixMultOperationsx64,
      AVXMatrixAddSubOperationsx64, AVXMoveOperationsx64,
      ASMMatrixRotationsx64, ASMMoveOperationsx64, ASMMatrixAddSubOperationsx64,
      AVXMatrixRotationsx64, AVXMatrixTransposeOperationsx64,
      ASMMatrixTransposeOperationsx64, FMAMatrixOperations, FMAMatrixMultOperationsx64,
+     ASMVecConvolvex64, AVXVecConvolvex64, FMAVecConvolvex64,
      {$ENDIF}
      BlockSizeSetup, SimpleMatrixOperations, CPUFeatures, MatrixRotations, Corr;
 
@@ -303,6 +313,7 @@ var multFunc : TMatrixMultFunc;
     PlaneRotSeqLVB : TApplyPlaneRotSeqMatrix;
     PlaneRotSeqLVF : TApplyPlaneRotSeqMatrix;
     memInitFunc : TMemInitFunc;
+    vecConvolve : TVecConvolve;
 
  // current initialization
 var curUsedCPUInstrSet : TCPUInstrType;
@@ -678,7 +689,7 @@ begin
      if (width <= 0) or (height <= 0) then
         exit;
 
-     Rank1UpdateFunc(A, LineWidthA, width, height, alpha, x, y, incx, incy)
+     Rank1UpdateFunc(A, LineWidthA, width, height, x, y, incx, incy, alpha)
 end;
 
 procedure MatrixElemMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
@@ -992,6 +1003,80 @@ begin
      Result := elemNormFunc(Src, srcLineWidth, Width, Height, doSqrt);
 end;
 
+
+procedure MatrixConvolve(dest : PDouble; const LineWidthDest : TASMNativeInt; A, B : PDouble; const LineWidthA : TASMNativeInt; width, height, veclen : TASMNativeInt; mem : Pointer = nil);
+var y : TASMNativeInt;
+    revB : PConstDoubleArr;
+    aMem : Pointer;
+    cpuAlign : integer;
+    origVecLen : integer;
+    i: Integer;
+    offset : integer;
+    x : integer;
+    swinginWidth : integer;
+    z: Integer;
+    aSum : double;
+    pA, pDest : PConstDoubleArr;
+begin
+     // reverse B -> faster access
+     // round up to 4 and fill with zeros so we can streamline the function better
+     cpuAlign := 0;
+     origVecLen := veclen;
+     if curUsedCPUInstrSet = itSSE then
+        cpuAlign := 2;
+     if curUsedCPUInstrSet = itAVX then
+        cpuAlign := 4;
+     if curUsedCPUInstrSet = itFMA then
+        cpuAlign := 4;
+
+     aMem := nil;
+
+     if Assigned(mem)
+     then
+         revB := AlignPtr32(mem)
+     else
+         revB := PConstDoubleArr(MtxMallocAlign( (veclen + 2*cpuAlign)*sizeof(double), aMem));
+     if cpuAlign <> 0 then
+     begin
+          if veclen and (cpuAlign - 1) <> 0 then
+             veclen := veclen + cpuAlign - veclen and (cpuAlign - 1);
+     end;
+
+     swinginWidth := veclen;
+     if vecLen > width then
+        swinginWidth := width;
+
+     // zeropad
+     offset := (veclen - origVecLen);
+     for i := 0 to offset - 1 do
+         revB^[i] := 0;
+     // reverse
+     for i := 0 to origVecLen - 1 do
+         revB^[i + offset] := PConstDoubleArr(B)^[origVecLen - i - 1];
+
+     for y := 0 to height - 1 do
+     begin
+          pDest := GenPtrArr(dest, 0, y, LineWidthDest);
+          pA := GenPtrArr( A, 0, y, LineWidthA );
+          // swing in -> zero pad
+          for x := 0 to swinginWidth - 1 do
+          begin
+               aSum := 0;
+               for z := 0 to x do
+                   aSum := aSum + revB^[vecLen - x + z - 1]*pA^[z];
+
+               pDest^[x] := aSum;
+          end;
+
+          // vector convolution without swing in
+          if width > vecLen then
+             vecConvolve(@pDest^[veclen], @pA^[veclen], PDouble(revB), width - veclen, veclen);
+     end;
+
+     if Assigned(aMem) then
+        FreeMem(aMem);
+end;
+
 procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixFunc);
 begin
      GenericMtxFunc(dest, destLineWidth, width, height, func);
@@ -1113,6 +1198,7 @@ begin
           PlaneRotSeqLVB := {$IFDEF FPC}@{$ENDIF}AVXApplyPlaneRotSeqLVB;
           PlaneRotSeqLVF := {$IFDEF FPC}@{$ENDIF}AVXApplyPlaneRotSeqLVF;
           memInitFunc := {$IFDEF FPC}@{$ENDIF}AVXInitMemAligned;
+          vecConvolve := {$IFDEF FPC}@{$ENDIF}AVXVecConvolveRevB;
 
           TDynamicTimeWarp.UseSSE := True;
 
@@ -1125,9 +1211,11 @@ begin
                multTria2T1StoreT1Func := {$IFDEF FPC}@{$ENDIF}FMAMtxMultTria2T1StoreT1;
                multTria2TUpperFunc := {$IFDEF FPC}@{$ENDIF}FMAMtxMultTria2TUpperUnit;
                multLowTria2T2Store1Func := {$IFDEF FPC}@{$ENDIF}FMAMtxMultLowTria2T2Store1;
+               vecConvolve := {$IFDEF FPC}@{$ENDIF}GenericConvolveRevB;
 
                MtxVecMultFunc := {$IFDEF FPC}@{$ENDIF}FMAMtxVecMult;
                MtxVecMultTFunc := {$IFDEF FPC}@{$ENDIF}FMAMtxVecMultT;
+               vecConvolve := {$IFDEF FPC}@{$ENDIF}FMAVecConvolveRevB;
 
                if useStrassenMult
                then
@@ -1190,6 +1278,7 @@ begin
           PlaneRotSeqLVB := {$IFDEF FPC}@{$ENDIF}ASMApplyPlaneRotSeqLVB;
           PlaneRotSeqLVF := {$IFDEF FPC}@{$ENDIF}ASMApplyPlaneRotSeqLVF;
           memInitFunc := {$IFDEF FPC}@{$ENDIF}ASMInitMemAligned;
+          vecConvolve := {$IFDEF FPC}@{$ENDIF}ASMVecConvolveRevB;
 
           TDynamicTimeWarp.UseSSE := True;
      end
@@ -1245,6 +1334,7 @@ begin
           PlaneRotSeqLVB := {$IFDEF FPC}@{$ENDIF}GenericApplyPlaneRotSeqLVB;
           PlaneRotSeqLVF := {$IFDEF FPC}@{$ENDIF}GenericApplyPlaneRotSeqLVF;
           memInitFunc := {$IFDEF FPC}@{$ENDIF}GenericInitMemAligned;
+          vecConvolve := {$IFDEF FPC}@{$ENDIF}GenericConvolveRevB;
 
           TDynamicTimeWarp.UseSSE := False
      end;

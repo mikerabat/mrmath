@@ -32,23 +32,23 @@ interface
 uses MatrixConst;
 
 
-procedure ASMMatrixVectMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-procedure ASMMatrixVectMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure ASMMatrixVectMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure ASMMatrixVectMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 
 // routines with special input layouts: LineWidthV needs to be sizeof(double)
-procedure ASMMatrixVectMultEvenAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-procedure ASMMatrixVectMultEvenUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-procedure ASMMatrixVectMultOddUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure ASMMatrixVectMultEvenAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure ASMMatrixVectMultEvenUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble;{$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure ASMMatrixVectMultOddUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 
 // destlinewidth needs to be sizeof(double)!
 // no speed gain agains amsmatrixVectMultT
-procedure ASMMatrixVectMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure ASMMatrixVectMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 
 // rank1 update: A = A + alpha*X*Y' where x and y are vectors. It's assumed that y is sequential
 procedure ASMRank1UpdateSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+  {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : TASMNativeInt; alpha : double);
 procedure ASMRank1UpdateSeqAligned(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+  {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : TASMNativeInt; alpha : double);
 
 {$ENDIF}
 
@@ -58,944 +58,13 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
-procedure ASMMatrixVectorMultAlignedEvenW1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt);
-var iRBX, iRDI, iR12 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
-asm
-{$IFDEF UNIX}
-   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-   // (note that the 5th and 6th parameter are are on the stack)
-   // The parameters are passed in the following order:
-   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-   mov r8, rdx;
-   mov r9, rcx;
-   mov rcx, rdi;
-   mov rdx, rsi;
-{$ENDIF}
-   // prolog - simulate stack
-   mov iRBX, rbx;
-   mov iRDI, rdi;
-   mov iR12, r12;
-
-   mov r10, width1;
-   shl r10, 3;
-   imul r10, -1;
-
-   // prepare for reverse loop indexing
-   mov r11, mt1;
-   mov r12, mt2;
-   sub r11, r10;
-   sub r12, r10;
-
-   mov rdi, LineWidth1;
-
-   // init for y := 0 to height1 - 1:
-   mov rbx, height1;
-   @@foryloop:
-
-       // init values:
-       xorpd xmm0, xmm0;  // dest^ := 0;
-
-       mov rax, r10;
-       @addforxloop:
-           add rax, 128;
-           jg @loopEnd;
-
-           // prefetch data...
-           // prefetch [r11 + rax];
-           // prefetch [r12 + rax];
-
-           // addition:
-           movapd xmm1, [r11 + rax - 128];
-           mulpd xmm1, [r12 + rax - 128];
-
-           addpd xmm0, xmm1;
-
-           movapd xmm1, [r11 + rax - 112];
-           mulpd xmm1, [r12 + rax - 112];
-
-           addpd xmm0, xmm1;
-
-           movapd xmm1, [r11 + rax - 96];
-           mulpd xmm1, [r12 + rax - 96];
-
-           addpd xmm0, xmm1;
-
-           movapd xmm1, [r11 + rax - 80];
-           mulpd xmm1, [r12 + rax - 80];
-
-           addpd xmm0, xmm1;
-
-           movapd xmm1, [r11 + rax - 64];
-           mulpd xmm1, [r12 + rax - 64];
-
-           addpd xmm0, xmm1;
-
-           movapd xmm1, [r11 + rax - 48];
-           mulpd xmm1, [r12 + rax - 48];
-
-           addpd xmm0, xmm1;
-
-           movapd xmm1, [r11 + rax - 32];
-           mulpd xmm1, [r12 + rax - 32];
-
-           addpd xmm0, xmm1;
-
-           movapd xmm1, [r11 + rax - 16];
-           mulpd xmm1, [r12 + rax - 16];
-
-           addpd xmm0, xmm1;
-       jmp @addforxloop;
-
-       @loopEnd:
-       sub rax, 128;
-
-       @@forxloop2:
-           movapd xmm1, [r11 + rax];
-           mulpd xmm1, [r12 + rax];
-
-           addpd xmm0, xmm1;
-       add rax, 16;
-       jnz @@forxloop2;
-
-       // write back result (final addition and compactation)
-       haddpd xmm0, xmm0;
-       movsd [rcx], xmm0;
-
-       // next results:
-       add rcx, rdx;
-       add r11, rdi;
-   dec rbx;
-   jnz @@foryloop;
-
-   // epilog - cleanup stack
-   mov rbx, iRBX;
-   mov rdi, iRDI;
-   mov r12, iR12;
-{$IFDEF FPC}
-end;
-{$ENDIF}
-end;
-
-procedure ASMMatrixVectorMultUnAlignedEvenW1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt);
-var iRBX, iRDI, iR12 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
-asm
-{$IFDEF UNIX}
-   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-   // (note that the 5th and 6th parameter are are on the stack)
-   // The parameters are passed in the following order:
-   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-   mov r8, rdx;
-   mov r9, rcx;
-   mov rcx, rdi;
-   mov rdx, rsi;
-{$ENDIF}
-
-   // prolog - simulate stack
-   mov iRBX, rbx;
-   mov iRDI, rdi;
-   mov iR12, r12;
-
-   // "iter"
-   mov r10, width1;
-   shl r10, 3;
-   imul r10, -1;
-
-   // prepare for reverse loop indexing
-   mov r11, mt1;
-   mov r12, mt2;
-   sub r11, r10;
-   sub r12, r10;
-
-   mov rdi, LineWidth1;
-
-   // init for y := 0 to height1 - 1:
-   mov rbx, height1;
-   @@foryloop:
-
-       // init values:
-       xorpd xmm0, xmm0;  // dest^ := 0;
-
-       mov rax, r10;
-       @addforxloop:
-           add rax, 128;
-           jg @loopEnd;
-
-           // addition:
-           movupd xmm1, [r11 + rax - 128];
-           movupd xmm2, [r12 + rax - 128];
-           mulpd xmm1, xmm2;
-           addpd xmm0, xmm1;
-
-           movupd xmm1, [r11 + rax - 112];
-           movupd xmm2, [r12 + rax - 112];
-           mulpd xmm1, xmm2;
-           addpd xmm0, xmm1;
-
-           movupd xmm1, [r11 + rax - 96];
-           movupd xmm2, [r12 + rax - 96];
-           mulpd xmm1, xmm2;
-           addpd xmm0, xmm1;
-
-           movupd xmm1, [r11 + rax - 80];
-           movupd xmm2, [r12 + rax - 80];
-           mulpd xmm1, xmm2;
-           addpd xmm0, xmm1;
-
-           movupd xmm1, [r11 + rax - 64];
-           movupd xmm2, [r12 + rax - 64];
-           mulpd xmm1, xmm2;
-           addpd xmm0, xmm1;
-
-           movupd xmm1, [r11 + rax - 48];
-           movupd xmm2, [r12 + rax - 48];
-           mulpd xmm1, xmm2;
-           addpd xmm0, xmm1;
-
-           movupd xmm1, [r11 + rax - 32];
-           movupd xmm2, [r12 + rax - 32];
-           mulpd xmm1, xmm2;
-           addpd xmm0, xmm1;
-
-           movupd xmm1, [r11 + rax - 16];
-           movupd xmm2, [r12 + rax - 16];
-           mulpd xmm1, xmm2;
-           addpd xmm0, xmm1;
-       jmp @addforxloop;
-
-       @loopEnd:
-       sub rax, 128;
-
-       @@forxloop2:
-           movupd xmm1, [r11 + rax];
-           movupd xmm2, [r12 + rax];
-           mulpd xmm1, xmm2;
-           addpd xmm0, xmm1;
-       add rax, 16;
-       jnz @@forxloop2;
-
-       // write back result (final addition and compactation)
-       haddpd xmm0, xmm0;
-       movsd [rcx], xmm0;
-
-       // next results:
-       add rcx, rdx;
-       add r11, rdi;
-   dec rbx;
-   jnz @@foryloop;
-
-   // epilog - cleanup stack
-   mov rbx, iRBX;
-   mov rdi, iRDI;
-   mov r12, iR12;
-{$IFDEF FPC}
-end;
-{$ENDIF}
-end;
-
-
-procedure ASMMatrixVectorMultAlignedOddW1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt);
-var iRBX, iRDI, iR12 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-  {$ENDIF}
-asm
-{$IFDEF UNIX}
-   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-   // (note that the 5th and 6th parameter are are on the stack)
-   // The parameters are passed in the following order:
-   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-   mov r8, rdx;
-   mov r9, rcx;
-   mov rcx, rdi;
-   mov rdx, rsi;
-{$ENDIF}
-
-   // prolog - simulate stack
-   mov iRBX, rbx;
-   mov iRDI, rdi;
-   mov iR12, r12;
-
-   // iter
-   mov r10, width1;
-   dec r10;
-   shl r10, 3;
-   imul r10, -1;
-
-   // prepare for reverse loop indexing
-   mov r11, mt1;
-   mov r12, mt2;
-   sub r11, r10;
-   sub r12, r10;
-
-   mov rdi, LineWidth1;
-
-   // init for y := 0 to height1 - 1:
-   mov rbx, height1;
-   @@foryloop:
-
-       // init values:
-       xorpd xmm0, xmm0;  // dest^ := 0;
-
-       mov rax, r10;
-       @addforxloop:
-           add rax, 128;
-           jg @loopEnd;
-
-           // prefetch data...
-           // prefetch [r11 + rax];
-           // prefetch [r12 + rax];
-
-           // addition:
-           movapd xmm1, [r11 + rax - 128];
-           mulpd xmm1, [r12 + rax - 128];
-
-           addpd xmm0, xmm1;
-
-           movapd xmm1, [r11 + rax - 112];
-           mulpd xmm1, [r12 + rax - 112];
-
-           addpd xmm0, xmm1;
-
-           movapd xmm1, [r11 + rax - 96];
-           mulpd xmm1, [r12 + rax - 96];
-
-           addpd xmm0, xmm1;
-
-           movapd xmm1, [r11 + rax - 80];
-           mulpd xmm1, [r12 + rax - 80];
-
-           addpd xmm0, xmm1;
-
-           movapd xmm1, [r11 + rax - 64];
-           mulpd xmm1, [r12 + rax - 64];
-
-           addpd xmm0, xmm1;
-
-           movapd xmm1, [r11 + rax - 48];
-           mulpd xmm1, [r12 + rax - 48];
-
-           addpd xmm0, xmm1;
-
-           movapd xmm1, [r11 + rax - 32];
-           mulpd xmm1, [r12 + rax - 32];
-
-           addpd xmm0, xmm1;
-
-           movapd xmm1, [r11 + rax - 16];
-           mulpd xmm1, [r12 + rax - 16];
-
-           addpd xmm0, xmm1;
-       jmp @addforxloop;
-
-       @loopEnd:
-       sub rax, 128;
-
-       @@forxloop2:
-           movapd xmm1, [r11 + rax];
-           mulpd xmm1, [r12 + rax];
-
-           addpd xmm0, xmm1;
-       add rax, 16;
-       jnz @@forxloop2;
-
-       // special treatment for the last value:
-       movsd xmm1, [r11];
-       movsd xmm2, [r12];
-
-       mulsd xmm1, xmm2;
-       addsd xmm0, xmm1;
-
-       // write back result (final addition and compactation)
-       haddpd xmm0, xmm0;
-       movsd [rcx], xmm0;
-
-       // next results:
-       add rcx, rdx;
-       add r11, rdi;
-   dec rbx;
-   jnz @@foryloop;
-
-   // epilog - cleanup stack
-   mov rbx, iRBX;
-   mov rdi, iRDI;
-   mov r12, iR12;
-{$IFDEF FPC}
-end;
-{$ENDIF}
-end;
-
-procedure ASMMatrixVectorMultUnAlignedOddW1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt);
-var iRBX, iRDI, iR12 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-  {$ENDIF}
-asm
-{$IFDEF UNIX}
-   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-   // (note that the 5th and 6th parameter are are on the stack)
-   // The parameters are passed in the following order:
-   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-   mov r8, rdx;
-   mov r9, rcx;
-   mov rcx, rdi;
-   mov rdx, rsi;
-{$ENDIF}
-
-   // prolog - simulate stack
-   mov iRBX, rbx;
-   mov iRDI, rdi;
-   mov iR12, r12;
-
-   // iter
-   mov r10, width1;
-   dec r10;
-   shl r10, 3;
-   imul r10, -1;
-
-   // prepare for reverse loop indexing
-   mov r11, mt1;
-   mov r12, mt2;
-   sub r11, r10;
-   sub r12, r10;
-
-   mov rdi, LineWidth1;
-
-   // init for y := 0 to height1 - 1:
-   mov rbx, height1;
-   @@foryloop:
-
-       // init values:
-       xorpd xmm0, xmm0;  // dest^ := 0;
-
-       mov rax, r10;
-       @addforxloop:
-           add rax, 128;
-           jg @loopEnd;
-
-           // addition:
-           movupd xmm1, [r11 + rax - 128];
-           movupd xmm2, [r12 + rax - 128];
-           mulpd xmm1, xmm2;
-           addpd xmm0, xmm1;
-
-           movupd xmm1, [r11 + rax - 112];
-           movupd xmm2, [r12 + rax - 112];
-           mulpd xmm1, xmm2;
-           addpd xmm0, xmm1;
-
-           movupd xmm1, [r11 + rax - 96];
-           movupd xmm2, [r12 + rax - 96];
-           mulpd xmm1, xmm2;
-           addpd xmm0, xmm1;
-
-           movupd xmm1, [r11 + rax - 80];
-           movupd xmm2, [r12 + rax - 80];
-           mulpd xmm1, xmm2;
-           addpd xmm0, xmm1;
-
-           movupd xmm1, [r11 + rax - 64];
-           movupd xmm2, [r12 + rax - 64];
-           mulpd xmm1, xmm2;
-           addpd xmm0, xmm1;
-
-           movupd xmm1, [r11 + rax - 48];
-           movupd xmm2, [r12 + rax - 48];
-           mulpd xmm1, xmm2;
-           addpd xmm0, xmm1;
-
-           movupd xmm1, [r11 + rax - 32];
-           movupd xmm2, [r12 + rax - 32];
-           mulpd xmm1, xmm2;
-           addpd xmm0, xmm1;
-
-           movupd xmm1, [r11 + rax - 16];
-           movupd xmm2, [r12 + rax - 16];
-           mulpd xmm1, xmm2;
-           addpd xmm0, xmm1;
-       jmp @addforxloop;
-
-       @loopEnd:
-       sub rax, 128;
-
-       @@forxloop2:
-           movupd xmm1, [r11 + rax];
-           movupd xmm2, [r12 + rax];
-           mulpd xmm1, xmm2;
-           addpd xmm0, xmm1;
-       add rax, 16;
-       jnz @@forxloop2;
-
-       // special treatment for the last value:
-       movsd xmm1, [r11];
-       movsd xmm2, [r12];
-
-       mulsd xmm1, xmm2;
-       addsd xmm0, xmm1;
-
-       // write back result (final addition and compactation)
-       haddpd xmm0, xmm0;
-       movsd [rcx], xmm0;
-
-       // next results:
-       add rcx, rdx;
-       add r11, rdi;
-   dec rbx;
-   jnz @@foryloop;
-
-   // epilog - cleanup stack
-   mov rbx, iRBX;
-   mov rdi, iRDI;
-   mov r12, iR12;
-{$IFDEF FPC}
-end;
-{$ENDIF}
-end;
-
-procedure ASMMatrixVectMultAlignedOddW(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-var dXMM6, dXMM7 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
-asm
-{$IFDEF UNIX}
-   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-   // (note that the 5th and 6th parameter are are on the stack)
-   // The parameters are passed in the following order:
-   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-   mov r8, rdx;
-   mov r9, rcx;
-   mov rcx, rdi;
-   mov rdx, rsi;
-{$ENDIF}
-
-   // prolog - simulate stack
-   mov iRBX, rbx;
-   mov iRSI, rsi;
-   mov iRDI, rdi;
-   mov iR12, r12;
-   mov iR13, r13;
-   mov iR14, r14;
-
-   movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
-
-   // for the final multiplication  (alpha, beta handling)
-   movhpd xmm6, beta;
-   movlpd xmm6, alpha;
-
-   // prepare for loop
-   mov rsi, LineWidthMT;
-   mov rdi, LineWidthV;
-
-   // iter := -(width - 1)*sizeof(double);
-   mov r13, width;
-   sub r13, 1;
-   imul r13, -8;
-
-   sub r8, r13;     // mt1 - iter
-
-   mov r14, height;
-
-   // init for y := 0 to height - 1:
-   @@foryloop:
-
-       // init values:
-       xorpd xmm3, xmm3;  // res := 0;
-       mov rax, r8;       // rax = first matrix element
-       mov rbx, r9;       // rbx = first vector element
-
-       mov r10, r13;      // iter
-       @@forxloop:
-           movlpd xmm2, [rbx]
-           movhpd xmm2, [rbx + rdi]
-
-           mulpd xmm2, [rax + r10];
-           addpd xmm3, xmm2;
-
-           add rbx, rdi;
-           add rbx, rdi;
-
-           add r10, 16;
-       jnz @@forxloop;
-
-       // special treatment for the last value:
-       movsd xmm1, [rax];
-       movsd xmm2, [rbx];
-
-       mulsd xmm1, xmm2;
-       addsd xmm3, xmm1;
-
-       // result building
-       // write back result (final addition and compactation)
-       haddpd xmm3, xmm3;
-
-       // result building
-       // write back result (final addition and compactation)
-
-       // calculate dest = beta*dest + alpha*xmm0
-       movhpd xmm3, [rcx];
-
-       mulpd xmm3, xmm6;
-       haddpd xmm3, xmm3;
-
-       // store destination
-       movsd [rcx], xmm3;
-
-       // next results:
-       add rcx, rdx;       // next dest element
-       add r8, rsi;        // next mt1 row
-   dec r14;
-   jnz @@foryloop;
-
-   // epilog pop "stack"
-   mov rbx, iRBX;
-   mov rsi, iRSI;
-   mov rdi, iRDI;
-   mov r12, iR12;
-   mov r13, iR13;
-   mov r14, iR14;
-end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
-
-
-// note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
-// note we need at lest width = 3 for this function!
-procedure ASMMatrixVectMultUnalignedOddW(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-var dXMM6, dXMM7 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
-asm
-{$IFDEF UNIX}
-   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-   // (note that the 5th and 6th parameter are are on the stack)
-   // The parameters are passed in the following order:
-   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-   mov r8, rdx;
-   mov r9, rcx;
-   mov rcx, rdi;
-   mov rdx, rsi;
-{$ENDIF}
-
-   // prolog - simulate stack
-   mov iRBX, rbx;
-   mov iRSI, rsi;
-   mov iRDI, rdi;
-   mov iR12, r12;
-   mov iR13, r13;
-   mov iR14, r14;
-
-   movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
-
-   // for the final multiplication  (alpha, beta handling)
-   movhpd xmm6, beta;
-   movlpd xmm6, alpha;
-
-   // prepare for loop
-   mov rsi, LineWidthMT;
-   mov rdi, LineWidthV;
-
-   // iter := -(width - 1)*sizeof(double);
-   mov r13, width;
-   sub r13, 1;
-   imul r13, -8;
-
-   sub r8, r13;     // mt1 - iter
-
-   mov r14, height;
-
-   // init for y := 0 to height - 1:
-   @@foryloop:
-
-       // init values:
-       xorpd xmm3, xmm3;  // res := 0;
-       mov rax, r8;       // rax = first matrix element
-       mov rbx, r9;       // rbx = first vector element
-
-       mov r10, r13;      // iter
-       @@forxloop:
-           movupd xmm1, [rax + r10];
-           movlpd xmm2, [rbx]
-           movhpd xmm2, [rbx + rdi]
-
-           mulpd xmm1, xmm2;
-           addpd xmm3, xmm1;
-
-           add rbx, rdi;
-           add rbx, rdi;
-
-           add r10, 16;
-       jnz @@forxloop;
-
-       // special treatment for the last value:
-       movsd xmm1, [rax];
-       movsd xmm2, [rbx];
-
-       mulsd xmm1, xmm2;
-       addsd xmm3, xmm1;
-
-       // result building
-       // write back result (final addition and compactation)
-       haddpd xmm3, xmm3;
-
-       // result building
-       // write back result (final addition and compactation)
-
-       // calculate dest = beta*dest + alpha*xmm0
-       movhpd xmm3, [rcx];
-
-       mulpd xmm3, xmm6;
-       haddpd xmm3, xmm3;
-
-       // store destination
-       movsd [rcx], xmm3;
-
-       // next results:
-       add rcx, rdx;       // next dest element
-       add r8, rsi;        // next mt1 row
-   dec r14;
-   jnz @@foryloop;
-
-   // epilog pop "stack"
-   mov rbx, iRBX;
-   mov rsi, iRSI;
-   mov rdi, iRDI;
-   mov r12, iR12;
-   mov r13, iR13;
-   mov r14, iR14;
-
-   movupd xmm6, dXMM6;
-   movupd xmm7, dXMM7;
-end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
-
-
-procedure ASMMatrixVectMultUnalignedEvenW(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-var dXMM6, dXMM7 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
-asm
-{$IFDEF UNIX}
-   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-   // (note that the 5th and 6th parameter are are on the stack)
-   // The parameters are passed in the following order:
-   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-   mov r8, rdx;
-   mov r9, rcx;
-   mov rcx, rdi;
-   mov rdx, rsi;
-{$ENDIF}
-
-   // prolog - simulate stack
-   mov iRBX, rbx;
-   mov iRSI, rsi;
-   mov iRDI, rdi;
-   mov iR12, r12;
-   mov iR13, r13;
-   mov iR14, r14;
-
-   movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
-
-   // for the final multiplication  (alpha, beta handling)
-   movhpd xmm6, beta;
-   movlpd xmm6, alpha;
-
-   // prepare for loop
-   mov rsi, LineWidthMT;
-   mov rdi, LineWidthV;
-
-   // iter := -width*sizeof(double);
-   mov r13, width;
-   imul r13, -8;
-
-   sub r8, r13;     // mt1 - iter
-
-   mov r14, height;
-
-   // init for y := 0 to height - 1:
-   @@foryloop:
-
-       // init values:
-       xorpd xmm3, xmm3;  // res := 0;
-       mov rax, r8;       // rax = first matrix element
-       mov rbx, r9;       // rbx = first vector element
-
-       mov r10, r13;      // iter
-       @@forxloop:
-           movupd xmm1, [rax + r10];
-           movlpd xmm2, [rbx]
-           movhpd xmm2, [rbx + rdi]
-
-           mulpd xmm1, xmm2;
-           addpd xmm3, xmm1;
-
-           add rbx, rdi;
-           add rbx, rdi;
-
-           add r10, 16;
-       jnz @@forxloop;
-
-       // result building
-       // write back result (final addition and compactation)
-       haddpd xmm3, xmm3;
-
-       // result building
-       // write back result (final addition and compactation)
-
-       // calculate dest = beta*dest + alpha*xmm0
-       movhpd xmm3, [rcx];
-
-       mulpd xmm3, xmm6;
-       haddpd xmm3, xmm3;
-
-       // store destination
-       movsd [rcx], xmm3;
-
-       // next results:
-       add rcx, rdx;       // next dest element
-       add r8, rsi;        // next mt1 row
-   dec r14;
-   jnz @@foryloop;
-
-   // epilog pop "stack"
-   mov rbx, iRBX;
-   mov rsi, iRSI;
-   mov rdi, iRDI;
-   mov r12, iR12;
-   mov r13, iR13;
-   mov r14, iR14;
-
-   movupd xmm6, dXMM6;
-   movupd xmm7, dXMM7;
-end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
-
-procedure ASMMatrixVectMultAlignedEvenW(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-var dXMM4 : Array[0..1] of double;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
-{$IFDEF FPC}
-begin
-{$ENDIF}
-asm
-{$IFDEF UNIX}
-   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-   // (note that the 5th and 6th parameter are are on the stack)
-   // The parameters are passed in the following order:
-   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-   mov r8, rdx;
-   mov r9, rcx;
-   mov rcx, rdi;
-   mov rdx, rsi;
-{$ENDIF}
-
-   // prolog - simulate stack
-   mov iRBX, rbx;
-   mov iRSI, rsi;
-   mov iRDI, rdi;
-   mov iR12, r12;
-   mov iR13, r13;
-   mov iR14, r14;
-
-   movupd dXMM4, xmm4;
-
-   // for the final multiplication  (alpha, beta handling)
-   movhpd xmm4, beta;
-   movlpd xmm4, alpha;
-
-   // prepare for loop
-   mov rsi, LineWidthMT;
-   mov rdi, LineWidthV;
-
-   // iter := -width*sizeof(double);
-   mov r13, width;
-   imul r13, -8;
-
-   sub r8, r13;     // mt1 - iter
-
-   mov r14, height;
-
-   // init for y := 0 to height - 1:
-   @@foryloop:
-
-       // init values:
-       xorpd xmm3, xmm3;  // res := 0;
-       mov rax, r8;       // rax = first matrix element
-       mov rbx, r9;       // rbx = first vector element
-
-       mov r10, r13;      // iter
-       @@forxloop:
-           movlpd xmm2, [rbx];
-           movhpd xmm2, [rbx + rdi];
-
-           mulpd xmm2, [rax + r10];
-           addpd xmm3, xmm2;
-
-           add rbx, rdi;
-           add rbx, rdi;
-
-           add r10, 16;
-       jnz @@forxloop;
-
-       // result building
-       // write back result (final addition and compactation)
-       haddpd xmm3, xmm3;
-
-       // result building
-       // write back result (final addition and compactation)
-
-       // calculate dest = beta*dest + alpha*xmm0
-       movhpd xmm3, [rcx];
-
-       mulpd xmm3, xmm4;
-       haddpd xmm3, xmm3;
-
-       // store destination
-       movsd [rcx], xmm3;
-
-       // next results:
-       add rcx, rdx;       // next dest element
-       add r8, rsi;        // next mt1 row
-   dec r14;
-   jnz @@foryloop;
-
-   // epilog pop "stack"
-   mov rbx, iRBX;
-   mov rsi, iRSI;
-   mov rdi, iRDI;
-   mov r12, iR12;
-   mov r13, iR13;
-   mov r14, iR14;
-
-   movupd xmm4, dxmm4;
-end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
-
-
-
-procedure ASMMatrixVectMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure ASMMatrixVectMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
 var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
+    {$ifdef UNIX}
+    LineWidthMT, LineWidthV : TASMNativeInt;
+    {$endif}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1005,6 +74,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov LineWidthMT, r8;
+   mov LineWidthV, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -1172,10 +243,13 @@ end;
 
 
 // routines with special input layouts: LineWidthV needs to be sizeof(double)
-procedure ASMMatrixVectMultEvenAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure ASMMatrixVectMultEvenAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
 var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
+    {$ifdef UNIX}
+    LineWidthMT, LineWidthV : TASMNativeInt;
+    {$endif}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1185,6 +259,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov LineWidthMT, r8;
+   mov LineWidthV, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -1352,10 +428,13 @@ end;
 end;
 {$ENDIF}
 
-procedure ASMMatrixVectMultEvenUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure ASMMatrixVectMultEvenUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
 var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
+    {$ifdef UNIX}
+    LineWidthMT, LineWidthV : TASMNativeInt;
+    {$endif}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1365,6 +444,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov LineWidthMT, r8;
+   mov LineWidthV, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -1532,10 +613,13 @@ end;
 end;
 {$ENDIF}
 
-procedure ASMMatrixVectMultOddUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure ASMMatrixVectMultOddUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
 var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
+    {$ifdef UNIX}
+    LineWidthMT, LineWidthV : TASMNativeInt;
+    {$endif}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1545,6 +629,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov LineWidthMT, r8;
+   mov LineWidthV, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -1748,12 +834,15 @@ end;
 // this function is not that well suited for use of simd instructions...
 // so only this version exists
 
-procedure ASMMatrixVectMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure ASMMatrixVectMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 
     res0, res1, res2, res3,
     res4, res5, res6, res7 : Array[0..1] of  double;
+    {$ifdef UNIX}
+    LineWidthMT, LineWidthV : TASMNativeInt;
+    {$endif}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1763,6 +852,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov LineWidthMT, r8;
+   mov LineWidthV, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -2175,12 +1266,15 @@ end;
 {$ENDIF}
 
 
-procedure ASMMatrixVectMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure ASMMatrixVectMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 var dXMM4, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
 
     res0, res1, res2, res3,
     res4, res5, res6, res7 : Array[0..1] of  double;
+    {$ifdef UNIX}
+    LineWidthMT, LineWidthV : TASMNativeInt;
+    {$endif}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -2190,6 +1284,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov LineWidthMT, r8;
+   mov LineWidthV, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -2458,9 +1554,11 @@ end;
 
 
 procedure ASMRank1UpdateSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
-// note: RCX = A, RDX = LineWidthA, R8 = width, R9 = height
+  {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : TASMNativeInt; alpha : double);
 var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
+    {$ifdef UNIX}
+    X, Y : PDouble;
+    {$endif}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -2470,6 +1568,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov X, r8;
+   mov Y, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -2563,9 +1663,12 @@ end;
 
 
 procedure ASMRank1UpdateSeqAligned(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+  {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : TASMNativeInt; alpha : double);
 // note: RCX = A, RDX = LineWidthA, R8 = width, R9 = height
 var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
+    {$ifdef UNIX}
+    X, Y : PDouble;
+    {$endif}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -2575,6 +1678,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov X, r8;
+   mov Y, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;

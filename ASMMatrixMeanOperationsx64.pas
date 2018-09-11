@@ -27,36 +27,36 @@ interface
 
 uses MatrixConst;
 
-procedure ASMMatrixMeanRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixMeanRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixMeanRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixMeanRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixMeanRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixMeanRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixMeanRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixMeanRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
 
-procedure ASMMatrixMeanColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixMeanColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixMeanColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixMeanColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixMeanColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixMeanColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixMeanColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixMeanColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
 
-procedure ASMMatrixVarRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixVarRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixVarRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixVarRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixVarRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixVarRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixVarRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixVarRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
 
-procedure ASMMatrixVarColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixVarColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixVarColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixVarColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixVarColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixVarColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixVarColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixVarColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
 
 // combined methods
-procedure ASMMatrixMeanVarRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixMeanVarRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixMeanVarRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixMeanVarRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixMeanVarRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixMeanVarRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixMeanVarRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixMeanVarRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
 
-procedure ASMMatrixMeanVarColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixMeanVarColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixMeanVarColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixMeanVarColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixMeanVarColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixMeanVarColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixMeanVarColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixMeanVarColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
 
 
 {$ENDIF}
@@ -68,8 +68,12 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 
-procedure ASMMatrixMeanRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixMeanRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
 var dXMM5 : Array[0..1] of double;
+    {$ifdef UNIX}
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -79,6 +83,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -174,8 +180,12 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixMeanRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixMeanRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
 var dXMM5, dXMM4 : Array[0..1] of double;
+    {$ifdef UNIX}
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -185,6 +195,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -290,8 +302,12 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixMeanRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixMeanRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
 var dXMM5 : Array[0..1] of double;
+    {$ifdef UNIX}
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
   {$ENDIF}
@@ -301,6 +317,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -404,17 +422,23 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixMeanRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixMeanRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
 var dXMM5, dXMM4 : Array[0..1] of double;
+    {$ifdef UNIX}
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
-  {$ENDIF}
+{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -528,16 +552,22 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixMeanColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixMeanColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+{$ifdef UNIX}
+var width : TASMNativeInt;
+    height : TASMNativeInt;
+{$ENDIF}
 {$IFDEF FPC}
 begin
-  {$ENDIF}
+{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -591,16 +621,22 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixMeanColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixMeanColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+{$ifdef UNIX}
+var width : TASMNativeInt;
+    height : TASMNativeInt;
+{$ENDIF}
 {$IFDEF FPC}
 begin
-  {$ENDIF}
+{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -655,16 +691,21 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixMeanColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-{$IFDEF FPC}
+procedure ASMMatrixMeanColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+{$ifdef UNIX}
+var width : TASMNativeInt;
+    height : TASMNativeInt;
+{$ENDIF}{$IFDEF FPC}
 begin
-  {$ENDIF}
+{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -737,16 +778,22 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixMeanColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixMeanColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+{$ifdef UNIX}
+var width : TASMNativeInt;
+    height : TASMNativeInt;
+{$ENDIF}
 {$IFDEF FPC}
 begin
-  {$ENDIF}
+{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -826,8 +873,12 @@ end;
 // ###########################################
 
 
-procedure ASMMatrixVarRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixVarRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
 var dXMM5 : Array[0..1] of double;
+    {$ifdef UNIX}
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -837,6 +888,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -1026,8 +1079,12 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixVarRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixVarRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
 var dXMM5 : Array[0..1] of double;
+    {$ifdef UNIX}
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1037,6 +1094,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -1234,17 +1293,23 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixVarRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixVarRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
 var dXMM5 : Array[0..1] of double;
+    {$ifdef UNIX}
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
-  {$ENDIF}
+{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -1445,17 +1510,23 @@ end;
 end;
 
 
-procedure ASMMatrixVarRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixVarRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
 var dXMM5, dXMM4 : Array[0..1] of double;
+    {$ifdef UNIX}
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
-  {$ENDIF}
+{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -1665,16 +1736,22 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixVarColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixVarColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
+{$ifdef UNIX}
+var width : TASMNativeInt;
+    height : TASMNativeInt;
+{$ENDIF}
 {$IFDEF FPC}
 begin
-  {$ENDIF}
+{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -1762,16 +1839,22 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixVarColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixVarColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
+{$ifdef UNIX}
+var width : TASMNativeInt;
+    height : TASMNativeInt;
+{$ENDIF}
 {$IFDEF FPC}
 begin
-  {$ENDIF}
+{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -1858,16 +1941,22 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixVarColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixVarColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
+{$ifdef UNIX}
+var width : TASMNativeInt;
+    height : TASMNativeInt;
+{$ENDIF}
 {$IFDEF FPC}
 begin
-  {$ENDIF}
+{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -2003,7 +2092,11 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixVarColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixVarColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
+{$ifdef UNIX}
+var width : TASMNativeInt;
+    height : TASMNativeInt;
+{$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -2013,6 +2106,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -2154,8 +2249,12 @@ end;
 // #### Combined mean variance calculation
 // #####################################################
 
-procedure ASMMatrixMeanVarRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixMeanVarRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
 var dXMM5 : Array[0..1] of double;
+    {$ifdef UNIX}
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -2165,6 +2264,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -2352,8 +2453,12 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixMeanVarRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixMeanVarRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
 var dXMM5 : Array[0..1] of double;
+    {$ifdef UNIX}
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -2363,6 +2468,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -2561,17 +2668,23 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixMeanVarRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixMeanVarRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
 var dXMM5 : Array[0..1] of double;
+    {$ifdef UNIX}
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
-  {$ENDIF}
+{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -2773,17 +2886,23 @@ end;
 end;
 
 
-procedure ASMMatrixMeanVarRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixMeanVarRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
 var dXMM5, dXMM4 : Array[0..1] of double;
+    {$ifdef UNIX}
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
-  {$ENDIF}
+{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -2990,16 +3109,22 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixMeanVarColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixMeanVarColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
+{$ifdef UNIX}
+var width : TASMNativeInt;
+    height : TASMNativeInt;
+{$ENDIF}
 {$IFDEF FPC}
 begin
-  {$ENDIF}
+{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -3088,16 +3213,22 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixMeanVarColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixMeanVarColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
+{$ifdef UNIX}
+var width : TASMNativeInt;
+    height : TASMNativeInt;
+{$ENDIF}
 {$IFDEF FPC}
 begin
-  {$ENDIF}
+{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -3185,16 +3316,22 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixMeanVarColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixMeanVarColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
+{$ifdef UNIX}
+var width : TASMNativeInt;
+    height : TASMNativeInt;
+{$ENDIF}
 {$IFDEF FPC}
 begin
-  {$ENDIF}
+{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -3332,7 +3469,11 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixMeanVarColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixMeanVarColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; unbiased : boolean);
+{$ifdef UNIX}
+var width : TASMNativeInt;
+    height : TASMNativeInt;
+{$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -3342,6 +3483,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;

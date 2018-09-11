@@ -106,6 +106,7 @@ type
 // ###########################################
 // #### Creates a pointer to the x, y element of the given matrix (row major)
 function GenPtr(const A : PDouble; incX, incY : TASMNativeInt; const LineWidthA : TASMNativeInt) : PDouble; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+function GenPtrArr(const A : PDouble; incX, incY : TASMNativeInt; const LineWidthA : TASMNativeInt) : PConstDoubleArr; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 
 // ###########################################
 // #### Sets the pointer to the next available 32bytes alligned address
@@ -118,6 +119,13 @@ function GenPtr(const A : PDouble; incX, incY : TASMNativeInt; const LineWidthA 
 begin
      Result := A;
      inc(Result, incX);
+     inc(PByte(Result), incY*LineWidthA);
+end;
+
+function GenPtrArr(const A : PDouble; incX, incY : TASMNativeInt; const LineWidthA : TASMNativeInt) : PConstDoubleArr; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+begin
+     Result := PConstDoubleArr(A);
+     Result := @Result^[incX];
      inc(PByte(Result), incY*LineWidthA);
 end;
 

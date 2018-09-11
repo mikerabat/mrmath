@@ -171,10 +171,16 @@ procedure GenericSymRankKUpd(dest : PDouble; LineWidthDest: TASMNativeInt; A : P
 procedure GenericSolveLoTriMtxTranspNoUnit(A : PDouble; const LineWidthA : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
 
 procedure GenericRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+  X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
 
 
 procedure GenericInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; const Value : double);
+
+// simple convolution: the input and output parameter are assumed to be vectors!
+// it's also assumed that memory before A is accessible for at least bLen elements
+// -> these elements are used for the convulution calculation
+// -> note the function is called by MatrixConvolve in optimizedfuncs.pas
+procedure GenericConvolveRevB(dest : PDouble; A, B : PDouble; aLen, bLen : TASMNativeInt);
 
 implementation
 
@@ -2473,7 +2479,7 @@ end;
 // X, Y are vectors, incX, incY is the iteration in bytes from one to the next vector element
 // A is a matrix
 procedure GenericRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt); // {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+  X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double); // {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 var i : TASMNativeInt;
     j : TASMNativeInt;
     tmp : double;
@@ -2517,6 +2523,30 @@ begin
 
                inc(PByte(pX), incX);
           end;
+     end;
+end;
+
+procedure GenericConvolveRevB(dest : PDouble; A, B : PDouble; aLen, bLen : TASMNativeInt);
+var pDest : PConstDoubleArr;
+    pA : PConstDoubleArr;
+    pB : PConstDoubleArr;
+    i, j : integer;
+    aSum : double;
+begin
+     pDest := PConstDoubleArr(dest);
+     pA := PConstDoubleArr(A);
+     dec(PDouble(pA), bLen - 1);
+     pB := PConstDoubleArr(B);
+
+     for i := 0 to aLen - 1 do
+     begin
+          aSum := 0;
+          for j := 0 to bLen - 1 do
+              aSum := aSum + pA^[j]*pB^[j];
+
+          pDest^[i] := aSum;
+
+          inc(PDouble(pA), 1);
      end;
 end;
 

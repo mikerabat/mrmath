@@ -28,46 +28,47 @@ interface
 uses MatrixConst;
 
 // full matrix operations -> there are no zero columns nor zero lines attached
-procedure ASMMatrixMultAlignedEvenW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-procedure ASMMatrixMultUnAlignedEvenW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixMultAlignedEvenW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixMultUnAlignedEvenW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 
 // the width of the second matrix is uneven -> the last column of mt2 must be handled differently
-procedure ASMMatrixMultAlignedEvenW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-procedure ASMMatrixMultUnAlignedEvenW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixMultAlignedEvenW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixMultUnAlignedEvenW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 
 // the width of mt1 is odd but the one of mt2 is even
-procedure ASMMatrixMultAlignedOddW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-procedure ASMMatrixMultUnAlignedOddW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixMultAlignedOddW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixMultUnAlignedOddW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 
 // both matrices have an odd width
-procedure ASMMatrixMultAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-procedure ASMMatrixMultUnAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixMultAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixMultUnAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 
 // some special types of multiplications used e.g. in QR Decomposition
 // dest = mt1'*mt2; where mt2 is a lower triangular matrix and the operation is transposition
 // the function assumes a unit diagonal (does not touch the real middle elements)
 // width and height values are assumed to be the "original" (non transposed) ones
-procedure ASMMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure ASMMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; {$ifdef UNIX}unixMT2{$ELSE}mt2{$endif} : PDouble; {$ifdef UNIX}unixLineWidth2{$ELSE}LineWidth2{$endif} : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 // mt1 = mt1*mt2'; where mt2 is an upper triangular matrix
 procedure ASMMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+  {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt);
 
 // W = C1*V1*T -> V1 is an upper triangular matrix with assumed unit diagonal entries. Operation on V1 transposition
-procedure ASMMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure ASMMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt;
+  {$ifdef UNIX}unixMT2{$ELSE}mt2{$endif} : PDouble; {$ifdef UNIX}unixLineWidth2{$ELSE}LineWidth2{$endif} : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 
 // mt1 = mt1*mt2; where mt2 is an upper triangular matrix
 procedure ASMMtxMultTria2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+  {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt);
 
 // calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be 1!
 procedure ASMMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+  {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt);
 
 // mt1 = mt1*mt2; where mt2 is an upper triangular matrix - diagonal elements are unit
 procedure ASMMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+  {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt);
 
 
 {$ENDIF}
@@ -77,9 +78,13 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 {$IFDEF x64}
-procedure ASMMatrixMultAlignedEvenW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixMultAlignedEvenW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
+    {$ifdef UNIX}
+    width1 : TASMNativeInt;
+    height1 : TASMNativeInt;
+    {$ENDIF}
 
 {$IFDEF FPC}
 begin
@@ -91,6 +96,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width1, r8;
+   mov height1, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -233,9 +240,13 @@ end;
 end;
 {$ENDIF}
 
-procedure ASMMatrixMultUnAlignedEvenW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixMultUnAlignedEvenW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
+    {$ifdef UNIX}
+    width1 : TASMNativeInt;
+    height1 : TASMNativeInt;
+    {$ENDIF}
 
 {$IFDEF FPC}
 begin
@@ -247,6 +258,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width1, r8;
+   mov height1, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -388,9 +401,13 @@ end;
 {$ENDIF}
 
 // the width of the second matrix is uneven -> the last column of mt2 must be handled differently
-procedure ASMMatrixMultAlignedEvenW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixMultAlignedEvenW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
+    {$ifdef UNIX}
+    width1 : TASMNativeInt;
+    height1 : TASMNativeInt;
+    {$ENDIF}
 
 {$IFDEF FPC}
 begin
@@ -402,6 +419,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width1, r8;
+   mov height1, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -562,9 +581,13 @@ end;
 end;
 {$ENDIF}
 
-procedure ASMMatrixMultUnAlignedEvenW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixMultUnAlignedEvenW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
+    {$ifdef UNIX}
+    width1 : TASMNativeInt;
+    height1 : TASMNativeInt;
+    {$ENDIF}
 
 {$IFDEF FPC}
 begin
@@ -576,6 +599,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width1, r8;
+   mov height1, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -737,13 +762,17 @@ end;
 {$ENDIF}
 
 // the width of mt1 is odd but the one of mt2 is even
-procedure ASMMatrixMultAlignedOddW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixMultAlignedOddW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
+    {$ifdef UNIX}
+    width1 : TASMNativeInt;
+    height1 : TASMNativeInt;
+    {$ENDIF}
 
 {$IFDEF FPC}
 begin
-  {$ENDIF}
+{$ENDIF}
 
 asm
    {$IFDEF UNIX}
@@ -751,6 +780,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width1, r8;
+   mov height1, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -908,13 +939,17 @@ end;
 end;
 {$ENDIF}
 
-procedure ASMMatrixMultUnAlignedOddW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixMultUnAlignedOddW1EvenW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
+    {$ifdef UNIX}
+    width1 : TASMNativeInt;
+    height1 : TASMNativeInt;
+    {$ENDIF}
 
 {$IFDEF FPC}
 begin
-  {$ENDIF}
+{$ENDIF}
 
 asm
    {$IFDEF UNIX}
@@ -922,6 +957,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width1, r8;
+   mov height1, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -1081,13 +1118,17 @@ end;
 {$ENDIF}
 
 // both matrices have an odd width
-procedure ASMMatrixMultAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixMultAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
+    {$ifdef UNIX}
+    width1 : TASMNativeInt;
+    height1 : TASMNativeInt;
+    {$ENDIF}
 
 {$IFDEF FPC}
 begin
-  {$ENDIF}
+{$ENDIF}
 
 asm
    {$IFDEF UNIX}
@@ -1095,6 +1136,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width1, r8;
+   mov height1, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -1276,9 +1319,13 @@ end;
 end;
 {$ENDIF}
 
-procedure ASMMatrixMultUnAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixMultUnAlignedOddW1OddW2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
+    {$ifdef UNIX}
+    width1 : TASMNativeInt;
+    height1 : TASMNativeInt;
+    {$ENDIF}
 
 {$IFDEF FPC}
 begin
@@ -1290,6 +1337,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width1, r8;
+   mov height1, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -1479,8 +1528,12 @@ end;
 // note the result is stored in mt1 again!
 // mt1 = mt1*mt2; where mt2 is an upper triangular matrix
 procedure ASMMtxMultTria2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+  {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt);
 var iRBX, iRDI, iRSI, iR12, iR13 : TASMNativeInt;
+    {$ifdef UNIX}
+    width1 : TASMNativeInt;
+    height1 : TASMNativeInt;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1492,6 +1545,8 @@ begin
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width1, r8;
+   mov height1, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -1595,23 +1650,30 @@ end;
 {$ENDIF}
 
 procedure ASMMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+  {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt);
 var iRBX, iRDI, iRSI : TASMNativeInt;
+    {$ifdef UNIX}
+    width1 : TASMNativeInt;
+    height1 : TASMNativeInt;
+    {$ENDIF}
+
 {$IFDEF FPC}
 begin
 {$ENDIF}
      // rcx = mt1, rdx = LineWidth1, r8 = mt2, r9 = LineWidth2
      asm
         {$IFDEF UNIX}
-   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-   // (note that the 5th and 6th parameter are are on the stack)
-   // The parameters are passed in the following order:
-   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-   mov r8, rdx;
-   mov r9, rcx;
-   mov rcx, rdi;
-   mov rdx, rsi;
-   {$ENDIF}
+        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+        // (note that the 5th and 6th parameter are are on the stack)
+        // The parameters are passed in the following order:
+        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+        mov width1, r8;
+        mov height1, r9;
+        mov r8, rdx;
+        mov r9, rcx;
+        mov rcx, rdi;
+        mov rdx, rsi;
+        {$ENDIF}
 
         // prolog: stack
         mov iRBX, rbx;
@@ -1702,24 +1764,31 @@ end;
 {$ENDIF}
 
 
-procedure ASMMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure ASMMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt;
+  {$ifdef UNIX}unixMT2{$ELSE}mt2{$endif} : PDouble; {$ifdef UNIX}unixLineWidth2{$ELSE}LineWidth2{$endif} : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 var iRBX, iRDI, iRSI, iR12, iR13 : TASMNativeInt;
+    {$ifdef UNIX}
+    mt2 : PDouble;
+    LineWidth2 : TASMNativeInt;
+    {$endif}
 {$IFDEF FPC}
 begin
 {$ENDIF}
      // rcx = dest, rdx = LineWidthDest, r8 = mt1, r9 = LineWidth1
      asm
         {$IFDEF UNIX}
-   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-   // (note that the 5th and 6th parameter are are on the stack)
-   // The parameters are passed in the following order:
-   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-   mov r8, rdx;
-   mov r9, rcx;
-   mov rcx, rdi;
-   mov rdx, rsi;
-   {$ENDIF}
+        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+        // (note that the 5th and 6th parameter are are on the stack)
+        // The parameters are passed in the following order:
+        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+        mov mt2, r8;
+        mov LineWidth2, r9;
+        mov r8, rdx;
+        mov r9, rcx;
+        mov rcx, rdi;
+        mov rdx, rsi;
+        {$ENDIF}
 
         // prolog: stack
         mov iRBX, rbx;
@@ -1838,10 +1907,14 @@ end;
 // the function assumes a unit diagonal (does not touch the real middle elements)
 // width and height values are assumed to be the "original" (non transposed) ones
 procedure ASMMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt;
-  mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  {$ifdef UNIX}unixMT2{$ELSE}mt2{$endif} : PDouble; {$ifdef UNIX}unixLineWidth2{$ELSE}LineWidth2{$endif} : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 var pMt2 : PDouble;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
+    {$IFDEF UNIX}
+    mt2 : PDouble;
+    LineWidth2 : TASMNativeInt;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1849,15 +1922,17 @@ begin
      // prolog - simulate stack
      asm
         {$IFDEF UNIX}
-   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-   // (note that the 5th and 6th parameter are are on the stack)
-   // The parameters are passed in the following order:
-   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-   mov r8, rdx;
-   mov r9, rcx;
-   mov rcx, rdi;
-   mov rdx, rsi;
-   {$ENDIF}
+        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+        // (note that the 5th and 6th parameter are are on the stack)
+        // The parameters are passed in the following order:
+        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+        mov mt2, r8;
+        mov LineWidth2, r9;
+        mov r8, rdx;
+        mov r9, rcx;
+        mov rcx, rdi;
+        mov rdx, rsi;
+        {$ENDIF}
 
         mov iR12, r12;
         mov iR13, r13;
@@ -2038,8 +2113,12 @@ end;
 
 // calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be 1!
 procedure ASMMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+  {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt);
 var iRBX, iRDI, iRSI : TASMNativeInt;
+    {$ifdef UNIX}
+    width1 : TASMNativeInt;
+    height1 : TASMNativeInt;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -2050,6 +2129,8 @@ begin
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width1, r8;
+   mov height1, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -2166,8 +2247,12 @@ end;
 {$ENDIF}
 
 procedure ASMMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+  {$ifdef UNIX}unixWidth{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt);
 var iRBX, iRDI, iRSI, iR12 : TASMNativeInt;
+    {$ifdef UNIX}
+    width1 : TASMNativeInt;
+    height1 : TASMNativeInt;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -2178,6 +2263,8 @@ begin
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width1, r8;
+   mov height1, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;

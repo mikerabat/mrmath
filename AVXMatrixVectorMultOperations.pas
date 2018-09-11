@@ -45,10 +45,10 @@ procedure AVXMatrixVecMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt
 
 // rank1 update: A = A + alpha*X*Y' where x and y are vectors. It's assumed that y is sequential
 procedure AVXRank1UpdateSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+   X, Y : PDouble; incX, incY : TASMNativeInt;alpha : double);
 
 procedure AVXRank1UpdateSeqAligned(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+  X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
 
 {$ENDIF}
 
@@ -1133,7 +1133,7 @@ end;
 
 
 procedure AVXRank1UpdateSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+  X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
 begin
 asm
    // prolog - simulate stack
@@ -1229,7 +1229,7 @@ end;
 
 
 procedure AVXRank1UpdateSeqAligned(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+  X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
 begin
 asm
    // prolog - simulate stack

@@ -34,10 +34,10 @@ uses MatrixConst;
 
 
 
-procedure AVXMatrixMultAlignedTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-procedure AVXMatrixMultAlignedEvenW1EvenH2TransposedMod16(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-procedure AVXMatrixMultAlignedEvenW1OddH2TransposedMod16(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-procedure AVXMatrixMultUnAlignedTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure AVXMatrixMultAlignedTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$endif}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$endif} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure AVXMatrixMultAlignedEvenW1EvenH2TransposedMod16(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$endif}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$endif} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure AVXMatrixMultAlignedEvenW1OddH2TransposedMod16(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$endif}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$endif} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure AVXMatrixMultUnAlignedTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$endif}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$endif} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 
 {$ENDIF}
 
@@ -48,10 +48,14 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$warnings off} {$ENDIF}
 
 procedure AVXMatrixMultAlignedEvenW1EvenH2TransposedMod16(dest : PDouble; const destLineWidth : TASMNativeInt;
-    mt1, mt2 : PDouble; width1 : TASMNativeInt;
-    height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
+    mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$endif}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$endif} : TASMNativeInt; 
+    width2 : TASMNativeInt; height2 : TASMNativeInt;
     const LineWidth1, LineWidth2 : TASMNativeInt);
 var iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
+    {$IFDEF UNIX}
+    width1 : TASMNativeInt;
+    height1 : TASMNativeInt;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -61,6 +65,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width1, r8;
+   mov height1, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -215,11 +221,14 @@ end;
 end;
 
 procedure AVXMatrixMultAlignedEvenW1OddH2TransposedMod16(dest : PDouble; const destLineWidth : TASMNativeInt;
-    mt1, mt2 : PDouble; width1 : TASMNativeInt;
-    height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
+    mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$endif}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$endif}, 
+    width2 : TASMNativeInt; height2 : TASMNativeInt;
     const LineWidth1, LineWidth2 : TASMNativeInt);
 var iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
-
+    {$IFDEF UNIX}
+    width1 : TASMNativeInt;
+    height1 : TASMNativeInt;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -229,6 +238,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width1, r8;
+   mov height1, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -440,9 +451,13 @@ end;
 
 
 // note mt2 is transposed this time -> width1 and width2 must be the same!
-procedure AVXMatrixMultUnAlignedTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure AVXMatrixMultUnAlignedTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; 
+   {$ifdef UNIX}unixWidth1{$ELSE}width1{$endif}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$endif} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
-
+    {$IFDEF UNIX}
+    width1 : TASMNativeInt;
+    height1 : TASMNativeInt;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -452,6 +467,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width1, r8;
+   mov height1, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -664,9 +681,13 @@ end;
 end;
 
 // note mt2 is transposed this time -> width1 and width2 must be the same!
-procedure AVXMatrixMultAlignedTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure AVXMatrixMultAlignedTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; 
+  {$ifdef UNIX}unixWidth1{$ELSE}width1{$endif}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$endif} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 var iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
-
+   {$IFDEF UNIX}
+    width1 : TASMNativeInt;
+    height1 : TASMNativeInt;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -676,6 +697,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width1, r8;
+   mov height1, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;

@@ -44,7 +44,7 @@ type
 implementation
 
 uses CCA, Math, Matrix, PLS, BinaryReaderWriter, BaseMathPersistence, 
-     JSONReaderWriter, ThreadedMatrix, MtxTimer, OptimizedFuncs, MtxThreadPool;
+     JSONReaderWriter, ThreadedMatrix, MtxTimer, OptimizedFuncs;
 
 { TTestCCA }
 

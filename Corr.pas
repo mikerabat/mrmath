@@ -741,7 +741,7 @@ asm
    mov r10, newLen;
    mov [r10], r8;
 
-   movupd xmm3, [rip + cDivBy2];
+   movupd xmm3, [rip + cLocDivBy2];
 
    // test if we have enough elements to handle 2 elements at once
    cmp r8, 2;

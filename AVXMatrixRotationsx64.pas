@@ -29,10 +29,10 @@ interface
 
 uses MatrixConst;
 
-procedure AVXApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
-procedure AVXApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
-procedure AVXApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
-procedure AVXApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure AVXApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
+procedure AVXApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
+procedure AVXApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
+procedure AVXApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
 
 
 procedure AVXMatrixRotate(N : TASMNativeInt; X : PDouble; const LineWidthDX : TASMNativeInt; Y : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
@@ -46,8 +46,11 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 // rcx = width, rdx = height, r8 : A, r9 = LineWidthA
-procedure AVXApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure AVXApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
 var iRBX, iRDI : TASMNativeInt;
+    {$IFDEF UNIX}
+    C, S : PConstDoubleArr;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -57,6 +60,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov C, r8;
+   mov S, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -225,8 +230,11 @@ end;
 {$ENDIF}
 
 
-procedure AVXApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure AVXApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
 var iRBX, iRDI : TASMNativeInt;
+    {$IFDEF UNIX}
+    C, S : PConstDoubleArr;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -236,6 +244,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov C, r8;
+   mov S, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -391,8 +401,11 @@ end;
 {$ENDIF}
 
 // rcx = width, rdx = height, r8 : A, r9 = LineWidthA
-procedure AVXApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure AVXApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
 var iRBX, iRDI : TASMNativeInt;
+    {$IFDEF UNIX}
+    C, S : PConstDoubleArr;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -402,6 +415,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov C, r8;
+   mov S, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -489,8 +504,11 @@ end;
 end;
 {$ENDIF}
 
-procedure AVXApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure AVXApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
 var iRBX, iRDI : TASMNativeInt;
+    {$IFDEF UNIX}
+    C, S : PConstDoubleArr;
+    {$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -500,6 +518,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov C, r8;
+   mov S, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -593,7 +613,11 @@ end;
 // its assumed that Linewidthdx and linewidthdy = sizeof(double)
 // rcx = N, RDX = X, R8 = Y,
 procedure AVXMatrixRotateAligned(N : TASMNativeInt; X : PDouble;
-  Y : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
+  Y : PDouble; LineWidthDY : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}c{$endif}, {$ifdef UNIX}unixS{$ELSE}s{$endif} : PDouble);
+{$IFDEF UNIX}
+var c : PDouble;
+    s : PDouble;
+{$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -603,6 +627,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov c, r8;
+   mov s, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -619,16 +645,16 @@ asm
    {$IFDEF FPC}vmovupd [rsp + $20], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$20;{$ENDIF} 
 
    // init
-   lea rax, c;
+   mov rax, c;
    {$IFDEF FPC}vmovddup xmm1, [rax];{$ELSE}db $C5,$FB,$12,$08;{$ENDIF} 
 
-   lea rax, s;
+   mov rax, s;
    {$IFDEF FPC}vmovsd xmm2, [rax];{$ELSE}db $C5,$FB,$10,$10;{$ENDIF} 
    lea rax, [rip + cMinusOne];
    {$IFDEF FPC}vmulsd xmm2, xmm2, [rax];{$ELSE}db $C5,$EB,$59,$10;{$ENDIF} 
 
    {$IFDEF FPC}vmovddup xmm0, xmm2;{$ELSE}db $C5,$FB,$12,$C2;{$ENDIF} 
-   lea rax, s;
+   mov rax, s;
    {$IFDEF FPC}vmovddup xmm2, [rax];{$ELSE}db $C5,$FB,$12,$10;{$ENDIF} 
 
    xor r10, r10;
@@ -703,7 +729,11 @@ end;
 
 // rcx = N, RDX = X, R8 = LineWidthDX, R9 = Y;
 procedure AVXMatrixRotateUnaligned(N : TASMNativeInt; X : PDouble; const LineWidthDX : TASMNativeInt;
-  Y : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
+  Y : PDouble; {$ifdef UNIX}unixLineWidthDY{$ELSE}LineWidthDY{$endif} : TASMNativeInt; {$ifdef UNIX}unixc{$ELSE}c{$endif}, s : Pdouble);
+{$ifdef UNIX}
+var LineWidthDY : TASMNativeInt;
+    C : PDouble;
+{$endif}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -713,6 +743,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov LineWidthDY, r8;
+   mov C, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -726,17 +758,17 @@ asm
    {$IFDEF FPC}vmovupd [rsp + $10], xmm5;{$ELSE}db $C5,$F9,$11,$6C,$24,$10;{$ENDIF} 
    {$IFDEF FPC}vmovupd [rsp + $20], xmm6;{$ELSE}db $C5,$F9,$11,$74,$24,$20;{$ENDIF} 
 
-   lea rax, c;
+   mov rax, c;
    {$IFDEF FPC}vmovddup xmm1, [rax];{$ELSE}db $C5,$FB,$12,$08;{$ENDIF} 
 
-   lea rax, s;
+   mov rax, s;
    {$IFDEF FPC}vmovsd xmm2, [rax];{$ELSE}db $C5,$FB,$10,$10;{$ENDIF} 
    lea rax, [rip + cMinusOne];
    {$IFDEF FPC}vmulsd xmm2, xmm2, [rax];{$ELSE}db $C5,$EB,$59,$10;{$ENDIF} 
 
    {$IFDEF FPC}vmovddup xmm0, xmm2;{$ELSE}db $C5,$FB,$12,$C2;{$ENDIF} 
 
-   lea rax, s;
+   mov rax, s;
    {$IFDEF FPC}vmovddup xmm2, [rax];{$ELSE}db $C5,$FB,$12,$10;{$ENDIF} 
 
    mov r10, LineWidthDY;
@@ -830,9 +862,9 @@ begin
 
      if (LineWidthDX = sizeof(double)) and (LineWidthDY = sizeof(double))
      then
-         AVXMatrixRotateAligned(N, X, Y, LineWidthDY, c, s)
+         AVXMatrixRotateAligned(N, X, Y, LineWidthDY, @c, @s)
      else
-         AVXMatrixRotateUnAligned(N, X, LineWidthDX, Y, LineWidthDY, c, s);
+         AVXMatrixRotateUnAligned(N, X, LineWidthDX, Y, LineWidthDY, @c, @s);
 end;
 
 

@@ -27,17 +27,17 @@ interface
 
 uses MatrixConst;
 
-procedure ASMMatrixAddScaleAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
-procedure ASMMatrixAddScaleUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure ASMMatrixAddScaleAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double);
+procedure ASMMatrixAddScaleUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double);
 
-procedure ASMMatrixAddScaleAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
-procedure ASMMatrixAddScaleUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure ASMMatrixAddScaleAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double);
+procedure ASMMatrixAddScaleUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double);
 
-procedure ASMMatrixScaleAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
-procedure ASMMatrixScaleAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure ASMMatrixScaleAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double);
+procedure ASMMatrixScaleAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double);
 
-procedure ASMMatrixScaleAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
-procedure ASMMatrixScaleAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure ASMMatrixScaleAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double);
+procedure ASMMatrixScaleAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double);
 
 {$ENDIF}
 
@@ -47,12 +47,17 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
-procedure ASMMatrixAddScaleAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure ASMMatrixAddScaleAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
 asm
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
+
+   movddup xmm6, dOffset;
+   movddup xmm7, Scale;
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
@@ -64,22 +69,10 @@ asm
    mov rdx, rsi;
    {$ENDIF}
 
-   // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
-   // prolog - simulate stack
-   movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
-
-   {
-   .savenv xmm6;
-   .savenv xmm7;
-   }
    //iters := -width*sizeof(double);
    mov r10, width;
    shl r10, 3;
    imul r10, -1;
-
-   movddup xmm6, dOffset;
-   movddup xmm7, Scale;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub rcx, r10;
@@ -172,12 +165,17 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixAddScaleUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure ASMMatrixAddScaleUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
 asm
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
+   movddup xmm6, dOffset;
+   movddup xmm7, scale;
+   
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
@@ -189,23 +187,10 @@ asm
    mov rdx, rsi;
    {$ENDIF}
 
-   // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
-   // prolog - simulate stack
-   movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
-
-   {
-   .savenv xmm6;
-   .savenv xmm7;
-   }
-
    //iters := -width*sizeof(double);
    mov r10, width;
    shl r10, 3;
    imul r10, -1;
-
-   movddup xmm6, dOffset;
-   movddup xmm7, Scale;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub rcx, r10;
@@ -296,12 +281,17 @@ end;
 end;
 
 
-procedure ASMMatrixAddScaleAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure ASMMatrixAddScaleAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
 asm
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
+   movddup xmm6, dOffset;
+   movddup xmm7, scale;
+   
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
@@ -313,24 +303,11 @@ asm
    mov rdx, rsi;
    {$ENDIF}
 
-   // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
-   // prolog - simulate stack
-   movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
-
-   {
-   .savenv xmm6;
-   .savenv xmm7;
-   }
-
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
    dec r10;
    shl r10, 3;
    imul r10, -1;
-
-   movddup xmm6, dOffset;
-   movddup xmm7, Scale;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub rcx, r10;
@@ -429,12 +406,17 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixAddScaleUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure ASMMatrixAddScaleUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
 asm
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
+   movddup xmm6, dOffset;
+   movddup xmm7, scale;
+
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
@@ -448,22 +430,13 @@ asm
 
    // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    // prolog - simulate stack
-   movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
 
-   {
-   .savenv xmm6;
-   .savenv xmm7;
-   }
 
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
    dec r10;
    shl r10, 3;
    imul r10, -1;
-
-   movddup xmm6, dOffset;
-   movddup xmm7, Scale;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub rcx, r10;
@@ -560,12 +533,17 @@ end;
 end;
 
 
-procedure ASMMatrixScaleAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure ASMMatrixScaleAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
 asm
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
+   movddup xmm6, dOffset;
+   movddup xmm7, scale;
+   
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
@@ -577,23 +555,10 @@ asm
    mov rdx, rsi;
    {$ENDIF}
 
-   // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
-   // prolog - simulate stack
-   movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
-
-   {
-   .savenv xmm6;
-   .savenv xmm7;
-   }
-
    //iters := -width*sizeof(double);
    mov r10, width;
    shl r10, 3;
    imul r10, -1;
-
-   movddup xmm6, dOffset;
-   movddup xmm7, Scale;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub rcx, r10;
@@ -686,12 +651,17 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixScaleAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure ASMMatrixScaleAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
 asm
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
+   movddup xmm6, dOffset;
+   movddup xmm7, scale;
+   
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
@@ -703,23 +673,10 @@ asm
    mov rdx, rsi;
    {$ENDIF}
 
-   // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
-   // prolog - simulate stack
-   movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
-
-   {
-   .savenv xmm6;
-   .savenv xmm7;
-   }
-
    //iters := -width*sizeof(double);
    mov r10, width;
    shl r10, 3;
    imul r10, -1;
-
-   movddup xmm6, dOffset;
-   movddup xmm7, Scale;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub rcx, r10;
@@ -810,12 +767,17 @@ end;
 end;
 
 
-procedure ASMMatrixScaleAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure ASMMatrixScaleAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
 asm
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
+   movddup xmm6, dOffset;
+   movddup xmm7, scale;
+   
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
@@ -827,24 +789,11 @@ asm
    mov rdx, rsi;
    {$ENDIF}
 
-   // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
-   // prolog - simulate stack
-   movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
-
-   {
-   .savenv xmm6;
-   .savenv xmm7;
-   }
-
    //iters := -width*sizeof(double);
    mov r10, width;
    dec r10;
    shl r10, 3;
    imul r10, -1;
-
-   movddup xmm6, dOffset;
-   movddup xmm7, Scale;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub rcx, r10;
@@ -943,12 +892,17 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixScaleAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure ASMMatrixScaleAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double);
 var dXMM6, dXMM7 : Array[0..1] of double;
 {$IFDEF FPC}
 begin
 {$ENDIF}
 asm
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
+   movddup xmm6, dOffset;
+   movddup xmm7, scale;
+   
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
@@ -960,24 +914,11 @@ asm
    mov rdx, rsi;
    {$ENDIF}
 
-   // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
-   // prolog - simulate stack
-   movupd dXMM6, xmm6;
-   movupd dXMM7, xmm7;
-
-   {
-   .savenv xmm6;
-   .savenv xmm7;
-   }
-
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
    dec r10;
    shl r10, 3;
    imul r10, -1;
-
-   movddup xmm6, dOffset;
-   movddup xmm7, Scale;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub rcx, r10;

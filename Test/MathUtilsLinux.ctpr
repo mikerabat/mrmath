@@ -29,7 +29,7 @@
         <PackageName Value="adLCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="136">
+    <Units Count="142">
       <Unit0>
         <Filename Value="MathUtilsLinux.ppr"/>
         <IsPartOfProject Value="True"/>
@@ -574,6 +574,30 @@
         <Filename Value="TestFMA.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit135>
+      <Unit136>
+        <Filename Value="../ASMVecConvolve.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit136>
+      <Unit137>
+        <Filename Value="../ASMVecConvolvex64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit137>
+      <Unit138>
+        <Filename Value="../AVXVecConvolvex64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit138>
+      <Unit139>
+        <Filename Value="../AVXVecConvolve.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit139>
+      <Unit140>
+        <Filename Value="../FMAVecConvolve.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit140>
+      <Unit141>
+        <Filename Value="../FMAVecConvolvex64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit141>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

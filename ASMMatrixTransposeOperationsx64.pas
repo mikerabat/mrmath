@@ -27,17 +27,17 @@ interface
 
 uses MatrixConst;
 
-procedure ASMMatrixTransposeAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-procedure ASMMatrixTransposeUnAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixTransposeUnAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
 
-procedure ASMMatrixTransposeAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-procedure ASMMatrixTransposeUnAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixTransposeUnAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
 
-procedure ASMMatrixTransposeAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-procedure ASMMatrixTransposeUnAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixTransposeUnAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
 
-procedure ASMMatrixTransposeAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-procedure ASMMatrixTransposeUnAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixTransposeUnAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
 
 // Inplace Trasnposition of an N x N matrix
 procedure ASMMatrixTransposeInplace(mt : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt);
@@ -50,8 +50,12 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
-procedure ASMMatrixTransposeAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
 var iR12, iR13, iR14, iRDI : TASMNativeInt;
+{$ifdef UNIX}
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+{$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -61,6 +65,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -247,8 +253,12 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixTransposeUnAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeUnAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
 var iR12, iR13, iR14, iRDI : TASMNativeInt;
+{$ifdef UNIX}
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+{$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -258,6 +268,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -442,8 +454,12 @@ end;
 end;
 
 
-procedure ASMMatrixTransposeAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
 var iR12, iR13, iR14, iRDI : TASMNativeInt;
+{$ifdef UNIX}
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+{$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -453,6 +469,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -657,8 +675,12 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixTransposeUnAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeUnAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
 var iR12, iR13, iR14, iRDI : TASMNativeInt;
+{$ifdef UNIX}
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+{$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -668,6 +690,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -868,8 +892,12 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixTransposeAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
 var iR12, iR13, iR14, iRDI : TASMNativeInt;
+{$ifdef UNIX}
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+{$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -879,6 +907,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -1073,8 +1103,12 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixTransposeUnAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeUnAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
 var iR12, iR13, iR14, iRDI : TASMNativeInt;
+{$ifdef UNIX}
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+{$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1084,6 +1118,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -1276,8 +1312,12 @@ end;
 end;
 
 
-procedure ASMMatrixTransposeAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
 var iR12, iR13, iR14, iRDI : TASMNativeInt;
+{$ifdef UNIX}
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+{$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1287,6 +1327,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -1503,8 +1545,12 @@ end;
 {$ENDIF}
 end;
 
-procedure ASMMatrixTransposeUnAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeUnAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
 var iR12, iR13, iR14, iRDI : TASMNativeInt;
+{$ifdef UNIX}
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+{$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -1514,6 +1560,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -1733,9 +1781,9 @@ var iRBX, iRDI, iRSI : TASMNativeInt;
 {$IFDEF FPC}
 begin
 {$ENDIF}
-     // rcx: mt, rdx, LineWidth, r8: N
-     asm
-        {$IFDEF UNIX}
+// rcx: mt, rdx, LineWidth, r8: N
+asm
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -1746,59 +1794,47 @@ begin
    mov rdx, rsi;
    {$ENDIF}
 
-        // prolog - stack
-        mov iRBX, rbx;
-        mov iRDI, rdi;
-        mov iRSI, rsi;
-
-        cmp r8, 2;
-        jl @@exitProc;
-
-        // iter: -N*sizeof(Double)
-        mov rax, r8;
-        imul rax, -8;
-
-
-        mov rbx, rcx;  // pDest1: genptr(mt, 0, 1, linewidth)
-        add rbx, rdx;
-
-        sub rcx, rax;  // mt + iter
-
-        // for y := 0 to n - 2
-        dec r8;
-        @@foryloop:
-
-           mov rdi, rax; // iter aka x
-           add rdi, 8;
-           mov rsi, rbx;
-           // for x := y + 1 to n-1 do
-           @@forxloop:
-              movsd xmm0, [rcx + rdi];
-              movsd xmm1, [rsi];
-
-              movsd [rcx + rdi], xmm1;
-              movsd [rsi], xmm0;
-
-              add rsi, rdx;
-           add rdi, 8;
-           jnz @@forxloop;
-
-           add rax, 8;  // iter + sizeof(double);
-           //pDest := PConstDoubleArr( GenPtr(dest, 0, y, destLineWidth) );
-           add rcx, rdx;
-           // GenPtr(dest, y, y + 1, destLineWidth);
-           add rbx, rdx;
-           add rbx, 8;
-        dec r8;
-        jnz @@foryloop;
-
-        @@exitProc:
-
-        // epilog - cleanup stack
-        mov rbx, iRBX;
-        mov rdi, iRDI;
-        mov rsi, iRSI;
-     end;
+    // prolog - stack
+    mov iRBX, rbx;
+    mov iRDI, rdi;
+    mov iRSI, rsi;
+           cmp r8, 2;
+    jl @@exitProc;
+           // iter: -N*sizeof(Double)
+    mov rax, r8;
+    imul rax, -8;
+                  mov rbx, rcx;  // pDest1: genptr(mt, 0, 1, linewidth)
+    add rbx, rdx;
+           sub rcx, rax;  // mt + iter
+           // for y := 0 to n - 2
+    dec r8;
+    @@foryloop:
+              mov rdi, rax; // iter aka x
+       add rdi, 8;
+       mov rsi, rbx;
+       // for x := y + 1 to n-1 do
+       @@forxloop:
+          movsd xmm0, [rcx + rdi];
+          movsd xmm1, [rsi];
+                 movsd [rcx + rdi], xmm1;
+          movsd [rsi], xmm0;
+                 add rsi, rdx;
+       add rdi, 8;
+       jnz @@forxloop;
+              add rax, 8;  // iter + sizeof(double);
+       //pDest := PConstDoubleArr( GenPtr(dest, 0, y, destLineWidth) );
+       add rcx, rdx;
+       // GenPtr(dest, y, y + 1, destLineWidth);
+       add rbx, rdx;
+       add rbx, 8;
+    dec r8;
+    jnz @@foryloop;
+           @@exitProc:
+           // epilog - cleanup stack
+    mov rbx, iRBX;
+    mov rdi, iRDI;
+    mov rsi, iRSI;
+end;
 {$IFDEF FPC}
 end;
 {$ENDIF}

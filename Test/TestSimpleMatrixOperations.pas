@@ -108,6 +108,8 @@ type
     procedure TestRank1Upd;
     procedure TestBigRank1Upd;
     procedure TestDiagMtxMult1;
+    procedure TestConvolve;
+    procedure TestConvolveBig;
   end;
 
   {$IFDEF FMX} [TestFixture] {$ENDIF}
@@ -3780,13 +3782,13 @@ begin
           a1[cnt] := cnt;
      end;
 
-     GenericRank1Update(@A[0], 6*sizeof(double), 6, 6, 1.2, @cV[0], @cV[0], sizeof(double), sizeof(double) );
-     ASMRank1UpdateSeq(@A1[0], 6*sizeof(double), 6, 6, 1.2, @cV[0], @cV[0], sizeof(double), sizeof(double) );
+     GenericRank1Update(@A[0], 6*sizeof(double), 6, 6, @cV[0], @cV[0], sizeof(double), sizeof(double), 1.2 );
+     ASMRank1UpdateSeq(@A1[0], 6*sizeof(double), 6, 6, @cV[0], @cV[0], sizeof(double), sizeof(double), 1.2);
 
      Check(CheckMtx(a, A1), 'Error rank 1 (even width) update failed');
 
-     GenericRank1Update(@A[0], 6*sizeof(double), 5, 5, 1.2, @cV[0], @cV[0], sizeof(double), sizeof(double) );
-     ASMRank1UpdateSeq(@A1[0], 6*sizeof(double), 5, 5, 1.2, @cV[0], @cV[0], sizeof(double), sizeof(double) );
+     GenericRank1Update(@A[0], 6*sizeof(double), 5, 5, @cV[0], @cV[0], sizeof(double), sizeof(double), 1.2 );
+     ASMRank1UpdateSeq(@A1[0], 6*sizeof(double), 5, 5, @cV[0], @cV[0], sizeof(double), sizeof(double), 1.2 );
 
      Check(CheckMtx(a, A1), 'Error rank 1 (odd width) update failed');
 
@@ -3810,15 +3812,15 @@ begin
      Move( x[0], yy^, cMtxSize*sizeof(double));
 
      startTime1 := MtxGetTime;
-     GenericRank1Update(@x[0], cMtxWidth*sizeof(double), cMtxWidth, cMtxHeight, 1.2, xa, ya, cMtxWidth*sizeof(double),  sizeof(double));
+     GenericRank1Update(@x[0], cMtxWidth*sizeof(double), cMtxWidth, cMtxHeight, xa, ya, cMtxWidth*sizeof(double),  sizeof(double), 1.2);
      endTime1 := MtxGetTime;
 
      startTime2 := MtxGetTime;
-     ASMRank1UpdateSeq(@y[0], cMtxWidth*sizeof(double), cMtxWidth, cMtxHeight, 1.2, xa, ya, cMtxWidth*sizeof(double),  sizeof(double));
+     ASMRank1UpdateSeq(@y[0], cMtxWidth*sizeof(double), cMtxWidth, cMtxHeight, xa, ya, cMtxWidth*sizeof(double),  sizeof(double), 1.2);
      endTime2 := MtxGetTime;
 
      startTime3 := MtxGetTime;
-     ASMRank1UpdateSeqAligned(yy, cMtxWidth*sizeof(double), cMtxWidth, cMtxHeight, 1.2, xa, ya, cMtxWidth*sizeof(double),  sizeof(double));
+     ASMRank1UpdateSeqAligned(yy, cMtxWidth*sizeof(double), cMtxWidth, cMtxHeight, xa, ya, cMtxWidth*sizeof(double),  sizeof(double), 1.2);
      endTime3 := MtxGetTime;
 
      Status(Format('%.2f,  %.2f   %2f', [(endTime1 - startTime1)/mtxFreq*1000,  (endTime2 - startTime2)/mtxFreq*1000, (endTime3 - startTime3)/mtxFreq*1000]));
@@ -4170,6 +4172,72 @@ begin
      GenericAddVec(@A[0], 8*sizeof(double), @B[0], 8*sizeof(double), 8, 8, False);
      Check(CheckMtx(res, A), 'Add Vector failed row');
 
+end;
+
+procedure TASMMatrixOperations.TestConvolve;
+const cA : Array[0..22] of double = (1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1);
+      cB : Array[0..3] of double = (0.1, 0.3, 0.7, 1);
+      cDest : Array[0..22] of double = (0.1, 0.3, 0.7, 1, 0, 0, 0.1000, 0.4000, 1.1000, 2.1000, 2.0000, 1.7000,
+                                        1, 0, 0, 0, 0.1, 0.4, 1.1, 2, 1.7, 1, 0.1);
+
+var dest : Array[0..22] of double;
+    destSSE : Array[0..22] of double;
+begin
+     InitMathFunctions(itFPU, False);
+     MatrixConvolve(@dest[0], Length(dest)*sizeof(double), @cA[0], @cB[0], Length(cA)*sizeof(double),
+                    length(cA), 1, length(cB), nil);
+     Check( CheckMtx( cDest, dest ), 'Convolution error');
+
+     InitMathFunctions(itSSE, False);
+     MatrixConvolve(@destSSE[0], Length(destSSE)*sizeof(double), @cA[0], @cB[0], Length(cA)*sizeof(double),
+                    length(cA), 1, length(cB), nil);
+     Check( CheckMtx( cDest, destSSE ), 'SSE Convolution error');
+end;
+
+procedure TASMMatrixOperations.TestConvolveBig;
+const cBSize : Array[0..6] of integer = (1, 2, 7, 19, 24, 39, 48);
+      cASize : Array[0..5] of integer = (48, 53, 179, 2430, 5133, 8192);
+var i: Integer;
+    j: Integer;
+    s1, e1, s2, e2 : Int64;
+    freq : Int64;
+    pA, pB : PDouble;
+    Dest, DestSSE : TDoubleDynArray;
+    pMem1, pMem2 : PByte;
+    LineWidthA, LineWidthB : TASMNativeInt;
+    idx : integer;
+begin
+     freq := mtxFreq;
+     for i := 0 to Length(cBSize) - 1 do
+     begin
+          FillAlignedMtx(cBSize[i], 1, pB, pMem1, LineWidthB);
+
+          for j := 0 to Length(cASize) - 1 do
+          begin
+               SetLength(Dest, cASize[j]);
+               SetLength(DestSSE, cASize[j]);
+               FillAlignedMtx(cASize[j], 1, pA, pMem2, LineWidthA);
+
+               InitMathFunctions(itFPU, False);
+               s1 := MtxGetTime;
+               MatrixConvolve(@dest[0], cASize[j]*sizeof(double), pA, pB, LineWidthA, cASize[j], 1, cBSize[i]);
+               e1 := MtxGetTime;
+
+               InitMathFunctions(itSSE, False);
+               s2 := MtxGetTime;
+               MatrixConvolve(@destSSE[0], cASize[j]*sizeof(double), pA, pB, LineWidthA, cASize[j], 1, cBSize[i]);
+               e2 := MtxGetTime;
+
+               Status( Format('Conv (%d x %d) took: %.3f ms, %.3fms', [cBSize[i], cASize[j], (e1 - s1)/freq*1000, (e2 - s2)/freq*1000] ));
+
+               if not CheckMtxIdx(dest, DestSSE, idx) then
+                  check(false, 'error in asm convolution @' + IntToStr(idx));
+
+               FreeMem(pMem2);
+          end;
+
+          FreeMem(pMem1);
+     end;
 end;
 
 initialization

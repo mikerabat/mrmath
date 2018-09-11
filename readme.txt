@@ -55,6 +55,10 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date: 11.09.2018
+* Convolution
+* Changed 64 bit assembler api prologs for Unix based machines.
+
 Date: 15.05.2018
 * thanks to Andrea Mauri for pointing out the problems on FPC (lazarus) -> fixing some ifdefs and uppercase issues.
 

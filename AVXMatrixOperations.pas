@@ -36,7 +36,7 @@ procedure AVXMtxVecMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : 
 procedure AVXMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 
 procedure AVXRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+  X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
 
 
 // note: the matrix add routine tries to add two values at once and does not carry out any range checks thus the line widhts must
@@ -79,6 +79,8 @@ implementation
 {$IFDEF cpux86_64}
 {$DEFINE x64}
 {$ENDIF}
+
+{$IFDEF FPC} {$S-} {$ENDIF}
 
 uses Math,
      {$IFDEF x64}
@@ -1101,16 +1103,16 @@ begin
 end;
 
 procedure AVXRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+  X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
 begin
      if (width <= 0) or (height <= 0) then
         exit;
 
      if ((TASMNativeUInt(A) and $0000001F) = 0) and ((TASMNativeUInt(Y) and $0000001F) = 0) and (LineWidthA and $1F = 0)
      then
-         AVXRank1UpdateSeqAligned(A, LineWidthA, width, height, alpha, x, y, incX, incY)
+         AVXRank1UpdateSeqAligned(A, LineWidthA, width, height, x, y, incX, incY, alpha)
      else
-         AVXRank1UpdateSeq(A, LineWidthA, width, height, alpha, x, y, incX, incY);
+         AVXRank1UpdateSeq(A, LineWidthA, width, height, x, y, incX, incY, alpha);
 end;
 
 end.

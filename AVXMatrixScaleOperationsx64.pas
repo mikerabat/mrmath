@@ -27,17 +27,17 @@ interface
 
 uses MatrixConst;
 
-procedure AVXMatrixAddScaleAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
-procedure AVXMatrixAddScaleUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure AVXMatrixAddscaleAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double);
+procedure AVXMatrixAddscaleUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double);
 
-procedure AVXMatrixAddScaleAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
-procedure AVXMatrixAddScaleUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure AVXMatrixAddscaleAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double);
+procedure AVXMatrixAddscaleUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double);
 
-procedure AVXMatrixScaleAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
-procedure AVXMatrixScaleAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure AVXMatrixScaleAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double);
+procedure AVXMatrixScaleAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double);
 
-procedure AVXMatrixScaleAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
-procedure AVXMatrixScaleAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure AVXMatrixScaleAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double);
+procedure AVXMatrixScaleAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double);
 
 {$ENDIF}
 
@@ -47,7 +47,10 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
-procedure AVXMatrixAddScaleAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure AVXMatrixAddscaleAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double);
+{$IFDEF UNIX}
+var dOffset, Scale : double;
+{$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -57,6 +60,10 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   movsd xmm3, unixdOffset;
+   movsd dOffset, xmm3;
+   movsd xmm3, unixScale;
+   movsd scale, xmm3;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -146,7 +153,10 @@ end;
 {$ENDIF}
 end;
 
-procedure AVXMatrixAddScaleUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure AVXMatrixAddscaleUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double);
+{$IFDEF UNIX}
+var dOffset, scale : double;
+{$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -156,6 +166,10 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   movsd xmm3, unixdOffset;
+   movsd dOffset, xmm3;
+   movsd xmm3, unixscale;
+   movsd scale, xmm3;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -245,7 +259,10 @@ end;
 end;
 
 
-procedure AVXMatrixAddScaleAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure AVXMatrixAddscaleAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double);
+{$IFDEF UNIX}
+var dOffset, scale : double;
+{$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -255,6 +272,10 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   movsd xmm3, unixdOffset;
+   movsd dOffset, xmm3;
+   movsd xmm3, unixscale;
+   movsd scale, xmm3;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -351,7 +372,10 @@ end;
 {$ENDIF}
 end;
 
-procedure AVXMatrixAddScaleUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure AVXMatrixAddscaleUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double);
+{$IFDEF UNIX}
+var dOffset, scale : double;
+{$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -361,6 +385,10 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   movsd xmm3, unixdOffset;
+   movsd dOffset, xmm3;
+   movsd xmm3, unixscale;
+   movsd scale, xmm3;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -457,7 +485,10 @@ end;
 end;
 
 
-procedure AVXMatrixScaleAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure AVXMatrixScaleAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double);
+{$IFDEF UNIX}
+var dOffset, scale : double;
+{$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -467,6 +498,10 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   movsd xmm3, unixdOffset;
+   movsd dOffset, xmm3;
+   movsd xmm3, unixscale;
+   movsd scale, xmm3;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -555,7 +590,10 @@ end;
 {$ENDIF}
 end;
 
-procedure AVXMatrixScaleAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure AVXMatrixScaleAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double);
+{$IFDEF UNIX}
+var dOffset, scale : double;
+{$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -565,6 +603,10 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   movsd xmm3, unixdOffset;
+   movsd dOffset, xmm3;
+   movsd xmm3, unixscale;
+   movsd scale, xmm3;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -653,7 +695,10 @@ end;
 {$ENDIF}
 end;
 
-procedure AVXMatrixScaleAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure AVXMatrixScaleAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double);
+{$IFDEF UNIX}
+var dOffset, scale : double;
+{$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -663,6 +708,10 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   movsd xmm3, unixdOffset;
+   movsd dOffset, xmm3;
+   movsd xmm3, unixscale;
+   movsd scale, xmm3;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -759,7 +808,10 @@ end;
 {$ENDIF}
 end;
 
-procedure AVXMatrixScaleAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure AVXMatrixScaleAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double);
+{$IFDEF UNIX}
+var dOffset, scale : double;
+{$ENDIF}
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -769,6 +821,10 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   movsd xmm3, unixdOffset;
+   movsd dOffset, xmm3;
+   movsd xmm3, unixscale;
+   movsd scale, xmm3;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;

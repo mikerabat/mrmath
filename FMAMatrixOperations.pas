@@ -47,6 +47,8 @@ implementation
 {$DEFINE x64}
 {$ENDIF}
 
+{$IFDEF FPC} {$S-} {$ENDIF}
+
 uses Math, OptimizedFuncs, AVXMatrixOperations,
      {$IFDEF x64}
      FMAMatrixMultTransposedOperationsx64, FMAMatrixVectorMultOperationsx64, FMAMatrixMultOperationsx64,
@@ -469,9 +471,9 @@ begin
 
      if ((TASMNativeUInt(A) and $0000001F) = 0) and ((TASMNativeUInt(Y) and $0000001F) = 0) and (LineWidthA and $1F = 0)
      then
-         FMARank1UpdateSeqAligned(A, LineWidthA, width, height, alpha, x, y, incX, incY)
+         FMARank1UpdateSeqAligned(A, LineWidthA, width, height, x, y, incX, incY, alpha)
      else
-         FMARank1UpdateSeq(A, LineWidthA, width, height, alpha, x, y, incX, incY);
+         FMARank1UpdateSeq(A, LineWidthA, width, height, x, y, incX, incY, alpha);
 end;
 
 end.

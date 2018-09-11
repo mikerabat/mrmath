@@ -45,9 +45,9 @@ procedure ASMMatrixVectMultTDestVec(dest : PDouble; destLineWidth : TASMNativeIn
 
 // rank1 update: A = A + alpha*X*Y' where x and y are vectors. It's assumed that y is sequential
 procedure ASMRank1UpdateSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+  X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
 procedure ASMRank1UpdateSeqAligned(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+  X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
 
 {$ENDIF}
 
@@ -1232,7 +1232,7 @@ begin
 end;
 
 procedure ASMRank1UpdateSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+  X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
 var wd2 : TASMNativeInt;
 begin
      assert(incY = sizeof(double), 'Sequential Y expected');
@@ -1312,7 +1312,7 @@ begin
 end;
 
 procedure ASMRank1UpdateSeqAligned(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+  X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
 var wd2 : TASMNativeInt;
 begin
      assert(incY = sizeof(double), 'Sequential Y expected');
