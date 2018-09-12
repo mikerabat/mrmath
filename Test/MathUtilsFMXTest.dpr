@@ -144,7 +144,13 @@ uses
   GCDDispatch in '..\mac\GCDDispatch.pas',
   linuxthrpool in '..\mac\linuxthrpool.pas',
   MacOsRandomGen in '..\mac\MacOsRandomGen.pas',
-  MacOsThreadPool in '..\mac\MacOsThreadPool.pas';
+  MacOsThreadPool in '..\mac\MacOsThreadPool.pas',
+  ASMVecConvolve in '..\ASMVecConvolve.pas',
+  ASMVecConvolvex64 in '..\ASMVecConvolvex64.pas',
+  AVXVecConvolve in '..\AVXVecConvolve.pas',
+  AVXVecConvolvex64 in '..\AVXVecConvolvex64.pas',
+  FMAVecConvolve in '..\FMAVecConvolve.pas',
+  FMAVecConvolvex64 in '..\FMAVecConvolvex64.pas';
 
 var
   runner : ITestRunner;
