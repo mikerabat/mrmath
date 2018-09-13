@@ -33,7 +33,7 @@ procedure AVXMatrixCopyUnAligned(Dest : PDouble; const destLineWidth : TASMNativ
 procedure AVXRowSwapAligned(A, B : PDouble; width : TASMNativeInt);
 procedure AVXRowSwapUnAligned(A, B : PDouble; width : TASMNativeInt);
 
-procedure AVXInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; const Value : double);
+procedure AVXInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; Value : double);
 
 {$ENDIF}
 
@@ -45,7 +45,7 @@ implementation
 
 // uses non temporal moves so the cache is not poisned
 // rcx = A, rdx = NumBytes;
-procedure AVXInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; const Value : double);
+procedure AVXInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; Value : double);
 begin
 asm
    lea eax, Value;

@@ -233,7 +233,7 @@ type
 
   TApplyPlaneRotSeqMatrix = procedure (width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
   TMatrixRotate = procedure (N : TASMNativeInt; DX : PDouble; const LineWidthDX : TASMNativeInt; DY : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
-  TMemInitFunc = procedure(A : PDouble; NumBytes : TASMNativeInt; const Value : double);
+  TMemInitFunc = procedure(A : PDouble; NumBytes : TASMNativeInt; Value : double);
   TVecConvolve = procedure (dest : PDouble; A, B : PDouble; aLen, bLen : TASMNativeInt);
 
 

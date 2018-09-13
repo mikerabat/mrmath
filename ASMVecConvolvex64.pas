@@ -30,7 +30,7 @@ uses MatrixConst;
 // it's also assumed that memory before A is accessible for at least bLen elements
 // -> these elements are used for the convulution calculation
 // -> needs an aligned B and blen mod 2 needs to be zero
-procedure ASMVecConvolveRevB(dest : PDouble; A, B : PDouble; aLen, {$ifdef UNIX}unixbLen{$ELSE}bLen{$endif} : TASMNativeInt);
+procedure ASMVecConvolveRevB(dest : PDouble; A, B : PDouble; aLen, {$ifdef UNIX}unixbLen{$ELSE}bLen{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
 {$ENDIF}
 
@@ -40,13 +40,10 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
-procedure ASMVecConvolveRevB(dest : PDouble; A, B : PDouble; aLen, {$ifdef UNIX}unixbLen{$ELSE}bLen{$endif} : TASMNativeInt);
+procedure ASMVecConvolveRevB(dest : PDouble; A, B : PDouble; aLen, {$ifdef UNIX}unixbLen{$ELSE}bLen{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 {$ifdef UNIX}
 var bLen : TASMNativeInt;
 {$endif}
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -130,9 +127,6 @@ asm
    // ########################################
    // #### epilog
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 {$ENDIF}
 

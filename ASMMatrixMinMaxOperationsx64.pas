@@ -27,17 +27,17 @@ interface
 
 uses MatrixConst;
 
-function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-function ASMMatrixMaxUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
+function ASMMatrixMaxUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
 
-function ASMMatrixMaxAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-function ASMMatrixMaxUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixMaxAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
+function ASMMatrixMaxUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
 
-function ASMMatrixMinAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-function ASMMatrixMinUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixMinAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
+function ASMMatrixMinUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
 
-function ASMMatrixMinAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-function ASMMatrixMinUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixMinAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
+function ASMMatrixMinUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
 
 {$ENDIF}
 
@@ -47,11 +47,8 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
-function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX : TASMNativeInt;
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -67,9 +64,6 @@ asm
    // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    // prolog - simulate stack
    mov iRBX, rbx;
-   {
-   .pushnv rbx;
-   }
 
    shl rdx, 3;
    imul rdx, -1;
@@ -135,16 +129,10 @@ asm
 
    // epilog - cleanup stack
    mov rbx, iRBX;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
-function ASMMatrixMaxUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixMaxUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX : TASMNativeInt;
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -160,9 +148,6 @@ asm
    // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    // prolog - simulate stack
    mov iRBX, rbx;
-   {
-   .pushnv rbx;
-   }
 
    shl rdx, 3;
    imul rdx, -1;
@@ -230,17 +215,11 @@ asm
 
    // epilog - cleanup stack
    mov rbx, iRBX;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 
-function ASMMatrixMaxAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixMaxAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX : TASMNativeInt;
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -256,9 +235,6 @@ asm
    // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    // prolog - simulate stack
    mov iRBX, rbx;
-   {
-   .pushnv rbx;
-   }
 
    dec rdx;
    shl rdx, 3;
@@ -329,16 +305,10 @@ asm
 
    // epilog - cleanup stack
    mov rbx, iRBX;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
-function ASMMatrixMaxUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixMaxUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX : TASMNativeInt;
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -354,9 +324,6 @@ asm
    // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    // prolog - simulate stack
    mov iRBX, rbx;
-   {
-   .pushnv rbx;
-   }
 
    dec rdx;
    shl rdx, 3;
@@ -429,17 +396,11 @@ asm
 
    // epilog - cleanup stack
    mov rbx, iRBX;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 
-function ASMMatrixMinAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixMinAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX : TASMNativeInt;
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -455,9 +416,6 @@ asm
    // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    // prolog - simulate stack
    mov iRBX, rbx;
-   {
-   .pushnv rbx;
-   }
 
    shl rdx, 3;
    imul rdx, -1;
@@ -523,16 +481,10 @@ asm
 
    // epilog - cleanup stack
    mov rbx, iRBX;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
-function ASMMatrixMinUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixMinUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX : TASMNativeInt;
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -548,9 +500,6 @@ asm
    // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    // prolog - simulate stack
    mov iRBX, rbx;
-   {
-   .pushnv rbx;
-   }
 
    shl rdx, 3;
    imul rdx, -1;
@@ -618,17 +567,11 @@ asm
 
    // epilog - cleanup stack
    mov rbx, iRBX;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 
-function ASMMatrixMinAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixMinAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX : TASMNativeInt;
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -644,9 +587,6 @@ asm
    // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    // prolog - simulate stack
    mov iRBX, rbx;
-   {
-   .pushnv rbx;
-   }
 
    dec rdx;
    shl rdx, 3;
@@ -717,16 +657,10 @@ asm
 
    // epilog - cleanup stack
    mov rbx, iRBX;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
-function ASMMatrixMinUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixMinUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX : TASMNativeInt;
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -742,9 +676,6 @@ asm
    // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    // prolog - simulate stack
    mov iRBX, rbx;
-   {
-   .pushnv rbx;
-   }
 
    dec rdx;
    shl rdx, 3;
@@ -817,9 +748,6 @@ asm
 
    // epilog - cleanup stack
    mov rbx, iRBX;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 end;
 
 {$ENDIF}

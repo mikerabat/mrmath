@@ -29,10 +29,10 @@ interface
 
 uses MatrixConst;
 
-procedure AVXApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
-procedure AVXApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
-procedure AVXApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
-procedure AVXApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
+procedure AVXApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
 
 
 procedure AVXMatrixRotate(N : TASMNativeInt; X : PDouble; const LineWidthDX : TASMNativeInt; Y : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
@@ -46,14 +46,11 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 // rcx = width, rdx = height, r8 : A, r9 = LineWidthA
-procedure AVXApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
+procedure AVXApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX, iRDI : TASMNativeInt;
     {$IFDEF UNIX}
     C, S : PConstDoubleArr;
     {$ENDIF}
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -225,19 +222,13 @@ asm
    @@endproc:
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 
-procedure AVXApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
+procedure AVXApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX, iRDI : TASMNativeInt;
     {$IFDEF UNIX}
     C, S : PConstDoubleArr;
     {$ENDIF}
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
 {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -396,19 +387,13 @@ asm
 
         @@endproc:
      end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 // rcx = width, rdx = height, r8 : A, r9 = LineWidthA
-procedure AVXApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
+procedure AVXApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX, iRDI : TASMNativeInt;
     {$IFDEF UNIX}
     C, S : PConstDoubleArr;
     {$ENDIF}
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -500,18 +485,12 @@ asm
 
    @@endproc:
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
-procedure AVXApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
+procedure AVXApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX, iRDI : TASMNativeInt;
     {$IFDEF UNIX}
     C, S : PConstDoubleArr;
     {$ENDIF}
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -606,20 +585,14 @@ asm
 
    @@endproc:
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 // its assumed that Linewidthdx and linewidthdy = sizeof(double)
 // rcx = N, RDX = X, R8 = Y,
 procedure AVXMatrixRotateAligned(N : TASMNativeInt; X : PDouble;
-  Y : PDouble; LineWidthDY : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}c{$endif}, {$ifdef UNIX}unixS{$ELSE}s{$endif} : PDouble);
+  Y : PDouble; LineWidthDY : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}c{$endif}, {$ifdef UNIX}unixS{$ELSE}s{$endif} : PDouble); {$IFDEF FPC}assembler;{$ENDIF}
 {$IFDEF UNIX}
 var c : PDouble;
     s : PDouble;
-{$ENDIF}
-{$IFDEF FPC}
-begin
 {$ENDIF}
 asm
    {$IFDEF UNIX}
@@ -723,20 +696,14 @@ asm
    add rsp, $30;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 // rcx = N, RDX = X, R8 = LineWidthDX, R9 = Y;
 procedure AVXMatrixRotateUnaligned(N : TASMNativeInt; X : PDouble; const LineWidthDX : TASMNativeInt;
-  Y : PDouble; {$ifdef UNIX}unixLineWidthDY{$ELSE}LineWidthDY{$endif} : TASMNativeInt; {$ifdef UNIX}unixc{$ELSE}c{$endif}, s : Pdouble);
+  Y : PDouble; {$ifdef UNIX}unixLineWidthDY{$ELSE}LineWidthDY{$endif} : TASMNativeInt; {$ifdef UNIX}unixc{$ELSE}c{$endif}, s : Pdouble);  {$IFDEF FPC}assembler;{$ENDIF}
 {$ifdef UNIX}
 var LineWidthDY : TASMNativeInt;
     C : PDouble;
 {$endif}
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -851,9 +818,6 @@ asm
    add rsp, $30;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 procedure AVXMatrixRotate(N : TASMNativeInt; X : PDouble; const LineWidthDX : TASMNativeInt; Y : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
 begin

@@ -174,7 +174,7 @@ procedure GenericRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; widt
   X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
 
 
-procedure GenericInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; const Value : double);
+procedure GenericInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; Value : double);
 
 // simple convolution: the input and output parameter are assumed to be vectors!
 // it's also assumed that memory before A is accessible for at least bLen elements
@@ -186,7 +186,7 @@ implementation
 
 uses Math, MathUtilFunc;
 
-procedure GenericInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; const Value : double);
+procedure GenericInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; Value : double);
 var numElem : TASMNativeInt;
     pA : PConstDoubleArr;
     counter: Integer;

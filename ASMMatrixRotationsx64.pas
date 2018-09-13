@@ -29,10 +29,10 @@ interface
 
 uses MatrixConst;
 
-procedure ASMApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
-procedure ASMApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
-procedure ASMApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
-procedure ASMApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
+procedure ASMApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
 
 
 procedure ASMMatrixRotate(N : TASMNativeInt; X : PDouble; const LineWidthDX : TASMNativeInt; Y : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
@@ -46,17 +46,14 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 // rcx = width, rdx = height, r8 : A, r9 = LineWidthA
-procedure ASMApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
+procedure ASMApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX, iRDI : TASMNativeInt;
     dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
     {$IFDEF UNIX}
     C, S : PConstDoubleArr;
     {$ENDIF}
-{$IFDEF FPC}
-begin
-{$ENDIF}
-     asm
-        {$IFDEF UNIX}
+asm
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -69,175 +66,169 @@ begin
    mov rdx, rsi;
    {$ENDIF}
 
-        // ##########################################
-        // #### Prolog - stack and base variable init
-        //if (height < 2) or (width < 1) then
-        //exit;
-        cmp rdx, 2;
-        jl @@endproc;
+   // ##########################################
+   // #### Prolog - stack and base variable init
+   //if (height < 2) or (width < 1) then
+   //exit;
+   cmp rdx, 2;
+   jl @@endproc;
 
-        cmp rcx, 1;
-        jl @@endproc;
+   cmp rcx, 1;
+   jl @@endproc;
 
-        mov iRBX, rbx;
-        mov iRDI, rdi;
-        movupd dXMM4, xmm4;
-        movupd dXMM5, xmm5;
-        movupd dXMM6, xmm6;
-        movupd dXMM7, xmm7;
-
-
-        // iter := -(width and $FFFFFFFE)*sizeof(double);
-        mov r10, rcx;
-        and r10, $FFFFFFFFFFFFFFFE;
-        imul r10, -8;
-
-        //y2 := height - 1;
-        dec rdx;
-
-        // rcx = width, rdx = height, r8 : A, r9 = LineWidthA
-        mov rax, c;  // point to y (aka the end)
-        mov rbx, s;
-
-        mov rdi, rdx;
-        dec rdi;
-        shl rdi, 3;  // y2*sizeof(double)
-        add rax, rdi;
-        add rbx, rdi;
-
-        mov rdi, r9;      // A[y + 1][x]
-        imul rdi, rdx;
-        add r8, rdi;
-        sub r8, r10;
-
-        mov r11, r8;   // A[y][x]
-        sub r11, r9;
-
-        movsd xmm7, [rip + cOne];
-        xorpd xmm6, xmm6;  // haddpd zero extend
-
-        @@foryloop:
-           movddup xmm0, [rax];  // c[y]
-           movddup xmm1, [rbx];  // s[y]
-
-           // ###########################################
-           // #### if (ctemp <> 1) or (stemp <> 0) then
-           comisd xmm0, xmm7; // = 1
-           jne @@beginXLoop;
-
-           comisd xmm1, xmm6; // = 0
-           jne @@beginXLoop;
-
-           jmp @@nextLine; // c=1 and stemp=0 next line -> the statement
+   mov iRBX, rbx;
+   mov iRDI, rdi;
+   movupd dXMM4, xmm4;
+   movupd dXMM5, xmm5;
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
 
 
-           // ###########################################
-           // #### for x := 0 to width - 1 do
-           @@beginXLoop:
+   // iter := -(width and $FFFFFFFE)*sizeof(double);
+   mov r10, rcx;
+   and r10, $FFFFFFFFFFFFFFFE;
+   imul r10, -8;
 
-           // init
-           mov rdi, r10;
-           test rdi, rdi;
-           jz @@LastElem;
+   //y2 := height - 1;
+   dec rdx;
 
-           @@forxloop:
-              //temp := pcAy1^[x];
-              //     pcAy1^[x] := cTemp*temp - stemp*pcAy^[x];
-              //     pcAy1^[x + 1] := cTemp*temp1 - stemp*pcAy1[x + 1];
+   // rcx = width, rdx = height, r8 : A, r9 = LineWidthA
+   mov rax, c;  // point to y (aka the end)
+   mov rbx, s;
 
-              // evaluate 2 values
-              movupd xmm2, [r11 + rdi];
-              movupd xmm3, [r8 + rdi];
+   mov rdi, rdx;
+   dec rdi;
+   shl rdi, 3;  // y2*sizeof(double)
+   add rax, rdi;
+   add rbx, rdi;
 
-              // temp store...
-              movapd xmm4, xmm2
-              movapd xmm5, xmm3;
+   mov rdi, r9;      // A[y + 1][x]
+   imul rdi, rdx;
+   add r8, rdi;
+   sub r8, r10;
 
-              mulpd xmm3, xmm0; // ctemp*pcay1^[x] and ctemp*a[x+1]
-              mulpd xmm2, xmm1;  // stemp*pcAy^[x] and stemp*a[x+1]
+   mov r11, r8;   // A[y][x]
+   sub r11, r9;
 
-              subpd xmm3, xmm2;
+   movsd xmm7, [rip + cOne];
+   xorpd xmm6, xmm6;  // haddpd zero extend
 
-              //     pcAy^[x] := stemp*temp + ctemp*pcAy^[x];
-              //     pcAy^[x + 1] := stemp*temp1 + ctemp*pcAy^[x + 1]
-              mulpd xmm4, xmm0;
-              mulpd xmm5, xmm1;
+   @@foryloop:
+      movddup xmm0, [rax];  // c[y]
+      movddup xmm1, [rbx];  // s[y]
 
-              addpd xmm5, xmm4;
+      // ###########################################
+      // #### if (ctemp <> 1) or (stemp <> 0) then
+      comisd xmm0, xmm7; // = 1
+      jne @@beginXLoop;
 
-              // write back...
-              movupd [r11 + rdi], xmm5;
-              movupd [r8 + rdi], xmm3;
+      comisd xmm1, xmm6; // = 0
+      jne @@beginXLoop;
 
-              add rdi, 16;
-           jnz @@forxloop;
+      jmp @@nextLine; // c=1 and stemp=0 next line -> the statement
 
-           @@LastElem:
 
-           // ###########################################
-           // #### Last element handling
-           mov rdi, rcx;  // width
-           and rdi, 1;
-           jz @@nextLine;
+      // ###########################################
+      // #### for x := 0 to width - 1 do
+      @@beginXLoop:
 
-           // same as above but with single elements
-           movsd xmm2, [r11];
-           movsd xmm3, [r8];
+      // init
+      mov rdi, r10;
+      test rdi, rdi;
+      jz @@LastElem;
 
-           movsd xmm4, xmm2;
-           movsd xmm5, xmm3;
+      @@forxloop:
+         //temp := pcAy1^[x];
+         //     pcAy1^[x] := cTemp*temp - stemp*pcAy^[x];
+         //     pcAy1^[x + 1] := cTemp*temp1 - stemp*pcAy1[x + 1];
 
-           mulsd xmm3, xmm0;
-           mulsd xmm2, xmm1;
+         // evaluate 2 values
+         movupd xmm2, [r11 + rdi];
+         movupd xmm3, [r8 + rdi];
 
-           subsd xmm3, xmm2;
+         // temp store...
+         movapd xmm4, xmm2
+         movapd xmm5, xmm3;
 
-           mulsd xmm4, xmm0;
-           mulsd xmm5, xmm1;
+         mulpd xmm3, xmm0; // ctemp*pcay1^[x] and ctemp*a[x+1]
+         mulpd xmm2, xmm1;  // stemp*pcAy^[x] and stemp*a[x+1]
 
-           addsd xmm5, xmm4;
+         subpd xmm3, xmm2;
 
-           movsd [r11], xmm5;
-           movsd [r8], xmm3;
+         //     pcAy^[x] := stemp*temp + ctemp*pcAy^[x];
+         //     pcAy^[x + 1] := stemp*temp1 + ctemp*pcAy^[x + 1]
+         mulpd xmm4, xmm0;
+         mulpd xmm5, xmm1;
 
-           // ###########################################
-           // #### next y
-           @@nextLine:
+         addpd xmm5, xmm4;
 
-           sub rbx, 8;   // sizeof(double)
-           sub rax, 8;
-           sub r11, r9;  // LineWidthA
-           sub r8, r9;
-        dec rdx;
-        jnz @@foryloop;
+         // write back...
+         movupd [r11 + rdi], xmm5;
+         movupd [r8 + rdi], xmm3;
 
-        // ###############################################
-        // #### epilog - restore stack
-        mov rbx, iRBX;
-        mov rdi, iRDI;
-        movupd xmm4, dXMM4;
-        movupd xmm5, dXMM5;
-        movupd xmm6, dXMM6;
-        movupd xmm7, dXMM7;
+         add rdi, 16;
+      jnz @@forxloop;
 
-        @@endproc:
-     end;
-{$IFDEF FPC}
+      @@LastElem:
+
+      // ###########################################
+      // #### Last element handling
+      mov rdi, rcx;  // width
+      and rdi, 1;
+      jz @@nextLine;
+
+      // same as above but with single elements
+      movsd xmm2, [r11];
+      movsd xmm3, [r8];
+
+      movsd xmm4, xmm2;
+      movsd xmm5, xmm3;
+
+      mulsd xmm3, xmm0;
+      mulsd xmm2, xmm1;
+
+      subsd xmm3, xmm2;
+
+      mulsd xmm4, xmm0;
+      mulsd xmm5, xmm1;
+
+      addsd xmm5, xmm4;
+
+      movsd [r11], xmm5;
+      movsd [r8], xmm3;
+
+      // ###########################################
+      // #### next y
+      @@nextLine:
+
+      sub rbx, 8;   // sizeof(double)
+      sub rax, 8;
+      sub r11, r9;  // LineWidthA
+      sub r8, r9;
+   dec rdx;
+   jnz @@foryloop;
+
+   // ###############################################
+   // #### epilog - restore stack
+   mov rbx, iRBX;
+   mov rdi, iRDI;
+   movupd xmm4, dXMM4;
+   movupd xmm5, dXMM5;
+   movupd xmm6, dXMM6;
+   movupd xmm7, dXMM7;
+
+   @@endproc:
 end;
-{$ENDIF}
 
 
-procedure ASMApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
+procedure ASMApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX, iRDI : TASMNativeInt;
     dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
     {$IFDEF UNIX}
     C, S : PConstDoubleArr;
     {$ENDIF}
-{$IFDEF FPC}
-begin
-{$ENDIF}
-     asm
-        {$IFDEF UNIX}
+asm
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -250,162 +241,156 @@ begin
    mov rdx, rsi;
    {$ENDIF}
 
-        // ##########################################
-        // #### Prolog - stack and base variable init
-        //if (height < 2) or (width < 1) then
-        //exit;
-        cmp rdx, 2;
-        jl @@endproc;
+   // ##########################################
+   // #### Prolog - stack and base variable init
+   //if (height < 2) or (width < 1) then
+   //exit;
+   cmp rdx, 2;
+   jl @@endproc;
 
-        cmp rcx, 1;
-        jl @@endproc;
+   cmp rcx, 1;
+   jl @@endproc;
 
-        mov iRBX, rbx;
-        mov iRDI, rdi;
-        movupd dXMM4, xmm4;
-        movupd dXMM5, xmm5;
-        movupd dXMM6, xmm6;
-        movupd dXMM7, xmm7;
-
-
-        // iter := -(width and $FFFFFFFE)*sizeof(double);
-        mov r10, rcx;
-        and r10, $FFFFFFFFFFFFFFFE;
-        imul r10, -8;
-
-        //y2 := height - 1;
-        dec rdx;
-
-        mov rax, c;  // point to y (aka the end)
-        mov rbx, s;
-
-        sub r8, r10;
-        mov r11, r8;   // A[y][x]
-        add r11, r9;
-
-        movsd xmm7, [rip + cOne];
-        xorpd xmm6, xmm6;  // haddpd zero extend
-
-        @@foryloop:
-           movddup xmm0, [rax];  // c[y]
-           movddup xmm1, [rbx];  // s[y]
-
-           // ###########################################
-           // #### if (ctemp <> 1) or (stemp <> 0) then
-           comisd xmm0, xmm7; // = 1
-           jne @@beginXLoop;
-
-           comisd xmm1, xmm6; // = 0
-           jne @@beginXLoop;
-
-           jmp @@nextLine; // c=1 and stemp=0 next line -> the statement
+   mov iRBX, rbx;
+   mov iRDI, rdi;
+   movupd dXMM4, xmm4;
+   movupd dXMM5, xmm5;
+   movupd dXMM6, xmm6;
+   movupd dXMM7, xmm7;
 
 
-           // ###########################################
-           // #### for x := 0 to width - 1 do
-           @@beginXLoop:
+   // iter := -(width and $FFFFFFFE)*sizeof(double);
+   mov r10, rcx;
+   and r10, $FFFFFFFFFFFFFFFE;
+   imul r10, -8;
 
-           // init
-           mov rdi, r10;
-           test rdi, rdi;
-           jz @@LastElem;
+   //y2 := height - 1;
+   dec rdx;
 
-           @@forxloop:
-              //temp := pcAy1^[x];
-              //     pcAy1^[x] := cTemp*temp - stemp*pcAy^[x];
-              //     pcAy1^[x + 1] := cTemp*temp1 - stemp*pcAy1[x + 1];
+   mov rax, c;  // point to y (aka the end)
+   mov rbx, s;
 
-              // evaluate 2 values
-              movupd xmm2, [r8 + rdi];
-              movupd xmm3, [r11 + rdi];
+   sub r8, r10;
+   mov r11, r8;   // A[y][x]
+   add r11, r9;
 
-              // temp store...
-              movapd xmm4, xmm2
-              movapd xmm5, xmm3;
+   movsd xmm7, [rip + cOne];
+   xorpd xmm6, xmm6;  // haddpd zero extend
 
-              mulpd xmm3, xmm0;  // ctemp*pcay1^[x] and ctemp*a[x+1]
-              mulpd xmm2, xmm1;  // stemp*pcAy^[x] and stemp*a[x+1]
+   @@foryloop:
+      movddup xmm0, [rax];  // c[y]
+      movddup xmm1, [rbx];  // s[y]
 
-              subpd xmm3, xmm2;
+      // ###########################################
+      // #### if (ctemp <> 1) or (stemp <> 0) then
+      comisd xmm0, xmm7; // = 1
+      jne @@beginXLoop;
 
-              //     pcAy^[x] := stemp*temp + ctemp*pcAy^[x];
-              //     pcAy^[x + 1] := stemp*temp1 + ctemp*pcAy^[x + 1]
-              mulpd xmm4, xmm0;
-              mulpd xmm5, xmm1;
+      comisd xmm1, xmm6; // = 0
+      jne @@beginXLoop;
 
-              addpd xmm5, xmm4;
+      jmp @@nextLine; // c=1 and stemp=0 next line -> the statement
 
-              // write back...
-              movupd [r8 + rdi], xmm5;
-              movupd [r11 + rdi], xmm3;
 
-              add rdi, 16;
-           jnz @@forxloop;
+      // ###########################################
+      // #### for x := 0 to width - 1 do
+      @@beginXLoop:
 
-           @@LastElem:
+      // init
+      mov rdi, r10;
+      test rdi, rdi;
+      jz @@LastElem;
 
-           // ###########################################
-           // #### Last element handling
-           mov rdi, rcx;  // width
-           and rdi, 1;
-           jz @@nextLine;
+      @@forxloop:
+         //temp := pcAy1^[x];
+         //     pcAy1^[x] := cTemp*temp - stemp*pcAy^[x];
+         //     pcAy1^[x + 1] := cTemp*temp1 - stemp*pcAy1[x + 1];
 
-           // same as above but with single elements
-           movsd xmm2, [r8];
-           movsd xmm3, [r11];
+         // evaluate 2 values
+         movupd xmm2, [r8 + rdi];
+         movupd xmm3, [r11 + rdi];
 
-           movsd xmm4, xmm2;
-           movsd xmm5, xmm3;
+         // temp store...
+         movapd xmm4, xmm2
+         movapd xmm5, xmm3;
 
-           mulsd xmm3, xmm0;
-           mulsd xmm2, xmm1;
+         mulpd xmm3, xmm0;  // ctemp*pcay1^[x] and ctemp*a[x+1]
+         mulpd xmm2, xmm1;  // stemp*pcAy^[x] and stemp*a[x+1]
 
-           subsd xmm3, xmm2;
+         subpd xmm3, xmm2;
 
-           mulsd xmm4, xmm0;
-           mulsd xmm5, xmm1;
+         //     pcAy^[x] := stemp*temp + ctemp*pcAy^[x];
+         //     pcAy^[x + 1] := stemp*temp1 + ctemp*pcAy^[x + 1]
+         mulpd xmm4, xmm0;
+         mulpd xmm5, xmm1;
 
-           addsd xmm5, xmm4;
+         addpd xmm5, xmm4;
 
-           movsd [r8], xmm5;
-           movsd [r11], xmm3;
+         // write back...
+         movupd [r8 + rdi], xmm5;
+         movupd [r11 + rdi], xmm3;
 
-           // ###########################################
-           // #### next y
-           @@nextLine:
+         add rdi, 16;
+      jnz @@forxloop;
 
-           add rbx, 8;   // sizeof(double)
-           add rax, 8;
-           add r11, r9;  // LineWidthA
-           add r8, r9;
-        dec rdx;
-        jnz @@foryloop;
+      @@LastElem:
 
-        // ###############################################
-        // #### epilog - restore stack
-        mov rbx, iRBX;
-        mov rdi, iRDI;
-        movupd xmm4, dXMM4;
-        movupd xmm5, dXMM5;
-        movupd xmm6, dXMM6;
-        movupd xmm7, dXMM7;
+      // ###########################################
+      // #### Last element handling
+      mov rdi, rcx;  // width
+      and rdi, 1;
+      jz @@nextLine;
 
-        @@endproc:
-     end;
-{$IFDEF FPC}
+      // same as above but with single elements
+      movsd xmm2, [r8];
+      movsd xmm3, [r11];
+
+      movsd xmm4, xmm2;
+      movsd xmm5, xmm3;
+
+      mulsd xmm3, xmm0;
+      mulsd xmm2, xmm1;
+
+      subsd xmm3, xmm2;
+
+      mulsd xmm4, xmm0;
+      mulsd xmm5, xmm1;
+
+      addsd xmm5, xmm4;
+
+      movsd [r8], xmm5;
+      movsd [r11], xmm3;
+
+      // ###########################################
+      // #### next y
+      @@nextLine:
+
+      add rbx, 8;   // sizeof(double)
+      add rax, 8;
+      add r11, r9;  // LineWidthA
+      add r8, r9;
+   dec rdx;
+   jnz @@foryloop;
+
+   // ###############################################
+   // #### epilog - restore stack
+   mov rbx, iRBX;
+   mov rdi, iRDI;
+   movupd xmm4, dXMM4;
+   movupd xmm5, dXMM5;
+   movupd xmm6, dXMM6;
+   movupd xmm7, dXMM7;
+
+   @@endproc:
 end;
-{$ENDIF}
 
 // rcx = width, rdx = height, r8 : A, r9 = LineWidthA
-procedure ASMApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
+procedure ASMApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX, iRDI : TASMNativeInt;
     dXMM4, dXMM5, dXMM7 : Array[0..1] of double;
     {$IFDEF UNIX}
     C, S : PConstDoubleArr;
     {$ENDIF}
-{$IFDEF FPC}
-begin
-{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -493,353 +478,332 @@ asm
 
    @@endproc:
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
-procedure ASMApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr);
+procedure ASMApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX, iRDI : TASMNativeInt;
     dXMM4, dXMM5, dXMM7 : Array[0..1] of double;
     {$IFDEF UNIX}
     C, S : PConstDoubleArr;
     {$ENDIF}
-{$IFDEF FPC}
-begin
-{$ENDIF}
-     asm
-        {$IFDEF UNIX}
-        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-        // (note that the 5th and 6th parameter are are on the stack)
-        // The parameters are passed in the following order:
-        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-        mov C, r8;
-        mov S, r9;
-        mov r8, rdx;
-        mov r9, rcx;
-        mov rcx, rdi;
-        mov rdx, rsi;
-        {$ENDIF}
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov C, r8;
+   mov S, r9;
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
 
-        // ##########################################
-        // #### Prolog - stack and base variable init
-        //if (height < 2) or (width < 1) then
-        //exit;
-        cmp rcx, 2;
-        jl @@endproc;
+   // ##########################################
+   // #### Prolog - stack and base variable init
+   //if (height < 2) or (width < 1) then
+   //exit;
+   cmp rcx, 2;
+   jl @@endproc;
 
-        cmp rdx, 1;
-        jl @@endproc;
+   cmp rdx, 1;
+   jl @@endproc;
 
-        mov iRBX, rbx;
-        mov iRDI, rdi;
-        movupd dXMM4, xmm4;
-        movupd dXMM5, xmm5;
-        movupd dXMM7, xmm7;
+   mov iRBX, rbx;
+   mov iRDI, rdi;
+   movupd dXMM4, xmm4;
+   movupd dXMM5, xmm5;
+   movupd dXMM7, xmm7;
 
-        dec rcx;
-        imul rcx, -8; //iter := (width - 1)*sizeof(double)
+   dec rcx;
+   imul rcx, -8; //iter := (width - 1)*sizeof(double)
 
-        mov rax, c;
-        mov rbx, s;
+   mov rax, c;
+   mov rbx, s;
 
-        sub rax, rcx; // iter
-        sub rbx, rcx;
-        sub r8, rcx;
+   sub rax, rcx; // iter
+   sub rbx, rcx;
+   sub r8, rcx;
 
-        movupd xmm7, [rip + cMulM1Bits];
+   movupd xmm7, [rip + cMulM1Bits];
 
-        @@foryloop:
+   @@foryloop:
 
-           mov rdi, rcx;
-           movsd xmm2, [r8 + rdi];
+      mov rdi, rcx;
+      movsd xmm2, [r8 + rdi];
 
-           @@forxloop:
-              movsd xmm4, [rax + rdi];  // store c
-              movsd xmm3, [rbx + rdi];  // store s
+      @@forxloop:
+         movsd xmm4, [rax + rdi];  // store c
+         movsd xmm3, [rbx + rdi];  // store s
 
-              movsd xmm0, [r8 + rdi + 8]; // a[x], a[x+1]
-              movlhps xmm2, xmm0;
+         movsd xmm0, [r8 + rdi + 8]; // a[x], a[x+1]
+         movlhps xmm2, xmm0;
 
-              // handle x, x+1
-              // ####################################
-              // #### x, x+ 1
-              movlhps xmm3, xmm4;
-              movlhps xmm4, xmm3;
+         // handle x, x+1
+         // ####################################
+         // #### x, x+ 1
+         movlhps xmm3, xmm4;
+         movlhps xmm4, xmm3;
 
-              xorpd xmm3, xmm7;  // -s, c
-              mulpd xmm3, xmm2; // a[x+1)*c[x] - s[x]*a[x]
-              haddpd xmm3, xmm3;
+         xorpd xmm3, xmm7;  // -s, c
+         mulpd xmm3, xmm2; // a[x+1)*c[x] - s[x]*a[x]
+         haddpd xmm3, xmm3;
 
-              mulpd xmm4, xmm2; // a[x+1]*s[x] + a[x]*c[x]
-              haddpd xmm4, xmm4;
+         mulpd xmm4, xmm2; // a[x+1]*s[x] + a[x]*c[x]
+         haddpd xmm4, xmm4;
 
-              // write back first two values
-              movsd xmm2, xmm3;
-              movsd [r8 + rdi], xmm4;
+         // write back first two values
+         movsd xmm2, xmm3;
+         movsd [r8 + rdi], xmm4;
 
-           // next one
-           add rdi, 8;
-           jnz @@forxloop;
+      // next one
+      add rdi, 8;
+      jnz @@forxloop;
 
-           movsd [r8 + rdi], xmm2;
+      movsd [r8 + rdi], xmm2;
 
-           add r8, LineWidthA;
+      add r8, LineWidthA;
 
-        dec rdx;
-        jnz @@foryloop;
+   dec rdx;
+   jnz @@foryloop;
 
-        // epilog
-        mov rbx, iRBX;
-        mov rdi, iRDI;
-        movupd xmm4, dXMM4;
-        movupd xmm5, dXMM5;
-        movupd xmm7, dXMM7;
+   // epilog
+   mov rbx, iRBX;
+   mov rdi, iRDI;
+   movupd xmm4, dXMM4;
+   movupd xmm5, dXMM5;
+   movupd xmm7, dXMM7;
 
-        @@endproc:
-     end;
-{$IFDEF FPC}
+   @@endproc:
 end;
-{$ENDIF}
 
 // its assumed that Linewidthdx and linewidthdy = sizeof(double)
 // rcx = N, RDX = X, R8 = Y,
 procedure ASMMatrixRotateAligned(N : TASMNativeInt; X : PDouble;
-  Y : PDouble; c, {$ifdef UNIX}unixS{$ELSE}s{$endif} : PDouble);
+  Y : PDouble; c, {$ifdef UNIX}unixS{$ELSE}s{$endif} : PDouble); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
     {$ifdef UNIX}
     s : PDouble;
     {$endif}
-{$IFDEF FPC}
-begin
-{$ENDIF}
-     asm
-        {$IFDEF UNIX}
-        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-        // (note that the 5th and 6th parameter are are on the stack)
-        // The parameters are passed in the following order:
-        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-        mov s, r8;
-        mov r8, rdx;
-        mov r9, rcx;
-        mov rcx, rdi;
-        mov rdx, rsi;
-        {$ENDIF}
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov s, r8;
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
 
-        // ###########################################
-        // #### Stack push
-        movupd dXMM4, xmm4;
-        movupd dXMM5, xmm5;
-        movupd dXMM6, xmm6;
+   // ###########################################
+   // #### Stack push
+   movupd dXMM4, xmm4;
+   movupd dXMM5, xmm5;
+   movupd dXMM6, xmm6;
 
-        // init
-        mov rax, s;
-        movsd xmm2, [rax];
-        mulsd xmm2, [rip + cMinusOne];
+   // init
+   mov rax, s;
+   movsd xmm2, [rax];
+   mulsd xmm2, [rip + cMinusOne];
 
-        movddup xmm0, xmm2;
-        movddup xmm1, [r9];
+   movddup xmm0, xmm2;
+   movddup xmm1, [r9];
 
-        mov rax, s;
-        movddup xmm2, [rax];
+   mov rax, s;
+   movddup xmm2, [rax];
 
-        xor r10, r10;
+   xor r10, r10;
 
-        mov rax, rcx;
-        shr rax, 1;
-        test rax, rax;
-        jz @@exitLoop;
+   mov rax, rcx;
+   shr rax, 1;
+   test rax, rax;
+   jz @@exitLoop;
 
-           @@forNloop:
-              // do a full load -> intermediate store in xmm5, and xmm6
-              movupd xmm5, [rdx + r10];      // x, x+1
-              movupd xmm6, [r8 + r10];      // y, y+1
+      @@forNloop:
+         // do a full load -> intermediate store in xmm5, and xmm6
+         movupd xmm5, [rdx + r10];      // x, x+1
+         movupd xmm6, [r8 + r10];      // y, y+1
 
-              movapd xmm3, xmm5;
-              movapd xmm4, xmm6;
+         movapd xmm3, xmm5;
+         movapd xmm4, xmm6;
 
-              mulpd xmm3, xmm0;  // x, x+1 * -s
-              mulpd xmm5, xmm1;  // x, x+1 * c
-              mulpd xmm6, xmm2;  // y, y+1 * s
-              mulpd xmm4, xmm1;  // y, y+1 * c
+         mulpd xmm3, xmm0;  // x, x+1 * -s
+         mulpd xmm5, xmm1;  // x, x+1 * c
+         mulpd xmm6, xmm2;  // y, y+1 * s
+         mulpd xmm4, xmm1;  // y, y+1 * c
 
-              addpd xmm5, xmm6;  // c*x + s*y  , c*(x+1) + s*(y+1)
-              addpd xmm3, xmm4;  // -s*x + c*y, -s(x+1) + c*(y+1)
+         addpd xmm5, xmm6;  // c*x + s*y  , c*(x+1) + s*(y+1)
+         addpd xmm3, xmm4;  // -s*x + c*y, -s(x+1) + c*(y+1)
 
-              // write back
-              movupd [rdx + r10], xmm5;
-              movupd [r8 + r10], xmm3;
+         // write back
+         movupd [rdx + r10], xmm5;
+         movupd [r8 + r10], xmm3;
 
-              add r10, 16;
+         add r10, 16;
 
-           dec rax;
-           jnz @@forNloop;
+      dec rax;
+      jnz @@forNloop;
 
-        @@exitLoop:
+   @@exitLoop:
 
-        // test for an odd N
-        mov rax, rcx;
-        and rax, 1;
-        jz @@endProc;
+   // test for an odd N
+   mov rax, rcx;
+   and rax, 1;
+   jz @@endProc;
 
-        // handle last element
-        movsd xmm5, [rdx + r10];
-        movsd xmm6, [r8 + r10];
+   // handle last element
+   movsd xmm5, [rdx + r10];
+   movsd xmm6, [r8 + r10];
 
-        //dtemp := c*pX^[i] + s*pY^[i];
-        //pY^[i] := - s*pX^[i] + c*pY^[i];
-        //px^[i] := dtemp;
-        movsd xmm3, xmm5;
-        movsd xmm4, xmm6;
+   //dtemp := c*pX^[i] + s*pY^[i];
+   //pY^[i] := - s*pX^[i] + c*pY^[i];
+   //px^[i] := dtemp;
+   movsd xmm3, xmm5;
+   movsd xmm4, xmm6;
 
-        mulsd xmm3, xmm0;  // x * -s
-        mulsd xmm5, xmm1;  // x * c
-        mulsd xmm6, xmm2;  // y * s
-        mulsd xmm4, xmm1;  // y * c
+   mulsd xmm3, xmm0;  // x * -s
+   mulsd xmm5, xmm1;  // x * c
+   mulsd xmm6, xmm2;  // y * s
+   mulsd xmm4, xmm1;  // y * c
 
-        addsd xmm5, xmm6;  // c*x + s*y
-        addsd xmm3, xmm4;  // -s*x + c*y
+   addsd xmm5, xmm6;  // c*x + s*y
+   addsd xmm3, xmm4;  // -s*x + c*y
 
-        // write back
-        movsd [rdx + r10], xmm5;
-        movsd [r8 + r10], xmm3;
+   // write back
+   movsd [rdx + r10], xmm5;
+   movsd [r8 + r10], xmm3;
 
-        @@endProc:
+   @@endProc:
 
-        // ###########################################
-        // #### epilog
-        movupd xmm4, dXMM4;
-        movupd xmm5, dXMM5;
-        movupd xmm6, dXMM6;
-     end;
-{$IFDEF FPC}
+   // ###########################################
+   // #### epilog
+   movupd xmm4, dXMM4;
+   movupd xmm5, dXMM5;
+   movupd xmm6, dXMM6;
 end;
-{$ENDIF}
 
 // rcx = N, RDX = X, R8 = LineWidthDX, R9 = Y; 
 procedure ASMMatrixRotateUnaligned(N : TASMNativeInt; X : PDouble; const LineWidthDX : TASMNativeInt;
-  Y : PDouble; {$ifdef UNIX}unixLineWidthDY{$ELSE}LineWidthDY{$endif} : TASMNativeInt; {$ifdef UNIX}unixc{$ELSE}c{$endif}, s : Pdouble);
+  Y : PDouble; {$ifdef UNIX}unixLineWidthDY{$ELSE}LineWidthDY{$endif} : TASMNativeInt; {$ifdef UNIX}unixc{$ELSE}c{$endif}, s : Pdouble); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM4, dXMM5, dXMM6 : Array[0..1] of double;
     {$ifdef UNIX}
     LineWidthDY : TASMNativeInt;
     C : PDouble;
     {$endif}
-{$IFDEF FPC}
-begin
-{$ENDIF}
-     asm
-        {$IFDEF UNIX}
-        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-        // (note that the 5th and 6th parameter are are on the stack)
-        // The parameters are passed in the following order:
-        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-        mov LineWidthDY, r8;
-        mov C, r9;
-        mov r8, rdx;
-        mov r9, rcx;
-        mov rcx, rdi;
-        mov rdx, rsi;
-        {$ENDIF}
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov LineWidthDY, r8;
+   mov C, r9;
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
 
-        // ###########################################
-        // #### Stack push
-        movupd dXMM4, xmm4;
-        movupd dXMM5, xmm5;
-        movupd dXMM6, xmm6;
+   // ###########################################
+   // #### Stack push
+   movupd dXMM4, xmm4;
+   movupd dXMM5, xmm5;
+   movupd dXMM6, xmm6;
 
-        mov rax, s;
-        movsd xmm2, [rax];
-        mulsd xmm2, [rip + cMinusOne];
+   mov rax, s;
+   movsd xmm2, [rax];
+   mulsd xmm2, [rip + cMinusOne];
 
-        movddup xmm0, xmm2;
-        mov rax, C;
-        movddup xmm1, [rax];
+   movddup xmm0, xmm2;
+   mov rax, C;
+   movddup xmm1, [rax];
 
-        mov rax, s;
-        movddup xmm2, [rax];
+   mov rax, s;
+   movddup xmm2, [rax];
 
-        mov r10, LineWidthDY;
+   mov r10, LineWidthDY;
 
-        // ###########################################
-        // #### loop
-        mov rax, rcx;
-        shr rax, 1;
-        test rax, rax;
-        jz @@exitLoop;
+   // ###########################################
+   // #### loop
+   mov rax, rcx;
+   shr rax, 1;
+   test rax, rax;
+   jz @@exitLoop;
 
-           @@forNloop:
-              // do a full load -> intermediate store in xmm5, and xmm6
-              movlpd xmm5, [rdx];
-              movhpd xmm5, [rdx + r8];
-              movlpd xmm6, [r9];
-              movhpd xmm6, [r9 + r10];
+      @@forNloop:
+         // do a full load -> intermediate store in xmm5, and xmm6
+         movlpd xmm5, [rdx];
+         movhpd xmm5, [rdx + r8];
+         movlpd xmm6, [r9];
+         movhpd xmm6, [r9 + r10];
 
-              movapd xmm3, xmm5;
-              movapd xmm4, xmm6;
+         movapd xmm3, xmm5;
+         movapd xmm4, xmm6;
 
-              mulpd xmm3, xmm0;  // x, x+1 * -s
-              mulpd xmm5, xmm1;  // x, x+1 * c
-              mulpd xmm6, xmm2;  // y, y+1 * s
-              mulpd xmm4, xmm1;  // y, y+1 * c
+         mulpd xmm3, xmm0;  // x, x+1 * -s
+         mulpd xmm5, xmm1;  // x, x+1 * c
+         mulpd xmm6, xmm2;  // y, y+1 * s
+         mulpd xmm4, xmm1;  // y, y+1 * c
 
-              addpd xmm5, xmm6;  // c*x + s*y  , c*(x+1) + s*(y+1)
-              addpd xmm3, xmm4;  // -s*x + c*y, -s(x+1) + c*(y+1)
+         addpd xmm5, xmm6;  // c*x + s*y  , c*(x+1) + s*(y+1)
+         addpd xmm3, xmm4;  // -s*x + c*y, -s(x+1) + c*(y+1)
 
 
-              // write back
-              movlpd [rdx], xmm5;
-              movhpd [rdx + r8], xmm5;
+         // write back
+         movlpd [rdx], xmm5;
+         movhpd [rdx + r8], xmm5;
 
-              movlpd [r9], xmm3;
-              movhpd [r9 + r10], xmm3;
+         movlpd [r9], xmm3;
+         movhpd [r9 + r10], xmm3;
 
-              add rdx, r8;
-              add rdx, r8;
-              add r9, r10;
-              add r9, r10;
+         add rdx, r8;
+         add rdx, r8;
+         add r9, r10;
+         add r9, r10;
 
-           dec rax;
-           jnz @@forNloop;
+      dec rax;
+      jnz @@forNloop;
 
-        @@exitLoop:
+   @@exitLoop:
 
-        // test for an odd N
-        mov rax, rcx;
-        and rax, 1;
-        jz @@endProc;
+   // test for an odd N
+   mov rax, rcx;
+   and rax, 1;
+   jz @@endProc;
 
-        // handle last element
-        movsd xmm5, [rdx];
-        movsd xmm6, [r9];
+   // handle last element
+   movsd xmm5, [rdx];
+   movsd xmm6, [r9];
 
-        //dtemp := c*pX^[i] + s*pY^[i];
-        //pY^[i] := - s*pX^[i] + c*pY^[i];
-        //px^[i] := dtemp;
-        movsd xmm3, xmm5;
-        movsd xmm4, xmm6;
+   //dtemp := c*pX^[i] + s*pY^[i];
+   //pY^[i] := - s*pX^[i] + c*pY^[i];
+   //px^[i] := dtemp;
+   movsd xmm3, xmm5;
+   movsd xmm4, xmm6;
 
-        mulsd xmm3, xmm0;  // x * -s
-        mulsd xmm5, xmm1;  // x * c
-        mulsd xmm6, xmm2;  // y * s
-        mulsd xmm4, xmm1;  // y * c
+   mulsd xmm3, xmm0;  // x * -s
+   mulsd xmm5, xmm1;  // x * c
+   mulsd xmm6, xmm2;  // y * s
+   mulsd xmm4, xmm1;  // y * c
 
-        addsd xmm5, xmm6;  // c*x + s*y
-        addsd xmm3, xmm4;  // -s*x + c*y
+   addsd xmm5, xmm6;  // c*x + s*y
+   addsd xmm3, xmm4;  // -s*x + c*y
 
-        // write back
-        movsd [rdx], xmm5;
-        movsd [r9], xmm3;
+   // write back
+   movsd [rdx], xmm5;
+   movsd [r9], xmm3;
 
-        @@endProc:
+   @@endProc:
 
-        // ###########################################
-        // #### Epilog
-        movupd xmm4, dXMM4;
-        movupd xmm5, dXMM5;
-        movupd xmm6, dXMM6;
-     end;
-{$IFDEF FPC}
+   // ###########################################
+   // #### Epilog
+   movupd xmm4, dXMM4;
+   movupd xmm5, dXMM5;
+   movupd xmm6, dXMM6;
 end;
-{$ENDIF}
 
 procedure ASMMatrixRotate(N : TASMNativeInt; X : PDouble; const LineWidthDX : TASMNativeInt; Y : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
 begin

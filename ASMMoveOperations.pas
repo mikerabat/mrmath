@@ -44,7 +44,7 @@ procedure ASMRowSwapAlignedOddW(A, B : PDouble; width : TASMNativeInt);
 procedure ASMRowSwapUnAlignedOddW(A, B : PDouble; width : TASMNativeInt);
 
 // it is assumed that this function has multiple of sizeof(double) as numbytes
-procedure ASMInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; const Value : double);
+procedure ASMInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; Value : double);
 
 {$ENDIF}
 
@@ -55,7 +55,7 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 // uses non temporal moves so the cache is not poisned
-procedure ASMInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; const Value : double);
+procedure ASMInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; Value : double);
 begin
      asm
         movddup xmm0, Value;

@@ -31,35 +31,35 @@ interface
 
 uses MatrixConst;
 
-procedure ASMMatrixAddAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-procedure ASMMatrixAddUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixheight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixAddAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixAddUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixheight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure ASMMatrixAddAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-procedure ASMMatrixAddUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixAddAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixAddUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure ASMMatrixSubAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-procedure ASMMatrixSubUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixSubAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixSubUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure ASMMatrixSubAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-procedure ASMMatrixSubUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixSubAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixSubUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure ASMMatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure ASMMatrixSubVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
-procedure ASMMatrixSubVecAlignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
-procedure ASMMatrixSubVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixSubVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixSubVecAlignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixSubVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure ASMMatrixSubVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
-procedure ASMMatrixSubVecUnalignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
-procedure ASMMatrixSubVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixSubVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixSubVecUnalignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixSubVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure ASMMatrixAddVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
-procedure ASMMatrixAddVecAlignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
-procedure ASMMatrixAddVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixAddVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixAddVecAlignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixAddVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure ASMMatrixAddVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
-procedure ASMMatrixAddVecUnalignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
-procedure ASMMatrixAddVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixAddVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixAddVecUnalignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixAddVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
 {$ENDIF}
 
@@ -69,15 +69,12 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
-procedure ASMMatrixAddAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixAddAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX, iR12 : TASMNativeInt;
     {$ifdef UNIX}
     width : TASMNativeInt;
     height : TASMNativeInt;
     {$ENDIF}
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -194,19 +191,13 @@ asm
    mov rbx, iRBX;
    mov r12, iR12;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
-procedure ASMMatrixAddUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixAddUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX, iR12 : TASMNativeInt;
     {$ifdef UNIX}
     width : TASMNativeInt;
     height : TASMNativeInt;
     {$ENDIF}
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -333,19 +324,13 @@ asm
    mov rbx, iRBX;
    mov r12, iR12;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
-procedure ASMMatrixAddAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixAddAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX, iR12 : TASMNativeInt;
     {$ifdef UNIX}
     width : TASMNativeInt;
     height : TASMNativeInt;
     {$ENDIF}
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -470,19 +455,13 @@ asm
    mov rbx, iRBX;
    mov r12, iR12;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
-procedure ASMMatrixAddUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixAddUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX, iR12 : TASMNativeInt;
     {$ifdef UNIX}
     width : TASMNativeInt;
     height : TASMNativeInt;
     {$ENDIF}
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -616,19 +595,13 @@ asm
    mov rbx, iRBX;
    mov r12, iR12;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
-procedure ASMMatrixSubAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixSubAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX, iR12 : TASMNativeInt;
     {$ifdef UNIX}
     width : TASMNativeInt;
     height : TASMNativeInt;
     {$ENDIF}
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -746,19 +719,13 @@ asm
    mov rbx, iRBX;
    mov r12, iR12;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
-procedure ASMMatrixSubUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixSubUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX, iR12 : TASMNativeInt;
     {$ifdef UNIX}
     width : TASMNativeInt;
     height : TASMNativeInt;
     {$ENDIF}
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -885,19 +852,13 @@ asm
    mov rbx, iRBX;
    mov r12, iR12;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
-procedure ASMMatrixSubAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixSubAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX, iR12 : TASMNativeInt;
     {$ifdef UNIX}
     width : TASMNativeInt;
     height : TASMNativeInt;
     {$ENDIF}
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1022,19 +983,13 @@ asm
    mov rbx, iRBX;
    mov r12, iR12;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
-procedure ASMMatrixSubUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixSubUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX, iR12 : TASMNativeInt;
     {$ifdef UNIX}
     width : TASMNativeInt;
     height : TASMNativeInt;
     {$ENDIF}
-{$IFDEF FPC}
-begin
-  {$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1168,17 +1123,11 @@ asm
    mov rbx, iRBX;
    mov r12, iR12;
 end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
-procedure ASMMatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 {$ifdef UNIX}
 var width : TASMNativeInt;
     height : TASMNativeInt;
-{$ENDIF}
-{$IFDEF FPC}
-begin
 {$ENDIF}
      // rcx : A, rdx : LineWidthA, r8 : B, r9 : LineWidthB;
      asm
@@ -1223,898 +1172,823 @@ begin
         dec height;
         jnz @@foryloop;
      end;
-{$IFDEF FPC}
-end;
-{$ENDIF}
 
 // ########################################################
 // #### Matrix add, sub to vector operations
 // ########################################################
 
-procedure ASMMatrixSubVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixSubVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 {$ifdef UNIX}
 var width : TASMNativeInt;
     height : TASMNativeInt;
 {$ENDIF}
-{$IFDEF FPC}
-begin
-{$ENDIF}
-     asm
-        {$IFDEF UNIX}
-        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-        // (note that the 5th and 6th parameter are are on the stack)
-        // The parameters are passed in the following order:
-        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-        mov width, r8;
-        mov height, r9;
-        mov r8, rdx;
-        mov r9, rcx;
-        mov rcx, rdi;
-        mov rdx, rsi;
-       {$ENDIF}
-        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
-        mov r10, width;
-        imul r10, -8;
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+  {$ENDIF}
+   // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+   mov r10, width;
+   imul r10, -8;
 
-        sub rcx, r10;
-        sub r8, r10;
+   sub rcx, r10;
+   sub r8, r10;
 
-        @@foryloop:
-           mov rax, r10;
+   @@foryloop:
+      mov rax, r10;
 
-           @@forxloopUnrolled:
-              add rax, 64;
-              jg @@EndLoop1;
+      @@forxloopUnrolled:
+         add rax, 64;
+         jg @@EndLoop1;
 
-              movapd xmm0, [rcx + rax - 64];
-              subpd xmm0, [r8 + rax - 64];
-              movapd [rcx + rax - 64], xmm0;
+         movapd xmm0, [rcx + rax - 64];
+         subpd xmm0, [r8 + rax - 64];
+         movapd [rcx + rax - 64], xmm0;
 
-              movapd xmm1, [rcx + rax - 48];
-              subpd xmm1, [r8 + rax - 48];
-              movapd [rcx + rax - 48], xmm1;
+         movapd xmm1, [rcx + rax - 48];
+         subpd xmm1, [r8 + rax - 48];
+         movapd [rcx + rax - 48], xmm1;
 
-              movapd xmm2, [rcx + rax - 32];
-              subpd xmm2, [r8 + rax - 32];
-              movapd [rcx + rax - 32], xmm2;
+         movapd xmm2, [rcx + rax - 32];
+         subpd xmm2, [r8 + rax - 32];
+         movapd [rcx + rax - 32], xmm2;
 
-              movapd xmm3, [rcx + rax - 16];
-              subpd xmm3, [r8 + rax - 16];
-              movapd [rcx + rax - 16], xmm3;
+         movapd xmm3, [rcx + rax - 16];
+         subpd xmm3, [r8 + rax - 16];
+         movapd [rcx + rax - 16], xmm3;
 
-           jmp @@forxloopUnrolled;
+      jmp @@forxloopUnrolled;
 
-           @@EndLoop1:
+      @@EndLoop1:
 
-           sub rax, 64;
+      sub rax, 64;
 
-           jz @NextLine;
+      jz @NextLine;
 
-           @@forxloop:
-              movsd xmm0, [rcx + rax];
-              movsd xmm1, [r8 + rax];
+      @@forxloop:
+         movsd xmm0, [rcx + rax];
+         movsd xmm1, [r8 + rax];
 
-              subsd xmm0, xmm1;
-              movsd [rcx + rax], xmm0;
+         subsd xmm0, xmm1;
+         movsd [rcx + rax], xmm0;
 
-              add rax, 8;
-           jnz @@forxloop;
+         add rax, 8;
+      jnz @@forxloop;
 
-           @NextLine:
+      @NextLine:
 
-           add rcx, rdx;
-        dec Height;
-        jnz @@foryloop;
-     end;
-{$IFDEF FPC}
+      add rcx, rdx;
+   dec Height;
+   jnz @@foryloop;
 end;
-{$ENDIF}
 
-procedure ASMMatrixSubVecAlignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixSubVecAlignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var vecIter : TASMNativeInt;
     {$ifdef UNIX}
     width : TASMNativeInt;
     height : TASMNativeInt;
     {$ENDIF}
-{$IFDEF FPC}
-begin
-{$ENDIF}
-     asm
-        {$IFDEF UNIX}
-        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-        // (note that the 5th and 6th parameter are are on the stack)
-        // The parameters are passed in the following order:
-        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-        mov width, r8;
-        mov height, r9;
-        mov r8, rdx;
-        mov r9, rcx;
-        mov rcx, rdi;
-        mov rdx, rsi;
-       {$ENDIF}
-        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
-        mov r11, width;
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+  {$ENDIF}
+   // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+   mov r11, width;
 
-        imul r11, r9;
-        imul r11, -1;
-        mov vecIter, r11;
+   imul r11, r9;
+   imul r11, -1;
+   mov vecIter, r11;
 
-        mov r10, width;
-        imul r10, -8;
+   mov r10, width;
+   imul r10, -8;
 
-        sub rcx, r10;
-        sub r8, r11;
+   sub rcx, r10;
+   sub r8, r11;
 
-        @@foryloop:
-           mov rax, r10;
-           mov r11, vecIter;
+   @@foryloop:
+      mov rax, r10;
+      mov r11, vecIter;
 
-           @@forxloop:
-              movsd xmm0, [rcx + rax];
-              movsd xmm1, [r8 + r11];
+      @@forxloop:
+         movsd xmm0, [rcx + rax];
+         movsd xmm1, [r8 + r11];
 
-              subsd xmm0, xmm1;
-              movsd [rcx + rax], xmm0;
+         subsd xmm0, xmm1;
+         movsd [rcx + rax], xmm0;
 
-              add r11, r9;
-              add rax, 8;
-           jnz @@forxloop;
+         add r11, r9;
+         add rax, 8;
+      jnz @@forxloop;
 
-           add rcx, rdx;
-        dec Height;
-        jnz @@foryloop;
-     end;
-{$IFDEF FPC}
+      add rcx, rdx;
+   dec Height;
+   jnz @@foryloop;
 end;
-{$ENDIF}
 
-procedure ASMMatrixSubVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixSubVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 {$ifdef UNIX}
 var width : TASMNativeInt;
     height : TASMNativeInt;
 {$ENDIF}
-{$IFDEF FPC}
-begin
-{$ENDIF}
-     asm
-        {$IFDEF UNIX}
-        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-        // (note that the 5th and 6th parameter are are on the stack)
-        // The parameters are passed in the following order:
-        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-        mov width, r8;
-        mov height, r9;
-        mov r8, rdx;
-        mov r9, rcx;
-        mov rcx, rdi;
-        mov rdx, rsi;
-       {$ENDIF}
-        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
-        mov r10, width;
-        imul r10, -8;
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+  {$ENDIF}
+   // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+   mov r10, width;
+   imul r10, -8;
 
-        sub rcx, r10;
+   sub rcx, r10;
 
-        @@foryloop:
-           mov rax, r10;
+   @@foryloop:
+      mov rax, r10;
 
-           movddup xmm1, [r8];
+      movddup xmm1, [r8];
 
-           @@forxloopUnrolled:
-              add rax, 64;
-              jg @@EndLoop1;
+      @@forxloopUnrolled:
+         add rax, 64;
+         jg @@EndLoop1;
 
-              movapd xmm0, [rcx + rax - 64];
-              subpd xmm0, xmm1;
-              movapd [rcx + rax - 64], xmm0;
+         movapd xmm0, [rcx + rax - 64];
+         subpd xmm0, xmm1;
+         movapd [rcx + rax - 64], xmm0;
 
-              movapd xmm3, [rcx + rax - 48];
-              subpd xmm3, xmm1;
-              movapd [rcx + rax - 48], xmm3;
+         movapd xmm3, [rcx + rax - 48];
+         subpd xmm3, xmm1;
+         movapd [rcx + rax - 48], xmm3;
 
-              movapd xmm2, [rcx + rax - 32];
-              subpd xmm2, xmm1;
-              movapd [rcx + rax - 32], xmm2;
+         movapd xmm2, [rcx + rax - 32];
+         subpd xmm2, xmm1;
+         movapd [rcx + rax - 32], xmm2;
 
-              movapd xmm3, [rcx + rax - 16];
-              subpd xmm3, xmm1;
-              movapd [rcx + rax - 16], xmm3;
+         movapd xmm3, [rcx + rax - 16];
+         subpd xmm3, xmm1;
+         movapd [rcx + rax - 16], xmm3;
 
-           jmp @@forxloopUnrolled;
+      jmp @@forxloopUnrolled;
 
-           @@EndLoop1:
+      @@EndLoop1:
 
-           sub rax, 64;
+      sub rax, 64;
 
-           jz @NextLine;
+      jz @NextLine;
 
-           @@forxloop:
-              movsd xmm0, [rcx + rax];
+      @@forxloop:
+         movsd xmm0, [rcx + rax];
 
-              subsd xmm0, xmm1;
-              movsd [rcx + rax], xmm0;
+         subsd xmm0, xmm1;
+         movsd [rcx + rax], xmm0;
 
-              add rax, 8;
-           jnz @@forxloop;
+         add rax, 8;
+      jnz @@forxloop;
 
-           @NextLine:
+      @NextLine:
 
-           add rcx, rdx;
-           add r8, incX;
-        dec Height;
-        jnz @@foryloop;
-     end;
-{$IFDEF FPC}
+      add rcx, rdx;
+      add r8, incX;
+   dec Height;
+   jnz @@foryloop;
 end;
-{$ENDIF}
 
-procedure ASMMatrixSubVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixSubVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 {$ifdef UNIX}
 var width : TASMNativeInt;
     height : TASMNativeInt;
 {$ENDIF}
-{$IFDEF FPC}
-begin
-{$ENDIF}
-     asm
-        {$IFDEF UNIX}
-        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-        // (note that the 5th and 6th parameter are are on the stack)
-        // The parameters are passed in the following order:
-        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-        mov width, r8;
-        mov height, r9;
-        mov r8, rdx;
-        mov r9, rcx;
-        mov rcx, rdi;
-        mov rdx, rsi;
-       {$ENDIF}
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+  {$ENDIF}
 
-        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
-        mov r10, width;
-        imul r10, -8;
+   // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+   mov r10, width;
+   imul r10, -8;
 
-        sub rcx, r10;
-        sub r8, r10;
+   sub rcx, r10;
+   sub r8, r10;
 
-        @@foryloop:
-           mov rax, r10;
+   @@foryloop:
+      mov rax, r10;
 
-           @@forxloopUnrolled:
-              add rax, 64;
-              jg @@EndLoop1;
+      @@forxloopUnrolled:
+         add rax, 64;
+         jg @@EndLoop1;
 
-              movupd xmm0, [rcx + rax - 64];
-              movupd xmm1, [r8 + rax - 64];
-              subpd xmm0, xmm1;
-              movupd [rcx + rax - 64], xmm0;
+         movupd xmm0, [rcx + rax - 64];
+         movupd xmm1, [r8 + rax - 64];
+         subpd xmm0, xmm1;
+         movupd [rcx + rax - 64], xmm0;
 
-              movupd xmm1, [rcx + rax - 48];
-              movupd xmm2, [r8 + rax - 48];
-              subpd xmm1, xmm2;
-              movupd [rcx + rax - 48], xmm1;
+         movupd xmm1, [rcx + rax - 48];
+         movupd xmm2, [r8 + rax - 48];
+         subpd xmm1, xmm2;
+         movupd [rcx + rax - 48], xmm1;
 
-              movupd xmm2, [rcx + rax - 32];
-              movupd xmm3, [r8 + rax - 32];
-              subpd xmm2, xmm3;
-              movupd [rcx + rax - 32], xmm2;
+         movupd xmm2, [rcx + rax - 32];
+         movupd xmm3, [r8 + rax - 32];
+         subpd xmm2, xmm3;
+         movupd [rcx + rax - 32], xmm2;
 
-              movupd xmm3, [rcx + rax - 16];
-              movupd xmm0, [r8 + rax - 16];
-              subpd xmm3, xmm0;
-              movupd [rcx + rax - 16], xmm3;
+         movupd xmm3, [rcx + rax - 16];
+         movupd xmm0, [r8 + rax - 16];
+         subpd xmm3, xmm0;
+         movupd [rcx + rax - 16], xmm3;
 
-           jmp @@forxloopUnrolled;
+      jmp @@forxloopUnrolled;
 
-           @@EndLoop1:
+      @@EndLoop1:
 
-           sub rax, 64;
+      sub rax, 64;
 
-           jz @NextLine;
+      jz @NextLine;
 
-           @@forxloop:
-              movsd xmm0, [rcx + rax];
-              movsd xmm1, [r8 + rax];
+      @@forxloop:
+         movsd xmm0, [rcx + rax];
+         movsd xmm1, [r8 + rax];
 
-              subsd xmm0, xmm1;
-              movsd [rcx + rax], xmm0;
+         subsd xmm0, xmm1;
+         movsd [rcx + rax], xmm0;
 
-              add rax, 8;
-           jnz @@forxloop;
+         add rax, 8;
+      jnz @@forxloop;
 
-           @NextLine:
+      @NextLine:
 
-           add rcx, rdx;
-        dec Height;
-        jnz @@foryloop;
-     end;
-{$IFDEF FPC}
+      add rcx, rdx;
+   dec Height;
+   jnz @@foryloop;
 end;
-{$ENDIF}
 
-procedure ASMMatrixSubVecUnalignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixSubVecUnalignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var vecIter : TASMNativeInt;
     {$ifdef UNIX}
     width : TASMNativeInt;
     height : TASMNativeInt;
     {$ENDIF}
-{$IFDEF FPC}
-begin
-{$ENDIF}
-     asm
-        {$IFDEF UNIX}
-        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-        // (note that the 5th and 6th parameter are are on the stack)
-        // The parameters are passed in the following order:
-        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-        mov width, r8;
-        mov height, r9;
-        mov r8, rdx;
-        mov r9, rcx;
-        mov rcx, rdi;
-        mov rdx, rsi;
-       {$ENDIF}
-        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
-        mov r11, width;
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+  {$ENDIF}
+   // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+   mov r11, width;
 
-        imul r11, r9;
-        imul r11, -1;
-        mov vecIter, r11;
+   imul r11, r9;
+   imul r11, -1;
+   mov vecIter, r11;
 
-        mov r10, width;
-        imul r10, -8;
+   mov r10, width;
+   imul r10, -8;
 
-        sub rcx, r10;
-        sub r8, r11;
+   sub rcx, r10;
+   sub r8, r11;
 
-        @@foryloop:
-           mov rax, r10;
-           mov r11, vecIter;
+   @@foryloop:
+      mov rax, r10;
+      mov r11, vecIter;
 
-           @@forxloop:
-              movsd xmm0, [rcx + rax];
-              movsd xmm1, [r8 + r11];
+      @@forxloop:
+         movsd xmm0, [rcx + rax];
+         movsd xmm1, [r8 + r11];
 
-              subsd xmm0, xmm1;
-              movsd [rcx + rax], xmm0;
+         subsd xmm0, xmm1;
+         movsd [rcx + rax], xmm0;
 
-              add r11, r9;
-              add rax, 8;
-           jnz @@forxloop;
+         add r11, r9;
+         add rax, 8;
+      jnz @@forxloop;
 
-           add rcx, rdx;
-        dec Height;
-        jnz @@foryloop;
-     end;
-{$IFDEF FPC}
+      add rcx, rdx;
+   dec Height;
+   jnz @@foryloop;
 end;
-{$ENDIF}
 
-procedure ASMMatrixSubVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixSubVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 {$ifdef UNIX}
 var width : TASMNativeInt;
     height : TASMNativeInt;
 {$ENDIF}
-{$IFDEF FPC}
-begin
-{$ENDIF}
-     asm
-        {$IFDEF UNIX}
-        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-        // (note that the 5th and 6th parameter are are on the stack)
-        // The parameters are passed in the following order:
-        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-        mov width, r8;
-        mov height, r9;
-        mov r8, rdx;
-        mov r9, rcx;
-        mov rcx, rdi;
-        mov rdx, rsi;
-       {$ENDIF}
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+  {$ENDIF}
 
-        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
-        mov r10, width;
-        imul r10, -8;
+   // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+   mov r10, width;
+   imul r10, -8;
 
-        sub rcx, r10;
+   sub rcx, r10;
 
-        @@foryloop:
-           mov rax, r10;
+   @@foryloop:
+      mov rax, r10;
 
-           movddup xmm1, [r8];
+      movddup xmm1, [r8];
 
-           @@forxloopUnrolled:
-              add rax, 64;
-              jg @@EndLoop1;
+      @@forxloopUnrolled:
+         add rax, 64;
+         jg @@EndLoop1;
 
-              movupd xmm0, [rcx + rax - 64];
-              subpd xmm0, xmm1;
-              movupd [rcx + rax - 64], xmm0;
+         movupd xmm0, [rcx + rax - 64];
+         subpd xmm0, xmm1;
+         movupd [rcx + rax - 64], xmm0;
 
-              movupd xmm3, [rcx + rax - 48];
-              subpd xmm3, xmm1;
-              movupd [rcx + rax - 48], xmm3;
+         movupd xmm3, [rcx + rax - 48];
+         subpd xmm3, xmm1;
+         movupd [rcx + rax - 48], xmm3;
 
-              movupd xmm2, [rcx + rax - 32];
-              subpd xmm2, xmm1;
-              movupd [rcx + rax - 32], xmm2;
+         movupd xmm2, [rcx + rax - 32];
+         subpd xmm2, xmm1;
+         movupd [rcx + rax - 32], xmm2;
 
-              movupd xmm3, [rcx + rax - 16];
-              subpd xmm3, xmm1;
-              movupd [rcx + rax - 16], xmm3;
+         movupd xmm3, [rcx + rax - 16];
+         subpd xmm3, xmm1;
+         movupd [rcx + rax - 16], xmm3;
 
-           jmp @@forxloopUnrolled;
+      jmp @@forxloopUnrolled;
 
-           @@EndLoop1:
+      @@EndLoop1:
 
-           sub rax, 64;
+      sub rax, 64;
 
-           jz @NextLine;
+      jz @NextLine;
 
-           @@forxloop:
-              movsd xmm0, [rcx + rax];
+      @@forxloop:
+         movsd xmm0, [rcx + rax];
 
-              subsd xmm0, xmm1;
-              movsd [rcx + rax], xmm0;
+         subsd xmm0, xmm1;
+         movsd [rcx + rax], xmm0;
 
-              add rax, 8;
-           jnz @@forxloop;
+         add rax, 8;
+      jnz @@forxloop;
 
-           @NextLine:
+      @NextLine:
 
-           add rcx, rdx;
-           add r8, incX;
-        dec Height;
-        jnz @@foryloop;
-     end;
-{$IFDEF FPC}
+      add rcx, rdx;
+      add r8, incX;
+   dec Height;
+   jnz @@foryloop;
 end;
-{$ENDIF}
 
 
-procedure ASMMatrixAddVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixAddVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 {$ifdef UNIX}
 var width : TASMNativeInt;
     height : TASMNativeInt;
 {$ENDIF}
-{$IFDEF FPC}
-begin
-{$ENDIF}
-     asm
-        {$IFDEF UNIX}
-        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-        // (note that the 5th and 6th parameter are are on the stack)
-        // The parameters are passed in the following order:
-        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-        mov width, r8;
-        mov height, r9;
-        mov r8, rdx;
-        mov r9, rcx;
-        mov rcx, rdi;
-        mov rdx, rsi;
-       {$ENDIF}
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+  {$ENDIF}
 
-        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
-        mov r10, width;
-        imul r10, -8;
+   // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+   mov r10, width;
+   imul r10, -8;
 
-        sub rcx, r10;
-        sub r8, r10;
+   sub rcx, r10;
+   sub r8, r10;
 
-        @@foryloop:
-           mov rax, r10;
+   @@foryloop:
+      mov rax, r10;
 
-           @@forxloopUnrolled:
-              add rax, 64;
-              jg @@EndLoop1;
+      @@forxloopUnrolled:
+         add rax, 64;
+         jg @@EndLoop1;
 
-              movapd xmm0, [rcx + rax - 64];
-              addpd xmm0, [r8 + rax - 64];
-              movapd [rcx + rax - 64], xmm0;
+         movapd xmm0, [rcx + rax - 64];
+         addpd xmm0, [r8 + rax - 64];
+         movapd [rcx + rax - 64], xmm0;
 
-              movapd xmm1, [rcx + rax - 48];
-              addpd xmm1, [r8 + rax - 48];
-              movapd [rcx + rax - 48], xmm1;
+         movapd xmm1, [rcx + rax - 48];
+         addpd xmm1, [r8 + rax - 48];
+         movapd [rcx + rax - 48], xmm1;
 
-              movapd xmm2, [rcx + rax - 32];
-              addpd xmm2, [r8 + rax - 32];
-              movapd [rcx + rax - 32], xmm2;
+         movapd xmm2, [rcx + rax - 32];
+         addpd xmm2, [r8 + rax - 32];
+         movapd [rcx + rax - 32], xmm2;
 
-              movapd xmm3, [rcx + rax - 16];
-              addpd xmm3, [r8 + rax - 16];
-              movapd [rcx + rax - 16], xmm3;
+         movapd xmm3, [rcx + rax - 16];
+         addpd xmm3, [r8 + rax - 16];
+         movapd [rcx + rax - 16], xmm3;
 
-           jmp @@forxloopUnrolled;
+      jmp @@forxloopUnrolled;
 
-           @@EndLoop1:
+      @@EndLoop1:
 
-           sub rax, 64;
+      sub rax, 64;
 
-           jz @NextLine;
+      jz @NextLine;
 
-           @@forxloop:
-              movsd xmm0, [rcx + rax];
-              movsd xmm1, [r8 + rax];
+      @@forxloop:
+         movsd xmm0, [rcx + rax];
+         movsd xmm1, [r8 + rax];
 
-              addsd xmm0, xmm1;
-              movsd [rcx + rax], xmm0;
+         addsd xmm0, xmm1;
+         movsd [rcx + rax], xmm0;
 
-              add rax, 8;
-           jnz @@forxloop;
+         add rax, 8;
+      jnz @@forxloop;
 
-           @NextLine:
+      @NextLine:
 
-           add rcx, rdx;
-        dec Height;
-        jnz @@foryloop;
-     end;
-{$IFDEF FPC}
+      add rcx, rdx;
+   dec Height;
+   jnz @@foryloop;
 end;
-{$ENDIF}
 
-procedure ASMMatrixAddVecAlignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixAddVecAlignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var vecIter : TASMNativeInt;
     {$ifdef UNIX}
     width : TASMNativeInt;
     height : TASMNativeInt;
     {$ENDIF}
-{$IFDEF FPC}
-begin
-{$ENDIF}
-     asm
-        {$IFDEF UNIX}
-        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-        // (note that the 5th and 6th parameter are are on the stack)
-        // The parameters are passed in the following order:
-        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-        mov width, r8;
-        mov height, r9;
-        mov r8, rdx;
-        mov r9, rcx;
-        mov rcx, rdi;
-        mov rdx, rsi;
-       {$ENDIF}
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+  {$ENDIF}
 
-        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
-        mov r11, width;
+   // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+   mov r11, width;
 
-        imul r11, r9;
-        imul r11, -1;
-        mov vecIter, r11;
+   imul r11, r9;
+   imul r11, -1;
+   mov vecIter, r11;
 
-        mov r10, width;
-        imul r10, -8;
+   mov r10, width;
+   imul r10, -8;
 
-        sub rcx, r10;
-        sub r8, r11;
+   sub rcx, r10;
+   sub r8, r11;
 
-        @@foryloop:
-           mov rax, r10;
-           mov r11, vecIter;
+   @@foryloop:
+      mov rax, r10;
+      mov r11, vecIter;
 
-           @@forxloop:
-              movsd xmm0, [rcx + rax];
-              movsd xmm1, [r8 + r11];
+      @@forxloop:
+         movsd xmm0, [rcx + rax];
+         movsd xmm1, [r8 + r11];
 
-              addsd xmm0, xmm1;
-              movsd [rcx + rax], xmm0;
+         addsd xmm0, xmm1;
+         movsd [rcx + rax], xmm0;
 
-              add r11, r9;
-              add rax, 8;
-           jnz @@forxloop;
+         add r11, r9;
+         add rax, 8;
+      jnz @@forxloop;
 
-           add rcx, rdx;
-        dec Height;
-        jnz @@foryloop;
-     end;
-{$IFDEF FPC}
+      add rcx, rdx;
+   dec Height;
+   jnz @@foryloop;
 end;
-{$ENDIF}
 
-procedure ASMMatrixAddVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixAddVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 {$ifdef UNIX}
 var width : TASMNativeInt;
     height : TASMNativeInt;
 {$ENDIF}
-{$IFDEF FPC}
-begin
-{$ENDIF}
-     asm
-        {$IFDEF UNIX}
-        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-        // (note that the 5th and 6th parameter are are on the stack)
-        // The parameters are passed in the following order:
-        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-        mov width, r8;
-        mov height, r9;
-        mov r8, rdx;
-        mov r9, rcx;
-        mov rcx, rdi;
-        mov rdx, rsi;
-       {$ENDIF}
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+  {$ENDIF}
 
-        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
-        mov r10, width;
-        imul r10, -8;
+   // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+   mov r10, width;
+   imul r10, -8;
 
-        sub rcx, r10;
+   sub rcx, r10;
 
-        @@foryloop:
-           mov rax, r10;
+   @@foryloop:
+      mov rax, r10;
 
-           movddup xmm1, [r8];
+      movddup xmm1, [r8];
 
-           @@forxloopUnrolled:
-              add rax, 64;
-              jg @@EndLoop1;
+      @@forxloopUnrolled:
+         add rax, 64;
+         jg @@EndLoop1;
 
-              movapd xmm0, [rcx + rax - 64];
-              addpd xmm0, xmm1;
-              movapd [rcx + rax - 64], xmm0;
+         movapd xmm0, [rcx + rax - 64];
+         addpd xmm0, xmm1;
+         movapd [rcx + rax - 64], xmm0;
 
-              movapd xmm3, [rcx + rax - 48];
-              addpd xmm3, xmm1;
-              movapd [rcx + rax - 48], xmm3;
+         movapd xmm3, [rcx + rax - 48];
+         addpd xmm3, xmm1;
+         movapd [rcx + rax - 48], xmm3;
 
-              movapd xmm2, [rcx + rax - 32];
-              addpd xmm2, xmm1;
-              movapd [rcx + rax - 32], xmm2;
+         movapd xmm2, [rcx + rax - 32];
+         addpd xmm2, xmm1;
+         movapd [rcx + rax - 32], xmm2;
 
-              movapd xmm3, [rcx + rax - 16];
-              addpd xmm3, xmm1;
-              movapd [rcx + rax - 16], xmm3;
+         movapd xmm3, [rcx + rax - 16];
+         addpd xmm3, xmm1;
+         movapd [rcx + rax - 16], xmm3;
 
-           jmp @@forxloopUnrolled;
+      jmp @@forxloopUnrolled;
 
-           @@EndLoop1:
+      @@EndLoop1:
 
-           sub rax, 64;
+      sub rax, 64;
 
-           jz @NextLine;
+      jz @NextLine;
 
-           @@forxloop:
-              movsd xmm0, [rcx + rax];
+      @@forxloop:
+         movsd xmm0, [rcx + rax];
 
-              addsd xmm0, xmm1;
-              movsd [rcx + rax], xmm0;
+         addsd xmm0, xmm1;
+         movsd [rcx + rax], xmm0;
 
-              add rax, 8;
-           jnz @@forxloop;
+         add rax, 8;
+      jnz @@forxloop;
 
-           @NextLine:
+      @NextLine:
 
-           add rcx, rdx;
-           add r8, incX;
-        dec Height;
-        jnz @@foryloop;
-     end;
-{$IFDEF FPC}
+      add rcx, rdx;
+      add r8, incX;
+   dec Height;
+   jnz @@foryloop;
 end;
-{$ENDIF}
 
-procedure ASMMatrixAddVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixAddVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 {$ifdef UNIX}
 var width : TASMNativeInt;
     height : TASMNativeInt;
 {$ENDIF}
-{$IFDEF FPC}
-begin
-{$ENDIF}
-     asm
-        {$IFDEF UNIX}
-        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-        // (note that the 5th and 6th parameter are are on the stack)
-        // The parameters are passed in the following order:
-        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-        mov width, r8;
-        mov height, r9;
-        mov r8, rdx;
-        mov r9, rcx;
-        mov rcx, rdi;
-        mov rdx, rsi;
-       {$ENDIF}
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+  {$ENDIF}
 
-        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
-        mov r10, width;
-        imul r10, -8;
+   // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+   mov r10, width;
+   imul r10, -8;
 
-        sub rcx, r10;
-        sub r8, r10;
+   sub rcx, r10;
+   sub r8, r10;
 
-        @@foryloop:
-           mov rax, r10;
+   @@foryloop:
+      mov rax, r10;
 
-           @@forxloopUnrolled:
-              add rax, 64;
-              jg @@EndLoop1;
+      @@forxloopUnrolled:
+         add rax, 64;
+         jg @@EndLoop1;
 
-              movupd xmm0, [rcx + rax - 64];
-              movupd xmm1, [r8 + rax - 64];
-              addpd xmm0, xmm1;
-              movupd [rcx + rax - 64], xmm0;
+         movupd xmm0, [rcx + rax - 64];
+         movupd xmm1, [r8 + rax - 64];
+         addpd xmm0, xmm1;
+         movupd [rcx + rax - 64], xmm0;
 
-              movupd xmm1, [rcx + rax - 48];
-              movupd xmm2, [r8 + rax - 48];
-              addpd xmm1, xmm2;
-              movupd [rcx + rax - 48], xmm1;
+         movupd xmm1, [rcx + rax - 48];
+         movupd xmm2, [r8 + rax - 48];
+         addpd xmm1, xmm2;
+         movupd [rcx + rax - 48], xmm1;
 
-              movupd xmm2, [rcx + rax - 32];
-              movupd xmm3, [r8 + rax - 32];
-              addpd xmm2, xmm3;
-              movupd [rcx + rax - 32], xmm2;
+         movupd xmm2, [rcx + rax - 32];
+         movupd xmm3, [r8 + rax - 32];
+         addpd xmm2, xmm3;
+         movupd [rcx + rax - 32], xmm2;
 
-              movupd xmm3, [rcx + rax - 16];
-              movupd xmm0, [r8 + rax - 16];
-              addpd xmm3, xmm0;
-              movupd [rcx + rax - 16], xmm3;
+         movupd xmm3, [rcx + rax - 16];
+         movupd xmm0, [r8 + rax - 16];
+         addpd xmm3, xmm0;
+         movupd [rcx + rax - 16], xmm3;
 
-           jmp @@forxloopUnrolled;
+      jmp @@forxloopUnrolled;
 
-           @@EndLoop1:
+      @@EndLoop1:
 
-           sub rax, 64;
+      sub rax, 64;
 
-           jz @NextLine;
+      jz @NextLine;
 
-           @@forxloop:
-              movsd xmm0, [rcx + rax];
-              movsd xmm1, [r8 + rax];
+      @@forxloop:
+         movsd xmm0, [rcx + rax];
+         movsd xmm1, [r8 + rax];
 
-              addsd xmm0, xmm1;
-              movsd [rcx + rax], xmm0;
+         addsd xmm0, xmm1;
+         movsd [rcx + rax], xmm0;
 
-              add rax, 8;
-           jnz @@forxloop;
+         add rax, 8;
+      jnz @@forxloop;
 
-           @NextLine:
+      @NextLine:
 
-           add rcx, rdx;
-        dec Height;
-        jnz @@foryloop;
-     end;
-{$IFDEF FPC}
+      add rcx, rdx;
+   dec Height;
+   jnz @@foryloop;
 end;
-{$ENDIF}
 
-procedure ASMMatrixAddVecUnalignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixAddVecUnalignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var vecIter : TASMNativeInt;
     {$ifdef UNIX}
     width : TASMNativeInt;
     height : TASMNativeInt;
     {$ENDIF}
-{$IFDEF FPC}
-begin
-{$ENDIF}
-     asm
-        {$IFDEF UNIX}
-        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-        // (note that the 5th and 6th parameter are are on the stack)
-        // The parameters are passed in the following order:
-        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-        mov width, r8;
-        mov height, r9;
-        mov r8, rdx;
-        mov r9, rcx;
-        mov rcx, rdi;
-        mov rdx, rsi;
-       {$ENDIF}
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+  {$ENDIF}
 
-        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
-        mov r11, width;
+   // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+   mov r11, width;
 
-        imul r11, r9;
-        imul r11, -1;
-        mov vecIter, r11;
+   imul r11, r9;
+   imul r11, -1;
+   mov vecIter, r11;
 
-        mov r10, width;
-        imul r10, -8;
+   mov r10, width;
+   imul r10, -8;
 
-        sub rcx, r10;
-        sub r8, r11;
+   sub rcx, r10;
+   sub r8, r11;
 
-        @@foryloop:
-           mov rax, r10;
-           mov r11, vecIter;
+   @@foryloop:
+      mov rax, r10;
+      mov r11, vecIter;
 
-           @@forxloop:
-              movsd xmm0, [rcx + rax];
-              movsd xmm1, [r8 + r11];
+      @@forxloop:
+         movsd xmm0, [rcx + rax];
+         movsd xmm1, [r8 + r11];
 
-              addsd xmm0, xmm1;
-              movsd [rcx + rax], xmm0;
+         addsd xmm0, xmm1;
+         movsd [rcx + rax], xmm0;
 
-              add r11, r9;
-              add rax, 8;
-           jnz @@forxloop;
+         add r11, r9;
+         add rax, 8;
+      jnz @@forxloop;
 
-           add rcx, rdx;
-        dec Height;
-        jnz @@foryloop;
-     end;
-{$IFDEF FPC}
+      add rcx, rdx;
+   dec Height;
+   jnz @@foryloop;
 end;
-{$ENDIF}
 
-procedure ASMMatrixAddVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt);
+procedure ASMMatrixAddVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 {$ifdef UNIX}
 var width : TASMNativeInt;
     height : TASMNativeInt;
 {$ENDIF}
-{$IFDEF FPC}
-begin
-{$ENDIF}
-     asm
-        {$IFDEF UNIX}
-        // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
-        // (note that the 5th and 6th parameter are are on the stack)
-        // The parameters are passed in the following order:
-        // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-        mov width, r8;
-        mov height, r9;
-        mov r8, rdx;
-        mov r9, rcx;
-        mov rcx, rdi;
-        mov rdx, rsi;
-       {$ENDIF}
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+  {$ENDIF}
 
-        // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
-        mov r10, width;
-        imul r10, -8;
+   // rcx = a, rdx = LineWidthA, r8 = B, r9 = incX
+   mov r10, width;
+   imul r10, -8;
 
-        sub rcx, r10;
+   sub rcx, r10;
 
-        @@foryloop:
-           mov rax, r10;
+   @@foryloop:
+      mov rax, r10;
 
-           movddup xmm1, [r8];
+      movddup xmm1, [r8];
 
-           @@forxloopUnrolled:
-              add rax, 64;
-              jg @@EndLoop1;
+      @@forxloopUnrolled:
+         add rax, 64;
+         jg @@EndLoop1;
 
-              movupd xmm0, [rcx + rax - 64];
-              addpd xmm0, xmm1;
-              movupd [rcx + rax - 64], xmm0;
+         movupd xmm0, [rcx + rax - 64];
+         addpd xmm0, xmm1;
+         movupd [rcx + rax - 64], xmm0;
 
-              movupd xmm3, [rcx + rax - 48];
-              addpd xmm3, xmm1;
-              movupd [rcx + rax - 48], xmm3;
+         movupd xmm3, [rcx + rax - 48];
+         addpd xmm3, xmm1;
+         movupd [rcx + rax - 48], xmm3;
 
-              movupd xmm2, [rcx + rax - 32];
-              addpd xmm2, xmm1;
-              movupd [rcx + rax - 32], xmm2;
+         movupd xmm2, [rcx + rax - 32];
+         addpd xmm2, xmm1;
+         movupd [rcx + rax - 32], xmm2;
 
-              movupd xmm3, [rcx + rax - 16];
-              addpd xmm3, xmm1;
-              movupd [rcx + rax - 16], xmm3;
+         movupd xmm3, [rcx + rax - 16];
+         addpd xmm3, xmm1;
+         movupd [rcx + rax - 16], xmm3;
 
-           jmp @@forxloopUnrolled;
+      jmp @@forxloopUnrolled;
 
-           @@EndLoop1:
+      @@EndLoop1:
 
-           sub rax, 64;
+      sub rax, 64;
 
-           jz @NextLine;
+      jz @NextLine;
 
-           @@forxloop:
-              movsd xmm0, [rcx + rax];
+      @@forxloop:
+         movsd xmm0, [rcx + rax];
 
-              addsd xmm0, xmm1;
-              movsd [rcx + rax], xmm0;
+         addsd xmm0, xmm1;
+         movsd [rcx + rax], xmm0;
 
-              add rax, 8;
-           jnz @@forxloop;
+         add rax, 8;
+      jnz @@forxloop;
 
-           @NextLine:
+      @NextLine:
 
-           add rcx, rdx;
-           add r8, incX;
-        dec Height;
-        jnz @@foryloop;
-     end;
-{$IFDEF FPC}
+      add rcx, rdx;
+      add r8, incX;
+   dec Height;
+   jnz @@foryloop;
 end;
-{$ENDIF}
 
 {$ENDIF}
 
