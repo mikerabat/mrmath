@@ -134,7 +134,13 @@ uses
   FMAMatrixOperations in 'FMAMatrixOperations.pas',
   FMAMatrixVectorMultOperations in 'FMAMatrixVectorMultOperations.pas',
   FMAMatrixVectorMultOperationsx64 in 'FMAMatrixVectorMultOperationsx64.pas',
-  Dist in 'Dist.pas';
+  Dist in 'Dist.pas',
+  ASMVecConvolve in 'ASMVecConvolve.pas',
+  ASMVecConvolvex64 in 'ASMVecConvolvex64.pas',
+  AVXVecConvolve in 'AVXVecConvolve.pas',
+  AVXVecConvolvex64 in 'AVXVecConvolvex64.pas',
+  FMAVecConvolve in 'FMAVecConvolve.pas',
+  FMAVecConvolvex64 in 'FMAVecConvolvex64.pas';
 begin
 end.
 
