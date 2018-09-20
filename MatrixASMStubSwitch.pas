@@ -13,12 +13,14 @@
 // ###################################################################
 
 
-unit OptimizedFuncs;
+unit MatrixASMStubSwitch;
 
 // ##########################################################
 // #### proxy for the optimizations
 
 interface
+
+{$IFDEF FPC} {$MODE DELPHI} {$ENDIF}
 
 uses MatrixConst, Types;
 
@@ -1151,54 +1153,54 @@ begin
           curUsedCPUInstrSet := itAVX;
           if useStrassenMult
           then
-              multFunc := {$IFDEF FPC}@{$ENDIF}AVXStrassenMatrixMultiplication
+              multFunc := AVXStrassenMatrixMultiplication
           else
-              multFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixMult;
-          addFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixAdd;
-          subFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixSub;
-          subTFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixSubT;
-          subVecFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixSubVec;
-          addVecFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixAddVec;
-          elemWiseFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixElemMult;
-          addScaleFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixAddAndScale;
-          scaleAddFunc := {$IFDEF FPC}@{$ENDIF}AVXMAtrixScaleAndAdd;
-          sqrtFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixSQRT;
-          blockedMultFunc := {$IFDEF FPC}@{$ENDIF}BlockMatrixMultiplication;
-          blockedMultT1Func := {$IFDEF FPC}@{$ENDIF}BlockMatrixMultiplicationT1;
-          blockedMultT2Func := {$IFDEF FPC}@{$ENDIF}BlockMatrixMultiplicationT2;
-          copyFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixCopy;
-          minFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixMin;
-          maxFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixMax;
-          transposeFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixTranspose;
-          transposeInplaceFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixTransposeInplace;
-          elemNormFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixElementwiseNorm2;
-          matrixNormalizeFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixNormalize;
-          matrixMeanFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixMean;
-          matrixVarFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixVar;
-          matrixMeanVarFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixMeanVar;
-          matrixSumFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixSum;
-          matrixCumulativeSumFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixCumulativeSum;
-          matrixDiffFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixDifferentiate;
-          rowSwapFunc := {$IFDEF FPC}@{$ENDIF}AVXRowSwap;
-          absFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixAbs;
-          elemWiseDivFunc := {$IFDEF FPC}@{$ENDIF}AVXMatrixElemDiv;
-          multT2Func := {$IFDEF FPC}@{$ENDIF}AVXMatrixMultTransposed;
-          multTria2T1Func := {$IFDEF FPC}@{$ENDIF}AVXMtxMultTria2T1;
-          multTria2T1StoreT1Func := {$IFDEF FPC}@{$ENDIF}AVXMtxMultTria2T1StoreT1;
-          multTria2TUpperFunc := {$IFDEF FPC}@{$ENDIF}AVXMtxMultTria2TUpperUnit;
-          multTria2Store1Func := {$IFDEF FPC}@{$ENDIF}AVXMtxMultTria2Store1;
-          multTria2Store1UnitFunc := {$IFDEF FPC}@{$ENDIF}AVXMtxMultTria2Store1Unit;
-          multLowTria2T2Store1Func := {$IFDEF FPC}@{$ENDIF}AVXMtxMultLowTria2T2Store1;
-          MtxVecMultFunc := {$IFDEF FPC}@{$ENDIF}AVXMtxVecMult;
-          MtxVecMultTFunc := {$IFDEF FPC}@{$ENDIF}AVXMtxVecMultT;
-          Rank1UpdateFunc := {$IFDEF FPC}@{$ENDIF}AVXRank1Update;
-          matrixRot := {$IFDEF FPC}@{$ENDIF}AVXMatrixRotate;
-          PlaneRotSeqRVB := {$IFDEF FPC}@{$ENDIF}AVXApplyPlaneRotSeqRVB;
-          PlaneRotSeqRVF := {$IFDEF FPC}@{$ENDIF}AVXApplyPlaneRotSeqRVF;
-          PlaneRotSeqLVB := {$IFDEF FPC}@{$ENDIF}AVXApplyPlaneRotSeqLVB;
-          PlaneRotSeqLVF := {$IFDEF FPC}@{$ENDIF}AVXApplyPlaneRotSeqLVF;
-          memInitFunc := {$IFDEF FPC}@{$ENDIF}AVXInitMemAligned;
-          vecConvolve := {$IFDEF FPC}@{$ENDIF}AVXVecConvolveRevB;
+              multFunc := AVXMatrixMult;
+          addFunc := AVXMatrixAdd;
+          subFunc := AVXMatrixSub;
+          subTFunc := AVXMatrixSubT;
+          subVecFunc := AVXMatrixSubVec;
+          addVecFunc := AVXMatrixAddVec;
+          elemWiseFunc := AVXMatrixElemMult;
+          addScaleFunc := AVXMatrixAddAndScale;
+          scaleAddFunc := AVXMAtrixScaleAndAdd;
+          sqrtFunc := AVXMatrixSQRT;
+          blockedMultFunc := BlockMatrixMultiplication;
+          blockedMultT1Func := BlockMatrixMultiplicationT1;
+          blockedMultT2Func := BlockMatrixMultiplicationT2;
+          copyFunc := AVXMatrixCopy;
+          minFunc := AVXMatrixMin;
+          maxFunc := AVXMatrixMax;
+          transposeFunc := AVXMatrixTranspose;
+          transposeInplaceFunc := AVXMatrixTransposeInplace;
+          elemNormFunc := AVXMatrixElementwiseNorm2;
+          matrixNormalizeFunc := AVXMatrixNormalize;
+          matrixMeanFunc := AVXMatrixMean;
+          matrixVarFunc := AVXMatrixVar;
+          matrixMeanVarFunc := AVXMatrixMeanVar;
+          matrixSumFunc := AVXMatrixSum;
+          matrixCumulativeSumFunc := AVXMatrixCumulativeSum;
+          matrixDiffFunc := AVXMatrixDifferentiate;
+          rowSwapFunc := AVXRowSwap;
+          absFunc := AVXMatrixAbs;
+          elemWiseDivFunc := AVXMatrixElemDiv;
+          multT2Func := AVXMatrixMultTransposed;
+          multTria2T1Func := AVXMtxMultTria2T1;
+          multTria2T1StoreT1Func := AVXMtxMultTria2T1StoreT1;
+          multTria2TUpperFunc := AVXMtxMultTria2TUpperUnit;
+          multTria2Store1Func := AVXMtxMultTria2Store1;
+          multTria2Store1UnitFunc := AVXMtxMultTria2Store1Unit;
+          multLowTria2T2Store1Func := AVXMtxMultLowTria2T2Store1;
+          MtxVecMultFunc := AVXMtxVecMult;
+          MtxVecMultTFunc := AVXMtxVecMultT;
+          Rank1UpdateFunc := AVXRank1Update;
+          matrixRot := AVXMatrixRotate;
+          PlaneRotSeqRVB := AVXApplyPlaneRotSeqRVB;
+          PlaneRotSeqRVF := AVXApplyPlaneRotSeqRVF;
+          PlaneRotSeqLVB := AVXApplyPlaneRotSeqLVB;
+          PlaneRotSeqLVF := AVXApplyPlaneRotSeqLVF;
+          memInitFunc := AVXInitMemAligned;
+          vecConvolve := AVXVecConvolveRevB;
 
           TDynamicTimeWarp.UseSSE := True;
 
@@ -1206,22 +1208,22 @@ begin
           // #### override if fma is requested
           if instrType = itFMA then
           begin
-               multT2Func := {$IFDEF FPC}@{$ENDIF}FMAMatrixMultTransposed;
-               multTria2T1Func := {$IFDEF FPC}@{$ENDIF}FMAMtxMultTria2T1;
-               multTria2T1StoreT1Func := {$IFDEF FPC}@{$ENDIF}FMAMtxMultTria2T1StoreT1;
-               multTria2TUpperFunc := {$IFDEF FPC}@{$ENDIF}FMAMtxMultTria2TUpperUnit;
-               multLowTria2T2Store1Func := {$IFDEF FPC}@{$ENDIF}FMAMtxMultLowTria2T2Store1;
-               vecConvolve := {$IFDEF FPC}@{$ENDIF}GenericConvolveRevB;
+               multT2Func := FMAMatrixMultTransposed;
+               multTria2T1Func := FMAMtxMultTria2T1;
+               multTria2T1StoreT1Func := FMAMtxMultTria2T1StoreT1;
+               multTria2TUpperFunc := FMAMtxMultTria2TUpperUnit;
+               multLowTria2T2Store1Func := FMAMtxMultLowTria2T2Store1;
+               vecConvolve := GenericConvolveRevB;
 
-               MtxVecMultFunc := {$IFDEF FPC}@{$ENDIF}FMAMtxVecMult;
-               MtxVecMultTFunc := {$IFDEF FPC}@{$ENDIF}FMAMtxVecMultT;
-               vecConvolve := {$IFDEF FPC}@{$ENDIF}FMAVecConvolveRevB;
+               MtxVecMultFunc := FMAMtxVecMult;
+               MtxVecMultTFunc := FMAMtxVecMultT;
+               vecConvolve := FMAVecConvolveRevB;
 
                if useStrassenMult
                then
-                   multFunc := {$IFDEF FPC}@{$ENDIF}FMAStrassenMatrixMultiplication
+                   multFunc := FMAStrassenMatrixMultiplication
                else
-                   multFunc := {$IFDEF FPC}@{$ENDIF}FMAMatrixMult;
+                   multFunc := FMAMatrixMult;
 
                curUsedCPUInstrSet := itFMA;
           end;
@@ -1231,54 +1233,54 @@ begin
           curUsedCPUInstrSet := itSSE;
           if useStrassenMult
           then
-              multFunc := {$IFDEF FPC}@{$ENDIF}ASMStrassenMatrixMultiplication
+              multFunc := ASMStrassenMatrixMultiplication
           else
-              multFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixMult;
-          addFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixAdd;
-          subFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixSub;
-          subTFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixSubT;
-          subVecFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixSubVec;
-          addVecFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixAddVec;
-          elemWiseFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixElemMult;
-          addScaleFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixAddAndScale;
-          scaleAddFunc := {$IFDEF FPC}@{$ENDIF}ASMMAtrixScaleAndAdd;
-          sqrtFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixSQRT;
-          blockedMultFunc := {$IFDEF FPC}@{$ENDIF}BlockMatrixMultiplication;
-          blockedMultT1Func := {$IFDEF FPC}@{$ENDIF}BlockMatrixMultiplicationT1;
-          blockedMultT2Func := {$IFDEF FPC}@{$ENDIF}BlockMatrixMultiplicationT2;
-          multT2Func := {$IFDEF FPC}@{$ENDIF}ASMMatrixMultTransposed;
-          copyFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixCopy;
-          minFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixMin;
-          maxFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixMax;
-          transposeFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixTranspose;
-          transposeInplaceFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixTransposeInplace;
-          elemNormFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixElementwiseNorm2;
-          matrixNormalizeFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixNormalize;
-          matrixMeanFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixMean;
-          matrixVarFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixVar;
-          matrixMeanVarFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixMeanVar;
-          matrixSumFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixSum;
-          matrixCumulativeSumFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixCumulativeSum;
-          matrixDiffFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixDifferentiate;
-          rowSwapFunc := {$IFDEF FPC}@{$ENDIF}ASMRowSwap;
-          absFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixAbs;
-          elemWiseDivFunc := {$IFDEF FPC}@{$ENDIF}ASMMatrixElemDiv;
-          multTria2T1Func := {$IFDEF FPC}@{$ENDIF}ASMMtxMultTria2T1;
-          multTria2T1StoreT1Func := {$IFDEF FPC}@{$ENDIF}ASMMtxMultTria2T1StoreT1;
-          multTria2TUpperFunc := {$IFDEF FPC}@{$ENDIF}ASMMtxMultTria2TUpperUnit;
-          multTria2Store1Func := {$IFDEF FPC}@{$ENDIF}ASMMtxMultTria2Store1;
-          multTria2Store1UnitFunc := {$IFDEF FPC}@{$ENDIF}ASMMtxMultTria2Store1Unit;
-          multLowTria2T2Store1Func := {$IFDEF FPC}@{$ENDIF}ASMMtxMultLowTria2T2Store1;
-          MtxVecMultFunc := {$IFDEF FPC}@{$ENDIF}ASMMtxVecMult;
-          MtxVecMultTFunc := {$IFDEF FPC}@{$ENDIF}ASMMtxVecMultT;
-          Rank1UpdateFunc := {$IFDEF FPC}@{$ENDIF}ASMRank1Update;
-          matrixRot := {$IFDEF FPC}@{$ENDIF}ASMMatrixRotate;
-          PlaneRotSeqRVB := {$IFDEF FPC}@{$ENDIF}ASMApplyPlaneRotSeqRVB;
-          PlaneRotSeqRVF := {$IFDEF FPC}@{$ENDIF}ASMApplyPlaneRotSeqRVF;
-          PlaneRotSeqLVB := {$IFDEF FPC}@{$ENDIF}ASMApplyPlaneRotSeqLVB;
-          PlaneRotSeqLVF := {$IFDEF FPC}@{$ENDIF}ASMApplyPlaneRotSeqLVF;
-          memInitFunc := {$IFDEF FPC}@{$ENDIF}ASMInitMemAligned;
-          vecConvolve := {$IFDEF FPC}@{$ENDIF}ASMVecConvolveRevB;
+              multFunc := ASMMatrixMult;
+          addFunc := ASMMatrixAdd;
+          subFunc := ASMMatrixSub;
+          subTFunc := ASMMatrixSubT;
+          subVecFunc := ASMMatrixSubVec;
+          addVecFunc := ASMMatrixAddVec;
+          elemWiseFunc := ASMMatrixElemMult;
+          addScaleFunc := ASMMatrixAddAndScale;
+          scaleAddFunc := ASMMAtrixScaleAndAdd;
+          sqrtFunc := ASMMatrixSQRT;
+          blockedMultFunc := BlockMatrixMultiplication;
+          blockedMultT1Func := BlockMatrixMultiplicationT1;
+          blockedMultT2Func := BlockMatrixMultiplicationT2;
+          multT2Func := ASMMatrixMultTransposed;
+          copyFunc := ASMMatrixCopy;
+          minFunc := ASMMatrixMin;
+          maxFunc := ASMMatrixMax;
+          transposeFunc := ASMMatrixTranspose;
+          transposeInplaceFunc := ASMMatrixTransposeInplace;
+          elemNormFunc := ASMMatrixElementwiseNorm2;
+          matrixNormalizeFunc := ASMMatrixNormalize;
+          matrixMeanFunc := ASMMatrixMean;
+          matrixVarFunc := ASMMatrixVar;
+          matrixMeanVarFunc := ASMMatrixMeanVar;
+          matrixSumFunc := ASMMatrixSum;
+          matrixCumulativeSumFunc := ASMMatrixCumulativeSum;
+          matrixDiffFunc := ASMMatrixDifferentiate;
+          rowSwapFunc := ASMRowSwap;
+          absFunc := ASMMatrixAbs;
+          elemWiseDivFunc := ASMMatrixElemDiv;
+          multTria2T1Func := ASMMtxMultTria2T1;
+          multTria2T1StoreT1Func := ASMMtxMultTria2T1StoreT1;
+          multTria2TUpperFunc := ASMMtxMultTria2TUpperUnit;
+          multTria2Store1Func := ASMMtxMultTria2Store1;
+          multTria2Store1UnitFunc := ASMMtxMultTria2Store1Unit;
+          multLowTria2T2Store1Func := ASMMtxMultLowTria2T2Store1;
+          MtxVecMultFunc := ASMMtxVecMult;
+          MtxVecMultTFunc := ASMMtxVecMultT;
+          Rank1UpdateFunc := ASMRank1Update;
+          matrixRot := ASMMatrixRotate;
+          PlaneRotSeqRVB := ASMApplyPlaneRotSeqRVB;
+          PlaneRotSeqRVF := ASMApplyPlaneRotSeqRVF;
+          PlaneRotSeqLVB := ASMApplyPlaneRotSeqLVB;
+          PlaneRotSeqLVF := ASMApplyPlaneRotSeqLVF;
+          memInitFunc := ASMInitMemAligned;
+          vecConvolve := ASMVecConvolveRevB;
 
           TDynamicTimeWarp.UseSSE := True;
      end
@@ -1287,60 +1289,60 @@ begin
           curUsedCPUInstrSet := itFPU;
           if useStrassenMult
           then
-              multFunc := {$IFDEF FPC}@{$ENDIF}GenericStrassenMatrixMultiplication
+              multFunc := GenericStrassenMatrixMultiplication
           else
-              multFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMult;
-          addFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxAdd;
-          subFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxSub;
-          subTFunc := {$IFDEF FPC}@{$ENDIF}GenericMatrixSubT;
-          subVecFunc := {$IFDEF FPC}@{$ENDIF}GenericSubVec;
-          addVecFunc := {$IFDEF FPC}@{$ENDIF}GenericAddVec;
-          elemWiseFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxElemMult;
-          addScaleFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxAddAndScale;
-          scaleAddFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxScaleAndAdd;
-          sqrtFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxSqrt;
-          blockedMultFunc := {$IFDEF FPC}@{$ENDIF}GenericBlockMatrixMultiplication;
-          blockedMultT1Func := {$IFDEF FPC}@{$ENDIF}GenericBlockMatrixMultiplicationT1;
-          blockedMultT2Func := {$IFDEF FPC}@{$ENDIF}GenericBlockMatrixMultiplicationT2;
-          copyFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxCopy;
-          minFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMin;
-          maxFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMax;
-          transposeFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxTranspose;
-          transposeInplaceFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxTransposeInplace;
-          elemNormFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxElementwiseNorm2;
-          matrixNormalizeFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxNormalize;
-          matrixMeanFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMean;
-          matrixVarFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxVar;
-          matrixMeanVarFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMeanVar;
-          matrixSumFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxSum;
-          matrixCumulativeSumFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxCumulativeSum;
-          matrixDiffFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxDifferentiate;
-          rowSwapFunc := {$IFDEF FPC}@{$ENDIF}GenericRowSwap;
-          absFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxAbs;
-          elemWiseDivFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxElemDiv;
-          multTria2T1Func := {$IFDEF FPC}@{$ENDIF}GenericMtxMultTria2T1Lower;
-          multTria2TUpperFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMultTria2TUpperUnit;
-          multTria2T1StoreT1Func := {$IFDEF FPC}@{$ENDIF}GenericMtxMultTria2T1StoreT1;
-          multLowTria2T2Store1Func := {$IFDEF FPC}@{$ENDIF}GenericMtxMultLowTria2T2Store1;
-          multTria2Store1Func := {$IFDEF FPC}@{$ENDIF}GenericMtxMultTria2Store1;
-          multTria2Store1UnitFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMultTria2Store1Unit;
-          multT2Func := {$IFDEF FPC}@{$ENDIF}GenericMtxMultTransp;
-          MtxVecMultFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxVecMult;
-          MtxVecMultTFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxVecMultT;
-          Rank1UpdateFunc := {$IFDEF FPC}@{$ENDIF}GenericRank1Update;
-          matrixRot := {$IFDEF FPC}@{$ENDIF}GenericMatrixRotate;
-          PlaneRotSeqRVB := {$IFDEF FPC}@{$ENDIF}GenericApplyPlaneRotSeqRVB;
-          PlaneRotSeqRVF := {$IFDEF FPC}@{$ENDIF}GenericApplyPlaneRotSeqRVF;
-          PlaneRotSeqLVB := {$IFDEF FPC}@{$ENDIF}GenericApplyPlaneRotSeqLVB;
-          PlaneRotSeqLVF := {$IFDEF FPC}@{$ENDIF}GenericApplyPlaneRotSeqLVF;
-          memInitFunc := {$IFDEF FPC}@{$ENDIF}GenericInitMemAligned;
-          vecConvolve := {$IFDEF FPC}@{$ENDIF}GenericConvolveRevB;
+              multFunc := GenericMtxMult;
+          addFunc := GenericMtxAdd;
+          subFunc := GenericMtxSub;
+          subTFunc := GenericMatrixSubT;
+          subVecFunc := GenericSubVec;
+          addVecFunc := GenericAddVec;
+          elemWiseFunc := GenericMtxElemMult;
+          addScaleFunc := GenericMtxAddAndScale;
+          scaleAddFunc := GenericMtxScaleAndAdd;
+          sqrtFunc := GenericMtxSqrt;
+          blockedMultFunc := GenericBlockMatrixMultiplication;
+          blockedMultT1Func := GenericBlockMatrixMultiplicationT1;
+          blockedMultT2Func := GenericBlockMatrixMultiplicationT2;
+          copyFunc := GenericMtxCopy;
+          minFunc := GenericMtxMin;
+          maxFunc := GenericMtxMax;
+          transposeFunc := GenericMtxTranspose;
+          transposeInplaceFunc := GenericMtxTransposeInplace;
+          elemNormFunc := GenericMtxElementwiseNorm2;
+          matrixNormalizeFunc := GenericMtxNormalize;
+          matrixMeanFunc := GenericMtxMean;
+          matrixVarFunc := GenericMtxVar;
+          matrixMeanVarFunc := GenericMtxMeanVar;
+          matrixSumFunc := GenericMtxSum;
+          matrixCumulativeSumFunc := GenericMtxCumulativeSum;
+          matrixDiffFunc := GenericMtxDifferentiate;
+          rowSwapFunc := GenericRowSwap;
+          absFunc := GenericMtxAbs;
+          elemWiseDivFunc := GenericMtxElemDiv;
+          multTria2T1Func := GenericMtxMultTria2T1Lower;
+          multTria2TUpperFunc := GenericMtxMultTria2TUpperUnit;
+          multTria2T1StoreT1Func := GenericMtxMultTria2T1StoreT1;
+          multLowTria2T2Store1Func := GenericMtxMultLowTria2T2Store1;
+          multTria2Store1Func := GenericMtxMultTria2Store1;
+          multTria2Store1UnitFunc := GenericMtxMultTria2Store1Unit;
+          multT2Func := GenericMtxMultTransp;
+          MtxVecMultFunc := GenericMtxVecMult;
+          MtxVecMultTFunc := GenericMtxVecMultT;
+          Rank1UpdateFunc := GenericRank1Update;
+          matrixRot := GenericMatrixRotate;
+          PlaneRotSeqRVB := GenericApplyPlaneRotSeqRVB;
+          PlaneRotSeqRVF := GenericApplyPlaneRotSeqRVF;
+          PlaneRotSeqLVB := GenericApplyPlaneRotSeqLVB;
+          PlaneRotSeqLVF := GenericApplyPlaneRotSeqLVF;
+          memInitFunc := GenericInitMemAligned;
+          vecConvolve := GenericConvolveRevB;
 
           TDynamicTimeWarp.UseSSE := False
      end;
 
-     matrixMedianFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxMedian;
-     matrixSortFunc := {$IFDEF FPC}@{$ENDIF}GenericMtxSort;
+     matrixMedianFunc := GenericMtxMedian;
+     matrixSortFunc := GenericMtxSort;
 
      curUsedStrassenMult := useStrassenMult;
 

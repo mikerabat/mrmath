@@ -102,7 +102,7 @@ uses Math, SimpleMatrixOperations,
      ASMMatrixNormOperations, ASMMatrixMeanOperations, ASMMatrixSumOperations,
      ASMMatrixCumSumDiffOperations
      {$ENDIF}
-     , OptimizedFuncs;
+     , MatrixASMStubSwitch;
 
 
 function ASMMatrixMult(mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;

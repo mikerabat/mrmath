@@ -37,7 +37,7 @@ type
 
 implementation
 
-uses Types, NonLinearFit, OptimizedFuncs;
+uses Types, NonLinearFit, MatrixASMStubSwitch;
 
 { TestTDoubleMatrix }
 

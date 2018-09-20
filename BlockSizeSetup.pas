@@ -46,7 +46,7 @@ function BlockMultMemSize(blkSize : integer) : integer;
 
 implementation
 
-uses Classes, ASMMatrixOperations, Types, MtxTimer, Math, OptimizedFuncs, BlockedMult;
+uses Classes, ASMMatrixOperations, Types, MtxTimer, Math, MatrixASMStubSwitch, BlockedMult;
 
 const cMatrixMaxTestSize = 2048;
       cNumIter = 5;

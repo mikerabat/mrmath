@@ -512,14 +512,6 @@
         <CursorPos X="-1" Y="-1"/>
         <UsageCount Value="736"/>
       </Unit59>
-      <Unit60>
-        <Filename Value="../OptimizedFuncs.pas"/>
-        <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="382"/>
-        <CursorPos X="34" Y="387"/>
-        <UsageCount Value="736"/>
-      </Unit60>
       <Unit61>
         <Filename Value="../PCA.pas"/>
         <IsPartOfProject Value="True"/>

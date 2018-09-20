@@ -62,7 +62,7 @@ procedure BlockMatrixVectorMultiplication(dest : PDouble; const destLineWidth : 
 
 implementation
 
-uses Math, BlockSizeSetup, SimpleMatrixOperations, OptimizedFuncs;
+uses Math, BlockSizeSetup, SimpleMatrixOperations, MatrixASMStubSwitch;
 
 procedure BlockMatrixVectorMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt); overload;
 begin
@@ -293,7 +293,7 @@ var w, h : TASMNativeInt;
     gammaWidth : TASMNativeInt;
     blockByteSize : Cardinal;
     blockLineSize : Cardinal;
-    isAligned : boolean;  
+    isAligned : boolean;
     ptrMem : Pointer;
 begin
      if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then

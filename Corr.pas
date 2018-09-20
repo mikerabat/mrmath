@@ -124,7 +124,7 @@ type
 
 implementation
 
-uses OptimizedFuncs, MathUtilFunc;
+uses MatrixASMStubSwitch, MathUtilFunc;
 
 const cLocDivBy2 : Array[0..1] of double = (0.5, 0.5);
 

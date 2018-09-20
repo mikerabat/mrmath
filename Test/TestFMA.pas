@@ -67,7 +67,7 @@ uses {$IFDEF x64}
      FMAMatrixMultOperations, FMAMatrixOperations,
 
      {$ENDIF}
-     MatrixConst, MathUtilFunc, MtxTimer, OptimizedFuncs,
+     MatrixConst, MathUtilFunc, MtxTimer, MatrixASMStubSwitch,
      CPUFeatures;
 
 { TestFMAMatrixOperations }

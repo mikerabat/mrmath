@@ -55,44 +55,42 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 // uses non temporal moves so the cache is not poisned
-procedure ASMInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; Value : double);
-begin
-     asm
-        movddup xmm0, Value;
+// standard calling convention is register
+// -> try to avoid extra stack allocations
+procedure ASMInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+asm
+   movddup xmm0, Value;
 
-        mov eax, A;
-        mov ecx, NumBytes;
-        imul ecx, -1;
-        sub eax, ecx;
+   imul edx, -1;
+   sub eax, edx;
 
-        @@loopUnrolled:
-          add ecx, 128;
-          jg @@loopUnrolledEnd;
-        
-          movntdq [eax + ecx - 128], xmm0;
-          movntdq [eax + ecx - 112], xmm0;
-          movntdq [eax + ecx - 96], xmm0;
-          movntdq [eax + ecx - 80], xmm0;
-          movntdq [eax + ecx - 64], xmm0;
-          movntdq [eax + ecx - 48], xmm0;
-          movntdq [eax + ecx - 32], xmm0;
-          movntdq [eax + ecx - 16], xmm0;
+   @@loopUnrolled:
+     add edx, 128;
+     jg @@loopUnrolledEnd;
 
-        jmp @@loopUnrolled;
+     movntdq [eax + edx - 128], xmm0;
+     movntdq [eax + edx - 112], xmm0;
+     movntdq [eax + edx - 96], xmm0;
+     movntdq [eax + edx - 80], xmm0;
+     movntdq [eax + edx - 64], xmm0;
+     movntdq [eax + edx - 48], xmm0;
+     movntdq [eax + edx - 32], xmm0;
+     movntdq [eax + edx - 16], xmm0;
 
-        @@loopUnrolledEnd:
+   jmp @@loopUnrolled;
 
-        // last few bytes
-        sub ecx, 128;
-        jz @@exitProc;
+   @@loopUnrolledEnd:
 
-        @@loop:
-          movsd [eax + ecx], xmm0;
-          add ecx, 8;
-        jnz @@loop;
+   // last few bytes
+   sub edx, 128;
+   jz @@exitProc;
 
-        @@exitProc:
-     end;
+   @@loop:
+     movsd [eax + edx], xmm0;
+     add edx, 8;
+   jnz @@loop;
+
+   @@exitProc:
 end;
 
 procedure ASMRowSwapAlignedEvenW(A, B : PDouble; width : TASMNativeInt);

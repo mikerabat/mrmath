@@ -20,7 +20,7 @@ unit LinAlgQR;
 
 interface
 
-uses MatrixConst, OptimizedFuncs;
+uses MatrixConst, MatrixASMStubSwitch;
 
 type
   TQRDecompFunc = function (A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; work : PDouble; pnlSize : TASMNativeInt; progress : TLinEquProgress) : TQRResult;

@@ -22,7 +22,7 @@ interface
 
 {$IFDEF FPC} {$MODESWITCH ADVANCEDRECORDS} {$ENDIF}
 
-uses SysUtils, Types, MatrixConst, OptimizedFuncs, Math, MathUtilFunc;
+uses SysUtils, Types, MatrixConst, MatrixASMStubSwitch, Math, MathUtilFunc;
 
 // Inplace svd decomposition of a Matrix A
 // The output is the computation of A= U*W*V' whereas U is stored in A, and W is a vector 0..Width-1. The matrix V (not V') must be as large as Width*Width!

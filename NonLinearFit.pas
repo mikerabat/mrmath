@@ -99,7 +99,7 @@ type
 
 implementation
 
-uses SysUtils, Math, MathUtilFunc, MatrixConst, OptimizedFuncs, LinAlgQR,
+uses SysUtils, Math, MathUtilFunc, MatrixConst, MatrixASMStubSwitch, LinAlgQR,
      BlockSizeSetup;
 
 { TNonLinOptimizer }

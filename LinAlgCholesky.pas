@@ -41,7 +41,7 @@ function ThrMatrixCholeskyDecomp(A : PDouble; const LineWidthA : TASMNativeInt; 
 
 implementation
 
-uses OptimizedFuncs, SimpleMatrixOperations, BlockSizeSetup, Math, 
+uses MatrixASMStubSwitch, SimpleMatrixOperations, BlockSizeSetup, Math, 
      MtxThreadPool, ThreadedMatrixOperations;
 
 // ##########################################################

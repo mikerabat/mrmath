@@ -49,7 +49,7 @@ implementation
 
 {$IFDEF FPC} {$S-} {$ENDIF}
 
-uses Math, OptimizedFuncs, AVXMatrixOperations,
+uses Math, MatrixASMStubSwitch, AVXMatrixOperations,
      {$IFDEF x64}
      FMAMatrixMultTransposedOperationsx64, FMAMatrixVectorMultOperationsx64, FMAMatrixMultOperationsx64,
      {$ELSE}

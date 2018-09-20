@@ -58,7 +58,6 @@ uses
   Matrix in 'Matrix.pas',
   MatrixConst in 'MatrixConst.pas',
   MtxThreadPool in 'MtxThreadPool.pas',
-  OptimizedFuncs in 'OptimizedFuncs.pas',
   SimpleMatrixOperations in 'SimpleMatrixOperations.pas',
   ThreadedMatrix in 'ThreadedMatrix.pas',
   ThreadedMatrixOperations in 'ThreadedMatrixOperations.pas',
@@ -140,7 +139,9 @@ uses
   AVXVecConvolve in 'AVXVecConvolve.pas',
   AVXVecConvolvex64 in 'AVXVecConvolvex64.pas',
   FMAVecConvolve in 'FMAVecConvolve.pas',
-  FMAVecConvolvex64 in 'FMAVecConvolvex64.pas';
+  FMAVecConvolvex64 in 'FMAVecConvolvex64.pas',
+  MatrixASMStubSwitch in 'MatrixASMStubSwitch.pas';
+
 begin
 end.
 

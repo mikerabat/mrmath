@@ -85,7 +85,7 @@ type
 implementation
 
 uses SysUtils, ThreadedMatrixOperations, MtxThreadPool, BlockSizeSetup,
-     Math, LinAlgQR, LinAlgCholesky, LinAlgLU, LinAlgSVD, OptimizedFuncs;
+     Math, LinAlgQR, LinAlgCholesky, LinAlgLU, LinAlgSVD, MatrixASMStubSwitch;
 
 { TThreadedMatrix }
 

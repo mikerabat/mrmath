@@ -22,7 +22,7 @@ interface
 
 uses
   {$IFDEF FPC} testregistry {$ELSE} {$IFDEF FMX}DUnitX.TestFramework {$ELSE}TestFramework {$ENDIF} {$ENDIF} ,
-  Classes, SysUtils, Types, OptimizedFuncs, BaseMatrixTestCase,
+  Classes, SysUtils, Types, MatrixASMStubSwitch, BaseMatrixTestCase,
   MatrixConst;
 
 type

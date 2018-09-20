@@ -90,7 +90,7 @@ uses {$IFDEF x64}
      AVXMatrixMultOperations, AVXMatrixVectorMultOperations,
      AVXMatrixAddSubOperations, AVXMatrixCumSumDiffOperations,
      {$ENDIF}
-     MatrixConst, MathUtilFunc, MtxTimer, OptimizedFuncs, MtxThreadPool, BlockSizeSetup,
+     MatrixConst, MathUtilFunc, MtxTimer, MatrixASMStubSwitch, MtxThreadPool, BlockSizeSetup,
      LinAlgSVD, Math, CPUFeatures;
 
 { TestAVXMatrixOperations }

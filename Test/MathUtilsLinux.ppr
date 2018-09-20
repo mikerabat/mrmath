@@ -18,7 +18,8 @@ program MathUtilsLinux;
 
 uses
   {$IFDEF LINUX} cthreads, {$ENDIF}
-  Interfaces, Forms, GuiTestRunner, //lz_fpcunitrunner,
+  Interfaces, Forms, GuiTestRunner,
+  BaseMatrixTestCase in 'BaseMatrixTestCase.pas',
   ASMMatrixAddSubOperations in '..\ASMMatrixAddSubOperations.pas',
   ASMMatrixAddSubOperationsx64 in '..\ASMMatrixAddSubOperationsx64.pas',
   ASMMatrixElementwiseMultOperations in '..\ASMMatrixElementwiseMultOperations.pas',
@@ -63,7 +64,7 @@ uses
   Matrix in '..\Matrix.pas',
   MatrixConst in '..\MatrixConst.pas',
   MtxThreadPool in '..\MtxThreadPool.pas',
-  OptimizedFuncs in '..\OptimizedFuncs.pas',
+  MatrixASMStubSwitch in '..\MatrixASMStubSwitch.pas',
   SimpleMatrixOperations in '..\SimpleMatrixOperations.pas',
   ThreadedMatrix in '..\ThreadedMatrix.pas',
   ThreadedMatrixOperations in '..\ThreadedMatrixOperations.pas',
@@ -141,7 +142,6 @@ uses
   FMAMatrixVectorMultOperationsx64 in '..\FMAMatrixVectorMultOperationsx64.pas',
   FMAVecConvolve in '..\FMAVecConvolve.pas',
   FMAVecConvolvex64 in '..\FMAVecConvolvex64.pas',
-  BaseMatrixTestCase in 'BaseMatrixTestCase.pas',
   TestSimpleMatrixOperations in 'TestSimpleMatrixOperations.pas',
   TestAVX in 'TestAVX.pas',
   TestFMA in 'TestFMA.pas',

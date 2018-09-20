@@ -40,7 +40,7 @@ type
 
 implementation
 
-uses EM, RandomEng, ThreadedMatrix, OptimizedFuncs;
+uses EM, RandomEng, ThreadedMatrix, MatrixASMStubSwitch;
 
 { TestEM }
 

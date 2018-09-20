@@ -38,7 +38,7 @@ type
 
 implementation
 
-uses NNMF, Matrix, OptimizedFuncs, BinaryReaderWriter,
+uses NNMF, Matrix, MatrixASMStubSwitch, BinaryReaderWriter,
   BaseMathPersistence;
 
 { TTestNMF }

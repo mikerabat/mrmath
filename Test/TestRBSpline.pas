@@ -45,7 +45,7 @@ type
 
 implementation
 
-uses RBSplines, ThreadedMatrix, OptimizedFuncs;
+uses RBSplines, ThreadedMatrix, MatrixASMStubSwitch;
 
 { TTestEM }
 

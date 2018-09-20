@@ -593,7 +593,7 @@ type
 
 implementation
 
-uses Math, OptimizedFuncs, Eigensystems, LinAlgSVD, LinAlgQR, BlockSizeSetup, LinAlgCholesky,
+uses Math, MatrixASMStubSwitch, Eigensystems, LinAlgSVD, LinAlgQR, BlockSizeSetup, LinAlgCholesky,
      LinAlgLU;
 
 

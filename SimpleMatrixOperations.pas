@@ -179,7 +179,7 @@ procedure GenericInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; Value : d
 // simple convolution: the input and output parameter are assumed to be vectors!
 // it's also assumed that memory before A is accessible for at least bLen elements
 // -> these elements are used for the convulution calculation
-// -> note the function is called by MatrixConvolve in optimizedfuncs.pas
+// -> note the function is called by MatrixConvolve in MatrixASMStubSwitch.pas
 procedure GenericConvolveRevB(dest : PDouble; A, B : PDouble; aLen, bLen : TASMNativeInt);
 
 implementation

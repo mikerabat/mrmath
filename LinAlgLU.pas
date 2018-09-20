@@ -68,7 +68,7 @@ function ThrMatrixLinEQSolve(A : PDouble; const LineWidthA : TASMNativeInt; widt
    
 implementation
 
-uses OptimizedFuncs, Math, SysUtils, Types, MtxThreadPool,
+uses MatrixASMStubSwitch, Math, SysUtils, Types, MtxThreadPool,
      ThreadedMatrixOperations;
 
 // ######################################################

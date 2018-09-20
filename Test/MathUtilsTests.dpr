@@ -72,7 +72,6 @@ uses
   Matrix in '..\Matrix.pas',
   MatrixConst in '..\MatrixConst.pas',
   MtxThreadPool in '..\MtxThreadPool.pas',
-  OptimizedFuncs in '..\OptimizedFuncs.pas',
   SimpleMatrixOperations in '..\SimpleMatrixOperations.pas',
   ThreadedMatrix in '..\ThreadedMatrix.pas',
   ThreadedMatrixOperations in '..\ThreadedMatrixOperations.pas',
@@ -167,7 +166,8 @@ uses
   TestEM in 'TestEM.pas',
   TestRBSpline in 'TestRBSpline.pas',
   TestDist in 'TestDist.pas',
-  Dist in '..\Dist.pas';
+  Dist in '..\Dist.pas',
+  MatrixASMStubSwitch in '..\MatrixASMStubSwitch.pas';
 
 {$R *.RES}
 
