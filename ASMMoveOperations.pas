@@ -37,14 +37,14 @@ procedure ASMMatrixCopyUnAlignedEvenW(Dest : PDouble; const destLineWidth : TASM
 procedure ASMMatrixCopyAlignedOddW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
 procedure ASMMatrixCopyUnAlignedOddW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
 
-procedure ASMRowSwapAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
-procedure ASMRowSwapUnAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
+procedure ASMRowSwapAlignedEvenW(A, B : PDouble; width : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMRowSwapUnAlignedEvenW(A, B : PDouble; width : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMRowSwapAlignedOddW(A, B : PDouble; width : TASMNativeInt);
-procedure ASMRowSwapUnAlignedOddW(A, B : PDouble; width : TASMNativeInt);
+procedure ASMRowSwapAlignedOddW(A, B : PDouble; width : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMRowSwapUnAlignedOddW(A, B : PDouble; width : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 // it is assumed that this function has multiple of sizeof(double) as numbytes
-procedure ASMInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; Value : double);
+procedure ASMInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -93,274 +93,247 @@ asm
    @@exitProc:
 end;
 
-procedure ASMRowSwapAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     iters := -width*sizeof(double);
+// A=eax, B=edx, width=ecx
+procedure ASMRowSwapAlignedEvenW(A, B : PDouble; width : TASMNativeInt);  {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+asm
+   imul ecx, -8;
+   jz @endfunc;
 
-     asm
-        mov eax, A;
-        mov ecx, B;
+   sub eax, ecx;
+   sub edx, ecx;
 
-        mov edx, iters;
+   @unrolloop:
+     add ecx, 64;
+     jg @unrolloopend;
 
-        sub eax, edx;
-        sub ecx, edx;
+     movdqa xmm0, [eax + ecx - 64];
+     movdqa xmm1, [edx + ecx - 64];
 
-        @unrolloop:
-          add edx, 64;
-          jg @unrolloopend;
+     movdqa [eax + ecx - 64], xmm1;
+     movdqa [edx + ecx - 64], xmm0;
 
-          // prefetchw [eax + edx];
-          // prefetchw [ecx + edx];
+     movdqa xmm2, [eax + ecx - 48];
+     movdqa xmm3, [edx + ecx - 48];
 
-          movdqa xmm0, [eax + edx - 64];
-          movdqa xmm1, [ecx + edx - 64];
+     movdqa [eax + ecx - 48], xmm3;
+     movdqa [edx + ecx - 48], xmm2;
 
-          movdqa [eax + edx - 64], xmm1;
-          movdqa [ecx + edx - 64], xmm0;
+     movdqa xmm4, [eax + ecx - 32];
+     movdqa xmm5, [edx + ecx - 32];
 
-          movdqa xmm2, [eax + edx - 48];
-          movdqa xmm3, [ecx + edx - 48];
+     movdqa [eax + ecx - 32], xmm5;
+     movdqa [edx + ecx - 32], xmm4;
 
-          movdqa [eax + edx - 48], xmm3;
-          movdqa [ecx + edx - 48], xmm2;
+     movdqa xmm6, [eax + ecx - 16];
+     movdqa xmm7, [edx + ecx - 16];
 
-          movdqa xmm4, [eax + edx - 32];
-          movdqa xmm5, [ecx + edx - 32];
+     movdqa [eax + ecx - 16], xmm7;
+     movdqa [edx + ecx - 16], xmm6;
+   jmp @unrolloop;
+   @unrolloopend:
 
-          movdqa [eax + edx - 32], xmm5;
-          movdqa [ecx + edx - 32], xmm4;
+   sub ecx, 64;
+   jz @endfunc;
 
-          movdqa xmm6, [eax + edx - 16];
-          movdqa xmm7, [ecx + edx - 16];
+   @loop:
+     movdqa xmm0, [eax + ecx];
+     movdqa xmm1, [edx + ecx];
 
-          movdqa [eax + edx - 16], xmm7;
-          movdqa [ecx + edx - 16], xmm6;
-        jmp @unrolloop;
-        @unrolloopend:
+     movdqa [eax + ecx], xmm1;
+     movdqa [edx + ecx], xmm0;
 
-        sub edx, 64;
-        jz @endfunc;
+     add ecx, 16;
+   jnz @loop;
 
-
-        @loop:
-          movdqa xmm0, [eax + edx];
-          movdqa xmm1, [ecx + edx];
-
-          movdqa [eax + edx], xmm1;
-          movdqa [ecx + edx], xmm0;
-
-          add edx, 16;
-        jnz @loop;
-
-        @endfunc:
-     end;
+   @endfunc:
 end;
 
 procedure ASMRowSwapUnAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     iters := -width*sizeof(double);
+asm
+   imul ecx, -8;
+   jz @endfunc;
 
-     asm
-        mov eax, A;
-        mov ecx, B;
+   sub eax, ecx;
+   sub edx, ecx;
 
-        mov edx, iters;
+   @unrolloop:
+     add ecx, 64;
+     jg @unrolloopend;
 
-        sub eax, edx;
-        sub ecx, edx;
+     movdqu xmm0, [eax + ecx - 64];
+     movdqu xmm1, [edx + ecx - 64];
 
-        @unrolloop:
-          add edx, 64;
-          jg @unrolloopend;
+     movdqu [eax + ecx - 64], xmm1;
+     movdqu [edx + ecx - 64], xmm0;
 
-          movdqu xmm0, [eax + edx - 64];
-          movdqu xmm1, [ecx + edx - 64];
+     movdqu xmm2, [eax + ecx - 48];
+     movdqu xmm3, [edx + ecx - 48];
 
-          movdqu [eax + edx - 64], xmm1;
-          movdqu [ecx + edx - 64], xmm0;
+     movdqu [eax + ecx - 48], xmm3;
+     movdqu [edx + ecx - 48], xmm2;
 
-          movdqu xmm2, [eax + edx - 48];
-          movdqu xmm3, [ecx + edx - 48];
+     movdqu xmm4, [eax + ecx - 32];
+     movdqu xmm5, [edx + ecx - 32];
 
-          movdqu [eax + edx - 48], xmm3;
-          movdqu [ecx + edx - 48], xmm2;
+     movdqu [eax + ecx - 32], xmm5;
+     movdqu [edx + ecx - 32], xmm4;
 
-          movdqu xmm4, [eax + edx - 32];
-          movdqu xmm5, [ecx + edx - 32];
+     movdqu xmm6, [eax + ecx - 16];
+     movdqu xmm7, [edx + ecx - 16];
 
-          movdqu [eax + edx - 32], xmm5;
-          movdqu [ecx + edx - 32], xmm4;
+     movdqu [eax + ecx - 16], xmm7;
+     movdqu [edx + ecx - 16], xmm6;
+   jmp @unrolloop;
+   @unrolloopend:
 
-          movdqu xmm6, [eax + edx - 16];
-          movdqu xmm7, [ecx + edx - 16];
+   sub ecx, 64;
+   jz @endfunc;
 
-          movdqu [eax + edx - 16], xmm7;
-          movdqu [ecx + edx - 16], xmm6;
-        jmp @unrolloop;
-        @unrolloopend:
+   @loop:
+     movdqu xmm0, [eax + ecx];
+     movdqu xmm1, [edx + ecx];
 
-        sub edx, 64;
-        jz @endfunc;
+     movdqu [eax + ecx], xmm1;
+     movdqu [edx + ecx], xmm0;
 
-        @loop:
-          movdqu xmm0, [eax + edx];
-          movdqu xmm1, [ecx + edx];
+     add ecx, 16;
+   jnz @loop;
 
-          movdqu [eax + edx], xmm1;
-          movdqu [ecx + edx], xmm0;
-
-          add edx, 16;
-        jnz @loop;
-
-        @endfunc:
-     end;
+   @endfunc:
 end;
 
 procedure ASMRowSwapAlignedOddW(A, B : PDouble; width : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     iters := -(width - 1)*sizeof(double);
+asm
+   imul ecx, -8;
+   jz @endfunc;
 
-     asm
-        mov eax, A;
-        mov ecx, B;
+   add ecx, 8;
+   jz @lastelem;
 
-        mov edx, iters;
-        jz @endfunc;
+   sub eax, ecx;
+   sub edx, ecx;
 
-        sub eax, edx;
-        sub ecx, edx;
+   @unrolloop:
+     add ecx, 64;
+     jg @unrolloopend;
 
+     movdqa xmm0, [eax + ecx - 64];
+     movdqa xmm1, [edx + ecx - 64];
 
-        @unrolloop:
-          add edx, 64;
-          jg @unrolloopend;
+     movdqa [eax + ecx - 64], xmm1;
+     movdqa [edx + ecx - 64], xmm0;
 
-          // prefetchw [eax + edx];
-          // prefetchw [ecx + edx];
+     movdqa xmm2, [eax + ecx - 48];
+     movdqa xmm3, [edx + ecx - 48];
 
-          movdqa xmm0, [eax + edx - 64];
-          movdqa xmm1, [ecx + edx - 64];
+     movdqa [eax + ecx - 48], xmm3;
+     movdqa [edx + ecx - 48], xmm2;
 
-          movdqa [eax + edx - 64], xmm1;
-          movdqa [ecx + edx - 64], xmm0;
+     movdqa xmm4, [eax + ecx - 32];
+     movdqa xmm5, [edx + ecx - 32];
 
-          movdqa xmm2, [eax + edx - 48];
-          movdqa xmm3, [ecx + edx - 48];
+     movdqa [eax + ecx - 32], xmm5;
+     movdqa [edx + ecx - 32], xmm4;
 
-          movdqa [eax + edx - 48], xmm3;
-          movdqa [ecx + edx - 48], xmm2;
+     movdqa xmm6, [eax + ecx - 16];
+     movdqa xmm7, [edx + ecx - 16];
 
-          movdqa xmm4, [eax + edx - 32];
-          movdqa xmm5, [ecx + edx - 32];
+     movdqa [eax + ecx - 16], xmm7;
+     movdqa [edx + ecx - 16], xmm6;
 
-          movdqa [eax + edx - 32], xmm5;
-          movdqa [ecx + edx - 32], xmm4;
+   jmp @unrolloop;
+   @unrolloopend:
 
-          movdqa xmm6, [eax + edx - 16];
-          movdqa xmm7, [ecx + edx - 16];
-
-          movdqa [eax + edx - 16], xmm7;
-          movdqa [ecx + edx - 16], xmm6;
-
-        jmp @unrolloop;
-        @unrolloopend:
-
-        sub edx, 64;
-        jz @endfunc;
+   sub ecx, 64;
+   jz @lastelem;
 
 
-        @loop:
-          movdqa xmm0, [eax + edx];
-          movdqa xmm1, [ecx + edx];
+   @loop:
+     movdqa xmm0, [eax + ecx];
+     movdqa xmm1, [edx + ecx];
 
-          movdqa [eax + edx], xmm1;
-          movdqa [ecx + edx], xmm0;
+     movdqa [eax + ecx], xmm1;
+     movdqa [edx + ecx], xmm0;
 
-          add edx, 16;
-        jnz @loop;
+     add ecx, 16;
+   jnz @loop;
 
-        @endfunc:
+   @lastelem:
 
-        // last swap
-        movsd xmm0, [eax];
-        movsd xmm1, [ecx];
+   // last swap
+   movsd xmm0, [eax];
+   movsd xmm1, [edx];
 
-        movsd [eax], xmm1;
-        movsd [ecx], xmm0;
-     end;
+   movsd [eax], xmm1;
+   movsd [edx], xmm0;
+   
+   @endfunc:
 end;
 
 procedure ASMRowSwapUnAlignedOddW(A, B : PDouble; width : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     iters := -(width - 1)*sizeof(double);
+asm
+   imul ecx, -8;
+   jz @endfunc;
 
-     asm
-        mov eax, A;
-        mov ecx, B;
+   add ecx, 8;
+   jz @lastelem;
 
-        mov edx, iters;
-        jz @endfunc;
+   sub eax, ecx;
+   sub edx, ecx;
 
-        sub eax, edx;
-        sub ecx, edx;
+   @unrolloop:
+     add ecx, 64;
+     jg @unrolloopend;
 
-        @unrolloop:
-          add edx, 64;
-          jg @unrolloopend;
+     movdqu xmm0, [eax + ecx - 64];
+     movdqu xmm1, [edx + ecx - 64];
 
-          movdqu xmm0, [eax + edx - 64];
-          movdqu xmm1, [ecx + edx - 64];
+     movdqu [eax + ecx - 64], xmm1;
+     movdqu [edx + ecx - 64], xmm0;
 
-          movdqu [eax + edx - 64], xmm1;
-          movdqu [ecx + edx - 64], xmm0;
+     movdqu xmm2, [eax + ecx - 48];
+     movdqu xmm3, [edx + ecx - 48];
 
-          movdqu xmm2, [eax + edx - 48];
-          movdqu xmm3, [ecx + edx - 48];
+     movdqu [eax + ecx - 48], xmm3;
+     movdqu [edx + ecx - 48], xmm2;
 
-          movdqu [eax + edx - 48], xmm3;
-          movdqu [ecx + edx - 48], xmm2;
+     movdqu xmm4, [eax + ecx - 32];
+     movdqu xmm5, [edx + ecx - 32];
 
-          movdqu xmm4, [eax + edx - 32];
-          movdqu xmm5, [ecx + edx - 32];
+     movdqu [eax + ecx - 32], xmm5;
+     movdqu [edx + ecx - 32], xmm4;
 
-          movdqu [eax + edx - 32], xmm5;
-          movdqu [ecx + edx - 32], xmm4;
+     movdqu xmm6, [eax + ecx - 16];
+     movdqu xmm7, [edx + ecx - 16];
 
-          movdqu xmm6, [eax + edx - 16];
-          movdqu xmm7, [ecx + edx - 16];
+     movdqu [eax + ecx - 16], xmm7;
+     movdqu [edx + ecx - 16], xmm6;
+   jmp @unrolloop;
+   @unrolloopend:
 
-          movdqu [eax + edx - 16], xmm7;
-          movdqu [ecx + edx - 16], xmm6;
-        jmp @unrolloop;
-        @unrolloopend:
+   sub ecx, 64;
+   jz @lastelem;
 
-        sub edx, 64;
-        jz @endfunc;
+   @loop:
+     movdqu xmm0, [eax + ecx];
+     movdqu xmm1, [edx + ecx];
 
-        @loop:
-          movdqu xmm0, [eax + edx];
-          movdqu xmm1, [ecx + edx];
+     movdqu [eax + ecx], xmm1;
+     movdqu [edx + ecx], xmm0;
 
-          movdqu [eax + edx], xmm1;
-          movdqu [ecx + edx], xmm0;
+     add ecx, 16;
+   jnz @loop;
 
-          add edx, 16;
-        jnz @loop;
+   @lastelem:
 
-        @endfunc:
+   // last swap
+   movsd xmm0, [eax];
+   movsd xmm1, [edx];
 
-        // last swap
-        movsd xmm0, [eax];
-        movsd xmm1, [ecx];
+   movsd [eax], xmm1;
+   movsd [edx], xmm0;
 
-        movsd [eax], xmm1;
-        movsd [ecx], xmm0;
-     end;
+   @endfunc:
 end;
 
 procedure ASMMatrixCopyAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);

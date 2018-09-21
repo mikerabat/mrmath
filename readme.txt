@@ -55,6 +55,11 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date: 21.09.2018
+* Started using register (Delphi) and assembler (FPC) calling convention for
+  some functions.
+* Possible problem fixed in asm row swap.
+
 Date: 11.09.2018
 * Convolution
 * Changed 64 bit assembler api prologs for Unix based machines.
