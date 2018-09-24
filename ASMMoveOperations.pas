@@ -31,11 +31,11 @@ interface
 
 uses MatrixConst;
 
-procedure ASMMatrixCopyAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
-procedure ASMMatrixCopyUnAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+procedure ASMMatrixCopyAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixCopyUnAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixCopyAlignedOddW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
-procedure ASMMatrixCopyUnAlignedOddW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+procedure ASMMatrixCopyAlignedOddW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixCopyUnAlignedOddW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 procedure ASMRowSwapAlignedEvenW(A, B : PDouble; width : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 procedure ASMRowSwapUnAlignedEvenW(A, B : PDouble; width : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
@@ -337,330 +337,308 @@ asm
 end;
 
 procedure ASMMatrixCopyAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     assert((width > 0) and (height > 0) and (destLineWidth >= width*sizeof(double)) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
+// eax=dest, edx=destLineWidth, ecx=src
+asm
+   push esi;
+   push edi;
 
-     iters := -width*sizeof(double);
+   mov esi, width;
+   imul esi, -8;
 
-     asm
-        push esi;
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, esi;
+   sub eax, esi;
 
-        // helper registers for the mt1, mt2 and dest pointers
-        mov esi, src;
-        sub esi, iters;
-        mov ecx, dest;
-        sub ecx, iters;
+   // for y := 0 to height - 1:
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, esi;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
 
-        // for y := 0 to height - 1:
-        mov edx, Height;
-        @@addforyloop:
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforxloop:
-                add eax, 128;
-                jg @loopEnd;
+           // move:
+           movdqa xmm0, [ecx + edi - 128];
+           movdqa [eax + edi - 128], xmm0;
 
-//                // prefetch [esi + eax];
-//                // prefetchw [ecx + eax];
+           movdqa xmm1, [ecx + edi - 112];
+           movdqa [eax + edi - 112], xmm1;
 
-                // move:
-                movdqa xmm0, [esi + eax - 128];
-                movdqa [ecx + eax - 128], xmm0;
+           movdqa xmm2, [ecx + edi - 96];
+           movdqa [eax + edi - 96], xmm2;
 
-                movdqa xmm1, [esi + eax - 112];
-                movdqa [ecx + eax - 112], xmm1;
+           movdqa xmm3, [ecx + edi - 80];
+           movdqa [eax + edi - 80], xmm3;
 
-                movdqa xmm2, [esi + eax - 96];
-                movdqa [ecx + eax - 96], xmm2;
+           movdqa xmm4, [ecx + edi - 64];
+           movdqa [eax + edi - 64], xmm4;
 
-                movdqa xmm3, [esi + eax - 80];
-                movdqa [ecx + eax - 80], xmm3;
+           movdqa xmm5, [ecx + edi - 48];
+           movdqa [eax + edi - 48], xmm5;
 
-                movdqa xmm4, [esi + eax - 64];
-                movdqa [ecx + eax - 64], xmm4;
+           movdqa xmm6, [ecx + edi - 32];
+           movdqa [eax + edi - 32], xmm6;
 
-                movdqa xmm5, [esi + eax - 48];
-                movdqa [ecx + eax - 48], xmm5;
+           movdqa xmm7, [ecx + edi - 16];
+           movdqa [eax + edi - 16], xmm7;
+       jmp @addforxloop
 
-                movdqa xmm6, [esi + eax - 32];
-                movdqa [ecx + eax - 32], xmm6;
+       @loopEnd:
 
-                movdqa xmm7, [esi + eax - 16];
-                movdqa [ecx + eax - 16], xmm7;
-            jmp @addforxloop
+       sub edi, 128;
 
-            @loopEnd:
+       jz @nextLine;
 
-            sub eax, 128;
+       @addforxloop2:
+           movdqa xmm0, [ecx + edi];
+           movdqa [eax + edi], xmm0;
+       add edi, 16;
+       jnz @addforxloop2;
 
-            jz @nextLine;
+       @nextLine:
 
-            @addforxloop2:
-                movdqa xmm0, [esi + eax];
-                movdqa [ecx + eax], xmm0;
-            add eax, 16;
-            jnz @addforxloop2;
+       // next line:
+       add ecx, srcLineWidth;
+       add eax, edx;
 
-            @nextLine:
+   // loop y end
+   dec height;
+   jnz @@addforyloop;
 
-            // next line:
-            add esi, srcLineWidth;
-            add ecx, destLineWidth;
-
-        // loop y end
-        dec edx;
-        jnz @@addforyloop;
-
-        pop esi;
-     end;
+   // epilog
+   pop edi;
+   pop esi;
 end;
 
 procedure ASMMatrixCopyUnAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     assert((width > 0) and (height > 0) and (destLineWidth >= width*sizeof(double)) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
+// eax=dest, edx=destLineWidth, ecx=src
+asm
+   push esi;
+   push edi;
 
-     iters := -width*sizeof(double);
+   mov esi, width;
+   imul esi, -8;
 
-     asm
-        push esi;
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, esi;
+   sub eax, esi;
 
-        // helper registers for the mt1, mt2 and dest pointers
-        mov esi, src;
-        sub esi, iters;
-        mov ecx, dest;
-        sub ecx, iters;
+   // for y := 0 to height - 1:
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, esi;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
 
-        // for y := 0 to height - 1:
-        mov edx, Height;
-        @@addforyloop:
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforxloop:
-                add eax, 128;
-                jg @loopEnd;
+           // move:
+           movdqu xmm0, [ecx + edi - 128];
+           movdqu [eax + edi - 128], xmm0;
 
-                // move:
-                movdqu xmm0, [esi + eax - 128];
-                movdqu [ecx + eax - 128], xmm0;
+           movdqu xmm1, [ecx + edi - 112];
+           movdqu [eax + edi - 112], xmm1;
 
-                movdqu xmm1, [esi + eax - 112];
-                movdqu [ecx + eax - 112], xmm1;
+           movdqu xmm2, [ecx + edi - 96];
+           movdqu [eax + edi - 96], xmm2;
 
-                movdqu xmm2, [esi + eax - 96];
-                movdqu [ecx + eax - 96], xmm2;
+           movdqu xmm3, [ecx + edi - 80];
+           movdqu [eax + edi - 80], xmm3;
 
-                movdqu xmm3, [esi + eax - 80];
-                movdqu [ecx + eax - 80], xmm3;
+           movdqu xmm4, [ecx + edi - 64];
+           movdqu [eax + edi - 64], xmm4;
 
-                movdqu xmm4, [esi + eax - 64];
-                movdqu [ecx + eax - 64], xmm4;
+           movdqu xmm5, [ecx + edi - 48];
+           movdqu [eax + edi - 48], xmm5;
 
-                movdqu xmm5, [esi + eax - 48];
-                movdqu [ecx + eax - 48], xmm5;
+           movdqu xmm6, [ecx + edi - 32];
+           movdqu [eax + edi - 32], xmm6;
 
-                movdqu xmm6, [esi + eax - 32];
-                movdqu [ecx + eax - 32], xmm6;
+           movdqu xmm7, [ecx + edi - 16];
+           movdqu [eax + edi - 16], xmm7;
+       jmp @addforxloop
 
-                movdqu xmm7, [esi + eax - 16];
-                movdqu [ecx + eax - 16], xmm7;
-            jmp @addforxloop
+       @loopEnd:
 
-            @loopEnd:
+       sub edi, 128;
 
-            sub eax, 128;
+       jz @nextLine;
 
-            jz @nextLine;
+       @addforxloop2:
+           movdqu xmm0, [ecx + edi];
+           movdqu [eax + edi], xmm0;
+       add edi, 16;
+       jnz @addforxloop2;
 
-            @addforxloop2:
-                movdqu xmm0, [esi + eax];
-                movdqu [ecx + eax], xmm0;
-            add eax, 16;
-            jnz @addforxloop2;
+       @nextLine:
 
-            @nextLine:
+       // next line:
+       add ecx, srcLineWidth;
+       add eax, edx;
 
-            // next line:
-            add esi, srcLineWidth;
-            add ecx, destLineWidth;
+   // loop y end
+   dec height;
+   jnz @@addforyloop;
 
-        // loop y end
-        dec edx;
-        jnz @@addforyloop;
-
-        pop esi;
-     end;
+   pop edi;
+   pop esi;
 end;
 
 procedure ASMMatrixCopyAlignedOddW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     assert((width > 0) and (height > 0) and (destLineWidth >= width*sizeof(double)) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
+asm
+   push esi;
+   push edi;
 
-     iters := -(width - 1)*sizeof(double);
+   mov esi, width;
+   dec esi;
+   imul esi, -8;
 
-     asm
-        push esi;
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, esi;
+   sub eax, esi;
 
-        // helper registers for the mt1, mt2 and dest pointers
-        mov esi, src;
-        sub esi, iters;
-        mov ecx, dest;
-        sub ecx, iters;
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, esi;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
 
-        // for y := 0 to height - 1:
-        mov edx, Height;
-        @@addforyloop:
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforxloop:
-                add eax, 128;
-                jg @loopEnd;
+           // addition:
+           movdqa xmm0, [ecx + edi - 128];
+           movdqa [eax + edi - 128], xmm0;
 
-                // prefetch data...
-                // prefetch [esi + eax];
-                // prefetchw [ecx + eax];
+           movdqa xmm1, [ecx + edi - 112];
+           movdqa [eax + edi - 112], xmm1;
 
-                // addition:
-                movdqa xmm0, [esi + eax - 128];
-                movdqa [ecx + eax - 128], xmm0;
+           movdqa xmm2, [ecx + edi - 96];
+           movdqa [eax + edi - 96], xmm2;
 
-                movdqa xmm1, [esi + eax - 112];
-                movdqa [ecx + eax - 112], xmm1;
+           movdqa xmm3, [ecx + edi - 80];
+           movdqa [eax + edi - 80], xmm3;
 
-                movdqa xmm2, [esi + eax - 96];
-                movdqa [ecx + eax - 96], xmm2;
+           movdqa xmm4, [ecx + edi - 64];
+           movdqa [eax + edi - 64], xmm4;
 
-                movdqa xmm3, [esi + eax - 80];
-                movdqa [ecx + eax - 80], xmm3;
+           movdqa xmm5, [ecx + edi - 48];
+           movdqa [eax + edi - 48], xmm5;
 
-                movdqa xmm4, [esi + eax - 64];
-                movdqa [ecx + eax - 64], xmm4;
+           movdqa xmm6, [ecx + edi - 32];
+           movdqa [eax + edi - 32], xmm6;
 
-                movdqa xmm5, [esi + eax - 48];
-                movdqa [ecx + eax - 48], xmm5;
+           movdqa xmm7, [ecx + edi - 16];
+           movdqa [eax + edi - 16], xmm7;
+       jmp @addforxloop
 
-                movdqa xmm6, [esi + eax - 32];
-                movdqa [ecx + eax - 32], xmm6;
+       @loopEnd:
 
-                movdqa xmm7, [esi + eax - 16];
-                movdqa [ecx + eax - 16], xmm7;
-            jmp @addforxloop
+       sub edi, 128;
 
-            @loopEnd:
+       jz @nextLine;
 
-            sub eax, 128;
+       @addforxloop2:
+           movdqa xmm0, [ecx + edi];
+           movdqa [eax + edi], xmm0;
+       add edi, 16;
+       jnz @addforxloop2;
 
-            jz @nextLine;
+       @nextLine:
 
-            @addforxloop2:
-                movdqa xmm0, [esi + eax];
-                movdqa [ecx + eax], xmm0;
-            add eax, 16;
-            jnz @addforxloop2;
+       // special care of the last element
+       movsd xmm0, [ecx];
+       movsd [eax], xmm0;
 
-            @nextLine:
+       // next line:
+       add ecx, srcLineWidth;
+       add eax, edx;
 
-            // special care of the last element
-            movsd xmm0, [esi];
-            movsd [ecx], xmm0;
+   // loop y end
+   dec height;
+   jnz @@addforyloop;
 
-            // next line:
-            add esi, srcLineWidth;
-            add ecx, destLineWidth;
-
-        // loop y end
-        dec edx;
-        jnz @@addforyloop;
-
-        pop esi;
-     end;
+   // epilog
+   pop edi;
+   pop esi;
 end;
 
 procedure ASMMatrixCopyUnAlignedOddW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     assert((width > 0) and (height > 0) and (destLineWidth >= width*sizeof(double)) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
+asm
+   push esi;
+   push edi;
 
-     iters := -(width - 1)*sizeof(double);
+   mov esi, width;
+   dec esi;
+   imul esi, -8;
 
-     asm
-        push esi;
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, esi;
+   sub eax, esi;
 
-        // helper registers for the mt1, mt2 and dest pointers
-        mov esi, src;
-        sub esi, iters;
-        mov ecx, dest;
-        sub ecx, iters;
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, esi;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
 
-        // for y := 0 to height - 1:
-        mov edx, Height;
-        @@addforyloop:
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforxloop:
-                add eax, 128;
-                jg @loopEnd;
+           // addition:
+           movdqu xmm0, [ecx + edi - 128];
+           movdqu [eax + edi - 128], xmm0;
 
-                // addition:
-                movdqu xmm0, [esi + eax - 128];
-                movdqu [ecx + eax - 128], xmm0;
+           movdqu xmm1, [ecx + edi - 112];
+           movdqu [eax + edi - 112], xmm1;
 
-                movdqu xmm1, [esi + eax - 112];
-                movdqu [ecx + eax - 112], xmm1;
+           movdqu xmm2, [ecx + edi - 96];
+           movdqu [eax + edi - 96], xmm2;
 
-                movdqu xmm2, [esi + eax - 96];
-                movdqu [ecx + eax - 96], xmm2;
+           movdqu xmm3, [ecx + edi - 80];
+           movdqu [eax + edi - 80], xmm3;
 
-                movdqu xmm3, [esi + eax - 80];
-                movdqu [ecx + eax - 80], xmm3;
+           movdqu xmm4, [ecx + edi - 64];
+           movdqu [eax + edi - 64], xmm4;
 
-                movdqu xmm4, [esi + eax - 64];
-                movdqu [ecx + eax - 64], xmm4;
+           movdqu xmm5, [ecx + edi - 48];
+           movdqu [eax + edi - 48], xmm5;
 
-                movdqu xmm5, [esi + eax - 48];
-                movdqu [ecx + eax - 48], xmm5;
+           movdqu xmm6, [ecx + edi - 32];
+           movdqu [eax + edi - 32], xmm6;
 
-                movdqu xmm6, [esi + eax - 32];
-                movdqu [ecx + eax - 32], xmm6;
+           movdqu xmm7, [ecx + edi - 16];
+           movdqu [eax + edi - 16], xmm7;
+       jmp @addforxloop
 
-                movdqu xmm7, [esi + eax - 16];
-                movdqu [ecx + eax - 16], xmm7;
-            jmp @addforxloop
+       @loopEnd:
 
-            @loopEnd:
+       sub edi, 128;
 
-            sub eax, 128;
+       jz @nextLine;
 
-            jz @nextLine;
+       @addforxloop2:
+           movdqu xmm0, [ecx + edi];
+           movdqu [eax + edi], xmm0;
+       add edi, 16;
+       jnz @addforxloop2;
 
-            @addforxloop2:
-                movdqu xmm0, [esi + eax];
-                movdqu [ecx + eax], xmm0;
-            add eax, 16;
-            jnz @addforxloop2;
+       @nextLine:
 
-            @nextLine:
+       // special care of the last element
+       movsd xmm0, [ecx];
+       movsd [eax], xmm0;
 
-            // special care of the last element
-            movsd xmm0, [esi];
-            movsd [ecx], xmm0;
+       // next line:
+       add ecx, srcLineWidth;
+       add eax, edx;
 
-            // next line:
-            add esi, srcLineWidth;
-            add ecx, destLineWidth;
+   // loop y end
+   dec height;
+   jnz @@addforyloop;
 
-        // loop y end
-        dec edx;
-        jnz @@addforyloop;
-
-        pop esi;
-     end;
+   // epilog
+   pop edi;
+   pop esi;
 end;
 
 {$ENDIF}
