@@ -2045,7 +2045,7 @@ begin
 
      for iter := 0 to 2*Length(cBlkWidths) - 1 do
      begin
-          if iter mod 2 = 0
+          if iter mod 2 = 1
           then
               InitMathFunctions(itFPU, False)
           else

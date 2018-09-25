@@ -469,7 +469,7 @@ asm
 
        {$IFDEF FPC}vmovsd [r8 + rdi], xmm4;{$ELSE}db $C4,$C1,$7B,$11,$24,$38;{$ENDIF} 
 
-       add r8, LineWidthA;
+       add r8, r9;
 
    dec rdx;
    jnz @@foryloop;
@@ -569,7 +569,7 @@ asm
 
        {$IFDEF FPC}vmovsd [r8 + rdi], xmm2;{$ELSE}db $C4,$C1,$7B,$11,$14,$38;{$ENDIF} 
 
-       add r8, LineWidthA;
+       add r8, r9;
 
    dec rdx;
    jnz @@foryloop;

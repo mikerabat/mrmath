@@ -116,7 +116,7 @@ asm
    //destOffset := destLineWidth - Width2*sizeof(double);
    mov rbx, Width2;
    shl rbx, 3;
-   mov r15, destLineWidth;
+   mov r15, rdx;
    sub r15, rbx;
 
    //bytesWidth2 := width2*sizeof(double);
@@ -336,7 +336,7 @@ asm
     //destOffset := destLineWidth - Width2*sizeof(double);
     mov rbx, Width2;
     shl rbx, 3;
-    mov r15, destLineWidth;
+    mov r15, rdx;
     sub r15, rbx;
 
     //bytesWidth2 := width2*sizeof(double);

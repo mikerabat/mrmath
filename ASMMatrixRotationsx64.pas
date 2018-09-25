@@ -464,7 +464,7 @@ asm
 
        movsd [r8 + rdi], xmm4;
 
-       add r8, LineWidthA;
+       add r8, r9;
 
    dec rdx;
    jnz @@foryloop;
@@ -562,7 +562,7 @@ asm
 
       movsd [r8 + rdi], xmm2;
 
-      add r8, LineWidthA;
+      add r8, r9;
 
    dec rdx;
    jnz @@foryloop;

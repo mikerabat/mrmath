@@ -1319,7 +1319,7 @@ asm
    mov iR13, r13;
    mov iR14, r14;
 
-   mov r12, width;
+   mov r12, r8;
    sar r12, 2;   // width div 4
 
    // performs A = A + alpha*X*Y' in row major form
@@ -1443,7 +1443,7 @@ asm
    mov iR13, r13;
    mov iR14, r14;
 
-   mov r12, width;
+   mov r12, r8;
    sar r12, 2;   // width div 4
 
    // performs A = A + alpha*X*Y' in row major form

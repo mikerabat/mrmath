@@ -95,8 +95,7 @@ asm
    mov rdi, LineWidth1;
 
    mov r10, width1;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
    sub r8, r10;
 
    mov r11, LineWidth2;
@@ -105,7 +104,7 @@ asm
    //destOffset := destLineWidth - Width2*sizeof(double);
    mov rbx, Width2;
    shl rbx, 3;
-   mov r15, destLineWidth;
+   mov r15, rdx;
    sub r15, rbx;
 
    //bytesWidth2 := width2*sizeof(double);
@@ -312,8 +311,7 @@ asm
     mov rdi, LineWidth1;
 
     mov r10, width1;
-    shl r10, 3;
-    imul r10, -1;
+    imul r10, -8;
     sub r8, r10;
 
     mov r11, LineWidth2;
@@ -322,7 +320,7 @@ asm
     //destOffset := destLineWidth - Width2*sizeof(double);
     mov rbx, Width2;
     shl rbx, 3;
-    mov r15, destLineWidth;
+    mov r15, rdx;
     sub r15, rbx;
 
     //bytesWidth2 := width2*sizeof(double);
@@ -829,10 +827,10 @@ asm
 
           // valCounter1 := PConstDoubleArr(mt1);
           // inc(PByte(valCounter1), 2*y*LineWidth1);
-          mov rsi, mt1;
+          mov rsi, r8;
           mov rbx, r12;
           add rbx, rbx;
-          imul rbx, LineWidth1;
+          imul rbx, r9;
           add rsi, rbx;
 
           // valCounter2 := PConstDoubleArr(pMT2);
@@ -847,7 +845,7 @@ asm
           // tmp[0] := valCounter1^[0];
           // inc(PByte(valCounter1), LineWidth1);
           {$IFDEF FPC}vmovsd xmm0, [rsi];{$ELSE}db $C5,$FB,$10,$06;{$ENDIF} 
-          add rsi, LineWidth1;
+          add rsi, r9;
 
           // if height2 - 2*y - 1 > 0 then
           mov rbx, r12;
@@ -894,7 +892,7 @@ asm
              //inc(PByte(valCounter1), LineWidth1);
              //inc(PByte(valCounter2), LineWidth2);
 
-             add rsi, LineWidth1;
+             add rsi, r9;
              add rdi, r15;
 
           dec rbx;
@@ -932,12 +930,12 @@ asm
        // special handling of last column (just copy the value)
 
        // valCounter1 := PConstDoubleArr(mt1);
-       mov r12, mt1;
+       mov r12, r8;
 
        //inc(PByte(valCounter1), LineWidth1*(height1 - 1));
        mov rbx, height1;
        dec rbx;
-       imul rbx, LineWidth1;
+       imul rbx, r9;
 
        // pDest^ := valCounter1^[0];
        {$IFDEF FPC}vmovsd xmm0, [r12 + rbx];{$ELSE}db $C4,$C1,$7B,$10,$04,$1C;{$ENDIF} 
@@ -947,7 +945,7 @@ asm
 
      //inc(mt1);
      //inc(PByte(dest), LineWidthDest);
-     add mt1, 8;
+     add r8, 8;
      add rcx, rdx;    // note: this can be done since dest is rcx
 
    // end for loop
