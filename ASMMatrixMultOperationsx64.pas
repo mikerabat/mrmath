@@ -119,7 +119,7 @@ asm
     //destOffset := destLineWidth - Width2*sizeof(double);
     mov rbx, Width2;
     shl rbx, 3;
-    mov r15, destLineWidth;
+    mov r15, rdx;
     sub r15, rbx;
 
     //bytesWidth2 := width2*sizeof(double);
@@ -274,7 +274,7 @@ asm
     //destOffset := destLineWidth - Width2*sizeof(double);
     mov rbx, Width2;
     shl rbx, 3;
-    mov r15, destLineWidth;
+    mov r15, rdx;
     sub r15, rbx;
 
     //bytesWidth2 := width2*sizeof(double);
@@ -286,8 +286,7 @@ asm
 
     //iters2 := -width1*sizeof(double);
     mov rbx, width1;
-    shl rbx, 3;
-    imul rbx, -1;
+    imul rbx, -8;
     mov r13, rbx;
 
     //Linewidth2_2 := 2*LineWidth2;
@@ -430,7 +429,7 @@ asm
     mov rbx, Width2;
     dec rbx;
     shl rbx, 3;
-    mov r15, destLineWidth;
+    mov r15, rdx;
     sub r15, rbx;
 
     //bytesWidth2 := (width2 - 1)*sizeof(double);
@@ -604,7 +603,7 @@ asm
     mov rbx, Width2;
     dec rbx;
     shl rbx, 3;
-    mov r15, destLineWidth;
+    mov r15, rdx;
     sub r15, rbx;
 
     //bytesWidth2 := (width2 - 1)*sizeof(double);
@@ -779,7 +778,7 @@ asm
     //destOffset := destLineWidth - Width2*sizeof(double);
     mov rbx, Width2;
     shl rbx, 3;
-    mov r15, destLineWidth;
+    mov r15, rdx;
     sub r15, rbx;
 
     //bytesWidth2 := width2*sizeof(double);
@@ -950,7 +949,7 @@ asm
     //destOffset := destLineWidth - Width2*sizeof(double);
     mov rbx, Width2;
     shl rbx, 3;
-    mov r15, destLineWidth;
+    mov r15, rdx;
     sub r15, rbx;
 
     //bytesWidth2 := width2*sizeof(double);
@@ -1124,7 +1123,7 @@ asm
     mov rbx, Width2;
     dec rbx;
     shl rbx, 3;
-    mov r15, destLineWidth;
+    mov r15, rdx;
     sub r15, rbx;
 
     //bytesWidth2 := (width2 - 1)*sizeof(double);
@@ -1284,8 +1283,6 @@ var dXMM4, dXMM5, dXMM6, dXMM7 : Array[0..1] of double;
     width1 : TASMNativeInt;
     height1 : TASMNativeInt;
     {$ENDIF}
-
-
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -1319,7 +1316,7 @@ asm
     mov rbx, Width2;
     dec rbx;
     shl rbx, 3;
-    mov r15, destLineWidth;
+    mov r15, rdx;
     sub r15, rbx;
 
     //bytesWidth2 := (width2 - 1)*sizeof(double);
@@ -1332,8 +1329,7 @@ asm
     //iters2 := -(width1 - 1)*sizeof(double);
     mov rbx, width1;
     dec rbx;
-    shl rbx, 3;
-    imul rbx, -1;
+    imul rbx, -8;
     mov r13, rbx;
 
     //Linewidth2_2 := 2*LineWidth2;
@@ -1903,10 +1899,10 @@ var pMt2 : PDouble;
 
                // valCounter1 := PConstDoubleArr(mt1);
                // inc(PByte(valCounter1), 2*y*LineWidth1);
-               mov rsi, mt1;
+               mov rsi, r8;
                mov rbx, r12;
                add rbx, rbx;
-               imul rbx, LineWidth1;
+               imul rbx, r9;
                add rsi, rbx;
 
                // valCounter2 := PConstDoubleArr(pMT2);
@@ -1921,7 +1917,7 @@ var pMt2 : PDouble;
                // tmp[0] := valCounter1^[0];
                // inc(PByte(valCounter1), LineWidth1);
                movsd xmm0, [rsi];
-               add rsi, LineWidth1;
+               add rsi, r9;
 
                // if height2 - 2*y - 1 > 0 then
                mov rbx, r12;
@@ -1941,7 +1937,7 @@ var pMt2 : PDouble;
                    //inc(PByte(valCounter1), LineWidth1);
                    //inc(PByte(valCounter2), LineWidth2);
 
-                   add rsi, LineWidth1;
+                   add rsi, r9;
                    add rdi, r15;
 
                @@PreInnerLoop:
@@ -1969,7 +1965,7 @@ var pMt2 : PDouble;
                   //inc(PByte(valCounter1), LineWidth1);
                   //inc(PByte(valCounter2), LineWidth2);
 
-                  add rsi, LineWidth1;
+                  add rsi, r9;
                   add rdi, r15;
 
                dec rbx;
@@ -2007,12 +2003,12 @@ var pMt2 : PDouble;
             // special handling of last column (just copy the value)
 
             // valCounter1 := PConstDoubleArr(mt1);
-            mov r12, mt1;
+            mov r12, r8;
 
             //inc(PByte(valCounter1), LineWidth1*(height1 - 1));
             mov rbx, height1;
             dec rbx;
-            imul rbx, LineWidth1;
+            imul rbx, r9;
 
             // pDest^ := valCounter1^[0];
             movsd xmm0, [r12 + rbx];
@@ -2022,7 +2018,7 @@ var pMt2 : PDouble;
 
           //inc(mt1);
           //inc(PByte(dest), LineWidthDest);
-          add mt1, 8;
+          add r8, 8;
           add rcx, rdx;    // note: this can be done since dest is rcx
 
        // end for loop

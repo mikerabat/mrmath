@@ -48,7 +48,6 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX : TASMNativeInt;
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -63,10 +62,7 @@ asm
 
    // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    // prolog - simulate stack
-   mov iRBX, rbx;
-
-   shl rdx, 3;
-   imul rdx, -1;
+   imul rdx, -8;
 
    sub rcx, rdx;
 
@@ -77,7 +73,6 @@ asm
    movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:
-   mov rbx, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -117,7 +112,7 @@ asm
        add rcx, r9;
 
    // loop y end
-   dec rbx;
+   dec r8;
    jnz @@addforyloop;
 
    // final max ->
@@ -128,11 +123,9 @@ asm
    maxsd xmm0, xmm1;
 
    // epilog - cleanup stack
-   mov rbx, iRBX;
 end;
 
 function ASMMatrixMaxUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX : TASMNativeInt;
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -147,10 +140,8 @@ asm
 
    // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    // prolog - simulate stack
-   mov iRBX, rbx;
 
-   shl rdx, 3;
-   imul rdx, -1;
+   imul rdx, -8;
 
    sub rcx, rdx;
 
@@ -159,7 +150,6 @@ asm
    movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:
-   mov rbx, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -205,7 +195,7 @@ asm
        add rcx, r9;
 
    // loop y end
-   dec rbx;
+   dec r8;
    jnz @@addforyloop;
 
    // final max ->
@@ -214,12 +204,10 @@ asm
    maxsd xmm0, xmm1;
 
    // epilog - cleanup stack
-   mov rbx, iRBX;
 end;
 
 
 function ASMMatrixMaxAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX : TASMNativeInt;
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -234,11 +222,8 @@ asm
 
    // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    // prolog - simulate stack
-   mov iRBX, rbx;
-
    dec rdx;
-   shl rdx, 3;
-   imul rdx, -1;
+   imul rdx, -8;
 
    sub rcx, rdx;
 
@@ -249,7 +234,6 @@ asm
    movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:
-   mov rbx, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -293,7 +277,7 @@ asm
        add rcx, r9;
 
    // loop y end
-   dec rbx;
+   dec r8;
    jnz @@addforyloop;
 
    // final max ->
@@ -304,11 +288,9 @@ asm
    maxsd xmm0, xmm1;
 
    // epilog - cleanup stack
-   mov rbx, iRBX;
 end;
 
 function ASMMatrixMaxUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX : TASMNativeInt;
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -323,11 +305,8 @@ asm
 
    // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    // prolog - simulate stack
-   mov iRBX, rbx;
-
    dec rdx;
-   shl rdx, 3;
-   imul rdx, -1;
+   imul rdx, -8;
 
    sub rcx, rdx;
 
@@ -336,7 +315,6 @@ asm
    movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:
-   mov rbx, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -386,7 +364,7 @@ asm
        add rcx, r9;
 
    // loop y end
-   dec rbx;
+   dec r8;
    jnz @@addforyloop;
 
    // final max ->
@@ -395,12 +373,10 @@ asm
    maxsd xmm0, xmm1;
 
    // epilog - cleanup stack
-   mov rbx, iRBX;
 end;
 
 
 function ASMMatrixMinAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX : TASMNativeInt;
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -415,10 +391,7 @@ asm
 
    // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    // prolog - simulate stack
-   mov iRBX, rbx;
-
-   shl rdx, 3;
-   imul rdx, -1;
+   imul rdx, -8;
 
    sub rcx, rdx;
 
@@ -429,7 +402,6 @@ asm
    movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:
-   mov rbx, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -469,7 +441,7 @@ asm
        add rcx, r9;
 
    // loop y end
-   dec rbx;
+   dec r8;
    jnz @@addforyloop;
 
    // final Min ->
@@ -480,11 +452,9 @@ asm
    Minsd xmm0, xmm1;
 
    // epilog - cleanup stack
-   mov rbx, iRBX;
 end;
 
 function ASMMatrixMinUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX : TASMNativeInt;
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -499,10 +469,7 @@ asm
 
    // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    // prolog - simulate stack
-   mov iRBX, rbx;
-
-   shl rdx, 3;
-   imul rdx, -1;
+   imul rdx, -8;
 
    sub rcx, rdx;
 
@@ -511,7 +478,6 @@ asm
    movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:
-   mov rbx, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -557,7 +523,7 @@ asm
        add rcx, r9;
 
    // loop y end
-   dec rbx;
+   dec r8;
    jnz @@addforyloop;
 
    // final Min ->
@@ -566,12 +532,10 @@ asm
    Minsd xmm0, xmm1;
 
    // epilog - cleanup stack
-   mov rbx, iRBX;
 end;
 
 
 function ASMMatrixMinAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX : TASMNativeInt;
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -586,11 +550,8 @@ asm
 
    // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    // prolog - simulate stack
-   mov iRBX, rbx;
-
    dec rdx;
-   shl rdx, 3;
-   imul rdx, -1;
+   imul rdx, -8;
 
    sub rcx, rdx;
 
@@ -601,7 +562,6 @@ asm
    movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:
-   mov rbx, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -645,7 +605,7 @@ asm
        add rcx, r9;
 
    // loop y end
-   dec rbx;
+   dec r8;
    jnz @@addforyloop;
 
    // final Min ->
@@ -656,11 +616,9 @@ asm
    Minsd xmm0, xmm1;
 
    // epilog - cleanup stack
-   mov rbx, iRBX;
 end;
 
 function ASMMatrixMinUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX : TASMNativeInt;
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -675,11 +633,8 @@ asm
 
    // note: RCX = mt, RDX = width, R8 = height, R9 = LineWidth
    // prolog - simulate stack
-   mov iRBX, rbx;
-
    dec rdx;
-   shl rdx, 3;
-   imul rdx, -1;
+   imul rdx, -8;
 
    sub rcx, rdx;
 
@@ -688,7 +643,6 @@ asm
    movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:
-   mov rbx, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -738,7 +692,7 @@ asm
        add rcx, r9;
 
    // loop y end
-   dec rbx;
+   dec r8;
    jnz @@addforyloop;
 
    // final Min ->
@@ -747,7 +701,6 @@ asm
    Minsd xmm0, xmm1;
 
    // epilog - cleanup stack
-   mov rbx, iRBX;
 end;
 
 {$ENDIF}

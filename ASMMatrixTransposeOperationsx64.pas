@@ -78,11 +78,10 @@ asm
 
    // iters := -width*sizeof(double);
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    // destLineWidth2 := 2*destLineWidth;
-   mov r11, destLineWidth;
+   mov r11, rdx;
    shl r11, 1;
 
    mov rdi, height;
@@ -273,7 +272,7 @@ asm
    imul r10, -1;
 
    // destLineWidth2 := 2*destLineWidth;
-   mov r11, destLineWidth;
+   mov r11, rdx;
    shl r11, 1;
 
    mov rdi, height;
@@ -462,7 +461,7 @@ asm
    imul r10, -1;
 
    // destLineWidth2 := 2*destLineWidth;
-   mov r11, destLineWidth;
+   mov r11, rdx;
    shl r11, 1;
 
    mov rdi, height;
@@ -671,7 +670,7 @@ asm
    imul r10, -1;
 
    // destLineWidth2 := 2*destLineWidth;
-   mov r11, destLineWidth;
+   mov r11, rdx;
    shl r11, 1;
 
    mov rdi, height;
@@ -877,7 +876,7 @@ asm
    imul r10, -1;
 
    // destLineWidth2 := 2*destLineWidth;
-   mov r11, destLineWidth;
+   mov r11, rdx;
    shl r11, 1;
 
    mov rdi, height;
@@ -1076,7 +1075,7 @@ asm
    imul r10, -1;
 
    // destLineWidth2 := 2*destLineWidth;
-   mov r11, destLineWidth;
+   mov r11, rdx;
    shl r11, 1;
 
    mov rdi, height;
@@ -1267,13 +1266,13 @@ asm
    mov iRDI, rdi;
 
    // iters := -width*sizeof(double);
-			mov r10, width;
+   mov r10, width;
    dec r10;
    shl r10, 3;
    imul r10, -1;
 
    // destLineWidth2 := 2*destLineWidth;
-   mov r11, destLineWidth;
+   mov r11, rdx;
    shl r11, 1;
 
    mov rdi, height;
@@ -1494,7 +1493,7 @@ asm
    imul r10, -1;
 
    // destLineWidth2 := 2*destLineWidth;
-   mov r11, destLineWidth;
+   mov r11, rdx;
    shl r11, 1;
 
    mov rdi, height;
@@ -1699,27 +1698,27 @@ asm
     mov iRBX, rbx;
     mov iRDI, rdi;
     mov iRSI, rsi;
-           cmp r8, 2;
+    cmp r8, 2;
     jl @@exitProc;
            // iter: -N*sizeof(Double)
     mov rax, r8;
     imul rax, -8;
-                  mov rbx, rcx;  // pDest1: genptr(mt, 0, 1, linewidth)
+    mov rbx, rcx;  // pDest1: genptr(mt, 0, 1, linewidth)
     add rbx, rdx;
-           sub rcx, rax;  // mt + iter
-           // for y := 0 to n - 2
+    sub rcx, rax;  // mt + iter
+    // for y := 0 to n - 2
     dec r8;
     @@foryloop:
-              mov rdi, rax; // iter aka x
+       mov rdi, rax; // iter aka x
        add rdi, 8;
        mov rsi, rbx;
        // for x := y + 1 to n-1 do
        @@forxloop:
           movsd xmm0, [rcx + rdi];
           movsd xmm1, [rsi];
-                 movsd [rcx + rdi], xmm1;
+          movsd [rcx + rdi], xmm1;
           movsd [rsi], xmm0;
-                 add rsi, rdx;
+          add rsi, rdx;
        add rdi, 8;
        jnz @@forxloop;
               add rax, 8;  // iter + sizeof(double);
@@ -1730,8 +1729,9 @@ asm
        add rbx, 8;
     dec r8;
     jnz @@foryloop;
-           @@exitProc:
-           // epilog - cleanup stack
+    @@exitProc:
+
+    // epilog - cleanup stack
     mov rbx, iRBX;
     mov rdi, iRDI;
     mov rsi, iRSI;

@@ -32,21 +32,21 @@ interface
 uses MatrixConst;
 
 
-procedure FMAMatrixVectMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble;{$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure FMAMatrixVectMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble;{$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
 
 // routines with special input layouts: LineWidthV needs to be sizeof(double)
-procedure FMAMatrixVectMultAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double); {$IFDEF FPC}assembler;{$ENDIF}
-procedure FMAMatrixVectMultUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure FMAMatrixVectMultAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure FMAMatrixVectMultUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
 
 // destlinewidth needs to be sizeof(double)!
 // no speed gain agains amsmatrixVectMultT
-procedure FMAMatrixVecMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure FMAMatrixVecMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
 
 // rank1 update: A = A + alpha*X*Y' where x and y are vectors. It's assumed that y is sequential
 procedure FMARank1UpdateSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : TASMNativeInt; alpha : double); {$IFDEF FPC}assembler;{$ENDIF}
+  {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
 procedure FMARank1UpdateSeqAligned(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : TASMNativeInt; alpha : double); {$IFDEF FPC}assembler;{$ENDIF}
+  {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
 
 {$ENDIF}
 
@@ -57,11 +57,12 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$S-}  {$warnings off} {$ENDIF}
 
 // routines with special input layouts: LineWidthV needs to be sizeof(double)
-procedure FMAMatrixVectMultAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure FMAMatrixVectMultAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
 var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
     {$ifdef UNIX}
     LineWidthMT, LineWidthV : TASMNativeInt;
+    alpha, beta : double;
     {$endif}
 asm
    {$IFDEF UNIX}
@@ -75,6 +76,8 @@ asm
    mov r9, rcx;
    mov rcx, rdi;
    mov rdx, rsi;
+   movsd alpha, unixalpha;
+   movsd beta, unixbeta;
    {$ENDIF}
 
    // prolog - simulate stack
@@ -300,11 +303,12 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure FMAMatrixVectMultUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure FMAMatrixVectMultUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
 var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
     {$ifdef UNIX}
     LineWidthMT, LineWidthV : TASMNativeInt;
+    alpha, beta : double;
     {$endif}
 asm
    {$IFDEF UNIX}
@@ -318,6 +322,8 @@ asm
    mov r9, rcx;
    mov rcx, rdi;
    mov rdx, rsi;
+   movsd alpha, unixalpha;
+   movsd beta, unixbeta;
    {$ENDIF}
 
    // prolog - simulate stack
@@ -554,10 +560,11 @@ end;
 
 // this function is not that well suited for use of simd instructions...
 // so only this version exists
-procedure FMAMatrixVectMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure FMAMatrixVectMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
     {$ifdef UNIX}
     LineWidthMT, LineWidthV : TASMNativeInt;
+    alpha, beta : double;
     {$endif}
 asm
    {$IFDEF UNIX}
@@ -571,6 +578,8 @@ asm
    mov r9, rcx;
    mov rcx, rdi;
    mov rdx, rsi;
+   movsd alpha, unixalpha;
+   movsd beta, unixbeta;
    {$ENDIF}
 
    // prolog - simulate stack
@@ -861,10 +870,11 @@ asm
 end;
 
 
-procedure FMAMatrixVecMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure FMAMatrixVecMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
     {$ifdef UNIX}
     LineWidthMT, LineWidthV : TASMNativeInt;
+    alpha, beta : double;
     {$endif}
 asm
    {$IFDEF UNIX}
@@ -878,6 +888,8 @@ asm
    mov r9, rcx;
    mov rcx, rdi;
    mov rdx, rsi;
+   movsd alpha, unixalpha;
+   movsd beta, unixbeta;
    {$ENDIF}
 
    // prolog - simulate stack
@@ -1064,11 +1076,12 @@ end;
 
 
 procedure FMARank1UpdateSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : TASMNativeInt; alpha : double); {$IFDEF FPC}assembler;{$ENDIF}
+  {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
 // note: RCX = A, RDX = LineWidthA, R8 = width, R9 = height
 var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
     {$ifdef UNIX}
     X, Y : PDouble;
+    alpha : double;
     {$endif}
 asm
    {$IFDEF UNIX}
@@ -1082,6 +1095,7 @@ asm
    mov r9, rcx;
    mov rcx, rdi;
    mov rdx, rsi;
+   movsd alpha, unixalpha;
    {$ENDIF}
 
    // prolog - simulate stack
@@ -1184,11 +1198,12 @@ end;
 
 
 procedure FMARank1UpdateSeqAligned(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : TASMNativeInt; alpha : double); {$IFDEF FPC}assembler;{$ENDIF}
+  {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
 // note: RCX = A, RDX = LineWidthA, R8 = width, R9 = height
 var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
     {$ifdef UNIX}
     X, Y : PDouble;
+    alpha : double;
     {$endif}
 asm
    {$IFDEF UNIX}
@@ -1202,6 +1217,7 @@ asm
    mov r9, rcx;
    mov rcx, rdi;
    mov rdx, rsi;
+   movsd alpha, unixalpha;
    {$ENDIF}
 
    // prolog - simulate stack

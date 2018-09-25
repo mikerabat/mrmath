@@ -260,7 +260,7 @@ asm
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    xor r10, r10;
    sub r10, height;
-   imul r10, srcLineWidth;
+   imul r10, r9;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
@@ -362,7 +362,7 @@ asm
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    xor r10, r10;
    sub r10, height;
-   imul r10, srcLineWidth;
+   imul r10, r9;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;

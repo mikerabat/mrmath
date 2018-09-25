@@ -115,59 +115,57 @@ asm
    {$ENDIF}
 
    // note: RCX = a, RDX = b, R8 = width
-   mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r8, -8;
 
-   sub rcx, r10;
-   sub rdx, r10;
+   sub rcx, r8;
+   sub rdx, r8;
 
    @unrolloop:
-     add r10, 64;
+     add r8, 64;
      jg @unrolloopend;
 
      // prefetch data...
-     // prefetchw [rcx + r10];
-     // prefetchw [rdx + r10];
+     // prefetchw [rcx + r8];
+     // prefetchw [rdx + r8];
 
-     movdqa xmm0, [rcx + r10 - 64];
-     movdqa xmm1, [rdx + r10 - 64];
+     movdqa xmm0, [rcx + r8 - 64];
+     movdqa xmm1, [rdx + r8 - 64];
 
-     movdqa [rcx + r10 - 64], xmm1;
-     movdqa [rdx + r10 - 64], xmm0;
+     movdqa [rcx + r8 - 64], xmm1;
+     movdqa [rdx + r8 - 64], xmm0;
 
-     movdqa xmm2, [rcx + r10 - 48];
-     movdqa xmm3, [rdx + r10 - 48];
+     movdqa xmm2, [rcx + r8 - 48];
+     movdqa xmm3, [rdx + r8 - 48];
 
-     movdqa [rcx + r10 - 48], xmm3;
-     movdqa [rdx + r10 - 48], xmm2;
+     movdqa [rcx + r8 - 48], xmm3;
+     movdqa [rdx + r8 - 48], xmm2;
 
-     movdqa xmm4, [rcx + r10 - 32];
-     movdqa xmm5, [rdx + r10 - 32];
+     movdqa xmm4, [rcx + r8 - 32];
+     movdqa xmm5, [rdx + r8 - 32];
 
-     movdqa [rcx + r10 - 32], xmm5;
-     movdqa [rdx + r10 - 32], xmm4;
+     movdqa [rcx + r8 - 32], xmm5;
+     movdqa [rdx + r8 - 32], xmm4;
 
-     movdqa xmm6, [rcx + r10 - 16];
-     movdqa xmm7, [rdx + r10 - 16];
+     movdqa xmm6, [rcx + r8 - 16];
+     movdqa xmm7, [rdx + r8 - 16];
 
-     movdqa [rcx + r10 - 16], xmm7;
-     movdqa [rdx + r10 - 16], xmm6;
+     movdqa [rcx + r8 - 16], xmm7;
+     movdqa [rdx + r8 - 16], xmm6;
    jmp @unrolloop;
    @unrolloopend:
 
-   sub r10, 64;
+   sub r8, 64;
    jz @endfunc;
 
 
    @loop:
-     movdqa xmm0, [rcx + r10];
-     movdqa xmm1, [rdx + r10];
+     movdqa xmm0, [rcx + r8];
+     movdqa xmm1, [rdx + r8];
 
-     movdqa [rcx + r10], xmm1;
-     movdqa [rdx + r10], xmm0;
+     movdqa [rcx + r8], xmm1;
+     movdqa [rdx + r8], xmm0;
 
-     add r10, 16;
+     add r8, 16;
    jnz @loop;
 
    @endfunc:
@@ -187,55 +185,53 @@ asm
    {$ENDIF}
 
    // note: RCX = a, RDX = b, R8 = width
-   mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r8, -8;
 
-   sub rcx, r10;
-   sub rdx, r10;
+   sub rcx, r8;
+   sub rdx, r8;
 
    @unrolloop:
-     add r10, 64;
+     add r8, 64;
      jg @unrolloopend;
 
-     movdqu xmm0, [rcx + r10 - 64];
-     movdqu xmm1, [rdx + r10 - 64];
+     movdqu xmm0, [rcx + r8 - 64];
+     movdqu xmm1, [rdx + r8 - 64];
 
-     movdqu [rcx + r10 - 64], xmm1;
-     movdqu [rdx + r10 - 64], xmm0;
+     movdqu [rcx + r8 - 64], xmm1;
+     movdqu [rdx + r8 - 64], xmm0;
 
-     movdqu xmm2, [rcx + r10 - 48];
-     movdqu xmm3, [rdx + r10 - 48];
+     movdqu xmm2, [rcx + r8 - 48];
+     movdqu xmm3, [rdx + r8 - 48];
 
-     movdqu [rcx + r10 - 48], xmm3;
-     movdqu [rdx + r10 - 48], xmm2;
+     movdqu [rcx + r8 - 48], xmm3;
+     movdqu [rdx + r8 - 48], xmm2;
 
-     movdqu xmm4, [rcx + r10 - 32];
-     movdqu xmm5, [rdx + r10 - 32];
+     movdqu xmm4, [rcx + r8 - 32];
+     movdqu xmm5, [rdx + r8 - 32];
 
-     movdqu [rcx + r10 - 32], xmm5;
-     movdqu [rdx + r10 - 32], xmm4;
+     movdqu [rcx + r8 - 32], xmm5;
+     movdqu [rdx + r8 - 32], xmm4;
 
-     movdqu xmm6, [rcx + r10 - 16];
-     movdqu xmm7, [rdx + r10 - 16];
+     movdqu xmm6, [rcx + r8 - 16];
+     movdqu xmm7, [rdx + r8 - 16];
 
-     movdqu [rcx + r10 - 16], xmm7;
-     movdqu [rdx + r10 - 16], xmm6;
+     movdqu [rcx + r8 - 16], xmm7;
+     movdqu [rdx + r8 - 16], xmm6;
    jmp @unrolloop;
    @unrolloopend:
 
-   sub r10, 64;
+   sub r8, 64;
    jz @endfunc;
 
 
    @loop:
-     movdqu xmm0, [rcx + r10];
-     movdqu xmm1, [rdx + r10];
+     movdqu xmm0, [rcx + r8];
+     movdqu xmm1, [rdx + r8];
 
-     movdqu [rcx + r10], xmm1;
-     movdqu [rdx + r10], xmm0;
+     movdqu [rcx + r8], xmm1;
+     movdqu [rdx + r8], xmm0;
 
-     add r10, 16;
+     add r8, 16;
    jnz @loop;
 
    @endfunc:
@@ -256,60 +252,54 @@ asm
 
 
    // note: RCX = a, RDX = b, R8 = width
-   mov r10, width;
-   dec r10;
-   shl r10, 3;
-   imul r10, -1;
+   dec r8;
+   imul r8, -8;
 
-   sub rcx, r10;
-   sub rdx, r10;
+   sub rcx, r8;
+   sub rdx, r8;
 
    @unrolloop:
-     add r10, 64;
+     add r8, 64;
      jg @unrolloopend;
 
-     // prefetch data...
-     // prefetchw [rcx + r10];
-     // prefetchw [rdx + r10];
+     movdqa xmm0, [rcx + r8 - 64];
+     movdqa xmm1, [rdx + r8 - 64];
 
-     movdqa xmm0, [rcx + r10 - 64];
-     movdqa xmm1, [rdx + r10 - 64];
+     movdqa [rcx + r8 - 64], xmm1;
+     movdqa [rdx + r8 - 64], xmm0;
 
-     movdqa [rcx + r10 - 64], xmm1;
-     movdqa [rdx + r10 - 64], xmm0;
+     movdqa xmm2, [rcx + r8 - 48];
+     movdqa xmm3, [rdx + r8 - 48];
 
-     movdqa xmm2, [rcx + r10 - 48];
-     movdqa xmm3, [rdx + r10 - 48];
+     movdqa [rcx + r8 - 48], xmm3;
+     movdqa [rdx + r8 - 48], xmm2;
 
-     movdqa [rcx + r10 - 48], xmm3;
-     movdqa [rdx + r10 - 48], xmm2;
+     movdqa xmm4, [rcx + r8 - 32];
+     movdqa xmm5, [rdx + r8 - 32];
 
-     movdqa xmm4, [rcx + r10 - 32];
-     movdqa xmm5, [rdx + r10 - 32];
+     movdqa [rcx + r8 - 32], xmm5;
+     movdqa [rdx + r8 - 32], xmm4;
 
-     movdqa [rcx + r10 - 32], xmm5;
-     movdqa [rdx + r10 - 32], xmm4;
+     movdqa xmm6, [rcx + r8 - 16];
+     movdqa xmm7, [rdx + r8 - 16];
 
-     movdqa xmm6, [rcx + r10 - 16];
-     movdqa xmm7, [rdx + r10 - 16];
-
-     movdqa [rcx + r10 - 16], xmm7;
-     movdqa [rdx + r10 - 16], xmm6;
+     movdqa [rcx + r8 - 16], xmm7;
+     movdqa [rdx + r8 - 16], xmm6;
    jmp @unrolloop;
    @unrolloopend:
 
-   sub r10, 64;
+   sub r8, 64;
    jz @endfunc;
 
 
    @loop:
-     movdqa xmm0, [rcx + r10];
-     movdqa xmm1, [rdx + r10];
+     movdqa xmm0, [rcx + r8];
+     movdqa xmm1, [rdx + r8];
 
-     movdqa [rcx + r10], xmm1;
-     movdqa [rdx + r10], xmm0;
+     movdqa [rcx + r8], xmm1;
+     movdqa [rdx + r8], xmm0;
 
-     add r10, 16;
+     add r8, 16;
    jnz @loop;
 
    @endfunc:
@@ -336,56 +326,54 @@ asm
    {$ENDIF}
 
    // note: RCX = a, RDX = b, R8 = width
-   mov r10, width;
-   dec r10;
-   shl r10, 3;
-   imul r10, -1;
+   dec r8;
+   imul r8, -8;
 
-   sub rcx, r10;
-   sub rdx, r10;
+   sub rcx, r8;
+   sub rdx, r8;
 
    @unrolloop:
-     add r10, 64;
+     add r8, 64;
      jg @unrolloopend;
 
-     movdqu xmm0, [rcx + r10 - 64];
-     movdqu xmm1, [rdx + r10 - 64];
+     movdqu xmm0, [rcx + r8 - 64];
+     movdqu xmm1, [rdx + r8 - 64];
 
-     movdqu [rcx + r10 - 64], xmm1;
-     movdqu [rdx + r10 - 64], xmm0;
+     movdqu [rcx + r8 - 64], xmm1;
+     movdqu [rdx + r8 - 64], xmm0;
 
-     movdqu xmm2, [rcx + r10 - 48];
-     movdqu xmm3, [rdx + r10 - 48];
+     movdqu xmm2, [rcx + r8 - 48];
+     movdqu xmm3, [rdx + r8 - 48];
 
-     movdqu [rcx + r10 - 48], xmm3;
-     movdqu [rdx + r10 - 48], xmm2;
+     movdqu [rcx + r8 - 48], xmm3;
+     movdqu [rdx + r8 - 48], xmm2;
 
-     movdqu xmm4, [rcx + r10 - 32];
-     movdqu xmm5, [rdx + r10 - 32];
+     movdqu xmm4, [rcx + r8 - 32];
+     movdqu xmm5, [rdx + r8 - 32];
 
-     movdqu [rcx + r10 - 32], xmm5;
-     movdqu [rdx + r10 - 32], xmm4;
+     movdqu [rcx + r8 - 32], xmm5;
+     movdqu [rdx + r8 - 32], xmm4;
 
-     movdqu xmm6, [rcx + r10 - 16];
-     movdqu xmm7, [rdx + r10 - 16];
+     movdqu xmm6, [rcx + r8 - 16];
+     movdqu xmm7, [rdx + r8 - 16];
 
-     movdqu [rcx + r10 - 16], xmm7;
-     movdqu [rdx + r10 - 16], xmm6;
+     movdqu [rcx + r8 - 16], xmm7;
+     movdqu [rdx + r8 - 16], xmm6;
    jmp @unrolloop;
    @unrolloopend:
 
-   sub r10, 64;
+   sub r8, 64;
    jz @endfunc;
 
 
    @loop:
-     movdqu xmm0, [rcx + r10];
-     movdqu xmm1, [rdx + r10];
+     movdqu xmm0, [rcx + r8];
+     movdqu xmm1, [rdx + r8];
 
-     movdqu [rcx + r10], xmm1;
-     movdqu [rdx + r10], xmm0;
+     movdqu [rcx + r8], xmm1;
+     movdqu [rdx + r8], xmm0;
 
-     add r10, 16;
+     add r8, 16;
    jnz @loop;
 
    @endfunc:
@@ -420,8 +408,7 @@ asm
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
    //iters := -width*sizeof(double);
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
@@ -512,8 +499,7 @@ asm
    // note: RCX = dest, RDX = destLineWidth, R8 =src, R9 = src
    //iters := -width*sizeof(double);
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
@@ -601,8 +587,7 @@ asm
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
    dec r10;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
@@ -698,8 +683,7 @@ asm
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
    dec r10;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;

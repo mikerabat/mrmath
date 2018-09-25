@@ -62,11 +62,10 @@ asm
    // prolog - simulate stack
 
    //iters := -width*sizeof(double);
-   mov r10, width;
-   imul r10, -8;
+   imul r8, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub rcx, r10;
+   sub rcx, r8;
 
    {$IFDEF FPC}vxorpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
    {$IFDEF FPC}vxorpd ymm1, ymm1, ymm1;{$ELSE}db $C5,$F5,$57,$C9;{$ENDIF} 
@@ -75,7 +74,7 @@ asm
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
-       mov rax, r10;
+       mov rax, r8;
        @addforxloop:
            add rax, 128;
            jg @loopEnd;
@@ -161,11 +160,10 @@ asm
    // prolog - simulate stack
 
    //iters := -width*sizeof(double);
-   mov r10, width;
-   imul r10, -8;
+   imul r8, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub rcx, r10;
+   sub rcx, r8;
 
    {$IFDEF FPC}vxorpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
    {$IFDEF FPC}vxorpd ymm1, ymm1, ymm1;{$ELSE}db $C5,$F5,$57,$C9;{$ENDIF} 
@@ -174,7 +172,7 @@ asm
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
-       mov rax, r10;
+       mov rax, r8;
        @addforxloop:
            add rax, 128;
            jg @loopEnd;

@@ -95,8 +95,7 @@ asm
 
    //iters := -width*sizeof(double);
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    mov r11, LineWidth1;
    mov r12, LineWidth2;
@@ -353,8 +352,7 @@ asm
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
    dec r10;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    mov r11, LineWidth1;
    mov r12, LineWidth2;
@@ -487,8 +485,7 @@ asm
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
    dec r10;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
@@ -623,8 +620,7 @@ asm
 
    //iters := -width*sizeof(double);
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    mov r11, LineWidth1;
    mov r12, LineWidth2;
@@ -750,8 +746,7 @@ asm
 
    //iters := -width*sizeof(double);
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
@@ -881,8 +876,7 @@ asm
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
    dec r10;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    mov r11, LineWidth1;
    mov r12, LineWidth2;
@@ -1015,8 +1009,7 @@ asm
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
    dec r10;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
@@ -1371,7 +1364,7 @@ asm
       @NextLine:
 
       add rcx, rdx;
-      add r8, incX;
+      add r8, r9;
    dec Height;
    jnz @@foryloop;
 end;
@@ -1576,7 +1569,7 @@ asm
       @NextLine:
 
       add rcx, rdx;
-      add r8, incX;
+      add r8, r9;
    dec Height;
    jnz @@foryloop;
 end;
@@ -1779,7 +1772,7 @@ asm
       @NextLine:
 
       add rcx, rdx;
-      add r8, incX;
+      add r8, r9;
    dec Height;
    jnz @@foryloop;
 end;
@@ -1985,7 +1978,7 @@ asm
       @NextLine:
 
       add rcx, rdx;
-      add r8, incX;
+      add r8, r9;
    dec Height;
    jnz @@foryloop;
 end;

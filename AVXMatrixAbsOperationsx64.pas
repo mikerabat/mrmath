@@ -66,7 +66,6 @@ asm
    {$IFDEF FPC}vmovupd ymm0, [rax];{$ELSE}db $C5,$FD,$10,$00;{$ENDIF} 
 
    // for y := 0 to height - 1:
-   mov r11, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -126,7 +125,7 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
@@ -157,7 +156,6 @@ asm
    {$IFDEF FPC}vmovupd ymm0, [rax];{$ELSE}db $C5,$FD,$10,$00;{$ENDIF} 
 
    // for y := 0 to height - 1:
-   mov r11, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -217,7 +215,7 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 

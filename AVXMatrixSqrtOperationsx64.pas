@@ -57,18 +57,16 @@ asm
 
    // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    //iters := -width*sizeof(double);
-   mov r10, width;
-   imul r10, -8;
+   imul r8, -8;
 
    // helper registers dest pointers
-   sub rcx, r10;
+   sub rcx, r8;
 
    // for y := 0 to height - 1:
-   mov r11, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
-       mov rax, r10;
+       mov rax, r8;
        @addforxloop:
            add rax, 128;
            jg @loopEnd;
@@ -121,7 +119,7 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
@@ -141,18 +139,16 @@ asm
 
    // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    //iters := -width*sizeof(double);
-   mov r10, width;
-   imul r10, -8;
+   imul r8, -8;
 
    // helper registers dest pointers
-   sub rcx, r10;
+   sub rcx, r8;
 
    // for y := 0 to height - 1:
-   mov r11, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
-       mov rax, r10;
+       mov rax, r8;
        @addforxloop:
            add rax, 128;
            jg @loopEnd;
@@ -210,7 +206,7 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
 
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 

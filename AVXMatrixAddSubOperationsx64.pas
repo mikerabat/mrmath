@@ -767,7 +767,7 @@ asm
       @NextLine:
 
       add rcx, rdx;
-      add r8, incX;
+      add r8, r9;
    dec Height;
    jnz @@foryloop;
 
@@ -962,7 +962,7 @@ asm
       @NextLine:
 
       add rcx, rdx;
-      add r8, incX;
+      add r8, r9;
    dec Height;
    jnz @@foryloop;
 
@@ -1156,7 +1156,7 @@ asm
       @NextLine:
 
       add rcx, rdx;
-      add r8, incX;
+      add r8, r9;
    dec Height;
    jnz @@foryloop;
 
@@ -1350,7 +1350,7 @@ asm
       @NextLine:
 
       add rcx, rdx;
-      add r8, incX;
+      add r8, r9;
    dec Height;
    jnz @@foryloop;
 

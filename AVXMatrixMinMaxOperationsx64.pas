@@ -69,7 +69,6 @@ asm
    {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$28,$E0;{$ENDIF} 
 
    // for y := 0 to height - 1:
-   mov r10, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -124,7 +123,7 @@ asm
        add rcx, r9;
 
    // loop y end
-   dec r10;
+   dec r8;
    jnz @@addforyloop;
 
    // final max ->
@@ -166,7 +165,6 @@ asm
    {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$28,$E0;{$ENDIF} 
 
    // for y := 0 to height - 1:
-   mov r10, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -226,7 +224,7 @@ asm
        add rcx, r9;
 
    // loop y end
-   dec r10;
+   dec r8;
    jnz @@addforyloop;
 
    // final max ->
@@ -268,7 +266,6 @@ asm
    {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$28,$E0;{$ENDIF} 
 
    // for y := 0 to height - 1:
-   mov r10, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -321,7 +318,7 @@ asm
        add rcx, r9;
 
    // loop y end
-   dec r10;
+   dec r8;
    jnz @@addforyloop;
 
    // final min ->
@@ -363,7 +360,6 @@ asm
    {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$28,$E0;{$ENDIF} 
 
    // for y := 0 to height - 1:
-   mov r10, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -421,7 +417,7 @@ asm
        add rcx, r9;
 
    // loop y end
-   dec r10;
+   dec r8;
    jnz @@addforyloop;
 
    // final max ->

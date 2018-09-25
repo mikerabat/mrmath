@@ -71,8 +71,7 @@ asm
    // prolog - simulate stack
 
    //iters := -width*sizeof(double);
-   mov r10, width;
-   imul r10, -8;
+   imul r8, -8;
 
    lea rax, dOffset;
    {$IFDEF FPC}vbroadcastsd ymm3, [rax];{$ELSE}db $C4,$E2,$7D,$19,$18;{$ENDIF} 
@@ -81,14 +80,13 @@ asm
 
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub rcx, r10;
+   sub rcx, r8;
 
    // for y := 0 to height - 1:
-   mov r11, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
-       mov rax, r10;
+       mov rax, r8;
        @addforxloop:
            add rax, 128;
            jg @loopEnd;
@@ -140,7 +138,7 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
 
    // epilog
@@ -171,8 +169,7 @@ asm
    // prolog - simulate stack
 
    //iters := -width*sizeof(double);
-   mov r10, width;
-   imul r10, -8;
+   imul r8, -8;
 
    lea rax, dOffset;
    {$IFDEF FPC}vbroadcastsd ymm3, [rax];{$ELSE}db $C4,$E2,$7D,$19,$18;{$ENDIF} 
@@ -180,14 +177,13 @@ asm
    {$IFDEF FPC}vbroadcastsd ymm1, [rax];{$ELSE}db $C4,$E2,$7D,$19,$08;{$ENDIF} 
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub rcx, r10;
+   sub rcx, r8;
 
    // for y := 0 to height - 1:
-   mov r11, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
-       mov rax, r10;
+       mov rax, r8;
        @addforxloop:
            add rax, 128;
            jg @loopEnd;
@@ -239,7 +235,7 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
 
    // epilog
@@ -271,9 +267,8 @@ asm
    // prolog - simulate stack
 
    //iters := -(width - 1)*sizeof(double);
-   mov r10, width;
-   dec r10;
-   imul r10, -8;
+   dec r8;
+   imul r8, -8;
 
    lea rax, dOffset;
    {$IFDEF FPC}vbroadcastsd ymm3, [rax];{$ELSE}db $C4,$E2,$7D,$19,$18;{$ENDIF} 
@@ -282,14 +277,13 @@ asm
 
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub rcx, r10;
+   sub rcx, r8;
 
    // for y := 0 to height - 1:
-   mov r11, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
-       mov rax, r10;
+       mov rax, r8;
        @addforxloop:
            add rax, 128;
            jg @loopEnd;
@@ -347,7 +341,7 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
 
    // epilog
@@ -378,9 +372,8 @@ asm
    // prolog - simulate stack
 
    //iters := -(width - 1)*sizeof(double);
-   mov r10, width;
-   dec r10;
-   imul r10, -8;
+   dec r8;
+   imul r8, -8;
 
    lea rax, dOffset;
    {$IFDEF FPC}vbroadcastsd ymm3, [rax];{$ELSE}db $C4,$E2,$7D,$19,$18;{$ENDIF} 
@@ -388,14 +381,13 @@ asm
    {$IFDEF FPC}vbroadcastsd ymm1, [rax];{$ELSE}db $C4,$E2,$7D,$19,$08;{$ENDIF} 
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub rcx, r10;
+   sub rcx, r8;
 
    // for y := 0 to height - 1:
-   mov r11, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
-       mov rax, r10;
+       mov rax, r8;
        @addforxloop:
            add rax, 128;
            jg @loopEnd;
@@ -453,7 +445,7 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
 
    // epilog
@@ -485,8 +477,7 @@ asm
    // prolog - simulate stack
 
    //iters := -width*sizeof(double);
-   mov r10, width;
-   imul r10, -8;
+   imul r8, -8;
 
    lea rax, dOffset;
    {$IFDEF FPC}vbroadcastsd ymm3, [rax];{$ELSE}db $C4,$E2,$7D,$19,$18;{$ENDIF} 
@@ -494,14 +485,13 @@ asm
    {$IFDEF FPC}vbroadcastsd ymm1, [rax];{$ELSE}db $C4,$E2,$7D,$19,$08;{$ENDIF} 
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub rcx, r10;
+   sub rcx, r8;
 
    // for y := 0 to height - 1:
-   mov r11, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
-       mov rax, r10;
+       mov rax, r8;
        @addforxloop:
            add rax, 128;
            jg @loopEnd;
@@ -553,7 +543,7 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
 
    // epilog
@@ -584,8 +574,7 @@ asm
    // prolog - simulate stack
 
    //iters := -width*sizeof(double);
-   mov r10, width;
-   imul r10, -8;
+   imul r8, -8;
 
    lea rax, dOffset;
    {$IFDEF FPC}vbroadcastsd ymm3, [rax];{$ELSE}db $C4,$E2,$7D,$19,$18;{$ENDIF} 
@@ -593,14 +582,13 @@ asm
    {$IFDEF FPC}vbroadcastsd ymm1, [rax];{$ELSE}db $C4,$E2,$7D,$19,$08;{$ENDIF} 
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub rcx, r10;
+   sub rcx, r8;
 
    // for y := 0 to height - 1:
-   mov r11, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
-       mov rax, r10;
+       mov rax, r8;
        @addforxloop:
            add rax, 128;
            jg @loopEnd;
@@ -652,7 +640,7 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
 
    // epilog
@@ -683,9 +671,8 @@ asm
    // prolog - simulate stack
 
    //iters := -width*sizeof(double);
-   mov r10, width;
-   dec r10;
-   imul r10, -8;
+   dec r8;
+   imul r8, -8;
 
    lea rax, dOffset;
    {$IFDEF FPC}vbroadcastsd ymm3, [rax];{$ELSE}db $C4,$E2,$7D,$19,$18;{$ENDIF} 
@@ -693,14 +680,13 @@ asm
    {$IFDEF FPC}vbroadcastsd ymm1, [rax];{$ELSE}db $C4,$E2,$7D,$19,$08;{$ENDIF} 
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub rcx, r10;
+   sub rcx, r8;
 
    // for y := 0 to height - 1:
-   mov r11, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
-       mov rax, r10;
+       mov rax, r8;
        @addforxloop:
            add rax, 128;
            jg @loopEnd;
@@ -759,7 +745,7 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
 
    // epilog
@@ -790,9 +776,8 @@ asm
    // prolog - simulate stack
 
    //iters := -width*sizeof(double);
-   mov r10, width;
-   dec r10;
-   imul r10, -8;
+   dec r8;
+   imul r8, -8;
 
    lea rax, dOffset;
    {$IFDEF FPC}vbroadcastsd ymm3, [rax];{$ELSE}db $C4,$E2,$7D,$19,$18;{$ENDIF} 
@@ -800,14 +785,13 @@ asm
    {$IFDEF FPC}vbroadcastsd ymm1, [rax];{$ELSE}db $C4,$E2,$7D,$19,$08;{$ENDIF} 
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub rcx, r10;
+   sub rcx, r8;
 
    // for y := 0 to height - 1:
-   mov r11, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
-       mov rax, r10;
+       mov rax, r8;
        @addforxloop:
            add rax, 128;
            jg @loopEnd;
@@ -865,7 +849,7 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
 
    // epilog

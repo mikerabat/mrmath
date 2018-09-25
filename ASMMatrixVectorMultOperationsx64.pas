@@ -94,8 +94,13 @@ asm
 
 
    // for the final multiplication
+   {$IFDEF UNIX}
+   movsd xmm6, alpha;
+   movlhps xmm6, beta;
+   {$ELSE}
    movhpd xmm6, beta;
    movlpd xmm6, alpha;
+   {$ENDIF}
 
    // prepare for loop
    mov rsi, LineWidthMT;
@@ -271,8 +276,13 @@ asm
    movupd dXMM6, xmm6;
 
    // for the final multiplication
+   {$IFDEF UNIX}
+   movsd xmm6, alpha;
+   movlhps xmm6, beta;
+   {$ELSE}
    movhpd xmm6, beta;
    movlpd xmm6, alpha;
+   {$ENDIF}
 
    // prepare for loop
    mov rsi, LineWidthMT;
@@ -450,8 +460,13 @@ asm
    movupd dXMM6, xmm6;
 
    // for the final multiplication
+   {$IFDEF UNIX}
+   movsd xmm6, alpha;
+   movlhps xmm6, beta;
+   {$ELSE}
    movhpd xmm6, beta;
    movlpd xmm6, alpha;
+   {$ENDIF}
 
    // prepare for loop
    mov rsi, LineWidthMT;
@@ -510,7 +525,7 @@ asm
        mulpd xmm0, xmm6;               // beta * dest + alpha*xmm0
        haddpd xmm0, xmm0;              // final add
        movsd [rcx], xmm0;              // store back
-       add rcx, destLineWidth;
+       add rcx, rdx;
        add r8, rsi;
 
        movsd xmm5, [rcx];
@@ -518,7 +533,7 @@ asm
        mulpd xmm1, xmm6;
        haddpd xmm1, xmm1;
        movsd [rcx], xmm1;
-       add rcx, destLineWidth;
+       add rcx, rdx;
        add r8, rsi;
 
        movsd xmm5, [rcx];
@@ -526,7 +541,7 @@ asm
        mulpd xmm2, xmm6;
        haddpd xmm2, xmm2;
        movsd [rcx], xmm2;
-       add rcx, destLineWidth;
+       add rcx, rdx;
        add r8, rsi;
 
        movsd xmm5, [rcx];
@@ -534,7 +549,7 @@ asm
        mulpd xmm3, xmm6;
        haddpd xmm3, xmm3;
        movsd [rcx], xmm3;
-       add rcx, destLineWidth;
+       add rcx, rdx;
        add r8, rsi;
 
        // next rseult
@@ -574,7 +589,7 @@ asm
        haddpd xmm0, xmm0;
        movsd [rcx], xmm0;
 
-       add rcx, destLineWidth;
+       add rcx, rdx;
        add r8, rsi;
 
    dec r13;
@@ -629,8 +644,13 @@ asm
    movupd dXMM6, xmm6;
 
    // for the final multiplication
+   {$IFDEF UNIX}
+   movsd xmm6, alpha;
+   movlhps xmm6, beta;
+   {$ELSE}
    movhpd xmm6, beta;
    movlpd xmm6, alpha;
+   {$ENDIF}
 
    // prepare for loop
    mov rsi, LineWidthMT;
@@ -714,7 +734,7 @@ asm
        mulpd xmm0, xmm6;               // beta * dest + alpha*xmm0
        haddpd xmm0, xmm0;              // final add
        movsd [rcx], xmm0;              // store back
-       add rcx, destLineWidth;
+       add rcx, rdx;
        add r8, rsi;
 
        movsd xmm5, [rcx];
@@ -722,7 +742,7 @@ asm
        mulpd xmm1, xmm6;
        haddpd xmm1, xmm1;
        movsd [rcx], xmm1;
-       add rcx, destLineWidth;
+       add rcx, rdx;
        add r8, rsi;
 
        movsd xmm5, [rcx];
@@ -730,7 +750,7 @@ asm
        mulpd xmm2, xmm6;
        haddpd xmm2, xmm2;
        movsd [rcx], xmm2;
-       add rcx, destLineWidth;
+       add rcx, rdx;
        add r8, rsi;
 
        movsd xmm5, [rcx];
@@ -738,7 +758,7 @@ asm
        mulpd xmm3, xmm6;
        haddpd xmm3, xmm3;
        movsd [rcx], xmm3;
-       add rcx, destLineWidth;
+       add rcx, rdx;
        add r8, rsi;
 
        // next rseult
@@ -785,7 +805,7 @@ asm
        haddpd xmm0, xmm0;
        movsd [rcx], xmm0;
 
-       add rcx, destLineWidth;
+       add rcx, rdx;
        add r8, rsi;
 
    dec r13;
@@ -1170,8 +1190,13 @@ asm
    movupd dXMM6, xmm6;
 
    // for the final multiplication
+   {$IFDEF UNIX}
+   movsd xmm6, alpha;
+   movlhps xmm6, beta;
+   {$ELSE}
    movhpd xmm6, beta;
    movlpd xmm6, alpha;
+   {$ENDIF}
 
    // prepare for loop
    mov rsi, LineWidthMT;
@@ -1213,7 +1238,7 @@ asm
        movsd [rcx], xmm3;
 
        // next results:
-       add rcx, destLineWidth;   // next dest element
+       add rcx, rdx;   // next dest element
        add r8, 8;                // next mt1 element
    dec r14;
    jnz @@forxloop;
@@ -1508,7 +1533,7 @@ asm
    movupd xmm4, dXMM4;
    movupd xmm6, dXMM6;
    movupd xmm7, dXMM7;
-   end;
+end;
 
 
 procedure ASMRank1UpdateSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
@@ -1539,7 +1564,7 @@ asm
    mov iR13, r13;
    mov iR14, r14;
 
-   mov r12, width;
+   mov r12, r8;
    sar r12, 1;   // width div 2
 
    // performs A = A + alpha*X*Y' in row major form
@@ -1643,7 +1668,7 @@ asm
    mov iR13, r13;
    mov iR14, r14;
 
-   mov r12, width;
+   mov r12, r8;
    sar r12, 1;   // width div 2
 
    // performs A = A + alpha*X*Y' in row major form

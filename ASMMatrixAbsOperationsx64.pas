@@ -59,21 +59,18 @@ asm
 
    // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    //iters := -width*sizeof(double);
-   mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r8, -8;
 
    // helper registers for the dest pointer
-   sub rcx, r10;
+   sub rcx, r8;
 
    movupd xmm0, [rip + cSignBits];
 
    // for y := 0 to height - 1:
-   mov r11, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
-       mov rax, r10;
+       mov rax, r8;
        @addforxloop:
            add rax, 128;
            jg @loopEnd;
@@ -134,7 +131,7 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
 end;
 
@@ -153,21 +150,18 @@ asm
 
    // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    //iters := -width*sizeof(double);
-   mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r8, -8;
 
    // helper registers for the dest pointer
-   sub rcx, r10;
+   sub rcx, r8;
 
    movupd xmm0, [rip + cSignBits];
 
    // for y := 0 to height - 1:
-   mov r11, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
-       mov rax, r10;
+       mov rax, r8;
        @addforxloop:
            add rax, 128;
            jg @loopEnd;
@@ -226,7 +220,7 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
 end;
 
@@ -245,22 +239,19 @@ asm
 
    // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    //iters := -(width - 1)*sizeof(double);
-   mov r10, width;
-   dec r10;
-   shl r10, 3;
-   imul r10, -1;
+   dec r8;
+   imul r8, -8;
 
    // helper registers for the dest pointer
-   sub rcx, r10;
+   sub rcx, r8;
 
    movupd xmm0, [rip + cSignBits];
 
    // for y := 0 to height - 1:
-   mov r11, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
-       mov rax, r10;
+       mov rax, r8;
        @addforxloop:
            add rax, 128;
            jg @loopEnd;
@@ -327,7 +318,7 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
 end;
 
@@ -346,22 +337,19 @@ asm
 
    // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    //iters := -(width-1)*sizeof(double);
-   mov r10, width;
-   dec r10;
-   shl r10, 3;
-   imul r10, -1;
+   dec r8;
+   imul r8, -8;
 
    // helper registers for the dest pointer
-   sub rcx, r10;
+   sub rcx, r8;
 
    movupd xmm0, [rip + cSignBits];
 
    // for y := 0 to height - 1:
-   mov r11, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
-       mov rax, r10;
+       mov rax, r8;
        @addforxloop:
            add rax, 128;
            jg @loopEnd;
@@ -425,7 +413,7 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
 end;
 

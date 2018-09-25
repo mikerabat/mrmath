@@ -72,19 +72,17 @@ asm
    movupd dXMM7, xmm7;
 
    //iters := -width*sizeof(double);
-   mov r10, width;
-   imul r10, -8;
+   imul r8, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub rcx, r10;
+   sub rcx, r8;
 
    xorpd xmm0, xmm0;
 
-   mov r11, r9
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
-       mov rax, r10;
+       mov rax, r8;
        @addforxloop:
            add rax, 128;
            jg @loopEnd;
@@ -145,7 +143,7 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
 
    // build result
@@ -177,20 +175,17 @@ asm
    movupd dXMM7, xmm7;
 
    //iters := -width*sizeof(double);
-   mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r8, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub rcx, r10;
+   sub rcx, r8;
 
    xorpd xmm0, xmm0;
 
-   mov r11, r9
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
-       mov rax, r10;
+       mov rax, r8;
        @addforxloop:
            add rax, 128;
            jg @loopEnd;
@@ -248,7 +243,7 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
 
    // build result
@@ -281,21 +276,18 @@ asm
    movupd dXMM7, xmm7;
 
    //iters := -(width - 1)*sizeof(double);
-   mov r10, width;
-   dec r10;
-   shl r10, 3;
-   imul r10, -1;
+   dec r8;
+   imul r8, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub rcx, r10;
+   sub rcx, r8;
 
    xorpd xmm0, xmm0;
 
-   mov r11, r9
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
-       mov rax, r10;
+       mov rax, r8;
        @addforxloop:
            add rax, 128;
            jg @loopEnd;
@@ -360,7 +352,7 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
 
    // build result
@@ -392,21 +384,18 @@ asm
    movupd dXMM7, xmm7;
 
    //iters := -width*sizeof(double);
-   mov r10, width;
-   dec r10;
-   shl r10, 3;
-   imul r10, -1;
+   dec r8;
+   imul r8, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub rcx, r10;
+   sub rcx, r8;
 
    xorpd xmm0, xmm0;
 
-   mov r11, r9
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
-       mov rax, r10;
+       mov rax, r8;
        @addforxloop:
            add rax, 128;
            jg @loopEnd;
@@ -469,7 +458,7 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
 
    // build result
@@ -508,8 +497,7 @@ asm
 
    //iters := -width*sizeof(double);
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub rcx, r10;
@@ -579,9 +567,9 @@ asm
        @buildResult:
 
        // build result
-   				movhlps xmm1, xmm0;
-   				addsd xmm0, xmm1;
-   				sqrtsd xmm0, xmm0;
+       movhlps xmm1, xmm0;
+       addsd xmm0, xmm1;
+       sqrtsd xmm0, xmm0;
 
        movsd xmm1, [rip + cOne];
        divsd xmm1, xmm0;
@@ -593,10 +581,6 @@ asm
        @addforxloop3:
            add rax, 128;
            jg @loopEnd2;
-
-           // prefetch data...
-           // prefetch [r8 + rax];
-           // prefetchw [rcx + rax];
 
            // mult:
            movapd xmm7, [r8 + rax - 128];
@@ -687,8 +671,7 @@ asm
 
    //iters := -width*sizeof(double);
    mov r10, width;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub rcx, r10;
@@ -861,8 +844,7 @@ asm
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
    dec r10;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub rcx, r10;
@@ -1051,8 +1033,7 @@ asm
    //iters := -(width - 1)*sizeof(double);
    mov r10, width;
    dec r10;
-   shl r10, 3;
-   imul r10, -1;
+   imul r10, -8;
 
    // helper registers for the mt1, mt2 and dest pointers
    sub rcx, r10;
@@ -1124,9 +1105,9 @@ asm
        addsd xmm0, xmm7;
 
        // build result
-   				movhlps xmm1, xmm0;
-   				addsd xmm0, xmm1;
-   				sqrtsd xmm0, xmm0;
+       movhlps xmm1, xmm0;
+       addsd xmm0, xmm1;
+       sqrtsd xmm0, xmm0;
 
        movsd xmm1, [rip + cOne];
        divsd xmm1, xmm0;
@@ -1233,11 +1214,11 @@ asm
 
    // iter := width*srcLineWidth
    mov r10, height;
-   imul r10, srcLineWidth;
+   imul r10, r9;
 
    // iters2 := height*destLineWidth;
    mov r11, height;
-   imul r11, destLineWidth;
+   imul r11, rdx;
 
    //note: FPC does not like that syntax sub dest, destLineWidth;
    sub rcx, rdx;
@@ -1318,11 +1299,11 @@ asm
 
    // iter := width*srcLineWidth
    mov r10, height;
-   imul r10, srcLineWidth;
+   imul r10, r9;
 
    // iters2 := height*destLineWidth;
    mov r11, height;
-   imul r11, destLineWidth;
+   imul r11, rdx;
 
    //note: FPC does not like that syntax sub dest, destLineWidth;
    sub rcx, rdx;
@@ -1404,11 +1385,11 @@ asm
 
    // iter := width*srcLineWidth
    mov r10, height;
-   imul r10, srcLineWidth;
+   imul r10, r9;
 
    // iters2 := height*destLineWidth;
    mov r11, height;
-   imul r11, destLineWidth;
+   imul r11, rdx;
 
    //note: FPC does not like that syntax sub dest, destLineWidth;
    sub rcx, rdx;
@@ -1523,11 +1504,11 @@ asm
 
    // iter := width*srcLineWidth
    mov r10, height;
-   imul r10, srcLineWidth;
+   imul r10, r9;
 
    // iters2 := height*destLineWidth;
    mov r11, height;
-   imul r11, destLineWidth;
+   imul r11, rdx;
 
    //note: FPC does not like that syntax sub dest, destLineWidth;
    sub rcx, rdx;
