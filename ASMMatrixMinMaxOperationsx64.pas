@@ -47,6 +47,9 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
+const cLocNegMaxDoubles : Array[0..1] of double = (-1.7e+308, -1.7e+308);
+      cLocMaxDoubles : Array[0..1] of double = (1.7e+308, 1.7e+308);
+
 function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
 asm
    {$IFDEF UNIX}
@@ -67,7 +70,7 @@ asm
    sub rcx, rdx;
 
 	  // init result
-   movupd xmm0, [rip + cNegMaxDoubles];
+   movupd xmm0, [rip + cLocNegMaxDoubles];
    movapd xmm1, xmm0;
    movapd xmm2, xmm0;
    movapd xmm3, xmm0;
@@ -146,7 +149,7 @@ asm
    sub rcx, rdx;
 
 	  // init result
-   movupd xmm0, [rip + cNegMaxDoubles];
+   movupd xmm0, [rip + cLocNegMaxDoubles];
    movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:
@@ -228,7 +231,7 @@ asm
    sub rcx, rdx;
 
    // init result
-   movupd xmm0, [rip + cNegMaxDoubles];
+   movupd xmm0, [rip + cLocNegMaxDoubles];
    movapd xmm1, xmm0;
    movapd xmm2, xmm0;
    movapd xmm3, xmm0;
@@ -311,7 +314,7 @@ asm
    sub rcx, rdx;
 
    // init result
-   movupd xmm0, [rip + cNegMaxDoubles];
+   movupd xmm0, [rip + cLocNegMaxDoubles];
    movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:
@@ -396,7 +399,7 @@ asm
    sub rcx, rdx;
 
 	  // init result
-   movupd xmm0, [rip + cMaxDoubles];
+   movupd xmm0, [rip + cLocMaxDoubles];
    movapd xmm1, xmm0;
    movapd xmm2, xmm0;
    movapd xmm3, xmm0;
@@ -474,7 +477,7 @@ asm
    sub rcx, rdx;
 
 	  // init result
-   movupd xmm0, [rip + cMaxDoubles];
+   movupd xmm0, [rip + cLocMaxDoubles];
    movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:
@@ -556,7 +559,7 @@ asm
    sub rcx, rdx;
 
    // init result
-   movupd xmm0, [rip + cMaxDoubles];
+   movupd xmm0, [rip + cLocMaxDoubles];
    movapd xmm1, xmm0;
    movapd xmm2, xmm0;
    movapd xmm3, xmm0;
@@ -639,7 +642,7 @@ asm
    sub rcx, rdx;
 
 	  // init result
-   movupd xmm0, [rip + cMaxDoubles];
+   movupd xmm0, [rip + cLocMaxDoubles];
    movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:

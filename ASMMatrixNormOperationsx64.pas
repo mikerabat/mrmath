@@ -52,6 +52,8 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
+const cLocOnes : Array[0..1] of double = (1, 1);
+
 function ASMMatrixElementwiseNorm2AlignedEvenW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM4, dXMM7 : Array[0..1] of double;
 asm
@@ -571,7 +573,7 @@ asm
        addsd xmm0, xmm1;
        sqrtsd xmm0, xmm0;
 
-       movsd xmm1, [rip + cOne];
+       movsd xmm1, [rip + cLocOnes];
        divsd xmm1, xmm0;
 
        movddup xmm2, xmm1;
@@ -742,7 +744,7 @@ asm
        addsd xmm0, xmm1;
        sqrtsd xmm0, xmm0;
 
-       movsd xmm1, [rip + cOne];
+       movsd xmm1, [rip + cLocOnes];
        divsd xmm1, xmm0;
 
        movddup xmm2, xmm1;
@@ -923,7 +925,7 @@ asm
        addsd xmm0, xmm1;
        sqrtsd xmm0, xmm0;
 
-       movsd xmm1, [rip + cOne];
+       movsd xmm1, [rip + cLocOnes];
        divsd xmm1, xmm0;
 
        movddup xmm4, xmm1;
@@ -1109,7 +1111,7 @@ asm
        addsd xmm0, xmm1;
        sqrtsd xmm0, xmm0;
 
-       movsd xmm1, [rip + cOne];
+       movsd xmm1, [rip + cLocOnes];
        divsd xmm1, xmm0;
 
        movddup xmm4, xmm1;
@@ -1242,7 +1244,7 @@ asm
 
        // build result
        sqrtpd xmm2, xmm2;
-       movddup xmm3, [rip + cOne];
+       movddup xmm3, [rip + cLocOnes];
        divpd xmm3, xmm2;
 
        // multiply the result and build the result
@@ -1327,7 +1329,7 @@ asm
 
        // build result
        sqrtpd xmm2, xmm2;
-       movddup xmm3, [rip + cOne];
+       movddup xmm3, [rip + cLocOnes];
        divpd xmm3, xmm2;
 
        // multiply the result and build the result
@@ -1414,7 +1416,7 @@ asm
 
        // build result
        sqrtpd xmm2, xmm2;
-       movddup xmm3, [rip + cOne];
+       movddup xmm3, [rip + cLocOnes];
        divpd xmm3, xmm2;
 
        // multiply the result and build the result
@@ -1455,7 +1457,7 @@ asm
 
    // build result
    sqrtsd xmm2, xmm2;
-   movsd xmm3, [rip + cOne];
+   movsd xmm3, [rip + cLocOnes];
    divsd xmm3, xmm2;
 
    // multiply the result and build the result
@@ -1533,7 +1535,7 @@ asm
 
        // build result
        sqrtpd xmm2, xmm2;
-       movddup xmm3, [rip + cOne];
+       movddup xmm3, [rip + cLocOnes];
        divpd xmm3, xmm2;
 
        // multiply the result and build the result
@@ -1574,7 +1576,7 @@ asm
 
    // build result
    sqrtsd xmm2, xmm2;
-   movsd xmm3, [rip + cOne];
+   movsd xmm3, [rip + cLocOnes];
    divsd xmm3, xmm2;
 
    // multiply the result and build the result

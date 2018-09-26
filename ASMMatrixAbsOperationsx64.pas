@@ -44,6 +44,8 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
+const cLocSignBits : Array[0..1] of int64 = ($7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF);
+
 procedure ASMMatrixAbsAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 asm
    {$IFDEF UNIX}
@@ -64,7 +66,7 @@ asm
    // helper registers for the dest pointer
    sub rcx, r8;
 
-   movupd xmm0, [rip + cSignBits];
+   movupd xmm0, [rip + cLocSignBits];
 
    // for y := 0 to height - 1:
    @@addforyloop:
@@ -155,7 +157,7 @@ asm
    // helper registers for the dest pointer
    sub rcx, r8;
 
-   movupd xmm0, [rip + cSignBits];
+   movupd xmm0, [rip + cLocSignBits];
 
    // for y := 0 to height - 1:
    @@addforyloop:
@@ -245,7 +247,7 @@ asm
    // helper registers for the dest pointer
    sub rcx, r8;
 
-   movupd xmm0, [rip + cSignBits];
+   movupd xmm0, [rip + cLocSignBits];
 
    // for y := 0 to height - 1:
    @@addforyloop:
@@ -343,7 +345,7 @@ asm
    // helper registers for the dest pointer
    sub rcx, r8;
 
-   movupd xmm0, [rip + cSignBits];
+   movupd xmm0, [rip + cLocSignBits];
 
    // for y := 0 to height - 1:
    @@addforyloop:

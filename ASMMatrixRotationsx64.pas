@@ -45,6 +45,10 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
+const cLocOne : double = 1;
+      cLocMinusOne : double = -1;
+      cLocMulM1Bits : Array[0..1] of Int64 = ($8000000000000000, $0);
+
 // rcx = width, rdx = height, r8 : A, r9 = LineWidthA
 procedure ASMApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX, iRDI : TASMNativeInt;
@@ -110,7 +114,7 @@ asm
    mov r11, r8;   // A[y][x]
    sub r11, r9;
 
-   movsd xmm7, [rip + cOne];
+   movsd xmm7, [rip + cLocOne];
    xorpd xmm6, xmm6;  // haddpd zero extend
 
    @@foryloop:
@@ -274,7 +278,7 @@ asm
    mov r11, r8;   // A[y][x]
    add r11, r9;
 
-   movsd xmm7, [rip + cOne];
+   movsd xmm7, [rip + cLocOne];
    xorpd xmm6, xmm6;  // haddpd zero extend
 
    @@foryloop:
@@ -427,7 +431,7 @@ asm
    mov rax, c;
    mov rbx, s;
 
-   movupd xmm7, [rip + cMulM1Bits];
+   movupd xmm7, [rip + cLocMulM1Bits];
 
    @@foryloop:
 
@@ -525,7 +529,7 @@ asm
    sub rbx, rcx;
    sub r8, rcx;
 
-   movupd xmm7, [rip + cMulM1Bits];
+   movupd xmm7, [rip + cLocMulM1Bits];
 
    @@foryloop:
 
@@ -607,7 +611,7 @@ asm
    // init
    mov rax, s;
    movsd xmm2, [rax];
-   mulsd xmm2, [rip + cMinusOne];
+   mulsd xmm2, [rip + cLocMinusOne];
 
    movddup xmm0, xmm2;
    movddup xmm1, [r9];
@@ -715,7 +719,7 @@ asm
 
    mov rax, s;
    movsd xmm2, [rax];
-   mulsd xmm2, [rip + cMinusOne];
+   mulsd xmm2, [rip + cLocMinusOne];
 
    movddup xmm0, xmm2;
    mov rax, C;

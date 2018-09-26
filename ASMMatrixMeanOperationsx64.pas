@@ -67,6 +67,8 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
+const cLocOnes : Array[0..1] of double = (1, 1);
+
 
 procedure ASMMatrixMeanRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM5 : Array[0..1] of double;
@@ -990,8 +992,8 @@ asm
 
        movsd xmm4, xmm5;
 
-       subsd xmm4, [rip + cOne];
-       maxsd xmm4, [rip + cOne];
+       subsd xmm4, [rip + cLocOnes];
+       maxsd xmm4, [rip + cLocOnes];
 
        divsd xmm0, xmm4;
 
@@ -1195,8 +1197,8 @@ asm
        jz @@dobiased;
 
        movsd xmm4, xmm5;
-       subsd xmm4, [rip + cOne];
-       maxsd xmm4, [rip + cOne];
+       subsd xmm4, [rip + cLocOnes];
+       maxsd xmm4, [rip + cLocOnes];
 
        divsd xmm0, xmm4;
 
@@ -1402,8 +1404,8 @@ asm
        jz @@dobiased;
 
        movsd xmm4, xmm5;
-       subsd xmm4, [rip + cOne];
-       maxsd xmm4, [rip + cOne];
+       subsd xmm4, [rip + cLocOnes];
+       maxsd xmm4, [rip + cLocOnes];
 
        divsd xmm0, xmm4;
 
@@ -1618,8 +1620,8 @@ asm
        jz @@dobiased;
 
        movsd xmm4, xmm5;
-       subsd xmm4, [rip + cOne];
-       maxsd xmm4, [rip + cOne];
+       subsd xmm4, [rip + cLocOnes];
+       maxsd xmm4, [rip + cLocOnes];
 
        divsd xmm0, xmm4;
 
@@ -1673,7 +1675,7 @@ asm
    sub r8, r10;
 
    // according to microsoft the xmm5 does not need to be saved (volatile!)
-   movupd xmm5, [rip + cOnes];
+   movupd xmm5, [rip + cLocOnes];
 
    // fpc seems to have a problem with this opcode
    {$IFDEF FPC}
@@ -1769,7 +1771,7 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
-   movupd xmm5, [rip + cOnes];
+   movupd xmm5, [rip + cLocOnes];
    // fpc seems to have a problem with this opcode
    {$IFDEF FPC}
    mov rax, height;
@@ -1865,7 +1867,7 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
-   movupd xmm5, [rip + cOnes];
+   movupd xmm5, [rip + cLocOnes];
    // fpc seems to have a problem with this opcode
    {$IFDEF FPC}
    mov rax, height;
@@ -1968,8 +1970,8 @@ asm
    jz @@dobiased2;
 
    movapd xmm1, xmm2;
-   subsd xmm1, [rip + cOne];
-   maxsd xmm1, [rip + cOne];
+   subsd xmm1, [rip + cLocOnes];
+   maxsd xmm1, [rip + cLocOnes];
 
    divsd xmm4, xmm1;
 
@@ -2010,7 +2012,7 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
-   movupd xmm5, [rip + cOnes];
+   movupd xmm5, [rip + cLocOnes];
    // fpc seems to have a problem with this opcode
    {$IFDEF FPC}
    mov rax, height;
@@ -2114,8 +2116,8 @@ asm
    jz @@dobiased2;
 
    movapd xmm1, xmm2;
-   subsd xmm1, [rip + cOne];
-   maxsd xmm1, [rip + cOne];
+   subsd xmm1, [rip + cLocOnes];
+   maxsd xmm1, [rip + cLocOnes];
 
    divsd xmm4, xmm1;
 
@@ -2306,8 +2308,8 @@ asm
 
        movsd xmm4, xmm5;
 
-       subsd xmm4, [rip + cOne];
-       maxsd xmm4, [rip + cOne];
+       subsd xmm4, [rip + cLocOnes];
+       maxsd xmm4, [rip + cLocOnes];
 
        divsd xmm0, xmm4;
 
@@ -2512,8 +2514,8 @@ asm
        jz @@dobiased;
 
        movsd xmm4, xmm5;
-       subsd xmm4, [rip + cOne];
-       maxsd xmm4, [rip + cOne];
+       subsd xmm4, [rip + cLocOnes];
+       maxsd xmm4, [rip + cLocOnes];
 
        divsd xmm0, xmm4;
 
@@ -2720,8 +2722,8 @@ asm
        jz @@dobiased;
 
        movsd xmm4, xmm5;
-       subsd xmm4, [rip + cOne];
-       maxsd xmm4, [rip + cOne];
+       subsd xmm4, [rip + cLocOnes];
+       maxsd xmm4, [rip + cLocOnes];
 
        divsd xmm0, xmm4;
 
@@ -2937,8 +2939,8 @@ asm
        jz @@dobiased;
 
        movsd xmm4, xmm5;
-       subsd xmm4, [rip + cOne];
-       maxsd xmm4, [rip + cOne];
+       subsd xmm4, [rip + cLocOnes];
+       maxsd xmm4, [rip + cLocOnes];
 
        divsd xmm0, xmm4;
 
@@ -2992,7 +2994,7 @@ asm
    sub r8, r10;
 
    // according to microsoft the xmm5 does not need to be saved (volatile!)
-   movupd xmm5, [rip + cOnes];
+   movupd xmm5, [rip + cLocOnes];
 
    // fpc seems to have a problem with this opcode
    {$IFDEF FPC}
@@ -3089,7 +3091,7 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
-   movupd xmm5, [rip + cOnes];
+   movupd xmm5, [rip + cLocOnes];
    // fpc seems to have a problem with this opcode
    {$IFDEF FPC}
    mov rax, height;
@@ -3186,7 +3188,7 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
-   movupd xmm5, [rip + cOnes];
+   movupd xmm5, [rip + cLocOnes];
    // fpc seems to have a problem with this opcode
    {$IFDEF FPC}
    mov rax, height;
@@ -3291,8 +3293,8 @@ asm
    jz @@dobiased2;
 
    movapd xmm1, xmm2;
-   subsd xmm1, [rip + cOne];
-   maxsd xmm1, [rip + cOne];
+   subsd xmm1, [rip + cLocOnes];
+   maxsd xmm1, [rip + cLocOnes];
 
    divsd xmm4, xmm1;
 
@@ -3333,7 +3335,7 @@ asm
    // helper registers for the mt1, mt2 and dest pointers
    sub r8, r10;
 
-   movupd xmm5, [rip + cOnes];
+   movupd xmm5, [rip + cLocOnes];
    // fpc seems to have a problem with this opcode
    {$IFDEF FPC}
    mov rax, height;
@@ -3439,8 +3441,8 @@ asm
    jz @@dobiased2;
 
    movapd xmm1, xmm2;
-   subsd xmm1, [rip + cOne];
-   maxsd xmm1, [rip + cOne];
+   subsd xmm1, [rip + cLocOnes];
+   maxsd xmm1, [rip + cLocOnes];
 
    divsd xmm4, xmm1;
 
