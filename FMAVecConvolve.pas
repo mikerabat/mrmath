@@ -30,7 +30,7 @@ uses MatrixConst;
 // it's also assumed that memory before A is accessible for at least bLen elements
 // -> these elements are used for the convulution calculation
 // -> needs an aligned B and blen mod 2 needs to be zero
-procedure FMAVecConvolveRevB(dest : PDouble; A, B : PDouble; aLen, bLen : TASMNativeInt);
+procedure FMAVecConvolveRevB(dest : PDouble; A, B : PDouble; aLen, bLen : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -41,88 +41,83 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 procedure FMAVecConvolveRevB(dest : PDouble; A, B : PDouble; aLen, bLen : TASMNativeInt);
-var iter : integer;
-begin
-     assert(blen and $03 = 0, 'Error vector len needs to be dividable by 2');
-     assert( Cardinal(B) and $1F = 0, 'Need an aligned B');
+// eax = dest, edx = A, ecx = B
+asm
+   push ebx;
+   push esi;
+   push edi;
 
-     iter := -bLen*sizeof(double);
-     asm
-        push ebx;
-        push esi;
+   mov esi, bLen;
+   imul esi, -8;
 
-        mov edx, dest;
-        mov ecx, A;
-        add ecx, 8;
-        mov ebx, B;
-        sub ebx, iter;
+   add edx, 8;
+   sub ecx, esi;
 
-        mov esi, aLen;
-
-        // one element convolution
-        @@forxloop:
-           mov eax, iter;
+   // one element convolution
+   @@forxloop:
+      mov edi, esi;
 
            {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;{$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} 
 
-           // unrolled part
-           @@innerLoopUnrolled:
-              add eax, 128;
-              jg @@innerLoopStart;
+      // unrolled part
+      @@innerLoopUnrolled:
+         add edi, 128;
+         jg @@innerLoopStart;
 
-              {$IFDEF FPC}vmovupd ymm1, [ecx + eax - 128];{$ELSE}db $C5,$FD,$10,$4C,$01,$80;{$ENDIF} 
-              {$IFDEF FPC}vmovapd ymm2, [ebx + eax - 128];{$ELSE}db $C5,$FD,$28,$54,$03,$80;{$ENDIF} 
+         {$IFDEF FPC}vmovupd ymm1, [edx + edi - 128];{$ELSE}db $C5,$FD,$10,$4C,$3A,$80;{$ENDIF} 
+         {$IFDEF FPC}vmovapd ymm2, [ecx + edi - 128];{$ELSE}db $C5,$FD,$28,$54,$39,$80;{$ENDIF} 
 
               {$IFDEF FPC}vfmadd231pd ymm0, ymm1, ymm2;{$ELSE}db $C4,$E2,$F5,$B8,$C2;{$ENDIF} 
 
-              {$IFDEF FPC}vmovupd ymm3, [ecx + eax - 96];{$ELSE}db $C5,$FD,$10,$5C,$01,$A0;{$ENDIF} 
-              {$IFDEF FPC}vmovapd ymm4, [ebx + eax - 96];{$ELSE}db $C5,$FD,$28,$64,$03,$A0;{$ENDIF} 
+         {$IFDEF FPC}vmovupd ymm3, [edx + edi - 96];{$ELSE}db $C5,$FD,$10,$5C,$3A,$A0;{$ENDIF} 
+         {$IFDEF FPC}vmovapd ymm4, [ecx + edi - 96];{$ELSE}db $C5,$FD,$28,$64,$39,$A0;{$ENDIF} 
 
               {$IFDEF FPC}vfmadd231pd ymm0, ymm3, ymm4;{$ELSE}db $C4,$E2,$E5,$B8,$C4;{$ENDIF} 
 
-              {$IFDEF FPC}vmovupd ymm1, [ecx + eax - 64];{$ELSE}db $C5,$FD,$10,$4C,$01,$C0;{$ENDIF} 
-              {$IFDEF FPC}vmovapd ymm2, [ebx + eax - 64];{$ELSE}db $C5,$FD,$28,$54,$03,$C0;{$ENDIF} 
+
+         {$IFDEF FPC}vmovupd ymm1, [edx + edi - 64];{$ELSE}db $C5,$FD,$10,$4C,$3A,$C0;{$ENDIF} 
+         {$IFDEF FPC}vmovapd ymm2, [ecx + edi - 64];{$ELSE}db $C5,$FD,$28,$54,$39,$C0;{$ENDIF} 
 
               {$IFDEF FPC}vfmadd231pd ymm0, ymm1, ymm2;{$ELSE}db $C4,$E2,$F5,$B8,$C2;{$ENDIF} 
 
-              {$IFDEF FPC}vmovupd ymm3, [ecx + eax - 32];{$ELSE}db $C5,$FD,$10,$5C,$01,$E0;{$ENDIF} 
-              {$IFDEF FPC}vmovapd ymm4, [ebx + eax - 32];{$ELSE}db $C5,$FD,$28,$64,$03,$E0;{$ENDIF} 
+         {$IFDEF FPC}vmovupd ymm3, [edx + edi - 32];{$ELSE}db $C5,$FD,$10,$5C,$3A,$E0;{$ENDIF} 
+         {$IFDEF FPC}vmovapd ymm4, [ecx + edi - 32];{$ELSE}db $C5,$FD,$28,$64,$39,$E0;{$ENDIF} 
 
               {$IFDEF FPC}vfmadd231pd ymm0, ymm3, ymm4;{$ELSE}db $C4,$E2,$E5,$B8,$C4;{$ENDIF} 
 
-           jmp @@innerLoopUnrolled;
+      jmp @@innerLoopUnrolled;
 
-           @@innerLoopStart:
-           sub eax, 128;
-           jz @@innerLoopEnd;
+      @@innerLoopStart:
+      sub edi, 128;
+      jz @@innerLoopEnd;
 
-           @@innerLoop:
-              {$IFDEF FPC}vmovupd ymm1, [ecx + eax];{$ELSE}db $C5,$FD,$10,$0C,$01;{$ENDIF} 
-              {$IFDEF FPC}vmovapd ymm2, [ebx + eax];{$ELSE}db $C5,$FD,$28,$14,$03;{$ENDIF} 
+      @@innerLoop:
+         {$IFDEF FPC}vmovupd ymm1, [edx + edi];{$ELSE}db $C5,$FD,$10,$0C,$3A;{$ENDIF} 
+         {$IFDEF FPC}vmovapd ymm2, [ecx + edi];{$ELSE}db $C5,$FD,$28,$14,$39;{$ENDIF} 
 
               {$IFDEF FPC}vfmadd231pd ymm0, ymm1, ymm2;{$ELSE}db $C4,$E2,$F5,$B8,$C2;{$ENDIF} 
-              add eax, 32;
-           jnz @@innerLoop;
+         add edi, 32;
+      jnz @@innerLoop;
 
-           @@innerLoopEnd:
+      @@innerLoopEnd:
 
-           {$IFDEF FPC}vextractf128 xmm1, ymm0, 1;{$ELSE}db $C4,$E3,$7D,$19,$C1,$01;{$ENDIF} 
-           {$IFDEF FPC}vaddpd xmm0, xmm0, xmm1;{$ELSE}db $C5,$F9,$58,$C1;{$ENDIF} 
-           {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$7C,$C0;{$ENDIF} 
-           {$IFDEF FPC}vmovsd [edx], xmm0;{$ELSE}db $C5,$FB,$11,$02;{$ENDIF} 
+      {$IFDEF FPC}vextractf128 xmm1, ymm0, 1;{$ELSE}db $C4,$E3,$7D,$19,$C1,$01;{$ENDIF} 
+      {$IFDEF FPC}vaddpd xmm0, xmm0, xmm1;{$ELSE}db $C5,$F9,$58,$C1;{$ENDIF} 
+      {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$7C,$C0;{$ENDIF} 
+      {$IFDEF FPC}vmovsd [eax], xmm0;{$ELSE}db $C5,$FB,$11,$00;{$ENDIF} 
 
-           // next element
-           add edx, 8;
-           add ecx, 8;
-        dec esi;
-        jnz @@forxloop;
+      // next element
+      add eax, 8;
+      add edx, 8;
+   dec aLen;
+   jnz @@forxloop;
 
-        // ########################################
-        // #### epilog
+   // ########################################
+   // #### epilog
         {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
-        pop esi;
-        pop ebx;
-     end;
+   pop edi;
+   pop esi;
+   pop ebx;
 end;
 
 {$ENDIF}

@@ -36,6 +36,7 @@ type
   {$IFDEF FMX} [TestFixture] {$ENDIF}
   TestAVXMatrixOperations = class(TBaseMatrixTestCase)
   published
+    procedure TestIsAvail;
     procedure TestAVXMove;
     procedure TestAVXRowExchange;
     procedure TestAVXAdd;
@@ -667,6 +668,11 @@ begin
                end;
           end;
      end;
+end;
+
+procedure TestAVXMatrixOperations.TestIsAvail;
+begin
+     Check(IsAVXPresent, 'No AVX present - Test failed');
 end;
 
 procedure TestAVXMatrixOperations.TestNormalize;
@@ -2045,7 +2051,7 @@ begin
 
      for iter := 0 to 2*Length(cBlkWidths) - 1 do
      begin
-          if iter mod 2 = 1
+          if iter mod 2 = 0
           then
               InitMathFunctions(itFPU, False)
           else

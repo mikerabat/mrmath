@@ -27,37 +27,37 @@ interface
 
 uses MatrixConst;
 
-procedure ASMMatrixMeanRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixMeanRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixMeanRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixMeanRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixMeanRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixMeanRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixMeanRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixMeanRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixMeanColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixMeanColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixMeanColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixMeanColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixMeanColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixMeanColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixMeanColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixMeanColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixVarRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixVarRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixVarRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixVarRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixVarRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixVarRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixVarRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixVarRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixVarColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixVarColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixVarColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixVarColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixVarColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixVarColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixVarColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixVarColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 
 // combined mean and variance calculation
-procedure ASMMatrixMeanVarRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixMeanVarRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixMeanVarRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixMeanVarRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixMeanVarRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixMeanVarRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixMeanVarRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixMeanVarRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixMeanVarColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixMeanVarColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixMeanVarColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-procedure ASMMatrixMeanVarColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+procedure ASMMatrixMeanVarColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixMeanVarColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixMeanVarColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixMeanVarColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 
 {$ENDIF}
@@ -72,644 +72,577 @@ const cLocOne : double = 1;
       cLocOnes : Array[0..1] of double = (1, 1);
 
 procedure ASMMatrixMeanRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
-            (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
-     Assert((width and 1) = 0, 'Error width must be even');
+asm
+   push ebx;
+   push edi;
+   push esi;
+        
+   // iters := -width*sizeof(double);
+   mov ebx, width;
+   cvtsi2sd xmm5, ebx;
+   imul ebx, -8;
+        
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, ebx;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= sizeof(double)), 'Dimension error');
+   // for y := 0 to height - 1:
+   mov esi, Height;
+   @@addforyloop:
+       xorpd xmm0, xmm0;
+       xorpd xmm1, xmm1;
+       xorpd xmm2, xmm2;
+       xorpd xmm3, xmm3;
 
-     iters := -width*sizeof(double);
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
+           // prefetch data...
+           // prefetch [ecx + edi];
 
-     asm
-        push ebx;
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
+           // addition:
+           addpd xmm0, [ecx + edi - 128];
+           addpd xmm1, [ecx + edi - 112];
+           addpd xmm2, [ecx + edi - 96];
+           addpd xmm3, [ecx + edi - 80];
+           addpd xmm0, [ecx + edi - 64];
+           addpd xmm1, [ecx + edi - 48];
+           addpd xmm2, [ecx + edi - 32];
+           addpd xmm3, [ecx + edi - 16];
+       jmp @addforxloop
 
-        mov ebx, dest;
+       @loopEnd:
 
-        {$IFDEF FPC}
-        mov eax, width;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, width;
-        {$ENDIF}
+       sub edi, 128;
 
-        // for y := 0 to height - 1:
-        mov edx, Height;
-        @@addforyloop:
-            xorpd xmm0, xmm0;
-            xorpd xmm1, xmm1;
-            xorpd xmm2, xmm2;
-            xorpd xmm3, xmm3;
+       jz @buildRes;
 
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforxloop:
-                add eax, 128;
-                jg @loopEnd;
-                // prefetch data...
-                // prefetch [ecx + eax];
+       @addforxloop2:
+           addpd xmm0, [ecx + edi];
+       add edi, 16;
+       jnz @addforxloop2;
 
-                // addition:
-                addpd xmm0, [ecx + eax - 128];
-                addpd xmm1, [ecx + eax - 112];
-                addpd xmm2, [ecx + eax - 96];
-                addpd xmm3, [ecx + eax - 80];
-                addpd xmm0, [ecx + eax - 64];
-                addpd xmm1, [ecx + eax - 48];
-                addpd xmm2, [ecx + eax - 32];
-                addpd xmm3, [ecx + eax - 16];
-            jmp @addforxloop
+       @buildRes:
 
-            @loopEnd:
+       addpd xmm0, xmm1;
+       addpd xmm2, xmm3;
+       addpd xmm0, xmm2;
 
-            sub eax, 128;
+       // build result
+       haddpd xmm0, xmm0;
 
-            jz @buildRes;
+       divsd xmm0, xmm5;
 
-            @addforxloop2:
-                addpd xmm0, [ecx + eax];
-            add eax, 16;
-            jnz @addforxloop2;
+       // write result
+       movsd [eax], xmm0;
 
-            @buildRes:
+       // next line:
+       add ecx, srcLineWidth;
+       add eax, edx;
 
-            addpd xmm0, xmm1;
-            addpd xmm2, xmm3;
-            addpd xmm0, xmm2;
+   // loop y end
+   dec esi;
+   jnz @@addforyloop;
 
-            // build result
-            haddpd xmm0, xmm0;
-
-            divsd xmm0, xmm5;
-
-            // write result
-            movsd [ebx], xmm0;
-
-            // next line:
-            add ecx, srcLineWidth;
-            add ebx, destLineWidth;
-
-        // loop y end
-        dec edx;
-        jnz @@addforyloop;
-
-        pop ebx;
-     end;
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 procedure ASMMatrixMeanRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     Assert((width and 1) = 0, 'Error width must be even');
+asm
+   push ebx;
+   push edi;
+   push esi;
+        
+   // iters := -width*sizeof(double);
+   mov ebx, width;
+   cvtsi2sd xmm5, ebx;
+   imul ebx, -8;
+        
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, ebx;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= sizeof(double)), 'Dimension error');
+   // for y := 0 to height - 1:
+   mov esi, Height;
+   @@addforyloop:
+       xorpd xmm7, xmm7;
 
-     iters := -width*sizeof(double);
-     asm
-        push ebx;
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
 
-        mov ebx, dest;
+           // addition:
+           movupd xmm0, [ecx + edi - 128];
+           addpd xmm7, xmm0;
 
-        {$IFDEF FPC}
-        mov eax, width;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, width;
-        {$ENDIF}
+           movupd xmm1, [ecx + edi - 112];
+           addpd xmm7, xmm1;
 
-        // for y := 0 to height - 1:
-        mov edx, Height;
-        @@addforyloop:
-            xorpd xmm7, xmm7;
+           movupd xmm2, [ecx + edi - 96];
+           addpd xmm7, xmm2;
 
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforxloop:
-                add eax, 128;
-                jg @loopEnd;
+           movupd xmm3, [ecx + edi - 80];
+           addpd xmm7, xmm3;
 
-                // addition:
-                movupd xmm0, [ecx + eax - 128];
-                addpd xmm7, xmm0;
+           movupd xmm0, [ecx + edi - 64];
+           addpd xmm7, xmm0;
 
-                movupd xmm1, [ecx + eax - 112];
-                addpd xmm7, xmm1;
+           movupd xmm1, [ecx + edi - 48];
+           addpd xmm7, xmm1;
 
-                movupd xmm2, [ecx + eax - 96];
-                addpd xmm7, xmm2;
+           movupd xmm2, [ecx + edi - 32];
+           addpd xmm7, xmm2;
 
-                movupd xmm3, [ecx + eax - 80];
-                addpd xmm7, xmm3;
+           movupd xmm3, [ecx + edi - 16];
+           addpd xmm7, xmm3;
+       jmp @addforxloop
 
-                movupd xmm0, [ecx + eax - 64];
-                addpd xmm7, xmm0;
+       @loopEnd:
 
-                movupd xmm1, [ecx + eax - 48];
-                addpd xmm7, xmm1;
+       sub edi, 128;
 
-                movupd xmm2, [ecx + eax - 32];
-                addpd xmm7, xmm2;
+       jz @buildRes;
 
-                movupd xmm3, [ecx + eax - 16];
-                addpd xmm7, xmm3;
-            jmp @addforxloop
+       @addforxloop2:
+           movupd xmm0, [ecx + edi];
+           addpd xmm7, xmm0;
+       add edi, 16;
+       jnz @addforxloop2;
 
-            @loopEnd:
+       @buildRes:
 
-            sub eax, 128;
+       // build result
+       haddpd xmm7, xmm7;
+       divsd xmm7, xmm5;
 
-            jz @buildRes;
+       movsd [eax], xmm7;
 
-            @addforxloop2:
-                movupd xmm0, [ecx + eax];
-                addpd xmm7, xmm0;
-            add eax, 16;
-            jnz @addforxloop2;
+       // next line:
+       add ecx, srcLineWidth;
+       add eax, edx;
 
-            @buildRes:
+   // loop y end
+   dec esi;
+   jnz @@addforyloop;
 
-            // build result
-            haddpd xmm7, xmm7;
-            divsd xmm7, xmm5;
-
-            movsd [ebx], xmm7;
-
-            // next line:
-            add ecx, srcLineWidth;
-            add ebx, destLineWidth;
-
-        // loop y end
-        dec edx;
-        jnz @@addforyloop;
-
-        pop ebx;
-     end;
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 procedure ASMMatrixMeanRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
-            (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
-     Assert((width and 1) = 1, 'Error width must be odd');
+asm
+   push ebx;
+   push edi;
+   push esi;
+        
+   // iters := -width*sizeof(double);
+   mov ebx, width;
+   cvtsi2sd xmm5, ebx;
+   dec ebx;
+   imul ebx, -8;
+        
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, ebx;
+   // for y := 0 to height - 1:
+   mov esi, Height;
+   @@addforyloop:
+       xorpd xmm0, xmm0;
+       xorpd xmm1, xmm1;
+       xorpd xmm2, xmm2;
+       xorpd xmm3, xmm3;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= sizeof(double)), 'Dimension error');
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
 
-     iters := -(width - 1)*sizeof(double);
+           // prefetch data...
+           // prefetch [ecx + edi];
 
-     asm
-        push ebx;
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
+           // addition:
+           addpd xmm0, [ecx + edi - 128];
+           addpd xmm1, [ecx + edi - 112];
+           addpd xmm2, [ecx + edi - 96];
+           addpd xmm3, [ecx + edi - 80];
+           addpd xmm0, [ecx + edi - 64];
+           addpd xmm1, [ecx + edi - 48];
+           addpd xmm2, [ecx + edi - 32];
+           addpd xmm3, [ecx + edi - 16];
+       jmp @addforxloop
 
-        mov ebx, dest;
+       @loopEnd:
 
-        {$IFDEF FPC}
-        mov eax, width;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, width;
-        {$ENDIF}
+       sub edi, 128;
 
-        // for y := 0 to height - 1:
-        mov edx, Height;
-        @@addforyloop:
-            xorpd xmm0, xmm0;
-            xorpd xmm1, xmm1;
-            xorpd xmm2, xmm2;
-            xorpd xmm3, xmm3;
+       jz @buildRes;
 
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforxloop:
-                add eax, 128;
-                jg @loopEnd;
+       @addforxloop2:
+           addpd xmm0, [ecx + edi];
+       add edi, 16;
+       jnz @addforxloop2;
 
-                // prefetch data...
-                // prefetch [ecx + eax];
+       @buildRes:
 
-                // addition:
-                addpd xmm0, [ecx + eax - 128];
-                addpd xmm1, [ecx + eax - 112];
-                addpd xmm2, [ecx + eax - 96];
-                addpd xmm3, [ecx + eax - 80];
-                addpd xmm0, [ecx + eax - 64];
-                addpd xmm1, [ecx + eax - 48];
-                addpd xmm2, [ecx + eax - 32];
-                addpd xmm3, [ecx + eax - 16];
-            jmp @addforxloop
+       addpd xmm0, xmm1;
+       addpd xmm2, xmm3;
+       addpd xmm0, xmm2;
 
-            @loopEnd:
+       // handle last element differently
+       movsd xmm2, [ecx + edi];
+       addsd xmm0, xmm2;
 
-            sub eax, 128;
+       // build result
+       haddpd xmm0, xmm0;
 
-            jz @buildRes;
+       divsd xmm0, xmm5;
 
-            @addforxloop2:
-                addpd xmm0, [ecx + eax];
-            add eax, 16;
-            jnz @addforxloop2;
+       movsd [eax], xmm0;
 
-            @buildRes:
+       // next line:
+       add ecx, srcLineWidth;
+       add eax, edx;
 
-            addpd xmm0, xmm1;
-            addpd xmm2, xmm3;
-            addpd xmm0, xmm2;
+   // loop y end
+   dec esi;
+   jnz @@addforyloop;
 
-            // handle last element differently
-            movsd xmm2, [ecx + eax];
-            addsd xmm0, xmm2;
-
-            // build result
-            haddpd xmm0, xmm0;
-
-            divsd xmm0, xmm5;
-
-            movsd [ebx], xmm0;
-
-            // next line:
-            add ecx, srcLineWidth;
-            add ebx, destLineWidth;
-
-        // loop y end
-        dec edx;
-        jnz @@addforyloop;
-
-        pop ebx;
-     end;
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 procedure ASMMatrixMeanRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     Assert((width and 1) = 1, 'Error width must be odd');
+asm
+   push ebx;
+   push edi;
+   push esi;
+        
+   // iters := -width*sizeof(double);
+   mov ebx, width;
+   cvtsi2sd xmm5, ebx;
+   dec ebx;
+   imul ebx, -8;
+        
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, ebx;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= sizeof(double)), 'Dimension error');
+   // for y := 0 to height - 1:
+   mov esi, Height;
+   @@addforyloop:
+       xorpd xmm7, xmm7;
 
-     iters := -(width - 1)*sizeof(double);
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
 
-     asm
-        push ebx;
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
+           // addition:
+           movupd xmm0, [ecx + edi - 128];
+           addpd xmm7, xmm0;
 
-        mov ebx, dest;
+           movupd xmm1, [ecx + edi - 112];
+           addpd xmm7, xmm1;
 
-        {$IFDEF FPC}
-        mov eax, width;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, width;
-        {$ENDIF}
+           movupd xmm2, [ecx + edi - 96];
+           addpd xmm7, xmm2;
 
-        // for y := 0 to height - 1:
-        mov edx, Height;
-        @@addforyloop:
-            xorpd xmm7, xmm7;
+           movupd xmm3, [ecx + edi - 80];
+           addpd xmm7, xmm3;
 
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforxloop:
-                add eax, 128;
-                jg @loopEnd;
+           movupd xmm0, [ecx + edi - 64];
+           addpd xmm7, xmm0;
 
-                // addition:
-                movupd xmm0, [ecx + eax - 128];
-                addpd xmm7, xmm0;
+           movupd xmm1, [ecx + edi - 48];
+           addpd xmm7, xmm1;
 
-                movupd xmm1, [ecx + eax - 112];
-                addpd xmm7, xmm1;
+           movupd xmm2, [ecx + edi - 32];
+           addpd xmm7, xmm2;
 
-                movupd xmm2, [ecx + eax - 96];
-                addpd xmm7, xmm2;
+           movupd xmm3, [ecx + edi - 16];
+           addpd xmm7, xmm3;
+       jmp @addforxloop
 
-                movupd xmm3, [ecx + eax - 80];
-                addpd xmm7, xmm3;
+       @loopEnd:
 
-                movupd xmm0, [ecx + eax - 64];
-                addpd xmm7, xmm0;
+       sub edi, 128;
 
-                movupd xmm1, [ecx + eax - 48];
-                addpd xmm7, xmm1;
+       jz @buildRes;
 
-                movupd xmm2, [ecx + eax - 32];
-                addpd xmm7, xmm2;
+       @addforxloop2:
+           movupd xmm0, [ecx + edi];
+           addpd xmm7, xmm0;
+       add edi, 16;
+       jnz @addforxloop2;
 
-                movupd xmm3, [ecx + eax - 16];
-                addpd xmm7, xmm3;
-            jmp @addforxloop
+       @buildRes:
 
-            @loopEnd:
+       // handle last element differently
+       movsd xmm2, [ecx + edi];
+       addsd xmm7, xmm2;
 
-            sub eax, 128;
+       // build result
+       haddpd xmm7, xmm7;
 
-            jz @buildRes;
+       divsd xmm7, xmm5;
 
-            @addforxloop2:
-                movupd xmm0, [ecx + eax];
-                addpd xmm7, xmm0;
-            add eax, 16;
-            jnz @addforxloop2;
+       movsd [eax], xmm7;
 
-            @buildRes:
+       // next line:
+       add ecx, srcLineWidth;
+       add eax, edx;
 
-            // handle last element differently
-            movsd xmm2, [ecx + eax];
-            addsd xmm7, xmm2;
+   // loop y end
+   dec esi;
+   jnz @@addforyloop;
 
-            // build result
-            haddpd xmm7, xmm7;
-
-            divsd xmm7, xmm5;
-
-            movsd [ebx], xmm7;
-
-            // next line:
-            add ecx, srcLineWidth;
-            add ebx, destLineWidth;
-
-        // loop y end
-        dec edx;
-        jnz @@addforyloop;
-
-        pop ebx;
-     end;
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 procedure ASMMatrixMeanColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
-            (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
-     Assert((width and 1) = 0, 'Error width must be even');
+asm
+   push ebx;
+   push edi;
+   push esi;
+        
+   // iters := -width*sizeof(double);
+   mov edx, srcLineWidth;
+   mov ebx, height;
+   cvtsi2sd xmm5, ebx;
+   imul ebx, edx;
+   imul ebx, -1;
+        
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, ebx;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= width*sizeof(double)), 'Dimension error');
+   // helper registers for the mt1, mt2 and dest pointers
+   movddup xmm6, xmm5;
 
-     iters := -height*srcLineWidth;
+   // for x := 0 to width - 1:
+   mov esi, Width;
+   sar esi, 1;
+   @@addforxloop:
+       xorpd xmm7, xmm7;
 
-     asm
-        push ebx;
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforyloop:
+           addpd xmm7, [ecx + edi];
+       add edi, edx;
+       jnz @addforyloop;
 
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
-        mov ebx, dest;
+       // build result
+       divpd xmm7, xmm6;
+       movapd [eax], xmm7;
 
-        {$IFDEF FPC}
-        mov eax, height;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, height;
-        {$ENDIF}
-        movddup xmm6, xmm5;
+       // next columns:
+       add ecx, 16;
+       add eax, 16;
 
-        // for x := 0 to width - 1:
-        mov edx, Width;
-        sar edx, 1;
-        @@addforxloop:
-            xorpd xmm7, xmm7;
+   // loop x end
+   dec esi;
+   jnz @@addforxloop;
 
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforyloop:
-                addpd xmm7, [ecx + eax];
-            add eax, srcLineWidth;
-            jnz @addforyloop;
-
-            // build result
-            divpd xmm7, xmm6;
-            movapd [ebx], xmm7;
-
-            // next columns:
-            add ecx, 16;
-            add ebx, 16;
-
-        // loop x end
-        dec edx;
-        jnz @@addforxloop;
-
-        pop ebx;
-     end;
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 procedure ASMMatrixMeanColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     Assert((width and 1) = 0, 'Error width must be even');
+asm
+   push ebx;
+   push edi;
+   push esi;
+        
+   // iters := -width*sizeof(double);
+   mov edx, srcLineWidth;
+   mov ebx, height;
+   cvtsi2sd xmm5, ebx;
+   imul ebx, edx;
+   imul ebx, -1;
+        
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, ebx;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= width*sizeof(double)), 'Dimension error');
+   // helper registers for the mt1, mt2 and dest pointers
+   movddup xmm6, xmm5;
 
-     iters := -height*srcLineWidth;
+   // for x := 0 to width - 1:
+   mov esi, Width;
+   sar esi, 1;
+   @@addforxloop:
+       xorpd xmm7, xmm7;
 
-     asm
-        push ebx;
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforyloop:
+           movupd xmm0, [ecx + edi];
+           addpd xmm7, xmm0;
+       add edi, edx;
+       jnz @addforyloop;
 
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
-        mov ebx, dest;
+       // build result
+       divpd xmm7, xmm6;
+       movupd [eax], xmm7;
 
-        {$IFDEF FPC}
-        mov eax, height;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, height;
-        {$ENDIF}
-        movddup xmm6, xmm5;
+       // next columns:
+       add ecx, 16;
+       add eax, 16;
 
-        // for x := 0 to width - 1:
-        mov edx, Width;
-        sar edx, 1;
-        @@addforxloop:
-            xorpd xmm7, xmm7;
+   // loop x end
+   dec esi;
+   jnz @@addforxloop;
 
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforyloop:
-                movupd xmm0, [ecx + eax];
-                addpd xmm7, xmm0;
-            add eax, srcLineWidth;
-            jnz @addforyloop;
-
-            // build result
-            divpd xmm7, xmm6;
-            movupd [ebx], xmm7;
-
-            // next columns:
-            add ecx, 16;
-            add ebx, 16;
-
-        // loop x end
-        dec edx;
-        jnz @@addforxloop;
-
-        pop ebx;
-     end;
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 procedure ASMMatrixMeanColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
-            (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
-     Assert((width and 1) = 1, 'Error width must be even');
+asm
+   push ebx;
+   push edi;
+   push esi;
+        
+   // iters := -width*sizeof(double);
+   mov edx, srcLineWidth;
+   mov ebx, height;
+   cvtsi2sd xmm5, ebx;
+   imul ebx, edx;
+   imul ebx, -1;
+        
+   sub ecx, ebx;
+   
+   movddup xmm6, xmm5;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= width*sizeof(double)), 'Dimension error');
+   // for x := 0 to width - 1:
+   mov esi, Width;
+   sar esi, 1;
+   jz @lastColumn;
+   @@addforxloop:
+       xorpd xmm7, xmm7;
 
-     iters := -height*srcLineWidth;
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforyloop:
+           addpd xmm7, [ecx + edi];
+       add edi, edx;
+       jnz @addforyloop;
 
-     asm
-        push ebx;
+       // build result
+       divpd xmm7, xmm6;
+       movapd [eax], xmm7;
 
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
-        mov ebx, dest;
+       // next columns:
+       add ecx, 16;
+       add eax, 16;
 
-        {$IFDEF FPC}
-        mov eax, height;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, height;
-        {$ENDIF}
-        movddup xmm6, xmm5;
+   // loop x end
+   dec esi;
+   jnz @@addforxloop;
 
-        // for x := 0 to width - 1:
-        mov edx, Width;
-        sar edx, 1;
-        jz @lastColumn;
-        @@addforxloop:
-            xorpd xmm7, xmm7;
+   @lastColumn:
+   // handle last column
+   xorpd xmm7, xmm7;
 
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforyloop:
-                addpd xmm7, [ecx + eax];
-            add eax, srcLineWidth;
-            jnz @addforyloop;
+   // for y := 0 to height - 1;
+   // prepare for reverse loop
+   mov edi, ebx;
+   @addforyloop3:
+       movsd xmm0, [ecx + edi];
+       addsd xmm7, xmm0;
+   add edi, edx;
+   jnz @addforyloop3;
 
-            // build result
-            divpd xmm7, xmm6;
-            movapd [ebx], xmm7;
+   // build result
+   divsd xmm7, xmm6;
 
-            // next columns:
-            add ecx, 16;
-            add ebx, 16;
+   movsd [eax], xmm7;
 
-        // loop x end
-        dec edx;
-        jnz @@addforxloop;
-
-        @lastColumn:
-        // handle last column
-        xorpd xmm7, xmm7;
-
-        // for y := 0 to height - 1;
-        // prepare for reverse loop
-        mov eax, iters;
-        @addforyloop3:
-            movsd xmm0, [ecx + eax];
-            addsd xmm7, xmm0;
-        add eax, srcLineWidth;
-        jnz @addforyloop3;
-
-        // build result
-        divsd xmm7, xmm6;
-
-        movsd [ebx], xmm7;
-
-        pop ebx;
-     end;
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 procedure ASMMatrixMeanColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     Assert((width and 1) = 1, 'Error width must be even');
+asm
+   push ebx;
+   push edi;
+   push esi;
+        
+   // iters := -width*sizeof(double);
+   mov edx, srcLineWidth;
+   mov ebx, height;
+   cvtsi2sd xmm5, ebx;
+   imul ebx, edx;
+   imul ebx, -1;
+        
+   sub ecx, ebx;
+   movddup xmm6, xmm5;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= width*sizeof(double)), 'Dimension error');
+   // for x := 0 to width - 1:
+   mov esi, Width;
+   sar esi, 1;
+   jz @lastColumn;
+   @@addforxloop:
+       xorpd xmm7, xmm7;
 
-     iters := -height*srcLineWidth;
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforyloop:
+           movupd xmm0, [ecx + edi];
+           addpd xmm7, xmm0;
+       add edi, edx;
+       jnz @addforyloop;
 
-     asm
-        push ebx;
+       // build result
+       divpd xmm7, xmm6;
+       movupd [eax], xmm7;
 
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
-        mov ebx, dest;
+       // next columns:
+       add ecx, 16;
+       add eax, 16;
 
-        {$IFDEF FPC}
-        mov eax, height;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, height;
-        {$ENDIF}
-        movddup xmm6, xmm5;
+   // loop x end
+   dec esi;
+   jnz @@addforxloop;
 
-        // for x := 0 to width - 1:
-        mov edx, Width;
-        sar edx, 1;
-        jz @lastColumn;
-        @@addforxloop:
-            xorpd xmm7, xmm7;
+   @lastColumn:
+   // handle last column
+   xorpd xmm7, xmm7;
 
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforyloop:
-                movupd xmm0, [ecx + eax];
-                addpd xmm7, xmm0;
-            add eax, srcLineWidth;
-            jnz @addforyloop;
+   // for y := 0 to height - 1;
+   // prepare for reverse loop
+   mov edi, ebx;
+   @addforyloop3:
+       movsd xmm0, [ecx + edi];
+       addsd xmm7, xmm0;
+   add edi, edx;
+   jnz @addforyloop3;
 
-            // build result
-            divpd xmm7, xmm6;
-            movupd [ebx], xmm7;
+   // build result
+   divsd xmm7, xmm6;
+   movsd [eax], xmm7;
 
-            // next columns:
-            add ecx, 16;
-            add ebx, 16;
-
-        // loop x end
-        dec edx;
-        jnz @@addforxloop;
-
-        @lastColumn:
-        // handle last column
-        xorpd xmm7, xmm7;
-
-        // for y := 0 to height - 1;
-        // prepare for reverse loop
-        mov eax, iters;
-        @addforyloop3:
-            movsd xmm0, [ecx + eax];
-            addsd xmm7, xmm0;
-        add eax, srcLineWidth;
-        jnz @addforyloop3;
-
-        // build result
-        divsd xmm7, xmm6;
-        movsd [ebx], xmm7;
-
-        pop ebx;
-     end;
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 
@@ -718,1219 +651,1141 @@ end;
 // ###########################################
 
 procedure ASMMatrixVarRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var iters : TASMNativeInt;
-begin
-     Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
-            (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
-     Assert((width and 1) = 0, 'Error width must be even');
+asm
+   push ebx;
+   push esi;
+   push edi;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= sizeof(double)), 'Dimension error');
+   mov ebx, width;
+   cvtsi2sd xmm5, ebx;
+   imul ebx, -8;
+        
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, ebx;
 
-     iters := -width*sizeof(double);
+   // for y := 0 to height - 1:
+   mov esi, Height;
+   @@addforyloop:
+       xorpd xmm0, xmm0;
+       xorpd xmm1, xmm1;
+       xorpd xmm2, xmm2;
+       xorpd xmm3, xmm3;
 
-     asm
-        push ebx;
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
+           // prefetch data...
+           // prefetch [ecx + edi];
 
-        mov ebx, dest;
+           // addition:
+           addpd xmm0, [ecx + edi - 128];
+           addpd xmm1, [ecx + edi - 112];
+           addpd xmm2, [ecx + edi - 96];
+           addpd xmm3, [ecx + edi - 80];
+           addpd xmm0, [ecx + edi - 64];
+           addpd xmm1, [ecx + edi - 48];
+           addpd xmm2, [ecx + edi - 32];
+           addpd xmm3, [ecx + edi - 16];
+       jmp @addforxloop
 
-        {$IFDEF FPC}
-        mov eax, width;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, width;
-        {$ENDIF}
+       @loopEnd:
 
-        // for y := 0 to height - 1:
-        mov edx, Height;
-        @@addforyloop:
-            xorpd xmm0, xmm0;
-            xorpd xmm1, xmm1;
-            xorpd xmm2, xmm2;
-            xorpd xmm3, xmm3;
+       sub edi, 128;
 
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforxloop:
-                add eax, 128;
-                jg @loopEnd;
-                // prefetch data...
-                // prefetch [ecx + eax];
+       jz @buildRes;
 
-                // addition:
-                addpd xmm0, [ecx + eax - 128];
-                addpd xmm1, [ecx + eax - 112];
-                addpd xmm2, [ecx + eax - 96];
-                addpd xmm3, [ecx + eax - 80];
-                addpd xmm0, [ecx + eax - 64];
-                addpd xmm1, [ecx + eax - 48];
-                addpd xmm2, [ecx + eax - 32];
-                addpd xmm3, [ecx + eax - 16];
-            jmp @addforxloop
+       @addforxloop2:
+           addpd xmm0, [ecx + edi];
+       add edi, 16;
+       jnz @addforxloop2;
 
-            @loopEnd:
+       @buildRes:
 
-            sub eax, 128;
+       addpd xmm0, xmm1;
+       addpd xmm2, xmm3;
+       addpd xmm0, xmm2;
 
-            jz @buildRes;
+       // build result
+       haddpd xmm0, xmm0;
 
-            @addforxloop2:
-                addpd xmm0, [ecx + eax];
-            add eax, 16;
-            jnz @addforxloop2;
-
-            @buildRes:
-
-            addpd xmm0, xmm1;
-            addpd xmm2, xmm3;
-            addpd xmm0, xmm2;
-
-            // build result
-            haddpd xmm0, xmm0;
-
-            divsd xmm0, xmm5;
+       divsd xmm0, xmm5;
             
-            // we have calculated the mean -> 
-            // repeat the loop to calculate the variance
+       // we have calculated the mean -> 
+       // repeat the loop to calculate the variance
 
-            movddup xmm4, xmm0;
-            xorpd xmm0, xmm0;
+       movddup xmm4, xmm0;
+       xorpd xmm0, xmm0;
             
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            // variance = sum (x - mean)^2
-            mov eax, iters;
-            @addforxloop3:
-                add eax, 128;
-                jg @loopEnd2;
-                // prefetch data...
-                // prefetch [ecx + eax];
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       // variance = sum (x - mean)^2
+       mov edi, ebx;
+       @addforxloop3:
+           add edi, 128;
+           jg @loopEnd2;
+           // prefetch data...
+           // prefetch [ecx + edi];
 
-                // addition:
-                movapd xmm1, [ecx + eax - 128];
-                movapd xmm2, [ecx + eax - 112];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+           // addition:
+           movapd xmm1, [ecx + edi - 128];
+           movapd xmm2, [ecx + edi - 112];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
                 
-                movapd xmm1, [ecx + eax - 96];
-                movapd xmm2, [ecx + eax - 80];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+           movapd xmm1, [ecx + edi - 96];
+           movapd xmm2, [ecx + edi - 80];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
                 
-                movapd xmm1, [ecx + eax - 64];
-                movapd xmm2, [ecx + eax - 48];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+           movapd xmm1, [ecx + edi - 64];
+           movapd xmm2, [ecx + edi - 48];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
                 
-                movapd xmm1, [ecx + eax - 32];
-                movapd xmm2, [ecx + eax - 16];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+           movapd xmm1, [ecx + edi - 32];
+           movapd xmm2, [ecx + edi - 16];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
                 
-            jmp @addforxloop3
+       jmp @addforxloop3
 
-            @loopEnd2:
+       @loopEnd2:
 
-            sub eax, 128;
+       sub edi, 128;
 
-            jz @buildRes2;
+       jz @buildRes2;
 
-            @addforxloop4:
-                movapd xmm1, [ecx + eax];
-                subpd xmm1, xmm4;
-                mulpd xmm1, xmm1;
-                addpd xmm0, xmm1;
-            add eax, 16;
-            jnz @addforxloop4;
+       @addforxloop4:
+           movapd xmm1, [ecx + edi];
+           subpd xmm1, xmm4;
+           mulpd xmm1, xmm1;
+           addpd xmm0, xmm1;
+       add edi, 16;
+       jnz @addforxloop4;
 
-            @buildRes2:
+       @buildRes2:
 
-            // build result
-            movhlps xmm1, xmm0;
-            addsd xmm0, xmm1;
+       // build result
+       movhlps xmm1, xmm0;
+       addsd xmm0, xmm1;
             
-            // check if we need to use the unbiased version
-            cmp unbiased, 0;
-            jz @@dobiased;
+       // check if we need to use the unbiased version
+       cmp unbiased, 0;
+       jz @@dobiased;
 
-            movsd xmm4, xmm5;
-            subsd xmm4, cLocOne;
-            maxsd xmm4, cLocOne;
+       movsd xmm4, xmm5;
+       subsd xmm4, cLocOne;
+       maxsd xmm4, cLocOne;
 
-            divsd xmm0, xmm4;
+       divsd xmm0, xmm4;
 
-            jmp @@writeRes;
+       jmp @@writeRes;
 
-            @@dobiased:
-            divsd xmm0, xmm5;
+       @@dobiased:
+       divsd xmm0, xmm5;
             
-            // write result
-            @@writeRes:
-            movsd [ebx], xmm0;
+       // write result
+       @@writeRes:
+       movsd [eax], xmm0;
 
-            // next line:
-            add ecx, srcLineWidth;
-            add ebx, destLineWidth;
+       // next line:
+       add ecx, srcLineWidth;
+       add eax, edx;
 
-        // loop y end
-        dec edx;
-        jnz @@addforyloop;
+   // loop y end
+   dec esi;
+   jnz @@addforyloop;
 
-        pop ebx;
-     end;
+   pop edi;
+   pop esi;
+   pop ebx;
 end;
 
 procedure ASMMatrixVarRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var iters : TASMNativeInt;
-begin
-     Assert((width and 1) = 0, 'Error width must be even');
+asm
+   push ebx;
+   push esi;
+   push edi;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= sizeof(double)), 'Dimension error');
+   mov ebx, width;
+   cvtsi2sd xmm5, ebx;
+   imul ebx, -8;
+        
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, ebx;
 
-     iters := -width*sizeof(double);
-     asm
-        push ebx;
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
+   // for y := 0 to height - 1:
+   mov esi, Height;
+   @@addforyloop:
+       xorpd xmm7, xmm7;
 
-        mov ebx, dest;
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
 
-        {$IFDEF FPC}
-        mov eax, width;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, width;
-        {$ENDIF}
+           // addition:
+           movupd xmm0, [ecx + edi - 128];
+           addpd xmm7, xmm0;
 
-        // for y := 0 to height - 1:
-        mov edx, Height;
-        @@addforyloop:
-            xorpd xmm7, xmm7;
+           movupd xmm1, [ecx + edi - 112];
+           addpd xmm7, xmm1;
 
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforxloop:
-                add eax, 128;
-                jg @loopEnd;
+           movupd xmm2, [ecx + edi - 96];
+           addpd xmm7, xmm2;
 
-                // addition:
-                movupd xmm0, [ecx + eax - 128];
-                addpd xmm7, xmm0;
+           movupd xmm3, [ecx + edi - 80];
+           addpd xmm7, xmm3;
 
-                movupd xmm1, [ecx + eax - 112];
-                addpd xmm7, xmm1;
+           movupd xmm0, [ecx + edi - 64];
+           addpd xmm7, xmm0;
 
-                movupd xmm2, [ecx + eax - 96];
-                addpd xmm7, xmm2;
+           movupd xmm1, [ecx + edi - 48];
+           addpd xmm7, xmm1;
 
-                movupd xmm3, [ecx + eax - 80];
-                addpd xmm7, xmm3;
+           movupd xmm2, [ecx + edi - 32];
+           addpd xmm7, xmm2;
 
-                movupd xmm0, [ecx + eax - 64];
-                addpd xmm7, xmm0;
+           movupd xmm3, [ecx + edi - 16];
+           addpd xmm7, xmm3;
+       jmp @addforxloop
 
-                movupd xmm1, [ecx + eax - 48];
-                addpd xmm7, xmm1;
+       @loopEnd:
 
-                movupd xmm2, [ecx + eax - 32];
-                addpd xmm7, xmm2;
+       sub edi, 128;
 
-                movupd xmm3, [ecx + eax - 16];
-                addpd xmm7, xmm3;
-            jmp @addforxloop
+       jz @buildRes;
 
-            @loopEnd:
+       @addforxloop2:
+           movupd xmm0, [ecx + edi];
+           addpd xmm7, xmm0;
+       add edi, 16;
+       jnz @addforxloop2;
 
-            sub eax, 128;
+       @buildRes:
 
-            jz @buildRes;
+       // build result
+       haddpd xmm7, xmm7;
+       divsd xmm7, xmm5;
 
-            @addforxloop2:
-                movupd xmm0, [ecx + eax];
-                addpd xmm7, xmm0;
-            add eax, 16;
-            jnz @addforxloop2;
-
-            @buildRes:
-
-            // build result
-            haddpd xmm7, xmm7;
-            divsd xmm7, xmm5;
-
-            // we have calculated the mean -> 
-            // repeat the loop to calculate the variance
-
-            movddup xmm4, xmm7;
-            xorpd xmm0, xmm0;
+       // we have calculated the mean -> 
+       // repeat the loop to calculate the variance
+       movddup xmm4, xmm7;
+       xorpd xmm0, xmm0;
             
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            // variance = sum (x - mean)^2
-            mov eax, iters;
-            @addforxloop3:
-                add eax, 128;
-                jg @loopEnd2;
-                // prefetch data...
-                // prefetch [ecx + eax];
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       // variance = sum (x - mean)^2
+       mov edi, ebx;
+       @addforxloop3:
+           add edi, 128;
+           jg @loopEnd2;
+           // prefetch data...
+           // prefetch [ecx + edi];
 
-                // addition:
-                movupd xmm1, [ecx + eax - 128];
-                movupd xmm2, [ecx + eax - 112];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+           // addition:
+           movupd xmm1, [ecx + edi - 128];
+           movupd xmm2, [ecx + edi - 112];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
                 
-                movupd xmm1, [ecx + eax - 96];
-                movupd xmm2, [ecx + eax - 80];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+           movupd xmm1, [ecx + edi - 96];
+           movupd xmm2, [ecx + edi - 80];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
                 
-                movupd xmm1, [ecx + eax - 64];
-                movupd xmm2, [ecx + eax - 48];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+           movupd xmm1, [ecx + edi - 64];
+           movupd xmm2, [ecx + edi - 48];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
                 
-                movupd xmm1, [ecx + eax - 32];
-                movupd xmm2, [ecx + eax - 16];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+           movupd xmm1, [ecx + edi - 32];
+           movupd xmm2, [ecx + edi - 16];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
                 
-            jmp @addforxloop3
+       jmp @addforxloop3
 
-            @loopEnd2:
+       @loopEnd2:
 
-            sub eax, 128;
+       sub edi, 128;
 
-            jz @buildRes2;
+       jz @buildRes2;
 
-            @addforxloop4:
-                movupd xmm1, [ecx + eax];
-                subpd xmm1, xmm4;
-                mulpd xmm1, xmm1;
-                addpd xmm0, xmm1;
-            add eax, 16;
-            jnz @addforxloop4;
+       @addforxloop4:
+           movupd xmm1, [ecx + edi];
+           subpd xmm1, xmm4;
+           mulpd xmm1, xmm1;
+           addpd xmm0, xmm1;
+       add edi, 16;
+       jnz @addforxloop4;
 
-            @buildRes2:
+       @buildRes2:
 
-            // build result
-            movhlps xmm1, xmm0;
-            addsd xmm0, xmm1;
+       // build result
+       movhlps xmm1, xmm0;
+       addsd xmm0, xmm1;
             
-            // check if we need to use the unbiased version
-            cmp unbiased, 0;
-            jz @@dobiased;
+       // check if we need to use the unbiased version
+       cmp unbiased, 0;
+       jz @@dobiased;
 
-            movsd xmm4, xmm5;
-            subsd xmm4, cLocOne;
-            maxsd xmm4, cLocOne;
+       movsd xmm4, xmm5;
+       subsd xmm4, cLocOne;
+       maxsd xmm4, cLocOne;
 
-            divsd xmm0, xmm4;
+       divsd xmm0, xmm4;
 
-            jmp @@writeRes;
+       jmp @@writeRes;
 
-            @@dobiased:
-            divsd xmm0, xmm5;
+       @@dobiased:
+       divsd xmm0, xmm5;
 
-            // write result
-            @@writeRes:
-            movsd [ebx], xmm0;
+       // write result
+       @@writeRes:
+       movsd [eax], xmm0;
 
-            // next line:
-            add ecx, srcLineWidth;
-            add ebx, destLineWidth;
+       // next line:
+       add ecx, srcLineWidth;
+       add eax, edx;
 
-        // loop y end
-        dec edx;
-        jnz @@addforyloop;
+   // loop y end
+   dec esi;
+   jnz @@addforyloop;
 
-        pop ebx;
-     end;
+   pop edi;
+   pop esi;
+   pop ebx;
 end;
 
 procedure ASMMatrixVarRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var iters : TASMNativeInt;
-begin
-     Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
-            (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
-     Assert((width and 1) = 1, 'Error width must be odd');
+asm
+   push ebx;
+   push esi;
+   push edi;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= sizeof(double)), 'Dimension error');
+   mov ebx, width;
+   cvtsi2sd xmm5, ebx;
+   dec ebx;
+   imul ebx, -8;
+        
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, ebx;
 
-     iters := -(width - 1)*sizeof(double);
+   // for y := 0 to height - 1:
+   mov esi, Height;
+   @@addforyloop:
+       xorpd xmm0, xmm0;
+       xorpd xmm1, xmm1;
+       xorpd xmm2, xmm2;
+       xorpd xmm3, xmm3;
 
-     asm
-        push ebx;
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
 
-        mov ebx, dest;
+           // prefetch data...
+           // prefetch [ecx + edi];
 
-        {$IFDEF FPC}
-        mov eax, width;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, width;
-        {$ENDIF}
+           // addition:
+           addpd xmm0, [ecx + edi - 128];
+           addpd xmm1, [ecx + edi - 112];
+           addpd xmm2, [ecx + edi - 96];
+           addpd xmm3, [ecx + edi - 80];
+           addpd xmm0, [ecx + edi - 64];
+           addpd xmm1, [ecx + edi - 48];
+           addpd xmm2, [ecx + edi - 32];
+           addpd xmm3, [ecx + edi - 16];
+       jmp @addforxloop
 
-        // for y := 0 to height - 1:
-        mov edx, Height;
-        @@addforyloop:
-            xorpd xmm0, xmm0;
-            xorpd xmm1, xmm1;
-            xorpd xmm2, xmm2;
-            xorpd xmm3, xmm3;
+       @loopEnd:
 
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforxloop:
-                add eax, 128;
-                jg @loopEnd;
+       sub edi, 128;
 
-                // prefetch data...
-                // prefetch [ecx + eax];
+       jz @buildRes;
 
-                // addition:
-                addpd xmm0, [ecx + eax - 128];
-                addpd xmm1, [ecx + eax - 112];
-                addpd xmm2, [ecx + eax - 96];
-                addpd xmm3, [ecx + eax - 80];
-                addpd xmm0, [ecx + eax - 64];
-                addpd xmm1, [ecx + eax - 48];
-                addpd xmm2, [ecx + eax - 32];
-                addpd xmm3, [ecx + eax - 16];
-            jmp @addforxloop
+       @addforxloop2:
+           addpd xmm0, [ecx + edi];
+       add edi, 16;
+       jnz @addforxloop2;
 
-            @loopEnd:
+       @buildRes:
 
-            sub eax, 128;
+       addpd xmm0, xmm1;
+       addpd xmm2, xmm3;
+       addpd xmm0, xmm2;
 
-            jz @buildRes;
+       // handle last element differently
+       movsd xmm2, [ecx + edi];
+       addsd xmm0, xmm2;
 
-            @addforxloop2:
-                addpd xmm0, [ecx + eax];
-            add eax, 16;
-            jnz @addforxloop2;
+       // build result
+       movhlps xmm1, xmm0;
+       addsd xmm0, xmm1;
 
-            @buildRes:
-
-            addpd xmm0, xmm1;
-            addpd xmm2, xmm3;
-            addpd xmm0, xmm2;
-
-            // handle last element differently
-            movsd xmm2, [ecx + eax];
-            addsd xmm0, xmm2;
-
-            // build result
-            movhlps xmm1, xmm0;
-            addsd xmm0, xmm1;
-
-            divsd xmm0, xmm5;
+       divsd xmm0, xmm5;
 
 
-            // we have calculated the mean -> 
-            // repeat the loop to calculate the variance
+       // we have calculated the mean -> 
+       // repeat the loop to calculate the variance
 
-            movddup xmm4, xmm0;
-            xorpd xmm0, xmm0;
+       movddup xmm4, xmm0;
+       xorpd xmm0, xmm0;
             
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            // variance = sum (x - mean)^2
-            mov eax, iters;
-            @addforxloop3:
-                add eax, 128;
-                jg @loopEnd2;
-                // prefetch data...
-                // prefetch [ecx + eax];
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       // variance = sum (x - mean)^2
+       mov edi, ebx;
+       @addforxloop3:
+           add edi, 128;
+           jg @loopEnd2;
+           // prefetch data...
+           // prefetch [ecx + edi];
 
-                // addition:
-                movapd xmm1, [ecx + eax - 128];
-                movapd xmm2, [ecx + eax - 112];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+           // addition:
+           movapd xmm1, [ecx + edi - 128];
+           movapd xmm2, [ecx + edi - 112];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
                 
-                movapd xmm1, [ecx + eax - 96];
-                movapd xmm2, [ecx + eax - 80];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+           movapd xmm1, [ecx + edi - 96];
+           movapd xmm2, [ecx + edi - 80];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
                 
-                movapd xmm1, [ecx + eax - 64];
-                movapd xmm2, [ecx + eax - 48];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+           movapd xmm1, [ecx + edi - 64];
+           movapd xmm2, [ecx + edi - 48];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
                 
-                movapd xmm1, [ecx + eax - 32];
-                movapd xmm2, [ecx + eax - 16];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+           movapd xmm1, [ecx + edi - 32];
+           movapd xmm2, [ecx + edi - 16];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
                 
-            jmp @addforxloop3
+       jmp @addforxloop3
 
-            @loopEnd2:
+       @loopEnd2:
 
-            sub eax, 128;
+       sub edi, 128;
 
-            jz @buildRes2;
+       jz @buildRes2;
 
-            @addforxloop4:
-                movapd xmm1, [ecx + eax];
-                subpd xmm1, xmm4;
-                mulpd xmm1, xmm1;
-                addpd xmm0, xmm1;
-            add eax, 16;
-            jnz @addforxloop4;
+       @addforxloop4:
+           movapd xmm1, [ecx + edi];
+           subpd xmm1, xmm4;
+           mulpd xmm1, xmm1;
+           addpd xmm0, xmm1;
+       add edi, 16;
+       jnz @addforxloop4;
 
-            @buildRes2:
+       @buildRes2:
 
-            // handle last element differently
-            movsd xmm1, [ecx + eax];
-            subsd xmm1, xmm4;
-            mulsd xmm1, xmm1;
-            addsd xmm0, xmm1;
+       // handle last element differently
+       movsd xmm1, [ecx + edi];
+       subsd xmm1, xmm4;
+       mulsd xmm1, xmm1;
+       addsd xmm0, xmm1;
 
-            // build result
-            haddpd xmm0, xmm0;
+       // build result
+       haddpd xmm0, xmm0;
             
-            // check if we need to use the unbiased version
-            cmp unbiased, 0;
-            jz @@dobiased;
+       // check if we need to use the unbiased version
+       cmp unbiased, 0;
+       jz @@dobiased;
 
-            movsd xmm4, xmm5;
-            subsd xmm4, cLocOne;
-            maxsd xmm4, cLocOne;
+       movsd xmm4, xmm5;
+       subsd xmm4, cLocOne;
+       maxsd xmm4, cLocOne;
 
-            divsd xmm0, xmm4;
+       divsd xmm0, xmm4;
 
-            jmp @@writeRes;
+       jmp @@writeRes;
 
-            @@dobiased:
-            divsd xmm0, xmm5;
+       @@dobiased:
+       divsd xmm0, xmm5;
             
-            // write result
-            @@writeRes:
-            movsd [ebx], xmm0;
+       // write result
+       @@writeRes:
+       movsd [eax], xmm0;
 
-            // next line:
-            add ecx, srcLineWidth;
-            add ebx, destLineWidth;
+       // next line:
+       add ecx, srcLineWidth;
+       add eax, edx;
 
-        // loop y end
-        dec edx;
-        jnz @@addforyloop;
+   // loop y end
+   dec esi;
+   jnz @@addforyloop;
 
-        pop ebx;
-     end;
+   pop edi;
+   pop esi;
+   pop ebx;
 end;
 
 procedure ASMMatrixVarRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var iters : TASMNativeInt;
-begin
-     Assert((width and 1) = 1, 'Error width must be odd');
+asm
+   push ebx;
+   push esi;
+   push edi;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= sizeof(double)), 'Dimension error');
+   mov ebx, width;
+   cvtsi2sd xmm5, ebx;
+   dec ebx;
+   imul ebx, -8;
+        
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, ebx;
 
-     iters := -(width - 1)*sizeof(double);
+   // for y := 0 to height - 1:
+   mov esi, Height;
+   @@addforyloop:
+       xorpd xmm7, xmm7;
 
-     asm
-        push ebx;
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
 
-        mov ebx, dest;
+           // addition:
+           movupd xmm0, [ecx + edi - 128];
+           addpd xmm7, xmm0;
 
-        {$IFDEF FPC}
-        mov eax, width;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, width;
-        {$ENDIF}
+           movupd xmm1, [ecx + edi - 112];
+           addpd xmm7, xmm1;
 
-        // for y := 0 to height - 1:
-        mov edx, Height;
-        @@addforyloop:
-            xorpd xmm7, xmm7;
+           movupd xmm2, [ecx + edi - 96];
+           addpd xmm7, xmm2;
 
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforxloop:
-                add eax, 128;
-                jg @loopEnd;
+           movupd xmm3, [ecx + edi - 80];
+           addpd xmm7, xmm3;
 
-                // addition:
-                movupd xmm0, [ecx + eax - 128];
-                addpd xmm7, xmm0;
+           movupd xmm0, [ecx + edi - 64];
+           addpd xmm7, xmm0;
 
-                movupd xmm1, [ecx + eax - 112];
-                addpd xmm7, xmm1;
+           movupd xmm1, [ecx + edi - 48];
+           addpd xmm7, xmm1;
 
-                movupd xmm2, [ecx + eax - 96];
-                addpd xmm7, xmm2;
+           movupd xmm2, [ecx + edi - 32];
+           addpd xmm7, xmm2;
 
-                movupd xmm3, [ecx + eax - 80];
-                addpd xmm7, xmm3;
+           movupd xmm3, [ecx + edi - 16];
+           addpd xmm7, xmm3;
+       jmp @addforxloop
 
-                movupd xmm0, [ecx + eax - 64];
-                addpd xmm7, xmm0;
+       @loopEnd:
 
-                movupd xmm1, [ecx + eax - 48];
-                addpd xmm7, xmm1;
+       sub edi, 128;
 
-                movupd xmm2, [ecx + eax - 32];
-                addpd xmm7, xmm2;
+       jz @buildRes;
 
-                movupd xmm3, [ecx + eax - 16];
-                addpd xmm7, xmm3;
-            jmp @addforxloop
+       @addforxloop2:
+           movupd xmm0, [ecx + edi];
+           addpd xmm7, xmm0;
+       add edi, 16;
+       jnz @addforxloop2;
 
-            @loopEnd:
+       @buildRes:
 
-            sub eax, 128;
+       // handle last element differently
+       movsd xmm2, [ecx + edi];
+       addsd xmm7, xmm2;
 
-            jz @buildRes;
+       // build result
+       haddpd xmm7, xmm7;
 
-            @addforxloop2:
-                movupd xmm0, [ecx + eax];
-                addpd xmm7, xmm0;
-            add eax, 16;
-            jnz @addforxloop2;
-
-            @buildRes:
-
-            // handle last element differently
-            movsd xmm2, [ecx + eax];
-            addsd xmm7, xmm2;
-
-            // build result
-            haddpd xmm7, xmm7;
-
-            divsd xmm7, xmm5;
+       divsd xmm7, xmm5;
 
 
-            // we have calculated the mean -> 
-            // repeat the loop to calculate the variance
+       // we have calculated the mean -> 
+       // repeat the loop to calculate the variance
 
-            movddup xmm4, xmm7;
-            xorpd xmm0, xmm0;
+       movddup xmm4, xmm7;
+       xorpd xmm0, xmm0;
             
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            // variance = sum (x - mean)^2
-            mov eax, iters;
-            @addforxloop3:
-                add eax, 128;
-                jg @loopEnd2;
-                // prefetch data...
-                // prefetch [ecx + eax];
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       // variance = sum (x - mean)^2
+       mov edi, ebx;
+       @addforxloop3:
+           add edi, 128;
+           jg @loopEnd2;
+           // prefetch data...
+           // prefetch [ecx + edi];
 
-                // addition:
-                movupd xmm1, [ecx + eax - 128];
-                movupd xmm2, [ecx + eax - 112];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+           // addition:
+           movupd xmm1, [ecx + edi - 128];
+           movupd xmm2, [ecx + edi - 112];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
                 
-                movupd xmm1, [ecx + eax - 96];
-                movupd xmm2, [ecx + eax - 80];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+           movupd xmm1, [ecx + edi - 96];
+           movupd xmm2, [ecx + edi - 80];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
                 
-                movupd xmm1, [ecx + eax - 64];
-                movupd xmm2, [ecx + eax - 48];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+           movupd xmm1, [ecx + edi - 64];
+           movupd xmm2, [ecx + edi - 48];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
                 
-                movupd xmm1, [ecx + eax - 32];
-                movupd xmm2, [ecx + eax - 16];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+           movupd xmm1, [ecx + edi - 32];
+           movupd xmm2, [ecx + edi - 16];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
                 
-            jmp @addforxloop3
+       jmp @addforxloop3
 
-            @loopEnd2:
+       @loopEnd2:
 
-            sub eax, 128;
+       sub edi, 128;
 
-            jz @buildRes2;
+       jz @buildRes2;
 
-            @addforxloop4:
-                movupd xmm1, [ecx + eax];
-                subpd xmm1, xmm4;
-                mulpd xmm1, xmm1;
-                addpd xmm0, xmm1;
-            add eax, 16;
-            jnz @addforxloop4;
+       @addforxloop4:
+           movupd xmm1, [ecx + edi];
+           subpd xmm1, xmm4;
+           mulpd xmm1, xmm1;
+           addpd xmm0, xmm1;
+       add edi, 16;
+       jnz @addforxloop4;
 
-            @buildRes2:
+       @buildRes2:
 
-            // handle last element differently
-            movsd xmm1, [ecx + eax];
-            subsd xmm1, xmm4;
-            mulsd xmm1, xmm1;
-            addsd xmm0, xmm1;
+       // handle last element differently
+       movsd xmm1, [ecx + edi];
+       subsd xmm1, xmm4;
+       mulsd xmm1, xmm1;
+       addsd xmm0, xmm1;
             
-            // build result
-            haddpd xmm0, xmm0;
+       // build result
+       haddpd xmm0, xmm0;
             
-            // check if we need to use the unbiased version
-            cmp unbiased, 0;
-            jz @@dobiased;
+       // check if we need to use the unbiased version
+       cmp unbiased, 0;
+       jz @@dobiased;
 
-            movsd xmm4, xmm5;
-            subsd xmm4, cLocOne;
-            maxsd xmm4, cLocOne;
+       movsd xmm4, xmm5;
+       subsd xmm4, cLocOne;
+       maxsd xmm4, cLocOne;
 
-            divsd xmm0, xmm4;
+       divsd xmm0, xmm4;
 
-            jmp @@writeRes;
+       jmp @@writeRes;
 
-            @@dobiased:
-            divsd xmm0, xmm5;
+       @@dobiased:
+       divsd xmm0, xmm5;
 
-            // write result
-            @@writeRes:
-            movsd [ebx], xmm0;
+       // write result
+       @@writeRes:
+       movsd [eax], xmm0;
 
-            // next line:
-            add ecx, srcLineWidth;
-            add ebx, destLineWidth;
+       // next line:
+       add ecx, srcLineWidth;
+       add eax, edx;
 
-        // loop y end
-        dec edx;
-        jnz @@addforyloop;
+   // loop y end
+   dec esi;
+   jnz @@addforyloop;
 
-        pop ebx;
-     end;
+   pop edi;
+   pop esi;
+   pop ebx;
 end;
 
 procedure ASMMatrixVarColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var iters : TASMNativeInt;
-begin
-     Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
-            (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
-     Assert((width and 1) = 0, 'Error width must be even');
+asm
+   push ebx;
+   push esi;
+   push edi;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= width*sizeof(double)), 'Dimension error');
+   mov edx, srcLineWidth;
+   mov ebx, height;
+   cvtsi2sd xmm5, ebx;
+   imul ebx, edx;
+   imul ebx, -1;
 
-     iters := -height*srcLineWidth;
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, ebx;
+   movupd xmm2, cLocOnes;
 
-     asm
-        push ebx;
+   movddup xmm6, xmm5;
 
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
-        mov ebx, dest;
+   // for x := 0 to width - 1:
+   mov esi, Width;
+   sar esi, 1;
+   @@addforxloop:
+       xorpd xmm7, xmm7;
 
-        movupd xmm2, cLocOnes;
-
-        {$IFDEF FPC}
-        mov eax, height;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, height;
-        {$ENDIF}
-        movddup xmm6, xmm5;
-
-        // for x := 0 to width - 1:
-        mov edx, Width;
-        sar edx, 1;
-        @@addforxloop:
-            xorpd xmm7, xmm7;
-
-            // calculate mean
+       // calculate mean
             
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforyloop:
-                addpd xmm7, [ecx + eax];
-            add eax, srcLineWidth;
-            jnz @addforyloop;
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforyloop:
+           addpd xmm7, [ecx + edi];
+       add edi, edx;
+       jnz @addforyloop;
 
-            // build mean
-            divpd xmm7, xmm6;
+       // build mean
+       divpd xmm7, xmm6;
 
-            // calculate final standard deviation
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            xorpd xmm0, xmm0;
-            mov eax, iters;
-            @addforyloop2:
-                movapd xmm1, [ecx + eax];
-                subpd xmm1, xmm7;
-                mulpd xmm1, xmm1;
-                addpd xmm0, xmm1;
-            add eax, srcLineWidth;
-            jnz @addforyloop2;
+       // calculate final standard deviation
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       xorpd xmm0, xmm0;
+       mov edi, ebx;
+       @addforyloop2:
+           movapd xmm1, [ecx + edi];
+           subpd xmm1, xmm7;
+           mulpd xmm1, xmm1;
+           addpd xmm0, xmm1;
+       add edi, edx;
+       jnz @addforyloop2;
 
-            // check if we need to use the unbiased version
-            cmp unbiased, 0;
-            jz @@dobiased;
+       // check if we need to use the unbiased version
+       cmp unbiased, 0;
+       jz @@dobiased;
 
-            movapd xmm4, xmm6;
-            subpd xmm4, xmm2;
-            maxpd xmm4, xmm2;
+       movapd xmm4, xmm6;
+       subpd xmm4, xmm2;
+       maxpd xmm4, xmm2;
 
-            divpd xmm0, xmm4;
+       divpd xmm0, xmm4;
 
-            jmp @@writeRes;
+       jmp @@writeRes;
 
-            @@dobiased:
-            divpd xmm0, xmm6;
+       @@dobiased:
+       divpd xmm0, xmm6;
 
-            // write result
-            @@writeRes:
-            movapd [ebx], xmm0;
+       // write result
+       @@writeRes:
+       movapd [eax], xmm0;
 
-            // next columns:
-            add ecx, 16;
-            add ebx, 16;
+       // next columns:
+       add ecx, 16;
+       add eax, 16;
 
-        // loop x end
-        dec edx;
-        jnz @@addforxloop;
+   // loop x end
+   dec esi;
+   jnz @@addforxloop;
 
-        pop ebx;
-     end;
+   pop edi;
+   pop esi;
+   pop ebx;
 end;
 
 procedure ASMMatrixVarColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var iters : TASMNativeInt;
-begin
-     Assert((width and 1) = 0, 'Error width must be even');
+asm
+   push ebx;
+   push esi;
+   push edi;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= width*sizeof(double)), 'Dimension error');
+   mov edx, srcLineWidth;
+   mov ebx, height;
+   cvtsi2sd xmm5, ebx;
+   imul ebx, edx;
+   imul ebx, -1;
 
-     iters := -height*srcLineWidth;
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, ebx;
+   movupd xmm2, cLocOnes;
 
-     asm
-        push ebx;
+   movddup xmm6, xmm5;
 
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
-        mov ebx, dest;
+   // for x := 0 to width - 1:
+   mov esi, Width;
+   sar esi, 1;
+   @@addforxloop:
+       xorpd xmm7, xmm7;
 
-        movupd xmm2, cLocOnes;
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforyloop:
+           movupd xmm0, [ecx + edi];
+           addpd xmm7, xmm0;
+       add edi, edx;
+       jnz @addforyloop;
 
-        {$IFDEF FPC}
-        mov eax, height;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, height;
-        {$ENDIF}
-        movddup xmm6, xmm5;
+       // build mean
+       divpd xmm7, xmm6;
 
-        // for x := 0 to width - 1:
-        mov edx, Width;
-        sar edx, 1;
-        @@addforxloop:
-            xorpd xmm7, xmm7;
+       // calculate final standard deviation
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       xorpd xmm0, xmm0;
+       mov edi, ebx;
+       @addforyloop2:
+           movupd xmm1, [ecx + edi];
+           subpd xmm1, xmm7;
+           mulpd xmm1, xmm1;
+           addpd xmm0, xmm1;
+       add edi, edx;
+       jnz @addforyloop2;
 
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforyloop:
-                movupd xmm0, [ecx + eax];
-                addpd xmm7, xmm0;
-            add eax, srcLineWidth;
-            jnz @addforyloop;
+       // check if we need to use the unbiased version
+       cmp unbiased, 0;
+       jz @@dobiased;
 
-            // build mean
-            divpd xmm7, xmm6;
+       movapd xmm4, xmm6;
+       subpd xmm4, xmm2;
+       maxpd xmm4, xmm2;
 
-            // calculate final standard deviation
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            xorpd xmm0, xmm0;
-            mov eax, iters;
-            @addforyloop2:
-                movupd xmm1, [ecx + eax];
-                subpd xmm1, xmm7;
-                mulpd xmm1, xmm1;
-                addpd xmm0, xmm1;
-            add eax, srcLineWidth;
-            jnz @addforyloop2;
+       divpd xmm0, xmm4;
 
-            // check if we need to use the unbiased version
-            cmp unbiased, 0;
-            jz @@dobiased;
+       jmp @@writeRes;
 
-            movapd xmm4, xmm6;
-            subpd xmm4, xmm2;
-            maxpd xmm4, xmm2;
+       @@dobiased:
+       divpd xmm0, xmm6;
 
-            divpd xmm0, xmm4;
+       // write result
+       @@writeRes:
+       movupd [eax], xmm0;
 
-            jmp @@writeRes;
+       // next columns:
+       add ecx, 16;
+       add eax, 16;
 
-            @@dobiased:
-            divpd xmm0, xmm6;
+   // loop x end
+   dec esi;
+   jnz @@addforxloop;
 
-            // write result
-            @@writeRes:
-            movupd [ebx], xmm0;
-
-            // next columns:
-            add ecx, 16;
-            add ebx, 16;
-
-        // loop x end
-        dec edx;
-        jnz @@addforxloop;
-
-        pop ebx;
-     end;
+   pop edi;
+   pop esi;
+   pop ebx;
 end;
 
 procedure ASMMatrixVarColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var iters : TASMNativeInt;
-begin
-     Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
-            (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
-     Assert((width and 1) = 1, 'Error width must be even');
+asm
+   push ebx;
+   push esi;
+   push edi;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= width*sizeof(double)), 'Dimension error');
+   mov edx, srcLineWidth;
+   mov ebx, height;
+   cvtsi2sd xmm5, ebx;
+   imul ebx, edx;
+   imul ebx, -1;
 
-     iters := -height*srcLineWidth;
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, ebx;
+   movupd xmm2, cLocOnes;
 
-     asm
-        push ebx;
+   movddup xmm6, xmm5;
 
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
-        mov ebx, dest;
+   // for x := 0 to width - 1:
+   mov esi, Width;
+   sar esi, 1;
+   jz @lastColumn;
+   @@addforxloop:
+       xorpd xmm7, xmm7;
 
-        movupd xmm2, cLocOnes;
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforyloop:
+           addpd xmm7, [ecx + edi];
+       add edi, edx;
+       jnz @addforyloop;
 
-        {$IFDEF FPC}
-        mov eax, height;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, height;
-        {$ENDIF}
-        movddup xmm6, xmm5;
+       // build mean
+       divpd xmm7, xmm6;
 
-        // for x := 0 to width - 1:
-        mov edx, Width;
-        sar edx, 1;
-        jz @lastColumn;
-        @@addforxloop:
-            xorpd xmm7, xmm7;
+       // calculate final standard deviation
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       xorpd xmm0, xmm0;
+       mov edi, ebx;
+       @addforyloop2:
+           movapd xmm1, [ecx + edi];
+           subpd xmm1, xmm7;
+           mulpd xmm1, xmm1;
+           addpd xmm0, xmm1;
+       add edi, edx;
+       jnz @addforyloop2;
 
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforyloop:
-                addpd xmm7, [ecx + eax];
-            add eax, srcLineWidth;
-            jnz @addforyloop;
+       // check if we need to use the unbiased version
+       cmp unbiased, 0;
+       jz @@dobiased;
 
-            // build mean
-            divpd xmm7, xmm6;
+       movapd xmm4, xmm6;
+       subpd xmm4, xmm2;
+       maxpd xmm4, xmm2;
 
-            // calculate final standard deviation
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            xorpd xmm0, xmm0;
-            mov eax, iters;
-            @addforyloop2:
-                movapd xmm1, [ecx + eax];
-                subpd xmm1, xmm7;
-                mulpd xmm1, xmm1;
-                addpd xmm0, xmm1;
-            add eax, srcLineWidth;
-            jnz @addforyloop2;
+       divpd xmm0, xmm4;
 
-            // check if we need to use the unbiased version
-            cmp unbiased, 0;
-            jz @@dobiased;
+       jmp @@writeRes;
 
-            movapd xmm4, xmm6;
-            subpd xmm4, xmm2;
-            maxpd xmm4, xmm2;
+       @@dobiased:
+       divpd xmm0, xmm6;
 
-            divpd xmm0, xmm4;
+       // write result
+       @@writeRes:
+       movapd [eax], xmm0;
 
-            jmp @@writeRes;
+       // next columns:
+       add ecx, 16;
+       add eax, 16;
 
-            @@dobiased:
-            divpd xmm0, xmm6;
+   // loop x end
+   dec esi;
+   jnz @@addforxloop;
 
-            // write result
-            @@writeRes:
-            movapd [ebx], xmm0;
+   @lastColumn:
+   // handle last column
+   xorpd xmm7, xmm7;
 
-            // next columns:
-            add ecx, 16;
-            add ebx, 16;
+   // for y := 0 to height - 1;
+   // prepare for reverse loop
+   mov edi, ebx;
+   @addforyloop3:
+       movsd xmm0, [ecx + edi];
+       addsd xmm7, xmm0;
+   add edi, edx;
+   jnz @addforyloop3;
 
-        // loop x end
-        dec edx;
-        jnz @@addforxloop;
+   // build mean
+   divsd xmm7, xmm6;
 
-        @lastColumn:
-        // handle last column
-        xorpd xmm7, xmm7;
+   // calculate final standard deviation
+   // for y := 0 to height - 1;
+   // prepare for reverse loop
+   xorpd xmm0, xmm0;
+   mov edi, ebx;
+   @addforyloop4:
+       movsd xmm1, [ecx + edi];
+       subsd xmm1, xmm7;
+       mulsd xmm1, xmm1;
+       addsd xmm0, xmm1;
+   add edi, edx;
+   jnz @addforyloop4;
 
-        // for y := 0 to height - 1;
-        // prepare for reverse loop
-        mov eax, iters;
-        @addforyloop3:
-            movsd xmm0, [ecx + eax];
-            addsd xmm7, xmm0;
-        add eax, srcLineWidth;
-        jnz @addforyloop3;
+   // check if we need to use the unbiased version
+   cmp unbiased, 0;
+   jz @@dobiased2;
 
-        // build mean
-        divsd xmm7, xmm6;
+   movapd xmm4, xmm6;
+   subsd xmm4, cLocOne;
+   maxsd xmm4, cLocOne;
 
-        // calculate final standard deviation
-        // for y := 0 to height - 1;
-        // prepare for reverse loop
-        xorpd xmm0, xmm0;
-        mov eax, iters;
-        @addforyloop4:
-            movsd xmm1, [ecx + eax];
-            subsd xmm1, xmm7;
-            mulsd xmm1, xmm1;
-            addsd xmm0, xmm1;
-        add eax, srcLineWidth;
-        jnz @addforyloop4;
+   divsd xmm0, xmm4;
 
-        // check if we need to use the unbiased version
-        cmp unbiased, 0;
-        jz @@dobiased2;
+   jmp @@writeRes2;
 
-        movapd xmm4, xmm6;
-        subsd xmm4, cLocOne;
-        maxsd xmm4, cLocOne;
+   @@dobiased2:
+   divsd xmm0, xmm6;
 
-        divsd xmm0, xmm4;
+   // write result
+   @@writeRes2:
+   movsd [eax], xmm0;
 
-        jmp @@writeRes2;
-
-        @@dobiased2:
-        divsd xmm0, xmm6;
-
-        // write result
-        @@writeRes2:
-        movsd [ebx], xmm0;
-
-        pop ebx;
-     end;
+   pop edi;
+   pop esi;
+   pop ebx;
 end;
 
 procedure ASMMatrixVarColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var iters : TASMNativeInt;
-begin
-     Assert((width and 1) = 1, 'Error width must be even');
+asm
+   push ebx;
+   push esi;
+   push edi;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= width*sizeof(double)), 'Dimension error');
+   mov edx, srcLineWidth;
+   mov ebx, height;
+   cvtsi2sd xmm5, ebx;
+   imul ebx, edx;
+   imul ebx, -1;
 
-     iters := -height*srcLineWidth;
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, ebx;
+   movupd xmm2, cLocOnes;
 
-     asm
-        push ebx;
+   movddup xmm6, xmm5;
 
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
-        mov ebx, dest;
+   // for x := 0 to width - 1:
+   mov esi, Width;
+   sar esi, 1;
+   jz @lastColumn;
+   @@addforxloop:
+       xorpd xmm7, xmm7;
 
-        movupd xmm2, cLocOnes;
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforyloop:
+           movupd xmm0, [ecx + edi];
+           addpd xmm7, xmm0;
+       add edi, edx;
+       jnz @addforyloop;
 
-        {$IFDEF FPC}
-        mov eax, height;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, height;
-        {$ENDIF}
-        movddup xmm6, xmm5;
+       // build mean
+       divpd xmm7, xmm6;
 
-        // for x := 0 to width - 1:
-        mov edx, Width;
-        sar edx, 1;
-        jz @lastColumn;
-        @@addforxloop:
-            xorpd xmm7, xmm7;
+       // calculate final standard deviation
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       xorpd xmm0, xmm0;
+       mov edi, ebx;
+       @addforyloop2:
+           movupd xmm1, [ecx + edi];
+           subpd xmm1, xmm7;
+           mulpd xmm1, xmm1;
+           addpd xmm0, xmm1;
+       add edi, edx;
+       jnz @addforyloop2;
 
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforyloop:
-                movupd xmm0, [ecx + eax];
-                addpd xmm7, xmm0;
-            add eax, srcLineWidth;
-            jnz @addforyloop;
+       // check if we need to use the unbiased version
+       cmp unbiased, 0;
+       jz @@dobiased;
 
-            // build mean
-            divpd xmm7, xmm6;
+       movapd xmm4, xmm6;
+       subpd xmm4, xmm2;
+       maxpd xmm4, xmm2;
 
-            // calculate final standard deviation
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            xorpd xmm0, xmm0;
-            mov eax, iters;
-            @addforyloop2:
-                movupd xmm1, [ecx + eax];
-                subpd xmm1, xmm7;
-                mulpd xmm1, xmm1;
-                addpd xmm0, xmm1;
-            add eax, srcLineWidth;
-            jnz @addforyloop2;
+       divpd xmm0, xmm4;
 
-            // check if we need to use the unbiased version
-            cmp unbiased, 0;
-            jz @@dobiased;
+       jmp @@writeRes;
 
-            movapd xmm4, xmm6;
-            subpd xmm4, xmm2;
-            maxpd xmm4, xmm2;
+       @@dobiased:
+       divpd xmm0, xmm6;
 
-            divpd xmm0, xmm4;
+       // write result
+       @@writeRes:
+       movupd [eax], xmm0;
 
-            jmp @@writeRes;
+       // next columns:
+       add ecx, 16;
+       add eax, 16;
 
-            @@dobiased:
-            divpd xmm0, xmm6;
+   // loop x end
+   dec esi;
+   jnz @@addforxloop;
 
-            // write result
-            @@writeRes:
-            movupd [ebx], xmm0;
+   @lastColumn:
+   // handle last column
+   xorpd xmm7, xmm7;
 
-            // next columns:
-            add ecx, 16;
-            add ebx, 16;
+   // for y := 0 to height - 1;
+   // prepare for reverse loop
+   mov edi, ebx;
+   @addforyloop3:
+       movsd xmm0, [ecx + edi];
+       addsd xmm7, xmm0;
+   add edi, edx;
+   jnz @addforyloop3;
 
-        // loop x end
-        dec edx;
-        jnz @@addforxloop;
+   // build mean
+   divsd xmm7, xmm6;
 
-        @lastColumn:
-        // handle last column
-        xorpd xmm7, xmm7;
+   // calculate final standard deviation
+   // for y := 0 to height - 1;
+   // prepare for reverse loop
+   xorpd xmm0, xmm0;
+   mov edi, ebx;
+   @addforyloop4:
+       movsd xmm1, [ecx + edi];
+       subsd xmm1, xmm7;
+       mulsd xmm1, xmm1;
+       addsd xmm0, xmm1;
+   add edi, edx;
+   jnz @addforyloop4;
 
-        // for y := 0 to height - 1;
-        // prepare for reverse loop
-        mov eax, iters;
-        @addforyloop3:
-            movsd xmm0, [ecx + eax];
-            addsd xmm7, xmm0;
-        add eax, srcLineWidth;
-        jnz @addforyloop3;
+   // check if we need to use the unbiased version
+   cmp unbiased, 0;
+   jz @@dobiased2;
 
-        // build mean
-        divsd xmm7, xmm6;
+   movapd xmm4, xmm6;
+   subsd xmm4, cLocOne;
+   maxsd xmm4, cLocOne;
 
-        // calculate final standard deviation
-        // for y := 0 to height - 1;
-        // prepare for reverse loop
-        xorpd xmm0, xmm0;
-        mov eax, iters;
-        @addforyloop4:
-            movsd xmm1, [ecx + eax];
-            subsd xmm1, xmm7;
-            mulsd xmm1, xmm1;
-            addsd xmm0, xmm1;
-        add eax, srcLineWidth;
-        jnz @addforyloop4;
+   divsd xmm0, xmm4;
 
-        // check if we need to use the unbiased version
-        cmp unbiased, 0;
-        jz @@dobiased2;
+   jmp @@writeRes2;
 
-        movapd xmm4, xmm6;
-        subsd xmm4, cLocOne;
-        maxsd xmm4, cLocOne;
+   @@dobiased2:
+   divsd xmm0, xmm6;
 
-        divsd xmm0, xmm4;
+   // write result
+   @@writeRes2:
+   movsd [eax], xmm0;
 
-        jmp @@writeRes2;
-
-        @@dobiased2:
-        divsd xmm0, xmm6;
-
-        // write result
-        @@writeRes2:
-        movsd [ebx], xmm0;
-
-        pop ebx;
-     end;
+   pop edi;
+   pop esi;
+   pop ebx;
 end;
 
 // ###########################################
@@ -1938,1237 +1793,1149 @@ end;
 // ###########################################
 
 procedure ASMMatrixMeanVarRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-//procedure ASMMatrixMeanVarRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
+// eax = dest, edx = destLineWidth, ecx = Src
+asm
+   push ebx;
+   push esi;
+   push edi;
 
-var iters : TASMNativeInt;
-begin
-     Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
-            (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
-     Assert((width and 1) = 0, 'Error width must be even');
+   mov ebx, width;
+   cvtsi2sd xmm5, ebx;
+   imul ebx, -8;
+        
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, ebx;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= 2*sizeof(double)), 'Dimension error');
+   // for y := 0 to height - 1:
+   mov esi, Height;
+   @@addforyloop:
+       xorpd xmm0, xmm0;
+       xorpd xmm1, xmm1;
+       xorpd xmm2, xmm2;
+       xorpd xmm3, xmm3;
 
-     iters := -width*sizeof(double);
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
+           // prefetch data...
+           // prefetch [ecx + edi];
 
-     asm
-        push ebx;
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
+           // addition:
+           addpd xmm0, [ecx + edi - 128];
+           addpd xmm1, [ecx + edi - 112];
+           addpd xmm2, [ecx + edi - 96];
+           addpd xmm3, [ecx + edi - 80];
+           addpd xmm0, [ecx + edi - 64];
+           addpd xmm1, [ecx + edi - 48];
+           addpd xmm2, [ecx + edi - 32];
+           addpd xmm3, [ecx + edi - 16];
+       jmp @addforxloop
 
-        mov ebx, dest;
+       @loopEnd:
 
-        {$IFDEF FPC}
-        mov eax, width;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, width;
-        {$ENDIF}
+       sub edi, 128;
 
-        // for y := 0 to height - 1:
-        mov edx, Height;
-        @@addforyloop:
-            xorpd xmm0, xmm0;
-            xorpd xmm1, xmm1;
-            xorpd xmm2, xmm2;
-            xorpd xmm3, xmm3;
+       jz @buildRes;
 
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforxloop:
-                add eax, 128;
-                jg @loopEnd;
-                // prefetch data...
-                // prefetch [ecx + eax];
+       @addforxloop2:
+           addpd xmm0, [ecx + edi];
+       add edi, 16;
+       jnz @addforxloop2;
 
-                // addition:
-                addpd xmm0, [ecx + eax - 128];
-                addpd xmm1, [ecx + eax - 112];
-                addpd xmm2, [ecx + eax - 96];
-                addpd xmm3, [ecx + eax - 80];
-                addpd xmm0, [ecx + eax - 64];
-                addpd xmm1, [ecx + eax - 48];
-                addpd xmm2, [ecx + eax - 32];
-                addpd xmm3, [ecx + eax - 16];
-            jmp @addforxloop
+       @buildRes:
 
-            @loopEnd:
+       addpd xmm0, xmm1;
+       addpd xmm2, xmm3;
+       addpd xmm0, xmm2;
 
-            sub eax, 128;
+       // build result
+       haddpd xmm0, xmm0;
 
-            jz @buildRes;
+       divsd xmm0, xmm5;
+       movsd [eax], xmm0;
 
-            @addforxloop2:
-                addpd xmm0, [ecx + eax];
-            add eax, 16;
-            jnz @addforxloop2;
+       // we have calculated the mean ->
+       // repeat the loop to calculate the variance
 
-            @buildRes:
+       movddup xmm4, xmm0;
+       xorpd xmm0, xmm0;
 
-            addpd xmm0, xmm1;
-            addpd xmm2, xmm3;
-            addpd xmm0, xmm2;
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       // variance = sum (x - mean)^2
+       mov edi, ebx;
+       @addforxloop3:
+           add edi, 128;
+           jg @loopEnd2;
+           // prefetch data...
+           // prefetch [ecx + edi];
 
-            // build result
-            haddpd xmm0, xmm0;
+           // addition:
+           movapd xmm1, [ecx + edi - 128];
+           movapd xmm2, [ecx + edi - 112];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
 
-            divsd xmm0, xmm5;
-            movsd [ebx], xmm0;
+           movapd xmm1, [ecx + edi - 96];
+           movapd xmm2, [ecx + edi - 80];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
 
-            // we have calculated the mean ->
-            // repeat the loop to calculate the variance
+           movapd xmm1, [ecx + edi - 64];
+           movapd xmm2, [ecx + edi - 48];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
 
-            movddup xmm4, xmm0;
-            xorpd xmm0, xmm0;
+           movapd xmm1, [ecx + edi - 32];
+           movapd xmm2, [ecx + edi - 16];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
 
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            // variance = sum (x - mean)^2
-            mov eax, iters;
-            @addforxloop3:
-                add eax, 128;
-                jg @loopEnd2;
-                // prefetch data...
-                // prefetch [ecx + eax];
+       jmp @addforxloop3
 
-                // addition:
-                movapd xmm1, [ecx + eax - 128];
-                movapd xmm2, [ecx + eax - 112];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+       @loopEnd2:
 
-                movapd xmm1, [ecx + eax - 96];
-                movapd xmm2, [ecx + eax - 80];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+       sub edi, 128;
 
-                movapd xmm1, [ecx + eax - 64];
-                movapd xmm2, [ecx + eax - 48];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+       jz @buildRes2;
 
-                movapd xmm1, [ecx + eax - 32];
-                movapd xmm2, [ecx + eax - 16];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+       @addforxloop4:
+           movapd xmm1, [ecx + edi];
+           subpd xmm1, xmm4;
+           mulpd xmm1, xmm1;
+           addpd xmm0, xmm1;
+       add edi, 16;
+       jnz @addforxloop4;
 
-            jmp @addforxloop3
+       @buildRes2:
 
-            @loopEnd2:
+       // build result
+       movhlps xmm1, xmm0;
+       addsd xmm0, xmm1;
 
-            sub eax, 128;
+       // check if we need to use the unbiased version
+       cmp unbiased, 0;
+       jz @@dobiased;
 
-            jz @buildRes2;
+       movsd xmm4, xmm5;
+       subsd xmm4, cLocOne;
+       maxsd xmm4, cLocOne;
 
-            @addforxloop4:
-                movapd xmm1, [ecx + eax];
-                subpd xmm1, xmm4;
-                mulpd xmm1, xmm1;
-                addpd xmm0, xmm1;
-            add eax, 16;
-            jnz @addforxloop4;
+       divsd xmm0, xmm4;
 
-            @buildRes2:
+       jmp @@writeRes;
 
-            // build result
-            movhlps xmm1, xmm0;
-            addsd xmm0, xmm1;
+       @@dobiased:
+       divsd xmm0, xmm5;
 
-            // check if we need to use the unbiased version
-            cmp unbiased, 0;
-            jz @@dobiased;
+       // write result
+       @@writeRes:
+       movsd [eax + 8], xmm0;
 
-            movsd xmm4, xmm5;
-            subsd xmm4, cLocOne;
-            maxsd xmm4, cLocOne;
+       // next line:
+       add ecx, srcLineWidth;
+       add eax, edx;
 
-            divsd xmm0, xmm4;
+   // loop y end
+   dec esi;
+   jnz @@addforyloop;
 
-            jmp @@writeRes;
-
-            @@dobiased:
-            divsd xmm0, xmm5;
-
-            // write result
-            @@writeRes:
-            movsd [ebx + 8], xmm0;
-
-            // next line:
-            add ecx, srcLineWidth;
-            add ebx, destLineWidth;
-
-        // loop y end
-        dec edx;
-        jnz @@addforyloop;
-
-        pop ebx;
-     end;
+   pop edi;
+   pop esi;
+   pop ebx;
 end;
 
 procedure ASMMatrixMeanVarRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var iters : TASMNativeInt;
-begin
-     Assert((width and 1) = 0, 'Error width must be even');
+// eax = dest, edx = destLineWidth, ecx = Src
+asm
+   push ebx;
+   push esi;
+   push edi;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= 2*sizeof(double)), 'Dimension error');
+   mov ebx, width;
+   cvtsi2sd xmm5, ebx;
+   imul ebx, -8;
+        
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, ebx;
+   
+   // for y := 0 to height - 1:
+   mov esi, Height;
+   @@addforyloop:
+       xorpd xmm7, xmm7;
 
-     iters := -width*sizeof(double);
-     asm
-        push ebx;
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
 
-        mov ebx, dest;
+           // addition:
+           movupd xmm0, [ecx + edi - 128];
+           addpd xmm7, xmm0;
 
-        {$IFDEF FPC}
-        mov eax, width;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, width;
-        {$ENDIF}
+           movupd xmm1, [ecx + edi - 112];
+           addpd xmm7, xmm1;
 
-        // for y := 0 to height - 1:
-        mov edx, Height;
-        @@addforyloop:
-            xorpd xmm7, xmm7;
+           movupd xmm2, [ecx + edi - 96];
+           addpd xmm7, xmm2;
 
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforxloop:
-                add eax, 128;
-                jg @loopEnd;
+           movupd xmm3, [ecx + edi - 80];
+           addpd xmm7, xmm3;
 
-                // addition:
-                movupd xmm0, [ecx + eax - 128];
-                addpd xmm7, xmm0;
+           movupd xmm0, [ecx + edi - 64];
+           addpd xmm7, xmm0;
 
-                movupd xmm1, [ecx + eax - 112];
-                addpd xmm7, xmm1;
+           movupd xmm1, [ecx + edi - 48];
+           addpd xmm7, xmm1;
 
-                movupd xmm2, [ecx + eax - 96];
-                addpd xmm7, xmm2;
+           movupd xmm2, [ecx + edi - 32];
+           addpd xmm7, xmm2;
 
-                movupd xmm3, [ecx + eax - 80];
-                addpd xmm7, xmm3;
+           movupd xmm3, [ecx + edi - 16];
+           addpd xmm7, xmm3;
+       jmp @addforxloop
 
-                movupd xmm0, [ecx + eax - 64];
-                addpd xmm7, xmm0;
+       @loopEnd:
 
-                movupd xmm1, [ecx + eax - 48];
-                addpd xmm7, xmm1;
+       sub edi, 128;
 
-                movupd xmm2, [ecx + eax - 32];
-                addpd xmm7, xmm2;
+       jz @buildRes;
 
-                movupd xmm3, [ecx + eax - 16];
-                addpd xmm7, xmm3;
-            jmp @addforxloop
+       @addforxloop2:
+           movupd xmm0, [ecx + edi];
+           addpd xmm7, xmm0;
+       add edi, 16;
+       jnz @addforxloop2;
 
-            @loopEnd:
+       @buildRes:
 
-            sub eax, 128;
+       // build result
+       haddpd xmm7, xmm7;
+       divsd xmm7, xmm5;
 
-            jz @buildRes;
+       movsd [eax], xmm7;
 
-            @addforxloop2:
-                movupd xmm0, [ecx + eax];
-                addpd xmm7, xmm0;
-            add eax, 16;
-            jnz @addforxloop2;
+       // we have calculated the mean ->
+       // repeat the loop to calculate the variance
 
-            @buildRes:
+       movddup xmm4, xmm7;
+       xorpd xmm0, xmm0;
 
-            // build result
-            haddpd xmm7, xmm7;
-            divsd xmm7, xmm5;
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       // variance = sum (x - mean)^2
+       mov edi, ebx;
+       @addforxloop3:
+           add edi, 128;
+           jg @loopEnd2;
+           // prefetch data...
+           // prefetch [ecx + edi];
 
-            movsd [ebx], xmm7;
+           // addition:
+           movupd xmm1, [ecx + edi - 128];
+           movupd xmm2, [ecx + edi - 112];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
 
-            // we have calculated the mean ->
-            // repeat the loop to calculate the variance
+           movupd xmm1, [ecx + edi - 96];
+           movupd xmm2, [ecx + edi - 80];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
 
-            movddup xmm4, xmm7;
-            xorpd xmm0, xmm0;
+           movupd xmm1, [ecx + edi - 64];
+           movupd xmm2, [ecx + edi - 48];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
 
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            // variance = sum (x - mean)^2
-            mov eax, iters;
-            @addforxloop3:
-                add eax, 128;
-                jg @loopEnd2;
-                // prefetch data...
-                // prefetch [ecx + eax];
+           movupd xmm1, [ecx + edi - 32];
+           movupd xmm2, [ecx + edi - 16];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
 
-                // addition:
-                movupd xmm1, [ecx + eax - 128];
-                movupd xmm2, [ecx + eax - 112];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+       jmp @addforxloop3
 
-                movupd xmm1, [ecx + eax - 96];
-                movupd xmm2, [ecx + eax - 80];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+       @loopEnd2:
 
-                movupd xmm1, [ecx + eax - 64];
-                movupd xmm2, [ecx + eax - 48];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+       sub edi, 128;
 
-                movupd xmm1, [ecx + eax - 32];
-                movupd xmm2, [ecx + eax - 16];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+       jz @buildRes2;
 
-            jmp @addforxloop3
+       @addforxloop4:
+           movupd xmm1, [ecx + edi];
+           subpd xmm1, xmm4;
+           mulpd xmm1, xmm1;
+           addpd xmm0, xmm1;
+       add edi, 16;
+       jnz @addforxloop4;
 
-            @loopEnd2:
+       @buildRes2:
 
-            sub eax, 128;
+       // build result
+       haddpd xmm0, xmm0;
 
-            jz @buildRes2;
+       // check if we need to use the unbiased version
+       cmp unbiased, 0;
+       jz @@dobiased;
 
-            @addforxloop4:
-                movupd xmm1, [ecx + eax];
-                subpd xmm1, xmm4;
-                mulpd xmm1, xmm1;
-                addpd xmm0, xmm1;
-            add eax, 16;
-            jnz @addforxloop4;
+       movsd xmm4, xmm5;
+       subsd xmm4, cLocOne;
+       maxsd xmm4, cLocOne;
 
-            @buildRes2:
+       divsd xmm0, xmm4;
 
-            // build result
-            haddpd xmm0, xmm0;
+       jmp @@writeRes;
 
-            // check if we need to use the unbiased version
-            cmp unbiased, 0;
-            jz @@dobiased;
+       @@dobiased:
+       divsd xmm0, xmm5;
 
-            movsd xmm4, xmm5;
-            subsd xmm4, cLocOne;
-            maxsd xmm4, cLocOne;
+       // write result
+       @@writeRes:
+       movsd [eax + 8], xmm0;
 
-            divsd xmm0, xmm4;
+       // next line:
+       add ecx, srcLineWidth;
+       add eax, edx;
 
-            jmp @@writeRes;
+   // loop y end
+   dec esi;
+   jnz @@addforyloop;
 
-            @@dobiased:
-            divsd xmm0, xmm5;
-
-            // write result
-            @@writeRes:
-            movsd [ebx + 8], xmm0;
-
-            // next line:
-            add ecx, srcLineWidth;
-            add ebx, destLineWidth;
-
-        // loop y end
-        dec edx;
-        jnz @@addforyloop;
-
-        pop ebx;
-     end;
+   pop edi;
+   pop esi;
+   pop ebx;
 end;
 
 procedure ASMMatrixMeanVarRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var iters : TASMNativeInt;
-begin
-     Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
-            (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
-     Assert((width and 1) = 1, 'Error width must be odd');
+// eax = dest, edx = destLineWidth, ecx = Src
+asm
+   push ebx;
+   push esi;
+   push edi;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= sizeof(double)), 'Dimension error');
+   mov ebx, width;
+   cvtsi2sd xmm5, ebx;
+   dec ebx;
+   imul ebx, -8;
+        
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, ebx;
 
-     iters := -(width - 1)*sizeof(double);
+   // for y := 0 to height - 1:
+   mov esi, Height;
+   @@addforyloop:
+       xorpd xmm0, xmm0;
+       xorpd xmm1, xmm1;
+       xorpd xmm2, xmm2;
+       xorpd xmm3, xmm3;
 
-     asm
-        push ebx;
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
 
-        mov ebx, dest;
+           // prefetch data...
+           // prefetch [ecx + edi];
 
-        {$IFDEF FPC}
-        mov eax, width;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, width;
-        {$ENDIF}
+           // addition:
+           addpd xmm0, [ecx + edi - 128];
+           addpd xmm1, [ecx + edi - 112];
+           addpd xmm2, [ecx + edi - 96];
+           addpd xmm3, [ecx + edi - 80];
+           addpd xmm0, [ecx + edi - 64];
+           addpd xmm1, [ecx + edi - 48];
+           addpd xmm2, [ecx + edi - 32];
+           addpd xmm3, [ecx + edi - 16];
+       jmp @addforxloop
 
-        // for y := 0 to height - 1:
-        mov edx, Height;
-        @@addforyloop:
-            xorpd xmm0, xmm0;
-            xorpd xmm1, xmm1;
-            xorpd xmm2, xmm2;
-            xorpd xmm3, xmm3;
+       @loopEnd:
 
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforxloop:
-                add eax, 128;
-                jg @loopEnd;
+       sub edi, 128;
 
-                // prefetch data...
-                // prefetch [ecx + eax];
+       jz @buildRes;
 
-                // addition:
-                addpd xmm0, [ecx + eax - 128];
-                addpd xmm1, [ecx + eax - 112];
-                addpd xmm2, [ecx + eax - 96];
-                addpd xmm3, [ecx + eax - 80];
-                addpd xmm0, [ecx + eax - 64];
-                addpd xmm1, [ecx + eax - 48];
-                addpd xmm2, [ecx + eax - 32];
-                addpd xmm3, [ecx + eax - 16];
-            jmp @addforxloop
+       @addforxloop2:
+           addpd xmm0, [ecx + edi];
+       add edi, 16;
+       jnz @addforxloop2;
 
-            @loopEnd:
+       @buildRes:
 
-            sub eax, 128;
+       addpd xmm0, xmm1;
+       addpd xmm2, xmm3;
+       addpd xmm0, xmm2;
 
-            jz @buildRes;
+       // handle last element differently
+       movsd xmm2, [ecx + edi];
+       addsd xmm0, xmm2;
 
-            @addforxloop2:
-                addpd xmm0, [ecx + eax];
-            add eax, 16;
-            jnz @addforxloop2;
+       // build result
+       haddpd xmm0, xmm0;
 
-            @buildRes:
+       divsd xmm0, xmm5;
 
-            addpd xmm0, xmm1;
-            addpd xmm2, xmm3;
-            addpd xmm0, xmm2;
+       movsd [eax], xmm0;
 
-            // handle last element differently
-            movsd xmm2, [ecx + eax];
-            addsd xmm0, xmm2;
+       // we have calculated the mean ->
+       // repeat the loop to calculate the variance
 
-            // build result
-            haddpd xmm0, xmm0;
+       movddup xmm4, xmm0;
+       xorpd xmm0, xmm0;
 
-            divsd xmm0, xmm5;
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       // variance = sum (x - mean)^2
+       mov edi, ebx;
+       @addforxloop3:
+           add edi, 128;
+           jg @loopEnd2;
+           // prefetch data...
+           // prefetch [ecx + edi];
 
-            movsd [ebx], xmm0;
+           // addition:
+           movapd xmm1, [ecx + edi - 128];
+           movapd xmm2, [ecx + edi - 112];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
 
-            // we have calculated the mean ->
-            // repeat the loop to calculate the variance
+           movapd xmm1, [ecx + edi - 96];
+           movapd xmm2, [ecx + edi - 80];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
 
-            movddup xmm4, xmm0;
-            xorpd xmm0, xmm0;
+           movapd xmm1, [ecx + edi - 64];
+           movapd xmm2, [ecx + edi - 48];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
 
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            // variance = sum (x - mean)^2
-            mov eax, iters;
-            @addforxloop3:
-                add eax, 128;
-                jg @loopEnd2;
-                // prefetch data...
-                // prefetch [ecx + eax];
+           movapd xmm1, [ecx + edi - 32];
+           movapd xmm2, [ecx + edi - 16];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
 
-                // addition:
-                movapd xmm1, [ecx + eax - 128];
-                movapd xmm2, [ecx + eax - 112];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+       jmp @addforxloop3
 
-                movapd xmm1, [ecx + eax - 96];
-                movapd xmm2, [ecx + eax - 80];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+       @loopEnd2:
 
-                movapd xmm1, [ecx + eax - 64];
-                movapd xmm2, [ecx + eax - 48];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+       sub edi, 128;
 
-                movapd xmm1, [ecx + eax - 32];
-                movapd xmm2, [ecx + eax - 16];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+       jz @buildRes2;
 
-            jmp @addforxloop3
+       @addforxloop4:
+           movapd xmm1, [ecx + edi];
+           subpd xmm1, xmm4;
+           mulpd xmm1, xmm1;
+           addpd xmm0, xmm1;
+       add edi, 16;
+       jnz @addforxloop4;
 
-            @loopEnd2:
+       @buildRes2:
 
-            sub eax, 128;
+       // handle last element differently
+       movsd xmm1, [ecx + edi];
+       subsd xmm1, xmm4;
+       mulsd xmm1, xmm1;
+       addsd xmm0, xmm1;
 
-            jz @buildRes2;
+       // build result
+       haddpd xmm0, xmm0;
 
-            @addforxloop4:
-                movapd xmm1, [ecx + eax];
-                subpd xmm1, xmm4;
-                mulpd xmm1, xmm1;
-                addpd xmm0, xmm1;
-            add eax, 16;
-            jnz @addforxloop4;
+       // check if we need to use the unbiased version
+       cmp unbiased, 0;
+       jz @@dobiased;
 
-            @buildRes2:
+       movsd xmm4, xmm5;
+       subsd xmm4, cLocOne;
+       maxsd xmm4, cLocOne;
 
-            // handle last element differently
-            movsd xmm1, [ecx + eax];
-            subsd xmm1, xmm4;
-            mulsd xmm1, xmm1;
-            addsd xmm0, xmm1;
+       divsd xmm0, xmm4;
 
-            // build result
-            haddpd xmm0, xmm0;
+       jmp @@writeRes;
 
-            // check if we need to use the unbiased version
-            cmp unbiased, 0;
-            jz @@dobiased;
+       @@dobiased:
+       divsd xmm0, xmm5;
 
-            movsd xmm4, xmm5;
-            subsd xmm4, cLocOne;
-            maxsd xmm4, cLocOne;
+       // write result
+       @@writeRes:
+       movsd [eax + 8], xmm0;
 
-            divsd xmm0, xmm4;
+       // next line:
+       add ecx, srcLineWidth;
+       add eax, edx;
 
-            jmp @@writeRes;
+   // loop y end
+   dec esi;
+   jnz @@addforyloop;
 
-            @@dobiased:
-            divsd xmm0, xmm5;
-
-            // write result
-            @@writeRes:
-            movsd [ebx + 8], xmm0;
-
-            // next line:
-            add ecx, srcLineWidth;
-            add ebx, destLineWidth;
-
-        // loop y end
-        dec edx;
-        jnz @@addforyloop;
-
-        pop ebx;
-     end;
+   pop edi;
+   pop esi;
+   pop ebx;
 end;
 
 procedure ASMMatrixMeanVarRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var iters : TASMNativeInt;
-begin
-     Assert((width and 1) = 1, 'Error width must be odd');
+// eax = dest, edx = destLineWidth, ecx = Src
+asm
+   push ebx;
+   push esi;
+   push edi;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= sizeof(double)), 'Dimension error');
+   mov ebx, width;
+   cvtsi2sd xmm5, ebx;
+   dec ebx;
+   imul ebx, -8;
+        
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, ebx;
 
-     iters := -(width - 1)*sizeof(double);
+   // for y := 0 to height - 1:
+   mov esi, Height;
+   @@addforyloop:
+       xorpd xmm7, xmm7;
 
-     asm
-        push ebx;
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
 
-        mov ebx, dest;
+           // addition:
+           movupd xmm0, [ecx + edi - 128];
+           addpd xmm7, xmm0;
 
-        {$IFDEF FPC}
-        mov eax, width;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, width;
-        {$ENDIF}
+           movupd xmm1, [ecx + edi - 112];
+           addpd xmm7, xmm1;
 
-        // for y := 0 to height - 1:
-        mov edx, Height;
-        @@addforyloop:
-            xorpd xmm7, xmm7;
+           movupd xmm2, [ecx + edi - 96];
+           addpd xmm7, xmm2;
 
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforxloop:
-                add eax, 128;
-                jg @loopEnd;
+           movupd xmm3, [ecx + edi - 80];
+           addpd xmm7, xmm3;
 
-                // addition:
-                movupd xmm0, [ecx + eax - 128];
-                addpd xmm7, xmm0;
+           movupd xmm0, [ecx + edi - 64];
+           addpd xmm7, xmm0;
 
-                movupd xmm1, [ecx + eax - 112];
-                addpd xmm7, xmm1;
+           movupd xmm1, [ecx + edi - 48];
+           addpd xmm7, xmm1;
 
-                movupd xmm2, [ecx + eax - 96];
-                addpd xmm7, xmm2;
+           movupd xmm2, [ecx + edi - 32];
+           addpd xmm7, xmm2;
 
-                movupd xmm3, [ecx + eax - 80];
-                addpd xmm7, xmm3;
+           movupd xmm3, [ecx + edi - 16];
+           addpd xmm7, xmm3;
+       jmp @addforxloop
 
-                movupd xmm0, [ecx + eax - 64];
-                addpd xmm7, xmm0;
+       @loopEnd:
 
-                movupd xmm1, [ecx + eax - 48];
-                addpd xmm7, xmm1;
+       sub edi, 128;
 
-                movupd xmm2, [ecx + eax - 32];
-                addpd xmm7, xmm2;
+       jz @buildRes;
 
-                movupd xmm3, [ecx + eax - 16];
-                addpd xmm7, xmm3;
-            jmp @addforxloop
+       @addforxloop2:
+           movupd xmm0, [ecx + edi];
+           addpd xmm7, xmm0;
+       add edi, 16;
+       jnz @addforxloop2;
 
-            @loopEnd:
+       @buildRes:
 
-            sub eax, 128;
+       // handle last element differently
+       movsd xmm2, [ecx + edi];
+       addsd xmm7, xmm2;
 
-            jz @buildRes;
+       // build result
+       haddpd xmm7, xmm7;
 
-            @addforxloop2:
-                movupd xmm0, [ecx + eax];
-                addpd xmm7, xmm0;
-            add eax, 16;
-            jnz @addforxloop2;
+       divsd xmm7, xmm5;
+       movsd [eax], xmm7;
 
-            @buildRes:
+       // we have calculated the mean ->
+       // repeat the loop to calculate the variance
 
-            // handle last element differently
-            movsd xmm2, [ecx + eax];
-            addsd xmm7, xmm2;
+       movddup xmm4, xmm7;
+       xorpd xmm0, xmm0;
 
-            // build result
-            haddpd xmm7, xmm7;
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       // variance = sum (x - mean)^2
+       mov edi, ebx;
+       @addforxloop3:
+           add edi, 128;
+           jg @loopEnd2;
+           // prefetch data...
+           // prefetch [ecx + edi];
 
-            divsd xmm7, xmm5;
-            movsd [ebx], xmm7;
+           // addition:
+           movupd xmm1, [ecx + edi - 128];
+           movupd xmm2, [ecx + edi - 112];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
 
+           movupd xmm1, [ecx + edi - 96];
+           movupd xmm2, [ecx + edi - 80];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
 
-            // we have calculated the mean ->
-            // repeat the loop to calculate the variance
+           movupd xmm1, [ecx + edi - 64];
+           movupd xmm2, [ecx + edi - 48];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
 
-            movddup xmm4, xmm7;
-            xorpd xmm0, xmm0;
+           movupd xmm1, [ecx + edi - 32];
+           movupd xmm2, [ecx + edi - 16];
+           subpd xmm1, xmm4;
+           subpd xmm2, xmm4;
+           mulpd xmm1, xmm1;
+           mulpd xmm2, xmm2;
+           addpd xmm0, xmm1;
+           addpd xmm0, xmm2;
 
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            // variance = sum (x - mean)^2
-            mov eax, iters;
-            @addforxloop3:
-                add eax, 128;
-                jg @loopEnd2;
-                // prefetch data...
-                // prefetch [ecx + eax];
+       jmp @addforxloop3
 
-                // addition:
-                movupd xmm1, [ecx + eax - 128];
-                movupd xmm2, [ecx + eax - 112];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+       @loopEnd2:
 
-                movupd xmm1, [ecx + eax - 96];
-                movupd xmm2, [ecx + eax - 80];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+       sub edi, 128;
 
-                movupd xmm1, [ecx + eax - 64];
-                movupd xmm2, [ecx + eax - 48];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+       jz @buildRes2;
 
-                movupd xmm1, [ecx + eax - 32];
-                movupd xmm2, [ecx + eax - 16];
-                subpd xmm1, xmm4;
-                subpd xmm2, xmm4;
-                mulpd xmm1, xmm1;
-                mulpd xmm2, xmm2;
-                addpd xmm0, xmm1;
-                addpd xmm0, xmm2;
+       @addforxloop4:
+           movupd xmm1, [ecx + edi];
+           subpd xmm1, xmm4;
+           mulpd xmm1, xmm1;
+           addpd xmm0, xmm1;
+       add edi, 16;
+       jnz @addforxloop4;
 
-            jmp @addforxloop3
+       @buildRes2:
 
-            @loopEnd2:
+       // handle last element differently
+       movsd xmm1, [ecx + edi];
+       subsd xmm1, xmm4;
+       mulsd xmm1, xmm1;
+       addsd xmm0, xmm1;
 
-            sub eax, 128;
+       // build result
+       movhlps xmm1, xmm0;
+       addsd xmm0, xmm1;
 
-            jz @buildRes2;
+       // check if we need to use the unbiased version
+       cmp unbiased, 0;
+       jz @@dobiased;
 
-            @addforxloop4:
-                movupd xmm1, [ecx + eax];
-                subpd xmm1, xmm4;
-                mulpd xmm1, xmm1;
-                addpd xmm0, xmm1;
-            add eax, 16;
-            jnz @addforxloop4;
+       movsd xmm4, xmm5;
+       subsd xmm4, cLocOne;
+       maxsd xmm4, cLocOne;
 
-            @buildRes2:
+       divsd xmm0, xmm4;
 
-            // handle last element differently
-            movsd xmm1, [ecx + eax];
-            subsd xmm1, xmm4;
-            mulsd xmm1, xmm1;
-            addsd xmm0, xmm1;
+       jmp @@writeRes;
 
-            // build result
-            movhlps xmm1, xmm0;
-            addsd xmm0, xmm1;
+       @@dobiased:
+       divsd xmm0, xmm5;
 
-            // check if we need to use the unbiased version
-            cmp unbiased, 0;
-            jz @@dobiased;
+       // write result
+       @@writeRes:
+       movsd [eax + 8], xmm0;
 
-            movsd xmm4, xmm5;
-            subsd xmm4, cLocOne;
-            maxsd xmm4, cLocOne;
+       // next line:
+       add ecx, srcLineWidth;
+       add eax, edx;
 
-            divsd xmm0, xmm4;
+   // loop y end
+   dec esi;
+   jnz @@addforyloop;
 
-            jmp @@writeRes;
-
-            @@dobiased:
-            divsd xmm0, xmm5;
-
-            // write result
-            @@writeRes:
-            movsd [ebx + 8], xmm0;
-
-            // next line:
-            add ecx, srcLineWidth;
-            add ebx, destLineWidth;
-
-        // loop y end
-        dec edx;
-        jnz @@addforyloop;
-
-        pop ebx;
-     end;
+   pop edi;
+   pop esi;
+   pop ebx;
 end;
 
 procedure ASMMatrixMeanVarColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var iters : TASMNativeInt;
-begin
-     Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
-            (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
-     Assert((width and 1) = 0, 'Error width must be even');
+// eax = dest, edx = destLineWidth, ecx = Src
+asm
+   push ebx;
+   push esi;
+   push edi;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= width*sizeof(double)), 'Dimension error');
+   mov esi, srcLineWidth;
+   mov ebx, height;
+   cvtsi2sd xmm5, ebx;
+   imul ebx, esi;
+   imul ebx, -1;
 
-     iters := -height*srcLineWidth;
+   movupd xmm2, cLocOnes;
+   movddup xmm6, xmm5;
 
-     asm
-        push ebx;
+   sub ecx, ebx;
 
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
-        mov ebx, dest;
+   // for x := 0 to width - 1:
+   @@addforxloop:
+       xorpd xmm7, xmm7;
 
-        movupd xmm2, cLocOnes;
+       // calculate mean
 
-        {$IFDEF FPC}
-        mov eax, height;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, height;
-        {$ENDIF}
-        movddup xmm6, xmm5;
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforyloop:
+           addpd xmm7, [ecx + edi];
+       add edi, esi;
+       jnz @addforyloop;
 
-        // for x := 0 to width - 1:
-        mov edx, Width;
-        sar edx, 1;
-        @@addforxloop:
-            xorpd xmm7, xmm7;
+       // build mean
+       divpd xmm7, xmm6;
+       movapd [eax], xmm7;
 
-            // calculate mean
+       // calculate final standard deviation
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       xorpd xmm0, xmm0;
+       mov edi, ebx;
+       @addforyloop2:
+           movapd xmm1, [ecx + edi];
+           subpd xmm1, xmm7;
+           mulpd xmm1, xmm1;
+           addpd xmm0, xmm1;
+       add edi, esi;
+       jnz @addforyloop2;
 
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforyloop:
-                addpd xmm7, [ecx + eax];
-            add eax, srcLineWidth;
-            jnz @addforyloop;
+       // check if we need to use the unbiased version
+       cmp unbiased, 0;
+       jz @@dobiased;
 
-            // build mean
-            divpd xmm7, xmm6;
-            movapd [ebx], xmm7;
+       movapd xmm4, xmm6;
+       subpd xmm4, xmm2;
+       maxpd xmm4, xmm2;
 
-            // calculate final standard deviation
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            xorpd xmm0, xmm0;
-            mov eax, iters;
-            @addforyloop2:
-                movapd xmm1, [ecx + eax];
-                subpd xmm1, xmm7;
-                mulpd xmm1, xmm1;
-                addpd xmm0, xmm1;
-            add eax, srcLineWidth;
-            jnz @addforyloop2;
+       divpd xmm0, xmm4;
 
-            // check if we need to use the unbiased version
-            cmp unbiased, 0;
-            jz @@dobiased;
+       jmp @@writeRes;
 
-            movapd xmm4, xmm6;
-            subpd xmm4, xmm2;
-            maxpd xmm4, xmm2;
+       @@dobiased:
+       divpd xmm0, xmm6;
 
-            divpd xmm0, xmm4;
+       // write result
+       @@writeRes:
+       movapd [eax + edx], xmm0;
 
-            jmp @@writeRes;
+       // next columns:
+       add ecx, 16;
+       add eax, 16;
 
-            @@dobiased:
-            divpd xmm0, xmm6;
+   // loop x end
+   sub Width, 2;
+   jnz @@addforxloop;
 
-            // write result
-            @@writeRes:
-            mov eax, destLineWidth;
-            movapd [ebx + eax], xmm0;
-
-            // next columns:
-            add ecx, 16;
-            add ebx, 16;
-
-        // loop x end
-        dec edx;
-        jnz @@addforxloop;
-
-        pop ebx;
-     end;
+   pop edi;
+   pop esi;
+   pop ebx;
 end;
 
 procedure ASMMatrixMeanVarColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var iters : TASMNativeInt;
-begin
-     Assert((width and 1) = 0, 'Error width must be even');
+// eax = dest, edx = destLineWidth, ecx = Src
+asm
+   push ebx;
+   push esi;
+   push edi;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= width*sizeof(double)), 'Dimension error');
+   mov esi, srcLineWidth;
+   mov ebx, height;
+   cvtsi2sd xmm5, ebx;
+   imul ebx, esi;
+   imul ebx, -1;
 
-     iters := -height*srcLineWidth;
+   movupd xmm2, cLocOnes;
+   movddup xmm6, xmm5;
 
-     asm
-        push ebx;
+   sub ecx, ebx;
 
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
-        mov ebx, dest;
+   // for x := 0 to width - 1:
+   @@addforxloop:
+       xorpd xmm7, xmm7;
 
-        movupd xmm2, cLocOnes;
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforyloop:
+           movupd xmm0, [ecx + edi];
+           addpd xmm7, xmm0;
+       add edi, esi;
+       jnz @addforyloop;
 
-        {$IFDEF FPC}
-        mov eax, height;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, height;
-        {$ENDIF}
-        movddup xmm6, xmm5;
+       // build mean
+       divpd xmm7, xmm6;
+       movupd [eax], xmm7;
 
-        // for x := 0 to width - 1:
-        mov edx, Width;
-        sar edx, 1;
-        @@addforxloop:
-            xorpd xmm7, xmm7;
+       // calculate final standard deviation
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       xorpd xmm0, xmm0;
+       mov edi, ebx;
+       @addforyloop2:
+           movupd xmm1, [ecx + edi];
+           subpd xmm1, xmm7;
+           mulpd xmm1, xmm1;
+           addpd xmm0, xmm1;
+       add edi, esi;
+       jnz @addforyloop2;
 
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforyloop:
-                movupd xmm0, [ecx + eax];
-                addpd xmm7, xmm0;
-            add eax, srcLineWidth;
-            jnz @addforyloop;
+       // check if we need to use the unbiased version
+       cmp unbiased, 0;
+       jz @@dobiased;
 
-            // build mean
-            divpd xmm7, xmm6;
-            movupd [ebx], xmm7;
+       movapd xmm4, xmm6;
+       subpd xmm4, xmm2;
+       maxpd xmm4, xmm2;
 
-            // calculate final standard deviation
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            xorpd xmm0, xmm0;
-            mov eax, iters;
-            @addforyloop2:
-                movupd xmm1, [ecx + eax];
-                subpd xmm1, xmm7;
-                mulpd xmm1, xmm1;
-                addpd xmm0, xmm1;
-            add eax, srcLineWidth;
-            jnz @addforyloop2;
+       divpd xmm0, xmm4;
 
-            // check if we need to use the unbiased version
-            cmp unbiased, 0;
-            jz @@dobiased;
+       jmp @@writeRes;
 
-            movapd xmm4, xmm6;
-            subpd xmm4, xmm2;
-            maxpd xmm4, xmm2;
+       @@dobiased:
+       divpd xmm0, xmm6;
 
-            divpd xmm0, xmm4;
+       // write result
+       @@writeRes:
+       movupd [eax + edx], xmm0;
 
-            jmp @@writeRes;
+       // next columns:
+       add ecx, 16;
+       add eax, 16;
 
-            @@dobiased:
-            divpd xmm0, xmm6;
+   // loop x end
+   sub width, 2;
+   jnz @@addforxloop;
 
-            // write result
-            @@writeRes:
-            mov eax, destLineWidth;
-            movupd [ebx + eax], xmm0;
-
-            // next columns:
-            add ecx, 16;
-            add ebx, 16;
-
-        // loop x end
-        dec edx;
-        jnz @@addforxloop;
-
-        pop ebx;
-     end;
+   pop edi;
+   pop esi;
+   pop ebx;
 end;
 
 procedure ASMMatrixMeanVarColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var iters : TASMNativeInt;
-begin
-     Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
-            (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
-     Assert((width and 1) = 1, 'Error width must be even');
+asm
+   push ebx;
+   push esi;
+   push edi;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= width*sizeof(double)), 'Dimension error');
+   mov ebx, height;
+   mov esi, srcLineWidth;
+   cvtsi2sd xmm5, ebx;
+   imul ebx, esi;
+   imul ebx, -1;
+   
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, ebx;
 
-     iters := -height*srcLineWidth;
+   movupd xmm2, cLocOnes;
+   movddup xmm6, xmm5;
 
-     asm
-        push ebx;
+   // for x := 0 to width - 1:
+   sub width, 2;
+   jl @lastColumn;
+   @@addforxloop:
+       xorpd xmm7, xmm7;
 
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
-        mov ebx, dest;
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforyloop:
+           addpd xmm7, [ecx + edi];
+       add edi, esi;
+       jnz @addforyloop;
 
-        movupd xmm2, cLocOnes;
+       // build mean
+       divpd xmm7, xmm6;
+       movapd [eax], xmm7;
 
-        {$IFDEF FPC}
-        mov eax, height;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, height;
-        {$ENDIF}
-        movddup xmm6, xmm5;
+       // calculate final standard deviation
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       xorpd xmm0, xmm0;
+       mov edi, ebx;
+       @addforyloop2:
+           movapd xmm1, [ecx + edi];
+           subpd xmm1, xmm7;
+           mulpd xmm1, xmm1;
+           addpd xmm0, xmm1;
+       add edi, esi;
+       jnz @addforyloop2;
 
-        // for x := 0 to width - 1:
-        mov edx, Width;
-        sar edx, 1;
-        jz @lastColumn;
-        @@addforxloop:
-            xorpd xmm7, xmm7;
+       // check if we need to use the unbiased version
+       cmp unbiased, 0;
+       jz @@dobiased;
 
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforyloop:
-                addpd xmm7, [ecx + eax];
-            add eax, srcLineWidth;
-            jnz @addforyloop;
+       movapd xmm4, xmm6;
+       subpd xmm4, xmm2;
+       maxpd xmm4, xmm2;
 
-            // build mean
-            divpd xmm7, xmm6;
-            movapd [ebx], xmm7;
+       divpd xmm0, xmm4;
 
-            // calculate final standard deviation
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            xorpd xmm0, xmm0;
-            mov eax, iters;
-            @addforyloop2:
-                movapd xmm1, [ecx + eax];
-                subpd xmm1, xmm7;
-                mulpd xmm1, xmm1;
-                addpd xmm0, xmm1;
-            add eax, srcLineWidth;
-            jnz @addforyloop2;
+       jmp @@writeRes;
 
-            // check if we need to use the unbiased version
-            cmp unbiased, 0;
-            jz @@dobiased;
+       @@dobiased:
+       divpd xmm0, xmm6;
 
-            movapd xmm4, xmm6;
-            subpd xmm4, xmm2;
-            maxpd xmm4, xmm2;
+       // write result
+       @@writeRes:
+       movapd [eax + edx], xmm0;
 
-            divpd xmm0, xmm4;
+       // next columns:
+       add ecx, 16;
+       add eax, 16;
 
-            jmp @@writeRes;
+   // loop x end
+   sub width, 2;
+   jge @@addforxloop;
 
-            @@dobiased:
-            divpd xmm0, xmm6;
+   @lastColumn:
+   // handle last column
+   xorpd xmm7, xmm7;
 
-            // write result
-            @@writeRes:
-            mov eax, destLineWidth;
-            movapd [ebx + eax], xmm0;
+   // for y := 0 to height - 1;
+   // prepare for reverse loop
+   mov edi, ebx;
+   @addforyloop3:
+       movsd xmm0, [ecx + edi];
+       addsd xmm7, xmm0;
+   add edi, esi;
+   jnz @addforyloop3;
 
-            // next columns:
-            add ecx, 16;
-            add ebx, 16;
+   // build mean
+   divsd xmm7, xmm6;
+   movsd [eax], xmm7;
 
-        // loop x end
-        dec edx;
-        jnz @@addforxloop;
+   // calculate final standard deviation
+   // for y := 0 to height - 1;
+   // prepare for reverse loop
+   xorpd xmm0, xmm0;
+   mov edi, ebx;
+   @addforyloop4:
+       movsd xmm1, [ecx + edi];
+       subsd xmm1, xmm7;
+       mulsd xmm1, xmm1;
+       addsd xmm0, xmm1;
+   add edi, esi;
+   jnz @addforyloop4;
 
-        @lastColumn:
-        // handle last column
-        xorpd xmm7, xmm7;
+   // check if we need to use the unbiased version
+   cmp unbiased, 0;
+   jz @@dobiased2;
 
-        // for y := 0 to height - 1;
-        // prepare for reverse loop
-        mov eax, iters;
-        @addforyloop3:
-            movsd xmm0, [ecx + eax];
-            addsd xmm7, xmm0;
-        add eax, srcLineWidth;
-        jnz @addforyloop3;
+   movapd xmm4, xmm6;
+   subsd xmm4, xmm2;
+   maxsd xmm4, xmm2;
 
-        // build mean
-        divsd xmm7, xmm6;
-        movsd [ebx], xmm7;
+   divsd xmm0, xmm4;
 
-        // calculate final standard deviation
-        // for y := 0 to height - 1;
-        // prepare for reverse loop
-        xorpd xmm0, xmm0;
-        mov eax, iters;
-        @addforyloop4:
-            movsd xmm1, [ecx + eax];
-            subsd xmm1, xmm7;
-            mulsd xmm1, xmm1;
-            addsd xmm0, xmm1;
-        add eax, srcLineWidth;
-        jnz @addforyloop4;
+   jmp @@writeRes2;
 
-        // check if we need to use the unbiased version
-        cmp unbiased, 0;
-        jz @@dobiased2;
+   @@dobiased2:
+   divsd xmm0, xmm6;
 
-        movapd xmm4, xmm6;
-        subsd xmm4, cLocOne;
-        maxsd xmm4, cLocOne;
+   // write result
+   @@writeRes2:
+   movsd [eax + edx], xmm0;
 
-        divsd xmm0, xmm4;
-
-        jmp @@writeRes2;
-
-        @@dobiased2:
-        divsd xmm0, xmm6;
-
-        // write result
-        @@writeRes2:
-        mov eax, destLineWidth;
-        movsd [ebx + eax], xmm0;
-
-        pop ebx;
-     end;
+   pop edi;
+   pop esi;
+   pop ebx;
 end;
 
 procedure ASMMatrixMeanVarColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; unbiased : boolean);
-var iters : TASMNativeInt;
-begin
-     Assert((width and 1) = 1, 'Error width must be even');
+asm
+   push ebx;
+   push esi;
+   push edi;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= width*sizeof(double)), 'Dimension error');
+   mov ebx, height;
+   mov esi, srcLineWidth;
+   cvtsi2sd xmm5, ebx;
+   imul ebx, esi;
+   imul ebx, -1;
 
-     iters := -height*srcLineWidth;
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, ebx;
 
-     asm
-        push ebx;
+   movupd xmm2, cLocOnes;
+   movddup xmm6, xmm5;
 
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
-        mov ebx, dest;
+   // for x := 0 to width - 1:
+   sub width, 2;
+   jl @lastColumn;
+   @@addforxloop:
+       xorpd xmm7, xmm7;
 
-        movupd xmm2, cLocOnes;
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       mov edi, ebx;
+       @addforyloop:
+           movupd xmm0, [ecx + edi];
+           addpd xmm7, xmm0;
+       add edi, esi;
+       jnz @addforyloop;
 
-        {$IFDEF FPC}
-        mov eax, height;
-        cvtsi2sd xmm5, eax;
-        {$ELSE}
-        cvtsi2sd xmm5, height;
-        {$ENDIF}
-        movddup xmm6, xmm5;
+       // build mean
+       divpd xmm7, xmm6;
+       movupd [eax], xmm7;
 
-        // for x := 0 to width - 1:
-        mov edx, Width;
-        sar edx, 1;
-        jz @lastColumn;
-        @@addforxloop:
-            xorpd xmm7, xmm7;
+       // calculate final standard deviation
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       xorpd xmm0, xmm0;
+       mov edi, ebx;
+       @addforyloop2:
+           movupd xmm1, [ecx + edi];
+           subpd xmm1, xmm7;
+           mulpd xmm1, xmm1;
+           addpd xmm0, xmm1;
+       add edi, esi;
+       jnz @addforyloop2;
 
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforyloop:
-                movupd xmm0, [ecx + eax];
-                addpd xmm7, xmm0;
-            add eax, srcLineWidth;
-            jnz @addforyloop;
+       // check if we need to use the unbiased version
+       cmp unbiased, 0;
+       jz @@dobiased;
 
-            // build mean
-            divpd xmm7, xmm6;
-            movupd [ebx], xmm7;
+       movapd xmm4, xmm6;
+       subpd xmm4, xmm2;
+       maxpd xmm4, xmm2;
 
-            // calculate final standard deviation
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            xorpd xmm0, xmm0;
-            mov eax, iters;
-            @addforyloop2:
-                movupd xmm1, [ecx + eax];
-                subpd xmm1, xmm7;
-                mulpd xmm1, xmm1;
-                addpd xmm0, xmm1;
-            add eax, srcLineWidth;
-            jnz @addforyloop2;
+       divpd xmm0, xmm4;
 
-            // check if we need to use the unbiased version
-            cmp unbiased, 0;
-            jz @@dobiased;
+       jmp @@writeRes;
 
-            movapd xmm4, xmm6;
-            subpd xmm4, xmm2;
-            maxpd xmm4, xmm2;
+       @@dobiased:
+       divpd xmm0, xmm6;
 
-            divpd xmm0, xmm4;
+       // write result
+       @@writeRes:
+       movupd [eax + edx], xmm0;
 
-            jmp @@writeRes;
+       // next columns:
+       add ecx, 16;
+       add eax, 16;
 
-            @@dobiased:
-            divpd xmm0, xmm6;
+   // loop x end
+   sub width, 2;
+   jge @@addforxloop;
 
-            // write result
-            @@writeRes:
-            mov eax, destLineWidth;
-            movupd [ebx + eax], xmm0;
+   @lastColumn:
+   // handle last column
+   xorpd xmm7, xmm7;
 
-            // next columns:
-            add ecx, 16;
-            add ebx, 16;
+   // for y := 0 to height - 1;
+   // prepare for reverse loop
+   mov edi, ebx;
+   @addforyloop3:
+       movsd xmm0, [ecx + edi];
+       addsd xmm7, xmm0;
+   add edi, esi;
+   jnz @addforyloop3;
 
-        // loop x end
-        dec edx;
-        jnz @@addforxloop;
+   // build mean
+   divsd xmm7, xmm6;
+   movsd [eax], xmm7;
 
-        @lastColumn:
-        // handle last column
-        xorpd xmm7, xmm7;
+   // calculate final standard deviation
+   // for y := 0 to height - 1;
+   // prepare for reverse loop
+   xorpd xmm0, xmm0;
+   mov edi, ebx;
+   @addforyloop4:
+       movsd xmm1, [ecx + edi];
+       subsd xmm1, xmm7;
+       mulsd xmm1, xmm1;
+       addsd xmm0, xmm1;
+   add edi, esi;
+   jnz @addforyloop4;
 
-        // for y := 0 to height - 1;
-        // prepare for reverse loop
-        mov eax, iters;
-        @addforyloop3:
-            movsd xmm0, [ecx + eax];
-            addsd xmm7, xmm0;
-        add eax, srcLineWidth;
-        jnz @addforyloop3;
+   // check if we need to use the unbiased version
+   cmp unbiased, 0;
+   jz @@dobiased2;
 
-        // build mean
-        divsd xmm7, xmm6;
-        movsd [ebx], xmm7;
+   movapd xmm4, xmm6;
+   subsd xmm4, xmm2;
+   maxsd xmm4, xmm2;
 
-        // calculate final standard deviation
-        // for y := 0 to height - 1;
-        // prepare for reverse loop
-        xorpd xmm0, xmm0;
-        mov eax, iters;
-        @addforyloop4:
-            movsd xmm1, [ecx + eax];
-            subsd xmm1, xmm7;
-            mulsd xmm1, xmm1;
-            addsd xmm0, xmm1;
-        add eax, srcLineWidth;
-        jnz @addforyloop4;
+   divsd xmm0, xmm4;
 
-        // check if we need to use the unbiased version
-        cmp unbiased, 0;
-        jz @@dobiased2;
+   jmp @@writeRes2;
 
-        movapd xmm4, xmm6;
-        subsd xmm4, cLocOne;
-        maxsd xmm4, cLocOne;
+   @@dobiased2:
+   divsd xmm0, xmm6;
 
-        divsd xmm0, xmm4;
+   // write result
+   @@writeRes2:
+   movsd [eax + edx], xmm0;
 
-        jmp @@writeRes2;
-
-        @@dobiased2:
-        divsd xmm0, xmm6;
-
-        // write result
-        @@writeRes2:
-        mov eax, destLineWidth;
-        movsd [ebx + eax], xmm0;
-
-        pop ebx;
-     end;
+   pop edi;
+   pop esi;
+   pop ebx;
 end;
 
 

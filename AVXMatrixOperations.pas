@@ -775,6 +775,7 @@ begin
               mtx := MtxMallocAlign( width2*mtxLineWidth, aMem );
           assert(assigned(mtx), 'Error could not reserve transpose memory');
           AVXMatrixTranspose(mtx, mtxLineWidth, mt2, LineWidth2, width2, height2);
+          //GenericMtxTranspose(mtx, mtxLineWidth, mt2, LineWidth2, width2, height2);
           help := width2;
           width2 := height2;
           height2 := help;

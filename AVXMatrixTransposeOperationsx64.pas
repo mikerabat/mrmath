@@ -147,7 +147,7 @@ asm
          {$IFDEF FPC}vmovsd xmm0, [r12 + rax];{$ELSE}db $C4,$C1,$7B,$10,$04,$04;{$ENDIF} 
          {$IFDEF FPC}vmovsd [rsi], xmm0;{$ELSE}db $C5,$FB,$11,$06;{$ENDIF} 
 
-         {$IFDEF FPC}vmovsd xmm0, [r13 + rax];{$ELSE}db $C4,$C1,$7B,$10,$44,$05,$00;{$ENDIF} 
+         {$IFDEF FPC}vmovsd xmm0, [r13 + rax];{$ELSE}db $C4,$A1,$7B,$10,$04,$28;{$ENDIF} 
          {$IFDEF FPC}vmovsd [rsi + 8], xmm0;{$ELSE}db $C5,$FB,$11,$46,$08;{$ENDIF} 
 
          {$IFDEF FPC}vmovsd xmm0, [r14 + rax];{$ELSE}db $C4,$C1,$7B,$10,$04,$06;{$ENDIF} 
@@ -311,7 +311,7 @@ asm
          {$IFDEF FPC}vmovsd xmm0, [r12 + rax];{$ELSE}db $C4,$C1,$7B,$10,$04,$04;{$ENDIF} 
          {$IFDEF FPC}vmovsd [rsi], xmm0;{$ELSE}db $C5,$FB,$11,$06;{$ENDIF} 
 
-         {$IFDEF FPC}vmovsd xmm0, [r13 + rax];{$ELSE}db $C4,$C1,$7B,$10,$44,$05,$00;{$ENDIF} 
+         {$IFDEF FPC}vmovsd xmm0, [r13 + rax];{$ELSE}db $C4,$A1,$7B,$10,$04,$28;{$ENDIF} 
          {$IFDEF FPC}vmovsd [rsi + 8], xmm0;{$ELSE}db $C5,$FB,$11,$46,$08;{$ENDIF} 
 
          {$IFDEF FPC}vmovsd xmm0, [r14 + rax];{$ELSE}db $C4,$C1,$7B,$10,$04,$06;{$ENDIF} 

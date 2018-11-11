@@ -7,11 +7,10 @@
       <Unit0>
         <Filename Value="MathUtilsLinux.ppr"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="36"/>
-        <TopLine Value="137"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="138"/>
         <CursorPos Y="169"/>
         <UsageCount Value="736"/>
-        <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="../ASMMatrixAbsOperations.pas"/>
@@ -24,11 +23,10 @@
       <Unit2>
         <Filename Value="../ASMMatrixAbsOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="20"/>
-        <TopLine Value="19"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="41"/>
         <CursorPos X="11" Y="47"/>
         <UsageCount Value="736"/>
-        <Loaded Value="True"/>
       </Unit2>
       <Unit3>
         <Filename Value="../ASMMatrixAddSubOperations.pas"/>
@@ -42,11 +40,10 @@
       <Unit4>
         <Filename Value="../ASMMatrixAddSubOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="15"/>
-        <TopLine Value="1165"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1142"/>
         <CursorPos X="33" Y="1142"/>
         <UsageCount Value="736"/>
-        <Loaded Value="True"/>
       </Unit4>
       <Unit5>
         <Filename Value="../ASMMatrixCumSumDiffOperations.pas"/>
@@ -94,11 +91,10 @@
       <Unit10>
         <Filename Value="../ASMMatrixMeanOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="16"/>
-        <TopLine Value="54"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="64"/>
         <CursorPos X="7" Y="70"/>
         <UsageCount Value="736"/>
-        <Loaded Value="True"/>
       </Unit10>
       <Unit11>
         <Filename Value="../ASMMatrixMinMaxOperations.pas"/>
@@ -112,29 +108,26 @@
       <Unit12>
         <Filename Value="../ASMMatrixMinMaxOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="18"/>
-        <TopLine Value="22"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="45"/>
         <CursorPos X="11" Y="51"/>
         <UsageCount Value="736"/>
-        <Loaded Value="True"/>
       </Unit12>
       <Unit13>
         <Filename Value="../ASMMatrixMultOperations.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <WindowIndex Value="-1"/>
-        <TopLine Value="-1"/>
-        <CursorPos X="-1" Y="-1"/>
+        <TopLine Value="1523"/>
+        <CursorPos X="17" Y="1563"/>
         <UsageCount Value="736"/>
       </Unit13>
       <Unit14>
         <Filename Value="../ASMMatrixMultOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="22"/>
-        <TopLine Value="15"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="24"/>
         <CursorPos X="97" Y="30"/>
         <UsageCount Value="736"/>
-        <Loaded Value="True"/>
       </Unit14>
       <Unit15>
         <Filename Value="../ASMMatrixMultTransposedOperations.pas"/>
@@ -147,7 +140,7 @@
       <Unit16>
         <Filename Value="../ASMMatrixMultTransposedOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="7"/>
         <TopLine Value="811"/>
         <CursorPos Y="834"/>
         <UsageCount Value="736"/>
@@ -165,16 +158,15 @@
       <Unit18>
         <Filename Value="../ASMMatrixNormOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="26"/>
-        <TopLine Value="1553"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1544"/>
         <CursorPos X="31" Y="1579"/>
         <UsageCount Value="736"/>
-        <Loaded Value="True"/>
       </Unit18>
       <Unit19>
         <Filename Value="../ASMMatrixOperations.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="5"/>
         <TopLine Value="1515"/>
         <CursorPos Y="1528"/>
         <UsageCount Value="736"/>
@@ -184,18 +176,17 @@
         <Filename Value="../ASMMatrixRotations.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="326"/>
-        <CursorPos X="43" Y="332"/>
+        <TopLine Value="597"/>
+        <CursorPos X="91" Y="602"/>
         <UsageCount Value="736"/>
       </Unit20>
       <Unit21>
         <Filename Value="../ASMMatrixRotationsx64.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="35"/>
-        <TopLine Value="708"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="717"/>
         <CursorPos X="35" Y="722"/>
         <UsageCount Value="736"/>
-        <Loaded Value="True"/>
       </Unit21>
       <Unit22>
         <Filename Value="../ASMMatrixScaleOperations.pas"/>
@@ -209,11 +200,10 @@
       <Unit23>
         <Filename Value="../ASMMatrixScaleOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="19"/>
-        <TopLine Value="38"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="50"/>
         <CursorPos X="18" Y="56"/>
         <UsageCount Value="736"/>
-        <Loaded Value="True"/>
       </Unit23>
       <Unit24>
         <Filename Value="../ASMMatrixSqrtOperations.pas"/>
@@ -242,25 +232,23 @@
       <Unit27>
         <Filename Value="../ASMMatrixSumOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="17"/>
-        <TopLine Value="588"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="601"/>
         <CursorPos X="51" Y="606"/>
         <UsageCount Value="736"/>
-        <Loaded Value="True"/>
       </Unit27>
       <Unit28>
         <Filename Value="../ASMMatrixTransposeOperations.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <WindowIndex Value="-1"/>
-        <TopLine Value="-1"/>
-        <CursorPos X="-1" Y="-1"/>
+        <TopLine Value="1176"/>
+        <CursorPos X="57" Y="1180"/>
         <UsageCount Value="736"/>
       </Unit28>
       <Unit29>
         <Filename Value="../ASMMatrixTransposeOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="6"/>
         <TopLine Value="16"/>
         <CursorPos X="57" Y="34"/>
         <UsageCount Value="736"/>
@@ -269,41 +257,38 @@
       <Unit30>
         <Filename Value="../ASMMatrixVectorMultOperations.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="7"/>
-        <TopLine Value="1311"/>
-        <CursorPos X="31" Y="1320"/>
+        <EditorIndex Value="8"/>
+        <TopLine Value="38"/>
+        <CursorPos Y="49"/>
         <UsageCount Value="736"/>
         <Loaded Value="True"/>
       </Unit30>
       <Unit31>
         <Filename Value="../ASMMatrixVectorMultOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="9"/>
-        <TopLine Value="633"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="643"/>
         <CursorPos X="102" Y="648"/>
         <UsageCount Value="736"/>
         <Bookmarks Count="1">
           <Item0 X="177" Y="1575" ID="2"/>
         </Bookmarks>
-        <Loaded Value="True"/>
       </Unit31>
       <Unit32>
         <Filename Value="../ASMMoveOperations.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="10"/>
-        <TopLine Value="334"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="351"/>
         <CursorPos X="53" Y="356"/>
         <UsageCount Value="736"/>
-        <Loaded Value="True"/>
       </Unit32>
       <Unit33>
         <Filename Value="../ASMMoveOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="14"/>
-        <TopLine Value="84"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="78"/>
         <CursorPos Y="78"/>
         <UsageCount Value="736"/>
-        <Loaded Value="True"/>
       </Unit33>
       <Unit34>
         <Filename Value="../BaseMathPersistence.pas"/>
@@ -377,11 +362,10 @@
       <Unit42>
         <Filename Value="../HouseholderReflectors.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="30"/>
-        <TopLine Value="106"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="102"/>
         <CursorPos Y="130"/>
         <UsageCount Value="736"/>
-        <Loaded Value="True"/>
       </Unit42>
       <Unit43>
         <Filename Value="../ICA.pas"/>
@@ -439,18 +423,17 @@
       <Unit49>
         <Filename Value="../LinAlgQR.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="37"/>
-        <TopLine Value="618"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="636"/>
         <CursorPos Y="641"/>
         <UsageCount Value="736"/>
-        <Loaded Value="True"/>
       </Unit49>
       <Unit50>
         <Filename Value="../LinAlgSVD.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="29"/>
-        <TopLine Value="1797"/>
-        <CursorPos X="61" Y="1811"/>
+        <EditorIndex Value="12"/>
+        <TopLine Value="2946"/>
+        <CursorPos Y="2954"/>
         <UsageCount Value="736"/>
         <Loaded Value="True"/>
       </Unit50>
@@ -473,29 +456,27 @@
       <Unit53>
         <Filename Value="../Matrix.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="548"/>
-        <CursorPos X="15" Y="552"/>
+        <EditorIndex Value="13"/>
+        <TopLine Value="1880"/>
+        <CursorPos Y="1901"/>
         <UsageCount Value="736"/>
+        <Loaded Value="True"/>
       </Unit53>
       <Unit54>
         <Filename Value="../MatrixConst.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="38"/>
-        <TopLine Value="32"/>
-        <CursorPos Y="55"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="62"/>
+        <CursorPos X="99" Y="68"/>
         <UsageCount Value="736"/>
-        <Loaded Value="True"/>
       </Unit54>
       <Unit55>
         <Filename Value="../MatrixRotations.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="31"/>
-        <TopLine Value="108"/>
-        <CursorPos Y="122"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="102"/>
+        <CursorPos X="38" Y="113"/>
         <UsageCount Value="736"/>
-        <Loaded Value="True"/>
       </Unit55>
       <Unit56>
         <Filename Value="../MtxThreadPool.pas"/>
@@ -508,11 +489,10 @@
       <Unit57>
         <Filename Value="../MtxTimer.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="28"/>
-        <TopLine Value="51"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="62"/>
         <CursorPos Y="67"/>
         <UsageCount Value="736"/>
-        <Loaded Value="True"/>
       </Unit57>
       <Unit58>
         <Filename Value="../NNMF.pas"/>
@@ -534,10 +514,11 @@
       <Unit60>
         <Filename Value="../PCA.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="713"/>
-        <CursorPos X="14" Y="718"/>
+        <EditorIndex Value="14"/>
+        <TopLine Value="1264"/>
+        <CursorPos X="92" Y="1292"/>
         <UsageCount Value="736"/>
+        <Loaded Value="True"/>
       </Unit60>
       <Unit61>
         <Filename Value="../PLS.pas"/>
@@ -581,10 +562,11 @@
       <Unit66>
         <Filename Value="BaseMatrixTestCase.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="351"/>
-        <CursorPos X="123" Y="357"/>
+        <EditorIndex Value="18"/>
+        <TopLine Value="189"/>
+        <CursorPos X="31" Y="194"/>
         <UsageCount Value="736"/>
+        <Loaded Value="True"/>
       </Unit66>
       <Unit67>
         <Filename Value="TestCCA.pas"/>
@@ -622,11 +604,10 @@
       <Unit71>
         <Filename Value="TestLineEquations.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="24"/>
-        <TopLine Value="1675"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1710"/>
         <CursorPos X="37" Y="1692"/>
         <UsageCount Value="736"/>
-        <Loaded Value="True"/>
       </Unit71>
       <Unit72>
         <Filename Value="TestMatrixClass.pas"/>
@@ -673,8 +654,9 @@
       <Unit77>
         <Filename Value="TestSimpleMatrixOperations.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="23"/>
-        <CursorPos X="60" Y="8"/>
+        <EditorIndex Value="15"/>
+        <TopLine Value="2"/>
+        <CursorPos X="59" Y="7"/>
         <UsageCount Value="736"/>
         <Loaded Value="True"/>
       </Unit77>
@@ -741,9 +723,9 @@
       <Unit86>
         <Filename Value="TestAVX.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="25"/>
-        <TopLine Value="1418"/>
-        <CursorPos X="30" Y="1434"/>
+        <EditorIndex Value="16"/>
+        <TopLine Value="1378"/>
+        <CursorPos X="56" Y="1398"/>
         <UsageCount Value="212"/>
         <Loaded Value="True"/>
       </Unit86>
@@ -751,16 +733,16 @@
         <Filename Value="../BlockedMult.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="54"/>
-        <CursorPos Y="70"/>
+        <TopLine Value="352"/>
+        <CursorPos Y="368"/>
         <UsageCount Value="204"/>
       </Unit87>
       <Unit88>
         <Filename Value="../AVXMatrixOperations.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="12"/>
-        <TopLine Value="1091"/>
-        <CursorPos Y="1115"/>
+        <EditorIndex Value="9"/>
+        <TopLine Value="40"/>
+        <CursorPos X="11" Y="60"/>
         <UsageCount Value="203"/>
         <Loaded Value="True"/>
       </Unit88>
@@ -775,29 +757,26 @@
       <Unit90>
         <Filename Value="../AVXMatrixMultTransposedOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="42"/>
-        <TopLine Value="37"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="65"/>
         <CursorPos X="4" Y="70"/>
         <UsageCount Value="203"/>
-        <Loaded Value="True"/>
       </Unit90>
       <Unit91>
         <Filename Value="../AVXMatrixAbsOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="33"/>
-        <TopLine Value="50"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="63"/>
         <CursorPos X="33" Y="68"/>
         <UsageCount Value="200"/>
-        <Loaded Value="True"/>
       </Unit91>
       <Unit92>
         <Filename Value="../AVXMatrixMultOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="43"/>
-        <TopLine Value="1314"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1331"/>
         <CursorPos X="29" Y="1337"/>
-        <UsageCount Value="195"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="200"/>
       </Unit92>
       <Unit93>
         <Filename Value="../AVXMatrixScaleOperationsx64.pas"/>
@@ -805,7 +784,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="767"/>
         <CursorPos X="27" Y="790"/>
-        <UsageCount Value="190"/>
+        <UsageCount Value="200"/>
       </Unit93>
       <Unit94>
         <Filename Value="../AVXMatrixTransposeOperationsx64.pas"/>
@@ -813,16 +792,15 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="231"/>
         <CursorPos X="92" Y="236"/>
-        <UsageCount Value="190"/>
+        <UsageCount Value="200"/>
       </Unit94>
       <Unit95>
         <Filename Value="../AVXMatrixAddSubOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="32"/>
-        <TopLine Value="1336"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1331"/>
         <CursorPos X="17" Y="1353"/>
-        <UsageCount Value="167"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="183"/>
       </Unit95>
       <Unit96>
         <Filename Value="../AVXMatrixCumSumDiffOperationsx64.pas"/>
@@ -830,34 +808,31 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="52"/>
         <CursorPos Y="56"/>
-        <UsageCount Value="167"/>
+        <UsageCount Value="183"/>
       </Unit96>
       <Unit97>
         <Filename Value="../AVXMatrixRotationsx64.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="11"/>
-        <TopLine Value="23"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="467"/>
         <CursorPos X="18" Y="472"/>
-        <UsageCount Value="162"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="178"/>
       </Unit97>
       <Unit98>
         <Filename Value="../AVXMatrixVectorMultOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="41"/>
-        <TopLine Value="1404"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1415"/>
         <CursorPos X="56" Y="1421"/>
-        <UsageCount Value="159"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="175"/>
       </Unit98>
       <Unit99>
         <Filename Value="../AVXMoveOperations.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="8"/>
-        <TopLine Value="83"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="85"/>
         <CursorPos X="122" Y="90"/>
-        <UsageCount Value="159"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="175"/>
       </Unit99>
       <Unit100>
         <Filename Value="../AVXMatrixElementwiseMultOperationsx64.pas"/>
@@ -865,7 +840,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="28"/>
         <CursorPos X="11" Y="34"/>
-        <UsageCount Value="159"/>
+        <UsageCount Value="175"/>
       </Unit100>
       <Unit101>
         <Filename Value="../AVXMatrixElementwiseMultOperations.pas"/>
@@ -874,7 +849,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="159"/>
+        <UsageCount Value="175"/>
       </Unit101>
       <Unit102>
         <Filename Value="../AVXMatrixAbsOperations.pas"/>
@@ -882,15 +857,15 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="185"/>
         <CursorPos X="5" Y="218"/>
-        <UsageCount Value="159"/>
+        <UsageCount Value="175"/>
       </Unit102>
       <Unit103>
         <Filename Value="../AVXMatrixMultOperations.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="1147"/>
-        <CursorPos Y="1180"/>
-        <UsageCount Value="159"/>
+        <TopLine Value="25"/>
+        <CursorPos X="11" Y="31"/>
+        <UsageCount Value="175"/>
       </Unit103>
       <Unit104>
         <Filename Value="../AVXMatrixScaleOperations.pas"/>
@@ -899,34 +874,33 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="159"/>
+        <UsageCount Value="175"/>
       </Unit104>
       <Unit105>
         <Filename Value="../AVXMatrixMultTransposedOperations.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="464"/>
-        <CursorPos X="37" Y="487"/>
-        <UsageCount Value="159"/>
-        <Bookmarks Count="1">
-          <Item0 X="8" Y="471" ID="1"/>
-        </Bookmarks>
+        <TopLine Value="29"/>
+        <CursorPos X="260" Y="35"/>
+        <UsageCount Value="175"/>
       </Unit105>
       <Unit106>
         <Filename Value="../AVXMatrixTransposeOperations.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="15"/>
-        <CursorPos X="11" Y="34"/>
-        <UsageCount Value="159"/>
+        <EditorIndex Value="19"/>
+        <TopLine Value="250"/>
+        <CursorPos Y="255"/>
+        <UsageCount Value="175"/>
+        <Loaded Value="True"/>
       </Unit106>
       <Unit107>
         <Filename Value="../AVXMatrixVectorMultOperations.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="11"/>
-        <TopLine Value="1231"/>
-        <CursorPos X="61" Y="1232"/>
-        <UsageCount Value="159"/>
+        <EditorIndex Value="17"/>
+        <TopLine Value="61"/>
+        <CursorPos X="18" Y="75"/>
+        <UsageCount Value="175"/>
+        <Loaded Value="True"/>
       </Unit107>
       <Unit108>
         <Filename Value="../AVXMatrixAddSubOperations.pas"/>
@@ -935,7 +909,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="159"/>
+        <UsageCount Value="175"/>
       </Unit108>
       <Unit109>
         <Filename Value="../AVXMatrixCumSumDiffOperations.pas"/>
@@ -944,42 +918,44 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="159"/>
+        <UsageCount Value="175"/>
       </Unit109>
       <Unit110>
         <Filename Value="../AVXMatrixRotations.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="513"/>
-        <CursorPos Y="547"/>
-        <UsageCount Value="159"/>
+        <EditorIndex Value="11"/>
+        <TopLine Value="65"/>
+        <CursorPos X="46" Y="83"/>
+        <UsageCount Value="175"/>
+        <Bookmarks Count="1">
+          <Item0 X="37" Y="194" ID="1"/>
+        </Bookmarks>
+        <Loaded Value="True"/>
       </Unit110>
       <Unit111>
         <Filename Value="../AVXMatrixMinMaxOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="40"/>
-        <TopLine Value="50"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="61"/>
         <CursorPos X="20" Y="66"/>
-        <UsageCount Value="159"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="175"/>
       </Unit111>
       <Unit112>
         <Filename Value="../AVXMatrixMinMaxOperations.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <WindowIndex Value="-1"/>
-        <TopLine Value="-1"/>
-        <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="159"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="110"/>
+        <CursorPos Y="129"/>
+        <UsageCount Value="175"/>
+        <Loaded Value="True"/>
       </Unit112>
       <Unit113>
         <Filename Value="../AVXMatrixMeanOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="39"/>
-        <TopLine Value="676"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="687"/>
         <CursorPos X="24" Y="692"/>
-        <UsageCount Value="159"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="175"/>
       </Unit113>
       <Unit114>
         <Filename Value="../AVXMatrixMeanOperations.pas"/>
@@ -987,7 +963,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="1877"/>
         <CursorPos X="32" Y="1740"/>
-        <UsageCount Value="159"/>
+        <UsageCount Value="175"/>
       </Unit114>
       <Unit115>
         <Filename Value="../AVXMatrixNormOperations.pas"/>
@@ -996,7 +972,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="159"/>
+        <UsageCount Value="175"/>
       </Unit115>
       <Unit116>
         <Filename Value="../AVXMatrixNormOperationsx64.pas"/>
@@ -1004,16 +980,15 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="414"/>
         <CursorPos X="69" Y="462"/>
-        <UsageCount Value="159"/>
+        <UsageCount Value="175"/>
       </Unit116>
       <Unit117>
         <Filename Value="../AVXMatrixSqrtOperations.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <WindowIndex Value="-1"/>
-        <TopLine Value="-1"/>
-        <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="159"/>
+        <TopLine Value="31"/>
+        <CursorPos X="147" Y="34"/>
+        <UsageCount Value="175"/>
       </Unit117>
       <Unit118>
         <Filename Value="../AVXMatrixSqrtOperationsx64.pas"/>
@@ -1021,7 +996,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="101"/>
         <CursorPos X="10" Y="122"/>
-        <UsageCount Value="159"/>
+        <UsageCount Value="175"/>
       </Unit118>
       <Unit119>
         <Filename Value="../AVXMatrixSumOperations.pas"/>
@@ -1030,7 +1005,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="159"/>
+        <UsageCount Value="175"/>
       </Unit119>
       <Unit120>
         <Filename Value="../AVXMatrixSumOperationsx64.pas"/>
@@ -1038,7 +1013,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="341"/>
         <CursorPos X="75" Y="357"/>
-        <UsageCount Value="159"/>
+        <UsageCount Value="175"/>
       </Unit120>
       <Unit121>
         <Filename Value="TestEM.pas"/>
@@ -1047,7 +1022,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="132"/>
+        <UsageCount Value="148"/>
       </Unit121>
       <Unit122>
         <Filename Value="../EM.pas"/>
@@ -1056,7 +1031,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="132"/>
+        <UsageCount Value="148"/>
       </Unit122>
       <Unit123>
         <Filename Value="TestRBSpline.pas"/>
@@ -1064,7 +1039,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="87"/>
         <CursorPos X="20" Y="92"/>
-        <UsageCount Value="132"/>
+        <UsageCount Value="148"/>
       </Unit123>
       <Unit124>
         <Filename Value="../RBSplines.pas"/>
@@ -1072,7 +1047,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="518"/>
         <CursorPos X="5" Y="526"/>
-        <UsageCount Value="132"/>
+        <UsageCount Value="148"/>
       </Unit124>
       <Unit125>
         <Filename Value="../Dist.pas"/>
@@ -1080,7 +1055,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="218"/>
         <CursorPos X="33" Y="223"/>
-        <UsageCount Value="132"/>
+        <UsageCount Value="148"/>
       </Unit125>
       <Unit126>
         <Filename Value="TestDist.pas"/>
@@ -1088,7 +1063,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="19"/>
         <CursorPos X="18" Y="25"/>
-        <UsageCount Value="132"/>
+        <UsageCount Value="148"/>
       </Unit126>
       <Unit127>
         <Filename Value="../FMAMatrixMultOperations.pas"/>
@@ -1096,14 +1071,14 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="232"/>
         <CursorPos X="119" Y="239"/>
-        <UsageCount Value="129"/>
+        <UsageCount Value="145"/>
       </Unit127>
       <Unit128>
         <Filename Value="../FMAMatrixMultOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
-        <TopLine Value="998"/>
+        <TopLine Value="948"/>
         <CursorPos X="12" Y="948"/>
-        <UsageCount Value="129"/>
+        <UsageCount Value="145"/>
         <Loaded Value="True"/>
       </Unit128>
       <Unit129>
@@ -1113,57 +1088,55 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="129"/>
+        <UsageCount Value="145"/>
       </Unit129>
       <Unit130>
         <Filename Value="../FMAMatrixMultTransposedOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="767"/>
+        <TopLine Value="776"/>
         <CursorPos X="28" Y="790"/>
-        <UsageCount Value="129"/>
+        <UsageCount Value="145"/>
         <Loaded Value="True"/>
       </Unit130>
       <Unit131>
         <Filename Value="../FMAMatrixOperations.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="2"/>
-        <TopLine Value="447"/>
+        <TopLine Value="441"/>
         <CursorPos X="22" Y="475"/>
-        <UsageCount Value="129"/>
+        <UsageCount Value="145"/>
         <Loaded Value="True"/>
       </Unit131>
       <Unit132>
         <Filename Value="../FMAMatrixVectorMultOperations.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="3"/>
-        <TopLine Value="1046"/>
-        <CursorPos X="61" Y="1047"/>
-        <UsageCount Value="129"/>
+        <TopLine Value="1065"/>
+        <CursorPos X="65" Y="1066"/>
+        <UsageCount Value="145"/>
         <Loaded Value="True"/>
       </Unit132>
       <Unit133>
         <Filename Value="../FMAMatrixVectorMultOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="13"/>
-        <TopLine Value="1200"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1215"/>
         <CursorPos X="27" Y="1220"/>
-        <UsageCount Value="129"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="145"/>
       </Unit133>
       <Unit134>
         <Filename Value="TestFMA.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="27"/>
-        <TopLine Value="471"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="482"/>
         <CursorPos X="30" Y="487"/>
-        <UsageCount Value="129"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="145"/>
       </Unit134>
       <Unit135>
         <Filename Value="../ASMVecConvolve.pas"/>
         <IsPartOfProject Value="True"/>
-        <UsageCount Value="120"/>
+        <UsageCount Value="136"/>
       </Unit135>
       <Unit136>
         <Filename Value="../ASMVecConvolvex64.pas"/>
@@ -1171,202 +1144,207 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="57"/>
         <CursorPos X="35" Y="62"/>
-        <UsageCount Value="120"/>
+        <UsageCount Value="136"/>
       </Unit136>
       <Unit137>
         <Filename Value="../AVXVecConvolvex64.pas"/>
         <IsPartOfProject Value="True"/>
-        <UsageCount Value="120"/>
+        <UsageCount Value="136"/>
       </Unit137>
       <Unit138>
         <Filename Value="../AVXVecConvolve.pas"/>
         <IsPartOfProject Value="True"/>
-        <UsageCount Value="120"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="90"/>
+        <CursorPos X="40" Y="100"/>
+        <UsageCount Value="136"/>
       </Unit138>
       <Unit139>
         <Filename Value="../FMAVecConvolve.pas"/>
         <IsPartOfProject Value="True"/>
-        <UsageCount Value="120"/>
+        <UsageCount Value="136"/>
       </Unit139>
       <Unit140>
         <Filename Value="../FMAVecConvolvex64.pas"/>
         <IsPartOfProject Value="True"/>
-        <UsageCount Value="120"/>
+        <UsageCount Value="136"/>
       </Unit140>
       <Unit141>
         <Filename Value="../MatrixASMStubSwitch.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="34"/>
-        <TopLine Value="1100"/>
-        <CursorPos Y="1114"/>
-        <UsageCount Value="112"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="10"/>
+        <TopLine Value="1182"/>
+        <CursorPos X="11" Y="1203"/>
+        <UsageCount Value="128"/>
         <Loaded Value="True"/>
       </Unit141>
       <Unit142>
         <Filename Value=""/>
-        <UsageCount Value="1"/>
+        <UsageCount Value="10"/>
+        <DefaultSyntaxHighlighter Value="None"/>
       </Unit142>
       <Unit143>
         <Filename Value="../ASMMatrixMultTransposedOperationsx64AVX.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="496"/>
         <CursorPos Y="665"/>
-        <UsageCount Value="14"/>
+        <UsageCount Value="13"/>
       </Unit143>
       <Unit144>
         <Filename Value="AVXMatrixOperations.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="15"/>
         <CursorPos Y="28"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="9"/>
       </Unit144>
       <Unit145>
         <Filename Value="/usr/local/codetyphon/fpcsrc/packages/fcl-base/src/syncobjs.pp"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="142"/>
         <CursorPos X="26" Y="155"/>
-        <UsageCount Value="33"/>
+        <UsageCount Value="32"/>
       </Unit145>
       <Unit146>
         <Filename Value="/usr/local/codetyphon/fpcsrc/rtl/inc/thread.inc"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="266"/>
         <CursorPos X="3" Y="269"/>
-        <UsageCount Value="33"/>
+        <UsageCount Value="32"/>
       </Unit146>
       <Unit147>
         <Filename Value="/usr/local/codetyphon/fpcsrc/packages/fcl-fpcunit/src/fpcunit.pp"/>
-        <EditorIndex Value="21"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="609"/>
         <CursorPos Y="629"/>
-        <UsageCount Value="54"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="53"/>
       </Unit147>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="../ASMMatrixMeanOperationsx64.pas"/>
-        <Caret Line="2313" Column="35" TopLine="2296"/>
+        <Filename Value="../AVXMatrixTransposeOperations.pas"/>
+        <Caret Line="201" TopLine="185"/>
       </Position1>
       <Position2>
-        <Filename Value="../ASMMatrixMeanOperationsx64.pas"/>
-        <Caret Line="71" Column="16" TopLine="55"/>
+        <Filename Value="../AVXMatrixTransposeOperations.pas"/>
+        <Caret Line="203" TopLine="185"/>
       </Position2>
       <Position3>
-        <Filename Value="../ASMMatrixMeanOperationsx64.pas"/>
-        <Caret Line="2121" Column="30" TopLine="2104"/>
+        <Filename Value="../AVXMatrixTransposeOperations.pas"/>
+        <Caret Line="204" TopLine="185"/>
       </Position3>
       <Position4>
-        <Filename Value="../ASMMatrixMeanOperationsx64.pas"/>
+        <Filename Value="../AVXMatrixTransposeOperations.pas"/>
+        <Caret Line="205" TopLine="185"/>
       </Position4>
       <Position5>
-        <Filename Value="../ASMMatrixMeanOperationsx64.pas"/>
-        <Caret Line="3446" Column="32" TopLine="3420"/>
+        <Filename Value="../AVXMatrixTransposeOperations.pas"/>
+        <Caret Line="210" TopLine="195"/>
       </Position5>
       <Position6>
-        <Filename Value="../ASMMatrixMeanOperationsx64.pas"/>
-        <Caret Line="70" Column="7" TopLine="54"/>
+        <Filename Value="../AVXMatrixTransposeOperations.pas"/>
+        <Caret Line="256" TopLine="228"/>
       </Position6>
       <Position7>
-        <Filename Value="TestAVX.pas"/>
-        <Caret Line="1437" Column="30" TopLine="1421"/>
+        <Filename Value="../AVXMatrixTransposeOperations.pas"/>
+        <Caret Line="257" TopLine="237"/>
       </Position7>
       <Position8>
-        <Filename Value="../ASMMatrixNormOperationsx64.pas"/>
-        <Caret Line="55" Column="49" TopLine="40"/>
+        <Filename Value="../AVXMatrixTransposeOperations.pas"/>
+        <Caret Line="246" TopLine="228"/>
       </Position8>
       <Position9>
-        <Filename Value="../ASMMatrixNormOperationsx64.pas"/>
-        <Caret Line="1579" Column="31" TopLine="1553"/>
+        <Filename Value="../AVXMatrixTransposeOperations.pas"/>
+        <Caret Line="30" Column="11" TopLine="10"/>
       </Position9>
       <Position10>
-        <Filename Value="TestFMA.pas"/>
-        <Caret Line="487" Column="30" TopLine="470"/>
+        <Filename Value="../AVXMatrixTransposeOperations.pas"/>
+        <Caret Line="65" Column="21" TopLine="57"/>
       </Position10>
       <Position11>
-        <Filename Value="TestAVX.pas"/>
-        <Caret Line="1434" Column="30" TopLine="1418"/>
+        <Filename Value="../AVXMatrixTransposeOperations.pas"/>
+        <Caret Line="98" Column="24" TopLine="90"/>
       </Position11>
       <Position12>
-        <Filename Value="../MatrixConst.pas"/>
-        <Caret Line="53" Column="70" TopLine="32"/>
+        <Filename Value="../AVXMatrixTransposeOperations.pas"/>
+        <Caret Line="255" TopLine="235"/>
       </Position12>
       <Position13>
-        <Filename Value="../ASMMatrixMinMaxOperationsx64.pas"/>
-        <Caret Line="70" Column="38" TopLine="55"/>
+        <Filename Value="TestAVX.pas"/>
+        <Caret Line="1398" TopLine="1378"/>
       </Position13>
       <Position14>
-        <Filename Value="../ASMMatrixMinMaxOperationsx64.pas"/>
-        <Caret Line="45" Column="17" TopLine="29"/>
+        <Filename Value="TestAVX.pas"/>
+        <Caret Line="1400" TopLine="1378"/>
       </Position14>
       <Position15>
-        <Filename Value="../ASMMatrixMinMaxOperationsx64.pas"/>
-        <Caret Line="317" Column="41" TopLine="290"/>
+        <Filename Value="TestAVX.pas"/>
+        <Caret Line="1398" Column="56" TopLine="1378"/>
       </Position15>
       <Position16>
-        <Filename Value="../ASMMatrixMinMaxOperationsx64.pas"/>
-        <Caret Line="47" Column="17" TopLine="34"/>
+        <Filename Value="../AVXMatrixRotations.pas"/>
+        <Caret Line="142" Column="32" TopLine="117"/>
       </Position16>
       <Position17>
-        <Filename Value="../ASMMatrixMinMaxOperationsx64.pas"/>
-        <Caret Line="645" Column="38" TopLine="618"/>
+        <Filename Value="../LinAlgSVD.pas"/>
+        <Caret Line="2878" Column="40" TopLine="2859"/>
       </Position17>
       <Position18>
-        <Filename Value="../ASMMatrixMinMaxOperationsx64.pas"/>
-        <Caret Line="75" Column="47" TopLine="58"/>
+        <Filename Value="../LinAlgSVD.pas"/>
+        <Caret Line="55" Column="35" TopLine="38"/>
       </Position18>
       <Position19>
-        <Filename Value="../ASMMatrixMinMaxOperationsx64.pas"/>
-        <Caret Line="51" Column="11" TopLine="22"/>
+        <Filename Value="../LinAlgSVD.pas"/>
+        <Caret Line="2802" Column="44" TopLine="2780"/>
       </Position19>
       <Position20>
-        <Filename Value="../ASMMatrixScaleOperationsx64.pas"/>
-        <Caret Line="56" Column="18" TopLine="38"/>
+        <Filename Value="../LinAlgSVD.pas"/>
+        <Caret Line="59" Column="29" TopLine="25"/>
       </Position20>
       <Position21>
-        <Filename Value="../ASMMatrixAbsOperationsx64.pas"/>
-        <Caret Line="248" Column="33" TopLine="232"/>
+        <Filename Value="../LinAlgSVD.pas"/>
+        <Caret Line="2954" TopLine="2930"/>
       </Position21>
       <Position22>
-        <Filename Value="../MatrixConst.pas"/>
-        <Caret Line="47" Column="82" TopLine="32"/>
+        <Filename Value="../Matrix.pas"/>
+        <Caret Line="1901" TopLine="1880"/>
       </Position22>
       <Position23>
-        <Filename Value="../ASMMatrixAbsOperationsx64.pas"/>
-        <Caret Line="250" Column="33" TopLine="235"/>
+        <Filename Value="../AVXMatrixOperations.pas"/>
+        <Caret Line="414" TopLine="409"/>
       </Position23>
       <Position24>
-        <Filename Value="../ASMMatrixAbsOperationsx64.pas"/>
-        <Caret Line="44" Column="18" TopLine="22"/>
+        <Filename Value="../AVXMatrixOperations.pas"/>
+        <Caret Line="60" Column="11" TopLine="35"/>
       </Position24>
       <Position25>
-        <Filename Value="../ASMMatrixAbsOperationsx64.pas"/>
-        <Caret Line="348" Column="36" TopLine="321"/>
+        <Filename Value="../AVXMatrixOperations.pas"/>
+        <Caret Line="403" Column="6" TopLine="401"/>
       </Position25>
       <Position26>
-        <Filename Value="../ASMMatrixAbsOperationsx64.pas"/>
-        <Caret Line="47" Column="11" TopLine="19"/>
+        <Filename Value="../AVXMatrixRotations.pas"/>
+        <Caret Line="142" Column="32" TopLine="137"/>
       </Position26>
       <Position27>
-        <Filename Value="TestFMA.pas"/>
-        <Caret Line="487" Column="30" TopLine="471"/>
+        <Filename Value="../AVXMatrixRotations.pas"/>
+        <Caret Line="38" Column="11" TopLine="14"/>
       </Position27>
       <Position28>
-        <Filename Value="../MatrixConst.pas"/>
-        <Caret Line="55" Column="3" TopLine="32"/>
+        <Filename Value="../MatrixASMStubSwitch.pas"/>
+        <Caret Line="1207" Column="48" TopLine="1182"/>
       </Position28>
       <Position29>
-        <Filename Value="../MatrixConst.pas"/>
-        <Caret Line="48" Column="7" TopLine="32"/>
+        <Filename Value="../MatrixASMStubSwitch.pas"/>
+        <Caret Line="1203" Column="11" TopLine="1182"/>
       </Position29>
       <Position30>
-        <Filename Value="../MatrixConst.pas"/>
-        <Caret Line="50" Column="7" TopLine="32"/>
+        <Filename Value="../AVXMatrixRotations.pas"/>
+        <Caret Line="35" TopLine="15"/>
       </Position30>
     </JumpHistory>
   </ProjectSession>
   <Debugging>
-    <BreakPoints Count="2">
+    <BreakPoints Count="3">
       <Item1>
         <Kind Value="bpkSource"/>
         <WatchScope Value="wpsLocal"/>
@@ -1381,26 +1359,31 @@
         <Source Value="../LinAlgSVD.pas"/>
         <Line Value="1861"/>
       </Item2>
+      <Item3>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="BaseMatrixTestCase.pas"/>
+        <Line Value="173"/>
+      </Item3>
     </BreakPoints>
-    <Watches Count="6">
+    <Watches Count="5">
       <Item1>
-        <Expression Value="width"/>
+        <Expression Value="destOffset"/>
+        <DisplayStyle Value="wdfHex"/>
       </Item1>
       <Item2>
-        <Expression Value="height"/>
+        <Expression Value="height2"/>
       </Item2>
       <Item3>
-        <Expression Value="W2"/>
+        <Expression Value="width1"/>
       </Item3>
       <Item4>
-        <Expression Value="PDouble(W)[30]"/>
+        <Expression Value="height1"/>
       </Item4>
       <Item5>
-        <Expression Value="PDouble(W)[40]"/>
+        <Expression Value="Height"/>
       </Item5>
-      <Item6>
-        <Expression Value="PDouble(D)[40]"/>
-      </Item6>
     </Watches>
   </Debugging>
 </CONFIG>

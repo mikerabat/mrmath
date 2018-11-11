@@ -27,19 +27,19 @@ interface
 
 uses MatrixConst;
 
-procedure ASMMatrixCumulativeSumRow(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixCumulativeSumRow(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixCumulativeSumColumnEvenWUnaligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixCumulativeSumColumnOddWUnaligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixCumulativeSumColumnEvenWAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixCumulativeSumColumnOddWAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixCumulativeSumColumnEvenWUnaligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixCumulativeSumColumnOddWUnaligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixCumulativeSumColumnEvenWAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixCumulativeSumColumnOddWAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixDifferentiateRow(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixDifferentiateRow(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixDifferentiateColumnEvenWUnaligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixDifferentiateColumnOddWUnaligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixDifferentiateColumnEvenWAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixDifferentiateColumnOddWAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixDifferentiateColumnEvenWUnaligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixDifferentiateColumnOddWUnaligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixDifferentiateColumnEvenWAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixDifferentiateColumnOddWAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -54,641 +54,623 @@ implementation
 // ##################################################
 
 procedure ASMMatrixCumulativeSumRow(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-begin
-     asm
-        push ebx;
-        push esi;
+asm
+   push ebx;
+   push esi;
+   push edi;
 
-        // if (width <= 0) or (height <= 0) then exit;
-        mov eax, width;
-        cmp eax, 0;
-        jle @@exitproc;
-        mov esi, height;
-        cmp esi, 0;
-        jle @@exitproc;
+   // if (width <= 0) or (height <= 0) then exit;
+   mov edi, width;
+   cmp edi, 0;
+   jle @@exitproc;
+   mov esi, height;
+   cmp esi, 0;
+   jle @@exitproc;
 
-        // iter := -width*sizeof(Double)
-        mov ebx, width;
-        imul ebx, -8;
+   // iter := -width*sizeof(Double)
+   mov ebx, width;
+   imul ebx, -8;
 
-        // prepare counters
-        mov edx, dest;
-        sub edx, ebx;
-        mov ecx, src;
-        sub ecx, ebx;
+   // prepare counters
+   sub eax, ebx;
+   sub ecx, ebx;
 
-        @@foryloop:
-           mov eax, ebx;
-           xorpd xmm0, xmm0;
+   @@foryloop:
+      mov edi, ebx;
+      xorpd xmm0, xmm0;
 
-           @@forxloop:
-              addsd xmm0, [ecx + eax];
-              movsd [edx + eax], xmm0;
-           add eax, 8;
-           jnz @@forxloop;
+      @@forxloop:
+         addsd xmm0, [ecx + edi];
+         movsd [eax + edi], xmm0;
+      add edi, 8;
+      jnz @@forxloop;
 
-           add ecx, srcLineWidth;
-           add edx, destLineWidth;
-        dec esi;
-        jnz @@foryloop;
+      add ecx, srcLineWidth;
+      add eax, edx;
+   dec esi;
+   jnz @@foryloop;
 
 
-        @@exitProc:
-        pop esi;
-        pop ebx;
-     end;
+   @@exitProc:
+        
+   pop edi;
+   pop esi;
+   pop ebx;
 end;
 
 procedure ASMMatrixCumulativeSumColumnEvenWUnaligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-begin
-     asm
-        push ebx;
-        push edi;
-        push esi;
+asm
+   push ebx;
+   push edi;
+   push esi;
 
-        // if (width <= 0) or (height <= 0) then exit;
-        mov eax, height;
-        cmp eax, 0;
-        jle @@exitproc;
-        mov esi, width;
-        cmp esi, 1;
-        jle @@exitproc;
+   // if (width <= 0) or (height <= 0) then exit;
+   mov edi, height;
+   cmp edi, 0;
+   jle @@exitproc;
+   mov esi, width;
+   cmp esi, 1;
+   jle @@exitproc;
 
-        sar esi, 1;  // width div 2
-        mov width, esi;
+   sar esi, 1;  // width div 2
+   mov width, esi;
 
-        // prepare counters
-        mov edx, dest;
-        mov ecx, src;
-        mov ebx, srcLineWidth;
+   // prepare counters
+   mov ebx, srcLineWidth;
 
-        @@forxloop:
-           mov eax, height;
-           xorpd xmm0, xmm0;
-           xor edi, edi;
-           xor esi, esi;
+   @@forxloop:
+      mov edi, height;
+      xorpd xmm0, xmm0;
+      xor esi, esi;
 
-           // two values at once
-           @@foryloop:
-              movupd xmm1, [ecx + edi];
-              addpd xmm0, xmm1;
-              movupd [edx + esi], xmm0;
+      push ecx;
+      
+      // two values at once
+      @@foryloop:
+         movupd xmm1, [ecx];
+         addpd xmm0, xmm1;
+         movupd [eax + esi], xmm0;
 
-              add edi, ebx;
-              add esi, destLineWidth;
-           dec eax;
-           jnz @@foryloop;
+         add ecx, ebx;
+         add esi, edx;
+      dec edi;
+      jnz @@foryloop;
 
-           add ecx, 16;
-           add edx, 16;
-        dec width;
-        jnz @@forxloop;
+      pop ecx;
+      
+      add ecx, 16;
+      add eax, 16;
+   dec width;
+   jnz @@forxloop;
 
-        @@exitProc:
-        pop esi;
-        pop edi;
-        pop ebx;
-     end;
+   @@exitProc:
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 procedure ASMMatrixCumulativeSumColumnOddWUnaligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-begin
-     asm
-        push ebx;
-        push edi;
-        push esi;
+asm
+   push ebx;
+   push edi;
+   push esi;
 
-        // if (width <= 0) or (height <= 0) then exit;
-        mov eax, height;
-        cmp eax, 0;
-        jle @@exitproc;
-        mov esi, width;
-        cmp esi, 0;
-        jle @@exitproc;
+   // if (width <= 0) or (height <= 0) then exit;
+   mov edi, height;
+   cmp edi, 0;
+   jle @@exitproc;
+   mov esi, width;
+   cmp esi, 0;
+   jle @@exitproc;
 
-        sar esi, 1;  // width div 2
-        mov width, esi;
+   sar esi, 1;  // width div 2
+   mov width, esi;
 
-        // prepare counters
-        mov edx, dest;
-        mov ecx, src;
-        mov ebx, srcLineWidth;
+   // prepare counters
+   mov ebx, srcLineWidth;
 
-        mov esi, width;
-        test esi, esi;
-        jz @@lastColumn;
+   mov esi, width;
+   test esi, esi;
+   jz @@lastColumn;
 
-        @@forxloop:
-           mov eax, height;
-           xorpd xmm0, xmm0;
-           xor edi, edi;
-           xor esi, esi;
+   @@forxloop:
+      mov edi, height;
+      xorpd xmm0, xmm0;
+      xor esi, esi;
 
-           // two values at once
-           @@foryloop:
-              movupd xmm1, [ecx + edi];
-              addpd xmm0, xmm1;
-              movupd [edx + esi], xmm0;
+      push ecx;
+      
+      // two values at once
+      @@foryloop:
+         movupd xmm1, [ecx];
+         addpd xmm0, xmm1;
+         movupd [eax + esi], xmm0;
 
-              add edi, ebx;
-              add esi, destLineWidth;
-           dec eax;
-           jnz @@foryloop;
+         add ecx, ebx;
+         add esi, edx;
+      dec edi;
+      jnz @@foryloop;
 
-           add ecx, 16;
-           add edx, 16;
-        dec width;
-        jnz @@forxloop;
+      pop ecx;
+      add ecx, 16;
+      add eax, 16;
+   dec width;
+   jnz @@forxloop;
 
-        @@lastColumn:
+   @@lastColumn:
 
-        mov eax, height;
-        xorpd xmm0, xmm0;
+   mov edi, height;
+   xorpd xmm0, xmm0;
 
-        // last column
-        @@forycolumnloop:
-           movsd xmm1, [ecx];
-           addsd xmm0, xmm1;
-           movsd [edx], xmm0;
+   // last column
+   @@forycolumnloop:
+      movsd xmm1, [ecx];
+      addsd xmm0, xmm1;
+      movsd [eax], xmm0;
 
-           add ecx, ebx;
-           add edx, destLineWidth;
-        dec eax;
-        jnz @@forycolumnloop;
+      add ecx, ebx;
+      add eax, edx;
+   dec edi;
+   jnz @@forycolumnloop;
 
-        @@exitProc:
+   @@exitProc:
 
-        pop esi;
-        pop edi;
-        pop ebx;
-     end;
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 procedure ASMMatrixCumulativeSumColumnEvenWAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-begin
-     assert(((TASMNativeUInt(dest) and $F) = 0) and ((destLineWidth and $F) = 0) and
-            ((TASMNativeUInt(src) and $F) = 0) and ((srcLineWidth and $F) = 0), 'Non aligned operation');
-     asm
-        push ebx;
-        push edi;
-        push esi;
+asm
+   push ebx;
+   push edi;
+   push esi;
 
-        // if (width <= 0) or (height <= 0) then exit;
-        mov eax, height;
-        cmp eax, 0;
-        jle @@exitproc;
-        mov esi, width;
-        cmp esi, 1;
-        jle @@exitproc;
+   // if (width <= 0) or (height <= 0) then exit;
+   mov edi, height;
+   cmp edi, 0;
+   jle @@exitproc;
+   mov esi, width;
+   cmp esi, 1;
+   jle @@exitproc;
 
-        sar esi, 1;  // width div 2
-        mov width, esi;
+   sar esi, 1;  // width div 2
+   mov width, esi;
 
-        // prepare counters
-        mov edx, dest;
-        mov ecx, src;
-        mov ebx, srcLineWidth;
+   // prepare counters
+   mov ebx, srcLineWidth;
 
-        @@forxloop:
-           mov eax, height;
-           xorpd xmm0, xmm0;
-           xor edi, edi;
-           xor esi, esi;
+   @@forxloop:
+      mov edi, height;
+      xorpd xmm0, xmm0;
+      xor esi, esi;
 
-           // two values at once
-           @@foryloop:
-              movapd xmm1, [ecx + edi];
-              addpd xmm0, xmm1;
-              movapd [edx + esi], xmm0;
+      push ecx;
 
-              add edi, ebx;
-              add esi, destLineWidth;
-           dec eax;
-           jnz @@foryloop;
+      // two values at once
+      @@foryloop:
+         movapd xmm1, [ecx];
+         addpd xmm0, xmm1;
+         movapd [eax + esi], xmm0;
 
-           add ecx, 16;
-           add edx, 16;
-        dec width;
-        jnz @@forxloop;
+         add ecx, ebx;
+         add esi, edx;
+      dec edi;
+      jnz @@foryloop;
 
-        @@exitProc:
-        pop esi;
-        pop edi;
-        pop ebx;
-     end;
+      pop ecx;
+      add ecx, 16;
+      add eax, 16;
+   dec width;
+   jnz @@forxloop;
+
+   @@exitProc:
+   
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 
 procedure ASMMatrixCumulativeSumColumnOddWAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-begin
-     assert(((TASMNativeUInt(dest) and $F) = 0) and ((destLineWidth and $F) = 0) and
-            ((TASMNativeUInt(src) and $F) = 0) and ((srcLineWidth and $F) = 0), 'Non aligned operation');
-     asm
-        push ebx;
-        push edi;
-        push esi;
+asm
+   push ebx;
+   push edi;
+   push esi;
 
-        // if (width <= 0) or (height <= 0) then exit;
-        mov eax, height;
-        cmp eax, 0;
-        jle @@exitproc;
-        mov esi, width;
-        cmp esi, 0;
-        jle @@exitproc;
+   // if (width <= 0) or (height <= 0) then exit;
+   mov edi, height;
+   cmp edi, 0;
+   jle @@exitproc;
+   mov esi, width;
+   cmp esi, 0;
+   jle @@exitproc;
 
-        sar esi, 1;  // width div 2
-        mov width, esi;
+   sar esi, 1;  // width div 2
+   mov width, esi;
 
-        // prepare counters
-        mov edx, dest;
-        mov ecx, src;
-        mov ebx, srcLineWidth;
+   // prepare counters
+   mov eax, dest;
+   mov ecx, src;
+   mov ebx, srcLineWidth;
 
-        mov esi, width;
-        test esi, esi;
-        jz @@lastColumn;
+   mov esi, width;
+   test esi, esi;
+   jz @@lastColumn;
 
-        @@forxloop:
-           mov eax, height;
-           xorpd xmm0, xmm0;
-           xor edi, edi;
-           xor esi, esi;
+   @@forxloop:
+      mov edi, height;
+      xorpd xmm0, xmm0;
+      xor esi, esi;
+      push ecx;
 
-           // two values at once
-           @@foryloop:
-              movapd xmm1, [ecx + edi];
-              addpd xmm0, xmm1;
-              movapd [edx + esi], xmm0;
+      // two values at once
+      @@foryloop:
+         movapd xmm1, [ecx];
+         addpd xmm0, xmm1;
+         movapd [eax + esi], xmm0;
 
-              add edi, ebx;
-              add esi, destLineWidth;
-           dec eax;
-           jnz @@foryloop;
+         add ecx, ebx;
+         add esi, edx;
+      dec edi;
+      jnz @@foryloop;
 
-           add ecx, 16;
-           add edx, 16;
-        dec width;
-        jnz @@forxloop;
+      pop ecx;
+      add ecx, 16;
+      add eax, 16;
+   dec width;
+   jnz @@forxloop;
 
-        @@lastColumn:
+   @@lastColumn:
 
-        mov eax, height;
-        xorpd xmm0, xmm0;
+   mov edi, height;
+   xorpd xmm0, xmm0;
 
-        // last column
-        @@forycolumnloop:
-           movsd xmm1, [ecx];
-           addsd xmm0, xmm1;
-           movsd [edx], xmm0;
+   // last column
+   @@forycolumnloop:
+      movsd xmm1, [ecx];
+      addsd xmm0, xmm1;
+      movsd [eax], xmm0;
 
-           add ecx, ebx;
-           add edx, destLineWidth;
-        dec eax;
-        jnz @@forycolumnloop;
+      add ecx, ebx;
+      add eax, edx;
+   dec edi;
+   jnz @@forycolumnloop;
 
-        @@exitProc:
+   @@exitProc:
 
-        pop esi;
-        pop edi;
-        pop ebx;
-     end;
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 procedure ASMMatrixDifferentiateRow(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-begin
-     asm
-        push ebx;
-        push esi;
+asm
+   push ebx;
+   push edi;
+   push esi;
+        
+   // if (width <= 1) or (height <= 0) then exit;
+   mov edi, width;
+   cmp edi, 1;
+   jle @@exitproc;
+   mov esi, height;
+   cmp esi, 0;
+   jle @@exitproc;
 
-        // if (width <= 1) or (height <= 0) then exit;
-        mov eax, width;
-        cmp eax, 1;
-        jle @@exitproc;
-        mov esi, height;
-        cmp esi, 0;
-        jle @@exitproc;
+   // iter := -width*sizeof(Double)
+   mov ebx, width;
+   imul ebx, -8;
 
-        // iter := -width*sizeof(Double)
-        mov ebx, width;
-        imul ebx, -8;
+   // prepare counters
+   sub eax, ebx;
+   sub ecx, ebx;
+   add ebx, 8;
 
-        // prepare counters
-        mov edx, dest;
-        sub edx, ebx;
-        mov ecx, src;
-        sub ecx, ebx;
-        add ebx, 8;
+   @@foryloop:
+      mov edi, ebx;
+      movsd xmm1, [ecx + edi - 8];
 
-        @@foryloop:
-           mov eax, ebx;
-           movsd xmm1, [ecx + eax - 8];
+      @@forxloop:
+         movsd xmm0, [ecx + edi];
+         movsd xmm2, xmm0;
+         subsd xmm0, xmm1;
+         movsd [eax + edi - 8], xmm0;
 
-           @@forxloop:
-              movsd xmm0, [ecx + eax];
-              movsd xmm2, xmm0;
-              subsd xmm0, xmm1;
-              movsd [edx + eax - 8], xmm0;
+         movsd xmm1, xmm2;
+      add edi, 8;
+      jnz @@forxloop;
 
-              movsd xmm1, xmm2;
-           add eax, 8;
-           jnz @@forxloop;
+      add ecx, srcLineWidth;
+      add eax, edx;
+   dec esi;
+   jnz @@foryloop;
 
-           add ecx, srcLineWidth;
-           add edx, destLineWidth;
-        dec esi;
-        jnz @@foryloop;
-
-
-        @@exitProc:
-        pop esi;
-        pop ebx;
-     end;
+   @@exitProc:
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 procedure ASMMatrixDifferentiateColumnEvenWUnaligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-begin
-     asm
-        push ebx;
-        push edi;
-        push esi;
+asm
+   push ebx;
+   push edi;
+   push esi;
 
-        // if (width <= 0) or (height <= 1) then exit;
-        mov eax, height;
-        dec eax;
-        cmp eax, 0;
-        jle @@exitproc;
-        mov esi, width;
-        cmp esi, 1;
-        jle @@exitproc;
+   // if (width <= 0) or (height <= 1) then exit;
+   mov edi, height;
+   dec edi;
+   cmp edi, 0;
+   jle @@exitproc;
+   mov esi, width;
+   cmp esi, 1;
+   jle @@exitproc;
 
-        mov height, eax;
+   mov height, edi;
 
-        sar esi, 1;  // width div 2
-        mov width, esi;
+   sar esi, 1;  // width div 2
+   mov width, esi;
 
-        // prepare counters
-        mov edx, dest;
-        mov ecx, src;
-        mov ebx, srcLineWidth;
+   // prepare counters
+   mov ebx, srcLineWidth;
 
-        @@forxloop:
-           mov eax, height;
-           xorpd xmm0, xmm0;
-           mov edi, ebx;
-           xor esi, esi;
+   @@forxloop:
+      mov edi, height;
+      xorpd xmm0, xmm0;
+      push ecx;
+      xor esi, esi;
 
-           movupd xmm0, [ecx];
+      movupd xmm0, [ecx];
+      add ecx, ebx;
 
-           // two values at once
-           @@foryloop:
-              movupd xmm1, [ecx + edi];
-              movapd xmm2, xmm1;
-              subpd xmm1, xmm0;
-              movupd [edx + esi], xmm1;
+      // two values at once
+      @@foryloop:
+         movupd xmm1, [ecx];
+         movapd xmm2, xmm1;
+         subpd xmm1, xmm0;
+         movupd [eax + esi], xmm1;
 
-              movapd xmm0, xmm2;
-              add edi, ebx;
-              add esi, destLineWidth;
-           dec eax;
-           jnz @@foryloop;
+         movapd xmm0, xmm2;
+         add ecx, ebx;
+         add esi, edx;
+      dec edi;
+      jnz @@foryloop;
 
-           add ecx, 16;
-           add edx, 16;
-        dec width;
-        jnz @@forxloop;
+      pop ecx;
+      add ecx, 16;
+      add eax, 16;
+   dec width;
+   jnz @@forxloop;
 
-        @@exitProc:
-        pop esi;
-        pop edi;
-        pop ebx;
-     end;
+   @@exitProc:
+
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 
 procedure ASMMatrixDifferentiateColumnOddWUnaligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-begin
-     asm
-        push ebx;
-        push edi;
-        push esi;
+asm
+   push ebx;
+   push edi;
+   push esi;
 
-        // if (width <= 0) or (height <= 1) then exit;
-        mov eax, height;
-        dec eax;
-        cmp eax, 0;
-        jle @@exitproc;
-        mov esi, width;
-        cmp esi, 0;
-        jle @@exitproc;
+   // if (width <= 0) or (height <= 1) then exit;
+   mov edi, height;
+   dec edi;
+   cmp edi, 0;
+   jle @@exitproc;
+   mov esi, width;
+   cmp esi, 0;
+   jle @@exitproc;
 
-        mov height, eax;
+   mov height, edi;
 
-        // prepare counters
-        mov edx, dest;
-        mov ecx, src;
-        mov ebx, srcLineWidth;
+   // prepare counters
+   mov ebx, srcLineWidth;
 
-        sar esi, 1;  // width div 2
-        cmp esi, 0;
-        je @@lastcolumn;
-        mov width, esi;
+   sar esi, 1;  // width div 2
+   cmp esi, 0;
+   je @@lastcolumn;
+   mov width, esi;
 
-        @@forxloop:
-           mov eax, height;
-           xorpd xmm0, xmm0;
-           mov edi, ebx;
-           xor esi, esi;
+   @@forxloop:
+      mov edi, height;
+      xorpd xmm0, xmm0;
+      push ecx;
+      xor esi, esi;
 
-           movupd xmm0, [ecx];
+      movupd xmm0, [ecx];
+      add ecx, ebx;
 
-           // two values at once
-           @@foryloop:
-              movupd xmm1, [ecx + edi];
-              movapd xmm2, xmm1;
-              subpd xmm1, xmm0;
-              movupd [edx + esi], xmm1;
+      // two values at once
+      @@foryloop:
+         movupd xmm1, [ecx];
+         movapd xmm2, xmm1;
+         subpd xmm1, xmm0;
+         movupd [eax + esi], xmm1;
 
-              movapd xmm0, xmm2;
-              add edi, ebx;
-              add esi, destLineWidth;
-           dec eax;
-           jnz @@foryloop;
+         movapd xmm0, xmm2;
+         add ecx, ebx;
+         add esi, edx;
+      dec edi;
+      jnz @@foryloop;
 
-           add ecx, 16;
-           add edx, 16;
-        dec width;
-        jnz @@forxloop;
+      pop ecx;
+      add ecx, 16;
+      add eax, 16;
+   dec width;
+   jnz @@forxloop;
 
-        @@lastcolumn:
+   @@lastcolumn:
 
-        mov eax, height;
-        xorpd xmm0, xmm0;
-        mov edi, ebx;
-        xor esi, esi;
+   mov edi, height;
+   xorpd xmm0, xmm0;
+   xor esi, esi;
 
-        movsd xmm0, [ecx];
+   movsd xmm0, [ecx];
+   add ecx, ebx;
 
-        // two values at once
-        @@foryloop1:
-           movsd xmm1, [ecx + edi];
-           movapd xmm2, xmm1;
-           subsd xmm1, xmm0;
-           movsd [edx + esi], xmm1;
+   // two values at once
+   @@foryloop1:
+      movsd xmm1, [ecx];
+      movapd xmm2, xmm1;
+      subsd xmm1, xmm0;
+      movsd [eax + esi], xmm1;
 
-           movapd xmm0, xmm2;
-           add edi, ebx;
-           add esi, destLineWidth;
-        dec eax;
-        jnz @@foryloop1;
+      movapd xmm0, xmm2;
+      add ecx, ebx;
+      add esi, edx;
+   dec edi;
+   jnz @@foryloop1;
 
-        @@exitProc:
-        pop esi;
-        pop edi;
-        pop ebx;
-     end;
+   @@exitProc:
+
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 procedure ASMMatrixDifferentiateColumnEvenWAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-begin
-     asm
-        push ebx;
-        push edi;
-        push esi;
+asm
+   push ebx;
+   push edi;
+   push esi;
 
-        // if (width <= 0) or (height <= 1) then exit;
-        mov eax, height;
-        dec eax;
-        cmp eax, 0;
-        jle @@exitproc;
-        mov esi, width;
-        cmp esi, 1;
-        jle @@exitproc;
+   // if (width <= 0) or (height <= 1) then exit;
+   mov edi, height;
+   dec edi;
+   cmp edi, 0;
+   jle @@exitproc;
+   mov esi, width;
+   cmp esi, 1;
+   jle @@exitproc;
 
-        mov height, eax;
+   mov height, edi;
 
-        sar esi, 1;  // width div 2
-        mov width, esi;
+   sar esi, 1;  // width div 2
+   mov width, esi;
 
-        // prepare counters
-        mov edx, dest;
-        mov ecx, src;
-        mov ebx, srcLineWidth;
+   // prepare counters
+   mov ebx, srcLineWidth;
 
-        @@forxloop:
-           mov eax, height;
-           xorpd xmm0, xmm0;
-           mov edi, ebx;
-           xor esi, esi;
+   @@forxloop:
+      mov edi, height;
+      xorpd xmm0, xmm0;
+      push ecx;
+      xor esi, esi;
 
-           movapd xmm0, [ecx];
+      movapd xmm0, [ecx];
+      add ecx, ebx;
 
-           // two values at once
-           @@foryloop:
-              movapd xmm1, [ecx + edi];
-              movapd xmm2, xmm1;
-              subpd xmm1, xmm0;
-              movapd [edx + esi], xmm1;
+      // two values at once
+      @@foryloop:
+         movapd xmm1, [ecx];
+         movapd xmm2, xmm1;
+         subpd xmm1, xmm0;
+         movapd [eax + esi], xmm1;
 
-              movapd xmm0, xmm2;
-              add edi, ebx;
-              add esi, destLineWidth;
-           dec eax;
-           jnz @@foryloop;
+         movapd xmm0, xmm2;
+         add ecx, ebx;
+         add esi, edx;
+      dec edi;
+      jnz @@foryloop;
 
-           add ecx, 16;
-           add edx, 16;
-        dec width;
-        jnz @@forxloop;
+      pop ecx;
+      add ecx, 16;
+      add eax, 16;
+   dec width;
+   jnz @@forxloop;
 
-        @@exitProc:
-        pop esi;
-        pop edi;
-        pop ebx;
-     end;
+   @@exitProc:
+   
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
-
 procedure ASMMatrixDifferentiateColumnOddWAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-begin
-     asm
-        push ebx;
-        push edi;
-        push esi;
+asm
+   push ebx;
+   push edi;
+   push esi;
 
-        // if (width <= 0) or (height <= 1) then exit;
-        mov eax, height;
-        dec eax;
-        cmp eax, 0;
-        jle @@exitproc;
-        mov esi, width;
-        cmp esi, 0;
-        jle @@exitproc;
+   // if (width <= 0) or (height <= 1) then exit;
+   mov edi, height;
+   dec edi;
+   cmp edi, 0;
+   jle @@exitproc;
+   mov esi, width;
+   cmp esi, 0;
+   jle @@exitproc;
 
-        mov height, eax;
+   mov height, edi;
 
-        // prepare counters
-        mov edx, dest;
-        mov ecx, src;
-        mov ebx, srcLineWidth;
+   // prepare counters
+   mov ebx, srcLineWidth;
 
-        sar esi, 1;  // width div 2
-        cmp esi, 0;
-        je @@lastcolumn;
-        mov width, esi;
+   sar esi, 1;  // width div 2
+   cmp esi, 0;
+   je @@lastcolumn;
+   mov width, esi;
 
-        @@forxloop:
-           mov eax, height;
-           xorpd xmm0, xmm0;
-           mov edi, ebx;
-           xor esi, esi;
+   @@forxloop:
+      mov edi, height;
+      xorpd xmm0, xmm0;
+      push ecx;
+      xor esi, esi;
 
-           movapd xmm0, [ecx];
+      movapd xmm0, [ecx];
+      add ecx, ebx;
 
-           // two values at once
-           @@foryloop:
-              movapd xmm1, [ecx + edi];
-              movapd xmm2, xmm1;
-              subpd xmm1, xmm0;
-              movapd [edx + esi], xmm1;
+      // two values at once
+      @@foryloop:
+         movapd xmm1, [ecx];
+         movapd xmm2, xmm1;
+         subpd xmm1, xmm0;
+         movapd [eax + esi], xmm1;
 
-              movapd xmm0, xmm2;
-              add edi, ebx;
-              add esi, destLineWidth;
-           dec eax;
-           jnz @@foryloop;
+         movapd xmm0, xmm2;
+         add ecx, ebx;
+         add esi, edx;
+      dec edi;
+      jnz @@foryloop;
 
-           add ecx, 16;
-           add edx, 16;
-        dec width;
-        jnz @@forxloop;
+      pop ecx;
+      add ecx, 16;
+      add eax, 16;
+   dec width;
+   jnz @@forxloop;
 
-        @@lastcolumn:
+   @@lastcolumn:
 
-        mov eax, height;
-        xorpd xmm0, xmm0;
-        mov edi, ebx;
-        xor esi, esi;
+   mov edi, height;
+   xorpd xmm0, xmm0;
+   xor esi, esi;
 
-        movsd xmm0, [ecx];
+   movsd xmm0, [ecx];
+   add ecx, ebx;
 
-        // two values at once
-        @@foryloop1:
-           movsd xmm1, [ecx + edi];
-           movapd xmm2, xmm1;
-           subsd xmm1, xmm0;
-           movsd [edx + esi], xmm1;
+   // two values at once
+   @@foryloop1:
+      movsd xmm1, [ecx];
+      movapd xmm2, xmm1;
+      subsd xmm1, xmm0;
+      movsd [eax + esi], xmm1;
 
-           movapd xmm0, xmm2;
-           add edi, ebx;
-           add esi, destLineWidth;
-        dec eax;
-        jnz @@foryloop1;
+      movapd xmm0, xmm2;
+      add ecx, ebx;
+      add esi, edx;
+   dec edi;
+   jnz @@foryloop1;
 
-        @@exitProc:
-        pop esi;
-        pop edi;
-        pop ebx;
-     end;
+   @@exitProc:
+
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 {$ENDIF}

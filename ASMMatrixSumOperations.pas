@@ -27,15 +27,15 @@ interface
 
 uses MatrixConst;
 
-procedure ASMMatrixSumRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixSumRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixSumRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixSumRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixSumRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixSumRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixSumRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixSumRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixSumColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixSumColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixSumColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure ASMMatrixSumColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixSumColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixSumColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixSumColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixSumColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -46,578 +46,554 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 procedure ASMMatrixSumRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
-            (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
-     Assert((width and 1) = 0, 'Error width must be even');
+asm
+   push ebx;
+   push edi;
+   push esi;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= sizeof(double)), 'Dimension error');
+   // iters := -width*sizeof(double)
+   mov esi, width;
+   imul esi, -8;
+        
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, esi;
 
-     iters := -width*sizeof(double);
+   // for y := 0 to height - 1:
+   mov ebx, Height;
+   @@addforyloop:
+       xorpd xmm0, xmm0;
+       xorpd xmm1, xmm1;
+       xorpd xmm2, xmm2;
+       xorpd xmm3, xmm3;
 
-     asm
-        push ebx;
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, esi;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
 
-        mov ebx, dest;
+           // prefetch data...
+           // prefetch [ecx + edi];
 
-        // for y := 0 to height - 1:
-        mov edx, Height;
-        @@addforyloop:
-            xorpd xmm0, xmm0;
-            xorpd xmm1, xmm1;
-            xorpd xmm2, xmm2;
-            xorpd xmm3, xmm3;
+           // addition:
+           addpd xmm0, [ecx + edi - 128];
+           addpd xmm1, [ecx + edi - 112];
+           addpd xmm2, [ecx + edi - 96];
+           addpd xmm3, [ecx + edi - 80];
+           addpd xmm0, [ecx + edi - 64];
+           addpd xmm1, [ecx + edi - 48];
+           addpd xmm2, [ecx + edi - 32];
+           addpd xmm3, [ecx + edi - 16];
+       jmp @addforxloop
 
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforxloop:
-                add eax, 128;
-                jg @loopEnd;
+       @loopEnd:
 
-                // prefetch data...
-                // prefetch [ecx + eax];
+       sub edi, 128;
 
-                // addition:
-                addpd xmm0, [ecx + eax - 128];
-                addpd xmm1, [ecx + eax - 112];
-                addpd xmm2, [ecx + eax - 96];
-                addpd xmm3, [ecx + eax - 80];
-                addpd xmm0, [ecx + eax - 64];
-                addpd xmm1, [ecx + eax - 48];
-                addpd xmm2, [ecx + eax - 32];
-                addpd xmm3, [ecx + eax - 16];
-            jmp @addforxloop
+       jz @buildRes;
 
-            @loopEnd:
+       @addforxloop2:
+           addpd xmm0, [ecx + edi];
+       add edi, 16;
+       jnz @addforxloop2;
 
-            sub eax, 128;
+       @buildRes:
 
-            jz @buildRes;
+       // build result
+       addpd xmm0, xmm1;
+       addpd xmm2, xmm3;
+       addpd xmm0, xmm2;
 
-            @addforxloop2:
-                addpd xmm0, [ecx + eax];
-            add eax, 16;
-            jnz @addforxloop2;
+       movhlps xmm1, xmm0;
+       addsd xmm0, xmm1;
 
-            @buildRes:
+       // write result
+       movsd [eax], xmm0;
 
-            // build result
-            addpd xmm0, xmm1;
-            addpd xmm2, xmm3;
-            addpd xmm0, xmm2;
+       // next line:
+       add ecx, srcLineWidth;
+       add eax, edx;
 
-            movhlps xmm1, xmm0;
-            addsd xmm0, xmm1;
+   // loop y end
+   dec ebx;
+   jnz @@addforyloop;
 
-            // write result
-            movsd [ebx], xmm0;
-
-            // next line:
-            add ecx, srcLineWidth;
-            add ebx, destLineWidth;
-
-        // loop y end
-        dec edx;
-        jnz @@addforyloop;
-
-        pop ebx;
-     end;
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 procedure ASMMatrixSumRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     Assert((width and 1) = 0, 'Error width must be even');
+asm
+   push ebx;
+   push edi;
+   push esi;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= sizeof(double)), 'Dimension error');
+   // iters := -width*sizeof(double)
+   mov esi, width;
+   imul esi, -8;
+        
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, esi;
 
-     iters := -width*sizeof(double);
+   // for y := 0 to height - 1:
+   mov ebx, Height;
+   @@addforyloop:
+       xorpd xmm7, xmm7;
 
-     asm
-        push ebx;
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, esi;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
 
-        mov ebx, dest;
+           // addition:
+           movupd xmm0, [ecx + edi - 128];
+           addpd xmm7, xmm0;
 
-        // for y := 0 to height - 1:
-        mov edx, Height;
-        @@addforyloop:
-            xorpd xmm7, xmm7;
+           movupd xmm1, [ecx + edi - 112];
+           addpd xmm7, xmm1;
 
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforxloop:
-                add eax, 128;
-                jg @loopEnd;
+           movupd xmm2, [ecx + edi - 96];
+           addpd xmm7, xmm2;
 
-                // addition:
-                movupd xmm0, [ecx + eax - 128];
-                addpd xmm7, xmm0;
+           movupd xmm3, [ecx + edi - 80];
+           addpd xmm7, xmm3;
 
-                movupd xmm1, [ecx + eax - 112];
-                addpd xmm7, xmm1;
+           movupd xmm0, [ecx + edi - 64];
+           addpd xmm7, xmm0;
 
-                movupd xmm2, [ecx + eax - 96];
-                addpd xmm7, xmm2;
+           movupd xmm1, [ecx + edi - 48];
+           addpd xmm7, xmm1;
 
-                movupd xmm3, [ecx + eax - 80];
-                addpd xmm7, xmm3;
+           movupd xmm2, [ecx + edi - 32];
+           addpd xmm7, xmm2;
 
-                movupd xmm0, [ecx + eax - 64];
-                addpd xmm7, xmm0;
+           movupd xmm3, [ecx + edi - 16];
+           addpd xmm7, xmm3;
+       jmp @addforxloop
 
-                movupd xmm1, [ecx + eax - 48];
-                addpd xmm7, xmm1;
+       @loopEnd:
 
-                movupd xmm2, [ecx + eax - 32];
-                addpd xmm7, xmm2;
+       sub edi, 128;
 
-                movupd xmm3, [ecx + eax - 16];
-                addpd xmm7, xmm3;
-            jmp @addforxloop
+       jz @buildRes;
 
-            @loopEnd:
+       @addforxloop2:
+           movupd xmm0, [ecx + edi];
+           addpd xmm7, xmm0;
+       add edi, 16;
+       jnz @addforxloop2;
 
-            sub eax, 128;
+       @buildRes:
 
-            jz @buildRes;
+       // build result
+       movhlps xmm1, xmm7;
+       addsd xmm7, xmm1;
 
-            @addforxloop2:
-                movupd xmm0, [ecx + eax];
-                addpd xmm7, xmm0;
-            add eax, 16;
-            jnz @addforxloop2;
+       movsd [eax], xmm7;
 
-            @buildRes:
+       // next line:
+       add ecx, srcLineWidth;
+       add eax, edx;
 
-            // build result
-            movhlps xmm1, xmm7;
-            addsd xmm7, xmm1;
+   // loop y end
+   dec ebx;
+   jnz @@addforyloop;
 
-            movsd [ebx], xmm7;
-
-            // next line:
-            add ecx, srcLineWidth;
-            add ebx, destLineWidth;
-
-        // loop y end
-        dec edx;
-        jnz @@addforyloop;
-
-        pop ebx;
-     end;
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 procedure ASMMatrixSumRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
-            (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
-     Assert((width and 1) = 1, 'Error width must be odd');
+asm
+   push ebx;
+   push edi;
+   push esi;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= sizeof(double)), 'Dimension error');
+   // iters := -(width - 1)*sizeof(double)
+   mov esi, width;
+   dec esi;
+   imul esi, -8;
+        
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, esi;
 
-     iters := -(width - 1)*sizeof(double);
+   // for y := 0 to height - 1:
+   mov ebx, Height;
+   @@addforyloop:
+       xorpd xmm0, xmm0;
+       xorpd xmm1, xmm1;
+       xorpd xmm2, xmm2;
+       xorpd xmm3, xmm3;
 
-     asm
-        push ebx;
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, esi;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
 
-        mov ebx, dest;
+           // prefetch data...
+           // prefetch [ecx + edi];
 
-        // for y := 0 to height - 1:
-        mov edx, Height;
-        @@addforyloop:
-            xorpd xmm0, xmm0;
-            xorpd xmm1, xmm1;
-            xorpd xmm2, xmm2;
-            xorpd xmm3, xmm3;
+           // addition:
+           addpd xmm0, [ecx + edi - 128];
+           addpd xmm1, [ecx + edi - 112];
+           addpd xmm2, [ecx + edi - 96];
+           addpd xmm3, [ecx + edi - 80];
+           addpd xmm0, [ecx + edi - 64];
+           addpd xmm1, [ecx + edi - 48];
+           addpd xmm2, [ecx + edi - 32];
+           addpd xmm3, [ecx + edi - 16];
+       jmp @addforxloop
 
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforxloop:
-                add eax, 128;
-                jg @loopEnd;
+       @loopEnd:
 
-                // prefetch data...
-                // prefetch [ecx + eax];
+       sub edi, 128;
 
-                // addition:
-                addpd xmm0, [ecx + eax - 128];
-                addpd xmm1, [ecx + eax - 112];
-                addpd xmm2, [ecx + eax - 96];
-                addpd xmm3, [ecx + eax - 80];
-                addpd xmm0, [ecx + eax - 64];
-                addpd xmm1, [ecx + eax - 48];
-                addpd xmm2, [ecx + eax - 32];
-                addpd xmm3, [ecx + eax - 16];
-            jmp @addforxloop
+       jz @buildRes;
 
-            @loopEnd:
+       @addforxloop2:
+           movapd xmm0, [ecx + edi];
+           addpd xmm7, xmm0;
+       add edi, 16;
+       jnz @addforxloop2;
 
-            sub eax, 128;
+       @buildRes:
 
-            jz @buildRes;
+       // handle last element differently
+       movsd xmm2, [ecx + edi];
+       addsd xmm7, xmm2;
 
-            @addforxloop2:
-                movapd xmm0, [ecx + eax];
-                addpd xmm7, xmm0;
-            add eax, 16;
-            jnz @addforxloop2;
+       // build result
+       addpd xmm0, xmm1;
+       addpd xmm2, xmm3;
+       addpd xmm0, xmm2;
 
-            @buildRes:
+       movhlps xmm1, xmm0;
+       addsd xmm0, xmm1;
 
-            // handle last element differently
-            movsd xmm2, [ecx + eax];
-            addsd xmm7, xmm2;
+       // write result
+       movsd [eax], xmm0;
 
-            // build result
-            addpd xmm0, xmm1;
-            addpd xmm2, xmm3;
-            addpd xmm0, xmm2;
+       // next line:
+       add ecx, srcLineWidth;
+       add eax, edx;
 
-            movhlps xmm1, xmm0;
-            addsd xmm0, xmm1;
+   // loop y end
+   dec ebx;
+   jnz @@addforyloop;
 
-            // write result
-            movsd [ebx], xmm0;
-
-            // next line:
-            add ecx, srcLineWidth;
-            add ebx, destLineWidth;
-
-        // loop y end
-        dec edx;
-        jnz @@addforyloop;
-
-        pop ebx;
-     end;
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 procedure ASMMatrixSumRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     Assert((width and 1) = 1, 'Error width must be odd');
+asm
+   push ebx;
+   push edi;
+   push esi;
 
-     assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= sizeof(double)), 'Dimension error');
+   // iters := -(width - 1)*sizeof(double)
+   mov esi, width;
+   dec esi;
+   imul esi, -8;
+        
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, esi;
 
-     iters := -(width - 1)*sizeof(double);
+   // for y := 0 to height - 1:
+   mov ebx, Height;
+   @@addforyloop:
+       xorpd xmm7, xmm7;
 
-     asm
-        push ebx;
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, esi;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
 
-        mov ebx, dest;
+           // addition:
+           movupd xmm0, [ecx + edi - 128];
+           addpd xmm7, xmm0;
 
-        // for y := 0 to height - 1:
-        mov edx, Height;
-        @@addforyloop:
-            xorpd xmm7, xmm7;
+           movupd xmm1, [ecx + edi - 112];
+           addpd xmm7, xmm1;
 
-            // for x := 0 to w - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforxloop:
-                add eax, 128;
-                jg @loopEnd;
+           movupd xmm2, [ecx + edi - 96];
+           addpd xmm7, xmm2;
 
-                // addition:
-                movupd xmm0, [ecx + eax - 128];
-                addpd xmm7, xmm0;
+           movupd xmm3, [ecx + edi - 80];
+           addpd xmm7, xmm3;
 
-                movupd xmm1, [ecx + eax - 112];
-                addpd xmm7, xmm1;
+           movupd xmm0, [ecx + edi - 64];
+           addpd xmm7, xmm0;
 
-                movupd xmm2, [ecx + eax - 96];
-                addpd xmm7, xmm2;
+           movupd xmm1, [ecx + edi - 48];
+           addpd xmm7, xmm1;
 
-                movupd xmm3, [ecx + eax - 80];
-                addpd xmm7, xmm3;
+           movupd xmm2, [ecx + edi - 32];
+           addpd xmm7, xmm2;
 
-                movupd xmm0, [ecx + eax - 64];
-                addpd xmm7, xmm0;
+           movupd xmm3, [ecx + edi - 16];
+           addpd xmm7, xmm3;
+       jmp @addforxloop
 
-                movupd xmm1, [ecx + eax - 48];
-                addpd xmm7, xmm1;
+       @loopEnd:
 
-                movupd xmm2, [ecx + eax - 32];
-                addpd xmm7, xmm2;
+       sub edi, 128;
 
-                movupd xmm3, [ecx + eax - 16];
-                addpd xmm7, xmm3;
-            jmp @addforxloop
+       jz @buildRes;
 
-            @loopEnd:
+       @addforxloop2:
+           movupd xmm0, [ecx + edi];
+           addpd xmm7, xmm0;
+       add edi, 16;
+       jnz @addforxloop2;
 
-            sub eax, 128;
+       @buildRes:
 
-            jz @buildRes;
+       // handle last element differently
+       movsd xmm2, [ecx + edi];
+       addsd xmm7, xmm2;
 
-            @addforxloop2:
-                movupd xmm0, [ecx + eax];
-                addpd xmm7, xmm0;
-            add eax, 16;
-            jnz @addforxloop2;
+       // build result
+       movhlps xmm1, xmm7;
+       addsd xmm7, xmm1;
 
-            @buildRes:
+       movsd [eax], xmm7;
 
-            // handle last element differently
-            movsd xmm2, [ecx + eax];
-            addsd xmm7, xmm2;
+       // next line:
+       add ecx, srcLineWidth;
+       add eax, edx;
 
-            // build result
-            movhlps xmm1, xmm7;
-            addsd xmm7, xmm1;
+   // loop y end
+   dec ebx;
+   jnz @@addforyloop;
 
-            movsd [ebx], xmm7;
-
-            // next line:
-            add ecx, srcLineWidth;
-            add ebx, destLineWidth;
-
-        // loop y end
-        dec edx;
-        jnz @@addforyloop;
-
-        pop ebx;
-     end;
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 procedure ASMMatrixSumColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
-            (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
-     Assert((width and 1) = 0, 'Error width must be even');
+asm
+   push ebx;
+   push edi;
+   push esi;
 
-     assert((width > 1) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= width*sizeof(double)), 'Dimension error');
+   // init
+   mov edx, srcLineWidth;
+   mov esi, height;
+   imul esi, edx;
+   imul esi, -1;
+   
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, esi;
 
-     iters := -height*srcLineWidth;
+   // for x := 0 to width - 1:
+   mov ebx, Width;
+   sar ebx, 1;
+   @@addforxloop:
+       xorpd xmm0, xmm0;
 
-     asm
-        push ebx;
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       mov edi, esi;
+       @addforyloop:
+           addpd xmm0, [ecx + edi];
+       add edi, edx;
+       jnz @addforyloop;
 
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
-        mov ebx, dest;
+       // build result
+       movapd [eax], xmm0;
 
-        // for x := 0 to width - 1:
-        mov edx, Width;
-        sar edx, 1;
-        @@addforxloop:
-            xorpd xmm0, xmm0;
+       // next columns:
+       add ecx, 16;
+       add eax, 16;
 
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforyloop:
-                addpd xmm0, [ecx + eax];
-            add eax, srcLineWidth;
-            jnz @addforyloop;
+   // loop x end
+   dec ebx;
+   jnz @@addforxloop;
 
-            // build result
-            movapd [ebx], xmm0;
-
-            // next columns:
-            add ecx, 16;
-            add ebx, 16;
-
-        // loop x end
-        dec edx;
-        jnz @@addforxloop;
-
-        pop ebx;
-     end;
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 procedure ASMMatrixSumColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     Assert((width and 1) = 0, 'Error width must be even');
+asm
+   push ebx;
+   push edi;
+   push esi;
 
-     assert((width > 1) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= width*sizeof(double)), 'Dimension error');
+   // init
+   mov edx, srcLineWidth;
+   mov esi, height;
+   imul esi, edx;
+   imul esi, -1;
+   
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, esi;
 
-     iters := -height*srcLineWidth;
+   // for x := 0 to width - 1:
+   mov ebx, Width;
+   sar ebx, 1;
+   @@addforxloop:
+       xorpd xmm7, xmm7;
 
-     asm
-        push ebx;
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       mov edi, esi;
+       @addforyloop:
+           movupd xmm0, [ecx + edi];
+           addpd xmm7, xmm0;
+       add edi, edx;
+       jnz @addforyloop;
 
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
-        mov ebx, dest;
+       // build result
+       movupd [eax], xmm7;
 
-        // for x := 0 to width - 1:
-        mov edx, Width;
-        sar edx, 1;
-        @@addforxloop:
-            xorpd xmm7, xmm7;
+       // next columns:
+       add ecx, 16;
+       add eax, 16;
 
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforyloop:
-                movupd xmm0, [ecx + eax];
-                addpd xmm7, xmm0;
-            add eax, srcLineWidth;
-            jnz @addforyloop;
+   // loop x end
+   dec ebx;
+   jnz @@addforxloop;
 
-            // build result
-            movupd [ebx], xmm7;
-
-            // next columns:
-            add ecx, 16;
-            add ebx, 16;
-
-        // loop x end
-        dec edx;
-        jnz @@addforxloop;
-
-        pop ebx;
-     end;
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 procedure ASMMatrixSumColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     Assert((Cardinal(Src) and $0000000F = 0) and ((srcLineWidth and $0000000F) = 0) and
-            (Cardinal(dest) and $0000000F = 0) and ((destLineWidth and $0000000F) = 0), 'Error non aligned data');
-     Assert((width and 1) = 1, 'Error width must be even');
+asm
+   push ebx;
+   push edi;
+   push esi;
 
-     assert((width > 1) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= width*sizeof(double)), 'Dimension error');
+   // init
+   mov edx, srcLineWidth;
+   mov esi, height;
+   imul esi, edx;
+   imul esi, -1;
+   
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, esi;
 
-     iters := -height*srcLineWidth;
+   // for x := 0 to width - 1:
+   mov ebx, Width;
+   sar ebx, 1;
+   @@addforxloop:
+       xorpd xmm0, xmm0;
 
-     asm
-        push ebx;
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       mov edi, esi;
+       @addforyloop:
+           addpd xmm0, [ecx + edi];
+       add edi, edx;
+       jnz @addforyloop;
 
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
-        mov ebx, dest;
+       // build result
+       movapd [eax], xmm0;
 
-        // for x := 0 to width - 1:
-        mov edx, Width;
-        sar edx, 1;
-        jz @lastColumn;
-        @@addforxloop:
-            xorpd xmm0, xmm0;
+       // next columns:
+       add ecx, 16;
+       add eax, 16;
 
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforyloop:
-                addpd xmm0, [ecx + eax];
-            add eax, srcLineWidth;
-            jnz @addforyloop;
+   // loop x end
+   dec ebx;
+   jnz @@addforxloop;
 
-            // build result
-            movapd [ebx], xmm0;
+   @lastColumn:
+   // handle last column
+   xorpd xmm7, xmm7;
 
-            // next columns:
-            add ecx, 16;
-            add ebx, 16;
+   // for y := 0 to height - 1;
+   // prepare for reverse loop
+   mov edi, esi;
+   @addforyloop3:
+       movsd xmm0, [ecx + edi];
+       addsd xmm7, xmm0;
+   add edi, edx;
+   jnz @addforyloop3;
 
-        // loop x end
-        dec edx;
-        jnz @@addforxloop;
+   // build result
+   movsd [eax], xmm7;
 
-        @lastColumn:
-        // handle last column
-        xorpd xmm7, xmm7;
-
-        // for y := 0 to height - 1;
-        // prepare for reverse loop
-        mov eax, iters;
-        @addforyloop3:
-            movsd xmm0, [ecx + eax];
-            addsd xmm7, xmm0;
-        add eax, srcLineWidth;
-        jnz @addforyloop3;
-
-        // build result
-        movsd [ebx], xmm7;
-
-        pop ebx;
-     end;
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 procedure ASMMatrixSumColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : TASMNativeInt;
-begin
-     Assert((width and 1) = 1, 'Error width must be even');
+asm
+   push ebx;
+   push edi;
+   push esi;
 
-     assert((width > 1) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= width*sizeof(double)), 'Dimension error');
+   // init
+   mov edx, srcLineWidth;
+   mov esi, height;
+   imul esi, edx;
+   imul esi, -1;
+   
+   // helper registers for the mt1, mt2 and dest pointers
+   sub ecx, esi;
 
-     iters := -height*srcLineWidth;
+   // for x := 0 to width - 1:
+   mov ebx, Width;
+   sar ebx, 1;
+   @@addforxloop:
+       xorpd xmm7, xmm7;
 
-     asm
-        push ebx;
+       // for y := 0 to height - 1;
+       // prepare for reverse loop
+       mov edi, esi;
+       @addforyloop:
+           movupd xmm0, [ecx + edi];
+           addpd xmm7, xmm0;
+       add edi, edx;
+       jnz @addforyloop;
 
-        // helper registers for the mt1, mt2 and dest pointers
-        mov ecx, src;
-        sub ecx, iters;
-        mov ebx, dest;
+       // build result
+       movupd [eax], xmm7;
 
-        // for x := 0 to width - 1:
-        mov edx, Width;
-        sar edx, 1;
-        jz @lastColumn;
-        @@addforxloop:
-            xorpd xmm7, xmm7;
+       // next columns:
+       add ecx, 16;
+       add eax, 16;
 
-            // for y := 0 to height - 1;
-            // prepare for reverse loop
-            mov eax, iters;
-            @addforyloop:
-                movupd xmm0, [ecx + eax];
-                addpd xmm7, xmm0;
-            add eax, srcLineWidth;
-            jnz @addforyloop;
+   // loop x end
+   dec ebx;
+   jnz @@addforxloop;
 
-            // build result
-            movupd [ebx], xmm7;
+   @lastColumn:
+   // handle last column
+   xorpd xmm7, xmm7;
 
-            // next columns:
-            add ecx, 16;
-            add ebx, 16;
+   // for y := 0 to height - 1;
+   // prepare for reverse loop
+   mov edi, esi;
+   @addforyloop3:
+       movsd xmm0, [ecx + edi];
+       addsd xmm7, xmm0;
+   add edi, edx;
+   jnz @addforyloop3;
 
-        // loop x end
-        dec edx;
-        jnz @@addforxloop;
+   // build result
+   movsd [eax], xmm7;
 
-        @lastColumn:
-        // handle last column
-        xorpd xmm7, xmm7;
-
-        // for y := 0 to height - 1;
-        // prepare for reverse loop
-        mov eax, iters;
-        @addforyloop3:
-            movsd xmm0, [ecx + eax];
-            addsd xmm7, xmm0;
-        add eax, srcLineWidth;
-        jnz @addforyloop3;
-
-        // build result
-        movsd [ebx], xmm7;
-
-        pop ebx;
-     end;
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 {$ENDIF}

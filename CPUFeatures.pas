@@ -157,6 +157,49 @@ begin
      end;
 end;
 
+// ###########################################
+// #### Local check for AVX support according to
+// from https://software.intel.com/en-us/blogs/2011/04/14/is-avx-enabled
+function isAvxOSSupported : boolean; {$IFDEF FPC}assembler;{$ENDIF}
+asm
+   {$IFDEF x64}
+   push rbx;
+   {$ELSE}
+   push ebx;
+   {$ENDIF}
+   
+   xor eax, eax;
+   cpuid;
+   cmp eax, 1;
+   jb @not_supported;
+
+   mov eax, 1;
+   cpuid;
+
+   and ecx, $018000000; // check 27 bit (OS uses XSAVE/XRSTOR)
+   cmp ecx, $018000000; // and 28 (AVX supported by CPU)
+   jne @not_supported;
+   
+   xor ecx, ecx ; // XFEATURE_ENABLED_MASK/XCR0 register number = 0
+   db $0F, $01, $D0; //xgetbv ; // XFEATURE_ENABLED_MASK register is in edx:eax
+   and eax, $6; //110b
+   cmp eax, $6; //110b ; check the AVX registers restore at context switch
+   jne @not_supported;
+   mov eax, 1
+   jmp @@endProc;
+   
+   @not_supported:
+   xor eax, eax;  // not supported -> return false
+
+   @@endProc:
+
+   {$IFDEF x64}
+   pop rbx;
+   {$ELSE}
+   pop ebx;
+   {$ENDIF}
+end;
+
 function IsAVXPresent : boolean;
 var reg : TRegisters;
 begin
@@ -168,6 +211,15 @@ begin
 
           // check for AVX and check 27 bit (OS uses XSAVE/XRSTOR)
           Result := ((reg.ECX and (1 shl 28)) <> 0) and ((reg.ECX and (1 shl 27)) <> 0);
+
+          if Result then
+          begin
+               try
+                  Result := isAvxOSSupported;
+               except
+                     Result := False;
+               end;
+          end;
      end;
 end;
 
@@ -182,6 +234,15 @@ begin
 
           // check for FMA and check 13 bit
           Result := ((reg.ECX and (1 shl 12)) <> 0) and ((reg.ECX and (1 shl 27)) <> 0);
+
+          if Result then
+          begin
+               try
+                  Result := isAvxOSSupported;
+               except
+                     Result := False;
+               end;
+          end;
      end;
 end;
 

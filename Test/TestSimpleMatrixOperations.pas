@@ -75,6 +75,7 @@ type
     procedure TestMatrixBigASMMinMax;
     procedure TestMultASM;
     procedure TestMultTransposed;
+    procedure TestMultMod16Transposed;
     procedure TestBigASMMult;
     procedure TestBigTiledMult;
     procedure TestBigTiledMult2;
@@ -764,14 +765,19 @@ begin
      dest2a := AllocMem(cMtxHeight*cMtxHeight*sizeof(double));
      dest3a := AllocMem(cMtxHeight*cMtxHeight*sizeof(double));
 
+     startTime1 := MtxGetTime;
+     GenericMtxMult(@dest1[0], cMtxLineWidth2, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2);
+     endTime1 := MtxGetTime;
+     
      startTime5 := MtxGetTime;
      BlockMatrixMultiplication(@dest2[0], cMtxLineWidth2, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, 352);
      endTime5 := MtxGetTime;
 
-     startTime1 := MtxGetTime;
-     GenericMtxMult(@dest1[0], cMtxLineWidth2, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2);
-     endTime1 := MtxGetTime;
-
+     res := CheckMtxIdx(dest1, dest2, idx);
+     if not res then
+        Status(IntToStr(idx));
+     check(res);
+     
      startTime2 := MtxGetTime;
      GenericBlockMatrixMultiplication(@dest2[0], cMtxLineWidth2, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, 352);
      endTime2 := MtxGetTime;
@@ -3298,8 +3304,14 @@ begin
 end;
 
 procedure TASMMatrixOperations.TestMultASMEvenW1OddW2;
-const mt1 : Array[0..15] of double = (0, 1, 2, 4, 3, 4, 5, 5, 6, 7, 8, 6, 7, 8, 9, 10);
-      mt2 : Array[0..15] of double = (-1, 0, 1, 1, 2, 3, 4, 2, 5, 6, 7, 3, 4, 5, 6, 7);
+const mt1 : Array[0..15] of double = (0, 1, 2, 4, 
+                                      3, 4, 5, 5, 
+                                      6, 7, 8, 6, 
+                                      7, 8, 9, 10);
+      mt2 : Array[0..15] of double = (-1, 0, 1, 1, 
+                                       2, 3, 4, 2, 
+                                       5, 6, 7, 3, 
+                                       4, 5, 6, 7);
       mt4 : Array[0..11] of double = (28, 35, 42, 0, 50, 67, 84, 0, 72, 99, 126, 0);
 var dest : Array[0..11] of double;
     dest2 : PDouble;
@@ -3484,6 +3496,55 @@ begin
      FreeMem(blk);
 end;
 
+procedure TASMMatrixOperations.TestMultMod16Transposed;
+const cWH : Array[0..3] of integer = (16, 32, 128, 256);
+var i: Integer;
+    destA1, destA2 : PDouble;
+    destLineWidth1, destLineWidth2, ln1, ln2 : TASMNativeInt;
+    xa, ya : PDouble;
+    mem1, mem2, mem3, mem4 : PByte;
+    start1, start2 : Int64;
+    end1, end2 : Int64;
+    freq : Int64;
+    idx : integer;
+begin
+     freq := mtxFreq;
+     for i := 0 to High(cWH) do
+     begin
+          FillAlignedMtx( cWH[i] div 2, cWH[i] div 2, destA1, mem1, destLineWidth1);
+          FillAlignedMtx( cWH[i] div 2, cWH[i] div 2, destA2, mem4, destLineWidth2);
+          FillAlignedMtx( cWH[i], cWH[i]  div 2, xa, mem2, ln1);
+          FillAlignedMtx( cWH[i], cWH[i]  div 2, ya, mem3, ln2);
+
+          start1 := MtxGetTime;
+          GenericMtxMultTransp(destA1, destLineWidth1, xa, ya, cWH[i], cWH[i]  div 2, cWH[i], cWH[i]  div 2, ln1, ln2);
+          end1 := MtxGetTime;
+          
+          start2 := MtxGetTime;
+          ASMMatrixMultAlignedEvenW1EvenH2TransposedMod16(destA2, destLineWidth2, xa, ya, cWH[i], cWH[i] div 2, cWH[i], cWH[i] div 2, ln1, ln2);
+          end2 := MtxGetTime;
+
+          if not CheckMtxIdx( destA1, destA2, destLineWidth1, destLineWidth2, cWH[i] div 2, cWH[i] div 2, idx) then
+          begin
+               Status('TestMultMod12Transposed failed at ' + intToStr(idx));
+
+               FreeMem(mem1);
+               FreeMem(mem2);
+               FreeMem(mem3);
+               FreeMem(mem4);
+               Check(False);
+          end;
+          
+          Status( Format('MultTransposed (%d x %d) took: %.3f ms, %.3fms', [cWH[i], cWH[i], (end1 - start1)/freq*1000, (end2 - start2)/freq*1000] ));
+          
+          FreeMem(mem1);
+          FreeMem(mem2);
+          FreeMem(mem3);
+          FreeMem(mem4);
+     end;
+
+end;
+
 procedure TASMMatrixOperations.TestMultTransposed;
 var a : TDoubleDynArray;
     b : TDoubleDynArray;
@@ -3538,8 +3599,8 @@ end;
 
 procedure TASMMatrixOperations.TestStrassenMult;
 var x, y : TDoubleDynArray;
+    i : integer;
     dest1, dest2 : TDoubleDynArray;
-    i : Integer;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : Int64;
     startTime3, endTime3 : Int64;

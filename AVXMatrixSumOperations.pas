@@ -27,11 +27,11 @@ interface
 
 uses MatrixConst;
 
-procedure AVXMatrixSumRowAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure AVXMatrixSumRowUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure AVXMatrixSumRowAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixSumRowUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure AVXMatrixSumColumnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-procedure AVXMatrixSumColumnUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure AVXMatrixSumColumnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixSumColumnUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -42,7 +42,6 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 procedure AVXMatrixSumRowAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-begin
 asm
    // prolog
    push ebx;
@@ -54,32 +53,29 @@ asm
    imul edi, -8;
 
    mov ebx, srcLineWidth;
-   mov edx, src;
-   mov ecx, dest;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub edx, edi;
+   sub ecx, edi;
 
    // for y := 0 to height - 1:
-   mov esi, Height;
    @@addforyloop:
        {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;{$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} 
        {$IFDEF FPC}vxorpd ymm1, ymm1, ymm1;{$ELSE}db $C5,$F5,$57,$C9;{$ENDIF} 
 
        // for x := 0 to w - 1;
        // prepare for reverse loop
-       mov eax, edi;
+       mov esi, edi;
        @addforxloop:
-           add eax, 128;
+           add esi, 128;
            jg @loopEnd;
            // prefetch data...
-           // prefetch [edx + eax];
+           // prefetch [ecx + esi];
 
            // addition:
-           {$IFDEF FPC}vaddpd ymm0, ymm0, [edx + eax - 128];{$ELSE}db $C5,$FD,$58,$44,$02,$80;{$ENDIF} 
-           {$IFDEF FPC}vaddpd ymm1, ymm1, [edx + eax - 96];{$ELSE}db $C5,$F5,$58,$4C,$02,$A0;{$ENDIF} 
-           {$IFDEF FPC}vaddpd ymm0, ymm0, [edx + eax - 64];{$ELSE}db $C5,$FD,$58,$44,$02,$C0;{$ENDIF} 
-           {$IFDEF FPC}vaddpd ymm1, ymm1, [edx + eax - 32];{$ELSE}db $C5,$F5,$58,$4C,$02,$E0;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm0, ymm0, [ecx + esi - 128];{$ELSE}db $C5,$FD,$58,$44,$31,$80;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm1, ymm1, [ecx + esi - 96];{$ELSE}db $C5,$F5,$58,$4C,$31,$A0;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm0, ymm0, [ecx + esi - 64];{$ELSE}db $C5,$FD,$58,$44,$31,$C0;{$ENDIF} 
+           {$IFDEF FPC}vaddpd ymm1, ymm1, [ecx + esi - 32];{$ELSE}db $C5,$F5,$58,$4C,$31,$E0;{$ENDIF} 
        jmp @addforxloop
 
        @loopEnd:
@@ -88,23 +84,23 @@ asm
        {$IFDEF FPC}vextractf128 xmm2, ymm0, 1;{$ELSE}db $C4,$E3,$7D,$19,$C2,$01;{$ENDIF} 
        {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$7C,$C2;{$ENDIF} 
 
-       sub eax, 128;
+       sub esi, 128;
 
        jz @buildRes;
 
        @addforxloop2:
-           add eax, 16;
+           add esi, 16;
            jg @@addforxloop2end;
 
-           {$IFDEF FPC}vaddpd xmm0, xmm0, [edx + eax - 16];{$ELSE}db $C5,$F9,$58,$44,$02,$F0;{$ENDIF} 
+           {$IFDEF FPC}vaddpd xmm0, xmm0, [ecx + esi - 16];{$ELSE}db $C5,$F9,$58,$44,$31,$F0;{$ENDIF} 
        jmp @addforxloop2;
 
        @@addforxloop2end:
 
-       sub eax, 16;
+       sub esi, 16;
        jz @buildRes;
 
-       {$IFDEF FPC}vaddsd xmm0, xmm0, [edx + eax];{$ELSE}db $C5,$FB,$58,$04,$02;{$ENDIF} 
+       {$IFDEF FPC}vaddsd xmm0, xmm0, [ecx + esi];{$ELSE}db $C5,$FB,$58,$04,$31;{$ENDIF} 
 
        @buildRes:
 
@@ -112,14 +108,14 @@ asm
        {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$7C,$C0;{$ENDIF} 
 
        // write result
-       {$IFDEF FPC}vmovsd [ecx], xmm0;{$ELSE}db $C5,$FB,$11,$01;{$ENDIF} 
+       {$IFDEF FPC}vmovsd [eax], xmm0;{$ELSE}db $C5,$FB,$11,$00;{$ENDIF} 
 
        // next line:
-       add edx, ebx;
-       add ecx, destLineWidth;
+       add ecx, ebx;
+       add eax, destLineWidth;
 
    // loop y end
-   dec esi;
+   dec Height;
    jnz @@addforyloop;
 
    // epilog
@@ -128,10 +124,8 @@ asm
    pop edi;
    pop ebx;
 end;
-end;
 
 procedure AVXMatrixSumRowUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-begin
 asm
    // prolog
    push ebx;
@@ -142,36 +136,32 @@ asm
    mov edi, width;
    imul edi, -8;
 
-   mov edx, src;
-   mov ecx, dest;
-
    // helper registers for the mt1, mt2 and dest pointers
-   sub edx, edi;
+   sub ecx, edi;
 
    mov ebx, srcLineWidth;
    // for y := 0 to height - 1:
-   mov esi, Height;
    @@addforyloop:
        {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;{$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} 
        {$IFDEF FPC}vxorpd ymm1, ymm1, ymm1;{$ELSE}db $C5,$F5,$57,$C9;{$ENDIF} 
 
        // for x := 0 to w - 1;
        // prepare for reverse loop
-       mov eax, edi;
+       mov esi, edi;
        @addforxloop:
-           add eax, 128;
+           add esi, 128;
            jg @loopEnd;
            // prefetch data...
-           // prefetch [edx + eax];
+           // prefetch [ecx + esi];
 
            // addition:
-           {$IFDEF FPC}vmovupd ymm2, [edx + eax - 128];{$ELSE}db $C5,$FD,$10,$54,$02,$80;{$ENDIF} 
+           {$IFDEF FPC}vmovupd ymm2, [ecx + esi - 128];{$ELSE}db $C5,$FD,$10,$54,$31,$80;{$ENDIF} 
            {$IFDEF FPC}vaddpd ymm0, ymm0, ymm2;{$ELSE}db $C5,$FD,$58,$C2;{$ENDIF} 
-           {$IFDEF FPC}vmovupd ymm2, [edx + eax - 96];{$ELSE}db $C5,$FD,$10,$54,$02,$A0;{$ENDIF} 
+           {$IFDEF FPC}vmovupd ymm2, [ecx + esi - 96];{$ELSE}db $C5,$FD,$10,$54,$31,$A0;{$ENDIF} 
            {$IFDEF FPC}vaddpd ymm1, ymm1, ymm2;{$ELSE}db $C5,$F5,$58,$CA;{$ENDIF} 
-           {$IFDEF FPC}vmovupd ymm2, [edx + eax - 64];{$ELSE}db $C5,$FD,$10,$54,$02,$C0;{$ENDIF} 
+           {$IFDEF FPC}vmovupd ymm2, [ecx + esi - 64];{$ELSE}db $C5,$FD,$10,$54,$31,$C0;{$ENDIF} 
            {$IFDEF FPC}vaddpd ymm0, ymm0, ymm2;{$ELSE}db $C5,$FD,$58,$C2;{$ENDIF} 
-           {$IFDEF FPC}vmovupd ymm2, [edx + eax - 32];{$ELSE}db $C5,$FD,$10,$54,$02,$E0;{$ENDIF} 
+           {$IFDEF FPC}vmovupd ymm2, [ecx + esi - 32];{$ELSE}db $C5,$FD,$10,$54,$31,$E0;{$ENDIF} 
            {$IFDEF FPC}vaddpd ymm1, ymm1, ymm2;{$ELSE}db $C5,$F5,$58,$CA;{$ENDIF} 
        jmp @addforxloop
 
@@ -181,24 +171,24 @@ asm
        {$IFDEF FPC}vextractf128 xmm2, ymm0, 1;{$ELSE}db $C4,$E3,$7D,$19,$C2,$01;{$ENDIF} 
        {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$7C,$C2;{$ENDIF} 
 
-       sub eax, 128;
+       sub esi, 128;
 
        jz @buildRes;
 
        @addforxloop2:
-           add eax, 16;
+           add esi, 16;
            jg @@addforxloop2end;
 
-           {$IFDEF FPC}vmovupd xmm2, [edx + eax - 16];{$ELSE}db $C5,$F9,$10,$54,$02,$F0;{$ENDIF} 
+           {$IFDEF FPC}vmovupd xmm2, [ecx + esi - 16];{$ELSE}db $C5,$F9,$10,$54,$31,$F0;{$ENDIF} 
            {$IFDEF FPC}vaddpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$58,$C2;{$ENDIF} 
        jmp @addforxloop2;
 
        @@addforxloop2end:
 
-       sub eax, 16;
+       sub esi, 16;
        jz @buildRes;
 
-       {$IFDEF FPC}vaddsd xmm0, xmm0, [edx + eax];{$ELSE}db $C5,$FB,$58,$04,$02;{$ENDIF} 
+       {$IFDEF FPC}vaddsd xmm0, xmm0, [ecx + esi];{$ELSE}db $C5,$FB,$58,$04,$31;{$ENDIF} 
 
        @buildRes:
 
@@ -206,14 +196,14 @@ asm
        {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$7C,$C0;{$ENDIF} 
 
        // write result
-       {$IFDEF FPC}vmovsd [ecx], xmm0;{$ELSE}db $C5,$FB,$11,$01;{$ENDIF} 
+       {$IFDEF FPC}vmovsd [eax], xmm0;{$ELSE}db $C5,$FB,$11,$00;{$ENDIF} 
 
        // next line:
-       add edx, ebx;
-       add ecx, destLineWidth;
+       add ecx, ebx;
+       add eax, edx;
 
    // loop y end
-   dec esi;
+   dec Height;
    jnz @@addforyloop;
 
    // epilog
@@ -222,10 +212,8 @@ asm
    pop edi;
    pop ebx;
 end;
-end;
 
 procedure AVXMatrixSumColumnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-begin
 asm
    // prolog
    push ebx;
@@ -233,9 +221,6 @@ asm
    push esi;
 
    // init
-   mov ecx, dest;
-   mov edx, src;
-
    xor edi, edi;
    sub edi, height;
    imul edi, srcLineWidth;
@@ -243,11 +228,10 @@ asm
    mov ebx, srcLineWidth;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub edx, edi;
+   sub ecx, edi;
 
    // for x := 0 to width - 1:
-   mov esi, Width;
-   sub esi, 4;
+   sub Width, 4;
    jl @@addforxloop4end;
 
    // 4 columns at once
@@ -256,49 +240,49 @@ asm
 
        // for y := 0 to height - 1;
        // prepare for reverse loop
-       mov eax, edi;
+       mov esi, edi;
        @addforyloop4:
-           {$IFDEF FPC}vaddpd ymm1, ymm1, [edx + eax];{$ELSE}db $C5,$F5,$58,$0C,$02;{$ENDIF} 
-       add eax, ebx;
+           {$IFDEF FPC}vaddpd ymm1, ymm1, [ecx + esi];{$ELSE}db $C5,$F5,$58,$0C,$31;{$ENDIF} 
+       add esi, ebx;
        jnz @addforyloop4;
 
        // build result
-       {$IFDEF FPC}vmovapd [ecx], ymm1;{$ELSE}db $C5,$FD,$29,$09;{$ENDIF} 
+       {$IFDEF FPC}vmovapd [eax], ymm1;{$ELSE}db $C5,$FD,$29,$08;{$ENDIF} 
 
        // next columns:
+       add eax, 32;
        add ecx, 32;
-       add edx, 32;
 
    // loop x end
-   sub esi, 4;
+   sub Width, 4;
    jge @@addforxloop4;
 
    @@addforxloop4end:
 
-   add esi, 4;
+   add Width, 4;
    jz @@endProc;
 
-   sub esi, 2;
+   sub Width, 2;
    jl @@lastcolumn;
 
    {$IFDEF FPC}vxorpd xmm1, xmm1, xmm1;{$ELSE}db $C5,$F1,$57,$C9;{$ENDIF} 
 
    // for y := 0 to height - 1;
    // prepare for reverse loop
-   mov eax, edi;
+   mov esi, edi;
    @addforyloop2:
-       {$IFDEF FPC}vaddpd xmm1, xmm1, [edx + eax];{$ELSE}db $C5,$F1,$58,$0C,$02;{$ENDIF} 
-   add eax, ebx;
+       {$IFDEF FPC}vaddpd xmm1, xmm1, [ecx + esi];{$ELSE}db $C5,$F1,$58,$0C,$31;{$ENDIF} 
+   add esi, ebx;
    jnz @addforyloop2;
 
    // build result
-   {$IFDEF FPC}vmovapd [ecx], xmm1;{$ELSE}db $C5,$F9,$29,$09;{$ENDIF} 
+   {$IFDEF FPC}vmovapd [eax], xmm1;{$ELSE}db $C5,$F9,$29,$08;{$ENDIF} 
 
    // next columns:
+   add eax, 16;
    add ecx, 16;
-   add edx, 16;
 
-   dec esi;
+   dec width;
    jnz @@endProc;
 
    @@lastcolumn:
@@ -307,14 +291,14 @@ asm
 
    // for y := 0 to height - 1;
    // prepare for reverse loop
-   mov eax, edi;
+   mov esi, edi;
    @addforyloop:
-       {$IFDEF FPC}vaddsd xmm1, xmm1, [edx + eax];{$ELSE}db $C5,$F3,$58,$0C,$02;{$ENDIF} 
-   add eax, ebx;
+       {$IFDEF FPC}vaddsd xmm1, xmm1, [ecx + esi];{$ELSE}db $C5,$F3,$58,$0C,$31;{$ENDIF} 
+   add esi, ebx;
    jnz @addforyloop;
 
    // build result
-   {$IFDEF FPC}vmovsd [ecx], xmm1;{$ELSE}db $C5,$FB,$11,$09;{$ENDIF} 
+   {$IFDEF FPC}vmovsd [eax], xmm1;{$ELSE}db $C5,$FB,$11,$08;{$ENDIF} 
 
    @@endProc:
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
@@ -322,10 +306,8 @@ asm
    pop edi;
    pop ebx;
 end;
-end;
 
 procedure AVXMatrixSumColumnUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-begin
 asm
    // prolog
    push ebx;
@@ -333,21 +315,17 @@ asm
    push esi;
 
    // prepare
-   mov ecx, dest;
-   mov edx, src;
-
    xor edi, edi;
    sub edi, height;
    imul edi, srcLineWidth;
 
    // helper registers for the mt1, mt2 and dest pointers
-   sub edx, edi;
+   sub ecx, edi;
 
    mov ebx, srcLineWidth;
 
    // for x := 0 to width - 1:
-   mov esi, Width;
-   sub esi, 4;
+   sub Width, 4;
    jl @@addforxloop4end;
 
    // 4 columns at once
@@ -356,51 +334,51 @@ asm
 
        // for y := 0 to height - 1;
        // prepare for reverse loop
-       mov eax, edi;
+       mov esi, edi;
        @addforyloop4:
-           {$IFDEF FPC}vmovupd ymm0, [edx + eax];{$ELSE}db $C5,$FD,$10,$04,$02;{$ENDIF} 
+           {$IFDEF FPC}vmovupd ymm0, [ecx + esi];{$ELSE}db $C5,$FD,$10,$04,$31;{$ENDIF} 
            {$IFDEF FPC}vaddpd ymm1, ymm1, ymm0;{$ELSE}db $C5,$F5,$58,$C8;{$ENDIF} 
-       add eax, ebx;
+       add esi, ebx;
        jnz @addforyloop4;
 
        // build result
-       {$IFDEF FPC}vmovupd [ecx], ymm1;{$ELSE}db $C5,$FD,$11,$09;{$ENDIF} 
+       {$IFDEF FPC}vmovupd [eax], ymm1;{$ELSE}db $C5,$FD,$11,$08;{$ENDIF} 
 
        // next columns:
+       add eax, 32;
        add ecx, 32;
-       add edx, 32;
 
    // loop x end
-   sub esi, 4;
+   sub Width, 4;
    jge @@addforxloop4;
 
    @@addforxloop4end:
 
-   add esi, 4;
+   add Width, 4;
    jz @@endProc;
 
-   sub esi, 2;
+   sub Width, 2;
    jl @@lastcolumn;
 
    {$IFDEF FPC}vxorpd xmm1, xmm1, xmm1;{$ELSE}db $C5,$F1,$57,$C9;{$ENDIF} 
 
    // for y := 0 to height - 1;
    // prepare for reverse loop
-   mov eax, edi;
+   mov esi, edi;
    @addforyloop2:
-       {$IFDEF FPC}vmovupd xmm0, [edx + eax];{$ELSE}db $C5,$F9,$10,$04,$02;{$ENDIF} 
-       {$IFDEF FPC}vaddpd xmm1, xmm1, [edx + eax];{$ELSE}db $C5,$F1,$58,$0C,$02;{$ENDIF} 
-   add eax, ebx;
+       {$IFDEF FPC}vmovupd xmm0, [ecx + esi];{$ELSE}db $C5,$F9,$10,$04,$31;{$ENDIF} 
+       {$IFDEF FPC}vaddpd xmm1, xmm1, [ecx + esi];{$ELSE}db $C5,$F1,$58,$0C,$31;{$ENDIF} 
+   add esi, ebx;
    jnz @addforyloop2;
 
    // build result
-   {$IFDEF FPC}vmovupd [ecx], xmm1;{$ELSE}db $C5,$F9,$11,$09;{$ENDIF} 
+   {$IFDEF FPC}vmovupd [eax], xmm1;{$ELSE}db $C5,$F9,$11,$08;{$ENDIF} 
 
    // next columns:
+   add eax, 16;
    add ecx, 16;
-   add edx, 16;
 
-   dec esi;
+   dec Width;
    jnz @@endProc;
 
    @@lastcolumn:
@@ -409,14 +387,14 @@ asm
 
    // for y := 0 to height - 1;
    // prepare for reverse loop
-   mov eax, edi;
+   mov esi, edi;
    @addforyloop:
-       {$IFDEF FPC}vaddsd xmm1, xmm1, [edx + eax];{$ELSE}db $C5,$F3,$58,$0C,$02;{$ENDIF} 
-   add eax, ebx;
+       {$IFDEF FPC}vaddsd xmm1, xmm1, [ecx + esi];{$ELSE}db $C5,$F3,$58,$0C,$31;{$ENDIF} 
+   add esi, ebx;
    jnz @addforyloop;
 
    // build result
-   {$IFDEF FPC}vmovsd [ecx], xmm1;{$ELSE}db $C5,$FB,$11,$09;{$ENDIF} 
+   {$IFDEF FPC}vmovsd [eax], xmm1;{$ELSE}db $C5,$FB,$11,$08;{$ENDIF} 
 
    @@endProc:
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
@@ -424,7 +402,6 @@ asm
    pop esi;
    pop edi;
    pop ebx;
-end;
 end;
 
 {$ENDIF}

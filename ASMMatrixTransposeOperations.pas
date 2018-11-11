@@ -27,19 +27,19 @@ interface
 
 uses MatrixConst;
 
-procedure ASMMatrixTransposeAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-procedure ASMMatrixTransposeUnAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixTransposeUnAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixTransposeAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-procedure ASMMatrixTransposeUnAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixTransposeUnAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixTransposeAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-procedure ASMMatrixTransposeUnAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixTransposeUnAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixTransposeAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-procedure ASMMatrixTransposeUnAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTransposeAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixTransposeUnAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixTransposeInplace(mt : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt);
+procedure ASMMatrixTransposeInplace(mt : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -51,1584 +51,1487 @@ implementation
 
 procedure ASMMatrixTransposeAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iters : TASMNativeInt;
-    destLineWidth2 : TASMNativeInt;
-    y : TASMNativeInt;
-begin
-     Assert((Cardinal(dest) and $0000000F = 0) and (Cardinal(mt) and $0000000F = 0), 'Error non aligned data');
-     assert((width > 1) and (height > 1) and (LineWidth >= width*sizeof(double)), 'Dimension error');
-     assert(((width and 1) = 0) and ((height and 1) = 0), 'Error width and height must be even');
+asm
+   push esi;
+   push edi;
+   push ebx;
 
-     destLineWidth2 := 2*destLineWidth;
-     iters := -width*sizeof(double);
-     y := height;
-     asm
-        push esi;
-        push edi;
-        push ebx;
+   // init
+   // iters := -width*sizeof(double); 
+   mov esi, width;
+   imul esi, -8;
+   mov iters, esi;
 
-        mov edx, destLineWidth2;
-        mov ebx, destLineWidth;
+   sub ecx, esi;
 
-        @foryloop:
-            mov ecx, dest;
+   @foryloop:
+       push eax;
 
-            mov esi, mt;
-            mov edi, esi;
-            sub esi, iters;
-            add edi, LineWidth;
-            sub edi, iters;
+       mov edi, ecx;
+       add edi, LineWidth;
 
-            // unrolled loop
-            mov eax, iters;
-            @forxloop:
-                add eax, 128;
-                jg @loopend;
+       // unrolled loop
+       mov esi, iters;
+       @forxloop:
+           add esi, 128;
+           jg @loopend;
 
-                // prefetch [esi + eax];
-                // prefetch [edi + eax];
+           // prefetch [ecx + esi];
+           // prefetch [edi + esi];
 
-                movapd xmm0, [esi + eax - 128];
-                movapd xmm1, [edi + eax - 128];
+           movapd xmm0, [ecx + esi - 128];
+           movapd xmm1, [edi + esi - 128];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 112];
-                movapd xmm1, [edi + eax - 112];
+           movapd xmm0, [ecx + esi - 112];
+           movapd xmm1, [edi + esi - 112];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 96];
-                movapd xmm1, [edi + eax - 96];
+           movapd xmm0, [ecx + esi - 96];
+           movapd xmm1, [edi + esi - 96];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 80];
-                movapd xmm1, [edi + eax - 80];
+           movapd xmm0, [ecx + esi - 80];
+           movapd xmm1, [edi + esi - 80];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 64];
-                movapd xmm1, [edi + eax - 64];
+           movapd xmm0, [ecx + esi - 64];
+           movapd xmm1, [edi + esi - 64];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 48];
-                movapd xmm1, [edi + eax - 48];
+           movapd xmm0, [ecx + esi - 48];
+           movapd xmm1, [edi + esi - 48];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 32];
-                movapd xmm1, [edi + eax - 32];
+           movapd xmm0, [ecx + esi - 32];
+           movapd xmm1, [edi + esi - 32];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 16];
-                movapd xmm1, [edi + eax - 16];
+           movapd xmm0, [ecx + esi - 16];
+           movapd xmm1, [edi + esi - 16];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-            jmp @forxloop;
+       jmp @forxloop;
 
-            @loopend:
+       @loopend:
 
-            sub eax, 128;
+       sub esi, 128;
 
-            jz @nextLine;
+       jz @nextLine;
 
-            @forxloop2:
-                movapd xmm0, [esi + eax];
-                movapd xmm1, [edi + eax];
+       @forxloop2:
+           movapd xmm0, [ecx + esi];
+           movapd xmm1, [edi + esi];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, destLineWidth2;
-            add eax, 16;
-            jnz @forxloop2;
+           lea eax, [eax + 2*edx];
+       add esi, 16;
+       jnz @forxloop2;
 
-            @nextLine:
+       @nextLine:
 
-            // increment pointers
-            mov eax, dest;
-            add eax, 16;
-            mov dest, eax;
+       // increment pointers
+       pop eax;
+       add eax, 16;
 
-            mov eax, mt;
-            add eax, LineWidth;
-            add eax, LineWidth;
-            mov mt, eax;
+       mov esi, LineWidth;
+       lea ecx, [ecx + 2*esi];
 
-            sub y, 2;
-        jnz @foryloop;
+   sub height, 2;
+   jnz @foryloop;
 
-        pop ebx;
-        pop edi;
-        pop esi;
-     end;
+   pop ebx;
+   pop edi;
+   pop esi;
 end;
 
 procedure ASMMatrixTransposeUnAlignedEvenWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iters : TASMNativeInt;
-    destLineWidth2 : TASMNativeInt;
-    y : TASMNativeInt;
-begin
-     assert((width > 1) and (height > 1) and (LineWidth >= width*sizeof(double)), 'Dimension error');
-     assert(((width and 1) = 0) and ((height and 1) = 0), 'Error width and height must be even');
+asm
+   push esi;
+   push edi;
+   push ebx;
 
-     destLineWidth2 := 2*destLineWidth;
-     iters := -width*sizeof(double);
-     y := height;
-     asm
-        push esi;
-        push edi;
-        push ebx;
+   // init
+   // iters := -width*sizeof(double); 
+   mov esi, width;
+   imul esi, -8;
+   mov iters, esi;
 
-        mov edx, destLineWidth2;
-        mov ebx, destLineWidth;
+   sub ecx, esi;
 
-        @foryloop:
-            mov ecx, dest;
+   @foryloop:
+       push eax;
 
-            mov esi, mt;
-            mov edi, esi;
-            sub esi, iters;
-            add edi, LineWidth;
-            sub edi, iters;
+       mov edi, ecx;
+       add edi, LineWidth;
 
-            // unrolled loop
-            mov eax, iters;
-            @forxloop:
-                add eax, 128;
-                jg @loopend;
+       // unrolled loop
+       mov esi, iters;
+       @forxloop:
+           add esi, 128;
+           jg @loopend;
 
-                movupd xmm0, [esi + eax - 128];
-                movupd xmm1, [edi + eax - 128];
+           // prefetch [ecx + esi];
+           // prefetch [edi + esi];
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movupd xmm0, [ecx + esi - 128];
+           movupd xmm1, [edi + esi - 128];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                add ecx, edx;
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm0, [esi + eax - 112];
-                movupd xmm1, [edi + eax - 112];
+           lea eax, [eax + 2*edx];
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movupd xmm0, [ecx + esi - 112];
+           movupd xmm1, [edi + esi - 112];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                add ecx, edx;
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm0, [esi + eax - 96];
-                movupd xmm1, [edi + eax - 96];
+           lea eax, [eax + 2*edx];
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movupd xmm0, [ecx + esi - 96];
+           movupd xmm1, [edi + esi - 96];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                add ecx, edx;
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm0, [esi + eax - 80];
-                movupd xmm1, [edi + eax - 80];
+           lea eax, [eax + 2*edx];
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movupd xmm0, [ecx + esi - 80];
+           movupd xmm1, [edi + esi - 80];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                add ecx, edx;
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm0, [esi + eax - 64];
-                movupd xmm1, [edi + eax - 64];
+           lea eax, [eax + 2*edx];
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movupd xmm0, [ecx + esi - 64];
+           movupd xmm1, [edi + esi - 64];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                add ecx, edx;
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm0, [esi + eax - 48];
-                movupd xmm1, [edi + eax - 48];
+           lea eax, [eax + 2*edx];
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movupd xmm0, [ecx + esi - 48];
+           movupd xmm1, [edi + esi - 48];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                add ecx, edx;
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm0, [esi + eax - 32];
-                movupd xmm1, [edi + eax - 32];
+           lea eax, [eax + 2*edx];
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movupd xmm0, [ecx + esi - 32];
+           movupd xmm1, [edi + esi - 32];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                add ecx, edx;
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm0, [esi + eax - 16];
-                movupd xmm1, [edi + eax - 16];
+           lea eax, [eax + 2*edx];
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movupd xmm0, [ecx + esi - 16];
+           movupd xmm1, [edi + esi - 16];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                add ecx, edx;
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-            jmp @forxloop;
+           lea eax, [eax + 2*edx];
 
-            @loopend:
+       jmp @forxloop;
 
-            sub eax, 128;
+       @loopend:
 
-            jz @nextLine;
+       sub esi, 128;
 
-            @forxloop2:
-                movupd xmm0, [esi + eax];
-                movupd xmm1, [edi + eax];
+       jz @nextLine;
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+       @forxloop2:
+           movupd xmm0, [ecx + esi];
+           movupd xmm1, [edi + esi];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                add ecx, destLineWidth2;
-            add eax, 16;
-            jnz @forxloop2;
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-            @nextLine:
+           lea eax, [eax + 2*edx];
+       add esi, 16;
+       jnz @forxloop2;
 
-            // increment pointers
-            mov eax, dest;
-            add eax, 16;
-            mov dest, eax;
+       @nextLine:
 
-            mov eax, mt;
-            add eax, LineWidth;
-            add eax, LineWidth;
-            mov mt, eax;
+       // increment pointers
+       pop eax;
+       add eax, 16;
 
-            sub y, 2;
-        jnz @foryloop;
+       mov esi, LineWidth;
+       lea ecx, [ecx + 2*esi];
 
-        pop ebx;
-        pop edi;
-        pop esi;
-     end;
+   sub height, 2;
+   jnz @foryloop;
+
+   pop ebx;
+   pop edi;
+   pop esi;
 end;
 
 procedure ASMMatrixTransposeAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iters : TASMNativeInt;
-    destLineWidth2 : TASMNativeInt;
-    y : TASMNativeInt;
-begin
-     Assert((Cardinal(dest) and $0000000F = 0) and (Cardinal(mt) and $0000000F = 0), 'Error non aligned data');
-     assert((width > 1) and (height > 1) and (LineWidth >= width*sizeof(double)), 'Dimension error');
-     assert(((width and 1) = 1) and ((height and 1) = 0), 'Error width and height must be even');
+asm
+   push esi;
+   push edi;
+   push ebx;
 
-     destLineWidth2 := 2*destLineWidth;
-     iters := -(width - 1)*sizeof(double);
-     y := height;
-     asm
-        push esi;
-        push edi;
-        push ebx;
+   // init
+   // iters := -width*sizeof(double); 
+   mov esi, width;
+   dec esi;
+   imul esi, -8;
+   mov iters, esi;
 
-        mov edx, destLineWidth2;
-        mov ebx, destLineWidth;
+   sub ecx, esi;
 
-        @foryloop:
-            mov ecx, dest;
+   @foryloop:
+       push eax;
 
-            mov esi, mt;
-            mov edi, esi;
-            sub esi, iters;
-            add edi, LineWidth;
-            sub edi, iters;
+       mov edi, ecx;
+       add edi, LineWidth;
 
-            // unrolled loop
-            mov eax, iters;
-            @forxloop:
-                add eax, 128;
-                jg @loopend;
+       // unrolled loop
+       mov esi, iters;
+       @forxloop:
+           add esi, 128;
+           jg @loopend;
 
-                // prefetch [esi + eax];
-                // prefetch [edi + eax];
+           // prefetch [ecx + esi];
+           // prefetch [edi + esi];
 
-                movapd xmm0, [esi + eax - 128];
-                movapd xmm1, [edi + eax - 128];
+           movapd xmm0, [ecx + esi - 128];
+           movapd xmm1, [edi + esi - 128];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 112];
-                movapd xmm1, [edi + eax - 112];
+           movapd xmm0, [ecx + esi - 112];
+           movapd xmm1, [edi + esi - 112];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 96];
-                movapd xmm1, [edi + eax - 96];
+           movapd xmm0, [ecx + esi - 96];
+           movapd xmm1, [edi + esi - 96];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 80];
-                movapd xmm1, [edi + eax - 80];
+           movapd xmm0, [ecx + esi - 80];
+           movapd xmm1, [edi + esi - 80];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 64];
-                movapd xmm1, [edi + eax - 64];
+           movapd xmm0, [ecx + esi - 64];
+           movapd xmm1, [edi + esi - 64];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 48];
-                movapd xmm1, [edi + eax - 48];
+           movapd xmm0, [ecx + esi - 48];
+           movapd xmm1, [edi + esi - 48];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 32];
-                movapd xmm1, [edi + eax - 32];
+           movapd xmm0, [ecx + esi - 32];
+           movapd xmm1, [edi + esi - 32];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 16];
-                movapd xmm1, [edi + eax - 16];
+           movapd xmm0, [ecx + esi - 16];
+           movapd xmm1, [edi + esi - 16];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-            jmp @forxloop;
+       jmp @forxloop;
 
-            @loopend:
+       @loopend:
 
-            sub eax, 128;
+       sub esi, 128;
 
-            jz @nextLine;
+       jz @nextLine;
 
-            @forxloop2:
-                movapd xmm0, [esi + eax];
-                movapd xmm1, [edi + eax];
+       @forxloop2:
+           movapd xmm0, [ecx + esi];
+           movapd xmm1, [edi + esi];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, destLineWidth2;
-            add eax, 16;
-            jnz @forxloop2;
+           lea eax, [eax + 2*edx];
+       add esi, 16;
+       jnz @forxloop2;
 
-            @nextLine:
+       @nextLine:
 
-            // handle last element differently
-            movsd xmm0, [esi + eax];
-            movsd xmm1, [edi + eax];
+       // handle last element differently
+       movsd xmm0, [ecx + esi];
+       movsd xmm1, [edi + esi];
 
-            movlhps xmm0, xmm1;
-            movapd [ecx], xmm0;
+       movlhps xmm0, xmm1;
+       movapd [eax], xmm0;
 
-            // increment pointers
-            mov eax, dest;
-            add eax, 16;
-            mov dest, eax;
+       // increment pointers
+       pop eax;
+       mov esi, LineWidth;
+       
+       add eax, 16;
+       lea ecx, [ecx + 2*esi];
 
-            mov eax, mt;
-            add eax, LineWidth;
-            add eax, LineWidth;
-            mov mt, eax;
+   sub height, 2;
+   jnz @foryloop;
 
-            sub y, 2;
-        jnz @foryloop;
-
-        pop ebx;
-        pop edi;
-        pop esi;
-     end;
+   pop ebx;
+   pop edi;
+   pop esi;
 end;
 
 procedure ASMMatrixTransposeUnAlignedOddWEvenH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iters : TASMNativeInt;
-    destLineWidth2 : TASMNativeInt;
-    y : TASMNativeInt;
-begin
-     assert((width > 1) and (height > 1) and (LineWidth >= width*sizeof(double)), 'Dimension error');
-     assert(((width and 1) = 1) and ((height and 1) = 0), 'Error width and height must be even');
+asm
+   push esi;
+   push edi;
+   push ebx;
 
-     destLineWidth2 := 2*destLineWidth;
-     iters := -(width - 1)*sizeof(double);
-     y := height;
-     asm
-        push esi;
-        push edi;
-        push ebx;
+   // init
+   // iters := -width*sizeof(double); 
+   mov esi, width;
+   dec esi;
+   imul esi, -8;
+   mov iters, esi;
 
-        mov edx, destLineWidth2;
-        mov ebx, destLineWidth;
-        
-        @foryloop:
-            mov ecx, dest;
+   sub ecx, esi;
 
-            mov esi, mt;
-            mov edi, esi;
-            sub esi, iters;
-            add edi, LineWidth;
-            sub edi, iters;
+   @foryloop:
+       push eax;
 
-            // unrolled loop
-            mov eax, iters;
-            @forxloop:
-                add eax, 128;
-                jg @loopend;
+       mov edi, ecx;
+       add edi, LineWidth;
 
-                movupd xmm0, [esi + eax - 128];
-                movupd xmm1, [edi + eax - 128];
+       // unrolled loop
+       mov esi, iters;
+       @forxloop:
+           add esi, 128;
+           jg @loopend;
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           // prefetch [ecx + esi];
+           // prefetch [edi + esi];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movupd xmm0, [ecx + esi - 128];
+           movupd xmm1, [edi + esi - 128];
 
-                add ecx, edx;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movupd xmm0, [esi + eax - 112];
-                movupd xmm1, [edi + eax - 112];
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           lea eax, [eax + 2*edx];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movupd xmm0, [ecx + esi - 112];
+           movupd xmm1, [edi + esi - 112];
 
-                add ecx, edx;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movupd xmm0, [esi + eax - 96];
-                movupd xmm1, [edi + eax - 96];
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           lea eax, [eax + 2*edx];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movupd xmm0, [ecx + esi - 96];
+           movupd xmm1, [edi + esi - 96];
 
-                add ecx, edx;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movupd xmm0, [esi + eax - 80];
-                movupd xmm1, [edi + eax - 80];
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           lea eax, [eax + 2*edx];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movupd xmm0, [ecx + esi - 80];
+           movupd xmm1, [edi + esi - 80];
 
-                add ecx, edx;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movupd xmm0, [esi + eax - 64];
-                movupd xmm1, [edi + eax - 64];
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           lea eax, [eax + 2*edx];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movupd xmm0, [ecx + esi - 64];
+           movupd xmm1, [edi + esi - 64];
 
-                add ecx, edx;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movupd xmm0, [esi + eax - 48];
-                movupd xmm1, [edi + eax - 48];
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           lea eax, [eax + 2*edx];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movupd xmm0, [ecx + esi - 48];
+           movupd xmm1, [edi + esi - 48];
 
-                add ecx, edx;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movupd xmm0, [esi + eax - 32];
-                movupd xmm1, [edi + eax - 32];
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           lea eax, [eax + 2*edx];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movupd xmm0, [ecx + esi - 32];
+           movupd xmm1, [edi + esi - 32];
 
-                add ecx, edx;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movupd xmm0, [esi + eax - 16];
-                movupd xmm1, [edi + eax - 16];
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           lea eax, [eax + 2*edx];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movupd xmm0, [ecx + esi - 16];
+           movupd xmm1, [edi + esi - 16];
 
-                add ecx, edx;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-            jmp @forxloop;
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-            @loopend:
+           lea eax, [eax + 2*edx];
 
-            sub eax, 128;
+       jmp @forxloop;
 
-            jz @nextLine;
+       @loopend:
 
-            @forxloop2:
-                movupd xmm0, [esi + eax];
-                movupd xmm1, [edi + eax];
+       sub esi, 128;
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+       jz @nextLine;
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+       @forxloop2:
+           movupd xmm0, [ecx + esi];
+           movupd xmm1, [edi + esi];
 
-                add ecx, destLineWidth2;
-            add eax, 16;
-            jnz @forxloop2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-            @nextLine:
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-            // handle last element differently
-            movsd xmm0, [esi + eax];
-            movsd xmm1, [edi + eax];
+           lea eax, [eax + 2*edx];
+       add esi, 16;
+       jnz @forxloop2;
 
-            movlhps xmm0, xmm1;
-            movupd [ecx], xmm0;
+       @nextLine:
 
-            // increment pointers
-            mov eax, dest;
-            add eax, 16;
-            mov dest, eax;
+       // handle last element differently
+       movsd xmm0, [ecx + esi];
+       movsd xmm1, [edi + esi];
 
-            mov eax, mt;
-            add eax, LineWidth;
-            add eax, LineWidth;
-            mov mt, eax;
+       movlhps xmm0, xmm1;
+       movupd [eax], xmm0;
 
-            sub y, 2;
-        jnz @foryloop;
+       // increment pointers
+       pop eax;
+       mov esi, LineWidth;
+       
+       add eax, 16;
+       lea ecx, [ecx + 2*esi];
 
-        pop ebx;
-        pop edi;
-        pop esi;
-     end;
+   sub height, 2;
+   jnz @foryloop;
+
+   pop ebx;
+   pop edi;
+   pop esi;
 end;
 
 procedure ASMMatrixTransposeAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iters : TASMNativeInt;
-    destLineWidth2 : TASMNativeInt;
-    y : TASMNativeInt;
-begin
-     Assert((Cardinal(dest) and $0000000F = 0) and (Cardinal(mt) and $0000000F = 0), 'Error non aligned data');
-     assert((width > 1) and (height > 1) and (LineWidth >= width*sizeof(double)), 'Dimension error');
-     assert(((width and 1) = 0) and ((height and 1) = 1), 'Error width and height must be even');
+asm
+   push esi;
+   push edi;
+   push ebx;
 
-     destLineWidth2 := 2*destLineWidth;
-     iters := -(width)*sizeof(double);
-     y := height - 1;
-     asm
-        push esi;
-        push edi;
-        push ebx;
+   // init
+   // iters := -width*sizeof(double); 
+   mov esi, width;
+   imul esi, -8;
+   mov iters, esi;
 
-        mov edx, destLineWidth2;
-        mov ebx, destLineWidth;
+   sub ecx, esi;
+   sub height, 1;
 
-        @foryloop:
-            mov ecx, dest;
+   @foryloop:
+       push eax;
 
-            mov esi, mt;
-            mov edi, esi;
-            sub esi, iters;
-            add edi, LineWidth;
-            sub edi, iters;
+       mov edi, ecx;
+       add edi, LineWidth;
 
-            // unrolled loop
-            mov eax, iters;
-            @forxloop:
-                add eax, 128;
-                jg @loopend;
+       // unrolled loop
+       mov esi, iters;
+       @forxloop:
+           add esi, 128;
+           jg @loopend;
 
-                // prefetch [esi + eax];
-                // prefetch [edi + eax];
+           // prefetch [ecx + esi];
+           // prefetch [edi + esi];
 
-                movapd xmm0, [esi + eax - 128];
-                movapd xmm1, [edi + eax - 128];
+           movapd xmm0, [ecx + esi - 128];
+           movapd xmm1, [edi + esi - 128];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 112];
-                movapd xmm1, [edi + eax - 112];
+           movapd xmm0, [ecx + esi - 112];
+           movapd xmm1, [edi + esi - 112];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 96];
-                movapd xmm1, [edi + eax - 96];
+           movapd xmm0, [ecx + esi - 96];
+           movapd xmm1, [edi + esi - 96];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 80];
-                movapd xmm1, [edi + eax - 80];
+           movapd xmm0, [ecx + esi - 80];
+           movapd xmm1, [edi + esi - 80];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 64];
-                movapd xmm1, [edi + eax - 64];
+           movapd xmm0, [ecx + esi - 64];
+           movapd xmm1, [edi + esi - 64];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 48];
-                movapd xmm1, [edi + eax - 48];
+           movapd xmm0, [ecx + esi - 48];
+           movapd xmm1, [edi + esi - 48];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 32];
-                movapd xmm1, [edi + eax - 32];
+           movapd xmm0, [ecx + esi - 32];
+           movapd xmm1, [edi + esi - 32];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 16];
-                movapd xmm1, [edi + eax - 16];
+           movapd xmm0, [ecx + esi - 16];
+           movapd xmm1, [edi + esi - 16];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-            jmp @forxloop;
+       jmp @forxloop;
 
-            @loopend:
+       @loopend:
 
-            sub eax, 128;
+       sub esi, 128;
 
-            jz @nextLine;
+       jz @nextLine;
 
-            @forxloop2:
-                movapd xmm0, [esi + eax];
-                movapd xmm1, [edi + eax];
+       @forxloop2:
+           movapd xmm0, [ecx + esi];
+           movapd xmm1, [edi + esi];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, destLineWidth2;
-            add eax, 16;
-            jnz @forxloop2;
+           lea eax, [eax + 2*edx];
+       add esi, 16;
+       jnz @forxloop2;
 
-            @nextLine:
+       @nextLine:
 
-            // increment pointers
-            mov eax, dest;
-            add eax, 16;
-            mov dest, eax;
+       // increment pointers
+       pop eax;
+       add eax, 16;
 
-            mov eax, mt;
-            add eax, LineWidth;
-            add eax, LineWidth;
-            mov mt, eax;
+       mov esi, LineWidth;
+       lea ecx, [ecx + 2*esi];
 
-            sub y, 2;
-        jnz @foryloop;
+   sub height, 2;
+   jnz @foryloop;
 
-        // handle last line differently
-        mov ecx, dest;
+   // handle last line differently
+   mov esi, iters;
+   @forxloop3:
+       movapd xmm0, [ecx + esi];
 
-        mov esi, mt;
-        sub esi, iters;
+       movhlps xmm1, xmm0;
+       movsd [eax], xmm0;
+       movsd [eax + edx], xmm1;
 
-        mov eax, iters;
-        @forxloop3:
-            movapd xmm0, [esi + eax];
+       lea eax, [eax + 2*edx];
+   add esi, 16;
+   jnz @forxloop3;
 
-            movhlps xmm1, xmm0;
-            movsd [ecx], xmm0;
-            movsd [ecx + ebx], xmm1;
-
-            add ecx, edx;
-        add eax, 16;
-        jnz @forxloop3;
-
-        pop ebx;
-        pop edi;
-        pop esi;
-     end;
+   pop ebx;
+   pop edi;
+   pop esi;
 end;
 
 procedure ASMMatrixTransposeUnAlignedEvenWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iters : TASMNativeInt;
-    destLineWidth2 : TASMNativeInt;
-    y : TASMNativeInt;
-begin
-     assert((width > 1) and (height > 1) and (LineWidth >= width*sizeof(double)), 'Dimension error');
-     assert(((width and 1) = 0) and ((height and 1) = 1), 'Error width and height must be even');
+asm
+   push esi;
+   push edi;
+   push ebx;
 
-     destLineWidth2 := 2*destLineWidth;
-     iters := -(width)*sizeof(double);
-     y := height - 1;
-     asm
-        push esi;
-        push edi;
-        push ebx;
+   // init
+   // iters := -width*sizeof(double); 
+   mov esi, width;
+   imul esi, -8;
+   mov iters, esi;
 
-        mov edx, destLineWidth2;
-        mov ebx, destLineWidth;
+   sub ecx, esi;
+   sub Height, 1;
 
-        @foryloop:
-            mov ecx, dest;
+   @foryloop:
+       push eax;
 
-            mov esi, mt;
-            mov edi, esi;
-            sub esi, iters;
-            add edi, LineWidth;
-            sub edi, iters;
+       mov edi, ecx;
+       add edi, LineWidth;
 
-            // unrolled loop
-            mov eax, iters;
-            @forxloop:
-                add eax, 128;
-                jg @loopend;
+       // unrolled loop
+       mov esi, iters;
+       @forxloop:
+           add esi, 128;
+           jg @loopend;
 
-                movupd xmm0, [esi + eax - 128];
-                movupd xmm1, [edi + eax - 128];
+           // prefetch [ecx + esi];
+           // prefetch [edi + esi];
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movupd xmm0, [ecx + esi - 128];
+           movupd xmm1, [edi + esi - 128];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                add ecx, edx;
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm0, [esi + eax - 112];
-                movupd xmm1, [edi + eax - 112];
+           lea eax, [eax + 2*edx];
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movupd xmm0, [ecx + esi - 112];
+           movupd xmm1, [edi + esi - 112];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                add ecx, edx;
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm0, [esi + eax - 96];
-                movupd xmm1, [edi + eax - 96];
+           lea eax, [eax + 2*edx];
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movupd xmm0, [ecx + esi - 96];
+           movupd xmm1, [edi + esi - 96];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                add ecx, edx;
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm0, [esi + eax - 80];
-                movupd xmm1, [edi + eax - 80];
+           lea eax, [eax + 2*edx];
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movupd xmm0, [ecx + esi - 80];
+           movupd xmm1, [edi + esi - 80];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                add ecx, edx;
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm0, [esi + eax - 64];
-                movupd xmm1, [edi + eax - 64];
+           lea eax, [eax + 2*edx];
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movupd xmm0, [ecx + esi - 64];
+           movupd xmm1, [edi + esi - 64];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                add ecx, edx;
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm0, [esi + eax - 48];
-                movupd xmm1, [edi + eax - 48];
+           lea eax, [eax + 2*edx];
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movupd xmm0, [ecx + esi - 48];
+           movupd xmm1, [edi + esi - 48];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                add ecx, edx;
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm0, [esi + eax - 32];
-                movupd xmm1, [edi + eax - 32];
+           lea eax, [eax + 2*edx];
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movupd xmm0, [ecx + esi - 32];
+           movupd xmm1, [edi + esi - 32];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                add ecx, edx;
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm0, [esi + eax - 16];
-                movupd xmm1, [edi + eax - 16];
+           lea eax, [eax + 2*edx];
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movupd xmm0, [ecx + esi - 16];
+           movupd xmm1, [edi + esi - 16];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                add ecx, edx;
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-            jmp @forxloop;
+           lea eax, [eax + 2*edx];
 
-            @loopend:
+       jmp @forxloop;
 
-            sub eax, 128;
+       @loopend:
 
-            jz @nextLine;
+       sub esi, 128;
 
-            @forxloop2:
-                movupd xmm0, [esi + eax];
-                movupd xmm1, [edi + eax];
+       jz @nextLine;
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+       @forxloop2:
+           movupd xmm0, [ecx + esi];
+           movupd xmm1, [edi + esi];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                add ecx, destLineWidth2;
-            add eax, 16;
-            jnz @forxloop2;
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-            @nextLine:
+           lea eax, [eax + 2*edx];
+       add esi, 16;
+       jnz @forxloop2;
 
-            // increment pointers
-            mov eax, dest;
-            add eax, 16;
-            mov dest, eax;
+       @nextLine:
 
-            mov eax, mt;
-            add eax, LineWidth;
-            add eax, LineWidth;
-            mov mt, eax;
+       // increment pointers
+       pop eax;
+       add eax, 16;
 
-            sub y, 2;
-        jnz @foryloop;
+       mov esi, LineWidth;
+       lea ecx, [ecx + 2*esi];
 
-        // handle last line differently
-        mov ecx, dest;
+   sub height, 2;
+   jnz @foryloop;
 
-        mov esi, mt;
-        sub esi, iters;
+   // handle last line differently
+   mov esi, iters;
+   @forxloop3:
+       movupd xmm0, [ecx + esi];
 
-        mov eax, iters;
-        @forxloop3:
-            movupd xmm0, [esi + eax];
+       movhlps xmm1, xmm0;
+       movsd [eax], xmm0;
+       movsd [eax + edx], xmm1;
 
-            movhlps xmm1, xmm0;
-            movsd [ecx], xmm0;
-            movsd [ecx + ebx], xmm1;
+       lea eax, [eax + 2*edx];
+   add esi, 16;
+   jnz @forxloop3;
 
-            add ecx, edx;
-        add eax, 16;
-        jnz @forxloop3;
-
-        pop ebx;
-        pop edi;
-        pop esi;
-     end;
+   pop ebx;
+   pop edi;
+   pop esi;
 end;
 
 procedure ASMMatrixTransposeAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iters : TASMNativeInt;
-    destLineWidth2 : TASMNativeInt;
-    y : TASMNativeInt;
-begin
-     Assert((Cardinal(dest) and $0000000F = 0) and (Cardinal(mt) and $0000000F = 0), 'Error non aligned data');
-     assert((width > 1) and (height > 1) and (LineWidth >= width*sizeof(double)), 'Dimension error');
-     assert(((width and 1) = 1) and ((height and 1) = 1), 'Error width and height must be even');
+asm
+   push esi;
+   push edi;
+   push ebx;
 
-     destLineWidth2 := 2*destLineWidth;
-     iters := -(width - 1)*sizeof(double);
-     y := height - 1;
-     asm
-        push esi;
-        push edi;
-        push ebx;
+   // init
+   // iters := -width*sizeof(double); 
+   mov esi, width;
+   dec esi;
+   imul esi, -8;
+   mov iters, esi;
 
-        mov edx, destLineWidth2;
-        mov ebx, destLineWidth;
+   sub ecx, esi;
+   sub height, 1;
 
-        @foryloop:
-            mov ecx, dest;
+   @foryloop:
+       push eax;
 
-            mov esi, mt;
-            mov edi, esi;
-            sub esi, iters;
-            add edi, LineWidth;
-            sub edi, iters;
+       mov edi, ecx;
+       add edi, LineWidth;
 
-            // unrolled loop
-            mov eax, iters;
-            @forxloop:
-                add eax, 128;
-                jg @loopend;
+       // unrolled loop
+       mov esi, iters;
+       @forxloop:
+           add esi, 128;
+           jg @loopend;
 
-                // prefetch [esi + eax];
-                // prefetch [edi + eax];
+           // prefetch [ecx + esi];
+           // prefetch [edi + esi];
 
-                movapd xmm0, [esi + eax - 128];
-                movapd xmm1, [edi + eax - 128];
+           movapd xmm0, [ecx + esi - 128];
+           movapd xmm1, [edi + esi - 128];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 112];
-                movapd xmm1, [edi + eax - 112];
+           movapd xmm0, [ecx + esi - 112];
+           movapd xmm1, [edi + esi - 112];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 96];
-                movapd xmm1, [edi + eax - 96];
+           movapd xmm0, [ecx + esi - 96];
+           movapd xmm1, [edi + esi - 96];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 80];
-                movapd xmm1, [edi + eax - 80];
+           movapd xmm0, [ecx + esi - 80];
+           movapd xmm1, [edi + esi - 80];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 64];
-                movapd xmm1, [edi + eax - 64];
+           movapd xmm0, [ecx + esi - 64];
+           movapd xmm1, [edi + esi - 64];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 48];
-                movapd xmm1, [edi + eax - 48];
+           movapd xmm0, [ecx + esi - 48];
+           movapd xmm1, [edi + esi - 48];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 32];
-                movapd xmm1, [edi + eax - 32];
+           movapd xmm0, [ecx + esi - 32];
+           movapd xmm1, [edi + esi - 32];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-                movapd xmm0, [esi + eax - 16];
-                movapd xmm1, [edi + eax - 16];
+           movapd xmm0, [ecx + esi - 16];
+           movapd xmm1, [edi + esi - 16];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, edx;
+           lea eax, [eax + 2*edx];
 
-            jmp @forxloop;
+       jmp @forxloop;
 
-            @loopend:
+       @loopend:
 
-            sub eax, 128;
+       sub esi, 128;
 
-            jz @nextLine;
+       jz @nextLine;
 
-            @forxloop2:
-                movapd xmm0, [esi + eax];
-                movapd xmm1, [edi + eax];
+       @forxloop2:
+           movapd xmm0, [ecx + esi];
+           movapd xmm1, [edi + esi];
 
-                movapd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movapd [ecx], xmm0;
-                movapd [ecx + ebx], xmm1;
+           movapd [eax], xmm0;
+           movapd [eax + edx], xmm1;
 
-                add ecx, destLineWidth2;
-            add eax, 16;
-            jnz @forxloop2;
+           lea eax, [eax + 2*edx];
+       add esi, 16;
+       jnz @forxloop2;
 
-            @nextLine:
+       @nextLine:
 
-            // handle last element differently
-            movsd xmm0, [esi + eax];
-            movsd xmm1, [edi + eax];
+       // handle last element differently
+       movsd xmm0, [ecx];
+       movsd xmm1, [edi];
 
-            movlhps xmm0, xmm1;
-            movapd [ecx], xmm0;
+       movlhps xmm0, xmm1;
+       movapd [eax], xmm0;
 
-            // increment pointers
-            mov eax, dest;
-            add eax, 16;
-            mov dest, eax;
+       // increment pointers
+       pop eax;
+       mov esi, LineWidth;
+       
+       add eax, 16;
+       lea ecx, [ecx + 2*esi];
 
-            mov eax, mt;
-            add eax, LineWidth;
-            add eax, LineWidth;
-            mov mt, eax;
+   sub height, 2;
+   jnz @foryloop;
 
-            sub y, 2;
-        jnz @foryloop;
+   // handle last line differently
+   mov esi, iters;
+   @forxloop3:
+       movapd xmm0, [ecx + esi];
 
-        // handle last line differently
-        mov ecx, dest;
+       movhlps xmm1, xmm0;
+       movsd [eax], xmm0;
+       movsd [eax + edx], xmm1;
 
-        mov esi, mt;
-        sub esi, iters;
+       lea eax, [eax + 2*edx];
+   add esi, 16;
+   jnz @forxloop3;
 
-        mov eax, iters;
-        @forxloop3:
-            movapd xmm0, [esi + eax];
+   // last element last line
+   movsd xmm0, [ecx];
+   movsd [eax], xmm0;
 
-            movhlps xmm1, xmm0;
-            movsd [ecx], xmm0;
-            movsd [ecx + ebx], xmm1;
-
-            add ecx, edx;
-        add eax, 16;
-        jnz @forxloop3;
-
-        // handle last element differently
-        movsd xmm0, [esi + eax];
-        movsd [ecx], xmm0;
-
-        pop ebx;
-        pop edi;
-        pop esi;
-     end;
+   pop ebx;
+   pop edi;
+   pop esi;
 end;
 
 procedure ASMMatrixTransposeUnAlignedOddWOddH(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 var iters : TASMNativeInt;
-    destLineWidth2 : TASMNativeInt;
-    y : TASMNativeInt;
-begin
-     assert((width > 1) and (height > 1) and (LineWidth >= width*sizeof(double)), 'Dimension error');
-     assert(((width and 1) = 1) and ((height and 1) = 1), 'Error width and height must be even');
+asm
+   push esi;
+   push edi;
+   push ebx;
 
-     destLineWidth2 := 2*destLineWidth;
-     iters := -(width - 1)*sizeof(double);
-     y := height - 1;
-     asm
-        push esi;
-        push edi;
-        push ebx;
+   // init
+   // iters := -width*sizeof(double); 
+   mov esi, width;
+   dec esi;
+   imul esi, -8;
+   mov iters, esi;
 
-        mov edx, destLineWidth2;
-        mov ebx, destLineWidth;
-        
-        @foryloop:
-            mov ecx, dest;
+   sub ecx, esi;
+   sub height, 1;
 
-            mov esi, mt;
-            mov edi, esi;
-            sub esi, iters;
-            add edi, LineWidth;
-            sub edi, iters;
+   @foryloop:
+       push eax;
 
-            // unrolled loop
-            mov eax, iters;
-            @forxloop:
-                add eax, 128;
-                jg @loopend;
+       mov edi, ecx;
+       add edi, LineWidth;
 
-                movupd xmm0, [esi + eax - 128];
-                movupd xmm1, [edi + eax - 128];
+       // unrolled loop
+       mov esi, iters;
+       @forxloop:
+           add esi, 128;
+           jg @loopend;
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           // prefetch [ecx + esi];
+           // prefetch [edi + esi];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movupd xmm0, [ecx + esi - 128];
+           movupd xmm1, [edi + esi - 128];
 
-                add ecx, edx;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movupd xmm0, [esi + eax - 112];
-                movupd xmm1, [edi + eax - 112];
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           lea eax, [eax + 2*edx];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movupd xmm0, [ecx + esi - 112];
+           movupd xmm1, [edi + esi - 112];
 
-                add ecx, edx;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movupd xmm0, [esi + eax - 96];
-                movupd xmm1, [edi + eax - 96];
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           lea eax, [eax + 2*edx];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movupd xmm0, [ecx + esi - 96];
+           movupd xmm1, [edi + esi - 96];
 
-                add ecx, edx;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movupd xmm0, [esi + eax - 80];
-                movupd xmm1, [edi + eax - 80];
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           lea eax, [eax + 2*edx];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movupd xmm0, [ecx + esi - 80];
+           movupd xmm1, [edi + esi - 80];
 
-                add ecx, edx;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movupd xmm0, [esi + eax - 64];
-                movupd xmm1, [edi + eax - 64];
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           lea eax, [eax + 2*edx];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movupd xmm0, [ecx + esi - 64];
+           movupd xmm1, [edi + esi - 64];
 
-                add ecx, edx;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movupd xmm0, [esi + eax - 48];
-                movupd xmm1, [edi + eax - 48];
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           lea eax, [eax + 2*edx];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movupd xmm0, [ecx + esi - 48];
+           movupd xmm1, [edi + esi - 48];
 
-                add ecx, edx;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movupd xmm0, [esi + eax - 32];
-                movupd xmm1, [edi + eax - 32];
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           lea eax, [eax + 2*edx];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movupd xmm0, [ecx + esi - 32];
+           movupd xmm1, [edi + esi - 32];
 
-                add ecx, edx;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-                movupd xmm0, [esi + eax - 16];
-                movupd xmm1, [edi + eax - 16];
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+           lea eax, [eax + 2*edx];
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+           movupd xmm0, [ecx + esi - 16];
+           movupd xmm1, [edi + esi - 16];
 
-                add ecx, edx;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-            jmp @forxloop;
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-            @loopend:
+           lea eax, [eax + 2*edx];
 
-            sub eax, 128;
+       jmp @forxloop;
 
-            jz @nextLine;
+       @loopend:
 
-            @forxloop2:
-                movupd xmm0, [esi + eax];
-                movupd xmm1, [edi + eax];
+       sub esi, 128;
 
-                movupd xmm2, xmm0;
-                movlhps xmm0, xmm1;
-                movhlps xmm1, xmm2;
+       jz @nextLine;
 
-                movupd [ecx], xmm0;
-                movupd [ecx + ebx], xmm1;
+       @forxloop2:
+           movupd xmm0, [ecx + esi];
+           movupd xmm1, [edi + esi];
 
-                add ecx, destLineWidth2;
-            add eax, 16;
-            jnz @forxloop2;
+           movapd xmm2, xmm0;
+           movlhps xmm0, xmm1;
+           movhlps xmm1, xmm2;
 
-            @nextLine:
+           movupd [eax], xmm0;
+           movupd [eax + edx], xmm1;
 
-            // handle last element differently
-            movsd xmm0, [esi + eax];
-            movsd xmm1, [edi + eax];
+           lea eax, [eax + 2*edx];
+       add esi, 16;
+       jnz @forxloop2;
 
-            movlhps xmm0, xmm1;
-            movupd [ecx], xmm0;
+       @nextLine:
 
-            // increment pointers
-            mov eax, dest;
-            add eax, 16;
-            mov dest, eax;
+       // handle last element differently
+       movsd xmm0, [ecx];
+       movsd xmm1, [edi];
 
-            mov eax, mt;
-            add eax, LineWidth;
-            add eax, LineWidth;
-            mov mt, eax;
+       movlhps xmm0, xmm1;
+       movupd [eax], xmm0;
 
-            sub y, 2;
-        jnz @foryloop;
+       // increment pointers
+       pop eax;
+       mov esi, LineWidth;
+       
+       add eax, 16;
+       lea ecx, [ecx + 2*esi];
 
-        // handle last line differently
-        mov ecx, dest;
+   sub height, 2;
+   jnz @foryloop;
 
-        mov esi, mt;
-        sub esi, iters;
+   // handle last line differently
+   mov esi, iters;
+   @forxloop3:
+       movupd xmm0, [ecx + esi];
 
-        mov eax, iters;
-        @forxloop3:
-            movupd xmm0, [esi + eax];
+       movhlps xmm1, xmm0;
+       movsd [eax], xmm0;
+       movsd [eax + edx], xmm1;
 
-            movhlps xmm1, xmm0;
-            movsd [ecx], xmm0;
-            movsd [ecx + ebx], xmm1;
+       lea eax, [eax + 2*edx];
+   add esi, 16;
+   jnz @forxloop3;
 
-            add ecx, edx;
-        add eax, 16;
-        jnz @forxloop3;
+   // last element last line
+   movsd xmm0, [ecx];
+   movsd [eax], xmm0;
 
-        // handle last element differently
-        movsd xmm0, [esi + eax];
-        movsd [ecx], xmm0;
-
-        pop ebx;
-        pop edi;
-        pop esi;
-     end;
+   pop ebx;
+   pop edi;
+   pop esi;
 end;
 
 // Inplace Trasnposition of an N x N matrix
 procedure ASMMatrixTransposeInplace(mt : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt);
-begin
-     assert(LineWidth >= N*sizeof(double), 'Linewidth error');
-     asm
-        push ebx;
-        push edi;
-        push esi;
+// eax = MT, edx = LineWidth, ecx = N
+var aN : TASMNativeInt;
+asm
+   push ebx;
+   push edi;
+   push esi;
 
-        mov eax, N;
-        cmp eax, 2;
-        jl @@exitProc;
+   mov ecx, N;
+   cmp ecx, 2;
+   jl @@exitProc;
 
-        // iter: -N*sizeof(Double)
-        mov edx, eax;
-        imul edx, -8;
+   // iter: -N*sizeof(Double)
+   mov edi, ecx;
+   imul edi, -8;
 
+   dec ecx;
+   mov aN, ecx;
 
-        mov eax, mt;   // pDest
-        mov ebx, eax;  // pDest1: genptr(mt, 0, 1, linewidth)
-        add ebx, LineWidth;
+   mov ebx, eax;  // pDest1: genptr(mt, 0, 1, linewidth)
+   add ebx, edx;
+   sub eax, edi;  // mt + iter
 
-        sub eax, edx;  // mt + iter
+   // for y := 0 to n - 2
+   
 
-        // for y := 0 to n - 2
-        mov ecx, N;
-        dec ecx;
-        mov N, ecx;
+   @@foryloop:
 
-        mov ecx, LineWidth;
-        @@foryloop:
+      mov esi, edi; // iter aka x
+      add esi, 8;
+      mov ecx, ebx;
+      // for x := y + 1 to n-1 do
+      @@forxloop:
+         movsd xmm0, [eax + esi];
+         movsd xmm1, [ecx];
 
-           mov edi, edx; // iter aka x
-           add edi, 8;
-           mov esi, ebx;
-           // for x := y + 1 to n-1 do
-           @@forxloop:
-              movsd xmm0, [eax + edi];
-              movsd xmm1, [esi];
+         movsd [eax + esi], xmm1;
+         movsd [ecx], xmm0;
 
-              movsd [eax + edi], xmm1;
-              movsd [esi], xmm0;
+         add ecx, edx;
+      add esi, 8;
+      jnz @@forxloop;
 
-              add esi, ecx;
-           add edi, 8;
-           jnz @@forxloop;
+      add edi, 8;  // iter + sizeof(double);
+      //pDest := PConstDoubleArr( GenPtr(dest, 0, y, destLineWidth) );
+      add eax, edx;
+      // GenPtr(dest, y, y + 1, destLineWidth);
+      add ebx, edx;
+      add ebx, 8;
+   dec aN;
+   jnz @@foryloop;
 
-           add edx, 8;  // iter + sizeof(double);
-           //pDest := PConstDoubleArr( GenPtr(dest, 0, y, destLineWidth) );
-           add eax, ecx;
-           // GenPtr(dest, y, y + 1, destLineWidth);
-           add ebx, ecx;
-           add ebx, 8;
-        dec N;
-        jnz @@foryloop;
+   @@exitProc:
 
-        @@exitProc:
-
-        pop esi;
-        pop edi;
-        pop ebx;
-     end;
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
-
 
 {$ENDIF}
 

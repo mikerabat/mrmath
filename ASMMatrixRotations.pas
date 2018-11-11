@@ -29,10 +29,10 @@ interface
 
 uses MatrixConst;
 
-procedure ASMApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
-procedure ASMApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
-procedure ASMApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
-procedure ASMApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure ASMApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 procedure ASMMatrixRotate(N : TASMNativeInt; X : PDouble; const LineWidthDX : TASMNativeInt; Y : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
 
@@ -51,593 +51,624 @@ const cLocMinusOne : double = -1;
 procedure ASMApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
 var y2 : TASMNativeInt;
     iter : TASMNativeInt;
-begin
-     if (height < 2) or (width < 1) then
-        exit;
-     y2 := height - 1;
-     iter := -(width and $FFFFFFFE)*sizeof(double);
-     asm
-        push ebx;
-        push edi;
+// eax = width, edx = height, ecx = A
+asm
+   push ebx;
+   push edi;
+   push esi;
 
-        mov eax, c;  // point to y (aka the end)
-        mov ebx, s;
+   // store "is odd" flag
+   mov esi, eax;
+   and esi, 1;
 
-        mov edi, y2;
-        dec edi;
-        shl edi, 3;  // y2*sizeof(double)
-        add eax, edi;
-        add ebx, edi;
+   // if (height < 2) or (width < 1) then exit;
+   cmp eax, 1;
+   jl @@endproc;
+   cmp edx, 2;
+   jl @@endproc;
 
+   // y2 := height - 1;
+   dec edx;
+   mov y2, edx;
 
-        mov edx, A;     // A[y + 1][x]
-        mov edi, LineWidthA;
-        imul edi, y2;
-        add edx, edi;
-        sub edx, iter;
-
-        mov ecx, edx;   // A[y][x]
-        sub ecx, LineWidthA;
-
-        movsd xmm7, cLocOne;
-        xorpd xmm6, xmm6;  // haddpd zero extend
-
-        @@foryloop:
-           movddup xmm0, [eax];  // c[y]
-           movddup xmm1, [ebx];  // s[y]
-
-           // ###########################################
-           // #### if (ctemp <> 1) or (stemp <> 0) then
-           comisd xmm0, xmm7; // = 1
-           jne @@beginXLoop;
-
-           comisd xmm1, xmm6; // = 0
-           jne @@beginXLoop;
-
-           jmp @@nextLine; // c=1 and stemp=0 next line -> the statement
+   // iter := -(width and $FFFFFFFE)*sizeof(double);
+   and eax, $FFFFFFFE;
+   imul eax, -8;
+   mov iter, eax;
 
 
-           // ###########################################
-           // #### for x := 0 to width - 1 do
-           @@beginXLoop:
+   mov eax, c;  // point to y (aka the end)
+   mov ebx, s;
 
-           // init
-           mov edi, iter;
-           test edi, edi;
-           jz @@LastElem;
+   mov edi, y2;
+   dec edi;
+   shl edi, 3;  // y2*sizeof(double)
+   add eax, edi;
+   add ebx, edi;
 
-           @@forxloop:
-              //temp := pcAy1^[x];
-              //     pcAy1^[x] := cTemp*temp - stemp*pcAy^[x];
-              //     pcAy1^[x + 1] := cTemp*temp1 - stemp*pcAy1[x + 1];
+   //mov ecx, A;     // A[y + 1][x]
+   mov edi, LineWidthA;
+   imul edi, y2;
+   add ecx, edi;
+   sub ecx, iter;
 
-              // evaluate 2 values
-              movupd xmm2, [ecx + edi];
-              movupd xmm3, [edx + edi];
+   mov edx, ecx;   // A[y][x]
+   sub edx, LineWidthA;
 
-              // temp store...
-              movapd xmm4, xmm2
-              movapd xmm5, xmm3;
+   movsd xmm7, cLocOne;
+   xorpd xmm6, xmm6;  // haddpd zero extend
 
-              mulpd xmm3, xmm0; // ctemp*pcay1^[x] and ctemp*a[x+1]
-              mulpd xmm2, xmm1;  // stemp*pcAy^[x] and stemp*a[x+1]
+   @@foryloop:
+      movddup xmm0, [eax];  // c[y]
+      movddup xmm1, [ebx];  // s[y]
 
-              subpd xmm3, xmm2;
+      // ###########################################
+      // #### if (ctemp <> 1) or (stemp <> 0) then
+      comisd xmm0, xmm7; // = 1
+      jne @@beginXLoop;
 
-              //     pcAy^[x] := stemp*temp + ctemp*pcAy^[x];
-              //     pcAy^[x + 1] := stemp*temp1 + ctemp*pcAy^[x + 1]
-              mulpd xmm4, xmm0;
-              mulpd xmm5, xmm1;
+      comisd xmm1, xmm6; // = 0
+      jne @@beginXLoop;
 
-              addpd xmm5, xmm4;
+      jmp @@nextLine; // c=1 and stemp=0 next line -> the statement
 
-              // write back...
-              movupd [ecx + edi], xmm5;
-              movupd [edx + edi], xmm3;
 
-              add edi, 16;
-           jnz @@forxloop;
+      // ###########################################
+      // #### for x := 0 to width - 1 do
+      @@beginXLoop:
 
-           @@LastElem:
+      // init
+      mov edi, iter;
+      test edi, edi;
+      jz @@LastElem;
 
-           // ###########################################
-           // #### Last element handling
-           mov edi, width;
-           and edi, 1;
-           jz @@nextLine;
+      @@forxloop:
+         //temp := pcAy1^[x];
+         //     pcAy1^[x] := cTemp*temp - stemp*pcAy^[x];
+         //     pcAy1^[x + 1] := cTemp*temp1 - stemp*pcAy1[x + 1];
 
-           // same as above but with single elements
-           movsd xmm2, [ecx];
-           movsd xmm3, [edx];
+         // evaluate 2 values
+         movupd xmm2, [edx + edi];
+         movupd xmm3, [ecx + edi];
 
-           movsd xmm4, xmm2;
-           movsd xmm5, xmm3;
+         // temp store...
+         movapd xmm4, xmm2
+         movapd xmm5, xmm3;
 
-           mulsd xmm3, xmm0;
-           mulsd xmm2, xmm1;
+         mulpd xmm3, xmm0; // ctemp*pcay1^[x] and ctemp*a[x+1]
+         mulpd xmm2, xmm1;  // stemp*pcAy^[x] and stemp*a[x+1]
 
-           subsd xmm3, xmm2;
+         subpd xmm3, xmm2;
 
-           mulsd xmm4, xmm0;
-           mulsd xmm5, xmm1;
+         //     pcAy^[x] := stemp*temp + ctemp*pcAy^[x];
+         //     pcAy^[x + 1] := stemp*temp1 + ctemp*pcAy^[x + 1]
+         mulpd xmm4, xmm0;
+         mulpd xmm5, xmm1;
 
-           addsd xmm5, xmm4;
+         addpd xmm5, xmm4;
 
-           movsd [ecx], xmm5;
-           movsd [edx], xmm3;
+         // write back...
+         movupd [edx + edi], xmm5;
+         movupd [ecx + edi], xmm3;
 
-           // ###########################################
-           // #### next y
-           @@nextLine:
+         add edi, 16;
+      jnz @@forxloop;
 
-           sub ebx, 8;   // sizeof(double)
-           sub eax, 8;
-           sub ecx, LineWidthA;
-           sub edx, LineWidthA;
-        dec y2;
-        jnz @@foryloop;
+      @@LastElem:
 
-        pop edi;
-        pop ebx;
-     end;
+      // ###########################################
+      // #### Last element handling
+      cmp esi, 1;
+      jne @@nextLine;
+
+      // same as above but with single elements
+      movsd xmm2, [edx];
+      movsd xmm3, [ecx];
+
+      movsd xmm4, xmm2;
+      movsd xmm5, xmm3;
+
+      mulsd xmm3, xmm0;
+      mulsd xmm2, xmm1;
+
+      subsd xmm3, xmm2;
+
+      mulsd xmm4, xmm0;
+      mulsd xmm5, xmm1;
+
+      addsd xmm5, xmm4;
+
+      movsd [edx], xmm5;
+      movsd [ecx], xmm3;
+
+      // ###########################################
+      // #### next y
+      @@nextLine:
+
+      sub ebx, 8;   // sizeof(double)
+      sub eax, 8;
+      sub edx, LineWidthA;
+      sub ecx, LineWidthA;
+   dec y2;
+   jnz @@foryloop;
+
+   // epilog
+   @@endproc:
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 
 procedure ASMApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
 var y2 : TASMNativeInt;
     iter : TASMNativeInt;
-begin
-     if (height < 2) or (width < 1) then
-        exit;
-     y2 := height - 1;
-     iter := -(width and $FFFFFFFE)*sizeof(double);
-     asm
-        push ebx;
-        push edi;
+asm
+   push ebx;
+   push edi;
+   push esi;
 
-        mov eax, c;
-        mov ebx, s;
-        mov ecx, A;     // A[y][x]
-        sub ecx, iter;
+//   if (height < 2) or (width < 1) then
+//           exit;
 
-        mov edx, ecx;   // A[y+1][x]
-        add edx, LineWidthA;
+   mov esi, eax;
+   and esi, 1;
 
-        movsd xmm7, cLocOne;
-        xorpd xmm6, xmm6;  // haddpd zero extend
+   cmp eax, 1;
+   jl @@endproc;
+   cmp edx, 2;
+   jl @@endproc;
 
-        @@foryloop:
-           movddup xmm0, [eax];  // c[y]
-           movddup xmm1, [ebx];  // s[y]
+   //y2 := height - 1;
+   //iter := -(width and $FFFFFFFE)*sizeof(double);
 
-           // ###########################################
-           // #### if (ctemp <> 1) or (stemp <> 0) then
-           comisd xmm0, xmm7; // = 1
-           jne @@beginXLoop;
+   dec edx;
+   mov y2, edx;
 
-           comisd xmm1, xmm6; // = 0
-           jne @@beginXLoop;
+   and eax, $FFFFFFFE;
+   imul eax, -8;
+   mov iter, eax;
 
-           jmp @@nextLine; // c=1 and stemp=0 next line -> the statement
+   mov eax, c;
+   mov ebx, s;
+   sub ecx, iter;
 
+   mov edx, ecx;   // A[y+1][x]
+   add edx, LineWidthA;
 
-           // ###########################################
-           // #### for x := 0 to width - 1 do
-           @@beginXLoop:
+   movsd xmm7, cLocOne;
+   xorpd xmm6, xmm6;
 
-           // init
-           mov edi, iter;
-           test edi, edi;
-           jz @@LastElem;
+   @@foryloop:
+      movddup xmm0, [eax];  // c[y]
+      movddup xmm1, [ebx];  // s[y]
 
-           @@forxloop:
-              //temp := pcAy1^[x];
-              //     pcAy1^[x] := cTemp*temp - stemp*pcAy^[x];
-              //     pcAy1^[x + 1] := cTemp*temp1 - stemp*pcAy1[x + 1];
+      // ###########################################
+      // #### if (ctemp <> 1) or (stemp <> 0) then
+      comisd xmm0, xmm7; // = 1
+      jne @@beginXLoop;
 
-              // evaluate 2 values
-              movupd xmm2, [ecx + edi];
-              movupd xmm3, [edx + edi];
+      comisd xmm1, xmm6; // = 0
+      jne @@beginXLoop;
 
-              // temp store...
-              movapd xmm4, xmm2
-              movapd xmm5, xmm3;
+      jmp @@nextLine; // c=1 and stemp=0 next line -> the statement
 
-              mulpd xmm3, xmm0; // ctemp*pcay1^[x] and ctemp*a[x+1]
-              mulpd xmm2, xmm1;  // stemp*pcAy^[x] and stemp*a[x+1]
+      // ###########################################
+      // #### for x := 0 to width - 1 do
+      @@beginXLoop:
 
-              subpd xmm3, xmm2;
+      // init
+      mov edi, iter;
+      test edi, edi;
+      jz @@LastElem;
 
-              //     pcAy^[x] := stemp*temp + ctemp*pcAy^[x];
-              //     pcAy^[x + 1] := stemp*temp1 + ctemp*pcAy^[x + 1]
-              mulpd xmm4, xmm0;
-              mulpd xmm5, xmm1;
+      @@forxloop:
+         //temp := pcAy1^[x];
+         //     pcAy1^[x] := cTemp*temp - stemp*pcAy^[x];
+         //     pcAy1^[x + 1] := cTemp*temp1 - stemp*pcAy1[x + 1];
 
-              addpd xmm5, xmm4;
+         // evaluate 2 values
+         movupd xmm2, [ecx + edi];
+         movupd xmm3, [edx + edi];
 
-              // write back...
-              movupd [ecx + edi], xmm5;
-              movupd [edx + edi], xmm3;
+         // temp store...
+         movapd xmm4, xmm2
+         movapd xmm5, xmm3;
 
-              add edi, 16;
-           jnz @@forxloop;
+         mulpd xmm3, xmm0; // ctemp*pcay1^[x] and ctemp*a[x+1]
+         mulpd xmm2, xmm1;  // stemp*pcAy^[x] and stemp*a[x+1]
 
-           @@LastElem:
+         subpd xmm3, xmm2;
 
-           // ###########################################
-           // #### Last element handling
-           mov edi, width;
-           and edi, 1;
-           jz @@nextLine;
+         //     pcAy^[x] := stemp*temp + ctemp*pcAy^[x];
+         //     pcAy^[x + 1] := stemp*temp1 + ctemp*pcAy^[x + 1]
+         mulpd xmm4, xmm0;
+         mulpd xmm5, xmm1;
 
-           // same as above but with single elements
-           movsd xmm2, [ecx];
-           movsd xmm3, [edx];
+         addpd xmm5, xmm4;
 
-           movsd xmm4, xmm2;
-           movsd xmm5, xmm3;
+         // write back...
+         movupd [ecx + edi], xmm5;
+         movupd [edx + edi], xmm3;
 
-           mulsd xmm3, xmm0;
-           mulsd xmm2, xmm1;
+         add edi, 16;
+      jnz @@forxloop;
 
-           subsd xmm3, xmm2;
+      @@LastElem:
 
-           mulsd xmm4, xmm0;
-           mulsd xmm5, xmm1;
+      // ###########################################
+      // #### Last element handling
+      cmp esi, 1;
+      jne @@nextLine;
 
-           addsd xmm5, xmm4;
+      // same as above but with single elements
+      movsd xmm2, [ecx];
+      movsd xmm3, [edx];
 
-           movsd [ecx], xmm5;
-           movsd [edx], xmm3;
+      movsd xmm4, xmm2;
+      movsd xmm5, xmm3;
 
-           // ###########################################
-           // #### next y
-           @@nextLine:
+      mulsd xmm3, xmm0;
+      mulsd xmm2, xmm1;
 
-           add ebx, 8;   // sizeof(double)
-           add eax, 8;
-           add ecx, LineWidthA;
-           add edx, LineWidthA;
-        dec y2;
-        jnz @@foryloop;
+      subsd xmm3, xmm2;
 
-        pop edi;
-        pop ebx;
-     end;
+      mulsd xmm4, xmm0;
+      mulsd xmm5, xmm1;
+
+      addsd xmm5, xmm4;
+
+      movsd [ecx], xmm5;
+      movsd [edx], xmm3;
+
+      // ###########################################
+      // #### next y
+      @@nextLine:
+
+      add ebx, 8;   // sizeof(double)
+      add eax, 8;
+      add ecx, LineWidthA;
+      add edx, LineWidthA;
+   dec y2;
+   jnz @@foryloop;
+
+   @@endproc:
+
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 procedure ASMApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
-var w2 : TASMNativeInt;
-    iter : TASMNativeInt;
-begin
-     if (height <= 0) or (width <= 1) then
-        exit;
+// eax = width, edx = height, ecx = A
+asm
+   // if (height <= 0) or (width <= 1) then exit;
+   cmp eax, 1;
+   jle @@endProc;
+   cmp edx, 0;
+   jle @@endProc;
 
-     w2 := width - 1;
-     iter := w2*sizeof(double);
+   push ebx;
+   push edi;
+   push esi;
 
-     asm
-        push ebx;
-        push edi;
+   // w2 := width - 1;
+   // iter := w2*sizeof(double);
+   dec eax;
+   imul eax, 8;
 
-        mov eax, c;
-        mov ebx, s;
-        mov ecx, A;
+   mov esi, c;
+   mov ebx, s;
 
-        movupd xmm7, cLocMulM1Bits;
-        xorpd xmm6, xmm6;  // haddpd zero extend
+   movupd xmm7, cLocMulM1Bits;
 
-        @@foryloop:
+   @@foryloop:
 
-           mov edi, iter;
-           movhpd xmm2, [ecx + edi];
+      mov edi, eax; //iter;
+      movhpd xmm2, [ecx + edi];
 
-           // for x := width - 2 downto 0
-           @@forxloop:
-              movsd xmm4, [eax + edi - 8];  // store c
-              movsd xmm3, [ebx + edi - 8];  // store s
+      // for x := width - 2 downto 0
+      @@forxloop:
+         movsd xmm4, [esi + edi - 8];  // store c
+         movsd xmm3, [ebx + edi - 8];  // store s
 
-              movlpd xmm2, [ecx + edi - 8]; // a[x], a[x+1]
+         movlpd xmm2, [ecx + edi - 8]; // a[x], a[x+1]
 
-              // handle x, x+1
-              // ####################################
-              // #### x, x+ 1
-              movlhps xmm3, xmm4;
-              movlhps xmm4, xmm3;
+         // handle x, x+1
+         // ####################################
+         // #### x, x+ 1
+         movlhps xmm3, xmm4;
+         movlhps xmm4, xmm3;
 
-              xorpd xmm3, xmm7;  // -s, c
-              mulpd xmm3, xmm2; // a[x+1)*c[x] - s[x]*a[x]
-              haddpd xmm3, xmm6;
+         xorpd xmm3, xmm7;  // -s, c
+         mulpd xmm3, xmm2; // a[x+1)*c[x] - s[x]*a[x]
+         haddpd xmm3, xmm3;
 
-              mulpd xmm4, xmm2; // a[x+1]*s[x] + a[x]*c[x]
-              haddpd xmm4, xmm6;
+         mulpd xmm4, xmm2; // a[x+1]*s[x] + a[x]*c[x]
+         haddpd xmm4, xmm4;
 
-              // write back first two values
-              movlhps xmm2, xmm4;
-              movsd [ecx + edi], xmm3;
+         // write back first two values
+         movlhps xmm2, xmm4;
+         movsd [ecx + edi], xmm3;
 
-           // next one
-           sub edi, 8;
-           jnz @@forxloop;
+      // next one
+      sub edi, 8;
+      jnz @@forxloop;
 
-           movsd [ecx + edi], xmm4;
+      movsd [ecx + edi], xmm4;
 
-           add ecx, LineWidthA;
+      add ecx, LineWidthA;
 
-        dec height;
-        jnz @@foryloop;
+   dec edx;
+   jnz @@foryloop;
 
-        // epilog
-        pop edi;
-        pop ebx;
-     end;
+   // epilog
+   pop esi;
+   pop edi;
+   pop ebx;
+
+   @@endProc:
 end;
 
 procedure ASMApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
-var w2 : TASMNativeInt;
-    iter : TASMNativeInt;
-begin
-     if (height <= 0) or (width <= 1) then
-        exit;
+// eax = width, edx = height, ecx = A
+asm
+   // if (height <= 0) or (width <= 1) then exit;
+   cmp eax, 1;
+   jle @@endProc;
+   cmp edx, 0;
+   jle @@endProc;
 
-     w2 := width - 1;
-     iter := -w2*sizeof(double);
+   push ebx;
+   push edi;
+   push esi;
 
-     asm
-        push ebx;
-        push edi;
-        push esi;
+   dec eax;
+   imul eax, -8;
+   mov esi, eax;
 
-        mov eax, c;
-        mov ebx, s;
-        mov ecx, A;
+   mov eax, c;
+   mov ebx, s;
 
-        mov esi, LineWidthA;
+   sub eax, esi;
+   sub ebx, esi;
+   sub ecx, esi;
 
-        sub eax, iter;
-        sub ebx, iter;
-        sub ecx, iter;
+   movupd xmm7, cLocMulM1Bits;
 
-        movupd xmm7, cLocMulM1Bits;
-        xorpd xmm6, xmm6;  // haddpd zero extend
+   @@foryloop:
 
-        @@foryloop:
+      mov edi, esi;
+      movsd xmm2, [ecx + edi];
 
-           mov edi, iter;
-           movsd xmm2, [ecx + edi];
+      @@forxloop:
+         movsd xmm4, [eax + edi];  // store c
+         movsd xmm3, [ebx + edi];  // store s
 
-           @@forxloop:
-              movsd xmm4, [eax + edi];  // store c
-              movsd xmm3, [ebx + edi];  // store s
+         movsd xmm0, [ecx + edi + 8]; // a[x], a[x+1]
+         movlhps xmm2, xmm0;
 
-              movsd xmm0, [ecx + edi + 8]; // a[x], a[x+1]
-              movlhps xmm2, xmm0;
+         // handle x, x+1
+         // ####################################
+         // #### x, x+ 1
+         movlhps xmm3, xmm4;
+         movlhps xmm4, xmm3;
 
-              // handle x, x+1
-              // ####################################
-              // #### x, x+ 1
-              movlhps xmm3, xmm4;
-              movlhps xmm4, xmm3;
+         xorpd xmm3, xmm7;  // -s, c
+         mulpd xmm3, xmm2; // a[x+1)*c[x] - s[x]*a[x]
+         haddpd xmm3, xmm3;
 
-              xorpd xmm3, xmm7;  // -s, c
-              mulpd xmm3, xmm2; // a[x+1)*c[x] - s[x]*a[x]
-              haddpd xmm3, xmm6;
+         mulpd xmm4, xmm2; // a[x+1]*s[x] + a[x]*c[x]
+         haddpd xmm4, xmm4;
 
-              mulpd xmm4, xmm2; // a[x+1]*s[x] + a[x]*c[x]
-              haddpd xmm4, xmm6;
+         // write back first two values
+         movsd xmm2, xmm3;
+         movsd [ecx + edi], xmm4;
 
-              // write back first two values
-              movsd xmm2, xmm3;
-              movsd [ecx + edi], xmm4;
+      // next one
+      add edi, 8;
+      jnz @@forxloop;
 
-           // next one
-           add edi, 8;
-           jnz @@forxloop;
+      movsd [ecx + edi], xmm2;
 
-           movsd [ecx + edi], xmm2;
+      add ecx, LineWidthA;
 
-           add ecx, esi;
+   dec edx;
+   jnz @@foryloop;
 
-        dec height;
-        jnz @@foryloop;
+   // epilog
+   pop esi;
+   pop edi;
+   pop ebx;
 
-        // epilog
-        pop esi;
-        pop edi;
-        pop ebx;
-     end;
+   @@endProc:
 end;
 
 // its assumed that Linewidthdx and linewidthdy = sizeof(double)
 procedure ASMMatrixRotateAligned(N : TASMNativeInt; X : PDouble;
-  Y : PDouble; const c, s : double);
-begin
-     asm
-        push ebx;
-        push esi;
+  Y : PDouble; c, s : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+// eax = N; edx = X; ecx = Y
+asm
+   push ebx;
+   push esi;
+   push edi;
 
-        movsd xmm2, s;
-        mulsd xmm2, cLocMinusOne;
+   movsd xmm2, s;
+   mulsd xmm2, cLocMinusOne;
 
-        movddup xmm0, xmm2;
-        movddup xmm1, c;
+   movddup xmm0, xmm2;
+   movddup xmm1, c;
 
-        movddup xmm2, s;
+   movddup xmm2, s;
 
-        mov eax, X;
-        mov ebx, Y;
+   mov edi, eax;
+   //mov edx, X;
+   //mov ecx, Y;
 
-        xor esi, esi;
+   xor esi, esi;
 
-        mov ecx, n;
-        shr ecx, 1;
-        test ecx, ecx;
-        jz @@exitLoop;
+   shr eax, 1;
+   test eax, eax;
+   jz @@exitLoop;
 
-           @@forNloop:
-              // do a full load -> intermediate store in xmm5, and xmm6
-              movupd xmm5, [eax + esi];      // x, x+1
-              movupd xmm6, [ebx + esi];      // y, y+1
+      @@forNloop:
+         // do a full load -> intermediate store in xmm5, and xmm6
+         movupd xmm5, [edx + esi];      // x, x+1
+         movupd xmm6, [ecx + esi];      // y, y+1
 
-              movapd xmm3, xmm5;
-              movapd xmm4, xmm6;
+         movapd xmm3, xmm5;
+         movapd xmm4, xmm6;
 
-              mulpd xmm3, xmm0;  // x, x+1 * -s
-              mulpd xmm5, xmm1;  // x, x+1 * c
-              mulpd xmm6, xmm2;  // y, y+1 * s
-              mulpd xmm4, xmm1;  // y, y+1 * c
+         mulpd xmm3, xmm0;  // x, x+1 * -s
+         mulpd xmm5, xmm1;  // x, x+1 * c
+         mulpd xmm6, xmm2;  // y, y+1 * s
+         mulpd xmm4, xmm1;  // y, y+1 * c
 
-              addpd xmm5, xmm6;  // c*x + s*y  , c*(x+1) + s*(y+1)
-              addpd xmm3, xmm4;  // -s*x + c*y, -s(x+1) + c*(y+1)
+         addpd xmm5, xmm6;  // c*x + s*y  , c*(x+1) + s*(y+1)
+         addpd xmm3, xmm4;  // -s*x + c*y, -s(x+1) + c*(y+1)
 
-              // write back
-              movupd [eax + esi], xmm5;
-              movupd [ebx + esi], xmm3;
+         // write back
+         movupd [edx + esi], xmm5;
+         movupd [ecx + esi], xmm3;
 
-              add esi, 16;
+         add esi, 16;
 
-           dec ecx;
-           jnz @@forNloop;
+      dec eax;
+      jnz @@forNloop;
 
-        @@exitLoop:
+   @@exitLoop:
 
-        // test for an odd N
-        mov ecx, N
-        and ecx, 1;
-        jz @@endProc;
+   // test for an odd N
+   mov eax, edi;
+   and eax, 1;
+   jz @@endProc;
 
-        // handle last element
-        movsd xmm5, [eax + esi];
-        movsd xmm6, [ebx + esi];
+   // handle last element
+   movsd xmm5, [edx + esi];
+   movsd xmm6, [ecx + esi];
 
-        //dtemp := c*pX^[i] + s*pY^[i];
-        //pY^[i] := - s*pX^[i] + c*pY^[i];
-        //px^[i] := dtemp;
-        movsd xmm3, xmm5;
-        movsd xmm4, xmm6;
+   //dtemp := c*pX^[i] + s*pY^[i];
+   //pY^[i] := - s*pX^[i] + c*pY^[i];
+   //px^[i] := dtemp;
+   movsd xmm3, xmm5;
+   movsd xmm4, xmm6;
 
-        mulsd xmm3, xmm0;  // x * -s
-        mulsd xmm5, xmm1;  // x * c
-        mulsd xmm6, xmm2;  // y * s
-        mulsd xmm4, xmm1;  // y * c
+   mulsd xmm3, xmm0;  // x * -s
+   mulsd xmm5, xmm1;  // x * c
+   mulsd xmm6, xmm2;  // y * s
+   mulsd xmm4, xmm1;  // y * c
 
-        addsd xmm5, xmm6;  // c*x + s*y
-        addsd xmm3, xmm4;  // -s*x + c*y
+   addsd xmm5, xmm6;  // c*x + s*y
+   addsd xmm3, xmm4;  // -s*x + c*y
 
-        // write back
-        movsd [eax + esi], xmm5;
-        movsd [ebx + esi], xmm3;
+   // write back
+   movsd [edx + esi], xmm5;
+   movsd [ecx + esi], xmm3;
 
-        @@endProc:
+   @@endProc:
 
-        pop esi;
-        pop ebx;
-     end;
+   pop edi;
+   pop esi;
+   pop ebx;
 end;
 
 
 procedure ASMMatrixRotateUnaligned(N : TASMNativeInt; X : PDouble; const LineWidthDX : TASMNativeInt;
-  Y : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
-begin
-     asm
-        push ebx;
-        push edi;
-        push esi;
+  Y : PDouble; LineWidthDY : TASMNativeInt; c, s : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+// eax = N, edx = X, ecx = LineWidthDX
+asm
+   push ebx;
+   push edi;
+   push esi;
 
-        movsd xmm2, s;
-        mulsd xmm2, cLocMinusOne;
+   movsd xmm2, s;
+   mulsd xmm2, cLocMinusOne;
 
-        movddup xmm0, xmm2;
-        movddup xmm1, c;
+   movddup xmm0, xmm2;
+   movddup xmm1, c;
 
-        movddup xmm2, s;
+   movddup xmm2, s;
 
-        mov eax, X;
-        mov ebx, Y;
+   //mov edx, X;
+   mov ebx, Y;
 
-        mov esi, LineWidthDX;
-        mov edi, LineWidthDY;
+   mov edi, LineWidthDY;
 
-        mov ecx, n;
-        shr ecx, 1;
-        test ecx, ecx;
-        jz @@exitLoop;
+   sub eax, 2;
+   jl @@exitLoop;
 
-           @@forNloop:
-              // do a full load -> intermediate store in xmm5, and xmm6
-              movsd xmm5, [eax];    // load x, x+1
-              movsd xmm3, [eax + esi];
-              movsd xmm6, [ebx];    // load y, y+1
-              movsd xmm4, [ebx + edi];
+      @@forNloop:
+         // do a full load -> intermediate store in xmm5, and xmm6
+         movsd xmm5, [edx];    // load x, x+1
+         movsd xmm3, [edx + ecx];
+         movsd xmm6, [ebx];    // load y, y+1
+         movsd xmm4, [ebx + edi];
 
-              movlhps xmm5, xmm3;
-              movlhps xmm6, xmm4;
+         movlhps xmm5, xmm3;
+         movlhps xmm6, xmm4;
 
-              movapd xmm3, xmm5;
-              movapd xmm4, xmm6;
+         movapd xmm3, xmm5;
+         movapd xmm4, xmm6;
 
-              mulpd xmm3, xmm0;  // x, x+1 * -s
-              mulpd xmm5, xmm1;  // x, x+1 * c
-              mulpd xmm6, xmm2;  // y, y+1 * s
-              mulpd xmm4, xmm1;  // y, y+1 * c
+         mulpd xmm3, xmm0;  // x, x+1 * -s
+         mulpd xmm5, xmm1;  // x, x+1 * c
+         mulpd xmm6, xmm2;  // y, y+1 * s
+         mulpd xmm4, xmm1;  // y, y+1 * c
 
-              addpd xmm5, xmm6;  // c*x + s*y  , c*(x+1) + s*(y+1)
-              addpd xmm3, xmm4;  // -s*x + c*y, -s(x+1) + c*(y+1)
+         addpd xmm5, xmm6;  // c*x + s*y  , c*(x+1) + s*(y+1)
+         addpd xmm3, xmm4;  // -s*x + c*y, -s(x+1) + c*(y+1)
 
+         // write back
+         movhlps xmm6, xmm5;
+         movhlps xmm4, xmm3;
 
-              // write back
-              movhlps xmm6, xmm5;
-              movhlps xmm4, xmm3;
+         movsd [edx], xmm5;
+         movsd [edx + ecx], xmm6;
 
-              movsd [eax], xmm5;
-              movsd [eax + esi], xmm6;
+         movsd [ebx], xmm3;
+         movsd [ebx + edi], xmm4;
 
-              movsd [ebx], xmm3;
-              movsd [ebx + edi], xmm4;
+         add edx, ecx;
+         add edx, ecx;
+         add ebx, edi;
+         add ebx, edi;
 
-              add eax, esi;
-              add eax, esi;
-              add ebx, edi;
-              add ebx, edi;
+      sub eax, 2;
+      jge @@forNloop;
 
-           dec ecx;
-           jnz @@forNloop;
+   @@exitLoop:
 
-        @@exitLoop:
+   // test for an odd N
+   add eax, 2;
+   jz @@endProc;
 
-        // test for an odd N
-        mov ecx, N
-        and ecx, 1;
-        jz @@endProc;
+   // handle last element
+   movsd xmm5, [edx];
+   movsd xmm6, [ebx];
 
-        // handle last element
-        movsd xmm5, [eax];
-        movsd xmm6, [ebx];
+   //dtemp := c*pX^[i] + s*pY^[i];
+   //pY^[i] := - s*pX^[i] + c*pY^[i];
+   //px^[i] := dtemp;
+   movsd xmm3, xmm5;
+   movsd xmm4, xmm6;
 
-        //dtemp := c*pX^[i] + s*pY^[i];
-        //pY^[i] := - s*pX^[i] + c*pY^[i];
-        //px^[i] := dtemp;
-        movsd xmm3, xmm5;
-        movsd xmm4, xmm6;
+   mulsd xmm3, xmm0;  // x * -s
+   mulsd xmm5, xmm1;  // x * c
+   mulsd xmm6, xmm2;  // y * s
+   mulsd xmm4, xmm1;  // y * c
 
-        mulsd xmm3, xmm0;  // x * -s
-        mulsd xmm5, xmm1;  // x * c
-        mulsd xmm6, xmm2;  // y * s
-        mulsd xmm4, xmm1;  // y * c
+   addsd xmm5, xmm6;  // c*x + s*y
+   addsd xmm3, xmm4;  // -s*x + c*y
 
-        addsd xmm5, xmm6;  // c*x + s*y
-        addsd xmm3, xmm4;  // -s*x + c*y
+   // write back
+   movsd [edx], xmm5;
+   movsd [ebx], xmm3;
 
-        // write back
-        movsd [eax], xmm5;
-        movsd [ebx], xmm3;
+   @@endProc:
 
-        @@endProc:
-
-        pop esi;
-        pop edi;
-        pop ebx;
-     end;
+   pop esi;
+   pop edi;
+   pop ebx;
 end;
 
 procedure ASMMatrixRotate(N : TASMNativeInt; X : PDouble; const LineWidthDX : TASMNativeInt; Y : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);

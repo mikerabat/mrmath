@@ -55,6 +55,11 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date: 11.11.2018
+* Revisited all 32bit asm routines and changed the calling convention to "register"/"assembler".
+* AVX and FMA support needed a second check beside the CPU features -> the OS needed to be queried for that support too.
+* Fixed a small push pop problem in avx min max calculations (edi, esi switched)
+
 Date: 21.09.2018
 * Started using register (Delphi) and assembler (FPC) calling convention for
   some functions.

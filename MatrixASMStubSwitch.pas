@@ -1147,6 +1147,9 @@ begin
      if (instrType = itAVX) and not IsAVXPresent then
         instrType := itSSE;
 
+     if instrType = itAVX then
+        InitMathFunctions(itSSe, useStrassenMult);
+        
      // check features
      if (IsAVXPresent and (instrType = itAVX)) or (IsFMAPresent and (instrType = itFMA)) then
      begin
@@ -1169,7 +1172,7 @@ begin
           blockedMultT1Func := BlockMatrixMultiplicationT1;
           blockedMultT2Func := BlockMatrixMultiplicationT2;
           copyFunc := AVXMatrixCopy;
-          minFunc := AVXMatrixMin;
+          //minFunc := AVXMatrixMin;
           maxFunc := AVXMatrixMax;
           transposeFunc := AVXMatrixTranspose;
           transposeInplaceFunc := AVXMatrixTransposeInplace;

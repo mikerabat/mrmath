@@ -30,7 +30,7 @@ uses MatrixConst;
 // it's also assumed that memory before A is accessible for at least bLen elements
 // -> these elements are used for the convulution calculation
 // -> needs an aligned B and blen mod 2 needs to be zero
-procedure ASMVecConvolveRevB(dest : PDouble; A, B : PDouble; aLen, bLen : TASMNativeInt);
+procedure ASMVecConvolveRevB(dest : PDouble; A, B : PDouble; aLen, bLen : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -41,90 +41,84 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 procedure ASMVecConvolveRevB(dest : PDouble; A, B : PDouble; aLen, bLen : TASMNativeInt);
-var iter : integer;
-begin
-     assert(blen and $01 = 0, 'Error vector len needs to be dividable by 2');
-     assert( Cardinal(B) and $F = 0, 'Need an aligned B');
+// eax = dest, edx = A, ecx = B
+asm
+   push ebx;
+   push esi;
+   push edi;
 
-     iter := -bLen*sizeof(double);
-     asm
-        push ebx;
-        push esi;
+   mov esi, bLen;
+   imul esi, -8;
 
-        mov edx, dest;
-        mov ecx, A;
-        add ecx, 8;
-        mov ebx, B;
-        sub ebx, iter;
+   add edx, 8;
+   sub ecx, esi;
 
-        mov esi, aLen;
+   // one element convolution
+   @@forxloop:
+      mov edi, esi;
 
-        // one element convolution
-        @@forxloop:
-           mov eax, iter;
+      xorpd xmm0, xmm0;
 
-           xorpd xmm0, xmm0;
+      // unrolled part
+      @@innerLoopUnrolled:
+         add edi, 64;
+         jg @@innerLoopStart;
 
-           // unrolled part
-           @@innerLoopUnrolled:
-              add eax, 64;
-              jg @@innerLoopStart;
+         movupd xmm1, [edx + edi - 64];
+         movapd xmm2, [ecx + edi - 64];
 
-              movupd xmm1, [ecx + eax - 64];
-              movapd xmm2, [ebx + eax - 64];
+         mulpd xmm1, xmm2;
+         addpd xmm0, xmm1;
 
-              mulpd xmm1, xmm2;
-              addpd xmm0, xmm1;
+         movupd xmm3, [edx + edi - 48];
+         movapd xmm4, [ecx + edi - 48];
 
-              movupd xmm3, [ecx + eax - 48];
-              movapd xmm4, [ebx + eax - 48];
+         mulpd xmm3, xmm4;
+         addpd xmm0, xmm3;
 
-              mulpd xmm3, xmm4;
-              addpd xmm0, xmm3;
+         movupd xmm1, [edx + edi - 32];
+         movapd xmm2, [ecx + edi - 32];
 
-              movupd xmm1, [ecx + eax - 32];
-              movapd xmm2, [ebx + eax - 32];
+         mulpd xmm1, xmm2;
+         addpd xmm0, xmm1;
 
-              mulpd xmm1, xmm2;
-              addpd xmm0, xmm1;
+         movupd xmm3, [edx + edi - 16];
+         movapd xmm4, [ecx + edi - 16];
 
-              movupd xmm3, [ecx + eax - 16];
-              movapd xmm4, [ebx + eax - 16];
+         mulpd xmm3, xmm4;
+         addpd xmm0, xmm3;
 
-              mulpd xmm3, xmm4;
-              addpd xmm0, xmm3;
+      jmp @@innerLoopUnrolled;
 
-           jmp @@innerLoopUnrolled;
+      @@innerLoopStart:
+      sub edi, 64;
+      jz @@innerLoopEnd;
 
-           @@innerLoopStart:
-           sub eax, 64;
-           jz @@innerLoopEnd;
+      @@innerLoop:
+         movupd xmm1, [edx + edi];
+         movapd xmm2, [ecx + edi];
 
-           @@innerLoop:
-              movupd xmm1, [ecx + eax];
-              movapd xmm2, [ebx + eax];
+         mulpd xmm1, xmm2;
+         addpd xmm0, xmm1;
+         add edi, 16;
+      jnz @@innerLoop;
 
-              mulpd xmm1, xmm2;
-              addpd xmm0, xmm1;
-              add eax, 16;
-           jnz @@innerLoop;
+      @@innerLoopEnd:
 
-           @@innerLoopEnd:
+      haddpd xmm0, xmm0;
+      movsd [eax], xmm0;
 
-           haddpd xmm0, xmm0;
-           movsd [edx], xmm0;
+      // next element
+      add eax, 8;
+      add edx, 8;
+   dec aLen;
+   jnz @@forxloop;
 
-           // next element
-           add edx, 8;
-           add ecx, 8;
-        dec esi;
-        jnz @@forxloop;
-
-        // ########################################
-        // #### epilog
-        pop esi;
-        pop ebx;
-     end;
+   // ########################################
+   // #### epilog
+   pop edi;
+   pop esi;
+   pop ebx;
 end;
 
 {$ENDIF}

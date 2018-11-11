@@ -47,7 +47,7 @@ uses PCA,
      {$IFDEF FMX} FMX.Types, FMX.Graphics, {$ENDIF}   //wrc
      {$IFNDEF FMX} {$IFDEF Windows} Graphics, {$ENDIF} {$ENDIF}
      BinaryReaderWriter, BaseMathPersistence, IncrementalPCA,
-     JSONReaderWriter, MtxTimer, ThreadedMatrix;
+     JSONReaderWriter, MtxTimer, ThreadedMatrix, MatrixASMStubSwitch;
 
 { TTestEigensystems }
 
@@ -108,6 +108,7 @@ var Examples : TDoubleMatrix;
     x : integer;
     props : TFastRobustPCAProps;
 begin
+     InitSSEOptFunctions(itAVX);
      Examples := LoadImages(w, h);
 
      // ############################################
