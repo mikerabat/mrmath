@@ -11,11 +11,11 @@
 
 Installation:
 
-open the mrMath.dpk file and compile it.
+open the mrMath.dpk or the approriate FPC pendant in the packages directories and compile it.
 You may find quite a few examples in "Test\MathUtilsTests.dpr" - it's a unit test
 program which shows the usage of the library nicely.
 
-Add the basepath, the win and macos paths to the delphi library paths.
+Add the basepath to the delphi library paths.
 Basically you can use the "Matrix.pas" unit in your project it encapsulates
 all the matrix functions in a class.
 Alternatively one can use the ThreadedMatrix.pas file which adds multithreaded
