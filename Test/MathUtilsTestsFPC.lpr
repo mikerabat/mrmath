@@ -24,7 +24,6 @@ uses
   {$IFDEF UNIX} cthreads, {$ENDIF}
   {AM}
   Interfaces, Forms, GuiTestRunner, fpcunittestrunner,
-  BaseMatrixTestCase in 'BaseMatrixTestCase.pas',
   ASMMatrixAddSubOperations in '..\ASMMatrixAddSubOperations.pas',
   ASMMatrixAddSubOperationsx64 in '..\ASMMatrixAddSubOperationsx64.pas',
   ASMMatrixElementwiseMultOperations in '..\ASMMatrixElementwiseMultOperations.pas',
@@ -69,7 +68,6 @@ uses
   Matrix in '..\Matrix.pas',
   MatrixConst in '..\MatrixConst.pas',
   MtxThreadPool in '..\MtxThreadPool.pas',
-  MatrixASMStubSwitch in '..\MatrixASMStubSwitch.pas',
   SimpleMatrixOperations in '..\SimpleMatrixOperations.pas',
   ThreadedMatrix in '..\ThreadedMatrix.pas',
   ThreadedMatrixOperations in '..\ThreadedMatrixOperations.pas',
@@ -80,17 +78,10 @@ uses
   PCA in '..\PCA.pas',
   NonLinearFit in '..\NonLinearFit.pas',
   IncrementalPCA in '..\IncrementalPCA.pas',
-  MacOsThreadPool in '..\mac\MacOsThreadPool.pas',
-  SimpleWinThreadPool in '..\win\SimpleWinThreadPool.pas',
-  WinThreadPool in '..\win\WinThreadPool.pas',
-  GCDDispatch in '..\mac\GCDDispatch.pas',
   MtxTimer in '..\MtxTimer.pas',
   NNMF in '..\NNMF.pas',
-  winCPUInfo in '..\win\winCPUInfo.pas',
   ICA in '..\ICA.pas',
   RandomEng in '..\RandomEng.pas',
-  winRandomGen in '..\win\winRandomGen.pas',
-  MacOsRandomGen in '..\mac\MacOsRandomGen.pas',
   JSONReaderWriter in '..\JSONReaderWriter.pas',
   LinAlgSVD in '..\LinAlgSVD.pas',
   HouseholderReflectors in '..\HouseholderReflectors.pas',
@@ -100,7 +91,6 @@ uses
   LinAlgQR in '..\LinAlgQR.pas',
   PLS in '..\PLS.pas',
   Corr in '..\Corr.pas',
-  linuxthrpool in '..\mac\linuxthrpool.pas',
   EM in '..\EM.pas',
   RBSplines in '..\RBSplines.pas',
   AVXMatrixAbsOperations in '..\AVXMatrixAbsOperations.pas',
@@ -147,6 +137,7 @@ uses
   FMAMatrixVectorMultOperationsx64 in '..\FMAMatrixVectorMultOperationsx64.pas',
   FMAVecConvolve in '..\FMAVecConvolve.pas',
   FMAVecConvolvex64 in '..\FMAVecConvolvex64.pas',
+  BaseMatrixTestCase in 'BaseMatrixTestCase.pas',
   TestSimpleMatrixOperations in 'TestSimpleMatrixOperations.pas',
   TestAVX in 'TestAVX.pas',
   TestFMA in 'TestFMA.pas',
@@ -163,7 +154,15 @@ uses
   TestEM in 'TestEM.pas',
   TestRBSpline in 'TestRBSpline.pas',
   TestDist in 'TestDist.pas',
-  Dist in '..\Dist.pas';
+  Dist in '..\Dist.pas',
+  MatrixASMStubSwitch in '..\MatrixASMStubSwitch.pas',
+  GCDDispatch in '..\GCDDispatch.pas',
+  linuxthrpool in '..\linuxthrpool.pas',
+  MacOsRandomGen in '..\MacOsRandomGen.pas',
+  MacOsThreadPool in '..\MacOsThreadPool.pas',
+  winCPUInfo in '..\winCPUInfo.pas',
+  winRandomGen in '..\winRandomGen.pas',
+  WinThreadPool in '..\WinThreadPool.pas';
 
 {$R *.res}
 
