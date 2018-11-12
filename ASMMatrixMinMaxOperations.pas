@@ -552,6 +552,8 @@ asm
    movhlps xmm1, xmm0;
    minsd xmm0, xmm1;
    movsd Result, xmm0;
+
+   pop edi;
 end;
 
 function ASMMatrixMinUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
