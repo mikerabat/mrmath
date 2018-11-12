@@ -79,42 +79,34 @@ asm
            // addition:
            movapd xmm0, [ecx + esi - 128];
            mulpd xmm0, [edi + esi - 128];
-
            movapd [eax + esi - 128], xmm0;
 
            movapd xmm1, [ecx + esi - 112];
            mulpd xmm1, [edi + esi - 112];
-
            movapd [eax + esi - 112], xmm1;
 
            movapd xmm2, [ecx + esi - 96];
            mulpd xmm2, [edi + esi - 96];
-
            movapd [eax + esi - 96], xmm2;
 
            movapd xmm3, [ecx + esi - 80];
            mulpd xmm3, [edi + esi - 80];
-
            movapd [eax + esi - 80], xmm3;
 
            movapd xmm4, [ecx + esi - 64];
            mulpd xmm4, [edi + esi - 64];
-
            movapd [eax + esi - 64], xmm4;
 
            movapd xmm5, [ecx + esi - 48];
            mulpd xmm5, [edi + esi - 48];
-
            movapd [eax + esi - 48], xmm5;
 
            movapd xmm6, [ecx + esi - 32];
            mulpd xmm6, [edi + esi - 32];
-
            movapd [eax + esi - 32], xmm6;
 
            movapd xmm7, [ecx + esi - 16];
            mulpd xmm7, [edi + esi - 16];
-
            movapd [eax + esi - 16], xmm7;
        jmp @addforxloop
 

@@ -258,24 +258,21 @@ asm
        jz @buildRes;
 
        @addforxloop2:
-           movapd xmm0, [ecx + edi];
-           addpd xmm7, xmm0;
+           addpd xmm0, [ecx + edi];
        add edi, 16;
        jnz @addforxloop2;
 
        @buildRes:
 
        // handle last element differently
-       movsd xmm2, [ecx + edi];
-       addsd xmm7, xmm2;
+       movsd xmm7, [ecx];
+       addsd xmm2, xmm7;
 
        // build result
        addpd xmm0, xmm1;
        addpd xmm2, xmm3;
        addpd xmm0, xmm2;
-
-       movhlps xmm1, xmm0;
-       addsd xmm0, xmm1;
+       haddpd xmm0, xmm0;
 
        // write result
        movsd [eax], xmm0;
@@ -364,8 +361,7 @@ asm
        addsd xmm7, xmm2;
 
        // build result
-       movhlps xmm1, xmm7;
-       addsd xmm7, xmm1;
+       haddpd xmm7, xmm7;
 
        movsd [eax], xmm7;
 
