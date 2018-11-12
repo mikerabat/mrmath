@@ -133,7 +133,7 @@ uses
   AVXVecConvolvex64 in '..\..\AVXVecConvolvex64.pas',
   FMAVecConvolve in '..\..\FMAVecConvolve.pas',
   FMAVecConvolvex64 in '..\..\FMAVecConvolvex64.pas',
-  MatrixASMStubSwitch in 'MatrixASMStubSwitch.pas',
+  MatrixASMStubSwitch in '..\..\MatrixASMStubSwitch.pas',
   GCDDispatch in '..\..\GCDDispatch.pas',
   linuxthrpool in '..\..\linuxthrpool.pas',
   MacOsRandomGen in '..\..\MacOsRandomGen.pas',
