@@ -18,8 +18,9 @@
 package mrMath;
 
 {$R *.res}
+
 {$ALIGN 8}
-{$ASSERTIONS OFF}
+{$IFNDEF MACOS} {$ASSERTIONS OFF} {$ENDIF}
 {$BOOLEVAL OFF}
 {$DEBUGINFO ON}
 {$EXTENDEDSYNTAX ON}
@@ -43,10 +44,13 @@ package mrMath;
 {$RUNONLY}
 {$IMPLICITBUILD OFF}
 
+
 requires
   rtl;
 
 contains
+  MatrixConst in '..\..\MatrixConst.pas', 
+  SimpleMatrixOperations in '..\..\SimpleMatrixOperations.pas',
   ASMMatrixAddSubOperations in '..\..\ASMMatrixAddSubOperations.pas',
   ASMMatrixAddSubOperationsx64 in '..\..\ASMMatrixAddSubOperationsx64.pas',
   ASMMatrixElementwiseMultOperations in '..\..\ASMMatrixElementwiseMultOperations.pas',
@@ -83,9 +87,7 @@ contains
   Eigensystems in '..\..\Eigensystems.pas',
   MathUtilFunc in '..\..\MathUtilFunc.pas',
   Matrix in '..\..\Matrix.pas',
-  MatrixConst in '..\..\MatrixConst.pas',
   MtxThreadPool in '..\..\MtxThreadPool.pas',
-  SimpleMatrixOperations in '..\..\SimpleMatrixOperations.pas',
   ThreadedMatrix in '..\..\ThreadedMatrix.pas',
   ThreadedMatrixOperations in '..\..\ThreadedMatrixOperations.pas',
   BaseMathPersistence in '..\..\BaseMathPersistence.pas',

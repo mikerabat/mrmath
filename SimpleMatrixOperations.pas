@@ -1604,7 +1604,7 @@ procedure GenericMtxTranspose(dest : PDouble; const destLineWidth : TASMNativeIn
 var valCounter : PDouble;
     y : TASMNativeInt;
     x : TASMNativeInt;
-    pMt : PDouble;
+    pMt : PConstDoubleArr;
 begin
      assert((width > 0) and (height > 0), 'Dimension Error');
      assert(destLineWidth >= height*sizeof(double), 'Line width does not match');
@@ -1612,15 +1612,13 @@ begin
      for y := 0 to Height - 1 do
      begin
           valCounter := dest;
-          pMt := mt;
+          pMt := PConstDoubleArr(mt);
 
           for x := 0 to Width - 1 do
           begin
-               valCounter^ := pMt^;
+               valCounter^ := pMt^[x];
                inc(PByte(valCounter), destLineWidth);
-               inc(pMt);
           end;
-
           inc(dest);
           inc(PByte(mt), LineWidth);
      end;
