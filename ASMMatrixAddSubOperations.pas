@@ -160,7 +160,7 @@ asm
        // next line:
        add ecx, lineWidth1;
        add edi, lineWidth2;
-       add eax, destLineWidth;
+       add eax, edx;
 
    // loop y end
    dec height;
@@ -268,7 +268,7 @@ asm
        // next line:
        add ecx, lineWidth1;
        add edi, lineWidth2;
-       add eax, destLineWidth;
+       add eax, edx;
 
    // loop y end
    dec height;
@@ -376,7 +376,7 @@ asm
        // next line:
        add ecx, lineWidth1;
        add edi, lineWidth2;
-       add eax, destLineWidth;
+       add eax, edx;
 
    // loop y end
    dec height;
@@ -491,7 +491,7 @@ asm
        // next line:
        add ecx, lineWidth1;
        add edi, lineWidth2;
-       add eax, destLineWidth;
+       add eax, edx;
 
    // loop y end
    dec height;
@@ -592,7 +592,7 @@ asm
        // next line:
        add ecx, lineWidth1;
        add edi, lineWidth2;
-       add eax, destLineWidth;
+       add eax, edx;
 
    // loop y end
    dec height;
@@ -701,7 +701,7 @@ asm
        // next line:
        add ecx, lineWidth1;
        add edi, lineWidth2;
-       add eax, destLineWidth;
+       add eax, edx;
 
    // loop y end
    dec height;
@@ -809,7 +809,7 @@ asm
        // next line:
        add ecx, lineWidth1;
        add edi, lineWidth2;
-       add eax, destLineWidth;
+       add eax, edx;
 
    // loop y end
    dec height;
@@ -923,7 +923,7 @@ asm
        // next line:
        add ecx, lineWidth1;
        add edi, lineWidth2;
-       add eax, destLineWidth;
+       add eax, edx;
 
    // loop y end
    dec height;

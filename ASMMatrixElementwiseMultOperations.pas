@@ -563,7 +563,7 @@ asm
        add eax, edx;
 
    // loop y end
-   dec edx;
+   dec Height;
    jnz @@addforyloop;
 
    pop edi;
@@ -776,7 +776,7 @@ asm
        add eax, edx;
 
    // loop y end
-   dec edx;
+   dec Height;
    jnz @@addforyloop;
 
    pop edi;
