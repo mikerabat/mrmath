@@ -76,7 +76,7 @@ type
   TMatrixMtxRefObjFunc = procedure(var Value : double; const data : PDouble; LineWidth : integer; x, y : integer) of Object;
 
 {$IFDEF FPC}
-   {$DEFINE ANONMETHODS}
+   {.$DEFINE ANONMETHODS}
 {$ELSE}
    {$IF CompilerVersion >= 20.0}
       {$DEFINE ANONMETHODS}

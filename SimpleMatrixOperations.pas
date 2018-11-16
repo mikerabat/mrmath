@@ -137,7 +137,7 @@ procedure GenericMtxFunc(dest : PDouble; const destLineWidth : TASMNativeInt; wi
 procedure GenericMtxFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefObjFunc); overload;
 
 {$IFDEF FPC}
-   {$DEFINE ANONMETHODS}
+   {.$DEFINE ANONMETHODS}
 {$ELSE}
    {$IF CompilerVersion >= 20.0}
       {$DEFINE ANONMETHODS}

@@ -70,7 +70,7 @@ begin
 
      with TMatrixCCA.Create do
      try
-        OnProgress := ccaProgress;
+        OnProgress := {$IFDEF FPC}@{$ENDIF}ccaProgress;
         start := MtxGetTime;
         CCA(X, Y);
         stop := MtxGetTime;

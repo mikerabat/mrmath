@@ -24,7 +24,7 @@ interface
 uses Matrix, MatrixConst;
 
 {$IFDEF FPC}
-   {$DEFINE ANONMETHODS}
+   {.$DEFINE ANONMETHODS}
 {$ELSE}
    {$IF CompilerVersion >= 20.0}
       {$DEFINE ANONMETHODS}

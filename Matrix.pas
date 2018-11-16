@@ -31,7 +31,7 @@ uses SysUtils, Classes, Types, MatrixConst, BaseMathPersistence, RandomEng;
 {$ENDIF}
 
 {$IFDEF FPC}
-   {$DEFINE ANONMETHODS}
+   {.$DEFINE ANONMETHODS}
 {$ELSE}
    {$IF CompilerVersion >= 20.0}
       {$DEFINE ANONMETHODS}

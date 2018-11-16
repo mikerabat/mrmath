@@ -56,7 +56,7 @@ procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; wid
 procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefObjFunc); overload;
 
 {$IFDEF FPC}
-   {$DEFINE ANONMETHODS}
+   {.$DEFINE ANONMETHODS}
 {$ELSE}
    {$IF CompilerVersion >= 20.0}
       {$DEFINE ANONMETHODS}
@@ -200,6 +200,7 @@ type
   end;
   PAsyncMatrixFuncRefObjRec = ^TAsyncMatrixFuncRefObjRec;
 
+{$IFDEF ANONMETHODS}
 type
   TAsyncMatrixFuncRefRecAnon = record
     dest : PDouble;
@@ -219,7 +220,7 @@ type
     func : TMatrixFuncRef;
   end;
   PAsyncMatrixFuncRecAnon = ^TAsyncMatrixFuncRecAnon;
-
+{$ENDIF}
 
 
 procedure MatrixFuncFunc(obj : Pointer);
