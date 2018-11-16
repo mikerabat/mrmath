@@ -136,6 +136,19 @@ procedure GenericMtxFunc(dest : PDouble; const destLineWidth : TASMNativeInt; wi
 procedure GenericMtxFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFunc); overload;
 procedure GenericMtxFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefObjFunc); overload;
 
+{$IFDEF FPC}
+   {$DEFINE ANONMETHODS}
+{$ELSE}
+   {$IF CompilerVersion >= 20.0}
+      {$DEFINE ANONMETHODS}
+   {$IFEND}
+{$ENDIF}
+
+{$IFDEF ANONMETHODS}
+procedure GenericMtxFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixFuncRef); overload;
+procedure GenericMtxFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFuncRef); overload;
+{$ENDIF}
+
 // ###########################################
 // #### Matrix multiplications used in QR Decomposition
 procedure GenericMtxMultTria2T1Lower(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
@@ -1763,6 +1776,44 @@ begin
           inc(PByte(pdest), destLineWidth);
      end;
 end;
+
+{$IFDEF ANONMETHODS}
+
+procedure GenericMtxFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixFuncRef);
+var x, y : TASMNativeInt;
+    pLine : PConstDoubleArr;
+begin
+     assert((width > 0) and (height > 0), 'Dimension Error');
+     assert(width*sizeof(double) <= destLineWidth, 'Dimension Error');
+
+     for y := 0 to Height - 1 do
+     begin
+          pLine := PConstDoubleArr(dest);
+          for x := 0 to width - 1 do
+              func(pLine^[x]);
+          inc(PByte(dest), destLineWidth);
+     end;
+end;
+
+procedure GenericMtxFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFuncRef);
+var x, y : TASMNativeInt;
+    pLine : PConstDoubleArr;
+    pDest : PDouble;
+begin
+     assert((width > 0) and (height > 0), 'Dimension Error');
+     assert(width*sizeof(double) <= destLineWidth, 'Dimension Error');
+
+     pDest := dest;
+     for y := 0 to Height - 1 do
+     begin
+          pLine := PConstDoubleArr(pdest);
+          for x := 0 to width - 1 do
+              func(pLine^[x], dest, destLineWidth, x, y);
+          inc(PByte(pdest), destLineWidth);
+     end;
+end;
+
+{$ENDIF}
 
 // ###########################################
 // #### Blocked Matrix multiplcation + Strassen algorithm

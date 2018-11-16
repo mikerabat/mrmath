@@ -30,6 +30,14 @@ uses SysUtils, Classes, Types, MatrixConst, BaseMathPersistence, RandomEng;
 {$DEFINE x64}
 {$ENDIF}
 
+{$IFDEF FPC}
+   {$DEFINE ANONMETHODS}
+{$ELSE}
+   {$IF CompilerVersion >= 20.0}
+      {$DEFINE ANONMETHODS}
+   {$IFEND}
+{$ENDIF}
+
 type
   EBaseMatrixException = class(Exception);
   ELinEQSingularException = class(EBaseMatrixException);
@@ -66,7 +74,7 @@ type
     // general access
     property Items[x, y : integer] : double read GetItems write SetItems; default;
     property Vec[idx : integer] : double read GetVecItem write SetVecItem; // matrix as vector
-    property VecLen : integer read GetVecLen;   
+    property VecLen : integer read GetVecLen;
 
     procedure Clear;
     function GetObjRef : TDoubleMatrix;
@@ -100,7 +108,7 @@ type
     function Trace : double;
 
     procedure Normalize(RowWise : boolean);
-    function ElementwiseNorm2(doSqrt : boolean = True) : double;   
+    function ElementwiseNorm2(doSqrt : boolean = True) : double;
 
     // ###################################################
     // #### Base Matrix operations
@@ -165,8 +173,7 @@ type
     // if RowWise is selected. If rowwise is false it's vice versa
     function MeanVariance(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
     procedure MeanVarianceInPlace(RowWise : boolean; unbiased : boolean = True);
-    
-    
+
     function Median(RowWise : boolean) : TDoubleMatrix;
     procedure MedianInPlace(RowWise : boolean);
 
@@ -199,6 +206,13 @@ type
     procedure ElementwiseFuncInPlace(func : TMatrixMtxRefObjFunc); overload;
     function ElementwiseFunc(func : TMatrixMtxRefObjFunc) : TDoubleMatrix; overload;
 
+    {$IFDEF ANONMETHODS}
+    procedure ElementwiseFuncInPlace(func : TMatrixFuncRef); overload;
+    function ElementwiseFunc(func : TMatrixFuncRef) : TDoubleMatrix; overload;
+    procedure ElementwiseFuncInPlace(func : TMatrixMtxRefFuncRef); overload;
+    function ElementwiseFunc(func : TMatrixMtxRefFuncRef) : TDoubleMatrix; overload;
+    {$ENDIF}
+
     // ###################################################
     // #### Linear System solver A*x = B -> use A.SolveLinEQ(B) -> x
     function SolveLinEQ(Value : TDoubleMatrix; numRefinements : integer = 0) : TDoubleMatrix; overload;
@@ -207,12 +221,12 @@ type
     procedure SolveLinEQInPlace(Value : IMatrix; numRefinements : integer = 0); overload;
 
     // solves least sqaures A*x = b using the QR decomposition
-    function SolveLeastSquaresInPlace(out x : TDoubleMatrix; b : TDoubleMatrix) : TQRResult; overload; 
-    function SolveLeastSquaresInPlace(out x : IMatrix; b : IMatrix) : TQRResult; overload; 
-    function SolveLeastSquares(out x : TDoubleMatrix; b : TDoubleMatrix) : TQRResult; overload; 
+    function SolveLeastSquaresInPlace(out x : TDoubleMatrix; b : TDoubleMatrix) : TQRResult; overload;
+    function SolveLeastSquaresInPlace(out x : IMatrix; b : IMatrix) : TQRResult; overload;
+    function SolveLeastSquares(out x : TDoubleMatrix; b : TDoubleMatrix) : TQRResult; overload;
     function SolveLeastSquares(out x : IMatrix; b : IMatrix) : TQRResult; overload;
 
-    // matrix inversion (based on LU decomposition)    
+    // matrix inversion (based on LU decomposition)
     function InvertInPlace : TLinEquResult;
     function Invert : TDoubleMatrix; overload;
     function Invert( out InvMtx : TDoubleMatrix ) : TLinEquResult; overload;
@@ -283,7 +297,7 @@ type
       TLocASMNativeInt = NativeInt;
       {$ELSE}
       TLocASMNativeInt = integer;
-      {$ENDIF} 
+      {$ENDIF}
   protected
     // used to determine which class type to use as a result
     // e.g. the threaded class does not override all standard functions but
@@ -293,8 +307,8 @@ type
     function GetItems(x, y: integer): double; register; inline;
     procedure SetItems(x, y: integer; const Value: double); register; inline;
     // Access as vector -> same as GetItem(idx mod width, idx div width)
-    function GetVecItem(idx: integer): double; register; 
-    procedure SetVecItem(idx: integer; const Value: double); register; 
+    function GetVecItem(idx: integer): double; register;
+    procedure SetVecItem(idx: integer; const Value: double); register;
 
     // matrix persistence functions
     procedure DefineProps; override;
@@ -484,6 +498,14 @@ type
     function ElementwiseFunc(func : TMatrixMtxRefFunc) : TDoubleMatrix; overload; virtual;
     procedure ElementwiseFuncInPlace(func : TMatrixMtxRefObjFunc); overload; virtual;
     function ElementwiseFunc(func : TMatrixMtxRefObjFunc) : TDoubleMatrix; overload; virtual;
+
+    {$IFDEF ANONMETHODS}
+    procedure ElementwiseFuncInPlace(func : TMatrixFuncRef); overload; virtual;
+    function ElementwiseFunc(func : TMatrixFuncRef) : TDoubleMatrix; overload; virtual;
+    procedure ElementwiseFuncInPlace(func : TMatrixMtxRefFuncRef); overload; virtual;
+    function ElementwiseFunc(func : TMatrixMtxRefFuncRef) : TDoubleMatrix; overload; virtual;
+    {$ENDIF}
+
 
     // ###################################################
     // #### Linear System solver A*x = B -> use A.SolveLinEQ(B) -> x
@@ -1415,6 +1437,43 @@ begin
 
      MatrixFunc(StartElement, LineWidth, fSubWidth, fSubHeight, func);
 end;
+
+
+{$IFDEF ANONMETHODS}
+procedure TDoubleMatrix.ElementwiseFuncInPlace(func : TMatrixFuncRef);
+begin
+     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
+
+     MatrixFunc(StartElement, LineWidth, fSubWidth, fSubHeight, func);
+end;
+
+function TDoubleMatrix.ElementwiseFunc(func : TMatrixFuncRef) : TDoubleMatrix;
+begin
+     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
+     Result := ResultClass.Create;
+     Result.Assign(self);
+
+     MatrixFunc(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, func);
+end;
+
+procedure TDoubleMatrix.ElementwiseFuncInPlace(func : TMatrixMtxRefFuncRef);
+begin
+     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
+
+     MatrixFunc(StartElement, LineWidth, fSubWidth, fSubHeight, func);
+end;
+
+function TDoubleMatrix.ElementwiseFunc(func : TMatrixMtxRefFuncRef) : TDoubleMatrix;
+begin
+     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
+     Result := ResultClass.Create;
+     Result.Assign(self);
+
+     MatrixFunc(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, func);
+end;
+
+{$ENDIF}
+
 
 function TDoubleMatrix.ElementWiseMult(Value: TDoubleMatrix) : TDoubleMatrix;
 begin

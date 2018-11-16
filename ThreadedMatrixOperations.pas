@@ -55,6 +55,19 @@ procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; wid
 procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFunc); overload;
 procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefObjFunc); overload;
 
+{$IFDEF FPC}
+   {$DEFINE ANONMETHODS}
+{$ELSE}
+   {$IF CompilerVersion >= 20.0}
+      {$DEFINE ANONMETHODS}
+   {$IFEND}
+{$ENDIF}
+
+{$IFDEF ANONMETHODS}
+procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixFuncRef); overload;
+procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFuncRef); overload;
+{$ENDIF}
+
 
 implementation
 
@@ -186,6 +199,28 @@ type
     func : TMatrixMtxRefObjFunc;
   end;
   PAsyncMatrixFuncRefObjRec = ^TAsyncMatrixFuncRefObjRec;
+
+type
+  TAsyncMatrixFuncRefRecAnon = record
+    dest : PDouble;
+    destLineWidth : TASMNativeInt;
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+    func : TMatrixMtxRefFuncRef;
+  end;
+  PAsyncMatrixFuncRefRecAnon = ^TAsyncMatrixFuncRefRecAnon;
+
+type
+  TAsyncMatrixFuncRecAnon = record
+    dest : PDouble;
+    destLineWidth : TASMNativeInt;
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+    func : TMatrixFuncRef;
+  end;
+  PAsyncMatrixFuncRecAnon = ^TAsyncMatrixFuncRecAnon;
+
+
 
 procedure MatrixFuncFunc(obj : Pointer);
 begin
@@ -1082,7 +1117,7 @@ begin
          calls.AddTaskRec(@MatrixFuncFunc, Pointer(@objs[i]));
 
      MatrixFuncFunc(Pointer(@objs[numUsed  - 1]));
-     
+
      calls.SyncAll;
 end;
 
@@ -1297,6 +1332,152 @@ begin
 
      calls.SyncAll;
 end;
+
+{$IFDEF ANONMETHODS}
+
+procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixFuncRef);
+var i: TASMNativeInt;
+    calls : IMtxAsyncCallGroup;
+    sizeFits : boolean;
+    thrSize : TASMNativeInt;
+
+    objs : Array[0..cMaxNumCores - 1] of TAsyncMatrixFuncRecAnon;
+    numUsed : integer;
+begin
+     // check if it is really necessary to thread the call:
+     if (width < numCPUCores) and (height < numCPUCores) then
+     begin
+          MatrixFunc(dest, destLineWidth, width, height, func);
+          exit;
+     end;
+
+     numUsed := 0;
+
+     if width > height then
+     begin
+          sizeFits := (width mod numCPUCores) = 0;
+          thrSize := width div numCPUCores + TASMNativeInt(not sizeFits);
+
+          for i := 0 to numCPUCores - 1 do
+          begin
+               objs[numUsed].dest := dest;
+               objs[numUsed].destLineWidth := destLineWidth;
+               objs[numUsed].width := thrSize;
+               objs[numUsed].height := height;
+               objs[numUsed].func := func;
+
+               inc(objs[numUsed].dest, i*thrSize);
+               if width < (i + 1)*thrSize then
+                  objs[numUsed].Width := width - i*thrSize;
+
+               inc(numUsed);
+          end;
+     end
+     else
+     begin
+          sizeFits := (height mod numCPUCores) = 0;
+          thrSize := height div numCPUCores + TASMNativeInt(not sizeFits);
+
+          for i := 0 to numCPUCores - 1 do
+          begin
+               objs[numUsed].dest := dest;
+               objs[numUsed].destLineWidth := destLineWidth;
+               objs[numUsed].width := width;
+               objs[numUsed].height := thrSize;
+               objs[numUsed].func := func;
+
+               inc(PByte(objs[numUsed].dest), i*thrSize*destLineWidth);
+               if height < (i + 1)*thrSize then
+                  objs[numUsed].Height := height - i*thrSize;
+
+               inc(numUsed);
+          end;
+     end;
+
+     // ###########################################
+     // #### Run threads
+     calls := MtxInitTaskGroup;
+
+     for i := 0 to numUsed - 2 do
+         calls.AddTaskRec(@MatrixFuncFunc, Pointer(@objs[i]));
+
+     MatrixFuncFunc(Pointer(@objs[numUsed  - 1]));
+
+     calls.SyncAll;
+end;
+
+procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFuncRef);
+var i: TASMNativeInt;
+    calls : IMtxAsyncCallGroup;
+    sizeFits : boolean;
+    thrSize : TASMNativeInt;
+
+    objs : Array[0..cMaxNumCores - 1] of TAsyncMatrixFuncRefRecAnon;
+    numUsed : integer;
+begin
+     // check if it is really necessary to thread the call:
+     if (width < numCPUCores) and (height < numCPUCores) then
+     begin
+          MatrixFunc(dest, destLineWidth, width, height, func);
+          exit;
+     end;
+
+     numUsed := 0;
+
+     if width > height then
+     begin
+          sizeFits := (width mod numCPUCores) = 0;
+          thrSize := width div numCPUCores + TASMNativeInt(not sizeFits);
+
+          for i := 0 to numCPUCores - 1 do
+          begin
+               objs[numUsed].dest := dest;
+               objs[numUsed].destLineWidth := destLineWidth;
+               objs[numUsed].width := thrSize;
+               objs[numUsed].height := height;
+               objs[numUsed].func := func;
+
+               inc(objs[numUsed].dest, i*thrSize);
+               if width < (i + 1)*thrSize then
+                  objs[numUsed].Width := width - i*thrSize;
+
+               inc(numUsed);
+          end;
+     end
+     else
+     begin
+          sizeFits := (height mod numCPUCores) = 0;
+          thrSize := height div numCPUCores + TASMNativeInt(not sizeFits);
+
+          for i := 0 to numCPUCores - 1 do
+          begin
+               objs[numUsed].dest := dest;
+               objs[numUsed].destLineWidth := destLineWidth;
+               objs[numUsed].width := width;
+               objs[numUsed].height := thrSize;
+               objs[numUsed].func := func;
+
+               inc(PByte(objs[numUsed].dest), i*thrSize*destLineWidth);
+               if height < (i + 1)*thrSize then
+                  objs[numUsed].Height := height - i*thrSize;
+
+               inc(numUsed);
+          end;
+     end;
+
+     // ###########################################
+     // #### Run threads
+     calls := MtxInitTaskGroup;
+
+     for i := 0 to numUsed - 2 do
+         calls.AddTaskRec(@MatrixFuncRefObjFunc, @objs[i]);
+
+     MatrixFuncRefObjFunc(@objs[numUsed  - 1]);
+
+     calls.SyncAll;
+end;
+
+{$ENDIF}
 
 procedure ThrMatrixAddSub(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; func : TMatrixAddSubFunc);
 var i: TASMNativeInt;

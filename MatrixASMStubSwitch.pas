@@ -178,6 +178,19 @@ procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width,
 procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFunc); overload;
 procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefObjFunc); overload;
 
+{$IFDEF FPC}
+   {$DEFINE ANONMETHODS}
+{$ELSE}
+   {$IF CompilerVersion >= 20.0}
+      {$DEFINE ANONMETHODS}
+   {$IFEND}
+{$ENDIF}
+
+{$IFDEF ANONMETHODS}
+procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixFuncRef); overload;
+procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFuncRef); overload;
+{$ENDIF}
+
 // matrix rotation stubs
 procedure ApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
 procedure ApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
@@ -1098,6 +1111,20 @@ procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width,
 begin
      GenericMtxFunc(dest, destLineWidth, width, height, func);
 end;
+
+{$IFDEF ANONMETHODS}
+
+procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixFuncRef); overload;
+begin
+     GenericMtxFunc(dest, destLineWidth, width, height, func);
+end;
+
+procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFuncRef); overload;
+begin
+     GenericMtxFunc(dest, destLineWidth, width, height, func);
+end;
+
+{$ENDIF}
 
 procedure InitSSEOptFunctions(instrType : TCPUInstrType);
 begin

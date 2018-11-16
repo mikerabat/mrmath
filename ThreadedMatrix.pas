@@ -23,6 +23,14 @@ interface
 
 uses Matrix, MatrixConst;
 
+{$IFDEF FPC}
+   {$DEFINE ANONMETHODS}
+{$ELSE}
+   {$IF CompilerVersion >= 20.0}
+      {$DEFINE ANONMETHODS}
+   {$IFEND}
+{$ENDIF}
+
 // ##############################################################
 // #### Some overridden function which allows some multi threaded
 // operations on the data
@@ -50,6 +58,14 @@ type
     function ElementwiseFunc(func : TMatrixMtxRefFunc) : TDoubleMatrix; overload; override;
     procedure ElementwiseFuncInPlace(func : TMatrixMtxRefObjFunc); overload; override;
     function ElementwiseFunc(func : TMatrixMtxRefObjFunc) : TDoubleMatrix; overload; override;
+
+    {$IFDEF ANONMETHODS}
+    procedure ElementwiseFuncInPlace(func : TMatrixFuncRef); overload; override;
+    function ElementwiseFunc(func : TMatrixFuncRef) : TDoubleMatrix; overload; override;
+    procedure ElementwiseFuncInPlace(func : TMatrixMtxRefFuncRef); overload; override;
+    function ElementwiseFunc(func : TMatrixMtxRefFuncRef) : TDoubleMatrix; overload; override;
+    {$ENDIF}
+
 
     // note: due to the multi threaded offset the add and sub functions seem to be
     // faster if implemented single threaded
@@ -197,6 +213,43 @@ begin
 
      ThrMatrixFunc(StartElement, LineWidth, fSubWidth, fSubHeight, func);
 end;
+
+
+{$IFDEF ANONMETHODS}
+
+function TThreadedMatrix.ElementwiseFunc(func: TMatrixFuncRef): TDoubleMatrix;
+begin
+     assert((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
+     Result := ResultClass.Create;
+     Result.Assign(self);
+
+     ThrMatrixFunc(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, func);
+end;
+
+procedure TThreadedMatrix.ElementwiseFuncInPlace(func: TMatrixFuncRef);
+begin
+     assert((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
+
+     ThrMatrixFunc(StartElement, LineWidth, fSubWidth, fSubHeight, func);
+end;
+
+function TThreadedMatrix.ElementwiseFunc(func: TMatrixMtxRefFuncRef): TDoubleMatrix;
+begin
+     assert((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
+     Result := ResultClass.Create;
+     Result.Assign(self);
+
+     ThrMatrixFunc(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, func);
+end;
+
+procedure TThreadedMatrix.ElementwiseFuncInPlace(func: TMatrixMtxRefFuncRef);
+begin
+     assert((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
+
+     ThrMatrixFunc(StartElement, LineWidth, fSubWidth, fSubHeight, func);
+end;
+
+{$ENDIF}
 
 class procedure TThreadedMatrix.FinalizeThreadPool;
 begin

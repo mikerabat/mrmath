@@ -55,6 +55,9 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date: 16.11.2018
+* Anonymous methods are now possible for the elementwise functions.
+
 Date: 11.11.2018
 * Revisited all 32bit asm routines and changed the calling convention to "register"/"assembler".
 * AVX and FMA support needed a second check beside the CPU features -> the OS needed to be queried for that support too.

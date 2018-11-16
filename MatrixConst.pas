@@ -75,6 +75,20 @@ type
   TMatrixMtxRefFunc = procedure(var Value : double; const data : PDouble; LineWidth : integer; x, y : integer);
   TMatrixMtxRefObjFunc = procedure(var Value : double; const data : PDouble; LineWidth : integer; x, y : integer) of Object;
 
+{$IFDEF FPC}
+   {$DEFINE ANONMETHODS}
+{$ELSE}
+   {$IF CompilerVersion >= 20.0}
+      {$DEFINE ANONMETHODS}
+   {$IFEND}
+{$ENDIF}
+
+
+{$IFDEF ANONMETHODS}
+  TMatrixFuncRef = reference to procedure(var Value : double);
+  TMatrixMtxRefFuncRef = reference to procedure(var Value : double; const data : PDouble; LineWidth : integer; x, y : integer);
+{$ENDIF}
+
 function ConvEQUProgress(value : TLinEquProgressWOObj) : TLinEquProgress;
 
 

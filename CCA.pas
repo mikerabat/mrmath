@@ -41,7 +41,6 @@ type
 
     fLastProgress : integer;
     fBaseProgress : integer;
-    fLinEqProgressMult : integer;
     function InvertAndSQRT(mtx : IMatrix) : IMatrix;
     procedure DoProgress(Progress : integer);
     procedure InvProgress( Progress : integer);
