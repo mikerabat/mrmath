@@ -261,7 +261,7 @@ end;
 
 class function TDistance.L1Reg(x, y: IMatrix): IMatrix;
 begin
-     L1Reg(x, y, 200, 1e-6, 10);
+     Result := L1Reg(x, y, 200, 1e-6, 10);
 end;
 
 class function TDistance.L1Reg(x, y: IMatrix; maxIter: integer; relTol,

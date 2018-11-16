@@ -30,7 +30,7 @@
         <PackageName Value="adLCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="142">
+    <Units Count="149">
       <Unit0>
         <Filename Value="MathUtilsLinux.ppr"/>
         <IsPartOfProject Value="True"/>
@@ -599,6 +599,34 @@
         <Filename Value="../MatrixASMStubSwitch.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit141>
+      <Unit142>
+        <Filename Value="../GCDDispatch.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit142>
+      <Unit143>
+        <Filename Value="../linuxthrpool.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit143>
+      <Unit144>
+        <Filename Value="../MacOsRandomGen.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit144>
+      <Unit145>
+        <Filename Value="../MacOsThreadPool.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit145>
+      <Unit146>
+        <Filename Value="../winCPUInfo.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit146>
+      <Unit147>
+        <Filename Value="../winRandomGen.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit147>
+      <Unit148>
+        <Filename Value="../WinThreadPool.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit148>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -611,6 +639,20 @@
       <OtherUnitFiles Value="..;../win;../mac"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)/$(LCLWidgetType)"/>
     </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <IncludeAssertionCode Value="True"/>
+      </SyntaxOptions>
+    </Parsing>
+    <CodeGeneration>
+      <Checks>
+        <IOChecks Value="True"/>
+        <RangeChecks Value="True"/>
+        <OverflowChecks Value="True"/>
+        <StackChecks Value="True"/>
+      </Checks>
+      <VerifyObjMethodCallValidity Value="True"/>
+    </CodeGeneration>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="5">

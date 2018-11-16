@@ -26,8 +26,12 @@ uses SysUtils, Classes, Matrix, MatrixConst, BaseMathPersistence;
 // kernel canonical correlation analysis", Pattern Recognition 36,
 // 1961-1971, 2003
 type
+
+  { TMatrixCCA }
+
   TMatrixCCA = class(TMatrixClass)
   private
+    fProgress: TMtxProgress;
     fWxT : IMatrix;
     fWyT : IMatrix;
     fR : IMatrix;
@@ -35,7 +39,13 @@ type
     fMeanX : IMatrix;   // used in the project method
     fMeanY : IMatrix;   // used in the project method
 
+    fLastProgress : integer;
+    fBaseProgress : integer;
+    fLinEqProgressMult : integer;
     function InvertAndSQRT(mtx : IMatrix) : IMatrix;
+    procedure DoProgress(Progress : integer);
+    procedure InvProgress( Progress : integer);
+    procedure SVDProgress( Progress : integer);
   protected
     class function ClassIdentifier : String; override;
     procedure DefineProps; override;
@@ -46,6 +56,8 @@ type
     property WxT : IMatrix read fWxT;
     property WyT : IMatrix read fWyT;
     property R : IMatrix read fR;
+
+    property OnProgress : TMtxProgress read fProgress write fProgress;
 
     function Project(X : TDoubleMatrix) : TDoubleMatrix;
 
@@ -95,6 +107,24 @@ begin
      Result := V.Mult(U);
 end;
 
+procedure TMatrixCCA.DoProgress(Progress: integer);
+begin
+     if Assigned(fProgress) and (Progress > fLastProgress) then
+        fProgress(Self, Progress);
+
+     fLastProgress := Progress;
+end;
+
+procedure TMatrixCCA.InvProgress(Progress: integer);
+begin
+     DoProgress(fBaseProgress + Progress*37 div 100);
+end;
+
+procedure TMatrixCCA.SVDProgress(Progress: integer);
+begin
+     DoProgress(fBaseProgress + progress * 11 div 100);
+end;
+
 procedure TMatrixCCA.CCA(X, Y: TDoubleMatrix; doRegularization: Boolean;
   Lamda: double);
 var meanNormX : IMatrix;
@@ -108,11 +138,15 @@ var meanNormX : IMatrix;
     p, q : integer;
     numCC : integer;
 begin
+     fLastProgress := -1;
+
      N := X.Width;
      p := X.Height;
      q := Y.Height;
 
      assert(N = y.Width, 'Error matrices height must be the same');
+
+     DoProgress(0);
 
      // ##################################################
      // #### mean normalize data
@@ -122,6 +156,8 @@ begin
      meanNormX := X.SubVec(fMeanX, False);
      meanNormY := Y.SubVec(fMeanY, False);
 
+     DoProgress(2);
+
      // ##################################################
      // #### overall covariance matrix C = [Cxx Cxy; Cyx Cyy]
      // #### used method is more efficient than computing cov([X; Y]) directly
@@ -129,13 +165,18 @@ begin
      Cxx := meanNormX.Mult(tmp);
      Cxx.ScaleInPlace(1/(N-1));
 
+     DoProgress(3);
+
      tmp := meanNormY.Transpose;
      Cyy := meanNormY.Mult(tmp);
      Cyy.ScaleInPlace(1/(N-1));
 
+     DoProgress(5);
+
      Cxy := meanNormX.Mult(tmp);
      Cxy.ScaleInPlace(1/(N-1));
 
+     DoProgress(8);
   //   Cyx := Cxy.Transpose;
 
      // ##################################################
@@ -160,9 +201,14 @@ begin
 
      // ####################################################
      // #### compute inverse matrices
-
+     fBaseProgress := 8;
+     cyy.LinEQProgress := {$IFDEF FPC}@{$ENDIF}InvProgress;
      invCyy := InvertAndSQRT(Cyy);
+     DoProgress( 45 );
+     fBaseProgress := 45;
+     Cxx.LinEQProgress := {$IFDEF FPC}@{$ENDIF}InvProgress;
      invCxx := InvertAndSQRT(Cxx);
+     DoProgress(82);
 
      // ####################################################
      // #### compute Wx, Wy.
@@ -171,10 +217,16 @@ begin
      tmp.MultInPlace(cxy);
      tmp.MultInPlace(invCyy);
 
+     DoProgress(83);
+     fBaseProgress := 83;
+
+     tmp.LinEQProgress := {$IFDEF FPC}@{$ENDIF}svdProgress;
      if tmp.SVD(U, V, W, True) <> srOk then
         raise ELinEQSingularException.Create('Error could not calculate SVD');
 
      V.TransposeInPlace;
+
+     DoProgress(95);
      // ####################################################
      // #### Compute cannonical correlation vectors
      invCxx.MultInPlace(U);
@@ -184,6 +236,8 @@ begin
      numCC := min(p, q);
      invCxx.SetSubMatrix(0, 0, numCC, invCxx.Height);
      fWxT := invCxx.Transpose;
+
+     DoProgress(97);
 
      invCyy.SetSubMatrix(0, 0, numCC, invCyy.Height);
      fWyT := invCyy.Transpose;
@@ -199,6 +253,8 @@ begin
         raise Exception.Create('Error cannot invert Wy for projection');
 
      fInvWy.MultInPlace(fWxT);
+
+     DoProgress(100);
 end;
 
 function TMatrixCCA.Project(X: TDoubleMatrix): TDoubleMatrix;

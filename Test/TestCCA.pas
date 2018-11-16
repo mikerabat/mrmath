@@ -26,6 +26,8 @@ uses {$IFDEF FPC} testregistry {$ELSE} {$IFDEF FMX}DUnitX.TestFramework {$ELSE}T
 type
   {$IFDEF FMX} [TestFixture] {$ENDIF}
   TTestCCA = class(TBaseImgTestCase)
+  private
+    procedure ccaProgress(Sender : TObject; progress : integer);
   published
     procedure TestCCAImages;
     procedure TestCCAThreadedImg;
@@ -68,6 +70,7 @@ begin
 
      with TMatrixCCA.Create do
      try
+        OnProgress := ccaProgress;
         start := MtxGetTime;
         CCA(X, Y);
         stop := MtxGetTime;
@@ -185,6 +188,11 @@ begin
      y.Free;
 end;
 
+
+procedure TTestCCA.ccaProgress(Sender: TObject; progress: integer);
+begin
+     Status('CCA Progress: ' + IntToStr(progress));
+end;
 
 { TTestPLS }
 

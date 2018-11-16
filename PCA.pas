@@ -27,7 +27,6 @@ type
   TPCASaveData = (pcaEigVals, pcaMeanNormalizedData, pcaTransposedEigVec);
   TPCASaveDataSet = set of TPCASaveData;
   EPCAException = class(EBaseMatrixException);
-  TPCAProgress = procedure(Sender : TObject; progress : integer) of Object;
 
 type
   TPCAData = record
@@ -42,7 +41,7 @@ type
 type
   TMatrixPCA = class(TMatrixClass)
   private
-    fProgress : TPCAProgress;
+    fProgress : TMtxProgress;
 
     procedure OnLineEQProgress(Progress : integer);
     function GetEigVals: TDoubleMatrix;
@@ -92,7 +91,7 @@ type
     procedure ProjectToFeatureSpace(Example : TDoubleMatrix; ResMatrix : TDoubleMatrix; Column : integer); overload;
     function Reconstruct(Features : TDoubleMatrix) : TDoubleMatrix;
 
-    property OnProgress : TPCAProgress read fProgress write fProgress;
+    property OnProgress : TMtxProgress read fProgress write fProgress;
 
     constructor Create(KeepFlags : TPCASaveDataSet); overload;
     constructor Create(const pcaData : TPCAData); overload;

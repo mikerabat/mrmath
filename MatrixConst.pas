@@ -30,6 +30,7 @@ type
   TQRResult = (qrOK, qrSingular);
   TLinEquProgress = procedure(Progress : Integer) of Object;
   TLinEquProgressWOObj = procedure(Progress : Integer);
+  TMtxProgress = procedure(Sender : TObject; progress : integer) of Object;
 
  type
    TXMMArr = Array[0..1] of double;
