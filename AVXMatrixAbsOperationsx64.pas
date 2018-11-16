@@ -80,19 +80,19 @@ asm
            // Abs:
            {$IFDEF FPC}vmovapd ymm1, [rcx + rax - 128];{$ELSE}db $C5,$FD,$28,$4C,$01,$80;{$ENDIF} 
            {$IFDEF FPC}vAndpd ymm1, ymm1, ymm0;{$ELSE}db $C5,$F5,$54,$C8;{$ENDIF} 
-           {$IFDEF FPC}vmovntdq [rcx + rax - 128], ymm1;{$ELSE}db $C5,$FD,$E7,$4C,$01,$80;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [rcx + rax - 128], ymm1;{$ELSE}db $C5,$FD,$29,$4C,$01,$80;{$ENDIF} 
 
            {$IFDEF FPC}vmovapd ymm2, [rcx + rax - 96];{$ELSE}db $C5,$FD,$28,$54,$01,$A0;{$ENDIF} 
            {$IFDEF FPC}vandpd ymm2, ymm2, ymm0;{$ELSE}db $C5,$ED,$54,$D0;{$ENDIF} 
-           {$IFDEF FPC}vmovntdq [rcx + rax - 96], ymm2;{$ELSE}db $C5,$FD,$E7,$54,$01,$A0;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [rcx + rax - 96], ymm2;{$ELSE}db $C5,$FD,$29,$54,$01,$A0;{$ENDIF} 
 
            {$IFDEF FPC}vmovapd ymm3, [rcx + rax - 64];{$ELSE}db $C5,$FD,$28,$5C,$01,$C0;{$ENDIF} 
            {$IFDEF FPC}vandpd ymm3, ymm3, ymm0;{$ELSE}db $C5,$E5,$54,$D8;{$ENDIF} 
-           {$IFDEF FPC}vmovntdq [rcx + rax - 64], ymm3;{$ELSE}db $C5,$FD,$E7,$5C,$01,$C0;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [rcx + rax - 64], ymm3;{$ELSE}db $C5,$FD,$29,$5C,$01,$C0;{$ENDIF} 
 
            {$IFDEF FPC}vmovapd ymm2, [rcx + rax - 32];{$ELSE}db $C5,$FD,$28,$54,$01,$E0;{$ENDIF} 
            {$IFDEF FPC}vandpd ymm2, ymm2, ymm0;{$ELSE}db $C5,$ED,$54,$D0;{$ENDIF} 
-           {$IFDEF FPC}vmovntdq [rcx + rax - 32], ymm2;{$ELSE}db $C5,$FD,$E7,$54,$01,$E0;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [rcx + rax - 32], ymm2;{$ELSE}db $C5,$FD,$29,$54,$01,$E0;{$ENDIF} 
        jmp @addforxloop
 
        @loopEnd:
@@ -107,7 +107,7 @@ asm
 
            {$IFDEF FPC}vmovapd xmm1, [rcx + rax - 16];{$ELSE}db $C5,$F9,$28,$4C,$01,$F0;{$ENDIF} 
            {$IFDEF FPC}vandpd xmm1, xmm1, xmm0;{$ELSE}db $C5,$F1,$54,$C8;{$ENDIF} 
-           {$IFDEF FPC}vmovntdq [rcx + rax - 16], xmm1;{$ELSE}db $C5,$F9,$E7,$4C,$01,$F0;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [rcx + rax - 16], xmm1;{$ELSE}db $C5,$F9,$29,$4C,$01,$F0;{$ENDIF} 
        jmp @addforxloop2;
 
        @loopEnd2:

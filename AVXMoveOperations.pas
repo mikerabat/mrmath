@@ -57,10 +57,10 @@ asm
       add edx, 128;
       jg @@loopUnrolledEnd;
 
-      {$IFDEF FPC}vmovntdq [eax + edx - 128], ymm1;{$ELSE}db $C5,$FD,$E7,$4C,$10,$80;{$ENDIF} 
-      {$IFDEF FPC}vmovntdq [eax + edx - 96], ymm1;{$ELSE}db $C5,$FD,$E7,$4C,$10,$A0;{$ENDIF} 
-      {$IFDEF FPC}vmovntdq [eax + edx - 64], ymm1;{$ELSE}db $C5,$FD,$E7,$4C,$10,$C0;{$ENDIF} 
-      {$IFDEF FPC}vmovntdq [eax + edx - 32], ymm1;{$ELSE}db $C5,$FD,$E7,$4C,$10,$E0;{$ENDIF} 
+      {$IFDEF FPC}vmovapd [eax + edx - 128], ymm1;{$ELSE}db $C5,$FD,$29,$4C,$10,$80;{$ENDIF} 
+      {$IFDEF FPC}vmovapd [eax + edx - 96], ymm1;{$ELSE}db $C5,$FD,$29,$4C,$10,$A0;{$ENDIF} 
+      {$IFDEF FPC}vmovapd [eax + edx - 64], ymm1;{$ELSE}db $C5,$FD,$29,$4C,$10,$C0;{$ENDIF} 
+      {$IFDEF FPC}vmovapd [eax + edx - 32], ymm1;{$ELSE}db $C5,$FD,$29,$4C,$10,$E0;{$ENDIF} 
    jmp @@loopUnrolled;
 
    @@loopUnrolledEnd:
@@ -72,8 +72,8 @@ asm
       add edx, 32;
       jg @@loopEnd2;
 
-      {$IFDEF FPC}vmovntdq [eax + edx - 32], xmm1;{$ELSE}db $C5,$F9,$E7,$4C,$10,$E0;{$ENDIF} 
-      {$IFDEF FPC}vmovntdq [eax + edx - 16], xmm1;{$ELSE}db $C5,$F9,$E7,$4C,$10,$F0;{$ENDIF} 
+      {$IFDEF FPC}vmovapd [eax + edx - 32], xmm1;{$ELSE}db $C5,$F9,$29,$4C,$10,$E0;{$ENDIF} 
+      {$IFDEF FPC}vmovapd [eax + edx - 16], xmm1;{$ELSE}db $C5,$F9,$29,$4C,$10,$F0;{$ENDIF} 
    jmp @@loop2;
 
    @@loopEnd2:

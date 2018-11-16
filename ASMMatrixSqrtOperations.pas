@@ -71,28 +71,28 @@ asm
 
            // sqrt:
            sqrtpd xmm0, [eax + edi - 128];
-           movntdq [eax + edi - 128], xmm0;
+           movapd [eax + edi - 128], xmm0;
 
            sqrtpd xmm1, [eax + edi - 112];
-           movntdq [eax + edi - 112], xmm1;
+           movapd [eax + edi - 112], xmm1;
 
            sqrtpd xmm2, [eax + edi - 96];
-           movntdq [eax + edi - 96], xmm2;
+           movapd [eax + edi - 96], xmm2;
 
            sqrtpd xmm3, [eax + edi - 80];
-           movntdq [eax + edi - 80], xmm3;
+           movapd [eax + edi - 80], xmm3;
 
            sqrtpd xmm4, [eax + edi - 64];
-           movntdq [eax + edi - 64], xmm4;
+           movapd [eax + edi - 64], xmm4;
 
            sqrtpd xmm5, [eax + edi - 48];
-           movntdq [eax + edi - 48], xmm5;
+           movapd [eax + edi - 48], xmm5;
 
            sqrtpd xmm6, [eax + edi - 32];
-           movntdq [eax + edi - 32], xmm6;
+           movapd [eax + edi - 32], xmm6;
 
            sqrtpd xmm7, [eax + edi - 16];
-           movntdq [eax + edi - 16], xmm7;
+           movapd [eax + edi - 16], xmm7;
        jmp @addforxloop
 
        @loopEnd:
@@ -103,7 +103,7 @@ asm
 
        @addforxloop2:
            sqrtpd xmm0, [eax + edi];
-           movntdq [eax + edi], xmm0;
+           movapd [eax + edi], xmm0;
        add edi, 16;
        jnz @addforxloop2;
 
@@ -229,28 +229,28 @@ asm
 
            // addition:
            sqrtpd xmm0, [eax + edi - 128];
-           movntdq [eax + edi - 128], xmm0;
+           movapd [eax + edi - 128], xmm0;
 
            sqrtpd xmm1, [eax + edi - 112];
-           movntdq [eax + edi - 112], xmm1;
+           movapd [eax + edi - 112], xmm1;
 
            sqrtpd xmm2, [eax + edi - 96];
-           movntdq [eax + edi - 96], xmm2;
+           movapd [eax + edi - 96], xmm2;
 
            sqrtpd xmm3, [eax + edi - 80];
-           movntdq [eax + edi - 80], xmm3;
+           movapd [eax + edi - 80], xmm3;
 
            sqrtpd xmm4, [eax + edi - 64];
-           movntdq [eax + edi - 64], xmm4;
+           movapd [eax + edi - 64], xmm4;
 
            sqrtpd xmm5, [eax + edi - 48];
-           movntdq [eax + edi - 48], xmm5;
+           movapd [eax + edi - 48], xmm5;
 
            sqrtpd xmm6, [eax + edi - 32];
-           movntdq [eax + edi - 32], xmm6;
+           movapd [eax + edi - 32], xmm6;
 
            sqrtpd xmm7, [eax + edi - 16];
-           movntdq [eax + edi - 16], xmm7;
+           movapd [eax + edi - 16], xmm7;
        jmp @addforxloop
 
        @loopEnd:
@@ -261,7 +261,7 @@ asm
 
        @addforxloop2:
            sqrtpd xmm0, [eax + edi];
-           movntdq [eax + edi], xmm0;
+           movapd [eax + edi], xmm0;
        add edi, 16;
        jnz @addforxloop2;
 

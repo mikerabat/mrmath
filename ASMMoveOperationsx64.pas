@@ -77,14 +77,14 @@ asm
       add rdx, 128;
       jg @@loopUnrolledEnd;
 
-      movntdq [rcx + rdx - 128], xmm1;
-      movntdq [rcx + rdx - 112], xmm1;
-      movntdq [rcx + rdx - 96], xmm1;
-      movntdq [rcx + rdx - 80], xmm1;
-      movntdq [rcx + rdx - 64], xmm1;
-      movntdq [rcx + rdx - 48], xmm1;
-      movntdq [rcx + rdx - 32], xmm1;
-      movntdq [rcx + rdx - 16], xmm1;
+      movapd [rcx + rdx - 128], xmm1;
+      movapd [rcx + rdx - 112], xmm1;
+      movapd [rcx + rdx - 96], xmm1;
+      movapd [rcx + rdx - 80], xmm1;
+      movapd [rcx + rdx - 64], xmm1;
+      movapd [rcx + rdx - 48], xmm1;
+      movapd [rcx + rdx - 32], xmm1;
+      movapd [rcx + rdx - 16], xmm1;
    jmp @@loopUnrolled;
 
    @@loopUnrolledEnd:

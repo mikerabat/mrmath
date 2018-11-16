@@ -68,14 +68,14 @@ asm
      add edx, 128;
      jg @@loopUnrolledEnd;
 
-     movntdq [eax + edx - 128], xmm0;
-     movntdq [eax + edx - 112], xmm0;
-     movntdq [eax + edx - 96], xmm0;
-     movntdq [eax + edx - 80], xmm0;
-     movntdq [eax + edx - 64], xmm0;
-     movntdq [eax + edx - 48], xmm0;
-     movntdq [eax + edx - 32], xmm0;
-     movntdq [eax + edx - 16], xmm0;
+     movapd [eax + edx - 128], xmm0;
+     movapd [eax + edx - 112], xmm0;
+     movapd [eax + edx - 96], xmm0;
+     movapd [eax + edx - 80], xmm0;
+     movapd [eax + edx - 64], xmm0;
+     movapd [eax + edx - 48], xmm0;
+     movapd [eax + edx - 32], xmm0;
+     movapd [eax + edx - 16], xmm0;
 
    jmp @@loopUnrolled;
 

@@ -82,28 +82,28 @@ asm
 
            // elementwise sqrt
            sqrtpd xmm0, [rcx + rax - 128];
-           movntdq [rcx + rax - 128], xmm0;
+           movapd [rcx + rax - 128], xmm0;
 
            sqrtpd xmm1, [rcx + rax - 112];
-           movntdq [rcx + rax - 112], xmm1;
+           movapd [rcx + rax - 112], xmm1;
 
            sqrtpd xmm2, [rcx + rax - 96];
-           movntdq [rcx + rax - 96], xmm2;
+           movapd [rcx + rax - 96], xmm2;
 
            sqrtpd xmm3, [rcx + rax - 80];
-           movntdq [rcx + rax - 80], xmm3;
+           movapd [rcx + rax - 80], xmm3;
 
            sqrtpd xmm0, [rcx + rax - 64];
-           movntdq [rcx + rax - 64], xmm0;
+           movapd [rcx + rax - 64], xmm0;
 
            sqrtpd xmm1, [rcx + rax - 48];
-           movntdq [rcx + rax - 48], xmm1;
+           movapd [rcx + rax - 48], xmm1;
 
            sqrtpd xmm2, [rcx + rax - 32];
-           movntdq [rcx + rax - 32], xmm2;
+           movapd [rcx + rax - 32], xmm2;
 
            sqrtpd xmm3, [rcx + rax - 16];
-           movntdq [rcx + rax - 16], xmm3;
+           movapd [rcx + rax - 16], xmm3;
 
        jmp @addforxloop
 
@@ -115,7 +115,7 @@ asm
 
        @addforxloop2:
            sqrtpd xmm0, [rcx + rax];
-           movntdq [rcx + rax], xmm0;
+           movapd [rcx + rax], xmm0;
        add rax, 16;
        jnz @addforxloop2;
 
@@ -259,28 +259,28 @@ asm
 
            // elementwise sqrt
            sqrtpd xmm0, [rcx + rax - 128];
-           movntdq [rcx + rax - 128], xmm0;
+           movapd [rcx + rax - 128], xmm0;
 
            sqrtpd xmm1, [rcx + rax - 112];
-           movntdq [rcx + rax - 112], xmm1;
+           movapd [rcx + rax - 112], xmm1;
 
            sqrtpd xmm2, [rcx + rax - 96];
-           movntdq [rcx + rax - 96], xmm2;
+           movapd [rcx + rax - 96], xmm2;
 
            sqrtpd xmm3, [rcx + rax - 80];
-           movntdq [rcx + rax - 80], xmm3;
+           movapd [rcx + rax - 80], xmm3;
 
            sqrtpd xmm0, [rcx + rax - 64];
-           movntdq [rcx + rax - 64], xmm0;
+           movapd [rcx + rax - 64], xmm0;
 
            sqrtpd xmm1, [rcx + rax - 48];
-           movntdq [rcx + rax - 48], xmm1;
+           movapd [rcx + rax - 48], xmm1;
 
            sqrtpd xmm2, [rcx + rax - 32];
-           movntdq [rcx + rax - 32], xmm2;
+           movapd [rcx + rax - 32], xmm2;
 
            sqrtpd xmm3, [rcx + rax - 16];
-           movntdq [rcx + rax - 16], xmm3;
+           movapd [rcx + rax - 16], xmm3;
 
        jmp @addforxloop
 
@@ -292,7 +292,7 @@ asm
 
        @addforxloop2:
            sqrtpd xmm0, [rcx + rax];
-           movntdq [rcx + rax], xmm0;
+           movapd [rcx + rax], xmm0;
        add rax, 16;
        jnz @addforxloop2;
 

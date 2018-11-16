@@ -193,7 +193,7 @@ asm
             haddpd xmm0, xmm2;
 
             // store back result
-            movntdq [rcx], xmm0;
+            movapd [rcx], xmm0;
 
             // increment the pointers
             // inc(mt2), inc(dest);
@@ -503,7 +503,7 @@ asm
             haddpd xmm0, xmm2;
 
             // store back result
-            movntdq [rcx], xmm0;
+            movapd [rcx], xmm0;
 
             // increment the pointers
             // inc(mt2), inc(dest);
@@ -867,7 +867,7 @@ asm
             // compact result
             movlhps xmm0, xmm7;
             // store back result
-            movntdq [rcx], xmm0;
+            movapd [rcx], xmm0;
 
             // increment the pointers
             // inc(mt2), inc(dest);
@@ -1212,7 +1212,7 @@ asm
             // compact result
             movlhps xmm0, xmm7;
             // store back result
-            movntdq [rcx], xmm0;
+            movapd [rcx], xmm0;
 
             // increment the pointers
             // inc(mt2), inc(dest);

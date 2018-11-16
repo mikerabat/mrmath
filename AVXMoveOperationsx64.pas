@@ -74,10 +74,10 @@ asm
       add rdx, 128;
       jg @@loopUnrolledEnd;
 
-      {$IFDEF FPC}vmovntdq [rcx + rdx - 128], ymm1;{$ELSE}db $C5,$FD,$E7,$4C,$11,$80;{$ENDIF} 
-      {$IFDEF FPC}vmovntdq [rcx + rdx - 96], ymm1;{$ELSE}db $C5,$FD,$E7,$4C,$11,$A0;{$ENDIF} 
-      {$IFDEF FPC}vmovntdq [rcx + rdx - 64], ymm1;{$ELSE}db $C5,$FD,$E7,$4C,$11,$C0;{$ENDIF} 
-      {$IFDEF FPC}vmovntdq [rcx + rdx - 32], ymm1;{$ELSE}db $C5,$FD,$E7,$4C,$11,$E0;{$ENDIF} 
+      {$IFDEF FPC}vmovapd [rcx + rdx - 128], ymm1;{$ELSE}db $C5,$FD,$29,$4C,$11,$80;{$ENDIF} 
+      {$IFDEF FPC}vmovapd [rcx + rdx - 96], ymm1;{$ELSE}db $C5,$FD,$29,$4C,$11,$A0;{$ENDIF} 
+      {$IFDEF FPC}vmovapd [rcx + rdx - 64], ymm1;{$ELSE}db $C5,$FD,$29,$4C,$11,$C0;{$ENDIF} 
+      {$IFDEF FPC}vmovapd [rcx + rdx - 32], ymm1;{$ELSE}db $C5,$FD,$29,$4C,$11,$E0;{$ENDIF} 
    jmp @@loopUnrolled;
 
    @@loopUnrolledEnd:
@@ -89,8 +89,8 @@ asm
    jg @@beginloop3;
 
    @@loop2:
-      {$IFDEF FPC}vmovntdq [rcx + rdx - 32], xmm1;{$ELSE}db $C5,$F9,$E7,$4C,$11,$E0;{$ENDIF} 
-      {$IFDEF FPC}vmovntdq [rcx + rdx - 16], xmm1;{$ELSE}db $C5,$F9,$E7,$4C,$11,$F0;{$ENDIF} 
+      {$IFDEF FPC}vmovapd [rcx + rdx - 32], xmm1;{$ELSE}db $C5,$F9,$29,$4C,$11,$E0;{$ENDIF} 
+      {$IFDEF FPC}vmovapd [rcx + rdx - 16], xmm1;{$ELSE}db $C5,$F9,$29,$4C,$11,$F0;{$ENDIF} 
    add rdx, 32;
    jl @@loop2;
 
