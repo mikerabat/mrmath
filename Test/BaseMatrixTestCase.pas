@@ -193,7 +193,7 @@ begin
           begin
                if not SameValue(p1^[x], p2^[x], Epsilon) then
                begin
-                    Result := False;
+                    Result := SameValue(p1^[x], p2^[x], Epsilon) ;
                     idx := x + y*mtxWidth;
                     exit;
                end;
@@ -305,11 +305,11 @@ begin
      if widthAligned mod 4 <> 0 then
         inc(widthAligned, 4 - widthAligned mod 4);
 
-     pMem := AllocMem(widthAligned*mtxHeight*sizeof(double) + $20);
+     pMem := AllocMem(widthAligned*mtxHeight*sizeof(double) + $40);
      LineWidthAligned := sizeof(double)*widthAligned;
 
      // allign to 32 bytes
-     pX := AlignPtr32(pMem);
+     pX := AlignPtr64(pMem);
 end;
 
 procedure TBaseMatrixTestCase.FillAlignedMtx(mtxSize: integer; out pX: PDouble;
@@ -337,11 +337,11 @@ begin
      if widthAligned mod 4 <> 0 then
         inc(widthAligned, 4 - widthAligned mod 4);
 
-     pMem := GetMemory(widthAligned*mtxHeight*sizeof(double) + $20);
+     pMem := GetMemory(widthAligned*mtxHeight*sizeof(double) + 64); //$20);
      LineWidthAligned := sizeof(double)*widthAligned;
 
      // allign to 32 bytes
-     pX := AlignPtr32(pMem);
+     pX := AlignPtr64(pMem);
      ptr := PConstDoubleArr(pX);
 
      for y := 0 to mtxHeight - 1 do

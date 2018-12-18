@@ -634,7 +634,7 @@ var i: TASMNativeInt;
     calls : IMtxAsyncCallGroup;
     wSize : integer;
     thrSize : Integer;
-    objs : Array[0..63] of TAsyncMatrixUSubst;
+    objs : Array[0..cMaxNumCores - 1] of TAsyncMatrixUSubst;
     numUsed : integer;
 begin
      // ######################################################
@@ -864,7 +864,7 @@ var Y : PDouble;
     w : integer;
     thrSize : integer;
     wSize : integer;
-    objs : Array[0..63] of TAsyncMatrixLUBacksup;
+    objs : Array[0..cMaxNumCores - 1] of TAsyncMatrixLUBacksup;
     numUsed : integer;
     calls : IMtxAsyncCallGroup;
     ptrMem : Pointer;
@@ -1006,7 +1006,7 @@ var indx : Array of Integer;
     w : TASMNativeInt;
     thrSize : integer;
     wSize : integer;
-    objs : Array[0..63] of TAsyncMatrixLUBacksup;
+    objs : Array[0..cMaxNumCores - 1] of TAsyncMatrixLUBacksup;
     numUsed : integer;
     calls : IMtxAsyncCallGroup;
     ptrMem : Pointer;

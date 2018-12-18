@@ -25,6 +25,8 @@ interface
 {$IFDEF MSWINDOWS}
 uses MtxThreadPool, SysUtils;
 
+{.$DEFINE USE_THREAD_CPU_AFFINITY}
+
 procedure InitWinMtxThreadPool;
 procedure FinalizeWinMtxThreadPool;
 function InitWinThreadGroup : IMtxAsyncCallGroup;
@@ -187,7 +189,9 @@ begin
 end;
 
 procedure TWinMtxAsyncCallThread.Execute;
-var idx : integer;
+var res : TWaitResult;
+{$IFDEF USE_THREAD_CPU_AFFINITY}
+    idx : integer;
 {$IFDEF FPC}
     mask, procMask, sysmask : NativeUInt;
 {$ELSE} {$IF CompilerVersion > 22}
@@ -196,9 +200,9 @@ var idx : integer;
     mask, procMask, sysmask : DWord;
 {$IFEND}
 {$ENDIF}
-
-    res : TWaitResult;
+{$ENDIF}
 begin
+     {$IFDEF USE_THREAD_CPU_AFFINITY}
      if FCPUNum >= 0 then
      begin
           GetProcessAffinityMask(GetCurrentProcess, procMask, sysmask);
@@ -216,6 +220,7 @@ begin
           if mask > 0 then
              SetThreadAffinityMask(Handle, mask);
      end;
+     {$ENDIF}
      while not Terminated do
      begin
           res := fSig.WaitFor(1000);

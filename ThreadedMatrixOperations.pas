@@ -68,10 +68,13 @@ procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; wid
 procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFuncRef); overload;
 {$ENDIF}
 
+// helper functions
+function NumCoresToUseForMult(width1, height1, width2, height2, blockSize : TASMNativeInt) : integer;
 
 implementation
 
-uses  MtxThreadPool, MatrixASMStubSwitch, BlockSizeSetup, Math, BlockedMult;
+uses  MtxThreadPool, MatrixASMStubSwitch, BlockSizeSetup, Math, BlockedMult,
+      SimpleMatrixOperations, Windows, SysUtils, MtxTimer;
 
 type
   TMatrixAddSubFunc = procedure(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
@@ -429,7 +432,7 @@ var i, j : TASMNativeInt;
     doBreak : boolean;
     numUsedCores : integer;
 
-    objs : Array[0..63] of TAsyncMultRec;
+    objs : Array[0..cMaxNumCores - 1] of TAsyncMultRec;
     numUsed : integer;
 
 begin
@@ -526,9 +529,14 @@ var i, j : TASMNativeInt;
     widthFits, heightFits : boolean;
     heightCores : TASMNativeInt;
     usedCores : integer;
-    objs : Array[0..63] of TAsyncMultRec;
+    objs : Array[0..cMaxNumCores - 1] of TAsyncMultRec;
     numUsed : integer;
 begin
+     if UseInnerBlockMult(width1, height1) then
+     begin
+          ThrBlockMatrixMultiplication(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, blockSize, op, mem);
+          exit;
+     end;
      // #############################################
      // #### determine a good number of cores
      // -> do not use to many for smaller matrices
@@ -770,6 +778,12 @@ var i, j : TASMNativeInt;
     objs : Array[0..cMaxNumCores - 1] of TAsyncMultRec;
     numUsed : integer;
 begin
+     if UseInnerBlockMult(width1, height1) then
+     begin
+          ThrBlockMatrixMultiplicationT2(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, blockSize, op, mem);
+          exit;
+     end;
+
      usedCores := NumCoresToUseForMult(width1, height1, height2, width2, blockSize);
 
      if usedCores = 1 then

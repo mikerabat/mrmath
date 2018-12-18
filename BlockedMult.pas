@@ -49,6 +49,7 @@ procedure BlockMatrixMultiplicationT2(dest : PDouble; const destLineWidth : TASM
   const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
 
 
+
 // this is a blockwise matrix multiplication routine which takes a limited cache into account.
 // The routine tries to tile the matrix into 256x256 blocks (which seems to be a good approximation
 // for a Core2 processor) which fits into the Level1 cache thus reduces
@@ -59,10 +60,22 @@ procedure BlockMatrixMultiplicationDirect(dest : PDouble; const destLineWidth : 
 procedure BlockMatrixVectorMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt); overload;
 procedure BlockMatrixVectorMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt; blockSize : TASMNativeInt); overload;
 
+// ################################################################
+// #### Threaded versions
+function UseInnerBlockMult( w, h : TASMNativeInt) : boolean;
+
+// calculates dest = mt1*mt2'
+procedure ThrBlockMatrixMultiplicationT2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
+  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
+
+procedure ThrBlockMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation = doNone); overload;
+procedure ThrBlockMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation = doNone; mem : PDouble = nil); overload;
+
 
 implementation
 
-uses Math, BlockSizeSetup, SimpleMatrixOperations, MatrixASMStubSwitch;
+uses Math, BlockSizeSetup, SimpleMatrixOperations, MatrixASMStubSwitch,
+     MtxThreadPool, ThreadedMatrixOperations, Windows, MathUtilFunc;
 
 procedure BlockMatrixVectorMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt); overload;
 begin
@@ -303,6 +316,9 @@ begin
 
      assert(blockSize > 1, 'Error blocksize must be at least 2');
 
+     if blockSize > width1 then
+        blockSize := Next2Pwr( width1, blockSize );
+     
      isAligned := (TASMNativeUInt(dest) and $00000001F) = 0;
 
      h1FitCacheSize := (height1 mod blockSize) = 0;
@@ -426,6 +442,10 @@ begin
 
      assert(blockSize > 1, 'Error blocksize must be at least 2');
 
+     if blockSize > width1 then
+        blockSize := Next2Pwr( height1, blockSize );
+     
+     
      h1FitCacheSize := (height1 mod blockSize) = 0;
      w2FitCacheSize := (width2 mod blockSize) = 0;
      w1FitCacheSize := (width1 mod blockSize) = 0;
@@ -542,6 +562,9 @@ begin
 
      assert(blockSize > 1, 'Error blocksize must be at least 2');
 
+     if blockSize > width1 then
+        blockSize := Next2Pwr( width1, blockSize );
+     
      isAligned := (TASMNativeUInt(dest) and $0000000F) = 0;
 
      h1FitCacheSize := (height1 mod blockSize) = 0;
@@ -939,6 +962,715 @@ begin
 
      if not Assigned(mem) then
         FreeMem(actBlk);
+end;
+
+
+// #######################################################
+// #### Blocked threaded matrix multiplication
+// #######################################################
+
+type
+  TFlagRec = record
+     finished : LongBool;    // flags for the threading stuff
+     terminated : LongBool;
+  end;
+  PFlagRec = ^TFlagRec;
+  TFlagRecArr = Array[0..cMaxNumCores - 1] of PFlagRec;
+
+procedure SpinWait( const waitObjs : TFlagRecArr; numElem : integer);  
+var i : integer;
+    cnt : integer;
+    spinWaitCnt : integer;
+begin
+     MemoryBarrier;
+     spinWaitCnt := 4000;
+     if numCPUCores > numRealCores then
+        spinWaitCnt := 100;
+     for i := 0 to numElem - 1 do
+     begin
+          while (waitObjs[i]^.finished = False) do
+          begin
+               cnt := 0;
+               while (cnt < spinWaitCnt) and (waitObjs[i]^.finished = False) do
+                     inc(cnt);
+
+               if waitObjs[i]^.finished = false then
+                  YieldProcessor;
+          end;
+     end;
+end;
+
+type
+  TAsyncMultBlkRec = record
+    thrIdx : integer;
+    numThr : Integer;
+
+    op : TMatrixMultDestOperation;
+
+    actBlk : PDouble;
+    pa, pb : PDouble;
+
+    multBlk : PDouble;
+    copyBlk : PDouble;
+    transBlk : PDouble;
+    pDest : PDouble;
+    destLineWidth : TASMNativeInt;
+
+    gammaWidth : integer;
+    blkHeight : integer;
+    blkHeight1 : integer;
+    blkWidth : integer;
+
+    blockLineSize : TASMNativeInt;
+    LineWidth1, LineWidth2 : TASMNativeInt;
+
+    isAligned : boolean;
+    stage : integer;
+
+    flags : TFlagRec;
+
+    procedure ApplyOp;
+    procedure ApplyOpT;
+    procedure MatrixBlkMultT2Func;
+    procedure MatrixBlkMultFunc;
+    procedure MatrixBlkTranspose;
+
+    procedure Create(aActBlk : PDouble; aPa, aPb : PDouble;
+                     aMultBlk, aCopyBlk : PDouble;
+                     aGammaWidth : integer; aBlkHeight, aBlkHeight1 : integer;
+                     aBlockLineSize : TASMNativeInt;
+                     aLineWidth1, aLineWidth2 : TASMNativeInt;
+                     aDest : PDouble;
+                     aDestLineWidth : TASMNativeInt;
+                     aIsAligned : boolean;
+                     aOp : TMatrixMultDestOperation);
+  end;
+  PAsyncMultBlkRec = ^TAsyncMultBlkRec;
+
+
+{ TAsyncMultBlkRec }
+
+procedure TAsyncMultBlkRec.Create(aActBlk : PDouble; aPa, aPb : PDouble;
+                     aMultBlk, aCopyBlk : PDouble;
+                     aGammaWidth : integer; aBlkHeight, aBlkHeight1 : integer;
+                     aBlockLineSize : TASMNativeInt;
+                     aLineWidth1, aLineWidth2 : TASMNativeInt;
+                     aDest : PDouble;
+                     aDestLineWidth : TASMNativeInt;
+                     aIsAligned : boolean;
+                     aOp : TMatrixMultDestOperation);
+begin
+     actBlk := aActBlk;
+     pA := aPA;
+     pB := aPb;
+     multBlk := aMultBlk;
+     GammaWidth := aGammaWidth;
+     copyBlk := aCopyBlk;
+     blkHeight := aBlkHeight;
+     blkHeight1 := aBlkHeight1;
+     blkWidth := aBlkHeight1;
+     BlockLineSize := aBlockLineSize;
+     LineWidth1 := aLineWidth1;
+     LineWidth2 := aLineWidth2;
+     isAligned := aIsAligned;
+     op := aOp;
+     pDest := aDest;
+     DestLineWidth := adestLineWidth;
+
+     flags.finished := True;
+     flags.Terminated := False;
+end;
+
+procedure TAsyncMultBlkRec.MatrixBlkMultT2Func;
+var offset : integer;
+    thrHeight : integer;
+    thrCopyBlk, thrMultBlock, thrActBlk : PDouble;
+    thrPA : PDouble;
+begin
+     thrHeight := Max(1, blkHeight div numThr);
+     offset := thrIdx*thrHeight;
+     if offset >= blkHeight then
+     begin
+          flags.finished := True;
+          exit;
+     end;
+
+     if thrIdx = numThr - 1 then
+        thrHeight := blkHeight - offset;
+
+     thrCopyBlk := GenPtr(copyBlk, 0, offset, blockLineSize);
+     thrMultBlock := GenPtr(multBlk, 0, offset, blockLineSize);
+     thrActBlk := GenPtr(actBlk, 0, offset, blockLineSize);
+     thrPA := GenPtr(pa, 0, offset, LineWidth1);
+
+     // now do the multiplication part
+     if (blkHeight1 > 3) and (blkHeight > 3) then
+     begin
+          // it is faster to copy the block rather then multply it unaligned!
+          if (not isAligned) or ((LineWidth1 and $0000001F) <> 0) then
+          begin
+               MatrixCopy(thrCopyBlk, blockLineSize, thrPA, LineWidth1, gammaWidth, thrHeight);
+               MatrixMultT2(thrMultBlock, blockLineSize, thrCopyBlk, pb, gammaWidth, thrHeight, gammaWidth, blkHeight1, blockLineSize, LineWidth2);
+          end
+          else
+              MatrixMultT2(thrMultBlock, blockLineSize, thrPA, pb, gammaWidth, thrHeight, gammaWidth, blkHeight1, LineWidth1, LineWidth2);
+
+          MatrixAdd(thrActBlk, blockLineSize, thrActBlk, thrMultBlock, blkHeight1, thrHeight, blockLineSize, blockLineSize);
+     end
+     else
+     begin
+          GenericMtxMultTransp(thrMultBlock, blockLineSize, thrPA, pb, gammaWidth, thrHeight, gammaWidth, blkHeight1, LineWidth1, LineWidth2);
+          GenericMtxAdd(thractBlk, blockLineSize, thractBlk, thrMultBlock, blkHeight1, thrHeight, blockLineSize, blockLineSize);
+     end;
+
+     flags.finished := True;
+end;
+
+procedure TAsyncMultBlkRec.MatrixBlkMultFunc;
+var offset : integer;
+    thrHeight : integer;
+    thrCopyBlk, thrMultBlk, thrActBlk : PDouble;
+    thrPA : PDouble;
+begin
+     thrHeight := Max(1, blkHeight div numThr);
+     offset := thrIdx*thrHeight;
+     if offset >= blkHeight then
+     begin
+          flags.finished := True;
+          exit;
+     end;
+
+     if thrIdx = numThr - 1 then
+        thrHeight := blkHeight - offset;
+
+     thrCopyBlk := GenPtr(copyBlk, 0, offset, blockLineSize);
+     thrMultBlk := GenPtr(multBlk, 0, offset, blockLineSize);
+     thrActBlk := GenPtr(actBlk, 0, offset, blockLineSize);
+     thrPA := GenPtr(pa, 0, offset, LineWidth1);
+
+     // it is faster to copy the block rather then multiply it unaligned!
+     if (not isAligned) or ((LineWidth1 and $00000001F) <> 0) then
+     begin
+          MatrixCopy(thrCopyBlk, blockLineSize, thrPA, LineWidth1, gammaWidth, thrHeight);
+          MatrixMultT2(thrMultBlk, blockLineSize, thrCopyBlk, transBlk, gammaWidth, thrHeight, gammaWidth, blkWidth, blockLineSize, blockLineSize);
+     end
+     else
+         MatrixMultT2(thrMultBlk, blockLineSize, thrPA, transBlk, gammaWidth, thrHeight, gammaWidth, blkWidth, LineWidth1, blockLineSize);
+
+     MatrixAdd(thrActBlk, blockLineSize, thrActBlk, thrMultBlk, blkWidth, thrHeight, blockLineSize, blockLineSize);
+
+     flags.finished := True;
+end;
+
+
+procedure TAsyncMultBlkRec.ApplyOpT;
+var thrDest : PDouble;
+    offset : TASMNativeInt;
+    thrblkHeight : TASMNativeInt;
+    thrActBlk : PDouble;
+begin
+     thrblkHeight := Max(1, blkHeight div numThr);
+     offset := thrIdx*thrblkHeight;
+
+     if offset >= blkHeight then
+     begin
+          flags.finished := True;
+          exit;
+     end;
+
+     if thrIdx = numThr - 1 then
+        thrblkHeight := blkHeight - offset;
+
+     thrDest := GenPtr(pDest, 0, offset, destLineWidth);
+     thrActBlk := GenPtr(actBlk, 0, offset, blockLineSize);
+
+     case op of
+       doNone: MatrixCopy(thrDest, destLineWidth, thrActBlk, blockLineSize, blkHeight1, thrblkHeight);
+       doAdd: MatrixAdd(thrDest, destLineWidth, thrDest, thrActBlk, blkHeight1, thrblkHeight, destLineWidth, blockLineSize);
+       doSub: MatrixSub(thrDest, destLineWidth, thrDest, thrActBlk, blkHeight1, thrblkHeight, destLineWidth, blockLineSize);
+     end;
+
+     flags.finished := True;
+end;
+
+procedure TAsyncMultBlkRec.ApplyOp;
+var thrDest : PDouble;
+    offset : TASMNativeInt;
+    thrblkHeight : TASMNativeInt;
+    thrActBlk : PDouble;
+begin
+     thrblkHeight := Max(1, blkHeight div numThr);
+     offset := thrIdx*thrblkHeight;
+
+     if offset >= blkHeight then
+     begin
+          flags.finished := True;
+          exit;
+     end;
+
+     if thrIdx = numThr - 1 then
+        thrblkHeight := blkHeight - offset;
+
+     thrDest := GenPtr(pDest, 0, offset, destLineWidth);
+     thrActBlk := GenPtr(actBlk, 0, offset, blockLineSize);
+
+     case op of
+       doNone: MatrixCopy(thrDest, destLineWidth, thrActBlk, blockLineSize, blkWidth, thrblkHeight);
+       doAdd: MatrixAdd(thrDest, destLineWidth, thrDest, thrActBlk, blkWidth, thrblkHeight, destLineWidth, blockLineSize);
+       doSub: MatrixSub(thrDest, destLineWidth, thrDest, thrActBlk, blkWidth, thrblkHeight, destLineWidth, blockLineSize);
+     end;
+
+     flags.finished := True;
+end;
+
+
+procedure MatrixBlkMultT2FuncThr(obj : Pointer);
+var pRec : PAsyncMultBlkRec;
+begin
+     pRec := PAsyncMultBlkRec(obj);
+
+     while not pRec^.flags.Terminated do
+     begin
+          while pRec^.flags.finished do
+                if pRec^.flags.Terminated then
+                   exit;
+
+          if pRec^.stage = 0
+          then
+              pRec^.MatrixBlkMultT2Func
+          else
+              pRec^.ApplyOpT;
+     end;
+end;
+
+procedure MatrixBlkMultFuncThr(obj : Pointer);
+var pRec : PAsyncMultBlkRec;
+begin
+     pRec := PAsyncMultBlkRec(obj);
+
+     while not pRec^.flags.Terminated do
+     begin
+          while pRec^.flags.finished do
+                if pRec^.flags.Terminated then
+                   exit;
+
+          if pRec^.stage = 0
+          then
+              pRec^.MatrixBlkMultFunc
+          else if pRec^.stage = 1
+          then
+              pRec^.ApplyOp
+          else
+              pRec^.MatrixBlkTranspose;
+     end;
+end;
+
+// empirical:
+function UseInnerBlockMult( w, h : TASMNativeInt) : boolean;
+begin
+     Result := (numCPUCores = numRealCores) and not ( (w > 5*BlockedMatrixMultSize) and (h > 3*BlockedMatrixMultSize));
+end;
+
+procedure ThrBlockMatrixMultiplicationT2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
+  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
+var h1, h : TASMNativeInt;
+    blkIdxX : TASMNativeInt;
+    actBlk : PDouble;
+    multBlk : PDouble;
+    copyBlk : PDouble;
+    pA, pB : PDouble;
+    blkIdxY : TASMNativeInt;
+    idx : TASMNativeInt;
+    gamma : TASMNativeInt;
+    pDest : PDouble;
+    pMt2 : PDouble;
+    w1FitCacheSize : boolean;
+    h2FitCacheSize : boolean;
+    h1FitCacheSize : boolean;
+    blkHeight : TASMNativeInt;
+    blkHeight1 : TASMNativeInt;
+    gammaWidth : TASMNativeInt;
+    blockByteSize : Cardinal;
+    blockLineSize : Cardinal;
+    isAligned : boolean;
+    ptrMem : Pointer;
+    objs : Array[0..cMaxNumCores - 1] of TAsyncMultBlkRec;
+    usedCores : integer;
+    i: Integer;
+    numFin : integer;
+    calls : IMtxAsyncCallGroup;
+    waitObjs : TFlagRecArr;
+begin
+     usedCores := NumCoresToUseForMult(width1, height1, height2, width2, blockSize);
+
+     if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
+        exit;
+     assert((width1 = width2), 'Dimension error');
+     assert((destLineWidth - height2*sizeof(double) >= 0) and (LineWidth1 >= width1*sizeof(double)) and (LineWidth2 >= width2*sizeof(double)), 'Line widths do not match');
+
+     assert(blockSize > 1, 'Error blocksize must be at least 2');
+
+     if blockSize > width1 then
+        blockSize := Next2Pwr( width1, blockSize );
+     
+     isAligned := (TASMNativeUInt(dest) and $0000000F) = 0;
+
+     h1FitCacheSize := (height1 mod blockSize) = 0;
+     h2FitCacheSize := (height2 mod blockSize) = 0;
+     w1FitCacheSize := (width1 mod blockSize) = 0;
+
+     h := height1 div blockSize + TASMNativeInt(not h1FitCacheSize) - 1;
+     h1 := height2 div blockSize + TASMNativeInt(not h2FitCacheSize) - 1;
+     gamma := width1 div blockSize + TASMNativeInt(not w1FitCacheSize) - 1;
+
+     blockByteSize := blockSize*blockSize*sizeof(double);
+
+     actBlk := mem;
+     ptrMem := nil;
+     if not Assigned(mem) then
+        actBlk := MtxMallocAlign(BlockMultMemSize(blockSize), ptrMem );
+     multBlk := PDouble(TASMNativeUInt(actBlk) + blockByteSize);
+     copyBlk := PDouble(TASMNativeUInt(actBlk) + 2*blockByteSize);
+
+     blkHeight := blockSize;
+     blockLineSize := blockSize*sizeof(double);
+     blkHeight1 := blockSize;
+     gammaWidth := blockSize;
+     pA := nil;
+     pB := nil;
+
+     for i := 0 to usedCores - 1 do
+     begin
+          objs[i].Create(actBlk, pA, pB, multBlk, copyBlk, gammaWidth,
+                         blkHeight, blkHeight1, blockLineSize, LineWidth1, LineWidth2,
+                         dest, destLineWidth,
+                         isAligned, op);
+
+          objs[i].numThr := usedCores;
+          objs[i].thrIdx := i;
+     end;
+
+     // start the threads
+     calls := MtxInitTaskGroup;
+
+     // start threads
+     for i := 1 to usedCores - 1 do
+     begin
+          calls.AddTaskRec(@MatrixBlkMultT2FuncThr, @objs[i]);
+          waitObjs[i - 1] := @objs[i].flags;
+     end;
+
+     for blkIdxY := 0 to h do
+     begin
+          if (blkIdxY = h) and not h1FitCacheSize then
+             blkHeight := (height1 mod blockSize);
+
+          for i := 0 to usedCores - 1 do
+              objs[i].blkHeight := blkHeight;
+
+          pDest := dest;
+          inc(PByte(pDest), blkIdxY*blockSize*destLineWidth);
+          pMt2 := mt2;
+          blkHeight1 := blockSize;
+
+          for blkIdxX := 0 to h1 do
+          begin
+               if (blkIdxX = h1) and not h2FitCacheSize then
+                  blkHeight1 := (height2 mod blockSize);
+
+               for i := 0 to usedCores - 1 do
+                   objs[i].blkHeight1 := blkHeight1;
+
+               MtxMemInit(actBlk, blockByteSize, 0);
+               pa := mt1;
+               pb := pMt2;
+
+               gammaWidth := blockSize;
+               for idx := 0 to gamma do
+               begin
+                    if (idx = gamma) and not w1FitCacheSize then
+                       gammaWidth := width1 mod blockSize;
+
+                    for i := 0 to usedCores - 1 do
+                    begin
+                         objs[i].gammaWidth := gammaWidth;
+                         objs[i].pa := pa;
+                         objs[i].pb := pb;
+                         objs[i].stage := 0;
+
+                         objs[i].flags.finished := False; // set flag to indicate start of multiplication
+                    end;
+
+                    // use the current thread for multiplication too
+                    objs[0].MatrixBlkMultT2Func;
+
+                    // spin wait for all other treads
+                    SpinWait(waitObjs, usedCores - 1);
+
+                    inc(pa, gammaWidth);
+                    inc(pb, gammaWidth);
+               end;
+
+               for i := 0 to usedCores - 1 do
+               begin
+                    objs[i].stage := 1;
+                    objs[i].pDest := pDest;
+
+                    objs[i].flags.finished := False; // set flag to indicate start end operation
+               end;
+
+               objs[0].ApplyOpT;
+
+               // spin wait for all other treads
+               SpinWait(waitObjs, usedCores - 1);
+
+               inc(pDest, blockSize);
+               inc(PByte(pMt2), blockSize*LineWidth2);
+          end;
+
+          inc(PByte(mt1), blkHeight*LineWidth1);
+     end;
+
+     // ####################################################
+     // #### Terminate the threads
+     for i := 0 to usedCores - 1 do
+         objs[i].flags.Terminated := True;
+
+     if usedCores > 1 then
+        calls.SyncAll;
+
+     if Assigned(ptrMem) then
+        FreeMem(ptrMem);
+end;
+
+procedure ThrBlockMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation = doNone); overload;
+begin
+     ThrBlockMatrixMultiplication(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2,
+                                  LineWidth1, LineWidth2, BlockMatrixCacheSize, op, nil );
+end;
+
+procedure ThrBlockMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation = doNone; mem : PDouble = nil); overload;
+var w, h : TASMNativeInt;
+    blkIdxX : TASMNativeInt;
+    actBlk : PDouble;
+    multBlk : PDouble;
+    transBlk, copyBlk : PDouble;
+    pA, pB : PDouble;
+    blkIdxY : TASMNativeInt;
+    idx : TASMNativeInt;
+    gamma : TASMNativeInt;
+    pDest : PDouble;
+    pMt2 : PDouble;
+    w1FitCacheSize : boolean;
+    w2FitCacheSize : boolean;
+    h1FitCacheSize : boolean;
+    blkHeight : TASMNativeInt;
+    blkWidth : TASMNativeInt;
+    gammaWidth : TASMNativeInt;
+    blockByteSize : Cardinal;
+    blockLineSize : Cardinal;
+    isAligned : boolean;
+    ptrMem : Pointer;
+    objs : Array[0..cMaxNumCores - 1] of TAsyncMultBlkRec;
+    usedCores : integer;
+    i: Integer;
+    numFin : integer;
+    calls : IMtxAsyncCallGroup;
+    waitObj : TFlagRecArr;
+begin
+     usedCores := NumCoresToUseForMult(width1, height1, height2, width2, blockSize);
+
+     if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
+        exit;
+     assert((width1 = height2), 'Dimension error');
+     assert((destLineWidth - Width2*sizeof(double) >= 0) and (LineWidth1 >= width1*sizeof(double)) and (LineWidth2 >= width2*sizeof(double)), 'Line widths do not match');
+
+     assert(blockSize > 1, 'Error blocksize must be at least 2');
+
+     if blockSize > width1 then
+        blockSize := Next2Pwr( width1, blockSize );
+     
+     isAligned := (TASMNativeUInt(dest) and $00000001F) = 0;
+
+     h1FitCacheSize := (height1 mod blockSize) = 0;
+     w2FitCacheSize := (width2 mod blockSize) = 0;
+     w1FitCacheSize := (width1 mod blockSize) = 0;
+
+     h := height1 div blockSize + TASMNativeInt(not h1FitCacheSize) - 1;
+     w := width2 div blockSize + TASMNativeInt(not w2FitCacheSize) - 1;
+     gamma := width1 div blockSize + TASMNativeInt(not w1FitCacheSize) - 1;
+
+     blockByteSize := blockSize*blockSize*sizeof(double);
+
+     actBlk := mem;
+     ptrMem := nil;
+     if not Assigned(mem) then
+        actBlk := MtxMallocAlign(BlockMultMemSize(blockSize), ptrMem );
+     multBlk := PDouble(TASMNativeUInt(actBlk) + blockByteSize);
+     transBlk := PDouble(TASMNativeUInt(actBlk) + 2*blockByteSize);
+     copyBlk := PDouble(TASMNativeUInt(actBlk) + 3*blockByteSize);
+
+     blockLineSize := blockSize*sizeof(double);
+
+     blkHeight := blockSize;
+
+     blockLineSize := blockSize*sizeof(double);
+     gammaWidth := blockSize;
+     pA := nil;
+     pB := nil;
+
+     blkWidth := blockSize;
+     for i := 0 to usedCores - 1 do
+     begin
+          objs[i].Create(actBlk, pA, pB, multBlk, copyBlk, gammaWidth,
+                         blkHeight, blkWidth, blockLineSize, LineWidth1, LineWidth2,
+                         dest, destLineWidth,
+                         isAligned, op);
+
+          objs[i].transBlk := transBlk;
+          objs[i].numThr := usedCores;
+          objs[i].thrIdx := i;
+     end;
+
+     // start the threads
+     calls := MtxInitTaskGroup;
+
+     // start threads
+     for i := 1 to usedCores - 1 do
+     begin
+          calls.AddTaskRec(@MatrixBlkMultFuncThr, @objs[i]);
+          waitObj[i - 1] := @objs[i].flags;
+     end;
+
+
+     for blkIdxY := 0 to h do
+     begin
+          if (blkIdxY = h) and not h1FitCacheSize then
+             blkHeight := (height1 mod blockSize);
+
+          for i := 0 to usedCores - 1 do
+          begin
+               objs[i].blkHeight := blkHeight;
+               objs[i].blkHeight1 := blkHeight;
+          end;
+
+          pDest := dest;
+          inc(PByte(pDest), blkIdxY*blockSize*destLineWidth);
+          pMt2 := mt2;
+          blkWidth := blockSize;
+
+          for blkIdxX := 0 to w do
+          begin
+               if (blkIdxX = w) and not w2FitCacheSize then
+                  blkWidth := (width2 mod blockSize);
+
+               for i := 0 to usedCores - 1 do
+                   objs[i].blkWidth := blkWidth;
+
+               MtxMemInit(actBlk, blockByteSize, 0);
+               pa := mt1;
+               pb := pMt2;
+
+               gammaWidth := blockSize;
+               for idx := 0 to gamma do
+               begin
+                    if (idx = gamma) and not w1FitCacheSize then
+                       gammaWidth := width1 mod blockSize;
+
+                    for i := 0 to usedCores - 1 do
+                    begin
+                         objs[i].gammaWidth := gammaWidth;
+                         objs[i].pa := pa;
+                         objs[i].pb := pb;
+
+                         objs[i].stage := 2;
+                         objs[i].flags.finished := False;
+                    end;
+
+                    objs[0].MatrixBlkTranspose;
+
+                    // spin wait for all other treads
+                    SpinWait(waitObj, usedCores - 1);
+
+                    for i := 0 to usedCores - 1 do
+                    begin
+                         objs[i].gammaWidth := gammaWidth;
+                         objs[i].pa := pa;
+                         objs[i].pb := pb;
+
+                         objs[i].stage := 0;
+                         objs[i].flags.finished := False;
+                    end;
+
+                    objs[0].MatrixBlkMultFunc;
+
+                    // spin wait for all other treads
+                    SpinWait(waitObj, usedCores - 1);
+
+                    inc(pa, gammaWidth);
+                    inc(PByte(pb), gammaWidth*LineWidth2);
+               end;
+
+               for i := 0 to usedCores - 1 do
+               begin
+                    objs[i].stage := 1;
+                    objs[i].pDest := pDest;
+                    objs[i].blkHeight1 := objs[i].blkWidth;
+
+                    objs[i].flags.finished := False; // set flag to indicate start end operation
+               end;
+
+               objs[0].ApplyOp;
+
+               // spin wait for all other treads
+               SpinWait(waitObj, usedCores - 1);
+
+               inc(pDest, blockSize);
+               inc(pMt2, blockSize);
+          end;
+
+          inc(PByte(mt1), blkHeight*LineWidth1);
+     end;
+
+     // #######################################################
+     // #### Terminate the threads
+     for i := 0 to usedCores - 1 do
+         objs[i].flags.Terminated := true;
+
+     if usedCores > 1 then
+        calls.SyncAll;
+
+     if Assigned(ptrMem) then
+        FreeMem(ptrMem);
+end;
+
+procedure TAsyncMultBlkRec.MatrixBlkTranspose;
+var offset : integer;
+    thrWidth : integer;
+    thrTransBlk  : PDouble;
+    thrPB : PDouble;
+begin
+     thrWidth := Max(1, blkWidth div numThr);
+     offset := thrIdx*thrWidth;
+     if offset >= blkWidth then
+     begin
+          flags.finished := True;
+          exit;
+     end;
+
+     if thrIdx = numThr - 1 then
+        thrWidth := blkWidth - offset;
+
+     thrTransBlk := GenPtr(transBlk, 0, offset, blockLineSize);
+     thrPB := GenPtr(pB, offset, 0, LineWidth2);
+
+     if (thrWidth > 3) and (gammaWidth > 3)
+     then
+         MatrixTranspose(thrTransBlk, blockLineSize, thrPB, LineWidth2, thrWidth, gammaWidth)
+     else
+         GenericMtxTranspose(thrTransBlk, blockLineSize, thrPB, LineWidth2, thrWidth, gammaWidth);
+
+     flags.finished := True;
 end;
 
 end.

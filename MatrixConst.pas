@@ -127,7 +127,8 @@ function GenPtrArr(const A : PDouble; incX, incY : TASMNativeInt; const LineWidt
 // #### Sets the pointer to the next available 32bytes alligned address
 // note: the function does not check if there is still enough memory allocated and left for this operation!
 function AlignPtr32( A : Pointer ) : Pointer; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
-  
+function AlignPtr64( A : Pointer ) : Pointer; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+
 implementation
 
 function GenPtr(const A : PDouble; incX, incY : TASMNativeInt; const LineWidthA : TASMNativeInt) : PDouble; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
@@ -149,6 +150,13 @@ begin
      Result := A;
      if (TASMNativeUInt(A) and $1F) <> 0 then
         Result := Pointer( TASMNativeUInt(Result) + $20 - TASMNativeUInt(Result) and $1F );
+end;
+
+function AlignPtr64( A : Pointer ) : Pointer;
+begin
+     Result := A;
+     if (TASMNativeUInt(A) and $3F) <> 0 then
+        Result := Pointer( TASMNativeUInt(Result) + $40 - TASMNativeUInt(Result) and $3F );
 end;
 
 function ConvEQUProgress(value : TLinEquProgressWOObj) : TLinEquProgress;

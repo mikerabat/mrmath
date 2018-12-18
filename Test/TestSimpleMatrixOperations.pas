@@ -98,6 +98,8 @@ type
     procedure TestMatrixMultTria2T1;
     procedure TestThreadedMatrixMultT1;
     procedure TestThreadedMatrixMultT2;
+    procedure TestBlkThreadedMatrixMultT2;
+    procedure TestBlkThreadedMatrixMult;
     procedure TestStrassenMult;
     procedure TestAbs;
     procedure TestVarianceRow;
@@ -1649,13 +1651,123 @@ begin
      {$IFDEF FMX} TearDown; {$ENDIF}
 end;
 
+procedure TASMMatrixOperations.TestBlkThreadedMatrixMultT2;
+const cMtxWidth : Array[0..5] of integer = (12, 128, 513, 777, 2043, 2048);
+      cMtxHeight : Array[0..5] of integer = (13, 128, 343, 768, 2192, 2048);
+      //cMtxWidth : Array[0..0] of integer = (2043);
+      //cMtxHeight : Array[0..0] of integer = (2192);
+var aMt1, aMt2 : PDouble;
+    aMem1, aMem2 : PByte;
+    aDest1, aDest2 : PDouble;
+    aMem3, aMem4 : PByte;
+    aMt1LineWidth, aMt2LineWidth : TASMNativeInt;
+    aDestLineWidth1, aDestLineWidth2 : TASMNativeInt;
+    start1, start2 : Int64;
+    end1, end2 : int64;
+    idx : integer;
+    i : Integer;
+    isSame : boolean;
+    errOccured : boolean;
+begin
+     errOccured := False;
+     for i := 0 to Length(cMtxWidth) - 1 do
+     begin
+          FillAlignedMtx( cMtxWidth[i], cMtxHeight[i], aMt1, aMem1, aMt1LineWidth);
+          FillAlignedMtx( cMtxWidth[i], cMtxHeight[i], aMt2, aMem2, aMt2LineWidth);
+
+          AllocAlignedMtx( cMtxHeight[i], cMtxHeight[i], aDest1, amem3, aDestLineWidth1);
+          AllocAlignedMtx( cMtxHeight[i], cMtxHeight[i], aDest2, amem4, aDestLineWidth2);
+
+          start1 := MtxGetTime;
+          ThrBlockMatrixMultiplicationT2(aDest1, aDestLineWidth1, aMt1, aMt2, cMtxWidth[i], cMtxHeight[i], cMtxWidth[i], cMtxHeight[i],
+                                         aMt1LineWidth, aMt2LineWidth, BlockMatrixCacheSize, doNone, nil);
+          end1 := MtxGetTime;
+
+          start2 := MtxGetTime;
+          ThrMatrixMultT2Ex(aDest2, aDestLineWidth2, aMt1, aMt2, cMtxWidth[i], cMtxHeight[i], cMtxWidth[i], cMtxHeight[i],
+                            aMt1LineWidth, aMt2LineWidth, BlockMatrixCacheSize, doNone, nil);
+          end2 := MtxGetTime;
+
+          Status( Format('%d x %d Mult took: %.3fms, %.3fms', [ cMtxWidth[i], cMtxHeight[i], (end1 - start1)*1000/mtxFreq, (end2 - start2)*1000/mtxFreq] ) );
+
+          isSame := CheckMtxIdx(aDest1, aDest2, aDestLineWidth1, aDestLineWidth2, cMtxHeight[i], cMtxHeight[i], idx);
+          errOccured := errOccured or (not isSame);
+          Status( 'Same: ' +  BoolToStr( isSame ));
+          if not isSame then
+             Status( 'Problem at: ' + IntToStr(idx));
+
+          FreeMem(aMem1);
+          FreeMem(aMem2);
+          FreeMem(aMem3);
+          FreeMem(aMem4);
+     end;
+
+     Check(not errOccured, 'Problem with threaded matrix multiplication');
+end;
+
+
+procedure TASMMatrixOperations.TestBlkThreadedMatrixMult;
+const cMtxWidth : Array[0..5] of integer = (12, 128, 513, 777, 2043, 2048);
+      cMtxHeight : Array[0..5] of integer = (13, 128, 343, 768, 2192, 2048);
+      //cMtxWidth : Array[0..0] of integer = (513);
+      //cMtxHeight : Array[0..0] of integer = (343);
+var aMt1, aMt2 : PDouble;
+    aMem1, aMem2 : PByte;
+    aDest1, aDest2 : PDouble;
+    aMem3, aMem4 : PByte;
+    aMt1LineWidth, aMt2LineWidth : TASMNativeInt;
+    aDestLineWidth1, aDestLineWidth2 : TASMNativeInt;
+    start1, start2 : Int64;
+    end1, end2 : int64;
+    idx : integer;
+    i : Integer;
+    isSame : boolean;
+    errOccured : boolean;
+begin
+     errOccured := False;
+     for i := 0 to Length(cMtxWidth) - 1 do
+     begin
+          FillAlignedMtx( cMtxWidth[i], cMtxHeight[i], aMt1, aMem1, aMt1LineWidth);
+          FillAlignedMtx( cMtxHeight[i], cMtxWidth[i], aMt2, aMem2, aMt2LineWidth);
+
+          AllocAlignedMtx( cMtxHeight[i], cMtxHeight[i], aDest1, amem3, aDestLineWidth1);
+          AllocAlignedMtx( cMtxHeight[i], cMtxHeight[i], aDest2, amem4, aDestLineWidth2);
+
+          start1 := MtxGetTime;
+          ThrBlockMatrixMultiplication(aDest1, aDestLineWidth1, aMt1, aMt2, cMtxWidth[i], cMtxHeight[i], cMtxHeight[i], cMtxWidth[i],
+                                         aMt1LineWidth, aMt2LineWidth, BlockMatrixCacheSize, doNone, nil);
+          end1 := MtxGetTime;
+
+          start2 := MtxGetTime;
+          ThrMatrixMultEx(aDest2, aDestLineWidth2, aMt1, aMt2, cMtxWidth[i], cMtxHeight[i], cMtxHeight[i], cMtxWidth[i],
+                            aMt1LineWidth, aMt2LineWidth, BlockMatrixCacheSize, doNone, nil);
+          end2 := MtxGetTime;
+
+          Status( Format('%d x %d Mult took: %.3fms, %.3fms', [ cMtxWidth[i], cMtxHeight[i], (end1 - start1)*1000/mtxFreq, (end2 - start2)*1000/mtxFreq] ) );
+
+          isSame := CheckMtxIdx(aDest1, aDest2, aDestLineWidth1, aDestLineWidth2, cMtxHeight[i], cMtxHeight[i], idx);
+          errOccured := errOccured or (not isSame);
+          Status( 'Same: ' +  BoolToStr( isSame ));
+          if not isSame then
+             Status( 'Problem at: ' + IntToStr(idx));
+
+          FreeMem(aMem1);
+          FreeMem(aMem2);
+          FreeMem(aMem3);
+          FreeMem(aMem4);
+     end;
+
+     Check(not errOccured, 'Problem with threaded matrix multiplication');
+end;
+
+
 procedure TASMMatrixOperations.TestThreadedMatrixMultT2;
 const cMtxWidth = 24;
       cMtxWidth2 = 617;
 var a : TDoubleDynArray;
-    b : TDoubleDynArray; 
+    b : TDoubleDynArray;
     counter: Integer;
-    c1, c2, c3 : TDoubleDynArray; 
+    c1, c2, c3 : TDoubleDynArray;
 
     aa : PDouble;
     ab : PDouble;
@@ -3743,7 +3855,7 @@ begin
      startTime4 := MtxGetTime;
      ASMMatrixVectMultEvenUnAlignedVAligned(@dest4[0], cMtxSize*sizeof(double), @x[0], @row[0], cMtxSize*sizeof(double), sizeof(double), cMtxSize, cMtxSize, 2, -0.2);
      endTime4 := MtxGetTime;
-     
+
      Check(CheckMtx(dest1, dest2), 'Error Matrix vector multiplication failed');
      Check(CheckMtx(dest1, dest3), 'Error Matrix vector multiplication failed');
      Check(CheckMtx(dest1, dest4), 'Error Matrix vector multiplication failed');
@@ -3751,7 +3863,7 @@ begin
      Status(Format('%.2f, %.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000, (endTime3 - startTime3)/mtxFreq*1000, (endTime4 - startTime4)/mtxFreq*1000]));
 
      FreeMem(rowa);
-     
+
      startTime1 := MtxGetTime;
      GenericMtxVecMult(@dest1[0], cMtxSize*sizeof(double), @x[0], @y[0], cMtxSize*sizeof(double), cMtxSize*sizeof(double), cMtxSize, cMtxSize, 2, -0.2);
      endTime1 := MtxGetTime;

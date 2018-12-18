@@ -2566,7 +2566,7 @@ procedure ThrMatrixRotateUpdB(aU : PDouble; const aLineWidthU : TASMNativeInt;
                               aw1, aw2,
                               aw3, aw4 : PConstDoubleArr);
 var obj : TMatrixRotateRec;
-    objs : Array[0..63] of TMatrixRotateRec;
+    objs : Array[0..cMaxNumCores - 1] of TMatrixRotateRec;
     numUsed : integer;
     calls : IMtxAsyncCallGroup;
     counter: TASMNativeInt;
@@ -2615,7 +2615,7 @@ procedure ThrMatrixRotateUpdF(aU : PDouble; const aLineWidthU : TASMNativeInt;
                               aw1, aw2,
                               aw3, aw4 : PConstDoubleArr);
 var obj : TMatrixRotateRec;
-    objs : Array[0..63] of TMatrixRotateRec;
+    objs : Array[0..cMaxNumCores - 1] of TMatrixRotateRec;
     numUsed : integer;
     calls : IMtxAsyncCallGroup;
     counter: TASMNativeInt;
@@ -2735,7 +2735,6 @@ begin
      svdData.MatrixMultEx := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultEx;
      svdData.MatrixMultT1 := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultT1Ex;
      svdDAta.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultT2Ex;
-
 
      svdData.MatrixRotateUpdB := {$IFDEF FPC}@{$ENDIF}ThrMatrixRotateUpdB;
      svdData.MatrixRotateUpdF := {$IFDEF FPC}@{$ENDIF}ThrMatrixRotateUpdF;

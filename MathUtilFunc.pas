@@ -36,6 +36,8 @@ function binom(n, k : integer) : int64;
 function lcm(a, b : TASMNativeInt) : TASMNativeInt;  // least common multiple
 function gcm(a, b : TASMNativeInt) : TASMNativeInt; // greatest common divisior
 
+function Next2Pwr(num : TASMNativeInt; maxSize : TASMNativeInt) : TASMNativeInt;
+
 function eps(const val : double) : double;
 function MinDblDiv : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 
@@ -246,6 +248,13 @@ begin
      end;
 
      Result := a;
+end;
+
+function Next2Pwr(num : TASMNativeInt; maxSize : TASMNativeInt) : TASMNativeInt;
+begin
+     Result := 1;
+     while (Result < maxSize) and (Result < num) do
+           Result := Result shl 1;
 end;
 
 procedure DoubleSwap(var a, b : Double); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
