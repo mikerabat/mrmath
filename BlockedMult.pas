@@ -16,6 +16,8 @@ unit BlockedMult;
 
 interface
 
+{$IFDEF FPC} {$MODESWITCH ADVANCEDRECORDS} {$ENDIF}
+
 uses MatrixConst;
 
 // ###################################################################
@@ -74,8 +76,37 @@ procedure ThrBlockMatrixMultiplication(dest : PDouble; const destLineWidth : TAS
 
 implementation
 
-uses Math, BlockSizeSetup, SimpleMatrixOperations, MatrixASMStubSwitch,
+uses BlockSizeSetup, SimpleMatrixOperations, MatrixASMStubSwitch,
      MtxThreadPool, ThreadedMatrixOperations, Windows, MathUtilFunc;
+
+{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
+
+procedure YieldProcessor; {$IFDEF FPC} assembler; {$ENDIF}
+asm
+   PAUSE;
+end;
+
+{$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+
+procedure MemoryBarrier; {$IFDEF FPC} assembler; {$ENDIF}
+{$IFDEF x64}
+asm 
+   push rax;
+   XCHG [rsp],rax;
+   POP  rax;
+end;
+{$ELSE}
+asm
+   push eax;
+   XCHG [esp],eax;
+   POP  eax;
+end;
+{$ENDIF}
 
 procedure BlockMatrixVectorMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt); overload;
 begin
@@ -1002,6 +1033,7 @@ end;
 
 type
   TAsyncMultBlkRec = record
+  public
     thrIdx : integer;
     numThr : Integer;
 
@@ -1297,7 +1329,6 @@ var h1, h : TASMNativeInt;
     objs : Array[0..cMaxNumCores - 1] of TAsyncMultBlkRec;
     usedCores : integer;
     i: Integer;
-    numFin : integer;
     calls : IMtxAsyncCallGroup;
     waitObjs : TFlagRecArr;
 begin
@@ -1474,7 +1505,6 @@ var w, h : TASMNativeInt;
     objs : Array[0..cMaxNumCores - 1] of TAsyncMultBlkRec;
     usedCores : integer;
     i: Integer;
-    numFin : integer;
     calls : IMtxAsyncCallGroup;
     waitObj : TFlagRecArr;
 begin

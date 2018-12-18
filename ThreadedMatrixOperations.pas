@@ -73,8 +73,8 @@ function NumCoresToUseForMult(width1, height1, width2, height2, blockSize : TASM
 
 implementation
 
-uses  MtxThreadPool, MatrixASMStubSwitch, BlockSizeSetup, Math, BlockedMult,
-      SimpleMatrixOperations, Windows, SysUtils, MtxTimer;
+uses  MtxThreadPool, MatrixASMStubSwitch, BlockSizeSetup, BlockedMult,
+      Windows, SysUtils, MtxTimer;
 
 type
   TMatrixAddSubFunc = procedure(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
