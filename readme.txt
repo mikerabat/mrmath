@@ -55,6 +55,11 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date: 19.12.2018
+* Renamed movntdq to movapd
+* New logic for matrix mult -> better performance on some cpu's
+* A few more memory optmizations.
+
 Date: 16.11.2018
 * Anonymous methods are now possible for the elementwise functions.
 

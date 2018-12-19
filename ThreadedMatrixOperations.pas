@@ -73,7 +73,7 @@ function NumCoresToUseForMult(width1, height1, width2, height2, blockSize : TASM
 
 implementation
 
-uses  MtxThreadPool, MatrixASMStubSwitch, BlockSizeSetup, BlockedMult,
+uses  Math, MtxThreadPool, MatrixASMStubSwitch, BlockSizeSetup, BlockedMult,
       Windows, SysUtils, MtxTimer;
 
 type

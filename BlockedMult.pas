@@ -76,7 +76,7 @@ procedure ThrBlockMatrixMultiplication(dest : PDouble; const destLineWidth : TAS
 
 implementation
 
-uses BlockSizeSetup, SimpleMatrixOperations, MatrixASMStubSwitch,
+uses Math, BlockSizeSetup, SimpleMatrixOperations, MatrixASMStubSwitch,
      MtxThreadPool, ThreadedMatrixOperations, Windows, MathUtilFunc;
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
@@ -1300,7 +1300,8 @@ end;
 // empirical:
 function UseInnerBlockMult( w, h : TASMNativeInt) : boolean;
 begin
-     Result := (numCPUCores = numRealCores) and not ( (w > 5*BlockedMatrixMultSize) and (h > 3*BlockedMatrixMultSize));
+     // not always in hyperthreading cpu's
+     Result := (numCPUCores = numRealCores) or ( (w < 1024) and (h < 1024) and (w > BlockedMatrixMultSize) and (h > BlockedMatrixMultSize) );
 end;
 
 procedure ThrBlockMatrixMultiplicationT2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
