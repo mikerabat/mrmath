@@ -870,6 +870,7 @@ var cnt : integer;
     nextRadiusPathIdx : integer;
     i, j : integer;
     base : integer;
+    numItems : integer;
 begin
      Result := 0;
      
@@ -917,8 +918,9 @@ begin
           // add to window list
           for i := 2*basei to 2*basei + 1 do
           begin
-               if Length(fWindow) < Result + 2*(maxJ - minJ + 1) then
-                  SetLength(fWindow, Min(2*Length(fWindow), Length(fWindow) + 1000));
+               numItems := Result + 2*(maxJ - minJ + 1);
+               if Length(fWindow) < numItems then
+                  SetLength(fWindow, Max(numItems, Min(2*Length(fWindow), Length(fWindow) + 1000)));
           
                for j := 2*minJ to 2*maxJ do
                begin
