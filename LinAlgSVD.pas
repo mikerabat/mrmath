@@ -63,7 +63,7 @@ implementation
 
 uses BlockSizeSetup, Classes,
      HouseholderReflectors, MatrixRotations, LinAlgQR,
-     ThreadedMatrixOperations, MtxThreadPool;
+     ThreadedMatrixOperations, MtxThreadPool, BlockedMult;
 
 // ########################################################################
 // #### Local definitions
@@ -2102,6 +2102,9 @@ var work : PDouble;
     chunk : TASMNativeInt;
     w2 : TASMNativeInt;
     memNeed : TASMNativeInt;
+    ACpy : PDouble;
+    AMem : Pointer;
+    ACpyLineWidth : TASMNativeInt;
 begin
      Result := srOk;
 
@@ -2188,16 +2191,26 @@ begin
                     svdData.QrProgressObj.FromPerc := 0;
                     svdData.QrProgressObj.ToPerc := 15;
                end;
+
+               // create a copy of A in case A is singular and QR fails
+               ACpy := MtxAllocAlign( width, height, ACpyLineWidth, AMem );
+               MatrixCopy(ACpy, ACpyLineWidth, A, LineWidthA, width, height);
+
                // Compute A=Q*R
                if svdData.qrDecomp(A, LineWidthA, width, height, pWorkITau, nil, QRBlockSize, svdData.QRProgress) <> qrOK then
                begin
                     if svdData.pWorkMem = nil then
                        FreeMem(pMem);
 
+                    // copy back A
+                    MatrixCopy(A, LineWidthA, ACpy, ACpyLineWidth, width, height);
+                    FreeMem(AMem);
+
                     // do the procedure again but now force the other path
                     Result := InternalMatrixSVD(A, LineWidthA, width, height, W, V, LineWidthV, svdData, True);
-                    exit;                    
+                    exit;
                end;
+               FreeMem(AMem);
 
                // copy R to VT - zeroing out below it
                MatrixCopy(V, LineWidthV, A, LineWidthA, width, width);
@@ -2733,8 +2746,10 @@ begin
      svdData.LeftQFromQRDecomp := {$IFDEF FPC}@{$ENDIF}ThrMatrixLeftQFromQRDecomp;
      svdData.BlkMltSize := BlockMatrixCacheSize;
      svdData.MatrixMultEx := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultEx;
+     //svdData.MatrixMultEx := {$IFDEF FPC}@{$ENDIF}ThrBlockMatrixMultiplication;
      svdData.MatrixMultT1 := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultT1Ex;
      svdDAta.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultT2Ex;
+     //svdDAta.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}ThrBlockMatrixMultiplicationT2;
 
      svdData.MatrixRotateUpdB := {$IFDEF FPC}@{$ENDIF}ThrMatrixRotateUpdB;
      svdData.MatrixRotateUpdF := {$IFDEF FPC}@{$ENDIF}ThrMatrixRotateUpdF;
