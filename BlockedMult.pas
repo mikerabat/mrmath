@@ -77,7 +77,7 @@ procedure ThrBlockMatrixMultiplication(dest : PDouble; const destLineWidth : TAS
 implementation
 
 uses Math, BlockSizeSetup, SimpleMatrixOperations, MatrixASMStubSwitch,
-     MtxThreadPool, ThreadedMatrixOperations, Windows, MathUtilFunc;
+     MtxThreadPool, ThreadedMatrixOperations, MathUtilFunc;
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
