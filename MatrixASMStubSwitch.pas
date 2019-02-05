@@ -1190,9 +1190,6 @@ begin
      if (instrType = itAVX) and not IsAVXPresent then
         instrType := itSSE;
 
-     if instrType = itAVX then
-        InitMathFunctions(itSSe, useStrassenMult);
-        
      // check features
      if (IsAVXPresent and (instrType = itAVX)) or (IsFMAPresent and (instrType = itFMA)) then
      begin
