@@ -2087,7 +2087,7 @@ end;
 function TDoubleMatrix.RepeatMatrix(numX, numy : integer): TDoubleMatrix;
 begin
      Result := Clone;
-     Result.RepeatMatrixInPlace(numY, numX);
+     Result.RepeatMatrixInPlace(numX, numY);
 end;
 
 procedure TDoubleMatrix.RepeatMatrixInPlace(numX, numY: integer);

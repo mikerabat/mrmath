@@ -679,7 +679,7 @@ begin
 
           // Normalize antiderivatives by max value
           Q.SetSubMatrix(0, fOrder - 1, Q.Width, 1);
-          fmax := Q.RepeatMatrix(fOrder, 1);
+          fmax := Q.RepeatMatrix(1, fOrder);
           fmax.ReshapeInPlace(1, aCoefs.Height, True);
           Q.UseFullMatrix;
 
