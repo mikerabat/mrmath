@@ -73,7 +73,7 @@ type
   public
     function LoadFromStream(aStream : TStream) : TBaseMathPersistence; override;
 
-    constructor Create;
+    procedure AfterConstruction; override;
   end;
 
 
@@ -85,6 +85,14 @@ const cJSONHeader : UTF8String = '{"Lib":"mrMath"';
       cJSONVersion : UTF8String = ',"Version":1';
       cJSONFinalize : UTF8String = '}';
 { TJsonReaderWriter }
+
+procedure TJsonReaderWriter.AfterConstruction;
+begin
+     ffmt := GetLocalFMTSet;
+     fFmt.DecimalSeparator := '.';
+     
+     inherited;
+end;
 
 class function TJsonReaderWriter.CanReadStream(aStream: TStream): boolean;
 var buf : UTF8String;
@@ -361,14 +369,6 @@ begin
      end;
 
      Result := Copy(res, 1, resIdx - 1);
-end;
-
-constructor TJsonReaderWriter.Create;
-begin
-     inherited Create;
-
-     ffmt := GetLocalFMTSet;
-     fFmt.DecimalSeparator := '.';
 end;
 
 function TJsonReaderWriter.LoadFromStream(
