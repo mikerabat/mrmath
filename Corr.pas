@@ -96,6 +96,10 @@ type
     property W1 : IMatrix read fW1;  // stores the last result (warped vector)
     property W2 : IMatrix read fW2;
 
+    property W1Arr : TDoubleDynArray read fW1Arr;
+    property W2Arr : TDoubleDynArray read fW2Arr;
+    
+    
     property Path[index : integer] : TCoordRec read GetPathByIndex;
     property PathLen : integer read fNumPath;
 
@@ -182,15 +186,7 @@ var aMean : IMatrix;
     m : Integer;
 begin
      aMean := A.Mean(False);
-
-     ac := TDoubleMatrixClass(A.GetObjRef.ClassType).Create(A.Width, A.Height);
-     for m := 0 to A.Height - 1 do
-     begin
-          ac.SetSubMatrix(0, m, ac.Width, 1);
-          ac.SetRow(0, A, m);
-          ac.SubInPlace(aMean);
-     end;
-     ac.UseFullMatrix;
+     ac := A.SubVec( aMean, True );
 
      m := ac.Height; 
      tmp := ac.Transpose;
@@ -952,6 +948,7 @@ begin
           SetLength(fd, Length(t)*Length(r));
           SetLength(fAccDist, Length(t)*Length(r));
           SetLength(fWindow, 2*Max(Length(r), Length(t)));
+          SetLength(fPath, Length(fWindow));
           SetLength(fW1Arr, Length(fWindow));
           SetLength(fW2Arr, Length(fWindow));
      end;
@@ -1069,6 +1066,8 @@ begin
      begin
           fW1Arr[counter] := r[ fWindow[fNumW - 1 - counter].j ];
           fW2Arr[counter] := t[ fWindow[fNumW - 1 - counter].i ]; 
+          
+          fPath[counter] := fWindow[fNumW - 1 - counter];
           
           //fw1.Vec[counter] := r[ fWindow[fNumW - 1 - counter].j ];
           //fw2.Vec[counter] := t[ fWindow[fNumW - 1 - counter].i ]; 

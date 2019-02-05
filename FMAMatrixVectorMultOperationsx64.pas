@@ -572,14 +572,14 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   movsd alpha, unixalpha;
+   movsd beta, unixbeta;
    mov LineWidthMT, r8;
    mov LineWidthV, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
    mov rdx, rsi;
-   movsd alpha, unixalpha;
-   movsd beta, unixbeta;
    {$ENDIF}
 
    // prolog - simulate stack
@@ -1106,7 +1106,7 @@ asm
    mov iR13, r13;
    mov iR14, r14;
 
-   mov r12, width;
+   mov r12, r8;
    sar r12, 2;   // width div 4
 
    // performs A = A + alpha*X*Y' in row major form
@@ -1228,7 +1228,7 @@ asm
    mov iR13, r13;
    mov iR14, r14;
 
-   mov r12, width;
+   mov r12, r8;
    sar r12, 2;   // width div 4
 
    // performs A = A + alpha*X*Y' in row major form

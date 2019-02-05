@@ -27,6 +27,7 @@ uses MatrixConst, Types;
 function MtxAlloc( NumBytes : TASMNativeInt ) : Pointer;
 function MtxAllocAlign( NumBytes : TASMNativeInt; var mem : Pointer ) : Pointer; overload;
 function MtxMallocAlign( NumBytes : TASMNativeInt; var mem : Pointer ) : Pointer; overload;
+function MtxMallocAlign( width, height : TASMNativeInt; var LineWidth : TASMNativeInt; var mem : Pointer ) : Pointer; overload;
 function MtxAllocAlign( width, height : TASMNativeInt; var LineWidth : TASMNativeInt; var Mem : Pointer) : Pointer; overload;
 procedure MtxMemInit(A : PDouble; NumBytes : TASMNativeInt; const Value : double);
 
@@ -372,6 +373,21 @@ begin
         NumBytes := NumBytes and $FFFFFFE0 + $20;
 
      mem := GetMemory(NumBytes);
+     if Assigned(mem) then
+        Result := AlignPtr32( mem );
+end;
+
+function MtxMallocAlign( width, height : TASMNativeInt; var LineWidth : TASMNativeInt; var mem : Pointer ) : Pointer; overload;
+var numBytes : TASMNativeInt;
+begin
+     if width and $03 <> 0 then
+        width := width + 4 - (width and $03);
+
+     Result := nil;
+     LineWidth := sizeof(double)*width;
+
+     numBytes := $20 + Height*LineWidth;
+     mem := GetMemory( numBytes );
      if Assigned(mem) then
         Result := AlignPtr32( mem );
 end;
@@ -1199,7 +1215,7 @@ begin
           blockedMultT1Func := BlockMatrixMultiplicationT1;
           blockedMultT2Func := BlockMatrixMultiplicationT2;
           copyFunc := AVXMatrixCopy;
-          //minFunc := AVXMatrixMin;
+          minFunc := AVXMatrixMin;
           maxFunc := AVXMatrixMax;
           transposeFunc := AVXMatrixTranspose;
           transposeInplaceFunc := AVXMatrixTransposeInplace;
@@ -1243,7 +1259,6 @@ begin
                multTria2T1StoreT1Func := FMAMtxMultTria2T1StoreT1;
                multTria2TUpperFunc := FMAMtxMultTria2TUpperUnit;
                multLowTria2T2Store1Func := FMAMtxMultLowTria2T2Store1;
-               vecConvolve := GenericConvolveRevB;
 
                MtxVecMultFunc := FMAMtxVecMult;
                MtxVecMultTFunc := FMAMtxVecMultT;

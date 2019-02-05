@@ -92,6 +92,7 @@ type
    procedure TestCovariance;
    procedure TestElementWiseMult;
    procedure TestElementWiseDiv;
+   procedure TestPinv;
    procedure TesMedian;
   end;
 
@@ -1355,6 +1356,26 @@ begin
      m3 := m1.Mult(m2);
 
      Check(CheckMtx(res, m3.SubMatrix, 3, 3), 'Error multiplication failed');
+end;
+
+procedure TestIMatrix.TestPinv;
+var mtx, res : IMatrix;
+begin
+     mtx := ReadObjFromFile( BaseDataPath + 'pinvSpecial.json' ) as IMatrix;
+
+     InitMathFunctions(itFPU, False);
+     Check( mtx.PseudoInversion(res) = srOk, 'Pseudoinversion failed');
+     Check( SameValue( res[0,0], 0.069, 1e-3));
+
+     InitMathFunctions(itSSE, False);
+     Check( mtx.PseudoInversion(res) = srOk, 'Pseudoinversion failed');
+     Check( SameValue( res[0,0], 0.069, 1e-3));
+     InitMathFunctions(itAVX, False);
+     Check( mtx.PseudoInversion(res) = srOk, 'Pseudoinversion failed');
+     Check( SameValue( res[0,0], 0.069, 1e-3));
+     InitMathFunctions(itFMA, False);
+     Check( mtx.PseudoInversion(res) = srOk, 'Pseudoinversion failed');
+     Check( SameValue( res[0,0], 0.069, 1e-3));
 end;
 
 procedure TestIMatrix.TestSub;
