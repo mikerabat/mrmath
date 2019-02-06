@@ -1927,17 +1927,27 @@ begin
 end;
 
 function TDoubleMatrix.PseudoInversion(out mtx : TDoubleMatrix) : TSVDResult;
+var tmp : TDoubleMatrix;
 begin
      CheckAndRaiseError((width > 0) and (height > 0), 'Dimension error');
 
-     mtx := ResultClass.Create;
+     mtx := ResultClass.Create( height, width );
+     tmp := ResultClass.Create;
      try
-        mtx.Assign(self);
-        mtx.fLinEQProgress := fLinEQProgress;
-        Result := mtx.PseudoInversionInPlace;
+        tmp.Assign(self);
+        
+        Result := MatrixPseudoinverse2Ex( mtx.StartElement, mtx.LineWidth, tmp.StartElement, tmp.LineWidth, Width, Height, 
+                                        StartElement, LineWidth, fLinEQProgress );
+
+        if Result <> srOk then
+           FreeAndNil(mtx);
+
+        FreeAndNil(tmp);
+           
         mtx.fLinEQProgress := nil;
      except
            FreeAndNil(mtx);
+           FreeAndNil(tmp);
 
            raise;
      end;
@@ -2579,7 +2589,8 @@ begin
              V := Transpose;
              U := ResultClass.Create( fSubHeight, fSubHeight );
 
-             Result := MatrixSVDInPlace2(V.StartElement, V.LineWidth, Height, Width, pW, U.StartElement, U.LineWidth, SVDBlockSize, fLinEQProgress );
+             Result := MatrixSVDInPlace2(V.StartElement, V.LineWidth, Height, Width, pW, U.StartElement, U.LineWidth, 
+                                         SVDBlockSize, fLinEQProgress );
 
              // we need a final transposition on the matrix U and V
              U.TransposeInPlace;
@@ -2590,7 +2601,9 @@ begin
              U := Clone;
              V := ResultClass.Create(fSubWidth, fSubWidth);
 
-             Result := MatrixSVDInPlace2(U.StartElement, U.LineWidth, Width, Height, pW, V.StartElement, V.LineWidth, SVDBlockSize, fLinEQProgress);
+             Result := MatrixSVDInPlace2Ex(U.StartElement, U.LineWidth, Width, Height, pW, V.StartElement, V.LineWidth, 
+                                         StartElement, LineWidth,
+                                         SVDBlockSize, fLinEQProgress);
         end;
 
         if Result <> srOk then

@@ -224,14 +224,14 @@ begin
      SVDBlockSize := cBlkWidth;
 
      start1 := MtxGetTime;
-     MatrixSVDInPlace2(@A2[0], cBlkWidth*sizeof(double), cBlkWidth, cBlkWidth, PConstDoublearr(@W2[0]), @V2[0], cBlkWidth*sizeof(double), SVDBlockSize, nil);
+     MatrixSVDInPlace2(@A2[0], cBlkWidth*sizeof(double), cBlkWidth, cBlkWidth, PConstDoublearr(@W2[0]), @V2[0], cBlkWidth*sizeof(double), SVDBlockSize);
      stop1 := MtxGetTime;
 
      SVDBlockSize := 24;
      QRBlockSize := 32;
 
      start2 := MtxGetTime;
-     MatrixSVDInPlace2(@A[0], cBlkWidth*sizeof(double), cBlkWidth, cBlkWidth, PConstDoublearr(@W[0]), @V[0], cBlkWidth*sizeof(double), SVDBlockSize, nil);
+     MatrixSVDInPlace2(@A[0], cBlkWidth*sizeof(double), cBlkWidth, cBlkWidth, PConstDoublearr(@W[0]), @V[0], cBlkWidth*sizeof(double), SVDBlockSize);
      stop2 := MtxGetTime;
 
      Status(Format('BigSVD took: %.3fms, %.3fms', [(stop1 - start1)/mtxfreq*1000, (stop2 - start2)/mtxfreq*1000]));
@@ -321,18 +321,18 @@ begin
              SVDBlockSize := BlkWidth;
 
              start1 := MtxGetTime;
-             MatrixSVDInPlace2(@A2[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W2[0]), @V2[0], BlkWidth*sizeof(double), BlkWidth, nil);
+             MatrixSVDInPlace2(@A2[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W2[0]), @V2[0], BlkWidth*sizeof(double), BlkWidth);
              stop1 := MtxGetTime;
 
              SVDBlockSize := 24;
              QRBlockSize := 32;
 
              start2 := MtxGetTime;
-             MatrixSVDInPlace2(@A[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W[0]), @V[0], BlkWidth*sizeof(double), SVDBlockSize, nil);
+             MatrixSVDInPlace2(@A[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W[0]), @V[0], BlkWidth*sizeof(double), SVDBlockSize);
              stop2 := MtxGetTime;
 
              start3 := MtxGetTime;
-             ThrMatrixSVDInPlace(@A3[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W3[0]), @V3[0], BlkWidth*sizeof(double), SVDBlockSize, nil);
+             ThrMatrixSVDInPlace(@A3[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W3[0]), @V3[0], BlkWidth*sizeof(double), SVDBlockSize);
              stop3 := MtxGetTime;
 
              Status(Format('BigSVD took (%d, %d): %.3fms, %.3fms, %.3fms', [blkWidth, blkHeight, (stop1 - start1)/mtxfreq*1000, (stop2 - start2)/mtxfreq*1000, (stop3 - start3)/mtxfreq*1000]));
@@ -446,18 +446,18 @@ begin
              SVDBlockSize := BlkWidth;
 
              start1 := MtxGetTime;
-             MatrixSVDInPlace2(@A2[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W2[0]), @V2[0], blkWidth*sizeof(double), BlkWidth, nil);
+             MatrixSVDInPlace2(@A2[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W2[0]), @V2[0], blkWidth*sizeof(double), BlkWidth);
              stop1 := MtxGetTime;
 
              SVDBlockSize := 24;
              QRBlockSize := 32;
 
              start2 := MtxGetTime;
-             MatrixSVDInPlace2(@A[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W[0]), @V[0], blkWidth*sizeof(double), SVDBlockSize, nil);
+             MatrixSVDInPlace2(@A[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W[0]), @V[0], blkWidth*sizeof(double), SVDBlockSize);
              stop2 := MtxGetTime;
 
              start3 := MtxGetTime;
-             ThrMatrixSVDInPlace(@A3[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W3[0]), @V3[0], blkWidth*sizeof(double), SVDBlockSize, nil);
+             ThrMatrixSVDInPlace(@A3[0], BlkWidth*sizeof(double), BlkWidth, BlkHeight, PConstDoublearr(@W3[0]), @V3[0], blkWidth*sizeof(double), SVDBlockSize);
              stop3 := MtxGetTime;
 
 

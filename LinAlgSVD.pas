@@ -35,13 +35,27 @@ function MatrixSVD(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNa
 // lapack implementation of the svd . this routine returns V transposed!
 function MatrixSVDInPlace2( A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt;
                  W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt; SVDBlockSize : TASMNativeInt = 32;
-                 progress : TLinEquProgress = nil) : TSVDResult;
+                 progress : TLinEquProgress = nil) : TSVDResult; 
+// same as above but spares an allocation and copy of A in some cases if ACopy is not nil!
+function MatrixSVDInPlace2Ex( A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt;
+                 W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt; 
+                 ACopy : PDouble; const LineWidthACopy : TASMNativeInt;
+                 SVDBlockSize : TASMNativeInt = 32;
+                 progress : TLinEquProgress = nil) : TSVDResult; 
+
 
 // threaded version of SVD decomposition
 // makes use of threaded versions of matrix multiplication and parallel plane rotations
 function ThrMatrixSVDInPlace( A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt;
                  W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt; SVDBlockSize : TASMNativeInt = 32;
-                 progress : TLinEquProgress = nil) : TSVDResult;
+                 progress : TLinEquProgress = nil) : TSVDResult; 
+// same as above but spares an allocation and copy of A in some cases if ACopy is not nil!
+function ThrMatrixSVDInPlaceEx( A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt;
+                 W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt; 
+                 ACopy : PDouble; const LineWidthACopy : TASMNativeInt;
+                 SVDBlockSize : TASMNativeInt = 32;
+                 progress : TLinEquProgress = nil) : TSVDResult; 
+
 
 
 // Pseudoinversion - implementation taken from matlab
@@ -57,7 +71,12 @@ function MatrixPseudoinverse(dest : PDouble; const LineWidthDest : TASMNativeInt
 
 // using MatrixsvdInPlac2
 function MatrixPseudoinverse2(dest : PDouble; const LineWidthDest : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
-  width, height : TASMNativeInt; progress : TLinEquProgress = nil) : TSVDResult;
+  width, height : TASMNativeInt; progress : TLinEquProgress = nil) : TSVDResult; 
+// same as above but one can give an additional parameter that contains a copy of X -> if this parameter is not nil then
+// we spare an additional matrix copy in SVD
+function MatrixPseudoinverse2Ex(dest : PDouble; const LineWidthDest : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
+  width, height : TASMNativeInt; XCopy : PDouble; const LineWidthXCopy : TASMNativeInt; progress : TLinEquProgress = nil) : TSVDResult; 
+
 
 implementation
 
@@ -86,6 +105,8 @@ type
   TQRProgressObj = class;
   TMtxSVDDecompData = record
     pWorkMem : PByte;
+    ACopy : PDouble;
+    LineWidthACopy : TASMNativeInt;
     Progress : TLinEquProgress;
     QrProgressObj : TQRProgressObj;
     QRProgress : TLinEquProgress;
@@ -2107,6 +2128,7 @@ var work : PDouble;
     ACpyLineWidth : TASMNativeInt;
 begin
      Result := srOk;
+     aMem := nil;
 
      if width > Height then
         raise Exception.Create('Not implemented');
@@ -2192,9 +2214,15 @@ begin
                     svdData.QrProgressObj.ToPerc := 15;
                end;
 
-               // create a copy of A in case A is singular and QR fails
-               ACpy := MtxAllocAlign( width, height, ACpyLineWidth, AMem );
-               MatrixCopy(ACpy, ACpyLineWidth, A, LineWidthA, width, height);
+               // create a copy (or use the provided one) of A in case A is singular and QR fails
+               ACpy := svdData.ACopy;
+               ACpyLineWidth := svdData.LineWidthACopy;
+               
+               if ACpy = nil then
+               begin
+                    ACpy := MtxAllocAlign( width, height, ACpyLineWidth, AMem );
+                    MatrixCopy(ACpy, ACpyLineWidth, A, LineWidthA, width, height);
+               end;
 
                // Compute A=Q*R
                if svdData.qrDecomp(A, LineWidthA, width, height, pWorkITau, nil, QRBlockSize, svdData.QRProgress) <> qrOK then
@@ -2204,13 +2232,15 @@ begin
 
                     // copy back A
                     MatrixCopy(A, LineWidthA, ACpy, ACpyLineWidth, width, height);
-                    FreeMem(AMem);
+                    if AMem <> nil then
+                       FreeMem(AMem);
 
                     // do the procedure again but now force the other path
                     Result := InternalMatrixSVD(A, LineWidthA, width, height, W, V, LineWidthV, svdData, True);
                     exit;
                end;
-               FreeMem(AMem);
+               if aMem <> nil then
+                  FreeMem(AMem);
 
                // copy R to VT - zeroing out below it
                MatrixCopy(V, LineWidthV, A, LineWidthA, width, width);
@@ -2402,9 +2432,18 @@ begin
         FreeMem(pMem);
 end;
 
-
 function MatrixSVDInPlace2( A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt;
-                 W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt; SVDBlockSize : TASMNativeInt = 32; progress : TLinEquProgress = nil) : TSVDResult;
+                 W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt; 
+                 SVDBlockSize : TASMNativeInt = 32; progress : TLinEquProgress = nil) : TSVDResult;
+begin
+     Result := MatrixSVDInPlace2Ex( A, LineWidthA, width, height, W, V, LineWidthV, nil, 0, SVDBlockSize, progress);
+end;
+
+
+function MatrixSVDInPlace2Ex( A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt;
+                 W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt; 
+                 ACopy : PDouble; const LineWidthACopy : TASMNativeInt;
+                 SVDBlockSize : TASMNativeInt = 32; progress : TLinEquProgress = nil) : TSVDResult;
 var svdData : TMtxSVDDecompData;
     minmn : TASMNativeInt;
     vT : TDoubleDynArray;
@@ -2461,6 +2500,8 @@ begin
      svdData.SVDPnlSize := SVDBlockSize;
      svdData.SVDMultSize := minmn;
      svdData.QRPnlSize := QRBlockSize;
+     svdData.ACopy := ACopy;
+     svdData.LineWidthACopy := LineWidthACopy;
      svdData.qrDecomp := {$IFDEF FPC}@{$ENDIF}MatrixQRDecompInPlace2;
      svdData.qFromQRDecomp := {$IFDEF FPC}@{$ENDIF}MatrixQFromQRDecomp;
      svdData.LeftQFromQRDecomp := {$IFDEF FPC}@{$ENDIF}MatrixLeftQFromQRDecomp;
@@ -2671,9 +2712,18 @@ begin
      calls.SyncAll;
 end;
 
-
 function ThrMatrixSVDInPlace( A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt;
-                 W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt; SVDBlockSize : TASMNativeInt = 32;
+                 W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt; 
+                 SVDBlockSize : TASMNativeInt = 32;
+                 progress : TLinEquProgress = nil) : TSVDResult;
+begin
+     Result := ThrMatrixSVDInPlaceEx(A, LineWidthA, width, height, W, V, LineWidthV, nil, 0, SVDBlockSize, progress);
+end;
+
+function ThrMatrixSVDInPlaceEx( A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt;
+                 W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt; 
+                 ACopy : PDouble; const LineWidthACopy : TASMNativeInt;
+                 SVDBlockSize : TASMNativeInt = 32;
                  progress : TLinEquProgress = nil) : TSVDResult;
 var svdData : TMtxSVDDecompData;
     minmn : TASMNativeInt;
@@ -2741,6 +2791,8 @@ begin
      svdData.SVDPnlSize := SVDBlockSize;
      svdData.SVDMultSize := minmn;
      svdData.QRPnlSize := QRBlockSize;
+     svdData.ACopy := ACopy;
+     svdData.LineWidthACopy := LineWidthACopy;
      svdData.qrDecomp := {$IFDEF FPC}@{$ENDIF}ThrMatrixQRDecomp;
      svdData.qFromQRDecomp := {$IFDEF FPC}@{$ENDIF}ThrMatrixQFromQRDecomp;
      svdData.LeftQFromQRDecomp := {$IFDEF FPC}@{$ENDIF}ThrMatrixLeftQFromQRDecomp;
@@ -2876,6 +2928,12 @@ end;
 
 function MatrixPseudoinverse2(dest : PDouble; const LineWidthDest : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
   width, height : TASMNativeInt; progress : TLinEquProgress = nil) : TSVDResult;
+begin
+     Result := MatrixPseudoinverse2Ex(dest, LineWidthDest, X, LineWidthX, width, height, nil, 0, progress);
+end;
+
+function MatrixPseudoinverse2Ex(dest : PDouble; const LineWidthDest : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
+  width, height : TASMNativeInt; XCopy : PDouble; const LineWidthXCopy : TASMNativeInt; progress : TLinEquProgress = nil) : TSVDResult;
 var doTranspose : boolean;
     data : TDoubleDynArray;
     UTranspose : TDoubleDynArray;
