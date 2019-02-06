@@ -612,14 +612,14 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-
-procedure FMAMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure FMAMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt;
+  {$ifdef UNIX}unixMT2{$ELSE}mt2{$endif} : PDouble; {$ifdef UNIX}unixLineWidth2{$ELSE}LineWidth2{$endif} : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX, iRDI, iRSI, iR12, iR13 : TASMNativeInt;
-    {$ifdef UNIX}
-    width1 : TASMNativeInt;
-    height1 : TASMNativeInt;
-   {$ENDIF}
+    {$IFDEF UNIX}
+    mt2 : PDouble;
+    LineWidth2 : TASMNativeInt;
+    {$ENDIF}
 // rcx = dest, rdx = LineWidthDest, r8 = mt1, r9 = LineWidth1
 asm
    {$IFDEF UNIX}
@@ -627,8 +627,8 @@ asm
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
-   mov width1, r8;
-   mov height1, r9;
+   mov mt2, r8;
+   mov LineWidth2, r9;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
@@ -865,7 +865,7 @@ asm
               //inc(PByte(valCounter1), LineWidth1);
               //inc(PByte(valCounter2), LineWidth2);
 
-              add rsi, LineWidth1;
+              add rsi, r9;
               add rdi, r15;
 
           @@PreInnerLoop:

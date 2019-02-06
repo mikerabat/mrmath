@@ -86,8 +86,7 @@ asm
 
    // iters2 := -width1*sizeof(double);
    mov r14, width1;
-   shl r14, 3;
-   imul r14, -1;
+   imul r14, -8;
 
    // LineWidth2_2 := 2*LineWidth2;
    mov r13, LineWidth2;
@@ -238,8 +237,7 @@ asm
 
    // iters2 := -width1*sizeof(double);
    mov r14, width1;
-   shl r14, 3;
-   imul r14, -1;
+   imul r14, -8;
 
    // LineWidth2_2 := 2*LineWidth2;
    mov r13, LineWidth2;
@@ -383,7 +381,9 @@ end;
 
 
 // note mt2 is transposed this time -> width1 and width2 must be the same!
-procedure FMAMatrixMultUnAlignedTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight1{$ELSE}height1{$endif}  : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure FMAMatrixMultUnAlignedTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; 
+{$ifdef UNIX}unixWidth1{$ELSE}width1{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight1{$ELSE}height1{$endif}  : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; 
+const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
     {$IFDEF UNIX}
     width1 : TASMNativeInt;
@@ -598,13 +598,14 @@ asm
 end;
 
 // note mt2 is transposed this time -> width1 and width2 must be the same!
-procedure FMAMatrixMultAlignedTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight1{$ELSE}height1{$endif}  : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure FMAMatrixMultAlignedTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; 
+{$ifdef UNIX}unixWidth1{$ELSE}width1{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight1{$ELSE}height1{$endif}  : TASMNativeInt; 
+width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
-{$IFDEF UNIX}
-width1 : TASMNativeInt;
-height1 : TASMNativeInt;
-{$ENDIF}
-
+   {$IFDEF UNIX}
+    width1 : TASMNativeInt;
+    height1 : TASMNativeInt;
+    {$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
