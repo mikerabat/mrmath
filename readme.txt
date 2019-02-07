@@ -55,6 +55,10 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date: 07.02.2019
+* Fixed 64 bit FMA routines on Unix based systems
+* Fixed s problem in case the QR decomposition fails within a certain path of the SVD routine.
+
 Date: 19.12.2018
 * Renamed movntdq to movapd
 * New logic for matrix mult -> better performance on some cpu's
