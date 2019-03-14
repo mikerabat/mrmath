@@ -600,10 +600,10 @@ begin
 
            // this scaling is apart from the original Matlab implementation but
            // I think it's necessary since the Covariance matrix is normaly: 1/N X*X' not
-           // only X*X' -> thus a scaling of 1/sqrt(N) should by applied to the mean normalized examples
+           // only X*X' -> thus a scaling of 1/sqrt(N - 1) should by applied to the mean normalized examples
 
            // calculate real eigenvalues (the scale comes from the matlab function princomp function
-           scale := 1/sqrt(fMeanNormExamples.Width);
+           scale := 1/sqrt(fMeanNormExamples.Width - 1);
            for i := 0 to fEigVals.Height - 1 do
                fEigVals[0, i] := sqr(fEigVals[0, i]*scale);
         finally
