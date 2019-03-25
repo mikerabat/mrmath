@@ -578,17 +578,11 @@ begin
         fMeanNormExamples.LineEQProgress := {$IFDEF FPC}@{$ENDIF}OnLineEQProgress;
         fMeanNormExamples.SubVecInPlace(fMeanElem, False);
 
-        //for i := 0 to fMeanNormExamples.Width - 1 do
-//        begin
-//             fMeanNormExamples.SetSubMatrix(i, 0, 1, fMeanNormExamples.Height);
-//             fMeanNormExamples.SubInPlace(fMeanElem);
-//        end;
-//        fMeanNormExamples.UseFullMatrix;
-
         // calcluated Eigenvectors and eigenvalues using the SVD algorithm
         mv := nil;
         try
-           if Examples.Height >= Examples.Width
+           scale := 1/sqrt(fMeanNormExamples.Width - 1);
+           if Examples.Height >= Examples.Width 
            then
                Result := fMeanNormExamples.SVD(fEigVecs, mv, fEigVals, True) = srOk
            else
@@ -599,11 +593,10 @@ begin
            end;
 
            // this scaling is apart from the original Matlab implementation but
-           // I think it's necessary since the Covariance matrix is normaly: 1/N X*X' not
+           // I think it's necessary since the Covariance matrix is normaly: 1/(N-1) X*X' not
            // only X*X' -> thus a scaling of 1/sqrt(N - 1) should by applied to the mean normalized examples
 
            // calculate real eigenvalues (the scale comes from the matlab function princomp function
-           scale := 1/sqrt(fMeanNormExamples.Width - 1);
            for i := 0 to fEigVals.Height - 1 do
                fEigVals[0, i] := sqr(fEigVals[0, i]*scale);
         finally

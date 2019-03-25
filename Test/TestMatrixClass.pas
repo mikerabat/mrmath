@@ -128,7 +128,7 @@ uses BaseMathPersistence, binaryReaderWriter,
      Dialogs,
      {$ENDIF}
      MathUtilFunc, RandomEng,
-     JSONReaderWriter, MatrixASMStubSwitch;
+     JSONReaderWriter, MatrixASMStubSwitch, PCA;
 
 { TestTDoubleMatrix }
 

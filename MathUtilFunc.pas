@@ -31,7 +31,6 @@ const cMinDblDivEps : double = 0;     // filled in initialization
 function pythag(const A, B : double) : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function sign(const a : double; const b : double) : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 procedure DoubleSwap(var a, b : Double); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
-function binom(n, k : integer) : int64;
 
 function lcm(a, b : TASMNativeInt) : TASMNativeInt;  // least common multiple
 function gcm(a, b : TASMNativeInt) : TASMNativeInt; // greatest common divisior
@@ -51,18 +50,19 @@ function DoubleSortFunc(const Item1, Item2) : integer;
 procedure QuickSort(var A; ItemSize : integer; ItemCount : integer; ItemSort : TQuickSortFunc); overload;
 procedure QuickSort(var A: array of double; StartIdx : integer = 0; EndIdx : integer = -1); overload;
 procedure QuickSort(A : PConstDoubleArr; Width : integer); overload;
+procedure QuickSort1(var A : TDoubleDynArray); 
+
+// sorts A in ascending order -> making corresponding changes to B
+procedure QuickSort2( var A, B : TDoubleDynArray );
 
 // for median - note: the content (sort order) of the array is destroyed!
 function KthLargest(var vals : TDoubleDynArray; elemNum : Cardinal) : double; overload;
 function KthLargest(valsArr : PDouble; numElem : integer; elemNum : Cardinal) : double; overload;
 
-// factorial - integer and double
-function Factorial(n : integer) : Int64;
 
-// and based on the gamma function  factorial(n) = gamma(n + 1)
-
-// gamma: gamma(x) = integral from 0 to inf of t^(x-1) exp(-t) dt.
-function Gamma(x : double) : double;
+// exponential integrals (En(x) = int_1_oo e^(-xt)/t^n dt ... x > 0, n = 0, 1, ....
+function expInt( n : integer; x : double ) : double;
+function ei( x : double ) : double; // Ei(x) + gamma + lnx + x/(1*1!) + x^2/(2*2!) + ...
 
 function GetLocalFMTSet : TFormatSettings;
 
@@ -73,6 +73,14 @@ uses Math, Classes;
 // ##########################################
 // #### utility function implementation
 // ##########################################
+
+procedure DoubleSwap(var a, b : Double); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+var temp : double;
+begin
+     temp := a;
+     a := b;
+     b := temp;
+end;
 
 function DoubleSortFunc(const Item1, Item2) : integer;
 begin
@@ -120,6 +128,7 @@ begin
      SetLength(Help, ItemSize);
      Qs(0, ItemCount - 1);
 end;
+
 
 
 procedure QuickSort(var A: array of double; StartIdx : integer = 0; EndIdx : integer = -1);
@@ -190,6 +199,211 @@ begin
      QS(A, 0, width - 1);
 end;
 
+procedure QuickSort1(var A : TDoubleDynArray);
+var iStack : Array[0..50] of integer;
+    i, ir, j, k, l : integer;
+    jstack : integer;
+    n : integer;
+    am : Double;
+const cInsertionTurnOver = 7;
+begin
+     n := Length(A);
+
+     l := 0;
+     ir := n - 1;
+     jstack := 0;
+
+     while true do
+     begin
+          if ir - l < cInsertionTurnOver then
+          begin
+               for j := l + 1 to ir do
+               begin
+                    am := a[j];
+                    i := j - 1;
+                    while i >= l do
+                    begin
+                         if a[i] <= am then
+                            break;
+
+                         a[i + 1] := a[i];
+                         dec(i);
+                    end;
+                    a[i + 1] := am;
+               end;
+
+               if jstack = 0 then
+                  exit;
+
+               ir := istack[jstack];
+               l := istack[jstack - 1];
+               dec(jstack, 2);
+          end
+          else
+          begin
+               k := (l + ir) div 2;
+               DoubleSwap(a[k], a[l + 1]);
+
+               if a[l] > a[ir] then
+                  DoubleSwap(a[l], a[ir]);
+               if a[l + 1] > a[ir] then
+                  DoubleSwap(a[l + 1], a[ir]);
+               if a[l] > a[l + 1] then
+                  DoubleSwap(a[l], a[l + 1]);
+
+               i := l + 1;
+               j := ir;
+               am := a[l + 1];
+               while True do
+               begin
+                    repeat
+                          inc(i);
+                    until a[i] >= am;
+                    repeat
+                          dec(j);
+                    until a[j] <= am;
+
+                    if (j < i) then
+                       break;
+
+                    DoubleSwap(a[i], a[j]);
+               end;
+
+               a[l + 1] := a[j];
+               a[j] := am;
+               inc(jstack, 2);
+
+               // push pointers to larger subarray on stack
+               if jStack >= Length(iStack) then
+                  raise Exception.Create('Stack too small to sort');
+
+               if (ir - i + 1 >= j - 1) then
+               begin
+                    istack[jstack] := ir;
+                    istack[jstack - 1] := i;
+                    ir := j - 1;
+               end
+               else
+               begin
+                    istack[jstack] := j - 1;
+                    istack[jstack - 1] := l;
+                    l := i;
+               end;
+          end;
+     end;
+end;
+
+procedure QuickSort2( var A, B : TDoubleDynArray );
+var iStack : Array[0..50] of integer;
+    i, ir, j, k, l : integer;
+    jstack : integer;
+    n : integer;
+    am, bm : Double;
+const cInsertionTurnOver = 7;
+begin
+     n := Length(A);
+
+     l := 0;
+     ir := n - 1;
+     jstack := 0;
+
+     while true do
+     begin
+          if ir - l < cInsertionTurnOver then
+          begin
+               for j := l + 1 to ir do
+               begin
+                    am := a[j];
+                    bm := b[j];
+                    i := j - 1;
+                    while i >= l do
+                    begin
+                         if a[i] <= am then
+                            break;
+
+                         a[i + 1] := a[i];
+                         b[i + 1] := b[i];
+                         dec(i);
+                    end;
+                    a[i + 1] := am;
+                    b[i + 1] := bm;
+               end;
+
+               if jstack = 0 then
+                  exit;
+
+               ir := istack[jstack];
+               l := istack[jstack - 1];
+               dec(jstack, 2);
+          end
+          else
+          begin
+               k := (l + ir) div 2;
+               DoubleSwap(a[k], a[l + 1]);
+               DoubleSwap(b[k], b[l + 1]);
+
+               if a[l] > a[ir] then
+               begin
+                    DoubleSwap(a[l], a[ir]);
+                    DoubleSwap(b[l], b[ir]);
+               end;
+               if a[l + 1] > a[ir] then
+               begin
+                    DoubleSwap(a[l + 1], a[ir]);
+                    DoubleSwap(b[l + 1], b[ir]);
+               end;
+               if a[l] > a[l + 1] then
+               begin
+                    DoubleSwap(a[l], a[l + 1]);
+                    DoubleSwap(b[l], b[l + 1]);
+               end;
+
+               i := l + 1;
+               j := ir;
+               am := a[l + 1];
+               bm := b[l + 1];
+               while True do
+               begin
+                    repeat
+                          inc(i);
+                    until a[i] >= am;
+                    repeat
+                          dec(j);
+                    until a[j] <= am;
+
+                    if (j < i) then
+                       break;
+
+                    DoubleSwap(a[i], a[j]);
+                    DoubleSwap(b[i], b[j]);
+               end;
+
+               a[l + 1] := a[j];
+               a[j] := am;
+               b[l + 1] := b[j];
+               b[j] := bm;
+               inc(jstack, 2);
+
+               // push pointers to larger subarray on stack
+               if jStack >= Length(iStack) then
+                  raise Exception.Create('Stack too small to sort');
+
+               if (ir - i + 1 >= j - 1) then
+               begin
+                    istack[jstack] := ir;
+                    istack[jstack - 1] := i;
+                    ir := j - 1;
+               end
+               else
+               begin
+                    istack[jstack] := j - 1;
+                    istack[jstack - 1] := l;
+                    l := i;
+               end;
+          end;
+     end;
+end;
+
 function eps(const val : double) : double;
 begin
      Result := val*cDoubleEpsilon;
@@ -204,31 +418,6 @@ begin
 
      if small > Result then
         Result := small*(1 + eps(1));
-end;
-
-// implements "n over k" -> binominal koefficients.
-// see: https://en.wikipedia.org/wiki/Binomial_coefficient
-// or german: http://de.wikipedia.org/wiki/Binomialkoeffizient
-function binom(n, k : integer) : int64;
-var tmp : integer;
-    i : integer;
-begin
-     if k = 0 then
-     begin
-          Result := 1;
-          exit;
-     end
-     else if 2*k > n
-     then
-         k := n - k;
-
-     Result := n;
-     tmp := n + 1;
-     for i := 2 to k do
-     begin
-          Result := Result*(tmp - i);
-          Result := Result div i;
-     end;
 end;
 
 function lcm(a, b : TASMNativeInt) : TASMNativeInt;  // least common multiple
@@ -255,14 +444,6 @@ begin
      Result := 1;
      while (Result < maxSize) and (Result < num) do
            Result := Result shl 1;
-end;
-
-procedure DoubleSwap(var a, b : Double); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
-var temp : double;
-begin
-     temp := a;
-     a := b;
-     b := temp;
 end;
 
 // computes the eukledian distance without the destructive underflow or overflow
@@ -332,14 +513,6 @@ begin
      end;
 end;
 
-procedure SwapD(var elem1, elem2 : double); inline;
-var help : double;
-begin
-     help := elem1;
-     elem1 := elem2;
-     elem2 := help;
-end;
-
 function KthLargest(var vals : TDoubleDynArray; elemNum : Cardinal) : double;
 begin
      Result := KthLargest(@vals[0], Length(vals), elemNum);
@@ -363,19 +536,19 @@ begin
           if ir <= l + 1 then
           begin
                if (ir = l + 1) and (vals^[ir] < vals^[l]) then
-                  swapD(vals^[l], vals^[ir]);
+                  DoubleSwap(vals^[l], vals^[ir]);
                Result := vals^[elemNum];
                exit;
           end;
 
           mid := (l + ir) div 2;
-          swapD(vals^[mid], vals^[l + 1]);
+          DoubleSwap(vals^[mid], vals^[l + 1]);
           if vals^[l] > vals^[ir] then
-             SwapD(vals^[l], vals^[ir]);
+             DoubleSwap(vals^[l], vals^[ir]);
           if vals^[l + 1] > vals^[ir] then
-             SwapD(vals^[l + 1], vals^[ir]);
+             DoubleSwap(vals^[l + 1], vals^[ir]);
           if vals^[l] > vals^[l + 1] then
-             SwapD(vals^[l], vals^[l + 1]);
+             DoubleSwap(vals^[l], vals^[l + 1]);
 
           i := l + 1;
           j := ir;
@@ -392,7 +565,7 @@ begin
                if j < i then
                   break;
 
-               SwapD(vals^[i], vals^[j]);
+               DoubleSwap(vals^[i], vals^[j]);
           end;
           vals^[l + 1] := vals^[j];
           vals^[j] := a;
@@ -403,118 +576,143 @@ begin
      end;
 end;
 
-function Factorial(n : integer) : Int64;
+function ei( x : double ) : double;
+const cMaxIter = 100;
+      cEuler = 0.5521566;
+      cFPMin = 1.0e-30;
+      cEPS = 6.0e-8;
+var k : integer;
+    fact, prev, sum, term : double;
 begin
-     Result := 1;
-
-     while n > 1 do
-     begin
-          Result := Result*Int64(n);
-          dec(n);
-     end;
-end;
-
-function Gamma(x : double) : double;
-const p : Array[0..7] of double = (
-                 -1.71618513886549492533811e+0,  2.47656508055759199108314e+1,
-                 -3.79804256470945635097577e+2,  6.29331155312818442661052e+2,
-                  8.66966202790413211295064e+2, -3.14512729688483675254357e+4,
-                 -3.61444134186911729807069e+4,  6.64561438202405440627855e+4);
-     q : Array[0..7] of double = (
-                 -3.08402300119738975254353e+1,  3.15350626979604161529144e+2,
-                 -1.01515636749021914166146e+3, -3.10777167157231109440444e+3,
-                  2.25381184209801510330112e+4,  4.75584627752788110767815e+3,
-                 -1.34659959864969306392456e+5, -1.15132259675553483497211e+5);
-     c : Array[0..6] of double = (
-                 -1.910444077728e-03,            8.4171387781295e-04,
-                 -5.952379913043012e-04,         7.93650793500350248e-04,
-                 -2.777777777777681622553e-03,   8.333333333333333331554247e-02,
-                  5.7083835261e-03);
-     spi : double = 0.9189385332046727417803297;
-var xn : integer;
-    y, ysq : double;
-    y1 : integer;
-    fact : double;
-    xnum, xden : double;
-    z : double;
-    i : integer;
-    x1 : double;
-    isNeg : boolean;
-    sum : double;
-begin
-     xn := 0;
-     fact := 1;
-
-     isNeg := x <= 0;
-
-     // catch negative x
      if x <= 0 then
+        raise Exception.Create('Bad argument in ei');
+     if x < cFPMin then
      begin
-          y := -x;
-          y1 := floor(y);  // nearest integer towards zero
-          Result := y - y1;
-          fact := -pi/sin(pi*result) * (1 - 2*(y1 mod 2));
-          x := y + 1;
+          Result := ln(x) + cEuler;
+          exit;
      end;
-
-     // Map x in interval [0,1] to [1,2]
-     x1 := 1;
-     if x < 1 then
+     if x <= -ln(cEPS) then
      begin
-          x1 := x;
-          x := x + 1;
-     end;
+          sum := 0;
+          fact := 1;
+          for k := 1 to cMaxIter do
+          begin
+               fact := fact*x/k;
+               term := fact/k;
+               sum := sum + term;
+               if term < cEPS*term then
+               begin
+                    Result := sum + ln(x) + cEuler;
+                    exit;    
+               end;
+          end;
 
-     // Map x in interval [1,12] to [1,2]
-     if x < 12 then
+          raise Exception.Create('Series failed in ei');
+     end
+     else
      begin
-          xn := floor(x) - 1;
-          x := x - xn;
+          sum := 0;
+          term := 0;
+          for k := 1 to cMaxIter do
+          begin
+               prev := term;
+               term := term*k/x;
+               if term < cEPS then
+                  break;
+               if term < prev 
+               then
+                   sum := sum + term
+               else
+               begin
+                    sum := sum - prev;
+                    break;
+               end;
+          end;
+
+          Result := exp(x)*(1.0 + sum)/x;
      end;
-
-     // Evaluate approximation for 1 < x < 2
-     z := x - 1;
-     xnum := 0;
-     xden := xnum + 1;
-
-     for i := 0 to High(p) do
-     begin
-          xnum := (xnum + p[i])*z;
-          xden := xden*z + q[i];
-     end;
-
-     Result := xnum/xden + 1;
-
-     // Adjust result for case  0.0 < x < 1.0
-     Result := Result/x1;
-
-     // Adjust result for case  2.0 < x < 12.0
-     while xn > 0 do
-     begin
-          Result := Result*x;
-          x := x + 1;
-          xn := xn - 1;
-     end;
-
-     // Evaluate approximation for x >= 12
-     if x >= 12 then
-     begin
-          y := x;
-          ysq := sqr(y);
-          sum := c[6];
-          for i := 0 to High(c) - 1 do
-              sum := sum / ysq + c[i];
-
-          sum := sum /y - y + spi;
-          sum := sum +(y - 0.5)*ln(y);
-          Result := exp(sum);
-     end;
-
-     if isNeg then
-        Result := fact/Result;
-
 end;
 
+function expInt( n : integer; x : double ) : double;
+const cMaxIter = 100;
+      cEuler = 0.5772156649;
+      cFPMin = 1.0e-30;
+      cEPS = 1.0e-7;
+var i, ii, nm1 : integer;
+    a, b, c, d, del, fact, h , psi : double;
+begin
+     nm1 := n - 1;
+     if (n < 0) or (x < 0) or ( (x = 0) and ( n in [0, 1] ) ) then
+        raise Exception.Create('Bad Argument for expint');
+
+     if n = 0 
+     then
+         Result := exp(-x)/x
+     else
+     begin
+          if x = 0 
+          then
+              Result := 1/nm1
+          else
+          begin
+               if x > 1 then
+               begin
+                    b := x + n;
+                    c := 1/cFPMin;
+                    d := 1/b;
+                    h := d;
+                    for i := 1 to cMaxIter do
+                    begin
+                         a := -i*(nm1 + i);
+                         b := b + 2;
+                         d := 1/(a*d + b);
+                         c := b + a/c;
+                         del := c*d;
+                         h := h*del;
+                         if abs(del - 1) < cEPS then
+                         begin
+                              Result := h*exp(-x);
+                              exit;
+                         end;
+                    end;
+
+                    raise Exception.Create('Continued fraction failed in expint');
+               end
+               else
+               begin
+                    if nm1 <> 0 
+                    then
+                        Result := 1/nm1
+                    else
+                        Result := -ln(x) - cEuler;
+
+                    fact := 1;
+
+                    for i := 1 to cMaxIter do
+                    begin
+                         fact := -fact*x/i;
+                         if i <> nm1 
+                         then
+                             del := -fact/(i - nm1)
+                         else
+                         begin
+                              psi := -cEuler;
+                              for ii := 1 to nm1 do
+                                  psi := psi + 1/ii;
+
+                              del := fact*(-ln(x) + psi);
+                         end;
+
+                         Result := Result + del;
+                         if abs(del) < abs(Result)*cEPS then
+                            exit;
+                    end;
+
+                    raise Exception.Create('Series failed in expint');                    
+               end;
+          end;
+     end;
+end;
 
 initialization
   cMinDblDivEps := MinDblDiv/eps(1);

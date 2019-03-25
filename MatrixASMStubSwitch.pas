@@ -156,7 +156,7 @@ procedure MatrixVar(dest : PDouble; const destLineWidth : TASMNativeInt; Src : P
 procedure MatrixVar(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean); overload;
 
 procedure MatrixMeanVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
-
+procedure MatrixNormalizeMeanVar(dest : PDouble; destLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
 
 function MatrixSum(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
 function MatrixSum(const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
@@ -955,6 +955,44 @@ procedure MatrixMeanVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDo
 begin
      assert((RowWise and (destLineWidth >= 2*sizeof(double))) or (not RowWise and (destLineWidth >= width*sizeof(double))), 'Dimension error');
      matrixMeanVarFunc(dest, destLineWidth, Src, srcLineWidth, width, height, RowWise, unbiased);
+end;
+
+procedure MatrixNormalizeMeanVar(dest : PDouble; destLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+var meanVar : TDoubleDynArray;
+    x, y : TASMNativeInt;
+    invstdDev : double;
+const cMinVar = 1e-300;
+begin
+     if RowWise then
+     begin
+          SetLength(meanVar, 2*height);
+          MatrixMeanVar( @meanVar[0], 2*sizeof(double), dest, destLineWidth, width, height, True, True);
+
+          for y := 0 to Height - 1 do
+          begin
+               invstdDev := 0;
+               if meanVar[1 + y*2] > cMinVar then
+                  invstdDev := 1/sqrt(meanVar[1 + y*2]);
+
+               MatrixAddAndScale(Dest, destLineWidth, Width, 1, -meanVar[0 + y*2], invstdDev);
+               inc(PByte(dest), destLineWidth);
+          end;
+     end
+     else
+     begin
+          SetLength(meanVar, 2*Width);
+          MatrixMeanVar( @meanVar[0], width*sizeof(double), dest, destLineWidth, width, height, False, True);
+
+          for x := 0 to Width - 1 do
+          begin
+               invstdDev := 0;
+               if meanVar[x + width] > cMinVar then
+                  invstdDev := 1/sqrt(meanVar[x + width]);
+
+               MatrixAddAndScale(Dest, destLineWidth, 1, Height, -meanVar[x], invstdDev);
+               inc(dest);
+          end;
+     end;
 end;
 
 function MatrixSum(const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;

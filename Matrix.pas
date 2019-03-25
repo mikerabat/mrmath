@@ -108,6 +108,7 @@ type
     function Trace : double;
 
     procedure Normalize(RowWise : boolean);
+    procedure NormZeroMeanVarOne(RowWise : boolean);
     function ElementwiseNorm2(doSqrt : boolean = True) : double;
 
     // ###################################################
@@ -405,6 +406,7 @@ type
     function Trace : double;
 
     procedure Normalize(RowWise : boolean);
+    procedure NormZeroMeanVarOne(RowWise : boolean);
     function ElementwiseNorm2(doSqrt : boolean = True) : double;
 
     // ###################################################
@@ -613,10 +615,15 @@ type
   end;
 
 
+function MatrixFromTxtFile( fileName : string; mtxClass : TDoubleMatrixClass ) : TDoubleMatrix; overload;
+function MatrixFromTxtFile( fileName : string ) : TDoubleMatrix; overload;
+
+procedure MatrixToTxtFile(const fileName : string; const mtx : TDoubleMatrix; prec : integer = 8);
+
 implementation
 
 uses Math, MatrixASMStubSwitch, Eigensystems, LinAlgSVD, LinAlgQR, BlockSizeSetup, LinAlgCholesky,
-     LinAlgLU;
+     LinAlgLU, MathUtilFunc;
 
 
 {$IFNDEF CPUX64}
@@ -1926,6 +1933,12 @@ begin
      end;
 end;
 
+procedure TDoubleMatrix.NormZeroMeanVarOne(RowWise : boolean);
+begin
+     CheckAndRaiseError((width > 0) and (height > 0), 'Dimension error');
+     MatrixNormalizeMeanVar(StartElement, LineWidth, width, height, RowWise);
+end;
+
 function TDoubleMatrix.PseudoInversion(out mtx : TDoubleMatrix) : TSVDResult;
 var tmp : TDoubleMatrix;
 begin
@@ -3010,6 +3023,100 @@ procedure TMatrixClass.DefineProps;
 begin
      // do nothing here
 end;
+
+// ###########################################
+// #### Utility Functions to read and write simple textual based matrices
+// ###########################################
+
+procedure MatrixToTxtFile(const fileName : string; const mtx : TDoubleMatrix; prec : integer = 8);
+var s : UTF8String;
+    x, y : integer;
+    ft : TFormatSettings;    
+begin
+     ft := GetLocalFMTSet;
+
+     ft.DecimalSeparator := '.';
+
+     with TFileStream.Create(fileName, fmCreate or fmOpenWrite) do
+     try
+        for y := 0 to mtx.Height - 1 do
+        begin
+             s := '';
+             for x := 0 to mtx.width - 1 do
+                 s := s + UTF8String(Format('%.*f,', [prec, mtx[x, y]], ft));
+
+             s[length(s)] := #13;
+             s := s + #10;
+
+             WriteBuffer(s[1], Length(s));
+        end;
+     finally
+            Free;
+     end;
+end;
+
+function MatrixFromTxtFile( fileName : string ) : TDoubleMatrix; overload;
+begin
+     Result := MatrixFromTxtFile( fileName, TDoubleMatrix );
+end;
+
+function MatrixFromTxtFile( fileName : string; mtxClass : TDoubleMatrixClass ) : TDoubleMatrix;
+var fmt : TFormatSettings;
+    w, h : integer;
+    arr : TDoubleDynArray;
+    numElem : integer;
+    i : integer;
+    slLine : TStringList;
+    aFile : TStringList;
+    cnt: Integer;
+begin
+     fmt := GetLocalFMTSet;
+     fmt.DecimalSeparator := '.';
+
+     Result := nil;
+     numElem := 0;
+
+     aFile := TStringList.Create;
+     try
+        aFile.LoadFromFile(filename);
+        w := 0;
+        h := aFile.Count;
+        
+        slLine := TStringList.Create;
+        slLine.Delimiter := ' ';
+        try
+           for cnt := 0 to h - 1 do
+           begin
+                slLine.DelimitedText := aFile[cnt];
+
+                if w = 0 then
+                begin
+                     w := slLine.Count;
+                     SetLength(arr, w*h);
+                end;
+
+                if w <> slLine.Count then
+                   raise Exception.Create('Number of columns do not match');
+
+                for i := 0 to slLine.Count - 1 do
+                begin 
+                     arr[numElem] := StrToFloat( slLine[i], fmt );
+                     inc(numElem);
+                end;
+           end;
+        finally
+               slLine.Free;
+        end;
+
+        // ###########################################
+        // #### Build resulting matrix
+        SetLength(arr, numElem);
+        Result := mtxClass.Create(arr, w, h );
+     finally
+            aFile.Free;
+     end;
+end;
+
 
 initialization
    TMatrixClass.DefMatrixClass := TDoubleMatrix;

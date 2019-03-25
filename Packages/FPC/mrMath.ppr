@@ -140,7 +140,8 @@ uses
   MacOsThreadPool in '..\..\MacOsThreadPool.pas',
   winCPUInfo in '..\..\winCPUInfo.pas',
   winRandomGen in '..\..\winRandomGen.pas',
-  WinThreadPool in '..\..\WinThreadPool.pas';
+  WinThreadPool in '..\..\WinThreadPool.pas',
+  Statistics in '..\..\Statistics.pas';
 
 begin
 end.

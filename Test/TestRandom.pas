@@ -38,15 +38,42 @@ type
     procedure TestMersenneTwisterStdTest;
     procedure TestOSRandom;
     procedure TestInt64Rnd;
+    procedure TestGaussRnd;
   end;
 
 implementation
 
-uses RandomEng, CPUFeatures, MtxTimer, MathUtilFunc;
+uses RandomEng, CPUFeatures, MtxTimer, MathUtilFunc, MatrixASMStubSwitch,
+     MatrixConst;
 
 const cNumRandNum = 1000000;
 
 { TestMatrixOperations }
+
+procedure TestRandomOperations.TestGaussRnd;
+var gen : TRandomGenerator;
+    c : TDoubleDynArray;
+    i: Integer;
+    meanvarrec : TMeanVarRec;
+begin
+     gen := TRandomGenerator.Create(raMersenneTwister);
+     try
+        gen.Init(455);
+        SetLength(c, 10000);
+        for i := 0 to Length(c) - 1 do
+            c[i] := 1 + gen.RandGauss*2;
+
+        // stdev 2, mean 1
+        MatrixMeanVar( @meanvarrec, sizeof(meanvarrec), @c[0], Length(c)*sizeof(double), Length(c), 1, True, True);
+
+        Status( Format('Mean: %.5f, Var: %.5f, Stdev: %.5f', [meanVarRec.aMean, meanVarRec.aVar, sqrt(meanVarRec.aVar)]));
+ 
+        Check( abs(meanvarrec.aMean - 1) < 0.1, 'Gauss mean failed');
+        Check( abs(sqrt(meanvarrec.aVar) - 2) < 0.1, 'Gauss var failed');
+     finally
+            gen.Free;
+     end;
+end;
 
 procedure TestRandomOperations.TestHardwareRandom;
 var gen : TRandomGenerator;

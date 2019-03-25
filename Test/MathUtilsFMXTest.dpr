@@ -156,6 +156,7 @@ uses
   TestEM in 'TestEM.pas',
   TestRBSpline in 'TestRBSpline.pas',
   TestDist in 'TestDist.pas',
+  TestSpecialFunc in 'TestSpecialFunc.pas',
   Dist in '..\Dist.pas',
   MatrixASMStubSwitch in '..\MatrixASMStubSwitch.pas',
   GCDDispatch in '..\GCDDispatch.pas',
@@ -164,7 +165,9 @@ uses
   MacOsThreadPool in '..\MacOsThreadPool.pas',
   winCPUInfo in '..\winCPUInfo.pas',
   winRandomGen in '..\winRandomGen.pas',
-  WinThreadPool in '..\WinThreadPool.pas';
+  WinThreadPool in '..\WinThreadPool.pas',
+  Statistics in '..\Statistics.pas',
+  TestStat in 'TestStat.pas';
 
 var
   runner : ITestRunner;

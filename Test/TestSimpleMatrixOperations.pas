@@ -106,6 +106,7 @@ type
     procedure TestVarianceCol;
     procedure TestMeanVarRow;
     procedure TestMeanVarCol;
+    procedure TestMtxMeanVarNormalize;
     procedure TestMtxVecMult;
     procedure TestBigMtxVecMult;
     procedure TestRank1Upd;
@@ -143,7 +144,7 @@ uses ASMMatrixOperations, ThreadedMatrixOperations, MtxThreadPool, mtxTimer,
      ASMMatrixTransposeOperations, ASMMatrixNormOperations, ASMMatrixCumSumDiffOperations,
      ASMMatrixMeanOperations, ASMMatrixSumOperations,
      {$ENDIF}
-     MatrixConst, MathUtilFunc, MatrixASMStubSwitch;
+     MatrixConst, MathUtilFunc, Statistics, MatrixASMStubSwitch;
 
 procedure TestMatrixOperations.TestAbs;
 const mt1 : Array[0..5] of double = (-1, 2, 2, -2, 3, -3);
@@ -2860,6 +2861,28 @@ begin
 
      FreeMem(blk);
 end;
+
+procedure TASMMatrixOperations.TestMtxMeanVarNormalize;
+const mt1 : Array[0..8] of double = (8, 1, 6, 3, 5, 7, 4, 9, 2);
+      normCol : Array[0..8] of double = (1.1339, -1.0000, 0.3780, -0.7559, 0, 0.7559, -0.3780, 1.0000, -1.1339);
+      normRow : Array[0..8] of double = ( 0.8321,   -1.1094,    0.2774,
+                                          -1.0000,         0,    1.0000,
+                                          -0.2774,    1.1094,   -0.8321 );
+
+var dest : Array[0..8] of double;
+begin
+     MatrixCopy(@dest[0], 3*sizeof(double), @mt1[0], 3*sizeof(double), 3, 3);
+     MatrixNormalizeMeanVar(@dest[0], 3*sizeof(double), 3, 3, True);
+
+     Check( CheckMtx(dest, normRow, 3, 3, 1e-3), 'Error mean var normalize');
+
+     MatrixCopy(@dest[0], 3*sizeof(double), @mt1[0], 3*sizeof(double), 3, 3);
+     MatrixNormalizeMeanVar(@dest[0], 3*sizeof(double), 3, 3, False);
+
+     Check( CheckMtx(dest, normCol, 3, 3, 1e-3), 'Error mean var normalize');
+
+end;
+
 
 procedure TASMMatrixOperations.TestMtxNormalizeRow;
 const mt1 : Array[0..15] of double = (28, 35, 42, 36, 50, 67, 84, 61, 72, 99, 126, 86, 94, 128, 162, 120);

@@ -25,7 +25,8 @@ type
     function InternalCorrelateArr( w1, w2 : PDouble; len : integer) : Double;
     function InternalCorrelate(w1, w2 : IMatrix) : double;
   public
-    function Correlate(x, y : IMatrix) : double; // correlation coefficient between t, r (must have the same length)
+    function Correlate(x, y : IMatrix) : double; overload; // correlation coefficient between t, r (must have the same length)
+    function Correlate(x, y : IMatrix; var prob, z : double) : double; overload; // pearson correlation with Fishers's z and probobality 
     class function Covariance(x, y : IMatrix; Unbiased : boolean = True) : IMatrix; overload; // covariance matrix
     class function Covariance(A : IMatrix; Unbiased : boolean = True) : IMatrix; overload;   // covariance matrix of matrix A
   end;
@@ -128,13 +129,27 @@ type
 
 implementation
 
-uses MatrixASMStubSwitch, MathUtilFunc;
+uses MatrixASMStubSwitch, MathUtilFunc, Statistics;
 
 const cLocDivBy2 : Array[0..1] of double = (0.5, 0.5);
+      cTiny : double = 1e-20;
 
 // ###########################################
 // #### Correlation (base implementation)
 // ###########################################
+
+function TCorrelation.Correlate(x, y: IMatrix; var prob, z: double): double;
+var df : integer;
+    t : double;
+begin
+     Result := Correlate(x, y);
+     df := (x.Width*x.Height - 2);
+     t := Result * sqrt( df/( (1 - Result + cTiny)*(1 + Result + cTiny) ) );
+     
+     z := 0.5*ln( (1 + (Result) + cTiny)/(1 - Result + cTiny)); // Fishers z transformation
+     prob := betaI( 0.5*df, 0.5, df/(df + sqr(t)) );            // probability
+end;
+
 
 // note: afterwards w1 and w2 are mean normalized and w2 width and height is changed!
 function TCorrelation.Correlate(x, y: IMatrix): double;
@@ -202,40 +217,40 @@ begin
 end;
 
 function TCorrelation.InternalCorrelate(w1, w2: IMatrix): double;
-var meanVar1 : Array[0..1] of double;
-    meanVar2 : Array[0..1] of double;
+var meanVar1 : TMeanVarRec;
+    meanVar2 : TMeanVarRec;
 begin
      // note the routine avoids memory allocations thus it runs on the raw optimized functions:
      
      // calc: 1/(n-1)/(var_w1*var_w2) sum_i=0_n (w1_i - mean_w1)*(w2_i - mean_w2)
-     MatrixMeanVar( @meanVar1[0], 2*sizeof(double), w1.StartElement, w1.LineWidth, w1.Width, 1, True, True);
-     MatrixMeanVar( @meanVar2[0], 2*sizeof(double), w2.StartElement, w2.LineWidth, w2.Width, 1, True, True);
+     MatrixMeanVar( @meanVar1, 2*sizeof(double), w1.StartElement, w1.LineWidth, w1.Width, 1, True, True);
+     MatrixMeanVar( @meanVar2, 2*sizeof(double), w2.StartElement, w2.LineWidth, w2.Width, 1, True, True);
 
-     w1.AddInPlace( -meanVar1[0] );     
-     w2.AddInPlace( -meanVar2[0] );
+     w1.AddInPlace( -meanVar1.aMean );     
+     w2.AddInPlace( -meanVar2.aMean );
 
      // dot product:
      MatrixMult( @Result, sizeof(double), w1.StartElement, w2.StartElement, w1.Width, w1.Height, w2.Height, w2.Width, w1.LineWidth, sizeof(double) );
-     Result := Result/sqrt(meanVar1[1]*meanVar2[1])/(w1.Width - 1);
+     Result := Result/sqrt(meanVar1.aVar*meanVar2.aVar)/(w1.Width - 1);
 end;
 
 function TCorrelation.InternalCorrelateArr(w1, w2: PDouble;
   len: integer): Double;
-var meanVar1 : Array[0..1] of double;
-    meanVar2 : Array[0..1] of double;
+var meanVar1 : TMeanVarRec;
+    meanVar2 : TMeanVarRec;
 begin
      // note the routine avoids memory allocations thus it runs on the raw optimized functions:
      
      // calc: 1/(n-1)/(var_w1*var_w2) sum_i=0_n (w1_i - mean_w1)*(w2_i - mean_w2)
-     MatrixMeanVar( @meanVar1[0], 2*sizeof(double), w1, len*sizeof(double), len, 1, True, True);
-     MatrixMeanVar( @meanVar2[0], 2*sizeof(double), w2, len*sizeof(double), len, 1, True, True);
+     MatrixMeanVar( @meanVar1, 2*sizeof(double), w1, len*sizeof(double), len, 1, True, True);
+     MatrixMeanVar( @meanVar2, 2*sizeof(double), w2, len*sizeof(double), len, 1, True, True);
 
-     MatrixAddAndScale( w1, len*sizeof(double), len, 1, -meanVar1[0], 1 );
-     MatrixAddAndScale( w2, len*sizeof(double), len, 1, -meanVar2[0], 1 );
+     MatrixAddAndScale( w1, len*sizeof(double), len, 1, -meanVar1.aMean, 1 );
+     MatrixAddAndScale( w2, len*sizeof(double), len, 1, -meanVar2.aMean, 1 );
      
      // dot product:
      MatrixMult( @Result, sizeof(double), w1, w2, len, 1, 1, len, len*sizeof(double), sizeof(double));
-     Result := Result/sqrt(meanVar1[1]*meanVar2[1])/(len - 1);
+     Result := Result/sqrt(meanVar1.aVar*meanVar2.aVar)/(len - 1);
 end;
 
 // ###########################################

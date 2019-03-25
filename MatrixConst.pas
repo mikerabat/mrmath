@@ -39,6 +39,11 @@ type
    TYMMArr = Array[0..3] of double;
    PYMMArr = ^TYMMArr;
 
+   TMeanVarRec = record
+     aMean : double;
+     aVar : double;
+   end;
+
 const cDefEpsilon : double = 1e-20;
       cMinusOne : double = -1;
       cOne : double = 1;
