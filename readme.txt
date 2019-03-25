@@ -55,6 +55,13 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date: 25.3.2019
+* New normalization routine to normalize to zero mean/unit variance.
+* New Sorting routines which are sligtly faster
+* New special bet/gamma functions
+* A few new statistical tests (starting) - StudentT 
+* Some minor bugfixes to PCA - the eigenvalues where wrongly scaled.
+
 Date: 07.02.2019
 * Fixed 64 bit FMA routines on Unix based systems
 * Fixed s problem in case the QR decomposition fails within a certain path of the SVD routine.
