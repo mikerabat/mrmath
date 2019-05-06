@@ -16,7 +16,7 @@ unit Statistics;
 
 interface
 
-uses MatrixConst;
+uses MatrixConst, Matrix, BaseMathPersistence;
 
 // ###########################################
 // #### Useful functions used in for different statistics
@@ -41,28 +41,36 @@ function GammaQ(a, x : double ) : double;  // return the incomlete gamma functio
 procedure gammaCF(var gcf : double; a, x : double; var gln : double); // returns the incomplete gamma function Q(a,x) evaluated by its continued fraction representation. also returns ln (gamma(a)) as gln
 procedure gammaSER(var gamser : double; a, x : double; var gln : double); // returns the incomplete gamma function P(a, x) avaluated by its series representation as gamser. also retusn ln(gamma(a)) as gln
 
-// error function 
+// error function
 function errorFunc( x : double ) : double;
 function errorFuncC( x : double ) : double;
 
-// 
+//
 function binom(n, k : integer) : int64;
 function binomf(n, k : integer) : double; // based on gamma function
 
 
-procedure Covariance(dest : PDouble; DestLineWidth : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt; width, height : TASMNativeInt; 
+procedure Covariance(dest : PDouble; DestLineWidth : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
   Unbiased : boolean = True); // writes covariance matrix of A in dest
 
 // student t tests see Numerical recipies Chapter 14
-  
+
 // Student t test: Returnst the probobability in prob and t = (x_A_mean - x_B_mean)/(sD) , sD the "pooled variance".
-procedure StudentTTest( data1 : PDouble; n1 : integer; data2 : PDouble; n2 : integer; var t, prob : double );
+procedure StudentTTest( data1 : PDouble; n1 : integer; data2 : PDouble; n2 : integer; var t, prob : double ); overload;
+procedure StudentTTest( meanData1, varData1 : double; n1 : integer; data2 : PDouble; n2 : integer; var t, prob : double ); overload;
+
 // student t test with significantly different variances
-procedure StudentTUTest( data1 : PDouble; n1 : integer; data2 : PDouble; n2 : integer; var t, prob : double );
+procedure StudentTUTest( data1 : PDouble; n1 : integer; data2 : PDouble; n2 : integer; var t, prob : double ); overload;
+procedure StudentTUTest( meanData1, varData1 : double; n1 : integer; data2 : PDouble; n2 : integer; var t, prob : double ); overload;
+
 // student t test for the case of paired samples
-procedure StudentTPTest( data1 : PDouble; data2 : PDouble; n : integer; var t, prob : double );
+procedure StudentTPTest( data1 : PDouble; data2 : PDouble; n : integer; var t, prob : double ); overload;
+procedure StudentTPTest( data1 : PDouble; meanData1, varData1 : double; data2 : PDouble; n : integer; var t, prob : double ); overload;
+
 // f-Test for signifacntly different variances
-procedure FTest( data1 : PDouble; n1 : integer; data2 : PDouble; n2 : integer; var f, prob : double );
+procedure FTest( data1 : PDouble; n1 : integer; data2 : PDouble; n2 : integer; var f, prob : double ); overload;
+procedure FTest( meanData1, varData1 : double; n1 : integer; data2 : PDouble; n2 : integer; var f, prob : double ); overload;
+
 
 // chi square test -> are two distributions the same.
 // given obseerved events (bins) and expected distribution (expectedBins) the routine geturns the number of degrees of
@@ -75,30 +83,139 @@ procedure ChiSquareTwo(bins1, bins2 : PConstDoubleArr; nBins : integer; numConst
 
 // case of unequal number of elements in both dataset
 procedure ChiSquareTwoUnequal(bins1, bins2 : PConstDoubleArr; nBins : integer; numConstraints : integer; var df, chsq, prob : double);
-  
+
+
+// functions to create a histogram from data points
+procedure Hist( data : PConstDoubleArr; n : integer; histogram : PConstDoubleArr; nBins : integer); overload;
+procedure Hist( data : PConstDoubleArr; n : integer; histogram : PConstDoubleArr; nBins : integer; minVal, maxVal : double); overload;
 
 // chapter 14.3 of NR
-// kolmogorov smirnov test -> testing if two distributions are the same in case of unbinned distributions that are 
+// kolmogorov smirnov test -> testing if two distributions are the same in case of unbinned distributions that are
 // functions of a single independent variable.
 type
   TKSTestFunc = function ( x : double ) : double;
 
-// Returns the K-S Statistics d and the signifacnace level prob. The given function "func" is a cumulative probability density function
+// Returns the K-S Statistics d and the signifacance level prob. The given function "func" is a cumulative probability density function
 // ranging from 0 (for smallest values of it's argument) to 1. The procedure returns the K-S statistics - D.
 // the input data is expected to jump by 1/N by each "x_i". The input data is sorted in ascending order - destroying the original input!
 procedure kolmogorovSmirnovOne( data : PConstDoubleArr; n : integer; func : TKSTestFunc; var d, prob : double );
 
-// returns the K-S statisticas d and the signifacance level prob for the null hypothesis that the data sets are drawn from the same 
+// returns the K-S statisticas d and the signifacance level prob for the null hypothesis that the data sets are drawn from the same
 // distribution. Small values of prob show that the cumulative distribution function of data1 is significantly different fro mthat of data2
 // the arrays data1 and data2 are modified by being sorted into ascending order
 procedure kolmogorovSmirnovTwo( data1 : PConstDoubleArr; n1 : integer; data2 : PConstDoubleArr; n2 : integer; var d, prob : double );
 
 
-// spearman rank-order correlation coefficient
-// sum squared rank difference as D, number of standard deviations by which D deviates fro mits nullnypothesis as zd, two sided
-// significance level of this deviation as probd, spearmans rank correlation as rs, and the two -sided significance level of its
-// deviation from zero as probrs.
-procedure spearmanCorr( data1, data2 : PConstDoubleArr; n : integer; var d, zd, probd, rs, probrs : double);
+// ######################################################
+// #### Class implementation of various statistic functions
+type
+  TStatTest = class(TBaseMathPersistence)
+  private
+    fN : integer;
+    fMeanVar : TMeanVarRec;
+    fRefData : IMatrix;
+    fMinVal, fMaxVal : Double;
+    fNumBins : integer;
+  protected
+    class function ClassIdentifier : String; override;
+    procedure DefineProps; override;
+    procedure OnLoadDoubleProperty(const Name : String; const Value : double); override;
+    procedure OnLoadIntProperty(const Name : String; Value : integer); override;
+    function OnLoadObject(const Name : String; Obj : TBaseMathPersistence) : boolean; override;
+  public
+    // initialize the mean var record with one db so we can compare against others more than once
+    procedure InitStudentTTest( data1 : TDoubleMatrix );
+    procedure InitStudentTPTest( data1 : TDoubleMatrix);
+    procedure InitStudentFTest( data1 : TDoubleMatrix );
+    procedure InitChisquareTest( data1 : TDoubleMatrix; nBins : integer );
+    procedure InitKolmogorv2Test( data1 : TDoubleMatrix );
+
+    // #########################################
+    // #### Statistical tests available after the "init" functions (for multiple tests
+    // against the same data1 source)
+    procedure StudentTTest( data2 : IMatrix; var t, prob : double ); overload;
+    procedure StudentTTest( data2 : TDoubleMatrix; var t, prob : double ); overload;
+
+    // student t test with significantly different variances
+    procedure StudentTUTest( data2 : IMatrix; var t, prob : double ); overload;
+    procedure StudentTUTest( data2 : TDoubleMatrix; var t, prob : double ); overload;
+
+    // student t test for the case of paired samples
+    procedure StudentTPTest( data2 : IMatrix; var t, prob : double ); overload;
+    procedure StudentTPTest( data2 : TDoubleMatrix; var t, prob : double ); overload;
+
+    // f-Test for signifacntly different variances
+    procedure FTest( data2 : IMatrix;  var f, prob : double ); overload;
+    procedure FTest( data2 : TDoubleMatrix;  var f, prob : double ); overload;
+
+    // chi square test
+    procedure ChiSquare1( data2 : IMatrix; numConstraints : integer; var df, chsq, prob : double ); overload;
+    procedure ChiSquare1( data2 : TDoubleMatrix; numConstraints : integer; var df, chsq, prob : double ); overload;
+
+    // chi square2 test
+    procedure ChiSquare2( data2 : IMatrix; numConstraints : integer; var df, chsq, prob : double ); overload;
+    procedure ChiSquare2( data2 : TDoubleMatrix; numConstraints : integer; var df, chsq, prob : double ); overload;
+
+    // kolmogroovSmirnov2 test
+    procedure KolmogorovSmirnov2( data2 : IMatrix; var d, prob : double ); overload;
+    procedure KolmogorovSmirnov2( data2 : TDoubleMatrix; var d, prob : double ); overload;
+  public
+    // note that all data is treated as all one big vector!
+
+    // student t test with same variances
+    class procedure StudentTTest( data1, data2 : IMatrix; var t, prob : double ); overload;
+    class procedure StudentTTest( data1, data2 : TDoubleMatrix; var t, prob : double ); overload;
+
+    // student t test with significantly different variances
+    class procedure StudentTUTest( data1, data2 : IMatrix; var t, prob : double ); overload;
+    class procedure StudentTUTest( data1, data2 : TDoubleMatrix; var t, prob : double ); overload;
+
+    // student t test for the case of paired samples
+    class procedure StudentTPTest( data1, data2 : IMatrix; var t, prob : double ); overload;
+    class procedure StudentTPTest( data1, data2 : TDoubleMatrix; var t, prob : double ); overload;
+
+    // f-Test for signifacntly different variances
+    class procedure FTest( data1, data2 : IMatrix;  var f, prob : double ); overload;
+    class procedure FTest( data1, data2 : TDoubleMatrix;  var f, prob : double ); overload;
+
+    // chi square test on one dimensional datapoints,
+    class procedure ChiSquare1( data1, data2 : TDoubleMatrix; nBins : integer; numConstraints : integer; var df, chsq, prob : double ); overload;
+    class procedure ChiSquare1( data1, data2 : IMatrix; nBins : integer; numConstraints : integer; var df, chsq, prob : double ); overload;
+
+    // chi square test on one dimensional datapoints -> no assumption on the expected histogram (data1 in chisquare1) is raised
+    class procedure ChiSquare2( data1, data2 : TDoubleMatrix; nBins : integer; numConstraints : integer; var df, chsq, prob : double ); overload;
+    class procedure ChiSquare2( data1, data2 : IMatrix; nBins : integer; numConstraints : integer; var df, chsq, prob : double ); overload;
+
+    class procedure KolmogorovSmirnov1( data : TDoubleMatrix; func : TKSTestFunc; var d, prob : double ); overload;
+    class procedure KolmogorovSmirnov1( data : IMatrix; func : TKSTestFunc; var d, prob : double ); overload;
+
+    // returns the K-S statisticas d and the signifacance level prob for the null hypothesis that the data sets are drawn from the same
+    // distribution. Small values of prob show that the cumulative distribution function of data1 is significantly different fro mthat of data2
+    // the arrays data1 and data2 are modified by being sorted into ascending order
+    class procedure KolmogorovSmirnov2( data1, data2 : TDoubleMatrix; var d, prob : double ); overload;
+    class procedure KolmogorovSmirnov2( data1, data2 : IMatrix; var d, prob : double ); overload;
+
+    // histogram from the input data
+    // Creates a histogram from the input data between the
+    // given borders. Elements >= the max value are put into the last bin
+    // elements < minValue + (maxVal - minVal)/(nbins - 1) into the first bin
+    // the histogram operates along the given dimension (rowWise is default)
+    // returns a nbins x height (RowWise True) matrix
+    class function HistogramIntf( data : IMatrix; nBins : integer; RowWise : Boolean = True ) : IMatrix; overload;
+    class function HistogramIntf( data : IMatrix; nBins : integer; minVal, maxVal : double; RowWise : Boolean = True )  : IMatrix; overload;
+    class function Histogram( data : TDoubleMatrix; nBins : integer; RowWise : Boolean = True ) : TDoubleMatrix; overload;
+    class function Histogram( data : TDoubleMatrix; nBins : integer; minVal, maxVal : double; RowWise : Boolean = True )  : TDoubleMatrix; overload;
+
+    // some probability density functions
+    class function UniformPDF( x : TDoubleMatrix; a, b : double ) : TDoubleMatrix;
+    class function NormalPDF( x : TDoubleMatrix; mu, sigma : double ) : TDoubleMatrix;
+    class function LogNormalPDF( X : TDoubleMatrix; mu, sigma : double ) : TDoubleMatrix;
+    class function PoissonPDF( x : TDoubleMatrix; lambda : double ) : TDoubleMatrix;
+    class function RayleighPDF( x : TDoubleMatrix; sigma : double ) : TDoubleMatrix;
+    class function WeibullPDF( x : TDoubleMatrix; lambda, k : double ) : TDoubleMatrix;
+    class function ExpPDF( x : TDoubleMatrix; lambda : double ) : TDoubleMatrix;
+    class function BinomPDF( x : TDoubleMatrix; n, p : integer ) : TDoubleMatrix;
+  end;
 
 implementation
 
@@ -519,32 +636,65 @@ begin
      end;
 end;
 
-procedure StudentTTest( data1 : PDouble; n1 : integer; data2 : PDouble; n2 : integer; var t, prob : double);
-var meanVar1, meanVar2 : TMeanVarRec;
-    df : double;
+procedure InternalStudentTCalc( const meanVar1, meanVar2 : TMeanVarRec; n1, n2 : integer; var t, prob : double);
+var df : double;
     sVar : double;
 begin
-     MatrixMeanVar(@meanVar1, sizeof(TMeanVarRec), data1, n1*SizeOf(double), n1, 1, True, True);
-     MatrixMeanVar(@meanVar2, sizeof(TMeanVarRec), data2, n2*SizeOf(double), n2, 1, True, True);
-
      df := n1 + n2 - 2; // degrees of freedom
      svar := ((n1 - 1)*meanVar1.aVar + (n2 - 1)*meanVar2.aVar)/df;  // pooled variance
      t := (meanVar1.aMean - meanVar2.aMean)/sqrt(svar*(1.0/n1 + 1.0/n2));
      prob := betaI(0.5*df, 0.5, df/(df+sqr(t)));
 end;
 
-procedure StudentTUTest( data1 : PDouble; n1 : integer; data2 : PDouble; n2 : integer; var t, prob : double);
+procedure StudentTTest( data1 : PDouble; n1 : integer; data2 : PDouble; n2 : integer; var t, prob : double);
 var meanVar1, meanVar2 : TMeanVarRec;
-    df : double;
 begin
      MatrixMeanVar(@meanVar1, sizeof(TMeanVarRec), data1, n1*SizeOf(double), n1, 1, True, True);
      MatrixMeanVar(@meanVar2, sizeof(TMeanVarRec), data2, n2*SizeOf(double), n2, 1, True, True);
 
-     t := (meanVar1.aVar - meanVAr2.aVar)/sqrt(meanVar1.aVar/n1 + meanVar2.aVar/n2);
+     InternalStudentTCalc(meanVar1, meanVar2, n1, n2, t, prob);
+end;
+
+procedure StudentTTest( meanData1, varData1 : double; n1 : integer; data2 : PDouble; n2 : integer; var t, prob : double ); overload;
+var meanVar1, meanVar2 : TMeanVarRec;
+begin
+     meanVar1.aMean := meanData1;
+     meanVar2.aVar := varData1;
+     MatrixMeanVar(@meanVar2, sizeof(TMeanVarRec), data2, n2*SizeOf(double), n2, 1, True, True);
+
+     InternalStudentTCalc(meanVar1, meanVar2, n1, n2, t, prob);
+end;
+
+
+procedure InternalStudentTUCalc( const meanVar1, meanVar2 : TMeanVarRec; n1, n2 : integer; var t, prob : double);
+var df : double;
+begin
+     t := (meanVar1.aVar - meanVar2.aVar)/sqrt(meanVar1.aVar/n1 + meanVar2.aVar/n2);
      df := sqr(meanVar1.aVar/n1 + meanVar2.aVar/n2)/( sqr(meanVar1.aVar/n1)/(n1 - 1) + sqr(meanVar2.aVar/n2)/(n2 - 1) );
      prob := betaI(0.5*df, 0.5, df/(df+sqr(t)));
 end;
 
+
+procedure StudentTUTest( data1 : PDouble; n1 : integer; data2 : PDouble; n2 : integer; var t, prob : double);
+var meanVar1, meanVar2 : TMeanVarRec;
+begin
+     MatrixMeanVar(@meanVar1, sizeof(TMeanVarRec), data1, n1*SizeOf(double), n1, 1, True, True);
+     MatrixMeanVar(@meanVar2, sizeof(TMeanVarRec), data2, n2*SizeOf(double), n2, 1, True, True);
+
+     InternalStudentTUCalc(meanVar1, meanVar2, n1, n2, t, prob);
+end;
+
+procedure StudentTUTest( meanData1, varData1 : double; n1 : integer; data2 : PDouble; n2 : integer; var t, prob : double ); overload;
+var meanVar1, meanVar2 : TMeanVarRec;
+begin
+     meanVar1.aMean := meanData1;
+     meanVar1.aVar := varData1;
+     MatrixMeanVar(@meanVar2, sizeof(TMeanVarRec), data2, n2*SizeOf(double), n2, 1, True, True);
+
+     InternalStudentTUCalc(meanVar1, meanVar2, n1, n2, t, prob);
+end;
+
+(*
 procedure StudentTPTest( data1 : PDouble; data2 : PDouble; n : integer; var t, prob : double);
 var meanVar1, meanVar2 : TMeanVarRec;
     df : double;
@@ -564,18 +714,55 @@ begin
      df := n - 1;
      cov := cov/df;
      sd := sqrt( (meanVar1.aVar + meanVar2.aVar - 2*cov)/n );
-     
+
+     t := (meanVar1.aMean - meanVar2.aMean)/sd;
+     prob := betai( 0.5*df, 0.5, df/(df + sqr(t)) );
+end;
+*)
+
+procedure InternalStudentTPTest(const meanVar1, meanVar2 : TMeanVarRec; data1, data2 : PDouble; n : integer; var t, prob : double);
+var df : double;
+    sd, cov : double;
+    j : integer;
+    pD1, pD2 : PConstDoubleArr;
+begin
+     pD1 := PConstDoubleArr(data1);
+     pD2 := PConstDoubleArr(data2);
+     cov := 0;
+     for j := 0 to n - 1 do
+         cov := cov + ( pD1^[j] - meanVar1.aMean )*( pD2^[j] - meanVAr2.aMean );
+
+     df := n - 1;
+     cov := cov/df;
+     sd := sqrt( (meanVar1.aVar + meanVar2.aVar - 2*cov)/n );
+
      t := (meanVar1.aMean - meanVar2.aMean)/sd;
      prob := betai( 0.5*df, 0.5, df/(df + sqr(t)) );
 end;
 
-procedure FTest( data1 : PDouble; n1 : integer; data2 : PDouble; n2 : integer; var f, prob : double );
+procedure StudentTPTest( data1 : PDouble; data2 : PDouble; n : integer; var t, prob : double );
 var meanVar1, meanVar2 : TMeanVarRec;
-    df1, df2 : double;
 begin
-     MatrixMeanVar(@meanVar1, sizeof(TMeanVarRec), data1, n1*SizeOf(double), n1, 1, True, True);
-     MatrixMeanVar(@meanVar2, sizeof(TMeanVarRec), data2, n2*SizeOf(double), n2, 1, True, True);
-    
+     MatrixMeanVar(@meanVar1, sizeof(TMeanVarRec), data1, n*SizeOf(double), n, 1, True, True);
+     MatrixMeanVar(@meanVar2, sizeof(TMeanVarRec), data2, n*SizeOf(double), n, 1, True, True);
+
+     InternalStudentTPTest(meanVar1, meanVar2, data1, data2, n, t, prob);
+end;
+
+procedure StudentTPTest( data1 : PDouble; meanData1, varData1 : double;
+ data2 : PDouble; n : integer; var t, prob : double);
+var meanVar1, meanVar2 : TMeanVarRec;
+begin
+     meanVar1.aMean := meanData1;
+     meanVar1.aVar := varData1;
+     MatrixMeanVar(@meanVar2, sizeof(TMeanVarRec), data2, n*SizeOf(double), n, 1, True, True);
+
+     InternalStudentTPTest(meanVar1, meanVar2, data1, data2, n, t, prob);
+end;
+
+procedure InternalCalcFTest( const meanVAr1, meanVar2 : TMeanVarRec; n1, n2 : integer; var f, prob : double);
+var df1, df2 : double;
+begin
      if meanVar1.aVar > meanVar2.aVar then
      begin
           f := meanVar1.aVar/meanVar2.aVar;
@@ -592,6 +779,25 @@ begin
      prob := 2*betai( 0.5*df2, 0.5*df1, df2/(df2 + df1*f) );
      if prob > 1 then
         prob := 2 - prob;
+end;
+
+procedure FTest( data1 : PDouble; n1 : integer; data2 : PDouble; n2 : integer; var f, prob : double );
+var meanVar1, meanVar2 : TMeanVarRec;
+begin
+     MatrixMeanVar(@meanVar1, sizeof(TMeanVarRec), data1, n1*SizeOf(double), n1, 1, True, True);
+     MatrixMeanVar(@meanVar2, sizeof(TMeanVarRec), data2, n2*SizeOf(double), n2, 1, True, True);
+
+     InternalCalcFTest(meanVar1, meanVar2, n1, n2, f, prob);
+end;
+
+procedure FTest( meanData1, varData1 : double; n1 : integer; data2 : PDouble; n2 : integer; var f, prob : double );
+var meanVar1, meanVar2 : TMeanVarRec;
+begin
+     meanVar1.aMean := meanData1;
+     meanVar1.aVar := varData1;
+     MatrixMeanVar(@meanVar2, sizeof(TMeanVarRec), data2, n2*SizeOf(double), n2, 1, True, True);
+
+     InternalCalcFTest(meanVar1, meanVar2, n1, n2, f, prob);
 end;
 
 procedure ChiSquareOne(bins, expectBins : PConstDoubleArr; nBins : integer; numConstraints : integer; var df, chsq, prob : double );
@@ -670,6 +876,39 @@ begin
      prob := GammaQ(0.5*df, 0.5*chsq);
 end;
 
+procedure Hist( data : PConstDoubleArr; n : integer; histogram : PConstDoubleArr; nBins : integer); overload;
+var MinVal : double;
+    MaxVal : double;
+begin
+     MinVal := MatrixMin(PDouble(data), n, 1, n*sizeof(double));
+     MaxVal := MatrixMax(PDouble(data), n, 1, n*sizeof(double));
+
+     Hist(data, n, histogram, nBins, minVal, maxVal);
+end;
+
+procedure Hist( data : PConstDoubleArr; n : integer; histogram : PConstDoubleArr; nBins : integer; minVal, maxVal : double); overload;
+var idx : integer;
+    step : double;
+    i : Integer;
+begin
+     MtxMemInit(PDouble(histogram), nBins*sizeof(double), 0);
+
+     step := (maxVal - minVal)/(nBins - 1);
+
+     for i := 0 to n - 1 do
+     begin
+          if data^[i] >= maxVal
+          then
+              idx := nBins - 1
+          else if data^[i] <= minVal
+          then
+              idx := 0
+          else
+              idx := Floor( (data^[i] - minVal)/step );
+
+          histogram^[idx] := histogram^[idx] + 1;
+     end;
+end;
 
 function probks(alam : double) : double;
 const cEPS1 = 0.001;
@@ -689,7 +928,7 @@ begin
      begin
           term := fac*exp(a2*j*j);
           Result := Result + term;
-          if (abs(term) < cEPS1*termbf) or (abs(term) < cEPS2*Result) then
+          if (abs(term) <= cEPS1*termbf) or (abs(term) <= cEPS2*Result) then
              exit;
 
           fac := -fac;
@@ -709,10 +948,10 @@ begin
      QuickSort( data, n );
      en := n;
      d := 0;
-     for j := 0 to n - 1 do
+     for j := 1 to n do
      begin
-          fn := (j + 1)/en;
-          ff := func( data^[j] );
+          fn := j/en;
+          ff := func( data^[j - 1] );
           dt := max( abs( fo - ff ), abs( fn - ff ) );
           if dt > d then
              d := dt;
@@ -723,7 +962,8 @@ begin
      prob := probks( (en + 0.12 + 0.11/en)*d );
 end;
 
-procedure kolmogorovSmirnovTwo( data1 : PConstDoubleArr; n1 : integer; data2 : PConstDoubleArr; n2 : integer; var d, prob : double );
+// it is assumed that in this function data1 is already sorted
+procedure InternalkolmogorovSmirnovTwo( data1 : PConstDoubleArr; n1 : integer; data2 : PConstDoubleArr; n2 : integer; var d, prob : double );
 var j1, j2 : integer;
     d1, d2, dt, en1, en2, en : double;
     fn1, fn2 : double;
@@ -731,10 +971,10 @@ begin
      fn1 := 0;
      fn2 := 0;
 
-     j1 := 1; 
+     j1 := 1;
      j2 := 1;
 
-     QuickSort(data1, n1);
+     //QuickSort(data1, n1);
      QuickSort(data2, n2);
 
      en1 := n1;
@@ -745,7 +985,7 @@ begin
      begin
           d1 := data1^[j1 - 1];
           d2 := data2^[j2 - 1];
-          
+
           if d1 <= d2 then
           begin
                fn1 := j1/en1;
@@ -756,7 +996,7 @@ begin
                fn2 := j2/en2;
                inc(j2);
           end;
-          
+
           dt := abs(fn2 - fn1);
           if dt > d then
              d := dt;
@@ -766,81 +1006,767 @@ begin
      prob := probks( (en + 0.12 + 0.11/en)*d );
 end;
 
-// given a sorted array - replace the elements by their rank, including midranking of ties
-// and return s as the sum of f^3 - f. 
-function crank( var w : TDoubleDynArray ) : double;
-var j, ji,jt : integer;
-    t, rank : double;
+procedure kolmogorovSmirnovTwo( data1 : PConstDoubleArr; n1 : integer; data2 : PConstDoubleArr; n2 : integer; var d, prob : double );
 begin
-     Result := 0;
-
-     j := 0;
-     while j < Length(w) - 1 do
-     begin
-          if w[j + 1] <> w[j] then
-          begin
-               w[j] := j;
-               inc(j);
-          end
-          else
-          begin
-               jt := j + 1;
-               while (jt < Length(w)) and (w[jt] = w[j]) do
-                     inc(jt);
-               rank := 0.5*(j + jt - 1);
-               for ji := j to jt - 1 do
-                   w[ji] := rank;
-
-               t := jt - j;
-               Result := REsult + t*t*t - t;
-               j := jt;
-          end;
-     end;
-
-     if j = Length(w) - 1 then
-        w[Length(w) - 1] := Length(w);
+     QuickSort(data1, n1);
+     InternalkolmogorovSmirnovTwo(data1, n1, data2, n2, d, prob);
 end;
 
-procedure spearmanCorr( data1, data2 : PConstDoubleArr; n : integer; var d, zd, probd, rs, probrs : double);
-var j : integer;
-    vard, t, sg, sf : double;
-    fac, en3n, en, df : double;
-    aved : double;
-    wksp1, wksp2 : TDoubleDynArray;
+{ TStatTest }
+
+procedure TStatTest.InitStudentTTest(data1: TDoubleMatrix);
+var blk : TDoubleDynArray;
 begin
-     SetLength(wksp1, n);
-     SetLength(wksp2, n);
+     fRefData := nil;
+     fN := data1.Width*data1.Height;
 
-     Move( data1^[0], wksp1[0], n*sizeof(double));
-     Move( data2^[0], wksp2[0], n*sizeof(double));
-
-     QuickSort2(wksp1, wksp2);
-     sf := crank( wksp1 );
-     QuickSort2(wksp2, wksp1);
-     sg := crank( wksp2 );
-     d := 0;
-
-     for j := 0 to n - 1 do
-         d := d + sqr( wksp1[j] - wksp2[j] );
-
-     en := n;
-     en3n := en*en*en - en;
-     aved := en3n/6 - (sf + sg)/12;
-     fac := (1 - sf/en3n)*(1 - sg/en3n);
-     vard := ((en - 1)*en*en*sqr(en + 1)/36)*fac;
-     zd := (d - aved)/sqrt(vard);
-     probd := errorFuncC(abs(zd)/1.4142136);
-         
-     rs := (1 - (6/en3n)*(d + (sf + sg)/12))/sqrt(fac);
-     fac := (rs + 1)*(1 - rs);
-     if fac > 0 then
+     if (data1.Width = 1) or (data1.Height = 1) then
      begin
-          t := rs*sqrt((en - 2)/fac);
-          df := en - 1;
-          probrs := betai(0.5*df, 0.5, df/(df + t*t));
+          MatrixMeanVar(@fMeanVar, sizeof(double)*ifThen(data1.Width = 1, 1, 2), data1.StartElement,
+                        data1.LineWidth, data1.Width, data1.Height, data1.Height = 1, True);
      end
      else
-         probrs := 0;
+     begin
+          blk := data1.SubMatrix;
+          MatrixMeanVar(@fMeanVar, sizeof(fMeanVar), @blk[0], Length(blk)*sizeof(double),
+                        Length(blk), 1, True, True);
+     end;
 end;
+
+class procedure TStatTest.StudentTTest(data1, data2: TDoubleMatrix; var t,
+  prob: double);
+var blk1, blk2 : TDoubleDynArray;
+begin
+     if (data1.Height = 1) and (data2.Height = 1) then
+     begin
+          Statistics.StudentTTest(data1.StartElement, data1.Width, data2.StartElement, data2.Width, t, prob);
+     end
+     else
+     begin
+          blk1 := data1.SubMatrix;
+          blk2 := data2.SubMatrix;
+          Statistics.StudentTTest(@blk1[0], Length(blk1), @blk2[0], Length(blk2), t, prob);
+     end;
+end;
+
+class procedure TStatTest.StudentTTest(data1, data2: IMatrix; var t,
+  prob: double);
+begin
+     StudentTTest(data1.GetObjRef, data2.GetObjRef, t, prob);
+end;
+
+class procedure TStatTest.StudentTUTest(data1, data2: TDoubleMatrix; var t,
+  prob: double);
+var blk1, blk2 : TDoubleDynArray;
+begin
+     if (data1.Height = 1) and (data2.Height = 1) then
+     begin
+          Statistics.StudentTUTest(data1.StartElement, data1.Width, data2.StartElement, data2.Width, t, prob);
+     end
+     else
+     begin
+          blk1 := data1.SubMatrix;
+          blk2 := data2.SubMatrix;
+          Statistics.StudentTUTest(@blk1[0], Length(blk1), @blk2[0], Length(blk2), t, prob);
+     end;
+end;
+
+
+class procedure TStatTest.StudentTUTest(data1, data2: IMatrix; var t,
+  prob: double);
+begin
+     StudentTUTest(data1.GetObjRef, data2.GetObjRef, t, prob);
+end;
+
+class procedure TStatTest.StudentTPTest(data1, data2: TDoubleMatrix; var t,
+  prob: double);
+var blk1, blk2 : TDoubleDynArray;
+begin
+     if (data1.Height = 1) and (data2.Height = 1) and (data1.Width = data2.Width) then
+     begin
+          Statistics.StudentTPTest(data1.StartElement, data2.StartElement, data1.Width, t, prob);
+     end
+     else
+     begin
+          blk1 := data1.SubMatrix;
+          blk2 := data2.SubMatrix;
+          assert(Length(blk1) = length(blk2), 'Error studentTPTest need same vector lengths');
+          Statistics.StudentTPTest(@blk1[0], @blk2[0], Length(blk1), t, prob);
+     end;
+end;
+
+class procedure TStatTest.StudentTPTest(data1, data2: IMatrix; var t,
+  prob: double);
+begin
+     StudentTPTest(data1.GetObjRef, data2.GetObjRef, t, prob);
+end;
+
+class procedure TStatTest.FTest(data1, data2: TDoubleMatrix; var f, prob: double);
+var blk1, blk2 : TDoubleDynArray;
+begin
+     if (data1.Height = 1) and (data2.Height = 1) then
+     begin
+          Statistics.FTest(data1.StartElement, data1.Width, data2.StartElement, data2.Width, f, prob);
+     end
+     else
+     begin
+          blk1 := data1.SubMatrix;
+          blk2 := data2.SubMatrix;
+          Statistics.FTest(@blk1[0], Length(blk1), @blk2[0], Length(blk2), f, prob);
+     end;
+end;
+
+
+class procedure TStatTest.FTest(data1, data2: IMatrix; var f, prob: double);
+begin
+     FTest(data1.GetObjRef, data2.GetObjRef, f, prob);
+end;
+
+procedure TStatTest.InitStudentTPTest(data1: TDoubleMatrix);
+begin
+     fRefData := data1.AsVector(True);
+     fN := fRefData.Width;
+
+     MatrixMeanVar(@fMeanVar, sizeof(fMeanVar), fRefData.StartElement, fRefData.LineWidth, fRefData.Width,
+                   1, True, True);
+end;
+
+procedure TStatTest.StudentTPTest(data2: TDoubleMatrix; var t,
+  prob: double);
+var aVec : IMatrix;
+begin
+     assert(Assigned(fRefData), 'Call InitStudentTPTest with the reference dataset first');
+     assert(data2.Width*data2.Height = fRefData.Width, 'Pairwise length is wrong');
+
+     if Data2.Height = 1
+     then
+         Statistics.StudentTPTest(fRefData.StartElement, fMeanVar.aMean, fMeanVar.aVar, data2.StartElement,
+                                  data2.Width, t, prob)
+     else
+     begin
+          aVec := data2.AsVector(True);
+          Statistics.StudentTPTest(fRefData.StartElement, fMeanVar.aMean, fMeanVar.aVar,
+                                   aVec.StartElement, aVec.VecLen,
+                                   t, prob)
+     end;
+end;
+
+procedure TStatTest.StudentTPTest(data2: IMatrix; var t,
+  prob: double);
+begin
+     StudentTPTest( data2.GetObjRef, t, prob );
+end;
+
+procedure TStatTest.StudentTTest(data2: TDoubleMatrix; var t, prob: double);
+var aVec : IMatrix;
+begin
+     assert((fN > 0) and (fRefData = nil), 'Call InitStudentTTest first');
+     if Data2.Height = 1
+     then
+         Statistics.StudentTTest(fMeanVar.aMean, fMeanVar.aVar, fN, data2.StartElement,
+                                  data2.Width, t, prob)
+     else
+     begin
+          aVec := data2.AsVector(True);
+          Statistics.StudentTTest(fMeanVar.aMean, fMeanVar.aVar, fN, aVec.StartElement,
+                                  aVec.VecLen, t, prob);
+     end;
+end;
+
+procedure TStatTest.StudentTTest(data2: IMatrix; var t, prob: double);
+begin
+     StudentTTest( data2.GetObjRef, t, prob );
+end;
+
+procedure TStatTest.StudentTUTest(data2: TDoubleMatrix; var t, prob: double);
+var aVec : IMatrix;
+begin
+     assert((fN > 0) and (fRefData = nil), 'Call InitStudentTTest first');
+     if Data2.Height = 1
+     then
+         Statistics.StudentTUTest(fMeanVar.aMean, fMeanVar.aVar, fN, data2.StartElement,
+                                  data2.Width, t, prob)
+     else
+     begin
+          aVec := data2.AsVector(True);
+          Statistics.StudentTUTest(fMeanVar.aMean, fMeanVar.aVar, fN, aVec.StartElement,
+                                   aVec.VecLen, t, prob);
+     end;
+end;
+
+procedure TStatTest.StudentTUTest(data2: IMatrix; var t, prob: double);
+begin
+     StudentTUTest(data2.GetObjRef, t, prob);
+end;
+
+procedure TStatTest.FTest(data2: TDoubleMatrix; var f, prob: double);
+var aVec : IMatrix;
+begin
+     assert((fN > 0) and (fRefData = nil), 'Call InitStudentTTest first');
+     if Data2.Height = 1
+     then
+         Statistics.FTest(fMeanVar.aMean, fMeanVar.aVar, fN, data2.StartElement, data2.Width, f, prob)
+     else
+     begin
+          aVec := data2.AsVector(True);
+          Statistics.FTest(fMeanVar.aMean, fMeanVar.aVar, fN, aVec.StartElement,
+                                   aVec.VecLen, f, prob);
+     end;
+end;
+
+procedure TStatTest.FTest(data2: IMatrix; var f, prob: double);
+begin
+     FTest(data2.GetObjRef, f, prob);
+end;
+
+procedure TStatTest.InitStudentFTest(data1: TDoubleMatrix);
+begin
+     // uses the same pattern
+     InitStudentTTest(data1);
+end;
+
+// #######################################################
+// #### Persistence
+// #######################################################
+
+const  cPropMean = 'StatMean';
+       cPropVar = 'StatVar';
+       cPropN = 'StatN';
+       cPropNBins = 'StatNBins';
+       cPropMinVal = 'StatMinVal';
+       cPropMaxVal = 'StatMaxVal';
+       cPropData = 'StatData';
+
+procedure TStatTest.DefineProps;
+begin
+     AddDoubleProperty(cPropMean, fMeanVar.aMean);
+     AddDoubleProperty(cPropVar, fMeanVar.aVar);
+     AddIntProperty(cPropN, fN);
+     AddIntProperty(cPropNBins, fNumBins);
+     AddDoubleProperty(cPropMinVal, fMinVal);
+     AddDoubleProperty(cPropMaxVal, fMaxVal);
+     if Assigned(fRefData) then
+        AddObject(cPropData, fRefData.GetObjRef);
+
+     inherited;
+end;
+
+class function TStatTest.ClassIdentifier: String;
+begin
+     Result := 'Statistics';
+end;
+
+procedure TStatTest.OnLoadDoubleProperty(const Name: String;
+  const Value: double);
+begin
+     if SameText(Name, cPropMean)
+     then
+         fMeanVar.aMean := Value
+     else if SameText(Name, cPropVar)
+     then
+         fMeanVar.aVar := Value
+     else if SameText(Name, cPropMinVal)
+     then
+         fMinVal := Value
+     else if SameText(Name, cPropMaxVal)
+     then
+         fMaxVal := Value
+     else
+         inherited;
+end;
+
+procedure TStatTest.OnLoadIntProperty(const Name: String; Value: integer);
+begin
+     if SameText(Name, cPropN)
+     then
+         fN := Value
+     else if SameText(Name, cPropNBins)
+     then
+         fNumBins := Value
+     else
+         inherited;
+end;
+
+function TStatTest.OnLoadObject(const Name: String;
+  Obj: TBaseMathPersistence): boolean;
+begin
+     Result := True;
+     if SameText(Name, cPropData)
+     then
+         fRefData := (obj as TDoubleMatrix) as IMatrix
+     else
+         Result := Inherited OnLoadObject(Name, Obj);
+end;
+
+class function TStatTest.Histogram(data: TDoubleMatrix; nBins: integer;
+  RowWise: Boolean): TDoubleMatrix;
+var y: Integer;
+    pData : PConstDoubleArr;
+    pRes : PConstDoubleArr;
+    resCol : TDoubleDynArray;
+    x: Integer;
+    dataCpy : IMatrix;
+begin
+     if RowWise then
+     begin
+          Result := TDoubleMatrixClass( data.ClassType ).Create(nBins, data.Height);
+          pRes := PConstDoubleArr( Result.StartElement );
+          pData := PConstDoubleArr( data.StartElement );
+
+          for y := 0 to data.Height - 1 do
+          begin
+               Hist( pData, data.Width, pRes, nBins);
+               inc(PByte(pData), data.LineWidth);
+               inc(PByte(pRes), Result.LineWidth);
+          end;
+     end
+     else
+     begin
+          Result := TDoubleMatrixClass( data.ClassType ).Create(data.Width, nBins );
+
+          dataCpy := data.Transpose;
+          pData := PConstDoubleArr( dataCpy.StartElement );
+          SetLength(resCol, nBins);
+
+          for x := 0 to data.Width - 1 do
+          begin
+               MtxMemInit(@resCol[0], Length(resCol)*sizeof(double), 0);
+               Result.SetColumn(x, resCol);
+               Hist( pData, data.Height, @resCol[0], nBins);
+               inc(PByte(pData), data.LineWidth);
+          end;
+     end;
+end;
+
+class function TStatTest.Histogram(data: TDoubleMatrix; nBins: integer; minVal,
+  maxVal: double; RowWise: Boolean): TDoubleMatrix;
+var y: Integer;
+    pData : PConstDoubleArr;
+    pRes : PConstDoubleArr;
+    resCol : TDoubleDynArray;
+    x: Integer;
+    dataCpy : IMatrix;
+begin
+     if RowWise then
+     begin
+          Result := TDoubleMatrixClass( data.ClassType ).Create(nBins, data.Height);
+          pRes := PConstDoubleArr( Result.StartElement );
+          pData := PConstDoubleArr( data.StartElement );
+
+          for y := 0 to data.Height - 1 do
+          begin
+               Hist( pData, data.Width, pRes, nBins, minVal, maxVal);
+               inc(PByte(pData), data.LineWidth);
+               inc(PByte(pRes), Result.LineWidth);
+          end;
+     end
+     else
+     begin
+          Result := TDoubleMatrixClass( data.ClassType ).Create(data.Width, nBins );
+
+          dataCpy := data.Transpose;
+          pData := PConstDoubleArr( dataCpy.StartElement );
+          SetLength(resCol, nBins);
+
+          for x := 0 to data.Width - 1 do
+          begin
+               MtxMemInit(@resCol[0], Length(resCol)*sizeof(double), 0);
+               Result.SetColumn(x, resCol);
+               Hist( pData, data.Height, @resCol[0], nBins, minVal, maxVal);
+               inc(PByte(pData), data.LineWidth);
+          end;
+     end;
+end;
+
+class function TStatTest.HistogramIntf(data: IMatrix; nBins: integer; minVal,
+  maxVal: double; RowWise: Boolean): IMatrix;
+begin
+     Result := Histogram( data.GetObjRef, nBins, minVal, maxVal, RowWise);
+end;
+
+class function TStatTest.HistogramIntf(data: IMatrix; nBins: integer;
+  RowWise: Boolean): IMatrix;
+begin
+     Result := Histogram( data.GetObjRef, nBins, RowWise );
+end;
+
+class procedure TStatTest.ChiSquare1(data1, data2: IMatrix; nBins,
+  numConstraints: integer; var df, chsq, prob: double);
+begin
+     ChiSquare1( data1.GetObjRef, data2.GetObjRef, nBins, numConstraints, df, chsq, prob);
+end;
+
+class procedure TStatTest.ChiSquare1(data1, data2: TDoubleMatrix; nBins,
+  numConstraints: integer; var df, chsq, prob: double);
+var minVal, maxVal : double;
+    hist1, hist2 : IMatrix;
+    vec1, vec2 : TDoubleMatrix;
+    x: Integer;
+begin
+     minVal := data1.Min;
+     maxVal := data1.Max;
+     minVal := Min(minVal, data2.Min);
+     maxVal := Max(maxVal, data2.Max);
+
+     if (data1.Height = 1) and (data2.Height = 1) then
+     begin
+          vec1 := data1;
+          vec2 := data2;
+     end
+     else
+     begin
+          vec1 := data1.AsVector(True);
+          vec2 := data2.AsVector(True);
+     end;
+
+     hist1 := HistogramIntf( data1, nBins, minVal, maxVal, True);
+     hist2 := HistogramIntf( data2, nBins, minVal, maxVal, True);
+
+     if data1 <> vec1 then
+        vec1.Free;
+     if data2 <> vec2 then
+        vec2.Free;
+
+     // reference histogram may not have zero bins...
+     minVal := hist1.Min;
+     maxVal := hist1.Max;
+     if minVal = 0 then
+     begin
+          for x := 0 to hist1.Width - 1 do
+              hist1.Vec[x] := Max(maxVal*cDefEpsilon, hist1.Vec[x]);
+     end;
+
+     // chi square on the histograms
+     ChiSquareOne(PConstDoublearr(hist1.StartElement), PConstDoublearr(hist2.StartElement), hist1.Width, numConstraints, df, chsq, prob);
+end;
+
+
+procedure TStatTest.InitChisquareTest(data1: TDoubleMatrix; nBins : integer);
+begin
+     fMinVal := data1.Min;
+     fMaxVal := data1.Max;
+     fNumBins := nBins;
+
+     fRefData := data1.AsVector(True);
+     fRefData := HistogramIntf(data1, nBins, fMinVal, fMaxVal);
+end;
+
+procedure TStatTest.ChiSquare1(data2: TDoubleMatrix;
+  numConstraints: integer; var df, chsq, prob: double);
+var hist : IMatrix;
+    vec : IMatrix;
+begin
+     if fNumBins = 0 then
+        raise Exception.Create('Error - call InitChiSquare1 first');
+
+     vec := data2.AsVector(True);
+     hist := HistogramIntf(vec, fNumBins, True);
+
+     Statistics.ChiSquareOne(PConstDoublearr(hist.StartElement),
+                             PConstDoublearr(fRefData.StartElement), fNumBins,
+                             numConstraints, df, chsq, prob);
+end;
+
+procedure TStatTest.ChiSquare1(data2: IMatrix;  numConstraints: integer;
+  var df, chsq, prob: double);
+begin
+     ChiSquare1( data2.GetObjRef, numConstraints, df, chsq, prob);
+end;
+
+class procedure TStatTest.ChiSquare2(data1, data2: IMatrix; nBins,
+  numConstraints: integer; var df, chsq, prob: double);
+begin
+     ChiSquare2(data1.GetObjRef, data2.GetObjRef, nBins, numConstraints, df, chsq, prob);
+end;
+
+class procedure TStatTest.ChiSquare2(data1, data2: TDoubleMatrix; nBins,
+  numConstraints: integer; var df, chsq, prob: double);
+var minVal, maxVal : double;
+    hist1, hist2 : IMatrix;
+    vec1, vec2 : TDoubleMatrix;
+begin
+     minVal := data1.Min;
+     maxVal := data1.Max;
+     minVal := Min(minVal, data2.Min);
+     maxVal := Max(maxVal, data2.Max);
+
+     if (data1.Height = 1) and (data2.Height = 1) then
+     begin
+          vec1 := data1;
+          vec2 := data2;
+     end
+     else
+     begin
+          vec1 := data1.AsVector(True);
+          vec2 := data2.AsVector(True);
+     end;
+
+     hist1 := HistogramIntf( data1, nBins, minVal, maxVal, True);
+     hist2 := HistogramIntf( data2, nBins, minVal, maxVal, True);
+
+     if data1 <> vec1 then
+        vec1.Free;
+     if data2 <> vec2 then
+        vec2.Free;
+
+     // chi square on the histograms
+     ChiSquareTwo(PConstDoublearr(hist1.StartElement),
+                  PConstDoublearr(hist2.StartElement),
+                  hist1.Width, numConstraints, df, chsq, prob);
+end;
+
+procedure TStatTest.ChiSquare2(data2: TDoubleMatrix; numConstraints: integer;
+  var df, chsq, prob: double);
+var hist : IMatrix;
+    vec : IMatrix;
+begin
+     if fNumBins = 0 then
+        raise Exception.Create('Error - call InitChiSquare1 first');
+
+     vec := data2.AsVector(True);
+     hist := HistogramIntf(vec, fNumBins, True);
+
+     Statistics.ChiSquareTwo(PConstDoubleArr(hist.StartElement),
+                             PConstDoubleArr(fRefData.StartElement),
+                             fNumBins, numConstraints, df, chsq, prob);
+end;
+
+procedure TStatTest.ChiSquare2(data2: IMatrix; numConstraints: integer; var df,
+  chsq, prob: double);
+begin
+     ChiSquare2(data2.GetObjRef, numConstraints, df, chsq, prob);
+end;
+
+class procedure TStatTest.KolmogorovSmirnov1(data: IMatrix; func: TKSTestFunc;
+  var d, prob: double);
+begin
+     KolmogorovSmirnov1(data.GetObjRef, func, d, prob);
+end;
+
+class procedure TStatTest.KolmogorovSmirnov1(data: TDoubleMatrix;
+  func: TKSTestFunc; var d, prob: double);
+var vec : TDoubleMatrix;
+begin
+     if data.Height = 1
+     then
+         vec := data
+     else
+         vec := data.AsVector(True);
+
+     kolmogorovSmirnovOne(PConstDoubleArr(vec.StartElement), vec.Width, func, d, prob);
+     if vec <> data then
+        vec.Free;
+end;
+
+class procedure TStatTest.KolmogorovSmirnov2(data1, data2: IMatrix; var d,
+  prob: double);
+begin
+     KolmogorovSmirnov2(data1.GetObjRef, data2.GetObjRef, d, prob);
+end;
+
+class procedure TStatTest.KolmogorovSmirnov2(data1, data2: TDoubleMatrix; var d,
+  prob: double);
+var vec1, vec2 : TDoubleMatrix;
+begin
+     vec1 := data1.AsVector(True);
+     vec2 := data2.AsVector(True);
+     try
+        Statistics.kolmogorovSmirnovTwo( PConstDoubleArr(vec1.StartElement), vec1.Width,
+                                         PConstDoubleArr(vec2.StartElement), vec2.Width,
+                                         d, prob );
+     finally
+            vec1.Free;
+            vec2.Free;
+     end;
+end;
+
+procedure TStatTest.InitKolmogorv2Test(data1: TDoubleMatrix);
+begin
+     fRefData := data1.AsVector(True);
+     fN := fRefData.VecLen;
+     fRefData.SortInPlace(True);
+end;
+
+procedure TStatTest.KolmogorovSmirnov2(data2: TDoubleMatrix; var d,
+  prob: double);
+var vec : IMatrix;
+begin
+     if (fN = 0) or (fRefData.VecLen <> fN) then
+        raise Exception.Create('Call InitKolmogorv2Test first');
+
+     vec := data2.AsVector(True);
+     Statistics.kolmogorovSmirnovTwo( PConstDoubleArr( fRefData.StartElement ),
+                                      fN, PConstDoubleArr( vec.StartElement ),
+                                      vec.VecLen, d, prob);
+end;
+
+procedure TStatTest.KolmogorovSmirnov2(data2: IMatrix; var d, prob: double);
+begin
+     KolmogorovSmirnov2( data2.GetObjRef, d, prob );
+end;
+
+class function TStatTest.UniformPDF(x : TDoubleMatrix; a, b: double): TDoubleMatrix;
+var i : integer;
+begin
+     Result := TDoubleMatrix.Create(x.VecLen, 1);
+
+     for i := 0 to x.VecLen - 1 do
+         if (x.Vec[i] >= a) and (x.Vec[i] < b) then
+            Result.Vec[i] := 1;
+end;
+
+class function TStatTest.NormalPDF(x: TDoubleMatrix; mu,
+  sigma: double): TDoubleMatrix;
+var i : integer;
+    normVal : double;
+    scale : double;
+begin
+     Result := TDoubleMatrix.Create(x.VecLen, 1);
+     sigma := sqr(sigma);
+     scale := 1/sqrt(2*pi);
+
+     for i := 0 to x.VecLen - 1 do
+     begin
+          // normalize for the standard
+          normVal := (x.Vec[i] - mu)/sigma;
+          Result.Vec[i] := scale * exp( - sqr(normVal)/2 );
+     end;
+end;
+
+class function TStatTest.PoissonPDF(x: TDoubleMatrix;
+  lambda: double): TDoubleMatrix;
+var i : integer;
+    val : double;
+begin
+     Result := TDoubleMatrix.Create(x.VecLen, 1);
+
+     // poissoin distribution is defined for integers (occurences) -> so round to the
+     // next int
+     for i := 0 to x.VecLen - 1 do
+     begin
+          val := x.Vec[i];
+          // only positive values and integers:
+          if (val >= 0) and ( SameValue(val, round(val), 1e-6) ) then
+          begin
+               val := Round(val);
+               Result.Vec[i] := exp( val * ln(lambda) - gammaln( val + 1 ) );
+          end;
+     end;
+end;
+
+class function TStatTest.RayleighPDF(x: TDoubleMatrix;
+  sigma: double): TDoubleMatrix;
+var i : integer;
+    val : double;
+begin
+     Result := TDoubleMatrix.Create(x.VecLen, 1);
+
+     sigma := sqr(sigma);
+     // poissoin distribution is defined for integers (occurences) -> so round to the
+     // next int
+     for i := 0 to x.VecLen - 1 do
+     begin
+          val := x.Vec[i];
+          // only positive values and integers:
+          if (val >= 0) then
+             Result.Vec[i] := val/sigma*exp(- sqr(val)/(2*sigma) );
+     end;
+end;
+
+
+class function TStatTest.LogNormalPDF(X: TDoubleMatrix; mu,
+  sigma: double): TDoubleMatrix;
+var i : integer;
+    normVal : double;
+    scale : double;
+    val : double;
+begin
+     Result := TDoubleMatrix.Create(x.VecLen, 1);
+     sigma := sqr(sigma);
+     scale := 1/sqrt(2*pi);
+
+     for i := 0 to x.VecLen - 1 do
+     begin
+          // normalize for the standard
+          val := x.Vec[i];
+          if val > 0 then
+          begin
+               normVal := (ln(val) - mu)/sigma;
+               Result.Vec[i] := scale * exp( - sqr(normVal)/2 )/val;
+          end;
+     end;
+end;
+
+
+class function TStatTest.WeibullPDF(x: TDoubleMatrix; lambda, k : double): TDoubleMatrix;
+var i : integer;
+    val : double;
+begin
+     assert(lambda > 0, 'lambda needs to be > 0');
+     assert(k >= 0, 'k needs to be > 0');
+
+     Result := TDoubleMatrix.Create(x.VecLen, 1);
+
+     for i := 0 to x.VecLen - 1 do
+     begin
+          // normalize for the standard
+          val := x.Vec[i];
+          if val > 0 then
+          begin
+               Result.Vec[i] := lambda*k*
+                                power(lambda*val, k - 1) *
+                                exp( - power( lambda*val, k ) );
+          end;
+     end;
+end;
+
+class function TStatTest.ExpPDF(x: TDoubleMatrix;
+  lambda: double): TDoubleMatrix;
+var i : integer;
+    val : double;
+    lambdaInv : double;
+begin
+     assert(lambda > 0, 'lambda needs to be > 0');
+
+     Result := TDoubleMatrix.Create(x.VecLen, 1);
+
+     lambdaInv := 1/lambda;
+     for i := 0 to x.VecLen - 1 do
+     begin
+          // normalize for the standard
+          val := x.Vec[i];
+
+          if val >= 0 then
+             Result.Vec[i] := exp(-val*lambdaInv)*lambdaInv;
+     end;
+end;
+
+class function TStatTest.BinomPDF(x: TDoubleMatrix; n,
+  p: integer): TDoubleMatrix;
+var i : integer;
+    val : double;
+begin
+     assert((p >= 0) and (p <= 1), 'Error has to be in [0, 1]');
+     assert( n >= 0, 'Error n needs to be >= 0');
+     Result := TDoubleMatrix.Create(x.VecLen, 1);
+
+     // poissoin distribution is defined for integers (occurences) -> so round to the
+     // next int
+     for i := 0 to x.VecLen - 1 do
+     begin
+          val := x.Vec[i];
+          // only positive values and integers:
+          if (val >= 0) and ( SameValue(val, round(val), 1e-6) ) then
+          begin
+               val := Round(val);
+
+               Result.Vec[i] := exp( gammaln( n + 1) - gammaln( val + 1) - gammaln( n - val + 1) +
+                                     val*ln(p) + (n - val)*ln(1 - p) );
+          end;
+     end;
+end;
+
+initialization
+  RegisterMathIO(TStatTest);
 
 end.

@@ -1420,10 +1420,10 @@ end;
 procedure TestTDoubleMatrixPersistence.TestRead;
 var mtx : TDoubleMatrix;
 begin
-     mtx := ReadObjFromFile(BaseDataPath + 'matrixData1.dat') as  TDoubleMatrix;
+     mtx := ReadObjFromFile('matrixData1.dat') as  TDoubleMatrix;
      Check((mtx.Width = 5) and (mtx.Height = 10), 'Error matrix dimension are not correct');
      mtx.Free;
-     mtx := ReadObjFromFile(BaseDataPath + 'matrixData2.dat') as  TDoubleMatrix;
+     mtx := ReadObjFromFile('matrixData2.dat') as  TDoubleMatrix;
      Check((mtx.Width = 5) and (mtx.Height = 10), 'Error matrix dimension are not correct');
      mtx.Free;
 end;

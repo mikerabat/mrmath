@@ -27,6 +27,9 @@ type
   public
     function Correlate(x, y : IMatrix) : double; overload; // correlation coefficient between t, r (must have the same length)
     function Correlate(x, y : IMatrix; var prob, z : double) : double; overload; // pearson correlation with Fishers's z and probobality 
+
+    // spearman correlation. X, Y need to be vectors
+    class function CorrelateSpearman( x, y : IMatrix; var zd, probd, rs, probrs : double ) : double;
     class function Covariance(x, y : IMatrix; Unbiased : boolean = True) : IMatrix; overload; // covariance matrix
     class function Covariance(A : IMatrix; Unbiased : boolean = True) : IMatrix; overload;   // covariance matrix of matrix A
   end;
@@ -126,6 +129,13 @@ type
     constructor Create(DistMethod : TDynamicTimeWarpDistMethod = dtwSquared); // -> 0 = infinity
     destructor Destroy; override;
   end;
+
+
+// spearman rank-order correlation coefficient
+// sum squared rank difference as D, number of standard deviations by which D deviates fro mits nullnypothesis as zd, two sided
+// significance level of this deviation as probd, spearmans rank correlation as rs, and the two -sided significance level of its
+// deviation from zero as probrs.
+procedure spearmanCorr( data1, data2 : PConstDoubleArr; n : integer; var d, zd, probd, rs, probrs : double);
 
 implementation
 
@@ -1102,6 +1112,100 @@ begin
      // ###########################################
      // #### Calculate correlation
      Result := InternalCorrelateArr(@fw1Arr[0], @fw2Arr[0], fNumW);
+end;
+
+class function TCorrelation.CorrelateSpearman(x, y: IMatrix; var zd, probd, rs,
+  probrs: double): double;
+var x1, x2 : TDoubleDynArray;
+begin
+     x1 := x.SubMatrix;
+     x2 := y.SubMatrix;
+
+     assert(Length(x1) = Length(x2), 'Error unequal length in x, y');
+
+     spearmanCorr( PConstDoubleArr( @x1[0] ), PConstDoubleArr( @x2[0] ),
+                   Length(x1), Result, zd, probd, rs, probrs);
+end;
+
+// ############################################################
+// #### procedures for spearman rank
+// ############################################################
+
+// given a sorted array - replace the elements by their rank, including midranking of ties
+// and return s as the sum of f^3 - f.
+function crank( var w : TDoubleDynArray ) : double;
+var j, ji,jt : integer;
+    t, rank : double;
+begin
+     Result := 0;
+
+     j := 0;
+     while j < Length(w) - 1 do
+     begin
+          if w[j + 1] <> w[j] then
+          begin
+               w[j] := j;
+               inc(j);
+          end
+          else
+          begin
+               jt := j + 1;
+               while (jt < Length(w)) and (w[jt] = w[j]) do
+                     inc(jt);
+               rank := 0.5*(j + jt - 1);
+               for ji := j to jt - 1 do
+                   w[ji] := rank;
+
+               t := jt - j;
+               Result := REsult + t*t*t - t;
+               j := jt;
+          end;
+     end;
+
+     if j = Length(w) - 1 then
+        w[Length(w) - 1] := Length(w);
+end;
+
+procedure spearmanCorr( data1, data2 : PConstDoubleArr; n : integer; var d, zd, probd, rs, probrs : double);
+var j : integer;
+    vard, t, sg, sf : double;
+    fac, en3n, en, df : double;
+    aved : double;
+    wksp1, wksp2 : TDoubleDynArray;
+begin
+     SetLength(wksp1, n);
+     SetLength(wksp2, n);
+
+     Move( data1^[0], wksp1[0], n*sizeof(double));
+     Move( data2^[0], wksp2[0], n*sizeof(double));
+
+     QuickSort2(wksp1, wksp2);
+     sf := crank( wksp1 );
+     QuickSort2(wksp2, wksp1);
+     sg := crank( wksp2 );
+     d := 0;
+
+     for j := 0 to n - 1 do
+         d := d + sqr( wksp1[j] - wksp2[j] );
+
+     en := n;
+     en3n := en*en*en - en;
+     aved := en3n/6 - (sf + sg)/12;
+     fac := (1 - sf/en3n)*(1 - sg/en3n);
+     vard := ((en - 1)*en*en*sqr(en + 1)/36)*fac;
+     zd := (d - aved)/sqrt(vard);
+     probd := errorFuncC(abs(zd)/1.4142136);
+
+     rs := (1 - (6/en3n)*(d + (sf + sg)/12))/sqrt(fac);
+     fac := (rs + 1)*(1 - rs);
+     if fac > 0 then
+     begin
+          t := rs*sqrt((en - 2)/fac);
+          df := en - 1;
+          probrs := betai(0.5*df, 0.5, df/(df + t*t));
+     end
+     else
+         probrs := 0;
 end;
 
 end.

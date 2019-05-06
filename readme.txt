@@ -55,6 +55,14 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date: 06.05.2019
+* New Statistical methods: KS Test, FTest, Student T Test, ChiSquareTest from numerical recipies
+* Histograms
+* PDF Functions
+* Beta, Gamma functions
+* spearman Correlation
+* extended Pearsons correlation (+ probability)
+
 Date: 25.3.2019
 * New normalization routine to normalize to zero mean/unit variance.
 * New Sorting routines which are sligtly faster

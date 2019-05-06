@@ -94,6 +94,8 @@ type
 
     function Reshape(newWidth, newHeight : integer; RowMajor : boolean = False) : TDoubleMatrix;
     procedure ReshapeInPlace(newWidth, newHeight : integer; RowMajor : boolean = False);
+    function AsVector( RowMajor : boolean = False ) : TDoubleMatrix;
+
 
     // ###################################################
     // #### Simple matrix utility functions
@@ -392,6 +394,7 @@ type
 
     function Reshape(newWidth, newHeight : integer; RowMajor : boolean = False) : TDoubleMatrix;
     procedure ReshapeInPlace(newWidth, newHeight : integer; RowMajor : boolean = False);
+    function AsVector( RowMajor : boolean = False ) : TDoubleMatrix;
 
     // ###################################################
     // #### Simple matrix utility functions
@@ -3117,6 +3120,15 @@ begin
      end;
 end;
 
+
+function TDoubleMatrix.AsVector( RowMajor : boolean = False ): TDoubleMatrix;
+begin
+     if Height = 1
+     then
+         Result := Clone
+     else
+         Result := Reshape(width*height, 1, RowMajor);
+end;
 
 initialization
    TMatrixClass.DefMatrixClass := TDoubleMatrix;

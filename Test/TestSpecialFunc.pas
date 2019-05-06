@@ -214,7 +214,7 @@ begin
      hasExp1 := False;
      hasExp2 := False;
      try
-        xln1 := ln( Gamma(-1));
+        {$IFDEF FPC}xln1 := {$ENDIF}ln( Gamma(-1));
      except
            hasExp1 := True;
      end;
