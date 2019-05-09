@@ -43,7 +43,7 @@ type
 
 implementation
 
-uses RandomEng, ThreadedMatrix, MatrixASMStubSwitch, Statistics, MatrixConst, Types,
+uses RandomEng, MatrixASMStubSwitch, Statistics, Types,
      Math;
 
 { TestEM }
@@ -296,7 +296,7 @@ begin
 
      //WriteMatlabData('D:\kolm.txt', data, Length(data));
 
-     kolmogorovSmirnovOne(@data[0], Length(data), UniformPDF, d, prob);
+     kolmogorovSmirnovOne(@data[0], Length(data), {$IFDEF FPC}@{$ENDIF}UniformPDF, d, prob);
      Status(Format('Kolmogoriv result on uniform distributions: %.4f   ,    %.3f', [d, prob]));
      Check(SameValue( prob, cPVal, 1e-3 ), 'Error uniform distribution p value wrong' );
 end;

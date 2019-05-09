@@ -32,7 +32,7 @@ interface
 uses
   MtxThreadPool, GCDDispatch,
   {$IFDEF FPC}
-  sysutils, classes
+  sysutils, classes, 
   {$ELSE}
   Macapi.Foundation,system.sysutils,System.Classes
   {$ENDIF}
@@ -47,6 +47,10 @@ function InitMacMtxGroup : IMtxAsyncCallGroup;
 implementation
 
 {$IFDEF MACOS}
+
+{$IFDEF FPC}
+uses utf8process;
+{$ENDIF}
 
 var macThrPool : dispatch_queue_t = IntPtr(nil);
 
@@ -204,7 +208,7 @@ end;
 {$IFDEF FPC}
 
 initialization
-  numCPUCores := GetCPUCount;
+  numCPUCores := GetSystemThreadCount;
   if numCpuCores > 64 then
      numCpuCores := 64;
   numRealCores := numCPUCores;

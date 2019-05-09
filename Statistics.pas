@@ -416,7 +416,7 @@ begin
           d := 1/d;
           del := d*c;
           h := h*del;
-          if abs(del - 1) < cFPMIN then
+          if abs(del - 1) < cEPS then
              break;
           
           inc(m);
@@ -523,6 +523,7 @@ begin
      if (x < 0) or (a <= 0) then
         raise Exception.Create('Invalid arguments for gammap');
 
+     Result := 0;
      if x < a + 1 
      then
          gammaser(Result, a, x, gln)
@@ -539,6 +540,7 @@ begin
      if (x < 0) or (a <= 0) then
         raise Exception.Create('Invalid arguments for gammap');
 
+     Result := 0;
      if x < a + 1 then
      begin
           gammaser(Result, a, x, gln);
@@ -1247,8 +1249,6 @@ begin
      AddDoubleProperty(cPropMaxVal, fMaxVal);
      if Assigned(fRefData) then
         AddObject(cPropData, fRefData.GetObjRef);
-
-     inherited;
 end;
 
 class function TStatTest.ClassIdentifier: String;

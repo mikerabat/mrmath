@@ -3,11 +3,11 @@
   <ProjectSession>
     <Version Value="10"/>
     <BuildModes Active="Default"/>
-    <Units Count="158">
+    <Units Count="159">
       <Unit0>
         <Filename Value="MathUtilsLinux.ppr"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="9"/>
         <TopLine Value="127"/>
         <CursorPos X="57" Y="133"/>
         <UsageCount Value="736"/>
@@ -334,10 +334,11 @@
       <Unit39>
         <Filename Value="../Corr.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="767"/>
-        <CursorPos Y="793"/>
+        <EditorIndex Value="14"/>
+        <TopLine Value="1112"/>
+        <CursorPos X="18" Y="1126"/>
         <UsageCount Value="736"/>
+        <Loaded Value="True"/>
       </Unit39>
       <Unit40>
         <Filename Value="../CPUFeatures.pas"/>
@@ -430,8 +431,8 @@
         <Filename Value="../LinAlgSVD.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="4"/>
-        <TopLine Value="709"/>
-        <CursorPos Y="714"/>
+        <TopLine Value="70"/>
+        <CursorPos X="201" Y="80"/>
         <UsageCount Value="736"/>
         <Loaded Value="True"/>
       </Unit50>
@@ -446,8 +447,8 @@
       <Unit52>
         <Filename Value="../MathUtilFunc.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="10"/>
-        <TopLine Value="202"/>
+        <EditorIndex Value="11"/>
+        <TopLine Value="205"/>
         <CursorPos X="6" Y="210"/>
         <UsageCount Value="736"/>
         <Loaded Value="True"/>
@@ -455,10 +456,11 @@
       <Unit53>
         <Filename Value="../Matrix.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="1896"/>
-        <CursorPos Y="1901"/>
+        <EditorIndex Value="6"/>
+        <TopLine Value="2817"/>
+        <CursorPos X="27" Y="2831"/>
         <UsageCount Value="736"/>
+        <Loaded Value="True"/>
       </Unit53>
       <Unit54>
         <Filename Value="../MatrixConst.pas"/>
@@ -634,7 +636,7 @@
       <Unit75>
         <Filename Value="TestPCA.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="8"/>
         <TopLine Value="75"/>
         <CursorPos Y="102"/>
         <UsageCount Value="736"/>
@@ -643,7 +645,7 @@
       <Unit76>
         <Filename Value="TestRandom.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="7"/>
         <TopLine Value="84"/>
         <CursorPos X="81" Y="100"/>
         <UsageCount Value="736"/>
@@ -660,10 +662,11 @@
       <Unit78>
         <Filename Value="TestAVX.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="2560"/>
-        <CursorPos X="50" Y="2578"/>
+        <EditorIndex Value="13"/>
+        <TopLine Value="2563"/>
+        <CursorPos X="12" Y="2577"/>
         <UsageCount Value="212"/>
+        <Loaded Value="True"/>
       </Unit78>
       <Unit79>
         <Filename Value="../BlockedMult.pas"/>
@@ -1104,9 +1107,10 @@
       <Unit133>
         <Filename Value="../MatrixASMStubSwitch.pas"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="1182"/>
-        <CursorPos Y="1188"/>
+        <TopLine Value="106"/>
+        <CursorPos X="30" Y="121"/>
         <UsageCount Value="140"/>
         <Loaded Value="True"/>
       </Unit133>
@@ -1154,19 +1158,18 @@
       <Unit141>
         <Filename Value="TestSpecialFunc.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="9"/>
-        <TopLine Value="94"/>
-        <CursorPos X="104" Y="109"/>
+        <EditorIndex Value="10"/>
+        <TopLine Value="104"/>
+        <CursorPos X="95" Y="120"/>
         <UsageCount Value="22"/>
         <Loaded Value="True"/>
       </Unit141>
       <Unit142>
         <Filename Value="TestStat.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="11"/>
-        <TopLine Value="87"/>
-        <CursorPos X="82" Y="111"/>
+        <EditorIndex Value="12"/>
+        <TopLine Value="31"/>
+        <CursorPos X="50" Y="46"/>
         <UsageCount Value="22"/>
         <Loaded Value="True"/>
       </Unit142>
@@ -1174,8 +1177,8 @@
         <Filename Value="../Statistics.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="5"/>
-        <TopLine Value="233"/>
-        <CursorPos X="6" Y="251"/>
+        <TopLine Value="1238"/>
+        <CursorPos Y="1252"/>
         <UsageCount Value="22"/>
         <Loaded Value="True"/>
       </Unit143>
@@ -1271,127 +1274,135 @@
         <CursorPos Y="629"/>
         <UsageCount Value="52"/>
       </Unit157>
+      <Unit158>
+        <Filename Value="C:/codetyphon/typhon/components/BaseUtils/dynhasharray.pp"/>
+        <UnitName Value="DynHashArray"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="491"/>
+        <CursorPos X="160" Y="497"/>
+        <UsageCount Value="10"/>
+      </Unit158>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="TestSpecialFunc.pas"/>
-        <Caret Line="124" TopLine="100"/>
+        <Filename Value="../MathUtilFunc.pas"/>
+        <Caret Line="230" TopLine="209"/>
       </Position1>
       <Position2>
-        <Filename Value="TestSpecialFunc.pas"/>
-        <Caret Line="109" TopLine="94"/>
+        <Filename Value="../MathUtilFunc.pas"/>
+        <Caret Line="220" TopLine="209"/>
       </Position2>
       <Position3>
         <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="210" TopLine="199"/>
+        <Caret Line="222" TopLine="209"/>
       </Position3>
       <Position4>
         <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="212" TopLine="199"/>
+        <Caret Line="223" TopLine="209"/>
       </Position4>
       <Position5>
         <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="213" TopLine="199"/>
+        <Caret Line="225" TopLine="209"/>
       </Position5>
       <Position6>
         <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="214" TopLine="199"/>
+        <Caret Line="228" TopLine="209"/>
       </Position6>
       <Position7>
         <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="218" TopLine="199"/>
+        <Caret Line="223" TopLine="209"/>
       </Position7>
       <Position8>
         <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="220" TopLine="209"/>
+        <Caret Line="225" TopLine="209"/>
       </Position8>
       <Position9>
         <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="222" TopLine="209"/>
+        <Caret Line="228" TopLine="209"/>
       </Position9>
       <Position10>
         <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="223" TopLine="209"/>
+        <Caret Line="52" Column="11" TopLine="37"/>
       </Position10>
       <Position11>
         <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="225" TopLine="209"/>
+        <Caret Line="196" Column="6" TopLine="170"/>
       </Position11>
       <Position12>
         <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="230" TopLine="209"/>
+        <Caret Line="53" Column="11" TopLine="37"/>
       </Position12>
       <Position13>
         <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="220" TopLine="209"/>
+        <Caret Line="210" Column="6" TopLine="202"/>
       </Position13>
       <Position14>
-        <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="222" TopLine="209"/>
+        <Filename Value="TestSpecialFunc.pas"/>
+        <Caret Line="120" Column="95" TopLine="104"/>
       </Position14>
       <Position15>
         <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="223" TopLine="209"/>
+        <Caret Line="210" Column="6" TopLine="205"/>
       </Position15>
       <Position16>
-        <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="225" TopLine="209"/>
+        <Filename Value="../Statistics.pas"/>
+        <Caret Line="1253" Column="27" TopLine="1238"/>
       </Position16>
       <Position17>
-        <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="230" TopLine="209"/>
+        <Filename Value="../Matrix.pas"/>
+        <Caret Line="1901" TopLine="1897"/>
       </Position17>
       <Position18>
-        <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="220" TopLine="209"/>
+        <Filename Value="../Matrix.pas"/>
+        <Caret Line="365" Column="18" TopLine="362"/>
       </Position18>
       <Position19>
-        <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="222" TopLine="209"/>
+        <Filename Value="../Matrix.pas"/>
+        <Caret Line="613" Column="25" TopLine="588"/>
       </Position19>
       <Position20>
-        <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="223" TopLine="209"/>
+        <Filename Value="../Matrix.pas"/>
+        <Caret Line="3027" Column="6" TopLine="3025"/>
       </Position20>
       <Position21>
-        <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="225" TopLine="209"/>
+        <Filename Value="../Matrix.pas"/>
+        <Caret Line="613" Column="25" TopLine="591"/>
       </Position21>
       <Position22>
-        <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="228" TopLine="209"/>
+        <Filename Value="../Matrix.pas"/>
+        <Caret Line="2831" Column="27" TopLine="2817"/>
       </Position22>
       <Position23>
-        <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="223" TopLine="209"/>
+        <Filename Value="TestStat.pas"/>
+        <Caret Line="299" Column="72" TopLine="285"/>
       </Position23>
       <Position24>
-        <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="225" TopLine="209"/>
+        <Filename Value="TestStat.pas"/>
+        <Caret Line="46" Column="50" TopLine="31"/>
       </Position24>
       <Position25>
-        <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="228" TopLine="209"/>
+        <Filename Value="TestAVX.pas"/>
+        <Caret Line="1561" Column="30" TopLine="1547"/>
       </Position25>
       <Position26>
-        <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="326" Column="33" TopLine="463"/>
+        <Filename Value="TestAVX.pas"/>
+        <Caret Line="2577" Column="12" TopLine="2563"/>
       </Position26>
       <Position27>
-        <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="52" Column="11" TopLine="37"/>
+        <Filename Value="../Corr.pas"/>
+        <Caret Line="1127" Column="38" TopLine="1112"/>
       </Position27>
       <Position28>
-        <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="196" Column="6" TopLine="170"/>
+        <Filename Value="../Corr.pas"/>
+        <Caret Line="1126" Column="18" TopLine="1112"/>
       </Position28>
       <Position29>
-        <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="53" Column="11" TopLine="37"/>
+        <Filename Value="../LinAlgSVD.pas"/>
+        <Caret Line="80" Column="201" TopLine="70"/>
       </Position29>
       <Position30>
-        <Filename Value="../MathUtilFunc.pas"/>
-        <Caret Line="210" Column="6" TopLine="202"/>
+        <Filename Value="../MatrixASMStubSwitch.pas"/>
+        <Caret Line="116" Column="36" TopLine="101"/>
       </Position30>
     </JumpHistory>
   </ProjectSession>

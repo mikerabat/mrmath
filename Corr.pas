@@ -1123,6 +1123,7 @@ begin
 
      assert(Length(x1) = Length(x2), 'Error unequal length in x, y');
 
+     Result := 0;
      spearmanCorr( PConstDoubleArr( @x1[0] ), PConstDoubleArr( @x2[0] ),
                    Length(x1), Result, zd, probd, rs, probrs);
 end;

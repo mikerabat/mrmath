@@ -82,7 +82,7 @@ implementation
 
 uses BlockSizeSetup, Classes,
      HouseholderReflectors, MatrixRotations, LinAlgQR,
-     ThreadedMatrixOperations, MtxThreadPool, BlockedMult;
+     ThreadedMatrixOperations, MtxThreadPool;
 
 // ########################################################################
 // #### Local definitions
