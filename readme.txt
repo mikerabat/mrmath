@@ -55,6 +55,9 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date: 15.05.2019
+* Thanks To Andrea Mauri who pointed out a problem in the Determinant (LU Decomposition) -> in some cases there was an Access violation.
+
 Date: 06.05.2019
 * New Statistical methods: KS Test, FTest, Student T Test, ChiSquareTest from numerical recipies
 * Histograms
