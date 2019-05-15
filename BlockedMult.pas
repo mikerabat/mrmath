@@ -347,9 +347,9 @@ begin
 
      assert(blockSize > 1, 'Error blocksize must be at least 2');
 
-     if blockSize > width1 then
+     if (blockSize > width1) and (not assigned(mem)) then
         blockSize := Next2Pwr( width1, blockSize );
-     
+
      isAligned := (TASMNativeUInt(dest) and $00000001F) = 0;
 
      h1FitCacheSize := (height1 mod blockSize) = 0;
@@ -473,10 +473,9 @@ begin
 
      assert(blockSize > 1, 'Error blocksize must be at least 2');
 
-     if blockSize > width1 then
+     if (blockSize > width1) and (not Assigned(mem)) then
         blockSize := Next2Pwr( height1, blockSize );
-     
-     
+
      h1FitCacheSize := (height1 mod blockSize) = 0;
      w2FitCacheSize := (width2 mod blockSize) = 0;
      w1FitCacheSize := (width1 mod blockSize) = 0;
@@ -491,6 +490,7 @@ begin
      ptrMem := nil;
      if not Assigned(mem) then
         actBlk := MtxMallocAlign(BlockMultMemSize(blockSize), ptrMem );
+
      multBlk := PDouble(TASMNativeUInt(actBlk) + blockByteSize);
      transBlk1 := PDouble(TASMNativeUInt(actBlk) + 2*blockByteSize);
      transBlk2 := PDouble(TASMNativeUInt(actBlk) + 3*blockByteSize);
@@ -593,7 +593,7 @@ begin
 
      assert(blockSize > 1, 'Error blocksize must be at least 2');
 
-     if blockSize > width1 then
+     if (blockSize > width1) and (not Assigned(mem)) then
         blockSize := Next2Pwr( width1, blockSize );
      
      isAligned := (TASMNativeUInt(dest) and $0000000F) = 0;
@@ -1342,7 +1342,7 @@ begin
 
      assert(blockSize > 1, 'Error blocksize must be at least 2');
 
-     if blockSize > width1 then
+     if (blockSize > width1) and (not Assigned(mem)) then
         blockSize := Next2Pwr( width1, blockSize );
      
      isAligned := (TASMNativeUInt(dest) and $0000000F) = 0;
@@ -1518,7 +1518,7 @@ begin
 
      assert(blockSize > 1, 'Error blocksize must be at least 2');
 
-     if blockSize > width1 then
+     if (blockSize > width1) and (not Assigned(mem)) then
         blockSize := Next2Pwr( width1, blockSize );
      
      isAligned := (TASMNativeUInt(dest) and $00000001F) = 0;

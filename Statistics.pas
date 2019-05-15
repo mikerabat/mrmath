@@ -55,7 +55,7 @@ procedure Covariance(dest : PDouble; DestLineWidth : TASMNativeInt; A : PDouble;
 
 // student t tests see Numerical recipies Chapter 14
 
-// Student t test: Returnst the probobability in prob and t = (x_A_mean - x_B_mean)/(sD) , sD the "pooled variance".
+// Student t test: Returns the probobability in prob and t = (x_A_mean - x_B_mean)/(sD) , sD the "pooled variance".
 procedure StudentTTest( data1 : PDouble; n1 : integer; data2 : PDouble; n2 : integer; var t, prob : double ); overload;
 procedure StudentTTest( meanData1, varData1 : double; n1 : integer; data2 : PDouble; n2 : integer; var t, prob : double ); overload;
 
@@ -67,13 +67,13 @@ procedure StudentTUTest( meanData1, varData1 : double; n1 : integer; data2 : PDo
 procedure StudentTPTest( data1 : PDouble; data2 : PDouble; n : integer; var t, prob : double ); overload;
 procedure StudentTPTest( data1 : PDouble; meanData1, varData1 : double; data2 : PDouble; n : integer; var t, prob : double ); overload;
 
-// f-Test for signifacntly different variances
+// f-Test for signifacantly different variances
 procedure FTest( data1 : PDouble; n1 : integer; data2 : PDouble; n2 : integer; var f, prob : double ); overload;
 procedure FTest( meanData1, varData1 : double; n1 : integer; data2 : PDouble; n2 : integer; var f, prob : double ); overload;
 
 
 // chi square test -> are two distributions the same.
-// given obseerved events (bins) and expected distribution (expectedBins) the routine geturns the number of degrees of
+// given observed events (bins) and expected distribution (expectedBins) the routine geturns the number of degrees of
 // freedom (df) and the chi-square chsq as well as the significane prob. A small value of prob indicates a signifacant difference between the
 // distrubition bins and expectBins.
 procedure ChiSquareOne(bins, expectBins : PConstDoubleArr; nBins : integer; numConstraints : integer; var df, chsq, prob : double );

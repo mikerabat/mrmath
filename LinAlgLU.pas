@@ -65,11 +65,11 @@ function ThrMatrixDeterminant(A : PDouble; const LineWidthA : TASMNativeInt; wid
 function ThrMatrixLinEQSolve(A : PDouble; const LineWidthA : TASMNativeInt; width : integer; B : PDouble; const LineWidthB : TASMNativeInt; X : PDouble;
  const LineWidthX : TASMNativeInt;  width2 : integer; const NumRefinments : integer = 0; progress : TLinEquProgress = nil) : TLinEquResult;
 
-   
+
 implementation
 
 uses MatrixASMStubSwitch, Math, SysUtils, Types, MtxThreadPool,
-     ThreadedMatrixOperations;
+     ThreadedMatrixOperations, BlockSizeSetup;
 
 // ######################################################
 // #### internaly used objects and definitions
@@ -260,6 +260,7 @@ begin
           if Abs(maxVal) > 10/MaxDouble then
           begin
                MatrixScaleAndAdd(A, data.LineWidth, 1, Height, 0, 1/maxVal);
+
                pA := A;
                inc(PByte(pA), data.LineWidth*idx);
                pA^ := A^;
@@ -280,7 +281,7 @@ end;
 
 function MatrixLUDecompInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; indx : PIntegerArray; progress : TLinEquProgress) : TLinEquResult;
 var parity : TASMNativeInt;
-    mem : Array[0..(8+4*cBlkMultSize*cBlkMultSize)] of double;
+    mem : Pointer;
     rc : TRecMtxLUDecompData;
 begin
      FillChar(indx^, width*sizeof(integer), 0);
@@ -288,9 +289,10 @@ begin
      rc.progress := progress;
      rc.numCols := width;
      rc.numCalc := 0;
-     rc.blkMultMem := AlignPtr32( @mem[0] ); 
+     rc.blkMultMem := MtxAllocAlign( BlockMultMemSize(cBlkMultSize), mem );
      rc.LineWidth := LineWidthA;
      Result := InternalRecursiveMatrixLUDecompInPlace(A, width, width, indx, parity, rc);
+     FreeMem(mem);
 end;
 
 function MatrixLUDecomp(A : PDouble; const LineWidthA : TASMNativeInt; LUDecomp : PDouble; const LineWidthLU : TASMNativeInt; width : TASMNativeInt; indx : PIntegerArray; progress : TLinEquProgress) : TLinEquResult;
@@ -448,7 +450,7 @@ var LUDecomp : PDouble;
     rc : TRecMtxLUDecompData;
     w : TASMNativeInt;
     ptrMem : Pointer;
-    mem : Array[0..(4+4*cBlkMultSize*cBlkMultSize)] of double;
+    mem : Array[0..(8+4*cBlkMultSize*cBlkMultSize)] of double;
 begin
      assert(width > 0, 'Dimension error');
      assert(LineWidthA >= width*sizeof(double), 'Dimension error');
@@ -461,7 +463,7 @@ begin
      rc.progress := progress;
      rc.numCols := width;
      rc.numCalc := 0;
-     rc.blkMultMem := PDouble(TASMNativeUInt(@mem[0]) + 16 - TASMNativeUInt(@mem[0]) and $0F);
+     rc.blkMultMem := AlignPtr64( @mem[0] ); // PDouble(TASMNativeUInt(@mem[0]) + 16 - TASMNativeUInt(@mem[0]) and $0F);
      rc.LineWidth := w*sizeof(double);
 
      parity := 1;
