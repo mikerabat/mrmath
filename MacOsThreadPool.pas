@@ -32,9 +32,9 @@ interface
 uses
   MtxThreadPool, GCDDispatch,
   {$IFDEF FPC}
-  sysutils, classes, 
+  sysutils, classes 
   {$ELSE}
-  Macapi.Foundation,system.sysutils,System.Classes
+  Macapi.Foundation, system.sysutils, System.Classes
   {$ENDIF}
   ;
 
