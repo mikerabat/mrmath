@@ -55,6 +55,9 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date: 03.06.2019
+* Added TSNE algorithm - still alpha state do not yet use.
+
 Date: 15.05.2019
 * Thanks To Andrea Mauri who pointed out a problem in the Determinant (LU Decomposition) -> in some cases there was an Access violation.
 

@@ -24,6 +24,7 @@ program MathUtilsTests;
 {$ENDIF}
 
 uses
+  FastMM4 in 'D:\Daten\Delphi2010\3rdParty\FastMM4\FastMM4.pas',
   Forms,
   TestFramework,
   GUITestRunner,
@@ -169,7 +170,10 @@ uses
   winRandomGen in '..\winRandomGen.pas',
   WinThreadPool in '..\WinThreadPool.pas',
   Statistics in '..\Statistics.pas',
-  TestStat in 'TestStat.pas';
+  TestStat in 'TestStat.pas',
+  FastMM4Messages in 'D:\Daten\Delphi2010\3rdParty\FastMM4\FastMM4Messages.pas',
+  tSNE in '..\tSNE.pas',
+  TestTSNE in 'TestTSNE.pas';
 
 {$R *.RES}
 
