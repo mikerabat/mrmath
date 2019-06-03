@@ -622,6 +622,7 @@ function MatrixFromTxtFile( fileName : string; mtxClass : TDoubleMatrixClass ) :
 function MatrixFromTxtFile( fileName : string ) : TDoubleMatrix; overload;
 
 procedure MatrixToTxtFile(const fileName : string; const mtx : TDoubleMatrix; prec : integer = 8);
+procedure WriteBinary(const fn : string; mtx : IMatrix);
 
 implementation
 
@@ -1489,8 +1490,7 @@ function TDoubleMatrix.ElementWiseMult(Value: TDoubleMatrix) : TDoubleMatrix;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
      CheckAndRaiseError((fSubWidth = Value.fSubWidth) and (fSubHeight = Value.fSubHeight), 'Dimension error');
-     Result := ResultClass.Create;
-     Result.Assign(self);
+     Result := ResultClass.Create( Width, Height );
      MatrixElemMult(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight, LineWidth, Value.LineWidth);
 end;
 
@@ -3030,6 +3030,19 @@ end;
 // ###########################################
 // #### Utility Functions to read and write simple textual based matrices
 // ###########################################
+
+procedure WriteBinary(const fn : string; mtx : IMatrix);
+var vec : IMatrix;
+begin
+     exit;
+     vec := mtx.AsVector(True);
+     with TFileStream.Create(fn, fmOpenWrite or fmCreate) do
+     try
+        WriteBuffer( vec.SubMatrix[0], sizeof(double)*vec.VecLen);
+     finally
+            Free;
+     end;
+end;
 
 procedure MatrixToTxtFile(const fileName : string; const mtx : TDoubleMatrix; prec : integer = 8);
 var s : UTF8String;

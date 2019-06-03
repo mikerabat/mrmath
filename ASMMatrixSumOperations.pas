@@ -487,6 +487,8 @@ asm
    // for x := 0 to width - 1:
    mov ebx, Width;
    sar ebx, 1;
+   jz @lastColumn;
+   
    @@addforxloop:
        xorpd xmm0, xmm0;
 
@@ -548,6 +550,8 @@ asm
    // for x := 0 to width - 1:
    mov ebx, Width;
    sar ebx, 1;
+   jz @lastColumn;
+   
    @@addforxloop:
        xorpd xmm7, xmm7;
 

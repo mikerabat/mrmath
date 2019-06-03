@@ -620,11 +620,16 @@ begin
              for i := 0 to fEigVals.Height - 1 do
                  sumEigVals := sumEigVals + fEigVals[0, i];
 
-             if (CutEps >= 0) and (CutEps < 1)
-             then
-                 CutEps := sumEigVals*CutEps
-             else
-                 CutEps := sumEigVals;
+             Assert((CutEps >= 0) and (CutEps <= 1), 'error cut eps is not between 0 and 1');
+             CutEps := sumEigVals*CutEps;
+        end
+        else
+        begin
+             sumEigVals := 0;
+             for i := 0 to Min(fEigVals.Height, Round(CutEps)) - 1 do
+                 sumEigVals := sumEigVals + fEigVals[0, i];
+
+             cutEps := sumEigVals;
         end;
 
         // sort the eigenvectors and eigenvalues
