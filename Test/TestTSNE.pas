@@ -38,7 +38,6 @@ uses tSNE, types, RandomEng, MatrixASMStubSwitch;
 
 procedure TTestTSNE.TestGauss;
 var x : IMatrix;
-    lbl : TIntegerDynArray;
     i, j : Integer;
     rnd : TRandomGenerator;
     xmap : IMatrix;
@@ -49,28 +48,26 @@ begin
      rnd.Init( 573 ); // ensure always the same start
 
      x := TDoubleMatrix.Create( 2, 30 );
-     SetLength(lbl, 30 );
 
      for i := 0 to x.Height div 2 - 1 do
      begin
-          lbl[i] := 0;
           for j := 0 to x.Width - 1 do
               x[j, i] := 0.5 + 0.2*rnd.RandGauss;
      end;
 
      for i := x.Height div 2 to x.Height - 1 do
      begin
-          lbl[i] := 1;
           for j := 0 to x.Width - 1 do
-              x[j, i] := -0.5 + 0.2*rnd.RandGauss; //*(rnd.Random + 0.4);
+              x[j, i] := -0.5 + 0.2*rnd.RandGauss;
      end;
 
      rnd.Free;
 
      //MatrixToTxtFile('D:\tsne.txt', x.GetObjRef);
      //WriteBinary('D:\tsne_bin.dat', x);
-     xmap := TtSNE.SymTSNE(X.GetObjRef, lbl, 2, 2, 6);
+     xmap := TtSNE.SymTSNE(X.GetObjRef, 2, 2, 6);
 
+     check((xmap.Width = 2) and (xmap.Height = x.Height), 'Dimension error in tsne');
      //MatrixToTxtFile('D:\tsne_xmap.txt', xmap.GetObjRef);
 end;
 

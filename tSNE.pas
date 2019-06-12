@@ -16,14 +16,17 @@ unit tSNE;
 
 interface
 
-uses Matrix, Types;
+uses Matrix, Types, PCA;
 
+// ###################################################################
 // this unit is based on the matlab implementation on
 // https://lvdmaaten.github.io/tsne/
+// ###################################################################
 
 // t-Distributed Stochastic Neighbor Embedding:
-//
 type
+  TTSNEProgress = procedure(Sender : TObject; iter : integer; cost : double; yMap : IMatrix) of Object;
+  TTSNEPCAInit = function : TMatrixPCA of Object;
   TtSNE = class(TMatrixClass)
   private
     fPerplexity : Integer;
@@ -35,6 +38,12 @@ type
     fy_grads, fyincs : IMatrix;
     fQ : IMatrix;
     fMinGain : double;
+    fNumIter : integer;
+
+    fProgress : TTSNEProgress;
+    fInitPCA : TTSNEPCAInit;
+
+    function DefInitPCA : TMatrixPCA;
 
     procedure UpdateGains(var Value : double; const data : PDouble; LineWidth : integer; x, y : integer);
     procedure HBetaExp( var value : double );
@@ -42,39 +51,50 @@ type
 
     function NormalizeInput( X : TDoubleMatrix ) : IMatrix;
     function ApplyPCA( X : IMatrix ) : IMatrix;
-    function PairwiseDist( X : IMatrix ) : IMatrix;
+    function PairwiseDist( X : TDoubleMatrix ) : IMatrix;
     function D2P( D : IMatrix ) : IMatrix;
     procedure HBeta( D : IMatrix; beta : double; var H : double; var P : IMatrix );
-    function tsne_p( P : IMatrix; numDims : integer; labels : TIntegerDynArray ) : IMatrix;
+    function tsne_p( P : IMatrix; numDims : integer ) : IMatrix;
+    function InternalTSNE(xs: TDoubleMatrix; numDims: integer): TDoubleMatrix;
   public
-    function SymTSNE(X : TDoubleMatrix; classLbl : TIntegerDynArray; numDims : integer = 2) : TDoubleMatrix; overload;
-    constructor Create( initDims : integer = 30; perplexity : integer = 30);
+    property OnProgress : TTSNEProgress read fProgress write fProgress;
+    property OnInitPCA : TTSNEPCAInit read fInitPCA write fInitPCA;
 
-    class function SymTSNE(X : TDoubleMatrix; classLbl : TIntegerDynArray; numDims : integer;
-                           initDims : integer; perplexity : integer) : TDoubleMatrix; overload;
+    // main function to map X to the number of desired dimensions
+    function SymTSNE(X : TDoubleMatrix; numDims : integer = 2) : TDoubleMatrix; overload;
+
+    // use this function if X has been preprocessed "outside" e.g. by applying an
+    // incremental pca approach -> the algorithm starts with the pairwise distance calculation
+    function SymTSNEPreprocessed( X : TDoubleMatrix; numDims : integer = 2) : TDoubleMatrix;
+
+    constructor Create( initDims : integer = 30; perplexity : integer = 30; numIter : integer = 1000);
+
+    class function SymTSNE(X : TDoubleMatrix; numDims : integer;
+                           initDims : integer; perplexity : integer; numIter : integer = 1000) : TDoubleMatrix; overload;
   end;
 
 implementation
 
-uses SysUtils, PCA, MatrixConst, Math, Windows, RandomEng, Classes;
+uses SysUtils, MatrixConst, Math, Windows, RandomEng, Classes;
 
 { TtSNE }
 
-constructor TtSNE.Create(initDims, perplexity: integer);
+constructor TtSNE.Create(initDims, perplexity, numIter: integer);
 begin
      inherited Create;
 
+     fNumIter := numIter;
      fTol := 1e-5;
      fInitDims := initDims;
      fPerplexity := perplexity;
 end;
 
-class function TtSNE.SymTSNE(X: TDoubleMatrix; classLbl: TIntegerDynArray;  numDims : integer;
-  initDims, perplexity: integer): TDoubleMatrix;
+class function TtSNE.SymTSNE(X: TDoubleMatrix; numDims : integer;
+  initDims, perplexity, numIter: integer): TDoubleMatrix;
 begin
-     with TtSNE.Create(initDims, perplexity) do
+     with TtSNE.Create(initDims, perplexity, numIter) do
      try
-        Result := SymTSNE( X, classLbl, numDims );
+        Result := SymTSNE( X, numDims );
      finally
             Free;
      end;
@@ -94,15 +114,25 @@ begin
      Result.SubVecInPlace(meanVec, True);
 end;
 
-function TtSNE.SymTSNE(X: TDoubleMatrix;
-  classLbl: TIntegerDynArray; numDims : integer = 2): TDoubleMatrix;
+function TtSNE.SymTSNEPreprocessed(X: TDoubleMatrix;
+  numDims: integer): TDoubleMatrix;
+begin
+     Result := InternalTSNE(X, numDims);
+end;
+
+function TtSNE.SymTSNE(X: TDoubleMatrix; numDims : integer = 2): TDoubleMatrix;
 var xs : IMatrix;
-    D,P : IMatrix;
-    yData : IMatrix;
 begin
      xs := NormalizeInput(X);
      xs := ApplyPCA(xs);
 
+     Result := InternalTSNE( xs.GetObjRef, numDims );
+end;
+
+function TtSNE.InternalTSNE( xs : TDoubleMatrix; numDims : integer) : TDoubleMatrix;
+var D,P : IMatrix;
+    yData : IMatrix;
+begin
      D := PairwiseDist(xs);
 
      // Joint probabilities
@@ -110,7 +140,7 @@ begin
      D := nil;
 
      // Run t-sne
-     yData := tsne_p(P, numDims, classLbl);
+     yData := tsne_p(P, numDims);
 
      // handle the reference counting
      Result := TDoubleMatrix.Create;
@@ -127,7 +157,11 @@ begin
      // apply pca and check if we can shrink it to the designated number of eigenvectors
      // note the pca routine assumes one example in one colum - the original tsne implementation
      // assumes one example in one row -> so transpose in beforehand
-     aPca := TMatrixPCA.Create( [pcaTransposedEigVec] );
+     if Assigned(fInitPCA)
+     then
+         aPca := fInitPCA
+     else
+         aPca := DefInitPCA;
      try
         Result := X.Transpose;
         aPca.PCA(Result.GetObjRef, fInitDims, False);
@@ -141,7 +175,7 @@ begin
      end;
 end;
 
-function TtSNE.PairwiseDist(X: IMatrix): IMatrix;
+function TtSNE.PairwiseDist(X: TDoubleMatrix): IMatrix;
 var sum_x : IMatrix;
 begin
      sum_x := X.ElementWiseMult(X);
@@ -149,11 +183,7 @@ begin
 
      Result := X.MultT2(X);
      Result.ScaleInPlace(-2);
-
-     sum_x.TransposeInPlace;
      Result.AddVecInPlace(sum_x, True);
-
-     sum_x.TransposeInPlace;
      Result.AddVecInPlace(sum_x, False);
 end;
 
@@ -293,19 +323,15 @@ end;
 
 procedure EntropyFunc(var value : double);
 begin
-     if SameValue(value, 0, 1e-12)
-     then
-         value := 0
-     else
-         value := value*ln(value);
+     value := value*ln(value);
 end;
 
 procedure MaxFunc(var value : double);
 begin
-     value := Max(value, 2.2250738585072013830902327173324e-308); // don't really be sure why this is...
+     value := Max(value, 2.2250738585072013830902327173324e-308);
 end;
 
-function TtSNE.tsne_p(P: IMatrix; numDims : integer; labels: TIntegerDynArray): IMatrix;
+function TtSNE.tsne_p(P: IMatrix; numDims : integer): IMatrix;
 var n : integer;                        // number of instances
     momentum : double;                  // initial momentum
     epsilon : double;
@@ -322,15 +348,11 @@ var n : integer;                        // number of instances
     L, Q : IMatrix;
     cost : double;
 const final_momentum : double = 0.8;    // value to which momentum is changed
-      maxIter : integer = 1000;         // maximum number of iterations
       mom_switch_iter : integer = 250;  // iteration at which momentum is changed
       stop_lying_iter : integer = 100;   // iteration at which lying about P-values is stopped
       min_gain : double = 0.01;         // minimum gain for delta-bar-delta
 
 begin
-     MatrixToTxtFile('D:\P.txt', P.GetObjRef);
-     WriteBinary('D:\P_bin.txt', P);
-
      n := P.Height;
      momentum := 0.5;
      epsilon := 500;
@@ -350,41 +372,27 @@ begin
      scaleFact := PT[0, 0];
      P.ScaleInPlace(1/scaleFact);
      P.ElementwiseFuncInPlace({$ifdef FPC}@{$ENDIF}MaxFunc);
-     
+
      PT := P.AsVector(True);
      PT.ElementwiseFuncInPlace( {$IFDEF FPC}@{$ENDIF}EntropyFunc );
      PT.SumInPlace(True, True);
-     
+
      constEntr := PT[0,0];
      P.ScaleInPlace(4);  // lie about the p-vals to find better local minima
 
-
-     //WriteBinary('D:\P_pre_bin.txt', P);
-
      yData := MatrixClass.CreateRand( numDims, n, raMersenneTwister, 471 );
      yData.ScaleInPlace(0.0001);
-
-     //MatrixToTxtFile('D:\ydatainit.txt', yData.GetObjRef, 16);
-     //WriteBinary('D:\ydatainit_bin.txt', yData);
 
      fyincs := MatrixClass.Create(yData.Width, yData.Height );
      gains := MatrixClass.Create(yData.Width, yData.Height, 1);
 
      // #################################################
      // #### now iterate
-     for iter := 1 to maxIter do
+     for iter := 1 to fNumIter do
      begin
-      //    MatrixToTxtFile('D:\ydata_' + IntToStr(iter) + '.txt', yData.GetObjRef, 16);
-
-          //OutputDebugString( PChar(Format('%d: %.5f', [iter, ydata[0, 0] ]) ));
-          //Add(Format('%.8f', [ydata[0, 0] ]) );
           // Compute joint probability that point i and j are neighbors
-          sum_ydata := ydata.ElementWiseMult(yData);
+          sum_ydata := ydata.ElementWiseMult(yData);
           sum_ydata.SumInPlace(True, True);
-
-     //     WriteBinary('D:\sum_ydata_bin.txt', sum_ydata);
-
-    //      MatrixToTxtFile('D:\sumydata_' + IntToStr(iter) + '.txt', sum_ydata.GetObjRef, 16);
 
           // num = 1 ./ (1 + bsxfun(@plus, sum_ydata, bsxfun(@plus, sum_ydata', -2 * (ydata * ydata')))); % Student-t distribution
           tmp := yData.MultT2(yData);
@@ -400,40 +408,23 @@ begin
           for i := 0 to num.Width - 1 do
               num[i, i] := 0;
 
-       //   WriteBinary('D:\num_bin.txt', num);
-
-       //   MatrixToTxtFile('D:\num_' + IntToStr(iter) + '.txt', num.GetObjRef, 16);
-
           tmp := num.AsVector(False);
-
           tmp.SumInPlace(True, False);
-
-        //  WriteBinary('D:\tmp.txt', tmp);
 
           Q := num.Scale( 1/tmp[0, 0] );
           Q.ElementwiseFuncInPlace({$ifdef FPC}@{$ENDIF}MaxFunc ); // really??
 
-          //WriteBinary('D:\q_bin.txt', Q);
-
           // Compute the gradients (faster implementation)
           L := P.Sub(Q);
 
-          //WriteBinary('D:\L_one.txt', L);
-
           L.ElementWiseMultInPlace(num);
-
-          //WriteBinary('D:\L_bin.txt', L);
 
           fy_grads := L.Sum(False);
           fy_grads.DiagInPlace(True);
           fy_grads.SubInPlace(L);
 
-          //WriteBinary('D:\diag_L.txt', fy_grads);
-
           fy_grads.ScaleInPlace(4);
           fy_grads.MultInPlace(ydata);
-
-          //WriteBinary('D:\ygrads.txt', fy_grads);
 
           // Update the solution
           gains.ElementwiseFuncInPlace( {$ifdef FPC}@{$ENDIF}UpdateGains );
@@ -443,16 +434,10 @@ begin
           tmp.ScaleInPlace(epsilon);
           fyincs.SubInPlace(tmp);
 
-          //WriteBinary('D:\yincs.txt', fyincs);
-
           yData.AddInplace(fyincs);
-
-          //WriteBinary('D:\ydata_1.txt', yData);
 
           tmp := ydata.Mean( False );
           yData.SubVecInPlace( tmp, True );
-
-          //WriteBinary('D:\ydata_2.txt', yData);
 
           //Update the momentum if necessary
           if iter = mom_switch_iter then
@@ -461,16 +446,8 @@ begin
           if iter = stop_lying_iter then
              P.ScaleInPlace(1/4);
 
-//
-//          MatrixToTxtFile('D:\P_' + IntToStr(iter) + '.txt', P.GetObjRef, 16);
-//          MatrixToTxtFile('D:\yincs_' + IntToStr(iter) + '.txt', fyincs.GetObjRef, 16);
-//          MatrixToTxtFile('D:\ygrads_' + IntToStr(iter) + '.txt', fy_grads.GetObjRef, 16);
-//          MatrixToTxtFile('D:\gains_' + IntToStr(iter) + '.txt', gains.GetObjRef, 16);
-//          MatrixToTxtFile('D:\q_' + IntToStr(iter) + '.txt', q.GetObjRef, 16);
-
-
           // progress:
-          if iter mod 10 = 9 then
+          if Assigned(fProgress) and ( (iter = fNumIter) or (iter mod 10 = 0) ) then
           begin
                fQ := Q;
                PT := P.ElementwiseFunc( {$IFDEF FPC}@{$ENDIF}EntropyFuncQ );
@@ -478,7 +455,8 @@ begin
                PT.SumInPlace(False, True);
 
                cost := constEntr - PT[0,0];
-               OutputDebugString( PChar( Format( 'Iteration %d: error is %.4f', [iter, cost])) );
+
+               fProgress(Self, iter, cost, yData);
           end;
      end;
 
@@ -500,11 +478,12 @@ end;
 procedure TtSNE.EntropyFuncQ(var Value: double; const data: PDouble; LineWidth,
   x, y: integer);
 begin
-     if not SameValue( fQ[x, y], 1e-20 )
-     then
-         value := Value*ln(fQ[x, y])
-     else
-         value := 0;
+     value := Value*ln(fQ[x, y])
+end;
+
+function TtSNE.DefInitPCA : TMatrixPCA;
+begin
+     Result := TMatrixPCA.Create( [pcaTransposedEigVec] );
 end;
 
 end.
