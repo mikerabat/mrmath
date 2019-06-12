@@ -110,10 +110,8 @@ begin
           if indx^[i] <> i then
           begin
                // interchange rows
-               pA1 := A;
-               inc(PByte(pA1), i*LineWidthA);
-               pA2 := A;
-               inc(PByte(pA2), indx^[i]*LineWidthA);
+               pA1 := GenPtr(A, 0, i, LineWidthA);
+               pA2 := GenPtr(A, 0, indx^[i], LineWidthA);
 
                // swap a complete row at once
                MatrixRowSwap(pA1, pA2, width);
@@ -126,15 +124,14 @@ end;
 procedure LUBacksup(A : PDouble; width, height : TASMNativeInt; B : PDouble; const LineWidth : TASMNativeInt);
 var j, i, k : TASMNativeInt;
     pA, pAi : PDouble;
-    pB, pBj : PDouble;
-    pBDest, pBDestj, pBDesti : PDouble;
+    pB : PDouble;
+    pBj : PConstDoubleArr;
+    pBDestj : PConstDoubleArr;
+    pBDest, pBDesti : PDouble;
 begin
-     pA := A;
-     inc(PByte(pA), LineWidth);
-
+     pA := GenPtr(A, 0, 1, LineWidth);
      pB := B;
-     pBDest := B;
-     inc(PByte(pBDest), LineWidth);
+     pBDest := GenPtr( B, 0, 1, LineWidth);
      for k := 0 to height - 1 do
      begin
           pAi := pA;
@@ -142,15 +139,10 @@ begin
 
           for i := k + 1 to height - 1 do
           begin
-               pBj := pB;
-               pBDestj := pBDesti;
+               pBj := PConstDoubleArr( pB );
+               pBDestj := PConstDoubleArr( pBDesti );
                for j := 0 to width - 1 do
-               begin
-                    pBDestj^ := pBDestj^ - pBj^*pAi^;
-
-                    inc(pBj);
-                    inc(pBDestj);
-               end;
+                   pBDestj^[j] := pBDestj^[j] - pBj^[j]*pAi^;
 
                inc(PByte(pAi), LineWidth);
                inc(PByte(pBDesti), LineWidth);
@@ -195,8 +187,7 @@ begin
           if Result <> leOk then
              exit;
 
-          pA := A;
-          inc(pA, nLeft);
+          pA := GenPtr(A, nLeft, 0, data.LineWidth);
           LUSwap(pA, data.LineWidth, nright, 0, nleft - 1, indx, parity);
 
           // lu backsup A12 = L - one*A12
@@ -205,13 +196,10 @@ begin
 
           // matrix mult sub
           // A22 = A22 - A21*A12
-          pB := A;
-          inc(pB, nleft);
-          a12 := pB;
-          inc(PByte(pB), nLeft*data.LineWidth);
+          a12 := GenPtr(A, nLeft, 0, data.LineWidth);
+          pB := GenPtr(A, nLeft, nLeft, data.LineWidth);
+          a21 := GenPtr(A, 0, nleft, data.LineWidth);
 
-          a21 := A;
-          inc(PByte(a21), nleft*data.LineWidth);
           // in this case it's faster to have a small block size!
           if (nright > cBlkMultSize) or (height - nleft > cBlkMultSize)
           then
@@ -261,8 +249,7 @@ begin
           begin
                MatrixScaleAndAdd(A, data.LineWidth, 1, Height, 0, 1/maxVal);
 
-               pA := A;
-               inc(PByte(pA), data.LineWidth*idx);
+               pA := GenPtr(A, 0, idx, data.LineWidth);
                pA^ := A^;
                A^ := maxVal;
 
@@ -323,7 +310,7 @@ var i : TASMNativeInt;
     pB : PDouble;
     pB2 : PDouble;
     pVal : PDouble;
-    pVal2 : PDouble;
+    pVal2 : PConstDoubleArr;
 begin
      assert(width*sizeof(double) <= LineWidthLU, 'Dimension Error');
 
@@ -335,21 +322,17 @@ begin
      for i := 0 to width - 1 do
      begin
           ip := indx^[i];
-          pB := B;
-          inc(PByte(pB), ip*LineWidthB);
+          pB := GenPtr(B, 0, ip, LineWidthB);
           sum := pB^;
           pB^ := pB2^;
 
           if ii >= 0 then
           begin
-               pVal := PDouble(TASMNativeUInt(LUDecomp) + TASMNativeUInt(i*LineWidthLU));
-               inc(pVal, ii);
-               pB := B;
-               inc(PByte(pB), LineWidthB*ii);
+               pVal2 := PConstDoubleArr( GenPtr(LUDecomp, 0, i, LineWidthLU ) );
+               pB := GenPtr(B, 0, ii, LineWidthB);
                for j := ii to i - 1 do
                begin
-                    sum := sum - pVal^*pB^;
-                    inc(pVal);
+                    sum := sum - pVal2^[j]*pB^;
                     inc(PByte(pB), LineWidthB);
                end;
           end
@@ -364,23 +347,18 @@ begin
      if Assigned(progress) then
         progress(50);
 
-     pB := B;
-     inc(PByte(pB), LineWidthB*(width - 1));
-     pVal := PDouble(TASMNativeUInt(LUDecomp) + TASMNativeUInt((width - 1)*LineWidthLU));
-     inc(pVal, width - 1);
+     pB := GenPtr(B, 0, width - 1, LineWidthB);
+     pVal := GenPtr( LUDecomp, width - 1, width -1 , LineWidthLU);
      for i := width - 1 downto 0 do
      begin
           sum := pB^;
 
-          pB2 := pB;
-          inc(PByte(pB2), LineWidthB);
-          pVal2 := pVal;
-          inc(pVal2);
-          for j := i + 1 to width - 1 do
+          pB2 := GenPtr(pB, 0, 1, LineWidthB);
+          pVal2 := PConstDoubleArr( GenPtr(pVal, 1, 0, LineWidthLU) );
+          for j := 0 to width - i - 2 do
           begin
-               sum := sum - pVal2^*pB2^;
+               sum := sum - pVal2^[j]*pB2^;
                inc(PByte(pB2), LineWidthB);
-               inc(pVal2);
           end;
 
           pB^ := sum/pVal^;
@@ -423,8 +401,7 @@ begin
 
      for j := 0 to width - 1 do
      begin
-          pVal := A;
-          inc(pVal, j);
+          pVal := GenPtr( A, j, 0, LineWidthA );
 
           for i := 0 to width - 1 do
               col[i] := 0;
@@ -463,7 +440,7 @@ begin
      rc.progress := progress;
      rc.numCols := width;
      rc.numCalc := 0;
-     rc.blkMultMem := AlignPtr64( @mem[0] ); // PDouble(TASMNativeUInt(@mem[0]) + 16 - TASMNativeUInt(@mem[0]) and $0F);
+     rc.blkMultMem := AlignPtr64( @mem[0] );
      rc.LineWidth := w*sizeof(double);
 
      parity := 1;
