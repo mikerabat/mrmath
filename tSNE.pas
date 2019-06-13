@@ -380,7 +380,7 @@ begin
      constEntr := PT[0,0];
      P.ScaleInPlace(4);  // lie about the p-vals to find better local minima
 
-     yData := MatrixClass.CreateRand( numDims, n, raMersenneTwister, 471 );
+     yData := MatrixClass.CreateRand( numDims, n, raMersenneTwister, 0 );
      yData.ScaleInPlace(0.0001);
 
      fyincs := MatrixClass.Create(yData.Width, yData.Height );
