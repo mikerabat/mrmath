@@ -3,7 +3,7 @@
   <ProjectSession>
     <Version Value="10"/>
     <BuildModes Active="Default"/>
-    <Units Count="3">
+    <Units Count="1">
       <Unit0>
         <Filename Value="mrMath.ppr"/>
         <IsPartOfProject Value="True"/>
@@ -12,20 +12,7 @@
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
       </Unit0>
-      <Unit1>
-        <Filename Value="MtxThreadPool.pas"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="72"/>
-        <CursorPos X="6" Y="92"/>
-        <UsageCount Value="10"/>
-      </Unit1>
-      <Unit2>
-        <Filename Value="ASMMatrixOperations.pas"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="1871"/>
-        <CursorPos X="27" Y="2043"/>
-        <UsageCount Value="10"/>
-      </Unit2>
+      
     </Units>
     <JumpHistory Count="7" HistoryIndex="6">
       <Position1>

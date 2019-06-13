@@ -18,7 +18,7 @@
 package mrMath;
 
 {$R *.res}
-{$ALIGN 8}
+{$ALIGN 16}
 {$ASSERTIONS OFF}
 {$BOOLEVAL OFF}
 {$DEBUGINFO ON}
@@ -168,6 +168,7 @@ contains
   winCPUInfo in '..\..\winCPUInfo.pas',
   winRandomGen in '..\..\winRandomGen.pas',
   WinThreadPool in '..\..\WinThreadPool.pas',
-  Statistics in '..\..\Statistics.pas';
+  Statistics in '..\..\Statistics.pas',
+  tSNE in '..\..\tSNE.pas';
 
 end.

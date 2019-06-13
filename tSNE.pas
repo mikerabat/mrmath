@@ -159,9 +159,9 @@ begin
      // assumes one example in one row -> so transpose in beforehand
      if Assigned(fInitPCA)
      then
-         aPca := fInitPCA
+         aPca := fInitPCA()
      else
-         aPca := DefInitPCA;
+         aPca := DefInitPCA();
      try
         Result := X.Transpose;
         aPca.PCA(Result.GetObjRef, fInitDims, False);
@@ -255,7 +255,7 @@ begin
           tries := 0;
           while (abs(Hdiff) > fTol) and (tries < 50) do
           begin
-               // If not, increase or decrease precision
+               // If not, increase or decrease precision
                if Hdiff > 0 then
                begin
                     betaMin := beta[i];
@@ -328,7 +328,7 @@ end;
 
 procedure MaxFunc(var value : double);
 begin
-     value := Max(value, 2.2250738585072013830902327173324e-308);
+     value := Math.Max(value, 2.2250738585072013830902327173324e-308);
 end;
 
 function TtSNE.tsne_p(P: IMatrix; numDims : integer): IMatrix;
@@ -390,7 +390,7 @@ begin
      // #### now iterate
      for iter := 1 to fNumIter do
      begin
-          // Compute joint probability that point i and j are neighbors
+          // Compute joint probability that point i and j are neighbors
           sum_ydata := ydata.ElementWiseMult(yData);
           sum_ydata.SumInPlace(True, True);
 
@@ -472,7 +472,7 @@ begin
      else
          value := value + 0.2;
 
-     value := max(value, fminGain)
+     value := Math.Max(value, fminGain)
 end;
 
 procedure TtSNE.EntropyFuncQ(var Value: double; const data: PDouble; LineWidth,

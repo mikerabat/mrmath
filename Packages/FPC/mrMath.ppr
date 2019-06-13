@@ -141,7 +141,8 @@ uses
   winCPUInfo in '..\..\winCPUInfo.pas',
   winRandomGen in '..\..\winRandomGen.pas',
   WinThreadPool in '..\..\WinThreadPool.pas',
-  Statistics in '..\..\Statistics.pas';
+  Statistics in '..\..\Statistics.pas',
+  tSNE in '..\..\tSNE.pas';
 
 begin
 end.
