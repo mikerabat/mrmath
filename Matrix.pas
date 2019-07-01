@@ -392,9 +392,9 @@ type
 
     procedure SetValue(const initVal : double);
 
-    function Reshape(newWidth, newHeight : integer; RowMajor : boolean = False) : TDoubleMatrix;
-    procedure ReshapeInPlace(newWidth, newHeight : integer; RowMajor : boolean = False);
-    function AsVector( RowMajor : boolean = False ) : TDoubleMatrix;
+    function Reshape(newWidth, newHeight : integer; ColMajor : boolean = False) : TDoubleMatrix;
+    procedure ReshapeInPlace(newWidth, newHeight : integer; ColMajor : boolean = False);
+    function AsVector( ColMajor : boolean = False ) : TDoubleMatrix;
 
     // ###################################################
     // #### Simple matrix utility functions
@@ -2164,7 +2164,7 @@ begin
      end;
 end;
 
-function TDoubleMatrix.Reshape(newWidth, newHeight: integer; RowMajor : boolean = False) : TDoubleMatrix;
+function TDoubleMatrix.Reshape(newWidth, newHeight: integer; ColMajor : boolean = False) : TDoubleMatrix;
 var xOld, yOld : integer;
     x, y : Integer;
 begin
@@ -2173,9 +2173,9 @@ begin
 
      Result := ResultClass.Create(newWidth, newHeight);
      try
-        if RowMajor then
+        if ColMajor then
         begin
-             // reshape along rows not columns...
+             // reshape along columns not rows...
              xOld := 0;
              yOld := 0;
              for x := 0 to newWidth - 1 do
@@ -2220,7 +2220,7 @@ begin
      end;
 end;
 
-procedure TDoubleMatrix.ReshapeInPlace(newWidth, newHeight: integer; RowMajor : boolean = False);
+procedure TDoubleMatrix.ReshapeInPlace(newWidth, newHeight: integer; ColMajor : boolean = False);
 var res : TDoubleMatrix;
 begin
      CheckAndRaiseError((fWidth > 0) and (fHeight > 0), 'Error operation not allowed on empty matrices');
@@ -2229,12 +2229,12 @@ begin
 
      // check if the line width fits the old width -> then we only have to adjust the
      // line width parameter, otherwise copy. 
-     if (fWidth = fSubWidth) and (fHeight = fSubHeight) and (fLineWidth = fWidth*sizeof(double)) and not RowMajor
+     if (fWidth = fSubWidth) and (fHeight = fSubHeight) and (fLineWidth = fWidth*sizeof(double)) and not ColMajor
      then
          fLineWidth := newWidth*sizeof(double)
      else
      begin
-          res := Reshape(newWidth, newHeight, RowMajor);
+          res := Reshape(newWidth, newHeight, ColMajor);
           TakeOver(res);
           res.Free;
      end;
@@ -3134,13 +3134,13 @@ begin
 end;
 
 
-function TDoubleMatrix.AsVector( RowMajor : boolean = False ): TDoubleMatrix;
+function TDoubleMatrix.AsVector( ColMajor : boolean = False ): TDoubleMatrix;
 begin
      if Height = 1
      then
          Result := Clone
      else
-         Result := Reshape(width*height, 1, RowMajor);
+         Result := Reshape(width*height, 1, ColMajor);
 end;
 
 initialization
