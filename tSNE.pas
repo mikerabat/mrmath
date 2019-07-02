@@ -75,7 +75,7 @@ type
 
 implementation
 
-uses SysUtils, MatrixConst, Math, Windows, RandomEng, Classes;
+uses SysUtils, MatrixConst, Math, RandomEng, Classes;
 
 { TtSNE }
 

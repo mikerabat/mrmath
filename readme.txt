@@ -55,6 +55,10 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date 02.07.2019
+* Created a Lazarus FPC package
+* Renamed RowMajor to ColMajor since that was actually the intention
+
 Date: 03.06.2019
 * Added TSNE algorithm - still alpha state do not yet use.
 
