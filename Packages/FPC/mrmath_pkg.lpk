@@ -2,7 +2,7 @@
 <CONFIG>
   <Package Version="4">
     <PathDelim Value="\"/>
-    <Name Value="mrMath"/>
+    <Name Value="mrMath_pkg"/>
     <Type Value="RunAndDesignTime"/>
     <CompilerOptions>
       <Version Value="11"/>
@@ -11,16 +11,6 @@
         <OtherUnitFiles Value="..\.."/>
         <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)\"/>
       </SearchPaths>
-      <CodeGeneration>
-        <Optimizations>
-          <OptimizationLevel Value="3"/>
-        </Optimizations>
-      </CodeGeneration>
-      <Linking>
-        <Debugging>
-          <GenerateDebugInfo Value="False"/>
-        </Debugging>
-      </Linking>
     </CompilerOptions>
     <Files Count="125">
       <Item1>
