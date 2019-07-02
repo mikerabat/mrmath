@@ -1,0 +1,540 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="4">
+    <PathDelim Value="\"/>
+    <Name Value="mrMath"/>
+    <Type Value="RunAndDesignTime"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <OtherUnitFiles Value="..\.."/>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)\"/>
+      </SearchPaths>
+      <CodeGeneration>
+        <Optimizations>
+          <OptimizationLevel Value="3"/>
+        </Optimizations>
+      </CodeGeneration>
+      <Linking>
+        <Debugging>
+          <GenerateDebugInfo Value="False"/>
+        </Debugging>
+      </Linking>
+    </CompilerOptions>
+    <Files Count="125">
+      <Item1>
+        <Filename Value="..\..\ASMMatrixAbsOperations.pas"/>
+        <UnitName Value="ASMMatrixAbsOperations"/>
+      </Item1>
+      <Item2>
+        <Filename Value="..\..\ASMMatrixAbsOperationsx64.pas"/>
+        <UnitName Value="ASMMatrixAbsOperationsx64"/>
+      </Item2>
+      <Item3>
+        <Filename Value="..\..\ASMMatrixAddSubOperations.pas"/>
+        <UnitName Value="ASMMatrixAddSubOperations"/>
+      </Item3>
+      <Item4>
+        <Filename Value="..\..\ASMMatrixAddSubOperationsx64.pas"/>
+        <UnitName Value="ASMMatrixAddSubOperationsx64"/>
+      </Item4>
+      <Item5>
+        <Filename Value="..\..\ASMMatrixCumSumDiffOperations.pas"/>
+        <UnitName Value="ASMMatrixCumSumDiffOperations"/>
+      </Item5>
+      <Item6>
+        <Filename Value="..\..\ASMMatrixCumSumDiffOperationsx64.pas"/>
+        <UnitName Value="ASMMatrixCumSumDiffOperationsx64"/>
+      </Item6>
+      <Item7>
+        <Filename Value="..\..\ASMMatrixElementwiseMultOperations.pas"/>
+        <UnitName Value="ASMMatrixElementwiseMultOperations"/>
+      </Item7>
+      <Item8>
+        <Filename Value="..\..\ASMMatrixElementwiseMultOperationsx64.pas"/>
+        <UnitName Value="ASMMatrixElementwiseMultOperationsx64"/>
+      </Item8>
+      <Item9>
+        <Filename Value="..\..\ASMMatrixMeanOperations.pas"/>
+        <UnitName Value="ASMMatrixMeanOperations"/>
+      </Item9>
+      <Item10>
+        <Filename Value="..\..\ASMMatrixMeanOperationsx64.pas"/>
+        <UnitName Value="ASMMatrixMeanOperationsx64"/>
+      </Item10>
+      <Item11>
+        <Filename Value="..\..\ASMMatrixMinMaxOperations.pas"/>
+        <UnitName Value="ASMMatrixMinMaxOperations"/>
+      </Item11>
+      <Item12>
+        <Filename Value="..\..\ASMMatrixMinMaxOperationsx64.pas"/>
+        <UnitName Value="ASMMatrixMinMaxOperationsx64"/>
+      </Item12>
+      <Item13>
+        <Filename Value="..\..\ASMMatrixMultOperations.pas"/>
+        <UnitName Value="ASMMatrixMultOperations"/>
+      </Item13>
+      <Item14>
+        <Filename Value="..\..\ASMMatrixMultOperationsx64.pas"/>
+        <UnitName Value="ASMMatrixMultOperationsx64"/>
+      </Item14>
+      <Item15>
+        <Filename Value="..\..\ASMMatrixMultTransposedOperations.pas"/>
+        <UnitName Value="ASMMatrixMultTransposedOperations"/>
+      </Item15>
+      <Item16>
+        <Filename Value="..\..\ASMMatrixMultTransposedOperationsx64.pas"/>
+        <UnitName Value="ASMMatrixMultTransposedOperationsx64"/>
+      </Item16>
+      <Item17>
+        <Filename Value="..\..\ASMMatrixNormOperations.pas"/>
+        <UnitName Value="ASMMatrixNormOperations"/>
+      </Item17>
+      <Item18>
+        <Filename Value="..\..\ASMMatrixNormOperationsx64.pas"/>
+        <UnitName Value="ASMMatrixNormOperationsx64"/>
+      </Item18>
+      <Item19>
+        <Filename Value="..\..\ASMMatrixOperations.pas"/>
+        <UnitName Value="ASMMatrixOperations"/>
+      </Item19>
+      <Item20>
+        <Filename Value="..\..\ASMMatrixRotations.pas"/>
+        <UnitName Value="ASMMatrixRotations"/>
+      </Item20>
+      <Item21>
+        <Filename Value="..\..\ASMMatrixRotationsx64.pas"/>
+        <UnitName Value="ASMMatrixRotationsx64"/>
+      </Item21>
+      <Item22>
+        <Filename Value="..\..\ASMMatrixScaleOperations.pas"/>
+        <UnitName Value="ASMMatrixScaleOperations"/>
+      </Item22>
+      <Item23>
+        <Filename Value="..\..\ASMMatrixScaleOperationsx64.pas"/>
+        <UnitName Value="ASMMatrixScaleOperationsx64"/>
+      </Item23>
+      <Item24>
+        <Filename Value="..\..\ASMMatrixSqrtOperations.pas"/>
+        <UnitName Value="ASMMatrixSqrtOperations"/>
+      </Item24>
+      <Item25>
+        <Filename Value="..\..\ASMMatrixSqrtOperationsx64.pas"/>
+        <UnitName Value="ASMMatrixSqrtOperationsx64"/>
+      </Item25>
+      <Item26>
+        <Filename Value="..\..\ASMMatrixSumOperations.pas"/>
+        <UnitName Value="ASMMatrixSumOperations"/>
+      </Item26>
+      <Item27>
+        <Filename Value="..\..\ASMMatrixSumOperationsx64.pas"/>
+        <UnitName Value="ASMMatrixSumOperationsx64"/>
+      </Item27>
+      <Item28>
+        <Filename Value="..\..\ASMMatrixTransposeOperations.pas"/>
+        <UnitName Value="ASMMatrixTransposeOperations"/>
+      </Item28>
+      <Item29>
+        <Filename Value="..\..\ASMMatrixTransposeOperationsx64.pas"/>
+        <UnitName Value="ASMMatrixTransposeOperationsx64"/>
+      </Item29>
+      <Item30>
+        <Filename Value="..\..\ASMMatrixVectorMultOperations.pas"/>
+        <UnitName Value="ASMMatrixVectorMultOperations"/>
+      </Item30>
+      <Item31>
+        <Filename Value="..\..\ASMMatrixVectorMultOperationsx64.pas"/>
+        <UnitName Value="ASMMatrixVectorMultOperationsx64"/>
+      </Item31>
+      <Item32>
+        <Filename Value="..\..\ASMMoveOperations.pas"/>
+        <UnitName Value="ASMMoveOperations"/>
+      </Item32>
+      <Item33>
+        <Filename Value="..\..\ASMMoveOperationsx64.pas"/>
+        <UnitName Value="ASMMoveOperationsx64"/>
+      </Item33>
+      <Item34>
+        <Filename Value="..\..\ASMVecConvolve.pas"/>
+        <UnitName Value="ASMVecConvolve"/>
+      </Item34>
+      <Item35>
+        <Filename Value="..\..\ASMVecConvolvex64.pas"/>
+        <UnitName Value="ASMVecConvolvex64"/>
+      </Item35>
+      <Item36>
+        <Filename Value="..\..\AVXMatrixAbsOperations.pas"/>
+        <UnitName Value="AVXMatrixAbsOperations"/>
+      </Item36>
+      <Item37>
+        <Filename Value="..\..\AVXMatrixAbsOperationsx64.pas"/>
+        <UnitName Value="AVXMatrixAbsOperationsx64"/>
+      </Item37>
+      <Item38>
+        <Filename Value="..\..\AVXMatrixAddSubOperations.pas"/>
+        <UnitName Value="AVXMatrixAddSubOperations"/>
+      </Item38>
+      <Item39>
+        <Filename Value="..\..\AVXMatrixAddSubOperationsx64.pas"/>
+        <UnitName Value="AVXMatrixAddSubOperationsx64"/>
+      </Item39>
+      <Item40>
+        <Filename Value="..\..\AVXMatrixCumSumDiffOperations.pas"/>
+        <UnitName Value="AVXMatrixCumSumDiffOperations"/>
+      </Item40>
+      <Item41>
+        <Filename Value="..\..\AVXMatrixCumSumDiffOperationsx64.pas"/>
+        <UnitName Value="AVXMatrixCumSumDiffOperationsx64"/>
+      </Item41>
+      <Item42>
+        <Filename Value="..\..\AVXMatrixElementwiseMultOperations.pas"/>
+        <UnitName Value="AVXMatrixElementwiseMultOperations"/>
+      </Item42>
+      <Item43>
+        <Filename Value="..\..\AVXMatrixElementwiseMultOperationsx64.pas"/>
+        <UnitName Value="AVXMatrixElementwiseMultOperationsx64"/>
+      </Item43>
+      <Item44>
+        <Filename Value="..\..\AVXMatrixMeanOperations.pas"/>
+        <UnitName Value="AVXMatrixMeanOperations"/>
+      </Item44>
+      <Item45>
+        <Filename Value="..\..\AVXMatrixMeanOperationsx64.pas"/>
+        <UnitName Value="AVXMatrixMeanOperationsx64"/>
+      </Item45>
+      <Item46>
+        <Filename Value="..\..\AVXMatrixMinMaxOperations.pas"/>
+        <UnitName Value="AVXMatrixMinMaxOperations"/>
+      </Item46>
+      <Item47>
+        <Filename Value="..\..\AVXMatrixMinMaxOperationsx64.pas"/>
+        <UnitName Value="AVXMatrixMinMaxOperationsx64"/>
+      </Item47>
+      <Item48>
+        <Filename Value="..\..\AVXMatrixMultOperations.pas"/>
+        <UnitName Value="AVXMatrixMultOperations"/>
+      </Item48>
+      <Item49>
+        <Filename Value="..\..\AVXMatrixMultOperationsx64.pas"/>
+        <UnitName Value="AVXMatrixMultOperationsx64"/>
+      </Item49>
+      <Item50>
+        <Filename Value="..\..\AVXMatrixMultTransposedOperations.pas"/>
+        <UnitName Value="AVXMatrixMultTransposedOperations"/>
+      </Item50>
+      <Item51>
+        <Filename Value="..\..\AVXMatrixMultTransposedOperationsx64.pas"/>
+        <UnitName Value="AVXMatrixMultTransposedOperationsx64"/>
+      </Item51>
+      <Item52>
+        <Filename Value="..\..\AVXMatrixNormOperations.pas"/>
+        <UnitName Value="AVXMatrixNormOperations"/>
+      </Item52>
+      <Item53>
+        <Filename Value="..\..\AVXMatrixNormOperationsx64.pas"/>
+        <UnitName Value="AVXMatrixNormOperationsx64"/>
+      </Item53>
+      <Item54>
+        <Filename Value="..\..\AVXMatrixOperations.pas"/>
+        <UnitName Value="AVXMatrixOperations"/>
+      </Item54>
+      <Item55>
+        <Filename Value="..\..\AVXMatrixRotations.pas"/>
+        <UnitName Value="AVXMatrixRotations"/>
+      </Item55>
+      <Item56>
+        <Filename Value="..\..\AVXMatrixRotationsx64.pas"/>
+        <UnitName Value="AVXMatrixRotationsx64"/>
+      </Item56>
+      <Item57>
+        <Filename Value="..\..\AVXMatrixScaleOperations.pas"/>
+        <UnitName Value="AVXMatrixScaleOperations"/>
+      </Item57>
+      <Item58>
+        <Filename Value="..\..\AVXMatrixScaleOperationsx64.pas"/>
+        <UnitName Value="AVXMatrixScaleOperationsx64"/>
+      </Item58>
+      <Item59>
+        <Filename Value="..\..\AVXMatrixSqrtOperations.pas"/>
+        <UnitName Value="AVXMatrixSqrtOperations"/>
+      </Item59>
+      <Item60>
+        <Filename Value="..\..\AVXMatrixSqrtOperationsx64.pas"/>
+        <UnitName Value="AVXMatrixSqrtOperationsx64"/>
+      </Item60>
+      <Item61>
+        <Filename Value="..\..\AVXMatrixSumOperations.pas"/>
+        <UnitName Value="AVXMatrixSumOperations"/>
+      </Item61>
+      <Item62>
+        <Filename Value="..\..\AVXMatrixSumOperationsx64.pas"/>
+        <UnitName Value="AVXMatrixSumOperationsx64"/>
+      </Item62>
+      <Item63>
+        <Filename Value="..\..\AVXMatrixTransposeOperations.pas"/>
+        <UnitName Value="AVXMatrixTransposeOperations"/>
+      </Item63>
+      <Item64>
+        <Filename Value="..\..\AVXMatrixTransposeOperationsx64.pas"/>
+        <UnitName Value="AVXMatrixTransposeOperationsx64"/>
+      </Item64>
+      <Item65>
+        <Filename Value="..\..\AVXMatrixVectorMultOperations.pas"/>
+        <UnitName Value="AVXMatrixVectorMultOperations"/>
+      </Item65>
+      <Item66>
+        <Filename Value="..\..\AVXMatrixVectorMultOperationsx64.pas"/>
+        <UnitName Value="AVXMatrixVectorMultOperationsx64"/>
+      </Item66>
+      <Item67>
+        <Filename Value="..\..\AVXMoveOperations.pas"/>
+        <UnitName Value="AVXMoveOperations"/>
+      </Item67>
+      <Item68>
+        <Filename Value="..\..\AVXMoveOperationsx64.pas"/>
+        <UnitName Value="AVXMoveOperationsx64"/>
+      </Item68>
+      <Item69>
+        <Filename Value="..\..\AVXVecConvolve.pas"/>
+        <UnitName Value="AVXVecConvolve"/>
+      </Item69>
+      <Item70>
+        <Filename Value="..\..\AVXVecConvolvex64.pas"/>
+        <UnitName Value="AVXVecConvolvex64"/>
+      </Item70>
+      <Item71>
+        <Filename Value="..\..\BaseMathPersistence.pas"/>
+        <UnitName Value="BaseMathPersistence"/>
+      </Item71>
+      <Item72>
+        <Filename Value="..\..\BinaryReaderWriter.pas"/>
+        <UnitName Value="BinaryReaderWriter"/>
+      </Item72>
+      <Item73>
+        <Filename Value="..\..\BlockedMult.pas"/>
+        <UnitName Value="BlockedMult"/>
+      </Item73>
+      <Item74>
+        <Filename Value="..\..\BlockSizeSetup.pas"/>
+        <UnitName Value="BlockSizeSetup"/>
+      </Item74>
+      <Item75>
+        <Filename Value="..\..\BufferedStream.pas"/>
+        <UnitName Value="BufferedStream"/>
+      </Item75>
+      <Item76>
+        <Filename Value="..\..\CCA.pas"/>
+        <UnitName Value="CCA"/>
+      </Item76>
+      <Item77>
+        <Filename Value="..\..\Corr.pas"/>
+        <UnitName Value="Corr"/>
+      </Item77>
+      <Item78>
+        <Filename Value="..\..\CPUFeatures.pas"/>
+        <UnitName Value="CPUFeatures"/>
+      </Item78>
+      <Item79>
+        <Filename Value="..\..\Dist.pas"/>
+        <UnitName Value="Dist"/>
+      </Item79>
+      <Item80>
+        <Filename Value="..\..\Eigensystems.pas"/>
+        <UnitName Value="Eigensystems"/>
+      </Item80>
+      <Item81>
+        <Filename Value="..\..\EM.pas"/>
+        <UnitName Value="EM"/>
+      </Item81>
+      <Item82>
+        <Filename Value="..\..\FMAMatrixMultOperations.pas"/>
+        <UnitName Value="FMAMatrixMultOperations"/>
+      </Item82>
+      <Item83>
+        <Filename Value="..\..\FMAMatrixMultOperationsx64.pas"/>
+        <UnitName Value="FMAMatrixMultOperationsx64"/>
+      </Item83>
+      <Item84>
+        <Filename Value="..\..\FMAMatrixMultTransposedOperations.pas"/>
+        <UnitName Value="FMAMatrixMultTransposedOperations"/>
+      </Item84>
+      <Item85>
+        <Filename Value="..\..\FMAMatrixMultTransposedOperationsx64.pas"/>
+        <UnitName Value="FMAMatrixMultTransposedOperationsx64"/>
+      </Item85>
+      <Item86>
+        <Filename Value="..\..\FMAMatrixOperations.pas"/>
+        <UnitName Value="FMAMatrixOperations"/>
+      </Item86>
+      <Item87>
+        <Filename Value="..\..\FMAMatrixVectorMultOperations.pas"/>
+        <UnitName Value="FMAMatrixVectorMultOperations"/>
+      </Item87>
+      <Item88>
+        <Filename Value="..\..\FMAMatrixVectorMultOperationsx64.pas"/>
+        <UnitName Value="FMAMatrixVectorMultOperationsx64"/>
+      </Item88>
+      <Item89>
+        <Filename Value="..\..\FMAVecConvolve.pas"/>
+        <UnitName Value="FMAVecConvolve"/>
+      </Item89>
+      <Item90>
+        <Filename Value="..\..\FMAVecConvolvex64.pas"/>
+        <UnitName Value="FMAVecConvolvex64"/>
+      </Item90>
+      <Item91>
+        <Filename Value="..\..\GCDDispatch.pas"/>
+        <UnitName Value="GCDDispatch"/>
+      </Item91>
+      <Item92>
+        <Filename Value="..\..\HouseholderReflectors.pas"/>
+        <UnitName Value="HouseholderReflectors"/>
+      </Item92>
+      <Item93>
+        <Filename Value="..\..\ICA.pas"/>
+        <UnitName Value="ICA"/>
+      </Item93>
+      <Item94>
+        <Filename Value="..\..\IncrementalPCA.pas"/>
+        <UnitName Value="IncrementalPCA"/>
+      </Item94>
+      <Item95>
+        <Filename Value="..\..\JSONReaderWriter.pas"/>
+        <UnitName Value="JSONReaderWriter"/>
+      </Item95>
+      <Item96>
+        <Filename Value="..\..\LinAlgCholesky.pas"/>
+        <UnitName Value="LinAlgCholesky"/>
+      </Item96>
+      <Item97>
+        <Filename Value="..\..\LinAlgLU.pas"/>
+        <UnitName Value="LinAlgLU"/>
+      </Item97>
+      <Item98>
+        <Filename Value="..\..\LinAlgQR.pas"/>
+        <UnitName Value="LinAlgQR"/>
+      </Item98>
+      <Item99>
+        <Filename Value="..\..\LinAlgSVD.pas"/>
+        <UnitName Value="LinAlgSVD"/>
+      </Item99>
+      <Item100>
+        <Filename Value="..\..\LinearAlgebraicEquations.pas"/>
+        <UnitName Value="LinearAlgebraicEquations"/>
+      </Item100>
+      <Item101>
+        <Filename Value="..\..\linuxthrpool.pas"/>
+        <UnitName Value="linuxthrpool"/>
+      </Item101>
+      <Item102>
+        <Filename Value="..\..\MacOsRandomGen.pas"/>
+        <UnitName Value="MacOsRandomGen"/>
+      </Item102>
+      <Item103>
+        <Filename Value="..\..\MacOsThreadPool.pas"/>
+        <UnitName Value="MacOsThreadPool"/>
+      </Item103>
+      <Item104>
+        <Filename Value="..\..\MathUtilFunc.pas"/>
+        <UnitName Value="MathUtilFunc"/>
+      </Item104>
+      <Item105>
+        <Filename Value="..\..\Matrix.pas"/>
+        <UnitName Value="Matrix"/>
+      </Item105>
+      <Item106>
+        <Filename Value="..\..\MatrixASMStubSwitch.pas"/>
+        <UnitName Value="MatrixASMStubSwitch"/>
+      </Item106>
+      <Item107>
+        <Filename Value="..\..\MatrixConst.pas"/>
+        <UnitName Value="MatrixConst"/>
+      </Item107>
+      <Item108>
+        <Filename Value="..\..\MatrixRotations.pas"/>
+        <UnitName Value="MatrixRotations"/>
+      </Item108>
+      <Item109>
+        <Filename Value="..\..\MtxThreadPool.pas"/>
+        <UnitName Value="MtxThreadPool"/>
+      </Item109>
+      <Item110>
+        <Filename Value="..\..\MtxTimer.pas"/>
+        <UnitName Value="MtxTimer"/>
+      </Item110>
+      <Item111>
+        <Filename Value="..\..\NNMF.pas"/>
+        <UnitName Value="NNMF"/>
+      </Item111>
+      <Item112>
+        <Filename Value="..\..\NonLinearFit.pas"/>
+        <UnitName Value="NonLinearFit"/>
+      </Item112>
+      <Item113>
+        <Filename Value="..\..\PCA.pas"/>
+        <UnitName Value="PCA"/>
+      </Item113>
+      <Item114>
+        <Filename Value="..\..\PLS.pas"/>
+        <UnitName Value="PLS"/>
+      </Item114>
+      <Item115>
+        <Filename Value="..\..\RandomEng.pas"/>
+        <UnitName Value="RandomEng"/>
+      </Item115>
+      <Item116>
+        <Filename Value="..\..\RBSplines.pas"/>
+        <UnitName Value="RBSplines"/>
+      </Item116>
+      <Item117>
+        <Filename Value="..\..\SimpleMatrixOperations.pas"/>
+        <UnitName Value="SimpleMatrixOperations"/>
+      </Item117>
+      <Item118>
+        <Filename Value="..\..\SimpleWinThreadPool.pas"/>
+        <UnitName Value="SimpleWinThreadPool"/>
+      </Item118>
+      <Item119>
+        <Filename Value="..\..\Statistics.pas"/>
+        <UnitName Value="Statistics"/>
+      </Item119>
+      <Item120>
+        <Filename Value="..\..\ThreadedMatrix.pas"/>
+        <UnitName Value="ThreadedMatrix"/>
+      </Item120>
+      <Item121>
+        <Filename Value="..\..\ThreadedMatrixOperations.pas"/>
+        <UnitName Value="ThreadedMatrixOperations"/>
+      </Item121>
+      <Item122>
+        <Filename Value="..\..\tSNE.pas"/>
+        <UnitName Value="tSNE"/>
+      </Item122>
+      <Item123>
+        <Filename Value="..\..\winCPUInfo.pas"/>
+        <UnitName Value="winCPUInfo"/>
+      </Item123>
+      <Item124>
+        <Filename Value="..\..\winRandomGen.pas"/>
+        <UnitName Value="winRandomGen"/>
+      </Item124>
+      <Item125>
+        <Filename Value="..\..\WinThreadPool.pas"/>
+        <UnitName Value="WinThreadPool"/>
+      </Item125>
+    </Files>
+    <RequiredPkgs Count="1">
+      <Item1>
+        <PackageName Value="FCL"/>
+      </Item1>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+      <UseFileFilters Value="True"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>
