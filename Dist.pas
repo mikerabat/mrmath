@@ -77,11 +77,31 @@ type
 
     // calculates the mahalonobis disance from given covariance matrix R and mean M
     class function Mahalonobis(Y, R, M : IMatrix; doTryFastInf : Boolean = True) : IMatrix; overload;
+
+    // ###########################################
+    // #### Pairwise distance functions
+    // #### as input is assumed: columns are coordinates, rows are elements
+    // #### Result is a vector of length (Height)*(Height - 1) div 2
+    // ###########################################
+    class function EuclidPairDist( X : IMatrix ) : IMatrix; overload;
+    class function NormEuclidPairDist( X : IMatrix ) : IMatrix; overload;  // normalized euclid: rows are scaled by inverse of variance
+    class function AbsPairDist( X : IMatrix ) : IMatrix; overload;
+    class function MinkowskyPairDist( X : IMatrix; exponent : Double = 2 ) : IMatrix; overload;
+    class function ChebychevPairDist( X : IMatrix ) : IMatrix; overload;
+    class function MahalonobisPairDist( X : IMatrix ) : IMatrix; overload;
+
+    class function EuclidPairDist( X : TDoubleMatrix ) : TDoubleMatrix; overload;
+    class function NormEuclidPairDist( X : TDoubleMatrix ) : TDoubleMatrix; overload;  // normalized euclid: rows are scaled by inverse of variance
+    class function AbsPairDist( X : TDoubleMatrix ) : TDoubleMatrix; overload;
+    class function MinkowskyPairDist( X : TDoubleMatrix; exponent : Double = 2 ) : TDoubleMatrix; overload;
+    class function ChebychevPairDist( X : TDoubleMatrix ) : TDoubleMatrix; overload;
+    class function MahalonobisPairDist( X : TDoubleMatrix ) : TDoubleMatrix; overload;
   end;
 
 implementation
 
-uses SysUtils, MatrixConst;
+uses SysUtils, MatrixConst, MatrixASMStubSwitch, Math, Corr, MathUtilFunc, 
+  LinAlgCholesky, Types;
 
 { TDistance }
 
@@ -408,11 +428,11 @@ begin
      meanSub := MatrixClass.Create;
      denom := MatrixClass.Create;
      tmp := MatrixClass.Create( 1, x.Height );
-     
+
      for counter := 0 to maxIter - 1 do
      begin
           inc(fNumIter);
-          
+
           // 1 + ||ul - Y*e_j||
           denom.Assign(X);
           denom.SubVecInPlace(fMean, True);
@@ -467,7 +487,7 @@ begin
           meanSub.Assign(fMean);
           meanSub.SubInPlace(newMean);
 
-          // fast switch 
+          // fast switch
           switchMtx(newMean, fMean);
           switchMtx(data, dataP1);
 
@@ -476,6 +496,276 @@ begin
           if eps < relTol then
              break;
      end;
+end;
+
+
+class function TDistance.EuclidPairDist(X: TDoubleMatrix): TDoubleMatrix;
+var y1, y2 : Integer;
+    h : integer;
+    p1, p2 : PDouble;
+    destLine : IMatrix;
+    idx : integer;
+begin
+     Result := TDoubleMatrix.Create(  X.Height*(X.Height - 1) div 2, 1);
+     destLine := TDoubleMatrix.Create( X.Width, 1 );
+
+     h := X.Height;
+     idx := 0;
+     for y1 := 0 to h - 2 do
+     begin
+          X.SetSubMatrix(0, y1, X.Width, 1);
+          p1 := X.StartElement;
+          for y2 := y1 + 1 to h - 1 do
+          begin
+               X.SetSubMatrix(0, y2, X.Width, 1);
+               p2 := X.StartElement;
+
+               MatrixSub( destLine.StartElement, destLine.LineWidth, p1, p2, X.Width, 1, X.LineWidth, X.LineWidth);
+               Result.Vec[idx] := destLine.ElementwiseNorm2( True );
+
+               inc(idx);
+          end;
+     end;
+
+     X.UseFullMatrix;
+end;
+
+
+class function TDistance.NormEuclidPairDist(X: TDoubleMatrix): TDoubleMatrix;
+var varX : IMatrix;
+    y1, y2 : Integer;
+    h : integer;
+    p1, p2 : PDouble;
+    destLine : IMatrix;
+    idx : integer;
+begin
+     varX := X.Variance(False, True);
+     for y1 := 0 to VarX.VecLen - 1 do
+         varX.Vec[y1] := 1/varX.Vec[y1];
+     
+     Result := TDoubleMatrix.Create(  X.Height*(X.Height - 1) div 2, 1);
+     destLine := TDoubleMatrix.Create( X.Width, 1 );
+
+     h := X.Height;
+     idx := 0;
+     for y1 := 0 to h - 2 do
+     begin
+          X.SetSubMatrix(0, y1, X.Width, 1);
+          p1 := X.StartElement;
+          for y2 := y1 + 1 to h - 1 do
+          begin
+               X.SetSubMatrix(0, y2, X.Width, 1);
+               p2 := X.StartElement;
+
+               MatrixSub( destLine.StartElement, destLine.LineWidth, p1, p2, X.Width, 1, X.LineWidth, X.LineWidth);
+               destLine.ElementWiseMultInPlace(destLine);
+               destLine.ElementWiseMultInPlace( varX );
+               destLine.SumInPlace(True, True);
+               Result.Vec[idx] := sqrt(destLine[0, 0]);
+
+               destLine.UseFullMatrix;
+               inc(idx);
+          end;
+     end;
+
+     X.UseFullMatrix;
+end;
+
+class function TDistance.AbsPairDist(X: TDoubleMatrix): TDoubleMatrix;
+var y1, y2 : Integer;
+    h : integer;
+    p1, p2 : PDouble;
+    destLine : IMatrix;
+    sumVal : double;
+    idx : integer;
+begin
+     Result := TDoubleMatrix.Create( X.Height*(X.Height - 1) div 2, 1);
+     destLine := TDoubleMatrix.Create( X.Width, 1 );
+
+     h := X.Height;
+     idx := 0;
+     for y1 := 0 to h - 2 do
+     begin
+          X.SetSubMatrix(0, y1, X.Width, 1);
+          p1 := X.StartElement;
+          for y2 := y1 + 1 to h - 1 do
+          begin
+               X.SetSubMatrix(0, y2, X.Width, 1);
+               p2 := X.StartElement;
+
+               MatrixSub( destLine.StartElement, destLine.LineWidth, p1, p2, X.Width, 1, X.LineWidth, X.LineWidth);
+               destLine.AbsInPlace;
+               MatrixSum( @sumVal, sizeof(double), destLine.StartElement, destLine.LineWidth, destLine.Width, 1, True );
+
+               Result.Vec[idx] := sumVal;
+               inc(idx);
+          end;
+     end;
+     X.UseFullMatrix;
+end;
+
+class function TDistance.MinkowskyPairDist(X: TDoubleMatrix; exponent : Double = 2): TDoubleMatrix;
+var y1, y2 : Integer;
+    h : integer;
+    p1, p2 : PDouble;
+    destLine : IMatrix;
+    sumVal : double;
+    idx : integer;
+    pDest : PConstDoubleArr;
+    i : Integer;
+begin
+     Result := TDoubleMatrix.Create( X.Height*(X.Height - 1) div 2, 1);
+     destLine := TDoubleMatrix.Create( X.Width, 1 );
+
+     h := X.Height;
+     idx := 0;
+     for y1 := 0 to h - 2 do
+     begin
+          X.SetSubMatrix(0, y1, X.Width, 1);
+          p1 := X.StartElement;
+          for y2 := y1 + 1 to h - 1 do
+          begin
+               X.SetSubMatrix(0, y2, X.Width, 1);
+               p2 := X.StartElement;
+
+               pDest := PConstDoubleArr( destLine.StartElement );
+               MatrixSub( PDouble(pDest), destLine.LineWidth, p1, p2, X.Width, 1, X.LineWidth, X.LineWidth);
+
+               for i := 0 to destLine.Width - 1 do
+                   pDest^[i] := Power(abs(pDest^[i]), exponent);
+
+               MatrixSum( @sumVal, sizeof(double), destLine.StartElement, destLine.LineWidth, destLine.Width, 1, True );
+
+               Result.Vec[idx] := sumVal;
+               inc(idx);
+          end;
+     end;
+     X.UseFullMatrix;
+end;
+
+class function TDistance.MahalonobisPairDist(X: TDoubleMatrix): TDoubleMatrix;
+// from https://stats.stackexchange.com/questions/65705/pairwise-mahalanobis-distances
+var y1, y2 : Integer;
+    h : integer;
+    p1, p2 : PDouble;
+    destLine : IMatrix;
+    idx : integer;
+    help : IMatrix;
+    Q : IMatrix;
+    i : integer;
+    chol : IMatrix;
+    pQ : PDouble;
+    pX : PDouble;
+begin
+     // ###########################################
+     // #### Init mahalonobis: 
+     help := TCorrelation.Covariance(X);
+     if help.Cholesky( chol ) <> crOk then
+        raise Exception.Create('Cannot calculate Mahalanobis distance');
+        
+     Q := TDoubleMatrix.Create( chol.Width, X.Height );
+
+     for i := 0 to x.Height - 1 do
+     begin
+          Q.SetSubMatrix(0, i, Q.Width, 1);
+          X.SetSubMatrix(0, i, X.Width, 1);
+
+          pQ := Q.StartElement;
+          pX := X.StartElement;
+
+          MatrixCholeskyBackSolve( chol.StartElement, chol.LineWidth, chol.Width, pX, sizeof(double), pQ, sizeof(double) );
+     end;
+     
+     Q.UseFullMatrix;
+     X.UseFullMatrix;
+
+        
+     Result := TDoubleMatrix.Create( X.Height*(X.Height - 1) div 2, 1);
+     destLine := TDoubleMatrix.Create( X.Width, 1 );
+
+     // ###########################################
+     // #### Pairwise eucledian distance from here:
+     h := Q.Height;
+     idx := 0;
+     for y1 := 0 to h - 2 do
+     begin
+          Q.SetSubMatrix(0, y1, Q.Width, 1);
+          p1 := Q.StartElement;
+          for y2 := y1 + 1 to h - 1 do
+          begin
+               Q.SetSubMatrix(0, y2, Q.Width, 1);
+               p2 := Q.StartElement;
+
+               MatrixSub( destLine.StartElement, destLine.LineWidth, p1, p2, Q.Width, 1, Q.LineWidth, Q.LineWidth);
+               Result.Vec[idx] := destLine.ElementwiseNorm2(True);
+
+               inc(idx);
+          end;
+     end;
+
+     X.UseFullMatrix;
+end;
+
+class function TDistance.ChebychevPairDist(X: TDoubleMatrix): TDoubleMatrix;
+var y1, y2 : Integer;
+    h : integer;
+    p1, p2 : PDouble;
+    destLine : IMatrix;
+    idx : integer;
+begin
+     Result := TDoubleMatrix.Create( X.Height*(X.Height - 1) div 2, 1);
+     destLine := TDoubleMatrix.Create( X.Width, 1 );
+
+     h := X.Height;
+     idx := 0;
+     for y1 := 0 to h - 2 do
+     begin
+          X.SetSubMatrix(0, y1, X.Width, 1);
+          p1 := X.StartElement;
+          for y2 := y1 + 1 to h - 1 do
+          begin
+               X.SetSubMatrix(0, y2, X.Width, 1);
+               p2 := X.StartElement;
+
+               MatrixSub( destLine.StartElement, destLine.LineWidth, p1, p2, X.Width, 1, X.LineWidth, X.LineWidth);
+               destLine.AbsInPlace;
+               Result.Vec[idx] := destLine.Max;
+               inc(idx);
+          end;
+     end;
+     X.UseFullMatrix;
+end;
+
+
+class function TDistance.EuclidPairDist(X: IMatrix): IMatrix;
+begin
+     Result := EuclidPairDist(x.GetObjRef);
+end;
+
+class function TDistance.NormEuclidPairDist(X: IMatrix): IMatrix;
+begin
+     Result := NormEuclidPairDist(X.GetObjRef);
+end;
+
+class function TDistance.AbsPairDist(X: IMatrix): IMatrix;
+begin
+     Result := AbsPairDist(X.GetObjRef);
+end;
+
+class function TDistance.MinkowskyPairDist(X: IMatrix;
+  exponent: Double): IMatrix;
+begin
+     Result := MinkowskyPairDist(X.GetObjRef, exponent);
+end;
+
+class function TDistance.ChebychevPairDist(X: IMatrix): IMatrix;
+begin
+     Result := ChebychevPairDist(X.GetObjRef);
+end;
+
+class function TDistance.MahalonobisPairDist(X: IMatrix): IMatrix;
+begin
+     Result := MahalonobisPairDist(X.GetObjRef); 
 end;
 
 initialization

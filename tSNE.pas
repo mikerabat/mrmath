@@ -25,6 +25,7 @@ uses Matrix, Types, PCA;
 
 // t-Distributed Stochastic Neighbor Embedding:
 type
+  TTSNEDistFunc = (dfOrig, dfEuclid, dfNormEuclid, dfAbs, dfMahalanobis);
   TTSNEProgress = procedure(Sender : TObject; iter : integer; cost : double; yMap : IMatrix) of Object;
   TTSNEPCAInit = function : TMatrixPCA of Object;
   TtSNE = class(TMatrixClass)
@@ -32,6 +33,7 @@ type
     fPerplexity : Integer;
     fInitDims : integer;
     fTol : Double;
+    fDistFunc : TTSNEDistFunc;
 
     // internal states
     fBeta : double;
@@ -56,6 +58,7 @@ type
     procedure HBeta( D : IMatrix; beta : double; var H : double; var P : IMatrix );
     function tsne_p( P : IMatrix; numDims : integer ) : IMatrix;
     function InternalTSNE(xs: TDoubleMatrix; numDims: integer): TDoubleMatrix;
+    function PairDist(Xs: TDoubleMatrix): IMatrix;
   public
     property OnProgress : TTSNEProgress read fProgress write fProgress;
     property OnInitPCA : TTSNEPCAInit read fInitPCA write fInitPCA;
@@ -67,30 +70,35 @@ type
     // incremental pca approach -> the algorithm starts with the pairwise distance calculation
     function SymTSNEPreprocessed( X : TDoubleMatrix; numDims : integer = 2) : TDoubleMatrix;
 
-    constructor Create( initDims : integer = 30; perplexity : integer = 30; numIter : integer = 1000);
+    constructor Create( initDims : integer = 30; perplexity : integer = 30; numIter : integer = 1000; distFunc : TTSNEDistFunc = dfOrig);
 
     class function SymTSNE(X : TDoubleMatrix; numDims : integer;
-                           initDims : integer; perplexity : integer; numIter : integer = 1000) : TDoubleMatrix; overload;
+                           initDims : integer; perplexity : integer; numIter : integer = 1000;
+                           distFunc : TTSNEDistFunc = dfOrig) : TDoubleMatrix; overload;
   end;
 
 implementation
 
-uses SysUtils, MatrixConst, Math, RandomEng, Classes;
+uses SysUtils, MatrixConst, Math, RandomEng, Classes, MatrixASMStubSwitch,
+  Dist;
 
 { TtSNE }
 
-constructor TtSNE.Create(initDims, perplexity, numIter: integer);
+constructor TtSNE.Create( initDims : integer = 30; perplexity : integer = 30; 
+   numIter : integer = 1000; distFunc : TTSNEDistFunc = dfOrig);
 begin
      inherited Create;
 
+     fDistFunc := distFunc;
      fNumIter := numIter;
      fTol := 1e-5;
      fInitDims := initDims;
      fPerplexity := perplexity;
 end;
 
-class function TtSNE.SymTSNE(X: TDoubleMatrix; numDims : integer;
-  initDims, perplexity, numIter: integer): TDoubleMatrix;
+class function TtSNE.SymTSNE(X : TDoubleMatrix; numDims : integer;
+  initDims : integer; perplexity : integer; numIter : integer = 1000;
+  distFunc : TTSNEDistFunc = dfOrig) : TDoubleMatrix; 
 begin
      with TtSNE.Create(initDims, perplexity, numIter) do
      try
@@ -130,10 +138,10 @@ begin
 end;
 
 function TtSNE.InternalTSNE( xs : TDoubleMatrix; numDims : integer) : TDoubleMatrix;
-var D,P : IMatrix;
+var D, P : IMatrix;
     yData : IMatrix;
 begin
-     D := PairwiseDist(xs);
+     D := PairDist(xs);
 
      // Joint probabilities
      P := D2P(D);
@@ -185,6 +193,51 @@ begin
      Result.ScaleInPlace(-2);
      Result.AddVecInPlace(sum_x, True);
      Result.AddVecInPlace(sum_x, False);
+end;
+
+function TtSNE.PairDist(Xs: TDoubleMatrix): IMatrix;
+var pDist : IMatrix;
+    w : integer;
+    idx : integer;
+    x, y : integer;
+begin
+     // ###########################################
+     // #### Several distance measurements
+     case fDistFunc of
+      dfEuclid: pDist := TDistance.EuclidPairDist(Xs);
+      dfNormEuclid: pDist := TDistance.NormEuclidPairDist(Xs);
+      dfAbs: pDist := TDistance.AbsPairDist(Xs);
+      dfMahalanobis: pDist := TDistance.MahalonobisPairDist(Xs);
+     else
+         // original implementation -> is already square form!
+         Result := PairwiseDist(Xs);
+         exit;
+     end;
+
+     // ########################################
+     // #### Create squareform of the pairwise distance vector
+     //w := Floor( (1 + sqrt (1 + 8 * pDist.VecLen)) / 2 );
+     w := Xs.Height;
+
+     Result := MatrixClass.Create( w, w );
+
+     x := 1;
+     y := 0;
+     for idx := 0 to pDist.VecLen - 1 do
+     begin
+          Result[x, y] := pDist.Vec[idx];
+          Result[y, x] := pDist.Vec[idx];
+
+          inc(x);
+          if x >= w then
+          begin
+               inc(y);
+               x := y + 1;
+          end;
+     end;
+
+     // Result := Res.*Res
+     Result.ElementWiseMultInPlace(Result);
 end;
 
 function TtSNE.D2P(D: IMatrix): IMatrix;

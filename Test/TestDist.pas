@@ -33,11 +33,16 @@ type
     procedure TestAbsDist;
     procedure TestAbsDistRegularized;
     procedure TestPersistence;
+    procedure TestPairwiseAbsDist;
+    procedure TestPairwiseEuclidDist;
+    procedure TestPairwiseMahalDist;
+    procedure TestPairwiseNormEuclidDist;
   end;
 
 implementation
 
-uses BinaryReaderWriter, BaseMathPersistence, Dist;
+uses BinaryReaderWriter, BaseMathPersistence, Dist, MatrixASMStubSwitch, 
+  RandomEng;
 
 { TestDistance }
 
@@ -156,6 +161,67 @@ begin
      Check( CheckMtx(d.SubMatrix, cRes), 'Mahalonibis distance calculation failed');
 end;
 
+
+procedure TestDistance.TestPairwiseAbsDist;
+// vlaues from matlab...
+const cX : Array[0..14] of double = (0.5411, 0.8535, -0.4099, 0.9758, 1.3845,
+                                    -1.5409, -1.8530, -0.7113, -0.1569, -0.0627,
+                                    -0.2031, -0.2073, 0.0614, 0.2778, 0.4489);
+      cPDist : Array[0..2] of double = (7.6700, 3.9101, 4.7025);     // cityblock distance...
+var x, y : IMatrix;
+begin
+     x := TDoubleMatrix.Create( cX, 5, 3 );
+     y := TDistance.AbsPairDist(x);
+
+     Check( CheckMtx( cPDist, y.SubMatrix, y.Width, 1, 0.001), 'Eucledian pairwise distance failed');
+end;
+
+procedure TestDistance.TestPairwiseEuclidDist;
+// vlaues from matlab...
+const cX : Array[0..14] of double = (0.5411, 0.8535, -0.4099, 0.9758, 1.3845,
+                                    -1.5409, -1.8530, -0.7113, -0.1569, -0.0627,
+                                    -0.2031, -0.2073, 0.0614, 0.2778, 0.4489);
+      cPDist : Array[0..2] of double = (3.8895, 1.8067, 2.3549);
+var x, y : IMatrix;
+begin
+     x := TDoubleMatrix.Create( cX, 5, 3 );
+     y := TDistance.EuclidPairDist(x);
+
+     Check( CheckMtx( cPDist, y.SubMatrix, y.Width, 1, 0.001), 'Eucledian pairwise distance failed');
+end;
+
+procedure TestDistance.TestPairwiseMahalDist;
+// from octave
+const  cPDist : Array[0..44] of double = ( 2.7436, 3.7554, 3.2853, 2.3360, 3.6429, 2.0738, 2.3336, 2.3229, 2.6618, 3.5586,
+                                          3.4539, 2.6930, 3.6153, 3.6528, 3.7330, 2.4864, 3.9840, 2.7690, 2.3572, 3.6705,
+                                          3.3065, 3.4232, 3.4424, 3.2389, 3.7489, 3.8072, 2.7157, 3.0969, 2.0962, 3.5379,
+                                          3.3456, 2.8439, 2.9750, 3.2213, 2.6367, 2.4069, 3.9193, 3.3947, 3.9555, 2.5595,
+                                          2.3724, 2.4783, 3.6275, 4.0201, 2.6137);
+var x, y : IMatrix;
+begin
+     x := TDoubleMatrix.CreateRand( 5, 10, raSystem, 43);
+
+//     WriteMatlabData('D:\x_maha.txt', x.SubMatrix, x.Width);
+     y := TDistance.MahalonobisPairDist(x);
+
+     Check( CheckMtx( cPDist, y.SubMatrix, y.Width, 1, 0.001), 'Eucledian pairwise distance failed');
+end;
+
+procedure TestDistance.TestPairwiseNormEuclidDist;
+// from octave
+const  cPDist : Array[0..44] of double = (  2.5626, 3.7866, 2.8605, 2.8462, 4.1380, 1.9565, 1.6692, 2.2396, 2.3255, 3.8777,
+                                            3.0951, 3.2839, 3.4275, 3.0746, 3.1613, 2.3335, 3.8203, 3.6109, 1.9695, 4.0405,
+                                            3.2924, 3.0629, 4.1865, 2.7015, 4.1583, 4.0214, 2.3064, 2.8586, 1.5328, 3.1800,
+                                            3.9555, 3.0677, 2.5228, 4.1071, 2.4299, 2.8095, 3.8315, 3.9260, 4.6289, 1.8101,
+                                            2.2895, 2.4598, 3.0661, 2.6190, 3.1421);
+var x, y : IMatrix;
+begin
+     x := TDoubleMatrix.CreateRand( 5, 10, raSystem, 43);
+
+     y := TDistance.NormEuclidPairDist(x);
+
+     Check( CheckMtx( cPDist, y.SubMatrix, y.Width, 1, 0.001), 'Eucledian pairwise distance failed');
+end;
 
 initialization
 {$IFNDEF FMX}

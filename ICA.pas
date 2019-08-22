@@ -431,7 +431,7 @@ begin
      // (which is numerically most stable calculated from the schur decomposition)
      // can be calculated with the SVD since both are the same in that case
      // -> use that same decomposition as well for the inverting process!
-     // -> not svd returns V transposed!
+     // -> note svd returns V transposed!
      if mtx.SVD(U, V, s, True) <> srOk then
         raise ELinEQSingularException.Create('Error could not invert covariance matrix C');
      V.TransposeInPlace;

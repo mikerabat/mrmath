@@ -35,6 +35,11 @@ function MatrixCholeskyInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; w
 function MatrixCholeskyInPlace3(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
 function MatrixCholeskyInPlace4(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; pnlSize : TASMNativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
 
+// A is an lower triangular matrix. This function then solves for A*x = b (b is a vector)
+procedure MatrixCholeskyBackSolve(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; 
+      B : PDouble; const LineWidthB : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt);
+
+
 // threaded version of Cholesky decomposition which makes use of the threaded matrix multiplication routine
 function ThrMatrixCholeskyDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; pnlSize : integer; work : PDouble; progress : TLinEquProgress) : TCholeskyResult;
 
@@ -42,7 +47,7 @@ function ThrMatrixCholeskyDecomp(A : PDouble; const LineWidthA : TASMNativeInt; 
 implementation
 
 uses MatrixASMStubSwitch, SimpleMatrixOperations, BlockSizeSetup, Math, 
-     MtxThreadPool, ThreadedMatrixOperations;
+     MtxThreadPool, ThreadedMatrixOperations, Types;
 
 // ##########################################################
 // #### Cholesky routines
@@ -437,6 +442,47 @@ begin
 
      if Assigned(progress) then
         progress(100);
+end;
+
+procedure MatrixCholeskyBackSolve(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; 
+      B : PDouble; const LineWidthB : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt);
+var i, k : TASMNativeInt;
+    sum : double;
+    pX : PDouble;
+    pXi : PDouble;
+    pA : PDouble;
+    pB : PDouble;
+    pP : PDouble;
+begin
+     pB := B;
+     pP := A;  // diagonal elements
+     pXi := X;
+
+     // Solve L*y = b
+     for i := 0 to width - 1 do
+     begin
+          sum := pB^;
+          if i > 0 then
+          begin
+               pX := pXi;
+               dec(PByte(pX), LineWidthX);
+               pA := A;
+               inc(PByte(pA), i*LineWidthA);
+               inc(pA, i - 1);
+               for k := i - 1 downto 0 do
+               begin
+                    sum := sum - pA^*pX^;
+                    dec(pA);
+                    dec(PByte(pX), LineWidthX);
+               end;
+          end;
+
+          pXi^ := sum/pP^;
+
+          inc(PByte(pB), LineWidthB);
+          inc(PByte(pP), LineWidthA + sizeof(double));
+          inc(PByte(pXi), LineWidthX);
+     end;
 end;
 
 end.

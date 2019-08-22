@@ -55,6 +55,10 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date 22.8.2019
+* Extended distance class with pairwise distance functions
+* These distance functions are now available in tsne
+
 Date 02.07.2019
 * Created a Lazarus FPC package
 * Renamed RowMajor to ColMajor since that was actually the intention
