@@ -45,7 +45,7 @@ type
     property NumIter : integer read fNumIter;
   
     // init the distance fields from "outside"; use aMean, aR, dimx for mahalonobis and the other one for L1, euclid
-    procedure Init(aMean, aR : IMatrix; dimX : integer); overload;
+    procedure Init(aMean, aCov : IMatrix); overload;
     procedure Init(aMean : IMatrix); overload;
 
     // Returns the eucledian distance (L2) in square units. Return value is a vector of width Y
@@ -73,10 +73,10 @@ type
     // Returns the Mahalonobis distance in squared units.
     // Return value is a vector of width Y.
     // mahal =  (Y( i, :) - MU)* sigma^-1 *y(i, :) - MU)
-    class function Mahalonobis(X, Y : IMatrix) : IMatrix; overload;
+    class function Mahalanobis(X, Y : IMatrix) : IMatrix; overload;
 
     // calculates the mahalonobis disance from given covariance matrix R and mean M
-    class function Mahalonobis(Y, R, M : IMatrix; doTryFastInf : Boolean = True) : IMatrix; overload;
+    class function Mahalanobis(Y, R, M : IMatrix; doTryFastInf : Boolean = True) : IMatrix; overload;
 
     // ###########################################
     // #### Pairwise distance functions
@@ -88,14 +88,14 @@ type
     class function AbsPairDist( X : IMatrix ) : IMatrix; overload;
     class function MinkowskyPairDist( X : IMatrix; exponent : Double = 2 ) : IMatrix; overload;
     class function ChebychevPairDist( X : IMatrix ) : IMatrix; overload;
-    class function MahalonobisPairDist( X : IMatrix ) : IMatrix; overload;
+    class function MahalanobisPairDist( X : IMatrix ) : IMatrix; overload;
 
     class function EuclidPairDist( X : TDoubleMatrix ) : TDoubleMatrix; overload;
     class function NormEuclidPairDist( X : TDoubleMatrix ) : TDoubleMatrix; overload;  // normalized euclid: rows are scaled by inverse of variance
     class function AbsPairDist( X : TDoubleMatrix ) : TDoubleMatrix; overload;
     class function MinkowskyPairDist( X : TDoubleMatrix; exponent : Double = 2 ) : TDoubleMatrix; overload;
     class function ChebychevPairDist( X : TDoubleMatrix ) : TDoubleMatrix; overload;
-    class function MahalonobisPairDist( X : TDoubleMatrix ) : TDoubleMatrix; overload;
+    class function MahalanobisPairDist( X : TDoubleMatrix ) : TDoubleMatrix; overload;
   end;
 
 implementation
@@ -123,25 +123,40 @@ end;
 function TDistance.MahalDist(Y: IMatrix): IMatrix;
 var M : IMatrix;
     ri : IMatrix;
+    i : integer;
+    Q : IMatrix;
 begin
      if not Assigned(fMean) or not Assigned(fR) then
         raise Exception.Create('Error call InitMahal first');
 
      M := Y.SubVec(fMean, True);
-     M.TransposeInPlace;
 
-     ri := fR.Mult(M);
-
-     ri.ElementWiseMultInPlace(ri);
-     ri.SumInPlace(False);
-     Result := ri.Transpose;
-     Result.ScaleInPlace(fRX - 1);
+     if fRx < 0 then
+     begin
+          // from init with the cholesky decomposition of the covariance matrix
+          Q := TDoubleMatrix.Create( Y.Width, 1 );
+          Result := TDoubleMatrix.Create( 1, Y.Height );
+          for i := 0 to M.Height - 1 do
+          begin
+               M.SetSubMatrix(0, i, M.Width, 1);
+               MatrixCholeskyBackSolve( fR.StartElement, fR.LineWidth, fR.Width, M.StartElement, sizeof(double), Q.StartElement, sizeof(double) );
+               Result[0, i] := Q.ElementwiseNorm2(False);
+          end;
+     end
+     else
+     begin
+          ri := fR.MultT2(M);
+          ri.ElementWiseMultInPlace(ri);
+          ri.SumInPlace(False);
+          Result := ri.Transpose;
+          Result.ScaleInPlace(fRX - 1);
+     end;
 end;
 
 
 // ###############################################
 // #### One time used short methods
-class function TDistance.Mahalonobis(X, Y: IMatrix): IMatrix;
+class function TDistance.Mahalanobis(X, Y: IMatrix): IMatrix;
 begin
      with TDistance.Create do
      try
@@ -152,7 +167,7 @@ begin
      end;
 end;
 
-class function TDistance.Mahalonobis(Y, R, M: IMatrix; doTryFastInf : Boolean = True): IMatrix;
+class function TDistance.Mahalanobis(Y, R, M: IMatrix; doTryFastInf : Boolean = True): IMatrix;
 var RT : IMatrix;
     rInv : IMatrix;
 begin
@@ -327,11 +342,12 @@ begin
      fRx := 0;
 end;
 
-procedure TDistance.Init(aMean, aR: IMatrix; dimX : integer);
+procedure TDistance.Init(aMean, aCov: IMatrix);
 begin
+     if aCov.Cholesky(fR) <> crOk then
+        raise Exception.Create('Cannot init mahalanobis');
      fMean := aMean.Clone;
-     fR := aR.Clone;
-     fRx := dimX;
+     fRx := -1;
 end;
 
 // ######################################################################
@@ -643,7 +659,7 @@ begin
      X.UseFullMatrix;
 end;
 
-class function TDistance.MahalonobisPairDist(X: TDoubleMatrix): TDoubleMatrix;
+class function TDistance.MahalanobisPairDist(X: TDoubleMatrix): TDoubleMatrix;
 // from https://stats.stackexchange.com/questions/65705/pairwise-mahalanobis-distances
 var y1, y2 : Integer;
     h : integer;
@@ -763,9 +779,9 @@ begin
      Result := ChebychevPairDist(X.GetObjRef);
 end;
 
-class function TDistance.MahalonobisPairDist(X: IMatrix): IMatrix;
+class function TDistance.MahalanobisPairDist(X: IMatrix): IMatrix;
 begin
-     Result := MahalonobisPairDist(X.GetObjRef); 
+     Result := MahalanobisPairDist(X.GetObjRef); 
 end;
 
 initialization

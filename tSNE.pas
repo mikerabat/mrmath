@@ -207,7 +207,7 @@ begin
       dfEuclid: pDist := TDistance.EuclidPairDist(Xs);
       dfNormEuclid: pDist := TDistance.NormEuclidPairDist(Xs);
       dfAbs: pDist := TDistance.AbsPairDist(Xs);
-      dfMahalanobis: pDist := TDistance.MahalonobisPairDist(Xs);
+      dfMahalanobis: pDist := TDistance.MahalanobisPairDist(Xs);
      else
          // original implementation -> is already square form!
          Result := PairwiseDist(Xs);

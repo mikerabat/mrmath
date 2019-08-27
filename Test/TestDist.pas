@@ -42,7 +42,7 @@ type
 implementation
 
 uses BinaryReaderWriter, BaseMathPersistence, Dist, MatrixASMStubSwitch, 
-  RandomEng;
+  RandomEng, Corr;
 
 { TestDistance }
 
@@ -50,16 +50,35 @@ procedure TestDistance.TestMahalonobis;
 const cRes : Array[0..3] of double = (0.6288, 19.3520, 21.1384, 0.9404);
 var x : IMatrix;
     y : IMatrix;
-    d : IMatrix;
+    d, d1 : IMatrix;
+    cov : IMatrix;
+    aMean : IMatrix;
 begin
      x := ReadObjFromFile(BaseDataPath + 'mahalonobis.dat') as TDoubleMatrix;
      y := TDoubleMatrix.Create( [1, 1, 1, -1, -1, 1, -1, -1], 2, 4);
 
-     d := TDistance.Mahalonobis(x, y);
+     WriteMatlabData('D:\mahal_x.txt', x.SubMatrix, x.Width);
+     WriteMatlabData('D:\mahal_y.txt', y.SubMatrix, y.Width);     
+     d := TDistance.Mahalanobis(x, y);
 
      Status( WriteMtx(d.GetObjRef) );
 
      Check( CheckMtx(d.SubMatrix, cRes), 'Mahalonibis distance calculation failed');
+
+     cov := TCorrelation.Covariance(x);
+
+     with TDistance.Create do
+     try
+        aMean := x.Mean(False);
+        Init( aMean, cov );
+
+        d1 := MahalDist(y);
+
+        Check( CheckMtx(d.SubMatrix, d1.SubMatrix), 'Mahalonibis distance calculation failed');
+     finally
+            Free;
+     end;
+     
 end;
 
 procedure TestDistance.TestAbsDistRegularized;
@@ -202,7 +221,7 @@ begin
      x := TDoubleMatrix.CreateRand( 5, 10, raSystem, 43);
 
 //     WriteMatlabData('D:\x_maha.txt', x.SubMatrix, x.Width);
-     y := TDistance.MahalonobisPairDist(x);
+     y := TDistance.MahalanobisPairDist(x);
 
      Check( CheckMtx( cPDist, y.SubMatrix, y.Width, 1, 0.001), 'Eucledian pairwise distance failed');
 end;

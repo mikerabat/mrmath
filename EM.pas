@@ -20,7 +20,7 @@ uses Matrix;
 
 //  EM algorithm for k multidimensional Gaussian mixture estimation
 type
-  TExpectationMaxUpdate = procedure(Sender : TObject; iter : integer; W, M : IMatrix; V : IMatrixDynArr) of object;
+  TExpectationMaxUpdate = procedure(Sender : TObject; iter : integer; W, M : IMatrix; V : IMatrixDynArr; E : IMatrix) of object;
   TExpectationMax = class(TMatrixClass)
   private
     fNumIter : integer;
@@ -30,6 +30,7 @@ type
     fk : Integer;
     fX : IMatrix;
     fS, fU : IMatrix;
+    fE : IMatrix;
 
     fOnUpdate: TExpectationMaxUpdate;
 
@@ -42,7 +43,8 @@ type
     function Maximization( E : IMatrix ) : boolean;  // returns false if invertion failed or no examples in one example
   public
     property OnUpdate : TExpectationMaxUpdate read fOnUpdate write fOnUpdate;
-
+    property E : IMatrix read fE;  // expectation matrix of the last iteration
+    
     // estimate weights matrix W, mean vectors M and covariance matrix V on
     // input data X. A data point is presented row wise.
     // k states the number of components.
@@ -84,6 +86,7 @@ var ln, lo : double;
 begin
      Result := False;
 
+     fE := nil;
      fX := X;
      fk := k;
 
@@ -100,7 +103,7 @@ begin
      if Assigned(fOnUpdate) then
      begin
           mt := fM.Transpose;
-          fOnUpdate(Self, 0, fW, mt, fV);
+          fOnUpdate(Self, 0, fW, mt, fV, nil);
      end;
 
      // ###########################################
@@ -125,8 +128,10 @@ begin
              if Assigned(fOnUpdate) then
              begin
                   mt := fM.Transpose;
-                  fOnUpdate(Self, iter, fW, mt, fV);
+                  fOnUpdate(Self, iter, fW, mt, fV, E);
              end;
+
+             fE := E;
         end;
 
         Result := iter < fNumIter;
