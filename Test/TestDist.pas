@@ -57,8 +57,6 @@ begin
      x := ReadObjFromFile(BaseDataPath + 'mahalonobis.dat') as TDoubleMatrix;
      y := TDoubleMatrix.Create( [1, 1, 1, -1, -1, 1, -1, -1], 2, 4);
 
-     WriteMatlabData('D:\mahal_x.txt', x.SubMatrix, x.Width);
-     WriteMatlabData('D:\mahal_y.txt', y.SubMatrix, y.Width);     
      d := TDistance.Mahalanobis(x, y);
 
      Status( WriteMtx(d.GetObjRef) );
