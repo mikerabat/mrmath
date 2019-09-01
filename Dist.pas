@@ -76,7 +76,7 @@ type
     class function Mahalanobis(X, Y : IMatrix) : IMatrix; overload;
 
     // calculates the mahalonobis disance from given covariance matrix R and mean M
-    class function Mahalanobis(Y, R, M : IMatrix; doTryFastInf : Boolean = True) : IMatrix; overload;
+    class function Mahalanobis(Y, aCov, aMean : IMatrix) : IMatrix; overload;
 
     // ###########################################
     // #### Pairwise distance functions
@@ -135,7 +135,7 @@ begin
      begin
           // from init with the cholesky decomposition of the covariance matrix
           Q := TDoubleMatrix.Create( Y.Width, 1 );
-          Result := TDoubleMatrix.Create( 1, Y.Height );
+          Result := MatrixClass.Create( 1, Y.Height );
           for i := 0 to M.Height - 1 do
           begin
                M.SetSubMatrix(0, i, M.Width, 1);
@@ -167,19 +167,11 @@ begin
      end;
 end;
 
-class function TDistance.Mahalanobis(Y, R, M: IMatrix; doTryFastInf : Boolean = True): IMatrix;
-var RT : IMatrix;
-    rInv : IMatrix;
+class function TDistance.Mahalanobis(Y, aCov, aMean: IMatrix): IMatrix;
 begin
-     RT := R.Transpose;
-
-     if not doTryFastInf or (RT.Invert(rInv) <> leOk) then
-        if RT.PseudoInversion(rInv) = srNoConvergence then
-
      with TDistance.Create do
      try
-        fR := rInv;
-        fMean := M;
+        Init( aMean, aCov );
         Result := MahalDist(Y);
      finally
             Free;
@@ -522,7 +514,7 @@ var y1, y2 : Integer;
     destLine : IMatrix;
     idx : integer;
 begin
-     Result := TDoubleMatrix.Create(  X.Height*(X.Height - 1) div 2, 1);
+     Result := DefMatrixClass.Create(  X.Height*(X.Height - 1) div 2, 1);
      destLine := TDoubleMatrix.Create( X.Width, 1 );
 
      h := X.Height;
@@ -558,8 +550,8 @@ begin
      varX := X.Variance(False, True);
      for y1 := 0 to VarX.VecLen - 1 do
          varX.Vec[y1] := 1/varX.Vec[y1];
-     
-     Result := TDoubleMatrix.Create(  X.Height*(X.Height - 1) div 2, 1);
+
+     Result := DefMatrixClass.Create(  X.Height*(X.Height - 1) div 2, 1);
      destLine := TDoubleMatrix.Create( X.Width, 1 );
 
      h := X.Height;
@@ -595,7 +587,7 @@ var y1, y2 : Integer;
     sumVal : double;
     idx : integer;
 begin
-     Result := TDoubleMatrix.Create( X.Height*(X.Height - 1) div 2, 1);
+     Result := DefMatrixClass.Create( X.Height*(X.Height - 1) div 2, 1);
      destLine := TDoubleMatrix.Create( X.Width, 1 );
 
      h := X.Height;
@@ -630,7 +622,7 @@ var y1, y2 : Integer;
     pDest : PConstDoubleArr;
     i : Integer;
 begin
-     Result := TDoubleMatrix.Create( X.Height*(X.Height - 1) div 2, 1);
+     Result := DefMatrixClass.Create( X.Height*(X.Height - 1) div 2, 1);
      destLine := TDoubleMatrix.Create( X.Width, 1 );
 
      h := X.Height;
@@ -691,12 +683,12 @@ begin
 
           MatrixCholeskyBackSolve( chol.StartElement, chol.LineWidth, chol.Width, pX, sizeof(double), pQ, sizeof(double) );
      end;
-     
+
      Q.UseFullMatrix;
      X.UseFullMatrix;
 
-        
-     Result := TDoubleMatrix.Create( X.Height*(X.Height - 1) div 2, 1);
+
+     Result := DefMatrixClass.Create( X.Height*(X.Height - 1) div 2, 1);
      destLine := TDoubleMatrix.Create( X.Width, 1 );
 
      // ###########################################
@@ -729,7 +721,7 @@ var y1, y2 : Integer;
     destLine : IMatrix;
     idx : integer;
 begin
-     Result := TDoubleMatrix.Create( X.Height*(X.Height - 1) div 2, 1);
+     Result := DefMatrixClass.Create( X.Height*(X.Height - 1) div 2, 1);
      destLine := TDoubleMatrix.Create( X.Width, 1 );
 
      h := X.Height;

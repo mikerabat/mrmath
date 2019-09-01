@@ -30,6 +30,9 @@ type
   TTSNEPCAInit = function : TMatrixPCA of Object;
   TtSNE = class(TMatrixClass)
   private
+    const cK : double = 0.2;
+          cPhi : double = 0.8;
+  private
     fPerplexity : Integer;
     fInitDims : integer;
     fTol : Double;
@@ -151,7 +154,7 @@ begin
      yData := tsne_p(P, numDims);
 
      // handle the reference counting
-     Result := TDoubleMatrix.Create;
+     Result := MatrixClass.Create;
      Result.TakeOver(yData.GetObjRef);
 
      fQ := nil;
@@ -521,9 +524,9 @@ procedure TtSNE.UpdateGains(var Value: double; const data: PDouble; LineWidth,
 begin
      if sign( fy_grads[x, y] ) = sign( fyincs[x, y] )
      then
-         value := 0.8*value
+         value := cPhi*value
      else
-         value := value + 0.2;
+         value := value + cK;
 
      value := Math.Max(value, fminGain)
 end;
