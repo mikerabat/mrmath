@@ -33,7 +33,7 @@ type
 
 implementation
 
-uses tSNE, types, RandomEng, MatrixASMStubSwitch;
+uses tSNE, RandomEng, MatrixASMStubSwitch;
 { TTestTSNE }
 
 procedure TTestTSNE.TestGauss;

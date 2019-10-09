@@ -214,12 +214,16 @@ begin
      hasExp1 := False;
      hasExp2 := False;
      try
-        {$IFDEF FPC}xln1 := {$ENDIF}ln( Gamma(-1));
+        xln1 := ln( Gamma(-1) );
+        if IsInfinite(xln1) or IsNan(xln1) then
+           raise Exception.Create('xln1');
      except
            hasExp1 := True;
      end;
      try
-        gammaln(-1);
+        xln1 := GammaLn(-1);
+        if IsInfinite(xln1) or IsNan(xln1) then
+           raise Exception.Create('xln2');
      except
            hasExp2 := True;
      end;

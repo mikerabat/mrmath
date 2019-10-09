@@ -137,10 +137,11 @@ begin
     aTask.ExecuteAsync;
 end;
 
-constructor TSimpleLinuxThreadGroup.Create;
+constructor TSimpleLinuxThreadGroup.Create(pool : TMtxThreadPool);
 begin
      fTaskList := TInterfaceList.Create;
      fTaskList.Capacity := numCPUCores;
+     fPool := pool;
 
      inherited Create;
 end;
@@ -417,7 +418,7 @@ begin
 end;
 
 initialization
-   SetThreadPoolProvider( CreateThreadPoolObj );
+   SetThreadPoolProvider( {$IFDEF FPC}@{$ENDIF}CreateThreadPoolObj );
 
    numCPUCores := sysconf( _SC_NPROCESSORS_ONLN);
    if numCPUCores > 64 then

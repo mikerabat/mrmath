@@ -92,7 +92,7 @@ var threadPoolProviderFunc : TThreadPoolProviderFunc;
 
 procedure SetThreadPoolProvider( func : TThreadPoolProviderFunc );
 begin
-     threadPoolProviderFunc := {$IFDEF FPC}@{$ENDIF}func;
+     threadPoolProviderFunc := func;
 end;
 
 procedure InitMtxThreadPool;

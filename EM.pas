@@ -81,7 +81,7 @@ end;
 function TExpectationMax.Estimate(X : IMatrix; k : integer; var W, M : IMatrix; var V : IMatrixDynArr) : boolean;
 var ln, lo : double;
     iter : Integer;
-    E : IMatrix;
+    mtxE : IMatrix;
     mT : IMatrix;
 begin
      Result := False;
@@ -116,10 +116,10 @@ begin
         while (abs(100*(ln-lo)/lo)>fltol) and (iter < fNumIter) do
         begin
              // E - Step:
-             E := Expectation;
+             mtxE := Expectation;
 
              // M - Step
-             if not Maximization(E) then
+             if not Maximization(mtxE) then
                 exit;
              lo := ln;
              ln := Likelihood;
@@ -128,10 +128,10 @@ begin
              if Assigned(fOnUpdate) then
              begin
                   mt := fM.Transpose;
-                  fOnUpdate(Self, iter, fW, mt, fV, E);
+                  fOnUpdate(Self, iter, fW, mt, fV, mtxE);
              end;
 
-             fE := E;
+             fE := mtxE;
         end;
 
         Result := iter < fNumIter;
