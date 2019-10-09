@@ -24,14 +24,9 @@ unit WinThreadPool;
 interface
 {$IFDEF MSWINDOWS}
 uses MtxThreadPool, SysUtils;
-
 {.$DEFINE USE_THREAD_CPU_AFFINITY}
-
-procedure InitWinMtxThreadPool;
-procedure FinalizeWinMtxThreadPool;
-function InitWinThreadGroup : IMtxAsyncCallGroup;
-
 {$ENDIF}
+
 implementation
 {$IFDEF MSWINDOWS}
 uses Classes, 
@@ -41,6 +36,7 @@ uses Classes,
      {$ENDIF}, SyncObjs, winCPUInfo, CPUFeatures;
 
 type
+  TMtxThreadPool = class;
   TWinMtxAsyncCall = class(TInterfacedObject, IMtxAsyncCall)
   private
     FEvent: THandle;
@@ -51,14 +47,15 @@ type
     fProc : TMtxProc;
     fRec : Pointer;
     fRecProc : TMtxRecProc;
+    fThreadPool : TMtxThreadPool;
 
     procedure InternExecuteAsyncCall;
     procedure Quit;
   protected
     procedure ExecuteAsyncCall;
   public
-    constructor Create(proc : TMtxProc; obj : TObject);
-    constructor CreateRec(proc : TMtxRecProc; rec : Pointer);
+    constructor Create(pool : TMtxThreadPool; proc : TMtxProc; obj : TObject);
+    constructor CreateRec(pool : TMtxThreadPool; proc : TMtxRecProc; rec : Pointer);
     destructor Destroy; override;
     function _Release: Integer; stdcall;
     procedure ExecuteAsync;
@@ -67,7 +64,6 @@ type
     function Finished: Boolean;
   end;
 
-type
   { TWinMtxAsyncCallThread is a pooled thread. It looks itself for work. }
   TWinMtxAsyncCallThread = class(TThread)
   protected
@@ -87,8 +83,7 @@ type
     destructor Destroy; override;
   end;
 
-type
-  TMtxThreadPool = class(TObject)
+  TMtxThreadPool = class(TInterfacedObject, IMtxThreadPool)
   private
     fThreadList : TThreadList;
     fMaxThreads: integer;
@@ -99,24 +94,26 @@ type
   public
     procedure AddAsyncCall(call : TWinMtxAsyncCall);
 
+    procedure InitPool( maxNumThreads : integer );
+    function CreateTaskGroup : IMtxAsyncCallGroup;
+
     property MaxThreads : integer read fMaxThreads write fMaxThreads;
 
     constructor Create;
     destructor Destroy; override;
   end;
 
-var threadPool : TMtxThreadPool = nil;
-
 type
   TSimpleWinThreadGroup = class(TInterfacedObject, IMtxAsyncCallGroup)
   private
     fTaskList : IInterfaceList;
+    fPool : TMtxThreadPool;
   public
     procedure AddTaskRec(proc : TMtxRecProc; rec : Pointer);
     procedure AddTask(proc : TMtxProc; obj : TObject);
     procedure SyncAll;
 
-    constructor Create;
+    constructor Create(pool : TMtxThreadPool);
   end;
 
 { TSimpleWinThreadGroup }
@@ -124,13 +121,14 @@ type
 procedure TSimpleWinThreadGroup.AddTask(proc : TMtxProc; obj : TObject);
 var aTask : IMtxAsyncCall;
 begin
-     aTask := TWinMtxAsyncCall.Create(proc, obj);
+     aTask := TWinMtxAsyncCall.Create(fPool, proc, obj);
      fTaskList.Add(aTask);
      aTask.ExecuteAsync;
 end;
 
-constructor TSimpleWinThreadGroup.Create;
+constructor TSimpleWinThreadGroup.Create(pool : TMtxThreadPool);
 begin
+     fPool := pool;
      fTaskList := TInterfaceList.Create;
      fTaskList.Capacity := numCPUCores;
 
@@ -148,28 +146,10 @@ begin
      end;
 end;
 
-function InitWinThreadGroup : IMtxAsyncCallGroup;
-begin
-     Assert(Assigned(threadPool), 'Error thread pool not initialized. Call InitMtxThreadPool first');
-     Result := TSimpleWinThreadGroup.Create;
-end;
-
-procedure InitWinMtxThreadPool;
-begin
-     Assert(Not Assigned(threadPool), 'Error thread pool already initialized. Call FinalizeMtxThreadPool first');
-     threadPool := TMtxThreadPool.Create;
-end;
-
-procedure FinalizeWinMtxThreadPool;
-begin
-     Assert(Assigned(threadPool), 'Error thread pool not initialized. Call InitMtxThreadPool first');
-     FreeAndNil(threadPool);
-end;
-
 procedure TSimpleWinThreadGroup.AddTaskRec(proc: TMtxRecProc; rec: Pointer);
 var aTask : IMtxAsyncCall;
 begin
-     aTask := TWinMtxAsyncCall.CreateRec(proc, rec);
+     aTask := TWinMtxAsyncCall.CreateRec(fPool, proc, rec);
      fTaskList.Add(aTask);
      aTask.ExecuteAsync;
 end;
@@ -321,19 +301,10 @@ begin
 end;
 
 constructor TMtxThreadPool.Create;
-var sysInfo : TSystemInfo;
-    i: Integer;
 begin
-     inherited Create;
-
-     fNumThreads := 0;
-     GetSystemInfo(sysInfo);
      fThreadList := TThreadList.Create;
-     fMaxThreads := sysInfo.dwNumberOfProcessors;
-     fNumCPU := sysInfo.dwNumberOfProcessors;
 
-     for i := 0 to fNumCPU - 1 do
-         AllocThread;
+     inherited Create;
 end;
 
 destructor TMtxThreadPool.Destroy;
@@ -352,20 +323,22 @@ begin
      inherited;
 end;
 
-constructor TWinMtxAsyncCall.Create(proc : TMtxProc; obj : TObject);
+constructor TWinMtxAsyncCall.Create(pool : TMtxThreadPool; proc : TMtxProc; obj : TObject);
 begin
      inherited Create;
 
+     fThreadPool := pool;
      FEvent := 0;
 
      fProc := proc;
      fData := obj;
 end;
 
-constructor TWinMtxAsyncCall.CreateRec(proc: TMtxRecProc; rec: Pointer);
+constructor TWinMtxAsyncCall.CreateRec(pool : TMtxThreadPool; proc: TMtxRecProc; rec: Pointer);
 begin
      inherited Create;
 
+     fThreadPool := pool;
      FEvent := 0;
 
      fRecProc := proc;
@@ -431,7 +404,7 @@ end;
 
 procedure TWinMtxAsyncCall.ExecuteAsync;
 begin
-     ThreadPool.AddAsyncCall(Self);
+     fThreadPool.AddAsyncCall(Self);
 end;
 
 procedure TWinMtxAsyncCall.ExecuteAsyncCall;
@@ -443,6 +416,41 @@ begin
          fProc(fData);
 end;
 
+
+procedure TMtxThreadPool.InitPool(maxNumThreads: integer);
+var sysInfo : TSystemInfo;
+    i: Integer;
+    numAllocThreads : integer;
+begin
+     fNumThreads := 0;
+     GetSystemInfo(sysInfo);
+     fMaxThreads := sysInfo.dwNumberOfProcessors;
+
+     if fMaxThreads > maxNumThreads then
+        fMaxThreads := maxNumThreads;
+     fNumCPU := sysInfo.dwNumberOfProcessors;
+
+     numAllocThreads := fNumCPU;
+     if fNumCPU > fMaxThreads then
+        numAllocThreads := fMaxThreads;
+
+     for i := 0 to numAllocThreads - 1 do
+         AllocThread;
+end;
+
+
+function TMtxThreadPool.CreateTaskGroup: IMtxAsyncCallGroup;
+begin
+     Result := TSimpleWinThreadGroup.Create(self);
+end;
+
+function CreateThreadPoolObj : IMtxThreadPool;
+begin
+     Result := TMtxThreadPool.Create;
+end;
+
+initialization
+   SetThreadPoolProvider( CreateThreadPoolObj );
 
 {$ENDIF}
 

@@ -26,6 +26,10 @@ interface
 
 uses MatrixConst;
 
+{$IFDEF FPC} {$IFDEF DARWIN}
+  {$DEFINE MACOS}   // delphi defines macos, fpc darwin
+{$ENDIF}{$ENDIF}
+
 type
   TMtxProc = procedure(obj : TObject);
   TMtxRecProc = procedure(rec : Pointer);
@@ -38,14 +42,29 @@ type
   end;
   IMtxAsyncCallGroup = interface
    ['{11438431-7A6A-4FB9-B67A-58CE23E324DB}']
-   procedure AddTask(proc : TMtxProc; obj : TObject); 
+   procedure AddTask(proc : TMtxProc; obj : TObject);
    procedure AddTaskRec(proc : TMtxRecProc; rec : Pointer);
    procedure SyncAll;
   end;
 
+// ################################################
+// #### interfaces that need to be implemented for external
+// thread pools
+type
+  IMtxThreadPool = interface
+    ['{9BF6425A-A6DD-466E-B642-7BE05282CADD}']
+    procedure InitPool( maxNumThreads : integer );
+    function CreateTaskGroup : IMtxAsyncCallGroup;
+  end;
+
+type
+  TThreadPoolProviderFunc = function : IMtxThreadPool;
+
+// these functions are called in the matrix library
+procedure SetThreadPoolProvider( func : TThreadPoolProviderFunc );
+
 procedure InitMtxThreadPool;
 procedure FinalizeMtxThreadPool;
-
 function MtxInitTaskGroup : IMtxAsyncCallGroup;
 
 const cMaxNumCores = 64;                          // limit the maximum usabel cores
@@ -56,87 +75,44 @@ var numCPUCores : TASMNativeInt = 0;
 
 implementation
 
-// ###########################################
-// #### Windows Thread Pooling
-// ###########################################
-
 {$IFDEF MSWINDOWS }
-
-{.$DEFINE USE_OS_THREADPOOL}
-
 uses {$IFDEF USE_OS_THREADPOOL}SimpleWinThreadPool{$ELSE} WinThreadPool{$ENDIF};
-
-procedure InitMtxThreadPool;
-begin
-     InitWinMtxThreadPool;
-end;
-
-procedure FinalizeMtxThreadPool;
-begin
-     FinalizeWinMtxThreadPool;
-end;
-
-function MtxInitTaskGroup : IMtxAsyncCallGroup;
-begin
-     Result := InitWinThreadGroup;
-end;
-
 {$ENDIF}
-
-// ###########################################
-// #### Linux Thread pooling
-// ###########################################
-
 {$IFDEF LINUX}
-
 uses linuxthrpool;
-
-procedure InitMtxThreadPool;
-begin
-     InitLinuxMtxThreadPool;
-end;
-
-procedure FinalizeMtxThreadPool;
-begin
-     FinalizeLinuxMtxThreadPool;
-end;
-
-function MtxInitTaskGroup : IMtxAsyncCallGroup;
-begin
-     Result := InitLinuxThreadGroup;
-end;
-
 {$ENDIF}
-
-// ###########################################
-// #### MACOS Thread pooling
-// ###########################################
-
-{$IFDEF FPC} {$IFDEF DARWIN}
-  {$DEFINE MACOS}   // delphi defines macos, fpc darwin
-{$ENDIF}{$ENDIF}
 // delphi define
 {$IFDEF MACOS}
-
 uses MacOsThreadPool;
+{$ENDIF}
+
+
+var threadPoolProviderFunc : TThreadPoolProviderFunc;
+    thrPool : IMtxThreadPool = nil;
+
+procedure SetThreadPoolProvider( func : TThreadPoolProviderFunc );
+begin
+     threadPoolProviderFunc := {$IFDEF FPC}@{$ENDIF}func;
+end;
 
 procedure InitMtxThreadPool;
 begin
-     InitMacMtxThreadPool;
+     if thrpool = nil then
+     begin
+          thrPool := threadPoolProviderFunc();
+          thrPool.InitPool(numCPUCores);
+     end;
 end;
 
 procedure FinalizeMtxThreadPool;
 begin
-     FinalizeMacMtxThreadPool;
+     thrPool := nil;
 end;
 
 function MtxInitTaskGroup : IMtxAsyncCallGroup;
 begin
-     Result := InitMacMtxGroup;
+     assert(Assigned(thrPool), 'Error call InitMtxThreadPool first');
+     Result := thrPool.CreateTaskGroup;
 end;
-
-{$ENDIF}
-
-
 
 end.

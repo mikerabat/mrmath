@@ -24,10 +24,6 @@ interface
 {$IFDEF LINUX}
 uses MtxThreadPool, SysUtils;
 
-procedure InitLinuxMtxThreadPool;
-procedure FinalizeLinuxMtxThreadPool;
-function InitLinuxThreadGroup : IMtxAsyncCallGroup;
-
 {$ENDIF}
 implementation
 {$IFDEF LINUX}
@@ -38,6 +34,7 @@ const _SC_NPROCESSORS_ONLN = 83;
 function sysconf(i : cint): clong; cdecl; external name 'sysconf';
 
 type
+  TMtxThreadPool = class;
   TLinuxMtxAsyncCall = class(TInterfacedObject, IMtxAsyncCall)
   private
     FEvent: TEvent;
@@ -49,6 +46,7 @@ type
     fRecProc : TMtxRecProc;
     fRec : Pointer;
     FForceDifferentThread: Boolean;
+    fPool : TMtxThreadPool;
     procedure InternExecuteAsyncCall;
     procedure Quit;
   protected
@@ -56,8 +54,8 @@ type
       should be executed. }
     procedure ExecuteAsyncCall;
   public
-    constructor Create(proc : TMtxProc; obj : TObject);
-    constructor CreateRec(proc : TMtxRecProc; rec : pointer);
+    constructor Create(pool : TMtxThreadPool; proc : TMtxProc; obj : TObject);
+    constructor CreateRec(pool : TMtxThreadPool; proc : TMtxRecProc; rec : pointer);
 
     destructor Destroy; override;
     function _Release: Integer; stdcall;
@@ -70,7 +68,6 @@ type
     procedure ForceDifferentThread;
   end;
 
-type
   { TLinuxMtxAsyncCallThread is a pooled thread. It looks itself for work. }
   TLinuxMtxAsyncCallThread = class(TThread)
   protected
@@ -89,8 +86,7 @@ type
     destructor Destroy; override;
   end;
 
-type
-  TMtxThreadPool = class(TObject)
+  TMtxThreadPool = class(TInterfacedObject, IMtxThreadPool)
   private
     fThreadList : TThreadList;
     fMaxThreads: integer;
@@ -101,32 +97,34 @@ type
   public
     procedure AddAsyncCall(call : TLinuxMtxAsyncCall);
 
+    procedure InitPool( maxNumThreads : integer );
+    function CreateTaskGroup : IMtxAsyncCallGroup;
+
     property MaxThreads : integer read fMaxThreads write fMaxThreads;
 
     constructor Create;
     destructor Destroy; override;
   end;
 
-var threadPool : TMtxThreadPool = nil;
-
 type
   TSimpleLinuxThreadGroup = class(TInterfacedObject, IMtxAsyncCallGroup)
   private
     fTaskList : IInterfaceList;
+    fPool : TMtxThreadPool;
   public
-    procedure AddTask(proc : TMtxProc; obj : TObject); 
+    procedure AddTask(proc : TMtxProc; obj : TObject);
     procedure AddTaskRec(proc : TMtxRecProc; rec : Pointer);
     procedure SyncAll;
 
-    constructor Create;
+    constructor Create(pool : TMtxThreadPool);
   end;
-  
+
 { TSimpleLinuxThreadGroup }
 
 procedure TSimpleLinuxThreadGroup.AddTask(proc : TMtxProc; obj : TObject);
 var aTask : IMtxAsyncCall;
 begin
-     aTask := TLinuxMtxAsyncCall.Create(proc, obj);
+     aTask := TLinuxMtxAsyncCall.Create(fPool, proc, obj);
      fTaskList.Add(aTask);
      aTask.ExecuteAsync;
 end;
@@ -134,12 +132,10 @@ end;
 procedure TSimpleLinuxThreadGroup.AddTaskRec(proc : TMtxRecProc; rec : Pointer);
 var aTask : IMtxAsyncCall;
 begin
-    aTask := TLinuxMtxAsyncCall.CreateRec(proc, rec);
+    aTask := TLinuxMtxAsyncCall.CreateRec(fPool, proc, rec);
     fTaskList.Add(aTask);
     aTask.ExecuteAsync;
 end;
-
-
 
 constructor TSimpleLinuxThreadGroup.Create;
 begin
@@ -158,24 +154,6 @@ begin
           aTask := fTaskList[i] as IMtxAsyncCall;
           aTask.Sync;
      end;
-end;
-  
-function InitLinuxThreadGroup : IMtxAsyncCallGroup;
-begin
-     Assert(Assigned(threadPool), 'Error thread pool not initialized. Call InitMtxThreadPool first');
-     Result := TSimpleLinuxThreadGroup.Create;
-end;
-
-procedure InitLinuxMtxThreadPool;
-begin
-     Assert(Not Assigned(threadPool), 'Error thread pool already initialized. Call FinalizeMtxThreadPool first');
-     threadPool := TMtxThreadPool.Create;
-end;
-
-procedure FinalizeLinuxMtxThreadPool;
-begin
-     Assert(Assigned(threadPool), 'Error thread pool not initialized. Call InitMtxThreadPool first');
-     FreeAndNil(threadPool);
 end;
 
 { TLinuxMtxAsyncCallThread }
@@ -282,14 +260,10 @@ begin
      fThreadList.Add(Result);
 end;
 
-constructor TMtxThreadPool.Create;
+procedure TMtxThreadPool.InitPool( maxNumThreads : integer );
 var i: Integer;
     t : cint;
 begin
-     inherited Create;
-
-     fThreadList := TThreadList.Create;
-
      t := sysconf( _SC_NPROCESSORS_ONLN);
 
      fNumCPU := t;
@@ -298,6 +272,18 @@ begin
 
      for i := 0 to fNumCPU - 1 do
          AllocThread;
+end;
+
+function TMtxThreadPool.CreateTaskGroup : IMtxAsyncCallGroup;
+begin
+     Result := TSimpleLinuxThreadGroup.Create(self);
+end;
+
+constructor TMtxThreadPool.Create;
+begin
+     inherited Create;
+
+     fThreadList := TThreadList.Create;
 end;
 
 destructor TMtxThreadPool.Destroy;
@@ -317,19 +303,21 @@ begin
 end;
 
 
-constructor TLinuxMtxAsyncCall.Create(proc : TMtxProc; obj : TObject);
+constructor TLinuxMtxAsyncCall.Create(pool : TMtxThreadPool; proc : TMtxProc; obj : TObject);
 begin
      inherited Create;
 
+     fPool := pool;
      FEvent := TEvent.Create(nil, True, False, '');
      fProc := proc;
      fData := obj;
 end;
 
-constructor TLinuxMtxAsyncCall.CreateRec(proc : TMtxRecProc; rec : pointer);
+constructor TLinuxMtxAsyncCall.CreateRec(pool : TMtxThreadPool; proc : TMtxRecProc; rec : pointer);
 begin
      inherited Create;
 
+     fPool := pool;
      FEvent := TEvent.Create(nil, True, False, '');
      fRecProc := proc;
      fRec := rec;
@@ -411,7 +399,7 @@ end;
 
 procedure TLinuxMtxAsyncCall.ExecuteAsync;
 begin
-     ThreadPool.AddAsyncCall(Self);
+     fPool.AddAsyncCall(Self);
 end;
 
 procedure TLinuxMtxAsyncCall.ExecuteAsyncCall;
@@ -423,16 +411,22 @@ begin
          fProc(fData);
 end;
 
+function CreateThreadPoolObj : IMtxThreadPool;
+begin
+     Result := TMtxThreadPool.Create;
+end;
+
 initialization
+   SetThreadPoolProvider( CreateThreadPoolObj );
 
-    numCPUCores := sysconf( _SC_NPROCESSORS_ONLN);
-    if numCPUCores > 64 then
-       numCPUCores := 64;
-    numRealCores := numCPUCores;
+   numCPUCores := sysconf( _SC_NPROCESSORS_ONLN);
+   if numCPUCores > 64 then
+      numCPUCores := 64;
+   numRealCores := numCPUCores;
 
-    numCoresForSimpleFuncs := numRealCores;
-    if numCoresForSimpleFuncs > 3 then
-       numCoresForSimpleFuncs := 3;
+   numCoresForSimpleFuncs := numRealCores;
+   if numCoresForSimpleFuncs > 3 then
+      numCoresForSimpleFuncs := 3;
 
 {$ENDIF}
 

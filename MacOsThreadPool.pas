@@ -38,10 +38,6 @@ uses
   {$ENDIF}
   ;
 
-procedure InitMacMtxThreadPool;
-procedure FinalizeMacMtxThreadPool;
-
-function InitMacMtxGroup : IMtxAsyncCallGroup; 
 {$ENDIF}
 
 implementation
@@ -104,12 +100,6 @@ begin
      aTask.ExecuteAsync;
 end;
 {AM}
-
-function InitMacMtxGroup : IMtxAsyncCallGroup;
-begin
-     assert(macThrPool <> dispatch_group_t(nil), 'Error thread pool not initialized. Call InitMtxThreadPool first');
-     Result := TMacMtxAsyncGroup.Create;
-end;
 
 constructor TMacMtxAsyncGroup.Create;
 begin
@@ -205,9 +195,35 @@ begin
      // do nothing here... -> on the group objects syncall the waiting happens
 end;
 
+// simple wrapper to provide the necessary interfaces
+type
+  TSimpleMacOSThreadPool = class(TInterfacedObject, IMtxThreadPool)
+    procedure InitPool( maxNumThreads : integer );
+    function CreateTaskGroup : IMtxAsyncCallGroup;
+  end;
+
+procedure TSimpleMacOSThreadPool.InitPool( maxNumThreads : integer );
+begin
+     //wrc Assert(not Assigned(macThrPool), 'Error: initialize pool twice. Call FinalizeMtxThreadPool first.');
+     if macThrPool = dispatch_group_t(nil) then
+        macThrPool := dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT,0);
+end;
+
+function TSimpleMacOSThreadPoolCreateTaskGroup : IMtxAsyncCallGroup;
+begin
+     assert(macThrPool <> dispatch_group_t(nil), 'Error thread pool not initialized. Call InitMtxThreadPool first');
+     Result := TMacMtxAsyncGroup.Create;
+end;
+
+function MacOSThreadPool : IMtxThreadPool;
+begin
+     Result := TSimpleMAcOSThreadPool.Create;
+end;
+
 {$IFDEF FPC}
 
 initialization
+  SetThreadPoolProvider( MacOSThreadPool );
   numCPUCores := GetSystemThreadCount;
   if numCpuCores > 64 then
      numCpuCores := 64;
@@ -216,12 +232,13 @@ initialization
   numCoresForSimpleFuncs := numRealCores;
   if numCoresForSimpleFuncs > 3 then
      numCoresForSimpleFuncs := 3;
-     
+
 {$ELSE}
 
 var cpuInfo : NSProcessInfo;
 
 initialization
+  SetThreadPoolProvider( MacOSThreadPool );
   cpuInfo := TNSProcessInfo.Create;
 
   numCPUCores := cpuInfo.processorCount;

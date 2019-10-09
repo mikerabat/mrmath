@@ -20,10 +20,6 @@ interface
 
 uses MtxThreadPool, SyncObjs;
 
-procedure InitWinMtxThreadPool;
-procedure FinalizeWinMtxThreadPool;
-function InitWinThreadGroup : IMtxAsyncCallGroup;
-
 {$ENDIF}
 
 implementation
@@ -98,7 +94,6 @@ begin
      aTask.ExecuteAsync;
 end;
 
-
 constructor TSimpleWinThreadGroup.Create;
 begin
      fTaskList := TInterfaceList.Create;
@@ -117,35 +112,11 @@ begin
      end;
 end;
   
-function InitWinThreadGroup : IMtxAsyncCallGroup;
-begin
-     Assert(threadPoolInit, 'Error thread pool not initialized. Call InitMtxThreadPool first');
-     Result := TSimpleWinThreadGroup.Create;
-end;
-  
 function EmptyThreadProc( lpParameter : Pointer ) : integer; stdcall;
 begin
      // nothing to do... just for initialization
      sleep(0);
      Result := 0;
-end;
-
-procedure InitWinMtxThreadPool;
-var i: Integer;
-begin
-     if not threadPoolInit then
-     begin
-          // queue empty procedures -> initialize the pool
-          for i := 0 to numCPUCores - 1 do
-              QueueUserWorkItem(@EmptyThreadProc, nil, WT_EXECUTEDEFAULT);
-
-          threadPoolInit := True;
-     end;
-end;
-
-procedure FinalizeWinMtxThreadPool;
-begin
-     // nothing to do on windows
 end;
 
 function LocThreadProc( lpParameter : Pointer ) : integer; stdcall;
@@ -207,6 +178,50 @@ procedure TSimpleWinMtxAsyncCall.Sync;
 begin
      fEvt.WaitFor(INFINITE);
 end;
+
+type
+  TSimpleWinThreadPool = class(TInterfacedObject, IMtxThreadPool)
+  public
+    procedure InitPool( maxNumThreads : integer );
+    function CreateTaskGroup : IMtxAsyncCallGroup;
+
+    constructor Create;
+  end;
+
+function SimpleWinThreadPoolProvdier : IMtxThreadPool;
+begin
+     Result := TSimpleWinThreadPool.Create;
+end;
+
+{ TSimpleWinThreadPool }
+
+constructor TSimpleWinThreadPool.Create;
+begin
+     inherited Create;
+end;
+
+procedure TSimpleWinThreadPool.InitPool(maxNumThreads: integer);
+var i: Integer;
+begin
+     if not threadPoolInit then
+     begin
+          // queue empty procedures -> initialize the pool
+          for i := 0 to numCPUCores - 1 do
+              QueueUserWorkItem(@EmptyThreadProc, nil, WT_EXECUTEDEFAULT);
+
+          threadPoolInit := True;
+     end;
+end;
+
+function TSimpleWinThreadPool.CreateTaskGroup: IMtxAsyncCallGroup;
+begin
+     Assert(threadPoolInit, 'Error thread pool not initialized. Call InitMtxThreadPool first');
+     Result := TSimpleWinThreadGroup.Create;
+end;
+
+initialization
+
+  SetThreadPoolProvider( {$IFDEF FPD}@{$ENDIF}SimpleWinThreadPoolProvdier );
 
 {$ENDIF}
 
