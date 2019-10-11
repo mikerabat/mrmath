@@ -458,5 +458,7 @@ begin
          Result := False;
 end;
 
+initialization
+  RegisterMathIO(TKernelPCA);
 
 end.

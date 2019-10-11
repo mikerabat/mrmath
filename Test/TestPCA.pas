@@ -43,6 +43,7 @@ type
  published
    procedure TestKernelPCASimple;
    procedure TestKernelPCAProj;
+   procedure TestKernelPCAPersistence;
  end;
 
 implementation
@@ -548,7 +549,7 @@ begin
      props.C := 0;
 
      //MatrixToTxtFile('D:\x.txt', x.GetObjRef);
-     
+
      with TKernelPCA.Create do
      try
         SetProperties(props);
@@ -556,7 +557,7 @@ begin
         Check(KernelPCA( x.GetObjRef, 0.95, True, res.GetObjRef) = True, 'Error Kernel PCA failed');
 
         //MatrixToTxtFile('D:\x_res.txt', res.GetObjRef);
-        
+
         X.SetSubMatrix(0, 0, 1, x.Height);
         res1 := ProjectToFeatureSpace(X.GetObjRef);
      finally
@@ -583,6 +584,59 @@ begin
 
      check( SameValue( res[0, 0], res1[0, 0] ), 'Mapping failed');
 end;
+
+procedure TTestKernelPCA.TestKernelPCAPersistence;
+var x : IMatrix;
+    cnt: Integer;
+    rho, phi: double;
+    radius : double;
+    res2, res1 : IMatrix;
+    props : TKernelPCAProps;
+    kpca : TKernelPCA;
+begin
+     x := TDoubleMatrix.Create( 10, 3 );
+
+     radius := 0.5;
+     for cnt := 0 to x.Width - 1 do
+     begin
+          rho := 2*pi*random;
+          phi := 2*pi*random;
+          x[cnt, 0] := radius*cos(phi);
+          x[cnt, 1] := radius*cos(rho)*sin(phi);
+          x[cnt, 2] := radius*sin(rho)*sin(phi);
+
+          if cnt = 4 then
+             radius  := 1;
+     end;
+
+     props.mapping := kmPoly;
+     props.Poly := 2;
+     props.C := 0;
+
+     kpca := TKernelPCA.Create;
+     with kpca do
+     try
+        SetProperties(props);
+        Check(KernelPCA( x.GetObjRef, 0.95, True, nil) = True, 'Error Kernel PCA failed');
+
+        kpca.SaveToFile( 'kpca.dat', TBinaryReaderWriter );
+        X.SetSubMatrix(0, 0, 1, x.Height);
+        res1 := ProjectToFeatureSpace(X.GetObjRef);
+     finally
+            Free;
+     end;
+
+     kpca := ReadObjFromFile( 'kpca.dat' ) as TKernelPCA;
+
+     try
+        res2 := kpca.ProjectToFeatureSpace(X.GetObjRef);
+     finally
+            kpca.Free;
+     end;
+
+     check( SameValue( res2[0, 0], res1[0, 0] ), 'KPCA Persistence failed');
+end;
+
 
 initialization
 {$IFNDEF FMX}
