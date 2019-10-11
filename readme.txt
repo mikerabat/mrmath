@@ -55,6 +55,10 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date 11.10.2019
+* Kernel PCA with polynomial and Gauss Kernel
+* First version of a more flexible Thread pool.
+
 Date 22.8.2019
 * Extended distance class with pairwise distance functions
 * These distance functions are now available in tsne

@@ -169,7 +169,8 @@ uses
   Statistics in '..\Statistics.pas',
   TestStat in 'TestStat.pas',
   tSNE in '..\tSNE.pas',
-  TestTSNE in 'TestTSNE.pas';
+  TestTSNE in 'TestTSNE.pas',
+  KernelPCA in '..\KernelPCA.pas';
 
 var
   runner : ITestRunner;

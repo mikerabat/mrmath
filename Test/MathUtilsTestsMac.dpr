@@ -169,7 +169,10 @@ uses
   winRandomGen in '..\winRandomGen.pas',
   WinThreadPool in '..\WinThreadPool.pas',
   Statistics in '..\Statistics.pas',
-  TestStat in 'TestStat.pas';
+  TestStat in 'TestStat.pas',
+  tSNE in '..\tSNE.pas',
+  TestTSNE in 'TestTSNE.pas',
+  KernelPCA in '..\KernelPCA.pas';
 {$R *.res}
 
 begin
