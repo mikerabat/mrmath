@@ -39,7 +39,11 @@ type
 // ##########################################
 // #### base PCA algorithm based on Singular Value decomposition
 type
-  TMatrixPCA = class(TMatrixClass)
+  TCommonPCAClass = class(TMatrixClass)
+  protected
+    procedure SortEigValsEigVecs(EigVals : TDoubleMatrix; EigVecs : TDoubleMatrix; L, R : integer);
+  end;
+  TMatrixPCA = class(TCommonPCAClass)
   private
     fProgress : TMtxProgress;
 
@@ -65,7 +69,6 @@ type
 
     function WeightedMean(Examples : TDoubleMatrix; const Weights : Array of double) : TDoubleMatrix;
     function EigVecT : TDoubleMatrix;
-    procedure SortEigValsEigVecs(EigVals : TDoubleMatrix; EigVecs : TDoubleMatrix; L, R : integer);
     function GetNumNodes: integer;
     procedure Clear; virtual;
   public
@@ -191,6 +194,48 @@ implementation
 
 uses Math, MathUtilFunc;
 
+procedure TCommonPCAClass.SortEigValsEigVecs(EigVals : TDoubleMatrix; EigVecs : TDoubleMatrix; L, R : integer);
+var I, J: Integer;
+    P, T : Double;
+    y : integer;
+begin
+     // mostly copied from TList implementations
+     repeat
+           I := L;
+           J := R;
+           P := EigVals[0, (L + R) shr 1];
+           repeat
+                 while EigVals[0, i] > P do
+                       Inc(I);
+                 while EigVals[0, j] < P do
+                       Dec(J);
+
+                 if I <= J then
+                 begin
+                      T := EigVals[0, i];
+                      EigVals[0, i] := EigVals[0, j];
+                      EigVals[0, j] := T;
+
+                      // Exchange Eigenvecs
+                      for y := 0 to EigVecs.Height - 1 do
+                      begin
+                           T := EigVecs[i, y];
+                           EigVecs[i, y] := EigVecs[j, y];
+                           EigVecs[j, y] := T;
+                      end;
+
+                      Inc(I);
+                      Dec(J);
+                 end;
+           until I > J;
+
+           if L < J then
+              SortEigValsEigVecs(EigVals, EigVecs, L, J);
+           L := I;
+     until I >= R;
+end;
+
+
 // ######################################################################
 // #### local definitions
 // ######################################################################
@@ -278,47 +323,6 @@ begin
      Result := 0;
      if Assigned(fEigVecs) then
         Result := fEigVecs.Width;
-end;
-
-procedure TMatrixPCA.SortEigValsEigVecs(EigVals : TDoubleMatrix; EigVecs : TDoubleMatrix; L, R : integer);
-var I, J: Integer;
-    P, T : Double;
-    y : integer;
-begin
-     // mostly copied from TList implementations
-     repeat
-           I := L;
-           J := R;
-           P := EigVals[0, (L + R) shr 1];
-           repeat
-                 while EigVals[0, i] > P do
-                       Inc(I);
-                 while EigVals[0, j] < P do
-                       Dec(J);
-
-                 if I <= J then
-                 begin
-                      T := EigVals[0, i];
-                      EigVals[0, i] := EigVals[0, j];
-                      EigVals[0, j] := T;
-
-                      // Exchange Eigenvecs
-                      for y := 0 to EigVecs.Height - 1 do
-                      begin
-                           T := EigVecs[i, y];
-                           EigVecs[i, y] := EigVecs[j, y];
-                           EigVecs[j, y] := T;
-                      end;
-
-                      Inc(I);
-                      Dec(J);
-                 end;
-           until I > J;
-
-           if L < J then
-              SortEigValsEigVecs(EigVals, EigVecs, L, J);
-           L := I;
-     until I >= R;
 end;
 
 // implementation of Daniejl S. weighted batch PCA function:

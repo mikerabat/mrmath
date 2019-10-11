@@ -65,7 +65,7 @@ uses
   MatrixASMStubSwitch, MatrixConst, MatrixRotations, MtxThreadPool, MtxTimer, 
   NNMF, NonLinearFit, PCA, PLS, RandomEng, RBSplines, SimpleMatrixOperations, 
   SimpleWinThreadPool, Statistics, ThreadedMatrix, ThreadedMatrixOperations, 
-  tSNE, winCPUInfo, winRandomGen, WinThreadPool, LazarusPackageIntf;
+  tSNE, winCPUInfo, winRandomGen, WinThreadPool, KernelPCA, LazarusPackageIntf;
 
 implementation
 

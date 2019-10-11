@@ -12,7 +12,7 @@
         <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)\"/>
       </SearchPaths>
     </CompilerOptions>
-    <Files Count="125">
+    <Files Count="126">
       <Item1>
         <Filename Value="..\..\ASMMatrixAbsOperations.pas"/>
         <UnitName Value="ASMMatrixAbsOperations"/>
@@ -513,6 +513,10 @@
         <Filename Value="..\..\WinThreadPool.pas"/>
         <UnitName Value="WinThreadPool"/>
       </Item125>
+      <Item126>
+        <Filename Value="..\..\KernelPCA.pas"/>
+        <UnitName Value="KernelPCA"/>
+      </Item126>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>

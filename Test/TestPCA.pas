@@ -37,6 +37,14 @@ type
    procedure TestFastRubustIncrementalPCA;
  end;
 
+type
+{$IFDEF FMX} [TestFixture] {$ENDIF}
+ TTestKernelPCA = class(TBaseImgTestCase)
+ published
+   procedure TestKernelPCASimple;
+   procedure TestKernelPCAProj;
+ end;
+
 implementation
 
 {$IFDEF MACOS}
@@ -47,7 +55,8 @@ uses PCA,
      {$IFDEF FMX} FMX.Types, FMX.Graphics, {$ENDIF}   //wrc
      {$IFNDEF FMX} {$IFDEF Windows} Graphics, {$ENDIF} {$ENDIF}
      BinaryReaderWriter, BaseMathPersistence, IncrementalPCA,
-     JSONReaderWriter, MtxTimer, ThreadedMatrix, MatrixASMStubSwitch;
+     JSONReaderWriter, MtxTimer, ThreadedMatrix, MatrixASMStubSwitch,
+     KernelPCA, Math;
 
 { TTestEigensystems }
 
@@ -481,9 +490,104 @@ begin
 end;
 
 
+{ TTestKernelPCA }
+
+procedure TTestKernelPCA.TestKernelPCASimple;
+var x : IMatrix;
+    cnt: Integer;
+    rho, phi: double;
+    radius : double;
+    res : IMatrix;
+begin
+     x := TDoubleMatrix.Create( 10, 3 );
+
+     radius := 0.5;
+     for cnt := 0 to x.Width - 1 do
+     begin
+          rho := 2*pi*random;
+          phi := 2*pi*random;
+          x[cnt, 0] := radius*cos(phi);
+          x[cnt, 1] := radius*cos(rho)*sin(phi);
+          x[cnt, 2] := radius*sin(rho)*sin(phi);
+
+          if cnt = 4 then
+             radius  := 1;
+     end;
+
+     res := TKernelPCA.KernelPCAGauss(x.GetObjRef, 0.95, True, 0.5);
+     assert( assigned(res), 'Kernel PCA failed');
+
+     X.SetSubMatrix(0, 0, 1, X.Height);
+end;
+
+procedure TTestKernelPCA.TestKernelPCAProj;
+var x : IMatrix;
+    cnt: Integer;
+    rho, phi: double;
+    radius : double;
+    res, res1 : IMatrix;
+    props : TKernelPCAProps;
+begin
+     x := TDoubleMatrix.Create( 10, 3 );
+
+     radius := 0.5;
+     for cnt := 0 to x.Width - 1 do
+     begin
+          rho := 2*pi*random;
+          phi := 2*pi*random;
+          x[cnt, 0] := radius*cos(phi);
+          x[cnt, 1] := radius*cos(rho)*sin(phi);
+          x[cnt, 2] := radius*sin(rho)*sin(phi);
+
+          if cnt = 4 then
+             radius  := 1;
+     end;
+
+     props.mapping := kmPoly;
+     props.Poly := 2;
+     props.C := 0;
+
+     //MatrixToTxtFile('D:\x.txt', x.GetObjRef);
+     
+     with TKernelPCA.Create do
+     try
+        SetProperties(props);
+        res := TDoubleMatrix.Create;
+        Check(KernelPCA( x.GetObjRef, 0.95, True, res.GetObjRef) = True, 'Error Kernel PCA failed');
+
+        //MatrixToTxtFile('D:\x_res.txt', res.GetObjRef);
+        
+        X.SetSubMatrix(0, 0, 1, x.Height);
+        res1 := ProjectToFeatureSpace(X.GetObjRef);
+     finally
+            Free;
+     end;
+
+     check( SameValue( res[0, 0], res1[0, 0], 1e-6), 'Mapping failed');
+
+     props.mapping := kmGauss;
+     props.sigma := 0.4;
+
+     x.UseFullMatrix;
+     with TKernelPCA.Create do
+     try
+        SetProperties(props);
+        res := TDoubleMatrix.Create;
+        Check(KernelPCA( x.GetObjRef, 0.95, True, res.GetObjRef) = True, 'Error Kernel PCA failed');
+
+        X.SetSubMatrix(0, 0, 1, x.Height);
+        res1 := ProjectToFeatureSpace(X.GetObjRef);
+     finally
+            Free;
+     end;
+
+     check( SameValue( res[0, 0], res1[0, 0] ), 'Mapping failed');
+end;
+
 initialization
 {$IFNDEF FMX}
   RegisterTest(TTestPCA{$IFNDEF FPC}.Suite{$ENDIF});
+  RegisterTest(TTestKernelPCA{$IFNDEF FPC}.Suite{$ENDIF});
 {$ENDIF}
 
 end.

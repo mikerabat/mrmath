@@ -142,7 +142,8 @@ uses
   winRandomGen in '..\..\winRandomGen.pas',
   WinThreadPool in '..\..\WinThreadPool.pas',
   Statistics in '..\..\Statistics.pas',
-  tSNE in '..\..\tSNE.pas';
+  tSNE in '..\..\tSNE.pas',
+  KernelPCA in '..\..\KernelPCA.pas';
 
 begin
 end.
