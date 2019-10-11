@@ -223,7 +223,7 @@ end;
 {$IFDEF FPC}
 
 initialization
-  SetThreadPoolProvider( MacOSThreadPool );
+  SetThreadPoolProvider( {$IFDEF FPC}@{$ENDIF}MacOSThreadPool );
   numCPUCores := GetSystemThreadCount;
   if numCpuCores > 64 then
      numCpuCores := 64;

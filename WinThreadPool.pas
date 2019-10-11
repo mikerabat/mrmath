@@ -450,7 +450,7 @@ begin
 end;
 
 initialization
-   SetThreadPoolProvider( CreateThreadPoolObj );
+   SetThreadPoolProvider( {$IFDEF FPC}@{$ENDIF}CreateThreadPoolObj );
 
 {$ENDIF}
 
