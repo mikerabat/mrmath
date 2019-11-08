@@ -61,13 +61,13 @@ type
     procedure DoProgress(Progress : Integer);
   protected
     fKeepFlags : TPCASaveDataSet;
-    fEigVecs : TDoubleMatrix;
-    fEigVecsT : TDoubleMatrix;
-    fEigVals : TDoubleMatrix;
-    fMeanElem : TDoubleMatrix;
-    fMeanNormExamples : TDoubleMatrix;
+    fEigVecs : IMatrix;
+    fEigVecsT : IMatrix;
+    fEigVals : IMatrix;
+    fMeanElem : IMatrix;
+    fMeanNormExamples : IMatrix;
 
-    function WeightedMean(Examples : TDoubleMatrix; const Weights : Array of double) : TDoubleMatrix;
+    function WeightedMean(Examples : TDoubleMatrix; const Weights : Array of double) : IMatrix;
     function EigVecT : TDoubleMatrix;
     function GetNumNodes: integer;
     procedure Clear; virtual;
@@ -122,9 +122,9 @@ type
   TFastRobustPCAData = record
      Props : TFastRobustPCAProps;
      SubItemIndex : Array of TIntegerDynArray;
-     SubEigVecs : TDoubleMatrixDynArr;
-     SubEigVecsT : TDoubleMatrixDynArr;
-     SubMeanElements : TDoubleMatrixDynArr;
+     SubEigVecs : IMatrixDynArr;
+     SubEigVecsT : IMatrixDynArr;
+     SubMeanElements : IMatrixDynArr;
 
      PCAData : TPCAData;
   end;
@@ -138,9 +138,9 @@ type
   protected
     fProps : TFastRobustPCAProps;
     fSubItemIdx : Array of TIntegerDynArray;
-    fSubEigVecs : TDoubleMatrixDynArr;
-    fSubEigVecsT : TDoubleMatrixDynArr;
-    fSubMeanElem : TDoubleMatrixDynArr;
+    fSubEigVecs : IMatrixDynArr;
+    fSubEigVecsT : IMatrixDynArr;
+    fSubMeanElem : IMatrixDynArr;
     fIsLearning : boolean;
     function GenerateSampleList(len : integer; idx : integer) : TIntegerDynArray;
     function SubEigVecT(idx : integer) : TDoubleMatrix;
@@ -249,11 +249,11 @@ type
 
 procedure TMatrixPCA.Clear;
 begin
-     FreeAndNil(fEigVecs);
-     FreeAndNil(fEigVals);
-     FreeAndNil(fMeanElem);
-     FreeAndNil(fMeanNormExamples);
-     FreeAndNil(fEigVecsT);
+     fEigVecs := nil;
+     fEigVals := nil;
+     fMeanElem := nil;
+     fMeanNormExamples := nil;
+     fEigVecsT := nil;
 end;
 
 constructor TMatrixPCA.Create(KeepFlags: TPCASaveDataSet);
@@ -291,7 +291,7 @@ begin
      if not Assigned(fEigVecsT) then
         fEigVecsT := fEigVecs.Transpose;
 
-     Result := fEigVecsT;
+     Result := fEigVecsT.GetObjRef;
 end;
 
 function TMatrixPCA.GetEigVals: TDoubleMatrix;
@@ -299,7 +299,7 @@ begin
      if not Assigned(fEigVals) then
         fEigVals := MatrixClass.Create;
 
-     Result := fEigVals;
+     Result := fEigVals.GetObjRef;
 end;
 
 function TMatrixPCA.GetEigVecs: TDoubleMatrix;
@@ -307,7 +307,7 @@ begin
      if not Assigned(fEigVecs) then
         fEigVecs := MatrixClass.Create;
 
-     Result := fEigVecs;
+     Result := fEigVecs.GetObjRef;
 end;
 
 function TMatrixPCA.GetMeanElem: TDoubleMatrix;
@@ -315,7 +315,7 @@ begin
      if not Assigned(fMeanElem) then
         fMeanElem := MatrixClass.Create;
 
-     Result := fMeanElem;
+     Result := fMeanElem.GetObjRef;
 end;
 
 function TMatrixPCA.GetNumNodes: integer;
@@ -348,7 +348,7 @@ function TMatrixPCA.TemporalWeightPCA(Examples: TDoubleMatrix; CutEps: double;
   IsRelativeValue: boolean; const Weights: array of Double): boolean;
 var i : integer;
     sumEigVals : double;
-    mv : TDoubleMatrix;
+    mv : IMatrix;
     weightSum : double;
 begin
      DoProgress(0);
@@ -364,7 +364,7 @@ begin
      try
         // subtract mean from each column
         fMeanNormExamples.Assign(Examples);
-        fMeanNormExamples.LineEQProgress := {$IFDEF FPC}@{$ENDIF}OnLineEQProgress;
+        fMeanNormExamples.GetObjRef.LineEQProgress := {$IFDEF FPC}@{$ENDIF}OnLineEQProgress;
 
         for i := 0 to fMeanNormExamples.Width - 1 do
         begin
@@ -377,24 +377,20 @@ begin
         
         // calcluated Eigenvectors and eigenvalues using the SVD algorithm
         // note: this time the decomposition is performed on the covariance matrix!
-        mv := nil;
-        try
-           if Examples.Height > Examples.Width
-           then
-               Result := fMeanNormExamples.SVD(fEigVecs, mv, fEigVals) = srOk
-           else
-           begin
-                fMeanNormExamples.TransposeInPlace;
-                Result := fMeanNormExamples.SVD(mv, fEigVecs, fEigVals) = srOk;
-                fEigVecs.TransposeInPlace;  // SVD returns eigvecs transposed (V is V transposed!)
-           end;
-
-           // calculate real eigenvalues
-           for i := 0 to fEigVals.Height - 1 do
-               fEigVals[0, i] := sqr(fEigVals[0, i]);
-        finally
-               mv.Free;
+        if Examples.Height > Examples.Width
+        then
+            Result := fMeanNormExamples.SVD(fEigVecs, mv, fEigVals) = srOk
+        else
+        begin
+             fMeanNormExamples.TransposeInPlace;
+             Result := fMeanNormExamples.SVD(mv, fEigVecs, fEigVals) = srOk;
+             fEigVecs.TransposeInPlace;  // SVD returns eigvecs transposed (V is V transposed!)
         end;
+
+        // calculate real eigenvalues
+        for i := 0 to fEigVals.Height - 1 do
+            fEigVals[0, i] := sqr(fEigVals[0, i]);
+        mv := nil;
 
         if not Result then
         begin
@@ -404,7 +400,7 @@ begin
         end;
 
         if not (pcaMeanNormalizedData in fKeepFlags) then
-           FreeAndNil(fMeanNormExamples);
+           fMeanNormExamples := nil;
 
         // dismiss all eigenvalues smaller the given threshold
         if IsRelativeValue then
@@ -418,7 +414,7 @@ begin
         end;
 
         // sort the eigenvectors and eigenvalues
-        SortEigValsEigVecs(fEigVals, fEigVecs, 0, fEigVals.Height - 1);
+        SortEigValsEigVecs(fEigVals.GetObjRef, fEigVecs.GetObjRef, 0, fEigVals.Height - 1);
 
         // shrink eigenspace according to the given parameter
         if not IsRelativeValue or (CutEps < 1) then
@@ -442,18 +438,11 @@ begin
                                 fEigVals.SetSubMatrix(0, 0, 1, i);
 
                             mv := MatrixClass.Create;
-                            try
-                               mv.Assign(fEigVals, True);
-                               FreeAndNil(fEigVals);
-                            except
-                                  FreeAndNil(mv);
-                                  raise;
-                            end;
-
+                            mv.Assign(fEigVals, True);
                             fEigVals := mv;
                        end
                        else
-                           FreeAndNil(fEigVals);
+                           fEigVals := nil;
 
                        if IsRelativeValue
                        then
@@ -461,14 +450,9 @@ begin
                        else
                            fEigVecs.SetSubMatrix(0, 0, i, fEigVecs.Height);
                        mv := MatrixClass.Create;
-                       try
-                          mv.Assign(fEigVecs, True);
-                          FreeAndNil(fEigVecs);
-                          fEigVecs := mv;
-                       except
-                             FreeAndNil(mv);
-                             raise;
-                       end;
+
+                       mv.Assign(fEigVecs, True);
+                       fEigVecs := mv;
 
                        break;
                   end;
@@ -487,7 +471,7 @@ begin
      end;
 end;
 
-function TMatrixPCA.WeightedMean(Examples: TDoubleMatrix; const Weights: array of double): TDoubleMatrix;
+function TMatrixPCA.WeightedMean(Examples: TDoubleMatrix; const Weights: array of double): IMatrix;
 var weightSum : double;
     x, y : integer;
 begin
@@ -511,40 +495,11 @@ begin
 
         Result.ScaleInPlace(1/weightSum);
      except
-           Result.Free;
+           Result := nil;
+
            raise;
      end;
 end;
-
-//procedure WriteMatlabData(const fileName: string;
-//  const data: array of double; width: integer);
-//var i : integer;
-//    s : string;
-//begin
-//     // write a file which can be read into matlab using the load command
-//     // the procedure is usefull to verify the results against this program.
-//     with TStringList.Create do
-//     try
-//        BeginUpdate;
-//        s := '';
-//        for i := 0 to Length(data) - 1 do
-//        begin
-//             s := s + Format('%.9f,', [data[i]]);
-//
-//             if i mod width = width - 1 then
-//             begin
-//                  s[length(s)] := ';';
-//                  Add(s);
-//                  s := '';
-//             end;
-//        end;
-//        EndUpdate;
-//
-//        SaveToFile(FileName {$IF not Defined(FPC) and (CompilerVersion >= 20)} , TEncoding.ASCII {$IFEND});
-//     finally
-//            Free;
-//     end;
-//end;
 
 // conversion of ICG's principal component analysis.
 //     The Principal Components (PC) are the orthonormal eigenvectors of
@@ -563,7 +518,7 @@ end;
 function TMatrixPCA.PCA(Examples: TDoubleMatrix; CutEps: double;
   IsRelativeValue: boolean): boolean;
 var i : integer;
-    mv : TDoubleMatrix;
+    mv : IMatrix;
     sumEigVals : double;
     scale : double;
 begin
@@ -579,33 +534,28 @@ begin
      try
         // subtract mean from each column
         fMeanNormExamples.Assign(Examples, True);
-        fMeanNormExamples.LineEQProgress := {$IFDEF FPC}@{$ENDIF}OnLineEQProgress;
+        fMeanNormExamples.GetObjRef.LineEQProgress := {$IFDEF FPC}@{$ENDIF}OnLineEQProgress;
         fMeanNormExamples.SubVecInPlace(fMeanElem, False);
 
         // calcluated Eigenvectors and eigenvalues using the SVD algorithm
-        mv := nil;
-        try
-           scale := 1/sqrt(fMeanNormExamples.Width - 1);
-           if Examples.Height >= Examples.Width 
-           then
-               Result := fMeanNormExamples.SVD(fEigVecs, mv, fEigVals, True) = srOk
-           else
-           begin
-                fMeanNormExamples.TransposeInPlace;
-                Result := fMeanNormExamples.SVD(mv, fEigVecs, fEigVals, True) = srOk;
-                fEigVecs.TransposeInPlace;  // transpose: svd returns V as V transposed version
-           end;
-
-           // this scaling is apart from the original Matlab implementation but
-           // I think it's necessary since the Covariance matrix is normaly: 1/(N-1) X*X' not
-           // only X*X' -> thus a scaling of 1/sqrt(N - 1) should by applied to the mean normalized examples
-
-           // calculate real eigenvalues (the scale comes from the matlab function princomp function
-           for i := 0 to fEigVals.Height - 1 do
-               fEigVals[0, i] := sqr(fEigVals[0, i]*scale);
-        finally
-               mv.Free;
+        scale := 1/sqrt(fMeanNormExamples.Width - 1);
+        if Examples.Height >= Examples.Width
+        then
+            Result := fMeanNormExamples.SVD(fEigVecs, mv, fEigVals, True) = srOk
+        else
+        begin
+             fMeanNormExamples.TransposeInPlace;
+             Result := fMeanNormExamples.SVD(mv, fEigVecs, fEigVals, True) = srOk;
+             fEigVecs.TransposeInPlace;  // transpose: svd returns V as V transposed version
         end;
+
+        // this scaling is apart from the original Matlab implementation but
+        // I think it's necessary since the Covariance matrix is normaly: 1/(N-1) X*X' not
+        // only X*X' -> thus a scaling of 1/sqrt(N - 1) should by applied to the mean normalized examples
+
+        // calculate real eigenvalues (the scale comes from the matlab function princomp function
+        for i := 0 to fEigVals.Height - 1 do
+            fEigVals[0, i] := sqr(fEigVals[0, i]*scale);
 
         if not Result then
         begin
@@ -615,7 +565,7 @@ begin
         end;
 
         if not (pcaMeanNormalizedData in fKeepFlags) then
-           FreeAndNil(fMeanNormExamples);
+           fMeanNormExamples := nil;
 
         // dismiss all eigenvalues smaller the given threshold
         if IsRelativeValue then
@@ -637,7 +587,7 @@ begin
         end;
 
         // sort the eigenvectors and eigenvalues
-        SortEigValsEigVecs(fEigVals, fEigVecs, 0, fEigVals.Height - 1);
+        SortEigValsEigVecs(fEigVals.GetObjRef, fEigVecs.GetObjRef, 0, fEigVals.Height - 1);
 
         // shrink eigenspace according to the given parameter
         // at least one eigenvector shall be kept
@@ -651,30 +601,12 @@ begin
                   if pcaEigVals in fKeepFlags then
                   begin
                        // shrink space to 0..i
-                       fEigVals.SetSubMatrix(0, 0, 1, i);
-                       mv := MatrixClass.Create;
-                       try
-                          mv.Assign(fEigVals, True);
-                          FreeAndNil(fEigVals);
-                       except
-                             FreeAndNil(mv);
-                             raise;
-                       end;
-                       fEigVals := mv;
+                       fEigVals.Resize(1, i );
                   end
                   else
-                      FreeAndNil(fEigVals);
+                      fEigVals := nil;
 
-                  fEigVecs.SetSubMatrix(0, 0, i, fEigVecs.Height);
-                  mv := MatrixClass.Create;
-                  try
-                     mv.Assign(fEigVecs, True);
-                     FreeAndNil(fEigVecs);
-                     fEigVecs := mv;
-                  except
-                        FreeAndNil(mv);
-                        raise;
-                  end;
+                  fEigVecs.Resize(i, fEigVecs.Height);
 
                   break;
              end;
@@ -693,7 +625,7 @@ begin
 end;
 
 procedure TMatrixPCA.ProjectToFeatureSpace(Example, ResMatrix: TDoubleMatrix; Column : integer);
-var tmp : TDoubleMatrix;
+var tmp : IMatrix;
 begin
      if not Assigned(fEigVecs) then
         raise EPCAException.Create('PCA object not initialized');
@@ -702,44 +634,30 @@ begin
         raise EPCAException.Create('Resulting dimension of projection matrix is wrong');
 
      tmp := ProjectToFeatureSpace(Example);
-     try
-        ResMatrix.SetColumn(column, tmp);
-     finally
-            tmp.Free;
-     end;
+     ResMatrix.SetColumn(column, tmp);
 end;
 
 function TMatrixPCA.ProjectToFeatureSpace(
   Example: TDoubleMatrix): TDoubleMatrix;
-var meanMtx : TDoubleMatrix;
+var meanMtx : IMatrix;
 begin
-     {$IFNDEF FPC}
-     {$IF CompilerVersion <= 21}
-     Result := nil;
-     {$IFEND}
-     {$ENDIF}
      if not Assigned(fEigVecs) then
         raise EPCAException.Create('PCA object not initialized');
 
-     meanMtx := MatrixClass.Create;
-     try
-        meanMtx.Assign(Example, True);
+     meanMtx := Example.Clone;
 
-        // check dimensions -> transpose if necessary
-        if (meanMtx.Width = fEigVecs.Height) and (meanMtx.Height = 1) then
-           meanMtx.TransposeInPlace;
+     // check dimensions -> transpose if necessary
+     if (meanMtx.Width = fEigVecs.Height) and (meanMtx.Height = 1) then
+        meanMtx.TransposeInPlace;
 
-        if (meanMtx.Width <> fMeanElem.Width) or (meanMtx.Height <> fMeanElem.Height) then
-           raise EPCAException.Create('Example dimension do not match');
+     if (meanMtx.Width <> fMeanElem.Width) or (meanMtx.Height <> fMeanElem.Height) then
+        raise EPCAException.Create('Example dimension do not match');
 
-        // ####################################################
-        // #### features = EigVec'*(Example - meanElem)
-        meanMtx.SubInPlace(fMeanElem);
+     // ####################################################
+     // #### features = EigVec'*(Example - meanElem)
+     meanMtx.SubInPlace(fMeanElem);
 
-        Result := EigVecT.Mult(meanMtx);
-     finally
-            meanMtx.Free;
-     end;
+     Result := EigVecT.Mult(meanMtx);
 end;
 
 
@@ -773,19 +691,11 @@ begin
 end;
 
 procedure TFastRobustPCA.Clear;
-var i : integer;
 begin
      inherited;
 
      if not fIsLearning then
      begin
-          for i := 0 to Length(fSubEigVecs) - 1 do
-          begin
-               fSubEigVecs[i].Free;
-               fSubMeanElem[i].Free;
-               fSubEigVecsT[i].Free;
-          end;
-
           fSubEigVecs := nil;
           fSubMeanElem := nil;
           fSubEigVecsT := nil;
@@ -846,7 +756,7 @@ begin
      begin
           BeginList('SubEigVecs', Length(fSubEigVecs));
           for i := 0 to Length(fSubEigVecs) - 1 do
-              AddObject(fSubEigVecs[i]);
+              AddObject(fSubEigVecs[i].GetObjRef);
           EndList;
      end;
 
@@ -854,7 +764,7 @@ begin
      begin
           BeginList('SubEigVecsT', Length(fSubEigVecsT));
           for i := 0 to Length(fSubEigVecsT) - 1 do
-              AddObject(fSubEigVecsT[i]);
+              AddObject(fSubEigVecsT[i].GetObjRef);
           EndList;
      end;
 
@@ -862,7 +772,7 @@ begin
      begin
           BeginList('SubMeanElem', Length(fSubMeanElem));
           for i := 0 to Length(fSubMeanElem) - 1 do
-              AddObject(fSubMeanElem[i]);
+              AddObject(fSubMeanElem[i].GetObjRef);
           EndList;
      end;
 end;
@@ -983,40 +893,27 @@ end;
 
 function TFastRobustPCA.ErrorFromSubSpace(idx: integer;
   Example: TDoubleMatrix): TDoubleMatrix;
-var x : TDoubleMatrix;
-    a : TDoubleMatrix;
-    xhat : TDoubleMatrix;
+var x : IMatrix;
+    a : IMatrix;
+    xhat : IMatrix;
     i : integer;
 begin
-     {$IFNDEF FPC}
-     {$IF CompilerVersion <= 21}
-     Result := nil;
-     {$IFEND}
-     {$ENDIF}
-     xhat := nil;
-     a := nil;
      x := MatrixClass.Create(1, fSubMeanElem[idx].Height);
-     try
-        // project to feature space
-        for i := 0 to x.Height - 1 do
-            x[0, i] := Example[0, fSubItemIdx[idx][i]];
+     // project to feature space
+     for i := 0 to x.Height - 1 do
+         x[0, i] := Example[0, fSubItemIdx[idx][i]];
 
-        x.SubInPlace(fSubMeanElem[idx]);
-        a := SubEigVecT(idx).Mult(x);
+     x.SubInPlace(fSubMeanElem[idx]);
+     a := SubEigVecT(idx).Mult(x);
 
-        // project back
-        xhat := fSubEigVecs[idx].Mult(a);
+     // project back
+     xhat := fSubEigVecs[idx].Mult(a);
 
-        // calculate absolute error
-        Result := MatrixClass.Create(1, xhat.Height);
+     // calculate absolute error
+     Result := MatrixClass.Create(1, xhat.Height);
 
-        for i := 0 to Result.Height - 1 do
-            Result[0, i] := abs(x[0, i] - xhat[0, i]);
-     finally
-            x.Free;
-            a.Free;
-            xhat.Free;
-     end;
+     for i := 0 to Result.Height - 1 do
+         Result[0, i] := abs(x[0, i] - xhat[0, i]);
 end;
 
 function TFastRobustPCA.GenerateSampleList(len : integer;
@@ -1094,7 +991,7 @@ end;
 function TFastRobustPCA.PCA(Examples: TDoubleMatrix; CutEps: double;
   IsRelativeValue: Boolean): boolean;
 var i, j : integer;
-    SubExamples : TDoubleMatrix;
+    SubExamples : IMatrix;
     keepTransposed : boolean;
     subEPS : double;
 begin
@@ -1107,10 +1004,10 @@ begin
           if CutEPS > 1 then
              subEPS := 1;
      end;
-     
+
      keepTransposed := pcaTransposedEigVec in fKeepFlags;
      Exclude(fKeepFlags, pcaTransposedEigVec);
-     
+
      // #########################################################
      // #### Create SubSubSpaces
      SetLength(fSubItemIdx, fProps.NumSubSubSpaces);
@@ -1123,14 +1020,11 @@ begin
           fSubItemIdx[i] := GenerateSampleList(Examples.Height, i);
 
           SubExamples := MatrixClass.Create(Examples.Width, Length(fSubItemIdx[i]));
-          try
-             for j := 0 to Length(fSubItemIdx[i]) - 1 do
-                 SubExamples.SetRow(j, Examples, fSubItemIdx[i][j]);
+          for j := 0 to Length(fSubItemIdx[i]) - 1 do
+              SubExamples.SetRow(j, Examples, fSubItemIdx[i][j]);
 
-             inherited PCA(SubExamples, subEPS, True);
-          finally
-                 SubExamples.Free;
-          end;
+          inherited PCA(SubExamples.GetObjRef, subEPS, True);
+          SubExamples := nil;
 
           // copy result
           fSubEigVecs[i] := fEigVecs;
@@ -1142,7 +1036,7 @@ begin
           fEigVecs := nil;
           fMeanElem := nil;
           fEigVecsT := nil;
-          FreeAndNil(fEigVals);
+          fEigVals := nil;
      end;
 
      // ##########################################################
@@ -1151,9 +1045,6 @@ begin
 
      fIsLearning := False;
      
-     if Assigned(fEigVecsT) then
-        fEigVecsT.Free;
-        
      fEigVecsT := nil;
 
      if keepTransposed then
@@ -1168,76 +1059,71 @@ end;
 function TFastRobustPCA.ProjectToFeatureSpace(
   Example: TDoubleMatrix): TDoubleMatrix;
 var i, j : Integer;
-    errors : TDoubleMatrixDynArr;
+    errors : IMatrixDynArr;
     localMeanErrors : TDoubleDynArray;
     globalMeanError : double;
-    err : TDoubleMatrix;
+    err : IMatrix;
     errDist : TList;
     elem : PErrorIdx;
     actErr : double;
     Elements : TIntegerDynArray;
 begin
      assert((Example.Width = 1) and (Example.height = fMeanElem.Height), 'Dimension error');
-      
+
      // ##########################################################
      // #### Gross outlier detection by estimating the subsubspace errors
      SetLength(errors, fProps.NumSubSubSpaces);
-     try
-        // project the example to all subspaces.
-        for i := 0 to fProps.NumSubSubSpaces - 1 do
-            errors[i] := ErrorFromSubSpace(i, Example);
 
-        // calculate all mean errors and the overall mean error
-        globalMeanError := 0;
-        SetLength(localMeanErrors, fProps.NumSubSubSpaces);
+     // project the example to all subspaces.
+     for i := 0 to fProps.NumSubSubSpaces - 1 do
+         errors[i] := ErrorFromSubSpace(i, Example);
 
-        for i := 0 to fProps.NumSubSubSpaces - 1 do
-        begin
-             err := errors[i].Mean(False);
-             localMeanErrors[i] := err[0, 0];
-             err.Free;
+     // calculate all mean errors and the overall mean error
+     globalMeanError := 0;
+     SetLength(localMeanErrors, fProps.NumSubSubSpaces);
 
-             globalMeanError := globalMeanError + 1/fProps.NumSubSubSpaces*localMeanErrors[i];
-        end;
+     for i := 0 to fProps.NumSubSubSpaces - 1 do
+     begin
+          err := errors[i].Mean(False);
+          localMeanErrors[i] := err[0, 0];
+          err := nil;
 
-        // define set of inlining features
-        // element error must be lower then min(localMeanError, globalMeanError);
-        errdist := TList.Create;
-        try
-           errdist.Capacity := Round(fProps.NumSubSubSpaces*fProps.SubSpaceSizes*Example.Height/2);
-           for i := 0 to fProps.NumSubSubSpaces - 1 do
-           begin
-                actErr := Min(globalMeanError, localMeanErrors[i]);
-                for j := 0 to errors[i].Height - 1 do
-                begin
-                     if errors[i][0, j] <= actErr then
-                     begin
-                          new(elem);
-                          elem^.Error := errors[i][0, j];
-                          elem^.idx := fSubItemIdx[i][j];
-                          errdist.Add(elem);
-                     end;
-                end;
-           end;
-
-           // sort the list according to the error distribution
-           errdist.Sort(@ErrorSort);
-
-           // create the point set
-           SetLength(Elements, Min(Round(fProps.Start*fEigVecs.Width), errdist.Count));
-           for i := 0 to Length(Elements) - 1 do
-               Elements[i] := PErrorIdx(errdist[i])^.idx;
-        finally
-               for i := 0 to errDist.Count - 1 do
-                   dispose(PErrorIdx(errDist[i]));
-
-               errdist.Free;
-        end;
-     finally
-            for i := 0 to Length(errors) - 1 do
-                FreeAndNil(errors[i]);
+          globalMeanError := globalMeanError + 1/fProps.NumSubSubSpaces*localMeanErrors[i];
      end;
 
+     // define set of inlining features
+     // element error must be lower then min(localMeanError, globalMeanError);
+     errdist := TList.Create;
+     try
+        errdist.Capacity := Round(fProps.NumSubSubSpaces*fProps.SubSpaceSizes*Example.Height/2);
+        for i := 0 to fProps.NumSubSubSpaces - 1 do
+        begin
+             actErr := Min(globalMeanError, localMeanErrors[i]);
+             for j := 0 to errors[i].Height - 1 do
+             begin
+                  if errors[i][0, j] <= actErr then
+                  begin
+                       new(elem);
+                       elem^.Error := errors[i][0, j];
+                       elem^.idx := fSubItemIdx[i][j];
+                       errdist.Add(elem);
+                  end;
+             end;
+        end;
+
+        // sort the list according to the error distribution
+        errdist.Sort(@ErrorSort);
+
+        // create the point set
+        SetLength(Elements, Min(Round(fProps.Start*fEigVecs.Width), errdist.Count));
+        for i := 0 to Length(Elements) - 1 do
+            Elements[i] := PErrorIdx(errdist[i])^.idx;
+     finally
+            for i := 0 to errDist.Count - 1 do
+                dispose(PErrorIdx(errDist[i]));
+
+            errdist.Free;
+     end;
 
      // ##############################################################
      // #### Project to the original feature space using only inlining features
@@ -1246,7 +1132,7 @@ end;
 
 procedure TFastRobustPCA.ProjectToFeatureSpaceNonRobust(Example,
   ResMatrix: TDoubleMatrix; Column: integer);
-var tmp : TDoubleMatrix;
+var tmp : IMatrix;
 begin
      if not Assigned(fEigVecs) then
         raise EPCAException.Create('PCA object not initialized');
@@ -1255,11 +1141,7 @@ begin
         raise EPCAException.Create('Resulting dimension of projection matrix is wrong');
 
      tmp := ProjectToFeatureSpaceNonRobust(Example);
-     try
-        ResMatrix.SetColumn(column, tmp);
-     finally
-            tmp.Free;
-     end;
+     ResMatrix.SetColumn(column, tmp);
 end;
 
 
@@ -1272,108 +1154,89 @@ end;
 function TFastRobustPCA.RobustAlphaTrimmedLinEQSolver(Example : TDoubleMatrix;
   var Elements: TIntegerDynArray): TDoubleMatrix;
 var numElements : integer;
-    A : TDoubleMatrix;
-    AInv : TDoubleMatrix;
-    Y : TDoubleMatrix;
-    X : TDoubleMatrix;
-    Xa : TDoubleMatrix;
+    A : IMatrix;
+    AInv : IMatrix;
+    X : IMatrix;
+    Xa : IMatrix;
     i : integer;
     data : TDoubleDynArray;
     thresh : double;
     tIdx : integer;
     dataIdx : integer;
-    meanNormExample : TDoubleMatrix;
+    meanNormExample : IMatrix;
     numNewElements : integer;
 begin
      Result := nil;
 
      numElements := Length(Elements);
 
-     A := nil;
-     Y := nil;
-     x := nil;
-     Xa := nil;
-     AInv := nil;
      meanNormExample := Example.Sub(fMeanElem);
-     try
-        repeat
-              A := MatrixClass.Create(fEigVecs.Width, numElements);
-              X := MatrixClass.Create(1, numElements);
+     repeat
+           A := MatrixClass.Create(fEigVecs.Width, numElements);
+           X := MatrixClass.Create(1, numElements);
 
-              // copy rows respectively elements
-              for i := 0 to numElements - 1 do
-              begin
-                   A.SetRow(i, fEigVecs, Elements[i]);
-                   X[0, i] := meanNormExample[0, Elements[i]];
-              end;
+           // copy rows respectively elements
+           for i := 0 to numElements - 1 do
+           begin
+                A.SetRow(i, fEigVecs, Elements[i]);
+                X[0, i] := meanNormExample[0, Elements[i]];
+           end;
 
-              // ##########################################################
-              // #### solve this overdetermined linear set of equations
+           // ##########################################################
+           // #### solve this overdetermined linear set of equations
 
-              // todo: eventually dismiss the pseudoinverse and apply a better
-              // solving method
-              if A.PseudoInversion(AInv) <> srOk then
-                 raise EPCAException.Create('Error robustly solving PCA coefficients');
-              AInv.MultInPlace(X);
+           // todo: eventually dismiss the pseudoinverse and apply a better
+           // solving method
+           if A.PseudoInversion(AInv) <> srOk then
+              raise EPCAException.Create('Error robustly solving PCA coefficients');
+           AInv.MultInPlace(X);
 
-              // ##########################################################
-              // #### Check error distribution -> but only on the projected subset
-              Xa := A.Mult(AInv);
+           // ##########################################################
+           // #### Check error distribution -> but only on the projected subset
+           Xa := A.Mult(AInv);
 
-              // check error
-              for i := 0 to numElements - 1 do
-                  X[0, i] := Abs(X[0, i] - Xa[0, i]);
+           // check error
+           for i := 0 to numElements - 1 do
+               X[0, i] := Abs(X[0, i] - Xa[0, i]);
 
-              // reduce the number of points according to the error distribution
-              data := X.SubMatrix;
-              QuickSort(data);
+           // reduce the number of points according to the error distribution
+           data := X.SubMatrix;
+           QuickSort(data);
 
-              numNewElements := Min(numElements - 1, Max(fEigVecs.Width, Round(numElements*fProps.ReductionFactor)));
-              if numNewElements < 0 then
-                 break;
+           numNewElements := Min(numElements - 1, Max(fEigVecs.Width, Round(numElements*fProps.ReductionFactor)));
+           if numNewElements < 0 then
+              break;
 
-              thresh := data[numNewElements];
-              dataIdx := 0;
+           thresh := data[numNewElements];
+           dataIdx := 0;
 
-              for tidx := 0 to numElements - 1 do
-              begin
-                   if dataIdx = numNewElements - 1 then
-                      break;
-                      
-                   if (X[0, tidx] <= thresh) then
-                   begin
-                        Elements[dataIdx] := Elements[tidx];
-                        inc(dataIdx);
-                   end;
-              end;
+           for tidx := 0 to numElements - 1 do
+           begin
+                if dataIdx = numNewElements - 1 then
+                   break;
 
-              numElements := dataIdx;
+                if (X[0, tidx] <= thresh) then
+                begin
+                     Elements[dataIdx] := Elements[tidx];
+                     inc(dataIdx);
+                end;
+           end;
 
-              // ##########################################################
-              // #### Create result
-              if numElements <= Max(fEigVecs.Width, fProps.Stop*fEigVecs.Width) then
-              begin
-                   Result := AInv;
-                   Ainv := nil;
-              end;
+           numElements := dataIdx;
 
-              FreeAndNil(Xa);
-              FreeAndNil(X);
-              FreeAndNil(A);
-              FreeAndNil(aInv);
-        until numElements <= Max(fEigVecs.Width, fProps.Stop*fEigVecs.Width);
+           // ##########################################################
+           // #### Create result
+           if numElements <= Max(fEigVecs.Width, fProps.Stop*fEigVecs.Width) then
+           begin
+                Result := AInv.Clone;
+                Ainv := nil;
+           end;
 
-        FreeAndNil(meanNormExample);
-     except
-           A.Free;
-           Y.Free;
-           X.Free;
-           Xa.Free;
-           AInv.Free;
-           meanNormExample.Free;
-
-           raise;
-     end;
+           Xa := nil;
+           X := nil;
+           A := nil;
+           aInv := nil;
+     until numElements <= Max(fEigVecs.Width, fProps.Stop*fEigVecs.Width);
 end;
 
 procedure TFastRobustPCA.SetProperties(const props: TFastRobustPCAProps);
@@ -1388,14 +1251,14 @@ begin
      if not Assigned(fSubEigVecsT[idx]) then
         fSubEigVecsT[idx] := fSubEigVecs[idx].Transpose;
 
-     Result := fSubEigVecsT[idx];
+     Result := fSubEigVecsT[idx].GetObjRef;
 end;
 
 function TFastRobustPCA.TemporalWeightPCA(Examples: TDoubleMatrix;
   CutEps: double; IsRelativeValue: boolean;
   const Weights: array of Double): boolean;
 var i, j : integer;
-    SubExamples : TDoubleMatrix;
+    SubExamples : IMatrix;
     keepTransposed : boolean;
     subEPS : double;
 begin
@@ -1424,26 +1287,23 @@ begin
           fSubItemIdx[i] := GenerateSampleList(Examples.Height, i);
 
           SubExamples := MatrixClass.Create(Examples.Width, Length(fSubItemIdx[i]));
-          try
-             for j := 0 to Length(fSubItemIdx[i]) - 1 do
-                 SubExamples.SetRow(j, Examples, fSubItemIdx[i][j]);
+          for j := 0 to Length(fSubItemIdx[i]) - 1 do
+              SubExamples.SetRow(j, Examples, fSubItemIdx[i][j]);
 
-             inherited TemporalWeightPCA(SubExamples, subEPS, True, Weights);
-          finally
-                 SubExamples.Free;
-          end;
+          inherited TemporalWeightPCA(SubExamples.GetObjRef, subEPS, True, Weights);
+          SubExamples := nil;
 
           // copy result
           fSubEigVecs[i] := fEigVecs;
           fSubMeanElem[i] := fMeanElem;
 
           if keepTransposed then
-             fSubEigVecsT[i] := EigVecT;
+             fSubEigVecsT[i] := EigVecT.Clone;
 
           fEigVecs := nil;
           fMeanElem := nil;
           fEigVecsT := nil;
-          FreeAndNil(fEigVals);
+          fEigVals := nil;
      end;
 
      // ##########################################################
@@ -1452,9 +1312,6 @@ begin
 
      fIsLearning := False;
      
-     if Assigned(fEigVecsT) then
-        fEigVecsT.Free;
-        
      fEigVecsT := nil;
 
      if keepTransposed then
@@ -1474,15 +1331,15 @@ begin
      if not Assigned(fMeanElem) then
         exit;
 
-     AddObject('mean', fMeanElem);
-     AddObject('pcavec', fEigVecs);
+     AddObject('mean', fMeanElem.GetObjRef);
+     AddObject('pcavec', fEigVecs.GetObjRef);
 
      if (pcaEigVals in fKeepFlags) and assigned(fEigVals) then
-        AddObject('eigvals', fEigVals);
+        AddObject('eigvals', fEigVals.GetObjRef);
      if (pcaMeanNormalizedData in fKeepFlags) and assigned(fMeanNormExamples) then
-        AddObject('meannormdata', fMeanNormExamples);
+        AddObject('meannormdata', fMeanNormExamples.GetObjRef);
      if (pcaTransposedEigVec in fKeepFlags) and Assigned(fEigVecsT) then
-        AddObject('pcavect', fEigVecsT);
+        AddObject('pcavect', fEigVecsT.GetObjRef);
 end;
 
 function TMatrixPCA.PropTypeOfName(const Name: string): TPropType;

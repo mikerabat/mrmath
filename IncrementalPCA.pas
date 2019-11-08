@@ -38,7 +38,7 @@ type
   TIncrementalPCA = class(TMatrixPCA)
   private
     fNumEigenvectorsToKeep: integer;
-    fA : TDoubleMatrix;
+    fA : IMatrix;
     fWeights : TDoubleDynArray;
     fNumWeights : integer;
 
@@ -80,7 +80,7 @@ type
     A : TDoubleMatrix;
     Weights : TDoubleDynArray;
     NumEigenVecs : integer;
-    SubA : TDoubleMatrixDynArr;
+    SubA : IMatrixDynArr;
     SubWeights : Array of TDoubleDynArray;
   end;
 
@@ -91,11 +91,11 @@ type
   TFastRobustIncrementalPCA = class(TFastRobustPCA)
   private
     fNumEigenvectorsToKeep : integer;
-    fA : TDoubleMatrix;
-    fSubA : TDoubleMatrixDynArr;
+    fA : IMatrix;
+    fSubA : IMatrixDynArr;
     fWeights : Array of TDoubleDynArray;
     fNumWeights : TIntegerDynArray;
-    fSubEigVals : TDoubleMatrixDynArr;
+    fSubEigVals : IMatrixDynArr;
 
     procedure AddWeight(idx : integer; const weight : double);
     procedure BuildSubspaces(Examples : TDoubleMatrix; origKeepFlags : TPCASaveDataSet);
@@ -105,6 +105,7 @@ type
   private
     fIdx : integer;
     fListType : TListLoadType;
+    function getA: TDoubleMatrix;
   protected
     procedure DefineProps; override;
     function PropTypeOfName(const Name : string) : TPropType; override;
@@ -121,7 +122,7 @@ type
     procedure Clear; override;
   public
     property NumEigenvectorsToKeep : integer read fNumEigenvectorsToKeep write fNumEigenvectorsToKeep;
-    property A : TDoubleMatrix read fA;
+    property A : TDoubleMatrix read getA;
 
     function UpdateEigenspace(mtx : TDoubleMatrix) : boolean; overload;
     // this function is an extension to the base incremental pca algorithm -> it uses the same blending algorithm
@@ -156,26 +157,26 @@ type
   TSubspaceUpdater = class(TMatrixClass)
   private
     fNumEigenvectorsToKeep : integer;
-    fEigVecs : TDoubleMatrix;
-    fEigVals : TDoubleMatrix;
-    fMeanElem : TDoubleMatrix;
-    fA : TDoubleMatrix;
+    fEigVecs : IMatrix;
+    fEigVals : IMatrix;
+    fMeanElem : IMatrix;
+    fA : IMatrix;
     fWeights : TDoubleDynArray;
     fNumWeights : integer;
 
     function InternalUpdateEigenspace(mtx : TDoubleMatrix; weighted : boolean) : boolean;
-    function PrepareBlendExample(mtx : TDoubleMatrix; const spacialWeights : Array of double) : TDoubleMatrix;
+    function PrepareBlendExample(mtx : TDoubleMatrix; const spacialWeights : Array of double) : IMatrix;
   public
-    function UpdateEigenspace(mtx : TDoubleMatrix; var EigVecs, EigVals, MeanElem, A : TDoubleMatrix) : boolean; overload;
+    function UpdateEigenspace(mtx : TDoubleMatrix; var EigVecs, EigVals, MeanElem, A : IMatrix) : boolean; overload;
     // this function is an extension to the base incremental pca algorithm -> it uses the same blending algorithm
     // as the weighted incremental version (this is works since it is only a special case of the weighted version!)
-    function UpdateEigenspace(mtx : TDoubleMatrix; const spacialWeights : Array of double; var EigVecs, EigVals, MeanElem, A : TDoubleMatrix) : boolean; overload;
+    function UpdateEigenspace(mtx : TDoubleMatrix; const spacialWeights : Array of double; var EigVecs, EigVals, MeanElem, A : IMatrix) : boolean; overload;
     // note the spacial weights MUST have values between 0 and 1. 1 means no weighting and 0 means that pixel is not taken into account.
     // implementation of Daniejl S. weighted incremental PCA function (p 69ff):
     // this function supports spacial weights as well as temporal weights. If the function without spacial weights is called
     // all weights are set to 1 (no blending with the original image)
-    function UpdateEigenspaceWeighted(mtx : TDoubleMatrix; var weights : TDoubleDynArray; var numWeights : integer; var EigVecs, EigVals, MeanElem, A : TDoubleMatrix) : boolean; overload;
-    function UpdateEigenspaceWeighted(mtx : TDoubleMatrix; var weights : TDoubleDynArray; var numWeights : integer; const spacialWeights : Array of double; var EigVecs, EigVals, MeanElem, A : TDoubleMatrix) : boolean; overload;
+    function UpdateEigenspaceWeighted(mtx : TDoubleMatrix; var weights : TDoubleDynArray; var numWeights : integer; var EigVecs, EigVals, MeanElem, A : IMatrix) : boolean; overload;
+    function UpdateEigenspaceWeighted(mtx : TDoubleMatrix; var weights : TDoubleDynArray; var numWeights : integer; const spacialWeights : Array of double; var EigVecs, EigVals, MeanElem, A : IMatrix) : boolean; overload;
 
     constructor Create(NumVectorsToKeep : integer);
   end;
@@ -190,218 +191,156 @@ begin
 end;
 
 function TSubspaceUpdater.InternalUpdateEigenspace(mtx: TDoubleMatrix; weighted: boolean): boolean;
-var normExample : TDoubleMatrix;
-    a : TDoubleMatrix;
-    r : TDoubleMatrix;
-    a1 : TDoubleMatrix;
-    u1 : TDoubleMatrix;
+var normExample : IMatrix;
+    a : IMatrix;
+    r : IMatrix;
+    a1 : IMatrix;
+    u1 : IMatrix;
     normR : double;
     y : Integer;
     x : Integer;
     pca : TMatrixPCA;
-    temp : TDoubleMatrix;
-    eigVecsT : TDoubleMatrix;
+    temp : IMatrix;
+    eigVecsT : IMatrix;
 begin
      Result := False;
-     normExample := nil;
-     a := nil;
-     r := nil;
-     a1 := nil;
-     u1 := nil;
-     temp := nil;
+
+     // project current example to the current feature space
+     normExample := mtx.Sub(fMeanElem);
+     eigVecsT := fEigVecs.Transpose;
+     a := EigVecsT.Mult(normExample);
      eigVecsT := nil;
 
+     // reconstruct example
+     normExample := fEigVecs.Mult(a);
+     normExample.AddInplace(fMeanElem);
+
+     // compute residual vector and normalize
+     r := mtx.Sub(normExample);
+     normR := 0;
+     for y := 0 to r.Height - 1 do
+         normR := normR + sqr(r[0, y]);
+     normR := sqrt(normR);
+     // check error -> todo: better Boundary check
+     normExample := nil;
+     if normR < 100*MinDouble then
+        exit;
+
+     // normalize vector
+     r.ScaleInPlace(1/normR);
+
+     // append new basis vector to u
+     u1 := MatrixClass.Create(fEigVecs.Width + 1, fEigVecs.Height);
+     u1.AssignSubMatrix(fEigVecs);
+     u1.SetColumn(u1.Width - 1, r);
+
+     r := nil;
+
+     // append new value in feature space
+     a1 := MatrixClass.Create(fA.Width + 1, fA.Height + 1);
+     a1.SetSubMatrix(0, 0, a1.Width, a1.Height - 1);
+     for x := 0 to fA.Width - 1 do
+         a1.SetColumn(x, fA, x);
+     a1.SetColumn(a1.Width - 1, a);
+     a1.UseFullMatrix;
+     a1[a1.width - 1, a1.Height - 1] := normR;
+
+     a := nil;
+
+     // perform full PCA on the new matrix a1
+     pca := TMatrixPCA.Create([pcaEigVals]);
      try
-        // project current example to the current feature space
-        normExample := mtx.Sub(fMeanElem);
-        eigVecsT := fEigVecs.Transpose;
-        a := EigVecsT.Mult(normExample);
-        FreeAndNil(eigVecsT);
+        if not weighted
+        then
+            Result := pca.PCA(a1.GetObjRef, 1, True)
+        else
+            Result := pca.TemporalWeightPCA(a1.GetObjRef, 1, True, Copy(fWeights, 0, fNumWeights));
 
-        // reconstruct example
-        FreeAndNil(normExample);
-        normExample := fEigVecs.Mult(a);
-        normExample.AddInplace(fMeanElem);
+        if not Result then
+           exit;
 
-        // compute residual vector and normalize
-        r := mtx.Sub(normExample);
-        normR := 0;
-        for y := 0 to r.Height - 1 do
-            normR := normR + sqr(r[0, y]);
-        normR := sqrt(normR);
-        // check error -> todo: better Boundary check
-        FreeAndNil(normExample);
-        if normR < 100*MinDouble then
+        // project the coefficient vectors to the new basis
+        a1.SubVecInPlace(pca.Mean, False);
+        fA := pca.EigVecsT.Mult(a1);
+        a1 := nil;
+
+        // update the mean
+        temp := u1.Mult(pca.Mean);
+        fMeanElem.AddInplace(temp);
+        temp := nil;
+
+        // rotate the subspace
+        u1.MultInPlace(pca.EigVecs);
+        fEigVecs := u1;
+
+        // discard the last eigenvector -> keep the basis constant
+        if (fNumEigenvectorsToKeep > 0) and (fEigVecs.Width > fNumEigenvectorsToKeep) then
         begin
-             FreeAndNil(r);
-             FreeAndNil(a);
+             fEigVecs.Resize(fEigVecs.Width - 1, fEigVecs.Height);
 
-             exit;
+             // remove the last row -> it contains the values of the least significant
+             // elements
+             fA.SetSubMatrix(0, 0, fA.Width, fA.Height - 1);
         end;
 
-        // normalize vector
-        r.ScaleInPlace(1/normR);
-
-        // append new basis vector to u
-        u1 := MatrixClass.Create(fEigVecs.Width + 1, fEigVecs.Height);
-        for x := 0 to fEigVecs.Width - 1 do
-            u1.SetColumn(x, fEigVecs, x);
-        u1.SetColumn(u1.Width - 1, r);
-
-        FreeAndNil(r);
-
-        // append new value in feature space
-        a1 := MatrixClass.Create(fA.Width + 1, fA.Height + 1);
-        a1.SetSubMatrix(0, 0, a1.Width, a1.Height - 1);
-        for x := 0 to fA.Width - 1 do
-            a1.SetColumn(x, fA, x);
-        a1.SetColumn(a1.Width - 1, a);
-        a1.UseFullMatrix;
-        a1[a1.width - 1, a1.Height - 1] := normR;
-
-        FreeAndNil(a);
-
-        // perform full PCA on the new matrix a1
-        pca := TMatrixPCA.Create([pcaEigVals]);
-        try
-           if not weighted
-           then
-               Result := pca.PCA(a1, 1, True)
-           else
-               Result := pca.TemporalWeightPCA(a1, 1, True, Copy(fWeights, 0, fNumWeights));
-
-           if not Result then
-              exit;
-
-           // project the coefficient vectors to the new basis
-           FreeAndNil(fA);
-
-           for x := 0 to a1.Width - 1 do
-           begin
-                a1.SetSubMatrix(x, 0, 1, a1.Height);
-                a1.SubInPlace(pca.Mean);
-           end;
-           a1.UseFullMatrix;
-           fA := pca.EigVecsT.Mult(a1);
-           FreeAndNil(a1);
-
-           // update the mean
-           temp := u1.Mult(pca.Mean);
-           fMeanElem.AddInplace(temp);
-           FreeAndNil(temp);
-
-           // rotate the subspace
-           u1.MultInPlace(pca.EigVecs);
-           FreeAndNil(fEigVecs);
-           fEigVecs := u1;
-           u1 := nil;
-
-           // discard the last eigenvector -> keep the basis constant
-           if (fNumEigenvectorsToKeep > 0) and (fEigVecs.Width > fNumEigenvectorsToKeep) then
-           begin
-                temp := MatrixClass.Create;
-                fEigVecs.SetSubMatrix(0, 0, fEigVecs.Width - 1, fEigVecs.Height);
-                temp.Assign(fEigVecs, True);
-                FreeAndNil(fEigVecs);
-                fEigVecs := temp;
-
-                // remove the last row -> it contains the values of the least significant
-                // elements
-                fA.SetSubMatrix(0, 0, fA.Width, fA.Height - 1);
-           end;
-
-           if Assigned(fEigVals) then
-              fEigVals.Assign(pca.EigVals);
-        finally
-               pca.Free;
-        end;
-     except
-           a.Free;
-           a1.Free;
-           u1.Free;
-           normExample.Free;
-           r.Free;
-           temp.Free;
-           eigVecsT.Free;
-
-           raise;
+        if Assigned(fEigVals) then
+           fEigVals.Assign(pca.EigVals);
+     finally
+            pca.Free;
      end;
 end;
 
 function TSubspaceUpdater.PrepareBlendExample(mtx: TDoubleMatrix;
-  const spacialWeights: array of double): TDoubleMatrix;
-var uPinv : TDoubleMatrix;
+  const spacialWeights: array of double): IMatrix;
+var uPinv : IMatrix;
     x, y : integer;
-    rootWeights : TDoubleMatrix;
-    residual : TDoubleMatrix;
-    a : TDoubleMatrix;
+    rootWeights : IMatrix;
+    residual : IMatrix;
+    a : IMatrix;
 begin
-     uPinv := nil;
-     rootWeights := nil;
-     Result := nil;
-     residual := nil;
-     a := nil;
-     try
-        // #########################################################
-        // #### Calculate the coefficients considering the spacial weights
-        rootWeights := MatrixClass.Create(1, Length(spacialWeights));
-        for y := 0 to rootWeights.Height - 1 do
-            rootWeights[0, y] := sqrt(spacialWeights[y]);
+     // #########################################################
+     // #### Calculate the coefficients considering the spacial weights
+     rootWeights := MatrixClass.Create(1, Length(spacialWeights));
+     for y := 0 to rootWeights.Height - 1 do
+         rootWeights[0, y] := sqrt(spacialWeights[y]);
 
-        uPinv := MatrixClass.Create;
-        uPinv.Assign(fEigVecs);
+     uPinv := fEigVecs.Clone;
 
-        // elementwise multiply the elements of U with the spacial weights
-        for x := 0 to uPinv.Width - 1 do
-        begin
-             uPinv.SetSubMatrix(x, 0, 1, uPinv.Height);
-             uPinv.ElementWiseMult(rootWeights);
-        end;
-        uPinv.UseFullMatrix;
-        if uPinv.PseudoInversionInPlace <> srOk then
-        begin
-             FreeAndNil(uPinv);
-             FreeAndNil(rootWeights);
-             exit;
-        end;
-
-        // calculated weighted residual
-        residual := mtx.Sub(fMeanElem);
-        residual.ElementWiseMult(rootWeights);
-        FreeAndNil(rootWeights);
-
-        // now calculate the projected elements in feature space
-        a := uPinv.Mult(residual);
-        FreeAndNil(uPinv);
-
-        // reconstruct example
-        FreeAndNil(residual);
-        residual := fEigVecs.Mult(a);
-        residual.AddInplace(fMeanElem);
-
-        FreeAndNil(a);
-
-        // ############################################################
-        // #### Blend the input and the reconstructed image considering the spatial weights
-        Result := MatrixClass.Create(1, mtx.Height);
-
-        for y := 0 to Result.Height - 1 do
-            Result[0, y] := mtx[0, y]*spacialWeights[y] + residual[0, y]*(1 - spacialWeights[y]);
-
-        FreeAndNil(residual);
-     except
-           FreeAndNil(uPinv);
-           FreeAndNil(rootWeights);
-           FreeAndNil(residual);
-           FreeAndNil(a);
-           FreeAndNil(Result);
+     // elementwise multiply the elements of U with the spacial weights
+     for x := 0 to uPinv.Width - 1 do
+     begin
+          uPinv.SetSubMatrix(x, 0, 1, uPinv.Height);
+          uPinv.ElementWiseMult(rootWeights);
      end;
+     uPinv.UseFullMatrix;
+     if uPinv.PseudoInversionInPlace <> srOk then
+        exit;
+
+     // calculated weighted residual
+     residual := mtx.Sub(fMeanElem);
+     residual.ElementWiseMult(rootWeights);
+     rootWeights := nil;
+
+     // now calculate the projected elements in feature space
+     a := uPinv.Mult(residual);
+     uPinv := nil;
+
+     // reconstruct example
+     residual := fEigVecs.Mult(a);
+     residual.AddInplace(fMeanElem);
+
+     // ############################################################
+     // #### Blend the input and the reconstructed image considering the spatial weights
+     Result := MatrixClass.Create(1, mtx.Height);
+
+     for y := 0 to Result.Height - 1 do
+         Result[0, y] := mtx[0, y]*spacialWeights[y] + residual[0, y]*(1 - spacialWeights[y]);
 end;
 
 function TSubspaceUpdater.UpdateEigenspace(mtx: TDoubleMatrix;
   const spacialWeights: array of double; var EigVecs, EigVals, MeanElem,
-  A: TDoubleMatrix): boolean;
-var blendMtx : TDoubleMatrix;
+  A: IMatrix): boolean;
+var blendMtx : IMatrix;
 begin
      // #######################################################
      // #### Execute the generic eigenspace update
@@ -411,11 +350,7 @@ begin
      fA := A;
 
      blendMtx := PrepareBlendExample(mtx, spacialWeights);
-     try
-        Result := InternalUpdateEigenspace(blendMtx, False);
-     finally
-            blendMtx.Free;
-     end;
+     Result := InternalUpdateEigenspace(blendMtx.GetObjRef, False);
 
      EigVecs := fEigVecs;
      EigVals := fEigVals;
@@ -424,7 +359,7 @@ begin
 end;
 
 function TSubspaceUpdater.UpdateEigenspace(mtx: TDoubleMatrix; var EigVecs,
-  EigVals, MeanElem, A: TDoubleMatrix): boolean;
+  EigVals, MeanElem, A: IMatrix): boolean;
 begin
      // #######################################################
      // #### Execute the generic eigenspace update
@@ -444,7 +379,7 @@ end;
 
 function TSubspaceUpdater.UpdateEigenspaceWeighted(mtx: TDoubleMatrix;
   var weights: TDoubleDynArray; var NumWeights : integer; var EigVecs, EigVals, MeanElem,
-  A: TDoubleMatrix): boolean;
+  A: IMatrix): boolean;
 begin
      // #######################################################
      // #### Execute the generic eigenspace update
@@ -467,8 +402,8 @@ end;
 
 function TSubspaceUpdater.UpdateEigenspaceWeighted(mtx: TDoubleMatrix;
   var weights : TDoubleDynArray; var numWeights : integer; const spacialWeights: array of double; var EigVecs, EigVals, MeanElem,
-  A: TDoubleMatrix): boolean;
-var blendMtx : TDoubleMatrix;
+  A: IMatrix): boolean;
+var blendMtx : IMatrix;
 begin
      // #######################################################
      // #### Execute the generic eigenspace update
@@ -480,11 +415,8 @@ begin
      fA := A;
 
      blendMtx := PrepareBlendExample(mtx, spacialWeights);
-     try
-        Result := InternalUpdateEigenspace(blendMtx, True);
-     finally
-            blendMtx.Free;
-     end;
+     assert(Assigned(blendMtx), 'No blend matrix created');
+     Result := InternalUpdateEigenspace(blendMtx.GetObjRef, True);
 
      EigVecs := fEigVecs;
      EigVals := fEigVals;
@@ -530,7 +462,7 @@ end;
 
 destructor TIncrementalPCA.Destroy;
 begin
-     fA.Free;
+     fA := nil;
 
      inherited;
 end;
@@ -540,7 +472,7 @@ begin
      if not Assigned(fA) then
         fA := MatrixClass.Create;
 
-     Result := fA;
+     Result := fA.GetObjRef;
 end;
 
 // ###############################################
@@ -556,7 +488,7 @@ begin
      inherited;
 
      if Assigned(fA) then
-        AddObject('A', fA);
+        AddObject('A', fA.GetObjRef);
      AddIntProperty('NumEigenvectorsToKeep', fNumEigenvectorsToKeep);
      AddDoubleArr('IncrWeights', fWeights);
 end;
@@ -626,10 +558,10 @@ begin
           fA := EigVecT.Mult(fMeanNormExamples);
 
           if not (pcaMeanNormalizedData in origKeepFlags) then
-             FreeAndNil(fMeanNormExamples);
+             fMeanNormExamples := nil;
 
           if not (pcaTransposedEigVec in origKeepFlags) then
-             FreeAndNil(fEigVecsT);
+             fEigVecsT := nil;
 
           fKeepFlags := origKeepFlags;
      end;
@@ -656,10 +588,10 @@ begin
           fA := EigVecT.Mult(fMeanNormExamples);
 
           if not (pcaMeanNormalizedData in origKeepFlags) then
-             FreeAndNil(fMeanNormExamples);
+             fMeanNormExamples := nil;
 
           if not (pcaTransposedEigVec in origKeepFlags) then
-             FreeAndNil(fEigVecsT);
+             fEigVecsT := nil;
 
           fKeepFlags := origKeepFlags;
      end;
@@ -673,8 +605,7 @@ begin
 
      if not Assigned(fMeanElem) then
      begin
-          fMeanElem := MatrixClass.Create;
-          fMeanElem.Assign(mtx, True);
+          fMeanElem := mtx.Clone;
           fEigVecs := MatrixClass.Create(1, mtx.Height);
           fA := MatrixClass.Create(1, 1);
 
@@ -705,8 +636,7 @@ begin
 
      if not Assigned(fMeanElem) then
      begin
-          fMeanElem := MatrixClass.Create;
-          fMeanElem.Assign(mtx, True);
+          fMeanElem := mtx.Clone;
           fEigVecs := MatrixClass.Create(1, mtx.Height);
           fA := MatrixClass.Create(1, 1);
 
@@ -739,8 +669,7 @@ begin
 
      if not Assigned(fMeanElem) then
      begin
-          fMeanElem := MatrixClass.Create;
-          fMeanElem.Assign(mtx, True);
+          fMeanElem := mtx.Clone;
           fEigVecs := MatrixClass.Create(1, mtx.Height);
           fA := MatrixClass.Create(1, 1);
 
@@ -808,61 +737,46 @@ end;
 procedure TFastRobustIncrementalPCA.BuildSubspaces(Examples: TDoubleMatrix; origKeepFlags : TPCASaveDataSet);
 var i, idx : integer;
     j : integer;
-    x : TDoubleMatrix;
-    subT : TDoubleMatrix;
+    x : IMatrix;
+    subT : IMatrix;
 begin
      // main subspace
      fA := EigVecT.Mult(fMeanNormExamples);
 
      if not (pcaMeanNormalizedData in origKeepFlags) then
-        FreeAndNil(fMeanNormExamples);
+        fMeanNormExamples := nil;
 
      if not (pcaTransposedEigVec in origKeepFlags) then
-        FreeAndNil(fEigVecsT);
+        fEigVecsT := nil;
 
      // subsubspaces
      SetLength(fSubA, fProps.NumSubSubSpaces);
      for idx := 0 to Length(fSubEigVecs) - 1 do
      begin
           x := MatrixClass.Create(Examples.Width, fSubMeanElem[idx].Height);
-          try
-             // project to feature space
-             for j := 0 to Examples.Width - 1 do
-             begin
-                  for i := 0 to x.Height - 1 do
-                      x[j, i] := Examples[j, fSubItemIdx[idx][i]];
+          // project to feature space
+          for j := 0 to Examples.Width - 1 do
+          begin
+               for i := 0 to x.Height - 1 do
+                   x[j, i] := Examples[j, fSubItemIdx[idx][i]];
 
-                  x.SetSubMatrix(j, 0, 1, x.Height);
-                  x.SubInPlace(fSubMeanElem[idx]);
-                  x.UseFullMatrix;
-             end;
-
-             subT := fSubEigVecs[idx].Transpose;
-             try
-                fSubA[idx] := subT.Mult(x);
-             finally
-                    subT.Free;
-             end;
-          finally
-                 x.Free;
+               x.SetSubMatrix(j, 0, 1, x.Height);
+               x.SubInPlace(fSubMeanElem[idx]);
+               x.UseFullMatrix;
           end;
+
+          subT := fSubEigVecs[idx].Transpose;
+          fSubA[idx] := subT.Mult(x);
      end;
 end;
 
 procedure TFastRobustIncrementalPCA.Clear;
-var i : integer;
 begin
      inherited;
 
      if not fIsLearning then
      begin
-          FreeAndNil(fA);
-          for i := 0 to Length(fSubA) - 1 do
-              fSubA[i].Free;
-
-          for i := 0 to Length(fSubEigVals) - 1 do
-               fSubEigVals[i].Free;
-
+          fA := nil;
           fSubA := nil;
           fWeights := nil;
           fNumWeights := nil;
@@ -906,7 +820,7 @@ begin
      inherited;
 
      if Assigned(fA) then
-        AddObject('A', fA);
+        AddObject('A', fA.GetObjRef);
      AddIntProperty('NumEigenvectorsToKeep', fNumEigenvectorsToKeep);
      if Length(fWeights) > 0 then
      begin
@@ -921,14 +835,14 @@ begin
      begin
           BeginList('IPCASUBA', Length(fSubA));
           for i := 0 to Length(fSubA) - 1 do
-              AddObject(fSubA[i]);
+              AddObject(fSubA[i].GetObjRef);
           EndList;
      end;
      if Length(fSubEigVals) > 0 then
      begin
           BeginList('IPCASUBEIGVALS', Length(fSubEigVals));
           for i := 0 to Length(fSubEigVals) - 1 do
-              AddObject(fSubEigVals[i]);
+              AddObject(fSubEigVals[i].GetObjRef);
           EndList;
      end;
 end;
@@ -1126,11 +1040,11 @@ end;
 function TFastRobustIncrementalPCA.UpdateEigenspaceWeighted(mtx: TDoubleMatrix;
   const weight: double; const spacialWeights: array of double): boolean;
 var i, j : integer;
-    subExample : TDoubleMatrix;
+    subExample : IMatrix;
     pcaUpdater : TSubspaceUpdater;
     subSpaceWeights : TDoubleDynArray;
-    example : TDoubleMatrix;
-    eigValMtx : TDoubleMatrix;
+    example : IMatrix;
+    eigValMtx : IMatrix;
 begin
      Result := True;
      assert(mtx.Width = 1, 'Error only one example allowed');
@@ -1155,66 +1069,57 @@ begin
                 fSubItemIdx[i] := GenerateSampleList(mtx.Height, i);
 
              SubExample := MatrixClass.Create(mtx.Width, Length(fSubItemIdx[i]));
-             try
-                if Length(spacialWeights) > 0 then
-                begin
-                     SetLength(subSpaceWeights, SubExample.Height);
-                     for j := 0 to Length(subSpaceWeights) - 1 do
-                         subSpaceWeights[j] := spacialWeights[fSubItemIdx[i][j]];
-                end;
 
-                for j := 0 to Length(fSubItemIdx[i]) - 1 do
-                    SubExample.SetRow(j, mtx, fSubItemIdx[i][j]);
+             if Length(spacialWeights) > 0 then
+             begin
+                  SetLength(subSpaceWeights, SubExample.Height);
+                  for j := 0 to Length(subSpaceWeights) - 1 do
+                      subSpaceWeights[j] := spacialWeights[fSubItemIdx[i][j]];
+             end;
 
-                if weight > 0 then
-                   AddWeight(i + 1, weight);
+             for j := 0 to Length(fSubItemIdx[i]) - 1 do
+                 SubExample.SetRow(j, mtx, fSubItemIdx[i][j]);
 
-                if not Assigned(fMeanElem) then
-                begin
-                     fSubMeanElem[i] := MatrixClass.Create;
-                     fSubMeanElem[i].Assign(SubExample, True);
-                     fSubEigVecs[i] := MatrixClass.Create(1, SubExample.Height);
-                     fSubA[i] := MatrixClass.Create(1, 1);
+             if weight > 0 then
+                AddWeight(i + 1, weight);
 
-                     if pcaEigVals in fKeepFlags then
-                        fSubEigVals[i] := MatrixClass.Create(1, 1);
+             if not Assigned(fMeanElem) then
+             begin
+                  fSubMeanElem[i] := SubExample.Clone;
+                  fSubEigVecs[i] := MatrixClass.Create(1, SubExample.Height);
+                  fSubA[i] := MatrixClass.Create(1, 1);
+
+                  if pcaEigVals in fKeepFlags then
+                     fSubEigVals[i] := MatrixClass.Create(1, 1);
+                  if pcaTransposedEigVec in fKeepFlags then
+                     fSubEigVecsT[i] := MatrixClass.Create(1, mtx.Height);
+             end
+             else
+             begin
+                  pcaUpdater := TSubspaceUpdater.Create(fNumEigenvectorsToKeep);
+                  try
+                     pcaUpdater.MatrixClass := MatrixClass;
+                     example := SubExample;
+                     if Length(spacialWeights) <> 0 then
+                        example := pcaUpdater.PrepareBlendExample(SubExample.GetObjRef, subSpaceWeights);
+
+                     eigValMtx := nil;
+                     if Length(fSubEigVals) > 0 then
+                        eigValMtx := fSubEigVals[i];
+
+                     if weight > 0
+                     then
+                         pcaUpdater.UpdateEigenspaceWeighted(Example.GetObjRef, fWeights[i + 1], fNumWeights[i + 1], fSubEigVecs[i], eigValMtx, fsubMeanElem[i], fSubA[i])
+                     else
+                         pcaUpdater.UpdateEigenspace(Example.GetObjRef, fSubEigVecs[i], eigValMtx, fsubMeanElem[i], fSubA[i]);
+
+                     fSubEigVecsT[i] := nil;
+
                      if pcaTransposedEigVec in fKeepFlags then
-                        fSubEigVecsT[i] := MatrixClass.Create(1, mtx.Height);
-                end
-                else
-                begin
-                     pcaUpdater := TSubspaceUpdater.Create(fNumEigenvectorsToKeep);
-                     try
-                        pcaUpdater.MatrixClass := MatrixClass;
-                        example := SubExample;
-                        try
-                           if Length(spacialWeights) <> 0 then
-                              example := pcaUpdater.PrepareBlendExample(SubExample, subSpaceWeights);
-
-                           eigValMtx := nil;
-                           if Length(fSubEigVals) > 0 then
-                              eigValMtx := fSubEigVals[i];
-
-                           if weight > 0
-                           then
-                               pcaUpdater.UpdateEigenspaceWeighted(Example, fWeights[i + 1], fNumWeights[i + 1], fSubEigVecs[i], eigValMtx, fsubMeanElem[i], fSubA[i])
-                           else
-                               pcaUpdater.UpdateEigenspace(Example, fSubEigVecs[i], eigValMtx, fsubMeanElem[i], fSubA[i]);
-
-                        finally
-                               if example <> SubExample then
-                                  FreeAndNil(example);
-                        end;
-                        fSubEigVecsT[i].Free;
-
-                        if pcaTransposedEigVec in fKeepFlags then
-                           fSubEigVecsT[i] := fSubEigVecs[i].Transpose;
-                     finally
-                            pcaUpdater.Free;
-                     end;
-                end;
-             finally
-                    SubExample.Free;
+                        fSubEigVecsT[i] := fSubEigVecs[i].Transpose;
+                  finally
+                         pcaUpdater.Free;
+                  end;
              end;
         end;
 
@@ -1225,8 +1130,7 @@ begin
 
         if not Assigned(fMeanElem) then
         begin
-             fMeanElem := MatrixClass.Create;
-             fMeanElem.Assign(mtx, True);
+             fMeanElem := mtx.Clone;
              fEigVecs := MatrixClass.Create(1, mtx.Height);
              fA := MatrixClass.Create(1, 1);
 
@@ -1242,20 +1146,15 @@ begin
         pcaUpdater := TSubspaceUpdater.Create(fNumEigenvectorsToKeep);
         try
            pcaUpdater.MatrixClass := MatrixClass;
-           example := mtx;
-           try
-              if Length(spacialWeights) <> 0 then
-                 example := pcaUpdater.PrepareBlendExample(mtx, spacialWeights);
+           example := mtx.Clone;
+           if Length(spacialWeights) <> 0 then
+              example := pcaUpdater.PrepareBlendExample(mtx, spacialWeights);
 
-              if weight > 0
-              then
-                  Result := pcaUpdater.UpdateEigenspaceWeighted(example, fWeights[0], fNumWeights[0], fEigVecs, fEigVals, fMeanElem, fA)
-              else
-                  Result := pcaUpdater.UpdateEigenspace(example, fEigVecs, fEigVals, fMeanElem, fA);
-           finally
-                  if example <> mtx then
-                     FreeAndNil(example);
-           end;
+           if weight > 0
+           then
+               Result := pcaUpdater.UpdateEigenspaceWeighted(example.GetObjRef, fWeights[0], fNumWeights[0], fEigVecs, fEigVals, fMeanElem, fA)
+           else
+               Result := pcaUpdater.UpdateEigenspace(example.GetObjRef, fEigVecs, fEigVals, fMeanElem, fA);
         finally
                pcaUpdater.Free;
         end;
@@ -1269,7 +1168,14 @@ function TFastRobustIncrementalPCA.UpdateEigenspaceWeighted(mtx: TDoubleMatrix;
 var spacialWeights : TDoubleDynArray;
 begin
      spacialWeights := nil;
-     Result := UpdateEigenspaceWeighted(mtx, weight, spacialWeights)
+     Result := UpdateEigenspaceWeighted(mtx, weight, spacialWeights);
+end;
+
+function TFastRobustIncrementalPCA.getA: TDoubleMatrix;
+begin
+     Result := nil;
+     if Assigned(fA) then
+        Result := fA.GetObjRef;
 end;
 
 initialization
