@@ -155,6 +155,7 @@ function Matrixvar(const Src : Array of double; width, height : TASMNativeInt; R
 procedure MatrixVar(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean); overload;
 procedure MatrixVar(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean); overload;
 
+procedure VecMeanVar( var dest : TMeanVarRec; vec : PDouble; width : TASMNativeInt; unbiased : boolean);  
 procedure MatrixMeanVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
 procedure MatrixNormalizeMeanVar(dest : PDouble; destLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
 
@@ -949,6 +950,11 @@ begin
      assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
      SetLength(Result, width*height);
      MatrixSum(@Result[0], width*sizeof(double), src, srcLineWidth, width, height, RowWise);
+end;
+
+procedure VecMeanVar( var dest : TMeanVarRec; vec : PDouble; width : TASMNativeInt; unbiased : boolean);  
+begin
+     MatrixMeanVar( @dest, sizeof(dest), vec, width*sizeof(double), width, 1, True, unbiased);
 end;
 
 procedure MatrixMeanVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
