@@ -385,11 +385,21 @@ end;
 
 procedure TWinMtxAsyncCall.Sync;
 var E: Exception;
+    iterations : integer;
 begin
      if not Finished then
      begin
-          if WaitForSingleObject(FEvent, INFINITE) <> WAIT_OBJECT_0 then
-             raise Exception.Create('IAsyncCall.Sync');
+          // spin wait:
+          Iterations := 10000;
+          while not FFinished and (Iterations > 0) do
+          asm
+            rep nop
+            dec Iterations
+          end;
+     
+          if not Finished then
+             if WaitForSingleObject(FEvent, INFINITE) <> WAIT_OBJECT_0 then
+                raise Exception.Create('IAsyncCall.Sync');
      end;
 
      FEvent := 0;
