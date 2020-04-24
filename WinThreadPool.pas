@@ -390,13 +390,13 @@ begin
      if not Finished then
      begin
           // spin wait:
-          Iterations := 10000;
-          while not FFinished and (Iterations > 0) do
-          asm
-            rep nop
-            dec Iterations
+          iterations := 1000;
+          while not Finished and (Iterations > 0) do
+          begin
+               TThread.SpinWait(10);
+               dec(iterations);
           end;
-     
+          
           if not Finished then
              if WaitForSingleObject(FEvent, INFINITE) <> WAIT_OBJECT_0 then
                 raise Exception.Create('IAsyncCall.Sync');
