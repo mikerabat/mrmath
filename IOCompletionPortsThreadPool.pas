@@ -202,7 +202,7 @@ end;
 
 procedure TIOAsyncCallThread.Execute;
 var bytesTransferred : DWORD;
-    CompletionKey : TASMNativeUInt;
+    CompletionKey : ULONG_PTR;
     Overlapped: POverlapped;
     Task : PIOAsyncCall;
     finishedCalled : boolean;

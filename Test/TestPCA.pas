@@ -498,7 +498,7 @@ var x : IMatrix;
     cnt: Integer;
     rho, phi: double;
     radius : double;
-    res : IMatrix;
+    pcares : IMatrix;
 begin
      x := TDoubleMatrix.Create( 10, 3 );
 
@@ -515,9 +515,7 @@ begin
              radius  := 1;
      end;
 
-     res := TKernelPCA.KernelPCAGauss(x.GetObjRef, 0.95, True, 0.5);
-     assert( assigned(res), 'Kernel PCA failed');
-
+     pcares := TKernelPCA.KernelPCAGauss(x.GetObjRef, 0.95, True, 0.5);
      X.SetSubMatrix(0, 0, 1, X.Height);
 end;
 

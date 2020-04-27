@@ -3089,7 +3089,6 @@ begin
      fmt := GetLocalFMTSet;
      fmt.DecimalSeparator := '.';
 
-     Result := nil;
      numElem := 0;
 
      aFile := TStringList.Create;
