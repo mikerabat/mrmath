@@ -55,6 +55,10 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date 27.04.2020
+* Implemented a new thread pool based on IO Completion ports (windows only)
+* Moved the setup of the thread pool type away from the initialization section
+
 Date 11.10.2019
 * Kernel PCA with polynomial and Gauss Kernel
 * First version of a more flexible Thread pool.

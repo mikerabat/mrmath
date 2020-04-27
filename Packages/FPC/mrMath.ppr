@@ -143,7 +143,8 @@ uses
   WinThreadPool in '..\..\WinThreadPool.pas',
   Statistics in '..\..\Statistics.pas',
   tSNE in '..\..\tSNE.pas',
-  KernelPCA in '..\..\KernelPCA.pas';
+  KernelPCA in '..\..\KernelPCA.pas',
+  IOCompletionPortsThreadPool in '..\..\IOCompletionPortsThreadPool.pas';
 
 begin
 end.

@@ -75,9 +75,18 @@ var numCPUCores : TASMNativeInt = 0;
 
 implementation
 
-{$IFDEF MSWINDOWS }
+{$DEFINE USEIOCOMPLETIONPORT}
+
+{$IFDEF MSWINDOWS}
+
+{$IFDEF USEIOCOMPLETIONPORT}
+uses IOCompletionPortsThreadPool;
+{$ELSE}
 uses {$IFDEF USE_OS_THREADPOOL}SimpleWinThreadPool{$ELSE} WinThreadPool{$ENDIF};
 {$ENDIF}
+
+{$ENDIF}
+
 {$IFDEF LINUX}
 uses linuxthrpool;
 {$ENDIF}
@@ -114,5 +123,8 @@ begin
      assert(Assigned(thrPool), 'Error call InitMtxThreadPool first');
      Result := thrPool.CreateTaskGroup;
 end;
+
+initialization
+  SetThreadPoolProvider( {$IFDEF FPC}@{$ENDIF}CreateThreadPoolObj );
 
 end.

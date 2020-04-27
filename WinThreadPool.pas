@@ -24,7 +24,10 @@ unit WinThreadPool;
 interface
 {$IFDEF MSWINDOWS}
 uses MtxThreadPool, SysUtils;
+
 {.$DEFINE USE_THREAD_CPU_AFFINITY}
+function CreateThreadPoolObj : IMtxThreadPool;
+
 {$ENDIF}
 
 implementation
@@ -371,7 +374,7 @@ begin
      try
         ExecuteAsyncCall;
      except
-           FFatalErrorAddr := ErrorAddr;
+           FFatalErrorAddr := ExceptAddr;
            FFatalException := Exception(AcquireExceptionObject);
      end;
      Quit;
@@ -458,9 +461,6 @@ function CreateThreadPoolObj : IMtxThreadPool;
 begin
      Result := TMtxThreadPool.Create;
 end;
-
-initialization
-   SetThreadPoolProvider( {$IFDEF FPC}@{$ENDIF}CreateThreadPoolObj );
 
 {$ENDIF}
 

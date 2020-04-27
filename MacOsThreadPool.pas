@@ -38,6 +38,8 @@ uses
   {$ENDIF}
   ;
 
+function CreateThreadPoolObj : IMtxThreadPool;
+
 {$ENDIF}
 
 implementation
@@ -215,7 +217,7 @@ begin
      Result := TMacMtxAsyncGroup.Create;
 end;
 
-function MacOSThreadPool : IMtxThreadPool;
+function CreateThreadPoolObj : IMtxThreadPool;
 begin
      Result := TSimpleMAcOSThreadPool.Create;
 end;
@@ -223,7 +225,6 @@ end;
 {$IFDEF FPC}
 
 initialization
-  SetThreadPoolProvider( {$IFDEF FPC}@{$ENDIF}MacOSThreadPool );
   numCPUCores := GetSystemThreadCount;
   if numCpuCores > 64 then
      numCpuCores := 64;
@@ -238,7 +239,6 @@ initialization
 var cpuInfo : NSProcessInfo;
 
 initialization
-  SetThreadPoolProvider( MacOSThreadPool );
   cpuInfo := TNSProcessInfo.Create;
 
   numCPUCores := cpuInfo.processorCount;

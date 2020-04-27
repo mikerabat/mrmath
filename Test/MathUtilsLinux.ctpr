@@ -29,7 +29,7 @@
         <PackageName Value="adLCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="146">
+    <Units Count="148">
       <Unit0>
         <Filename Value="MathUtilsLinux.ppr"/>
         <IsPartOfProject Value="True"/>
@@ -614,6 +614,14 @@
         <Filename Value="TestTSNE.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit145>
+      <Unit146>
+        <Filename Value="../KernelPCA.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit146>
+      <Unit147>
+        <Filename Value="../IOCompletionPortsThreadPool.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit147>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

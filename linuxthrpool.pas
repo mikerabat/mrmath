@@ -24,6 +24,8 @@ interface
 {$IFDEF LINUX}
 uses MtxThreadPool, SysUtils;
 
+function CreateThreadPoolObj : IMtxThreadPool;
+
 {$ENDIF}
 implementation
 {$IFDEF LINUX}
@@ -418,8 +420,6 @@ begin
 end;
 
 initialization
-   SetThreadPoolProvider( {$IFDEF FPC}@{$ENDIF}CreateThreadPoolObj );
-
    numCPUCores := sysconf( _SC_NPROCESSORS_ONLN);
    if numCPUCores > 64 then
       numCPUCores := 64;

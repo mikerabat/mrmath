@@ -467,7 +467,6 @@ begin
 
      // #################################################
      // ##### Prepare thread objects
-     calls := MtxInitTaskGroup;
      doBreak := False;
      numUsed := 0;
 
@@ -513,11 +512,16 @@ begin
      if numUsed = 0 then
         exit;
 
+     calls := nil;
+     if numused > 1 then
+        calls := MtxInitTaskGroup;
+
      for i := 0 to numUsed - 2 do
          calls.AddTaskRec(@MatrixMultDirectFunc, @objs[i]);
 
      MatrixMultDirectFunc(@objs[numUsed - 1]);
-     calls.SyncAll;
+     if numUsed > 1 then        
+        calls.SyncAll;
 end;
 
 procedure ThrMatrixMultEx(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
@@ -575,8 +579,6 @@ begin
 
      // ####################################################
      // #### Prepare thread objects
-     calls := MtxInitTaskGroup;
-
      for j := 0 to cpud2 - 1 do
      begin
           for i := 0 to heightCores - 1 do
@@ -621,7 +623,9 @@ begin
 
      // ####################################################
      // #### Execute threads
-
+     if numUsed > 1 then
+        calls := MtxInitTaskGroup;
+     
      // start threads
      for i := 0 to numUsed - 2 do
          calls.AddTaskRec(@MatrixMultFunc, @objs[i]);

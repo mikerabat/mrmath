@@ -23,7 +23,7 @@ interface
 // #### Eigenvalue Problem". This class follows the tutorial from Ambarish Jash
 // ###############################################
 
-uses SysUtils, Classes, Matrix, PCA, Types, MatrixConst, BaseMathPersistence;
+uses SysUtils, Classes, Matrix, PCA, MatrixConst, BaseMathPersistence;
 
 type
   TKernelMapping = (kmGauss, kmPoly);
@@ -262,7 +262,7 @@ begin
      covMtx.AddVecInPlace(norm2, True);
      fSigmaExp := -1/(2*fSigma*fSigma);
 
-     covMtx.ElementwiseFuncInPlace( GaussExpFunc );
+     covMtx.ElementwiseFuncInPlace( {$IFDEF FPC}@{$ENDIF}GaussExpFunc );
      Result := covMtx;
 end;
 
@@ -272,7 +272,7 @@ begin
      Result := X.MultT2(fOrigX);
      if fC <> 0 then
         Result.AddInplace(fC);
-     Result.ElementwiseFuncInPlace( PolyFunc );
+     Result.ElementwiseFuncInPlace( {$IFDEF FPC}@{$ENDIF}PolyFunc );
 end;
 
 procedure TKernelPCA.GaussExpFunc(var value: double);

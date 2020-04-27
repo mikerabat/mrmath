@@ -20,6 +20,8 @@ interface
 
 uses MtxThreadPool, SyncObjs;
 
+function CreateThreadPoolObj : IMtxThreadPool;
+
 {$ENDIF}
 
 implementation
@@ -188,7 +190,7 @@ type
     constructor Create;
   end;
 
-function SimpleWinThreadPoolProvdier : IMtxThreadPool;
+function CreateThreadPoolObj : IMtxThreadPool;
 begin
      Result := TSimpleWinThreadPool.Create;
 end;
