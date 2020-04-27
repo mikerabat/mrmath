@@ -3076,6 +3076,16 @@ begin
      Result := MatrixFromTxtFile( fileName, TDoubleMatrix );
 end;
 
+function TDoubleMatrix.AsVector( ColMajor : boolean = False ): TDoubleMatrix;
+begin
+     if Height = 1
+     then
+         Result := Clone
+     else
+         Result := Reshape(width*height, 1, ColMajor);
+end;
+
+{$Warnings off}
 function MatrixFromTxtFile( fileName : string; mtxClass : TDoubleMatrixClass ) : TDoubleMatrix;
 var fmt : TFormatSettings;
     w, h : integer;
@@ -3130,16 +3140,6 @@ begin
      finally
             aFile.Free;
      end;
-end;
-
-
-function TDoubleMatrix.AsVector( ColMajor : boolean = False ): TDoubleMatrix;
-begin
-     if Height = 1
-     then
-         Result := Clone
-     else
-         Result := Reshape(width*height, 1, ColMajor);
 end;
 
 initialization
