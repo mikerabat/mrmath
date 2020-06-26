@@ -33,6 +33,7 @@ type
    procedure TestMult;
    procedure TestTranspose;
    procedure TestCopy;
+   procedure TestInit;
    procedure TestRowExchange;
    procedure TestNormalize;
    procedure TestApplyfunc;
@@ -50,6 +51,7 @@ type
     procedure TearDown; override;
   published
     procedure TestMatrixASMCopy;
+    procedure TestMatrixASMInit;
     procedure TestMatrixAlloc;
     procedure TestASMAdd;
     procedure TestASMSubVec;
@@ -1486,6 +1488,19 @@ begin
      CheckEqualsMem(@mt1, @res[0], sizeof(mt1), 'Error matrix copy: ' + #13#10 + WriteMtxDyn(res, 3));
 end;
 
+procedure TestMatrixOperations.TestInit;
+var mt1 : Array[0..5] of double;
+    mt2 : Array[0..8] of double;
+begin
+     GenericMtxInit(@mt1[0], 3*sizeof(double), 3, 2, 2.2);
+
+     Check( CheckMtxVal(mt1, 2.2), 'Initialization failed');
+
+     GenericMtxInit(@mt2[0], sizeof(double), 1, Length(mt2), 3.3);
+     Check( CheckMtxVal(mt2, 3.3), 'Initialization failed');
+end;
+
+
 procedure TestMatrixOperations.TestCumSum;
 const mt1 : Array[0..8] of double = (1, 2, 3, 4, 5, 6, 7, 8, 9);
       cCumMt1 : Array[0..8] of double = (1, 2, 3, 5, 7, 9, 12, 15, 18);
@@ -2641,6 +2656,91 @@ begin
      FreeMem(dest2a);
      FreeMem(xa);
 end;
+
+procedure TASMMatrixOperations.TestMatrixASMInit;
+var x : Array of double;
+    xa : PDouble;
+    startTime1: Int64;
+    endTime1: Int64;
+    startTime2: Int64;
+    endTime2: Int64;
+    startTime3: Int64;
+    endTime3: Int64;
+    mtx : Array[0..15] of double;
+const cMtxWidth = 2000;
+      cMtxHeight = 500;
+      cMtxSize = cMtxWidth*cMtxHeight;
+      cMtxLinewidth = cMtxWidth*sizeof(double);
+begin
+     FillChar(mtx, sizeof(mtx), 0);
+     ASMMatrixInit( @mtx[0], 4*sizeof(double), 1, 1, 2);
+     CheckMtxVal(@mtx[0], 4*sizeof(double), 1, 1, 2);
+
+     ASMMatrixInit( @mtx[0], 4*sizeof(double), 2, 1, 1.2);
+     CheckMtxVal(@mtx[0], 4*sizeof(double), 2, 1, 1.2);
+
+     ASMMatrixInit( @mtx[0], 4*sizeof(double), 2, 2, 1.4);
+     CheckMtxVal(@mtx[0], 4*sizeof(double), 2, 2, 1.4);
+
+     ASMMatrixInit( @mtx[0], 4*sizeof(double), 3, 3, 1.5);
+     CheckMtxVal(@mtx[0], 4*sizeof(double), 3, 3, 1.5);
+
+     ASMMatrixInit( @mtx[0], 4*sizeof(double), 4, 3, 2.5);
+     CheckMtxVal(@mtx[0], 4*sizeof(double), 4, 3, 2.5);
+
+     SetLength(x, cMtxSize);
+     GetMem(xa, cMTxSize*sizeof(double));
+
+     startTime1 := MtxGetTime;
+     GenericMtxInit( @x[0], cMtxWidth*sizeof(double), cMtxWidth, cMtxHeight, 2.1 );
+     endTime1 := MtxGetTime;
+
+     Check(CheckMtxVal( x, 2.1), 'Failed to init');
+
+     startTime2 := MtxGetTime;
+     ASMMatrixInit( @x[0], cMtxWidth*sizeof(double), cMtxWidth, cMtxHeight, 2.2 );
+     endTime2 := MtxGetTime;
+
+     Check(CheckMtxVal( x, 2.2), 'Failed to init');
+
+
+     startTime3 := MtxGetTime;
+     ASMMatrixInit( xa, cMtxWidth*sizeof(double), cMtxWidth, cMtxHeight, 2.4 );
+     endTime3 := MtxGetTime;
+
+     Check(CheckMtxVal( xa, cmtxwidth*sizeof(double), cMtxWidth, cMtxHeight, 2.4), 'Failed aligned init');
+     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+                        (endTime3 - startTime3)/mtxFreq*1000]));
+
+     FreeMem(xa);
+
+     SetLength(x, cMtxSize + cMtxHeight);
+     GetMem(xa, (cMTxSize + 2*cMtxHeight)*sizeof(double));
+
+     startTime1 := MtxGetTime;
+     GenericMtxInit( @x[0], (cMtxWidth + 1)*sizeof(double), cMtxWidth + 1, cMtxHeight, 2.1 );
+     endTime1 := MtxGetTime;
+
+     Check(CheckMtxVal( x, 2.1), 'Failed to init');
+
+     startTime2 := MtxGetTime;
+     ASMMatrixInit( @x[0], (cMtxWidth + 1)*sizeof(double), cMtxWidth + 1, cMtxHeight, 2.2 );
+     endTime2 := MtxGetTime;
+
+     Check(CheckMtxVal( x, 2.2), 'Failed to init');
+
+
+     startTime3 := MtxGetTime;
+     ASMMatrixInit( xa, (cMtxWidth + 2)*sizeof(double), cMtxWidth + 1, cMtxHeight, 2.4 );
+     endTime3 := MtxGetTime;
+
+     Check(CheckMtxVal( xa, (cmtxwidth + 2)*sizeof(double), cMtxWidth + 1, cMtxHeight, 2.4), 'Failed aligned init');
+     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+                        (endTime3 - startTime3)/mtxFreq*1000]));
+
+     FreeMem(xa);
+end;
+
 
 procedure TASMMatrixOperations.TestMatrixBigASMMinMax;
 var x : Array of double;

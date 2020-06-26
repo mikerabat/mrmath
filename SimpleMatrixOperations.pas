@@ -28,6 +28,8 @@ procedure GenericMtxCopy(var dest : Array of double; const Src : Array of double
 function GenericMtxCopy(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt) : TDoubleDynArray; overload;
 function GenericMtxCopy(const Src : Array of double; width, height : TASMNativeInt) : TDoubleDynArray; overload;
 
+procedure GenericMtxInit( dest : PDouble; destLineWidth : TASMNativeInt; width, height : TASMNativeInt; const value : double );
+
 procedure GenericRowSwap(A, B : PDouble; width : TASMNativeInt);
 
 function GenericMtxAdd(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
@@ -792,6 +794,23 @@ begin
 
      if doSqrt then
         Result := Sqrt(Result);
+end;
+
+procedure GenericMtxInit( dest : PDouble; destLineWidth : TASMNativeInt; width, height : TASMNativeInt; const value : double );
+var pDest : PConstDoubleArr;
+    x, y : TASMNativeInt;
+begin
+     assert((width > 0) and (height > 0) and (destLineWidth >= width*sizeof(double)), 'Dimension error');
+
+     pDest := PConstDoubleArr( dest );
+
+     for y := 0 to Height - 1 do
+     begin
+          for x := 0 to Width - 1 do
+              pDest^[x] := value;
+
+          inc(PByte(pDest), destLineWidth);
+     end;
 end;
 
 procedure GenericMtxCopy(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);

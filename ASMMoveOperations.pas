@@ -46,6 +46,9 @@ procedure ASMRowSwapUnAlignedOddW(A, B : PDouble; width : TASMNativeInt); {$IFDE
 // it is assumed that this function has multiple of sizeof(double) as numbytes
 procedure ASMInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
+// init matrix in a loop
+procedure ASMMatrixInitAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixInitUnAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 {$ENDIF}
 
 implementation
@@ -54,7 +57,150 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
-// uses non temporal moves so the cache is not poisned
+// eax = dest, edx = destLineWidth, ecx = width
+procedure ASMMatrixInitAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+asm
+   push ebx;
+
+   movddup xmm0, Value;
+
+   //iters := -width*sizeof(double);
+   imul ecx, -8;
+
+   // helper registers for the src and dest pointers
+   sub eax, ecx;
+
+   // for y := 0 to height - 1:
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov ebx, ecx;
+       @addforxloop:
+           add ebx, 128;
+           jg @loopEnd;
+
+           // prefetch data...
+           // prefetch [ecx + ebx];
+           // prefetchw [eax + ebx];
+
+           // move:
+           movapd [eax + ebx - 128], xmm0;
+           movapd [eax + ebx - 112], xmm0;
+           movapd [eax + ebx - 96], xmm0;
+           movapd [eax + ebx - 80], xmm0;
+           movapd [eax + ebx - 64], xmm0;
+           movapd [eax + ebx - 48], xmm0;
+           movapd [eax + ebx - 32], xmm0;
+           movapd [eax + ebx - 16], xmm0;
+
+       jmp @addforxloop
+
+       @loopEnd:
+
+       sub ebx, 128;
+
+       jz @nextLine;
+
+       @addforxloop2:
+          add ebx, 16;
+          jg @loopEnd2;
+
+          movapd [eax + ebx - 16], xmm0;
+       jmp @addforxloop2;
+
+       @loopEnd2:
+       sub ebx, 16;
+
+       jz @nextLine;
+
+       // last element
+       movsd [eax + ebx], xmm0;
+
+       @nextLine:
+
+       // next line:
+       add eax, edx;
+
+   // loop y end
+   dec height;
+   jnz @@addforyloop;
+
+   // epilog
+   pop ebx;
+end;
+
+procedure ASMMatrixInitUnAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+asm
+   push ebx;
+
+   movddup xmm0, Value;
+
+   //iters := -width*sizeof(double);
+   imul ecx, -8;
+
+   // helper registers for the src and dest pointers
+   sub eax, ecx;
+
+   // for y := 0 to height - 1:
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov ebx, ecx;
+       @addforxloop:
+           add ebx, 128;
+           jg @loopEnd;
+
+           // prefetch data...
+           // prefetch [ecx + ebx];
+           // prefetchw [eax + ebx];
+
+           // move:
+           movupd [eax + ebx - 128], xmm0;
+           movupd [eax + ebx - 112], xmm0;
+           movupd [eax + ebx - 96], xmm0;
+           movupd [eax + ebx - 80], xmm0;
+           movupd [eax + ebx - 64], xmm0;
+           movupd [eax + ebx - 48], xmm0;
+           movupd [eax + ebx - 32], xmm0;
+           movupd [eax + ebx - 16], xmm0;
+
+       jmp @addforxloop
+
+       @loopEnd:
+
+       sub ebx, 128;
+
+       jz @nextLine;
+
+       @addforxloop2:
+          add ebx, 16;
+          jg @loopEnd2;
+
+          movupd [eax + ebx - 16], xmm0;
+       jmp @addforxloop2;
+
+       @loopEnd2:
+       sub ebx, 16;
+
+       jz @nextLine;
+
+       // last element
+       movsd [eax + ebx], xmm0;
+
+       @nextLine:
+
+       // next line:
+       add eax, edx;
+
+   // loop y end
+   dec height;
+   jnz @@addforyloop;
+
+   // epilog
+   pop ebx;
+end;
+
+
 // standard calling convention is register
 // -> try to avoid extra stack allocations
 procedure ASMInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
@@ -68,14 +214,14 @@ asm
      add edx, 128;
      jg @@loopUnrolledEnd;
 
-     movapd [eax + edx - 128], xmm0;
-     movapd [eax + edx - 112], xmm0;
-     movapd [eax + edx - 96], xmm0;
-     movapd [eax + edx - 80], xmm0;
-     movapd [eax + edx - 64], xmm0;
-     movapd [eax + edx - 48], xmm0;
-     movapd [eax + edx - 32], xmm0;
-     movapd [eax + edx - 16], xmm0;
+     movntdq [eax + edx - 128], xmm0;
+     movntdq [eax + edx - 112], xmm0;
+     movntdq [eax + edx - 96], xmm0;
+     movntdq [eax + edx - 80], xmm0;
+     movntdq [eax + edx - 64], xmm0;
+     movntdq [eax + edx - 48], xmm0;
+     movntdq [eax + edx - 32], xmm0;
+     movntdq [eax + edx - 16], xmm0;
 
    jmp @@loopUnrolled;
 

@@ -43,6 +43,8 @@ type
    procedure Status(const msg : string);
    {$ENDIF}
 
+   function CheckMtxVal( const mtx : Array of double; value : double) : boolean; overload;
+   function CheckMtxVal( data : PDouble; lineWidth: TASMNativeInt; width, height : integer; value : double) : boolean; overload;
    procedure FillMatrix(mtxSize : integer; out x, y : TDoubleDynArray; out p1, p2 : PDouble);
    procedure AllocAlignedMtx(mtxSize : integer; out pX : PDouble; out pMem : PByte); overload;
    procedure AllocAlignedMtx(mtxWidth, mtxHeight : integer; out pX : PDouble; out pMem : PByte; out LineWidthAligned : TASMNativeInt); overload;
@@ -675,6 +677,29 @@ begin
          Result := IncludeTrailingPathDelimiter(ParamStr(1))
      else
          Result := IncludeTrailingPathDelimiter( ExtractFilePath(ParamStr(0)) );
+end;
+
+function TBaseMatrixTestCase.CheckMtxVal(data: PDouble; lineWidth: TASMNativeInt;
+  width, height: integer; value: double): boolean;
+var x, y: Integer;
+    pMtx : PConstDoubleArr;
+begin
+     Result := True;
+     pMtx := PConstDoubleArr( data );
+     for y := 0 to Height - 1 do
+     begin
+          for x := 0 to width - 1 do
+              Result := Result and (pMtx^[x] = value);
+
+          inc(PByte(pMtx), LineWidth);
+     end;
+end;
+
+
+function TBaseMatrixTestCase.CheckMtxVal(const mtx: array of double;
+  value: double): boolean;
+begin
+     Result := CheckMtxVal(@mtx[0], Length(mtx)*sizeof(double), Length(mtx), 1, value);
 end;
 
 initialization

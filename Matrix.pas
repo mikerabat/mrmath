@@ -90,7 +90,8 @@ type
     procedure SetColumn(col : integer; Values : TDoubleMatrix; ValCols : integer = 0); overload;
     procedure SetColumn(col : integer; Values : IMatrix; ValCols : integer = 0); overload;
 
-    procedure SetValue(const initVal : double);
+    procedure SetValue(const initVal : double); overload;
+    procedure SetValue(const initVal : double; x, y, aWidth, aHeight : TASMNativeInt); overload;  // sets the value in a subsection of the matrix
 
     function Reshape(newWidth, newHeight : integer; RowMajor : boolean = False) : TDoubleMatrix;
     procedure ReshapeInPlace(newWidth, newHeight : integer; RowMajor : boolean = False);
@@ -390,7 +391,8 @@ type
     procedure SetColumn(col : integer; Values : TDoubleMatrix; ValCols : integer = 0); overload;
     procedure SetColumn(col : integer; Values : IMatrix; ValCols : integer = 0); overload;
 
-    procedure SetValue(const initVal : double);
+    procedure SetValue(const initVal : double); overload;
+    procedure SetValue(const initVal : double; x, y, aWidth, aHeight : TASMNativeInt); overload;  // sets the value in a subsection of the matrix
 
     function Reshape(newWidth, newHeight : integer; ColMajor : boolean = False) : TDoubleMatrix;
     procedure ReshapeInPlace(newWidth, newHeight : integer; ColMajor : boolean = False);
@@ -944,24 +946,13 @@ begin
 end;
 
 constructor TDoubleMatrix.Create(aWidth, aHeight: integer; const initVal : double);
-var pData : PConstDoubleArr;
-    x, y : integer;
 begin
      inherited Create;
 
      SetWidthHeight(aWidth, aHeight);
 
      if initVal <> 0 then
-     begin
-          for y := 0 to height - 1 do
-          begin
-               pData := PConstDoubleArr( StartElement );
-               inc(PByte(pData), y*LineWidth);
-
-               for x := 0 to Width - 1 do
-                   pData^[x] := initVal;
-          end;
-     end;
+        SetValue(initVal);
 end;
 
 constructor TDoubleMatrix.CreateDyn(const Data : TDoubleDynArray; aWidth, aHeight : integer);
@@ -2138,7 +2129,7 @@ begin
      // check if we need to reserve memory or if we already have a matrix with this size
      if (fWidth = width) and (fHeight = height) and (width > 0) and (height > 0) and Assigned(fMemory) then
         exit;
-     
+
      if Assigned(fMemory) then
         FreeMem(fMemory);
 
@@ -2253,25 +2244,13 @@ begin
 end;
 
 procedure TDoubleMatrix.SetColumn(col : integer; Values: TDoubleMatrix; ValCols : integer);
-var pVal1 : PDouble;
-    pVal2 : PDouble;
-    y : integer;
 begin
      CheckAndRaiseError(Values.fSubHeight = fSubHeight, 'Dimension error');
      CheckAndRaiseError((col >= 0) and (col < fSubWidth), 'Error index out of bounds');
 
-     pVal1 := StartElement;
-     inc(pVal1, col);
-
-     pVal2 := Values.StartElement;
-     inc(pVal2, ValCols);
-
-     for y := 0 to fSubHeight - 1 do
-     begin
-          pVal1^ := pVal2^;
-          inc(PByte(pVal1), LineWidth);
-          inc(PByte(pVal2), Values.LineWidth);
-     end;
+     MatrixCopy( GenPtr( StartElement, col, 0, LineWidth ), LineWidth,
+                 GenPtr( Values.StartElement, ValCols, 0, Values.LineWidth ), values.LineWidth,
+                 1, fSubHeight);
 end;
 
 procedure TDoubleMatrix.SetColumn(col: integer; Values: IMatrix;
@@ -2289,20 +2268,13 @@ begin
 end;
 
 procedure TDoubleMatrix.SetColumn(col : integer; const Values: array of Double);
-var pVal1 : PDouble;
-    y : integer;
 begin
      CheckAndRaiseError(fSubHeight = Length(Values), 'Dimension error');
      CheckAndRaiseError((col >= 0) and (col < fSubWidth), 'Error index out of bounds');
 
-     pVal1 := StartElement;
-     inc(pVal1, col);
-
-     for y := 0 to fSubHeight - 1 do
-     begin
-          pVal1^ := Values[y];
-          inc(PByte(pVal1), LineWidth);
-     end;
+     MatrixCopy( GenPtr( StartElement, col, 0, LineWidth ), LineWidth,
+                 @Values[0], sizeof(double),
+                 1, fsubHeight );
 end;
 
 procedure TDoubleMatrix.SetHeight(const Value: integer);
@@ -2316,31 +2288,23 @@ begin
 end;
 
 procedure TDoubleMatrix.SetRow(row : integer; Values: TDoubleMatrix; ValRow : integer);
-var pVal1 : PDouble;
-    pVal2 : PDouble;
 begin
      CheckAndRaiseError(Values.Width = fSubWidth, 'Dimension Error');
      CheckAndRaiseError((row >= 0) and (row < fSubHeight), 'Error index out of bounds');
 
-     pVal1 := StartElement;
-     inc(PByte(pVal1), row*LineWidth);
-
-     pVal2 := Values.StartElement;
-     inc(PByte(pVal2), Values.LineWidth*ValRow);
-
-     Move(pVal2^, pVal1^, fSubWidth*sizeof(double));
+     MatrixCopy( GenPtr( StartElement, 0, row, LineWidth), LineWidth,
+                 GenPtr(Values.StartElement, 0, ValRow, Values.LineWidth), VAlues.LineWidth,
+                 fSubWidth, 1 );
 end;
 
 procedure TDoubleMatrix.SetRow(row : integer; const Values: array of Double);
-var pVal1 : PDouble;
 begin
      CheckAndRaiseError(Length(Values) = fSubWidth, 'Dimension Error');
      CheckAndRaiseError((row >= 0) and (row < fSubHeight), 'Error index out of bounds');
 
-     pVal1 := StartElement;
-     inc(PByte(pVal1), row*LineWidth);
-
-     Move(Values[0], pVal1^, fSubWidth*sizeof(double));
+     MatrixCopy( GenPtr( StartElement, 0, row, LineWidth), LineWidth,
+                 @Values[0], fSubWidth*sizeof(double),
+                 fSubWidth, 1 );
 end;
 
 procedure TDoubleMatrix.SetSubMatrix(x, y, Subwidth, Subheight: integer);
@@ -2355,19 +2319,17 @@ begin
 end;
 
 procedure TDoubleMatrix.SetValue(const initVal: double);
-var x, y : integer;
-    pData : PConstDoubleArr;
 begin
-     // ###########################################
-     // #### Initialize the matrix with the given value
-     for y := 0 to height - 1 do
-     begin
-          pData := PConstDoubleArr( StartElement );
-          inc(PByte(pData), y*LineWidth);
+     if (Width > 0) and (height > 0) then
+        MatrixInit( StartElement, LineWidth, width, height, initVal);
+end;
 
-          for x := 0 to Width - 1 do
-              pData^[x] := initVal;
-     end;
+procedure TDoubleMatrix.SetValue(const initVal : double; x, y, aWidth, aHeight : TASMNativeInt);
+begin
+     CheckAndRaiseError( Width >= x + aWidth, 'Dimension X Error');
+     CheckAndRaiseError( Height >= y + aHeight, 'Dimension Y Error');
+
+     MatrixInit( GenPtr( StartElement, x, y, LineWidth ), LineWidth, aWidth, aHeight, initVal);
 end;
 
 procedure TDoubleMatrix.SetWidth(const Value: integer);
@@ -2492,23 +2454,13 @@ begin
 end;
 
 function TDoubleMatrix.SubMatrix: TDoubleDynArray;
-var pRes : PDouble;
-    pVal : PDouble;
-    i : integer;
 begin
      Result := nil;
      if fSubWidth*fSubHeight = 0 then
         exit;
 
      SetLength(Result, fSubWidth*fSubHeight);
-     pVal := StartElement;
-     pRes := @Result[0];
-     for i := 0 to fSubHeight - 1 do
-     begin
-          Move(pVal^, pRes^, sizeof(double)*fSubWidth);
-          inc(PByte(pVal), LineWidth);
-          inc(pRes, fSubWidth);
-     end;
+     MatrixCopy( @Result[0], fSubWidth*sizeof(double), StartElement, LineWidth, fSubWidth, fSubHeight);
 end;
 
 function TDoubleMatrix.Sum(RowWise: boolean): TDoubleMatrix;

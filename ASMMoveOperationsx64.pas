@@ -45,6 +45,10 @@ procedure ASMRowSwapUnAlignedOddW(A, B : PDouble; width : TASMNativeInt); {$IFDE
 
 procedure ASMInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; Value : double); {$IFDEF FPC}assembler;{$ENDIF}
 
+// init matrix in a loop
+procedure ASMMatrixInitAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixInitUnAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+
 {$ENDIF}
 
 implementation
@@ -53,7 +57,155 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
-// uses non temporal moves so the cache is not poisned
+// rcx = dest, rdx = destLineWidth;  r8 = width, r9 = height
+procedure ASMMatrixInitAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+asm
+    {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
+   movddup xmm0, Value;
+
+   //iters := -width*sizeof(double);
+   imul r8, -8;
+
+   // helper registers for the src and dest pointers
+   sub rcx, r8;
+
+   // for y := 0 to height - 1:
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov rax, r8;
+       @addforxloop:
+           add rax, 128;
+           jg @loopEnd;
+
+           // move:
+           movapd [rcx + rax - 128], xmm0;
+           movapd [rcx + rax - 112], xmm0;
+           movapd [rcx + rax - 96], xmm0;
+           movapd [rcx + rax - 80], xmm0;
+           movapd [rcx + rax - 64], xmm0;
+           movapd [rcx + rax - 48], xmm0;
+           movapd [rcx + rax - 32], xmm0;
+           movapd [rcx + rax - 16], xmm0;
+
+       jmp @addforxloop
+
+       @loopEnd:
+
+       sub rax, 128;
+
+       jz @nextLine;
+
+       @addforxloop2:
+          add rax, 16;
+          jg @loopEnd2;
+
+          movapd [rcx + rax - 16], xmm0;
+       jmp @addforxloop2;
+
+       @loopEnd2:
+       sub rax, 16;
+
+       jz @nextLine;
+
+       // last element
+       movsd [rcx + rax], xmm0;
+
+       @nextLine:
+
+       // next line:
+       add rcx, rdx;
+
+   // loop y end
+   dec r9;
+   jnz @@addforyloop;
+end;
+
+// rcx = dest, rdx = destLineWidth;  r8 = width, r9 = height
+procedure ASMMatrixInitUnAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+asm
+    {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
+   movddup xmm0, Value;
+
+   //iters := -width*sizeof(double);
+   imul r8, -8;
+
+   // helper registers for the src and dest pointers
+   sub rcx, r8;
+
+   // for y := 0 to height - 1:
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov rax, r8;
+       @addforxloop:
+           add rax, 128;
+           jg @loopEnd;
+
+           // move:
+           movupd [rcx + rax - 128], xmm0;
+           movupd [rcx + rax - 112], xmm0;
+           movupd [rcx + rax - 96], xmm0;
+           movupd [rcx + rax - 80], xmm0;
+           movupd [rcx + rax - 64], xmm0;
+           movupd [rcx + rax - 48], xmm0;
+           movupd [rcx + rax - 32], xmm0;
+           movupd [rcx + rax - 16], xmm0;
+
+       jmp @addforxloop
+
+       @loopEnd:
+
+       sub rax, 128;
+
+       jz @nextLine;
+
+       @addforxloop2:
+          add rax, 16;
+          jg @loopEnd2;
+
+          movupd [rcx + rax - 16], xmm0;
+       jmp @addforxloop2;
+
+       @loopEnd2:
+       sub rax, 16;
+
+       jz @nextLine;
+
+       // last element
+       movsd [rcx + rax], xmm0;
+
+       @nextLine:
+
+       // next line:
+       add rcx, rdx;
+
+   // loop y end
+   dec r9;
+   jnz @@addforyloop;
+end;
+
+
 // rcx = A, rdx = NumBytes;
 procedure ASMInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; Value : double); {$IFDEF FPC}assembler;{$ENDIF}
 asm

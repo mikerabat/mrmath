@@ -35,6 +35,7 @@ procedure MatrixCopy(dest : PDouble; const destLineWidth : TASMNativeInt; Src : 
 procedure MatrixCopy(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt); overload;
 function MatrixCopy(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt) : TDoubleDynArray; overload;
 function MatrixCopy(const Src : Array of double; width, height : TASMNativeInt) : TDoubleDynArray; overload;
+procedure MatrixInit(dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; const value : Double);
 
 procedure MatrixRowSwap(A, B : PDouble; width : TASMNativeInt);
 
@@ -235,6 +236,7 @@ type
   TMatrixSQRTFunc = procedure(dest : PDouble; LineWidth : TASMNativeInt; width, height : TASMNativeInt);
   TMatrixAbsFunc = procedure(dest : PDouble; LineWidth : TASMNativeInt; width, height : TASMNativeInt);
   TMatrixCopyFunc = procedure(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+  TMatrixInitFunc = procedure(dest : PDouble; destLIneWidth : TASMNativeInt; Width, Height : TASMNativeInt; const value : double );
   TMatrixMinMaxFunc = function(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
   TMatrixTransposeFunc = procedure(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
   TMatrixTransposeInplaceFunc = procedure(mt : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt);
@@ -308,6 +310,7 @@ var multFunc : TMatrixMultFunc;
     sqrtFunc : TMatrixSQRTFunc;
     absFunc : TMatrixAbsFunc;
     copyFunc : TMatrixCopyFunc;
+    initfunc : TMatrixInitFunc;
     maxFunc : TMatrixMinMaxFunc;
     minFunc : TMatrixMinMaxFunc;
     elemNormFunc : TMatrixElemWiseNormFunc;
@@ -454,6 +457,13 @@ begin
      assert((width > 0) and (height > 0) and (length(src) = width*height), 'Dimension error');
      SetLength(Result, width*height);
      copyfunc(@Result[0],  width*sizeof(double), @Src[0], width*sizeof(double), width, height);
+end;
+
+procedure MatrixInit(dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; const value : Double);
+begin
+     assert((width > 0) and (height > 0) and (destLineWidth >= width*height*sizeof(double)), 'Dimension error');
+
+     initfunc( dest, destLineWidth, width, height, Value);
 end;
 
 function MatrixAdd(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray;
@@ -1234,6 +1244,8 @@ begin
      if (instrType = itAVX) and not IsAVXPresent then
         instrType := itSSE;
 
+     initfunc := GenericMtxInit;
+
      // check features
      if (IsAVXPresent and (instrType = itAVX)) or (IsFMAPresent and (instrType = itFMA)) then
      begin
@@ -1366,6 +1378,7 @@ begin
           PlaneRotSeqLVB := ASMApplyPlaneRotSeqLVB;
           PlaneRotSeqLVF := ASMApplyPlaneRotSeqLVF;
           memInitFunc := ASMInitMemAligned;
+          initfunc := ASMMatrixInit;
           vecConvolve := ASMVecConvolveRevB;
 
           TDynamicTimeWarp.UseSSE := True;
@@ -1391,6 +1404,7 @@ begin
           blockedMultT1Func := GenericBlockMatrixMultiplicationT1;
           blockedMultT2Func := GenericBlockMatrixMultiplicationT2;
           copyFunc := GenericMtxCopy;
+          initfunc := GenericMtxInit;
           minFunc := GenericMtxMin;
           maxFunc := GenericMtxMax;
           transposeFunc := GenericMtxTranspose;

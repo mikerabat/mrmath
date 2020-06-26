@@ -739,6 +739,7 @@ begin
      // zero out block not used by Q
      if height < width then
      begin
+
           for y := 0 to height - 1 do
           begin
                pA := A;

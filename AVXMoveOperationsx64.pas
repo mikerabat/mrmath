@@ -39,6 +39,10 @@ procedure AVXRowSwapUnAligned(A, B : PDouble; width : TASMNativeInt); {$IFDEF FP
 
 procedure AVXInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; Value : double); {$IFDEF FPC}assembler;{$ENDIF}
 
+
+procedure AVXMatrixInitAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixInitUnAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+
 {$ENDIF}
 
 implementation
@@ -46,6 +50,152 @@ implementation
 {$IFDEF x64}
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
+
+// rcx = dest, rdx = destLineWidth;  r8 = width, r9 = height
+procedure AVXMatrixInitAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+asm
+    {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
+   lea rax, value;
+   {$IFDEF FPC}vbroadcastsd ymm1, [rax];{$ELSE}db $C4,$E2,$7D,$19,$08;{$ENDIF} 
+
+   //iters := -width*sizeof(double);
+   imul r8, -8;
+
+   // helper registers for the src and dest pointers
+   sub rcx, r8;
+
+   // for y := 0 to height - 1:
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov rax, r8;
+       @addforxloop:
+           add rax, 128;
+           jg @loopEnd;
+
+           // move:
+           {$IFDEF FPC}vmovapd [rcx + rax - 128], ymm1;{$ELSE}db $C5,$FD,$29,$4C,$01,$80;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [rcx + rax - 96], ymm1;{$ELSE}db $C5,$FD,$29,$4C,$01,$A0;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [rcx + rax - 64], ymm1;{$ELSE}db $C5,$FD,$29,$4C,$01,$C0;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [rcx + rax - 32], ymm1;{$ELSE}db $C5,$FD,$29,$4C,$01,$E0;{$ENDIF} 
+
+       jmp @addforxloop
+
+       @loopEnd:
+
+       sub rax, 128;
+
+       jz @nextLine;
+
+       @addforxloop2:
+          add rax, 16;
+          jg @loopEnd2;
+
+          {$IFDEF FPC}vmovapd [rcx + rax - 16], xmm1;{$ELSE}db $C5,$F9,$29,$4C,$01,$F0;{$ENDIF} 
+       jmp @addforxloop2;
+
+       @loopEnd2:
+       sub rax, 16;
+
+       jz @nextLine;
+
+       // last element
+       {$IFDEF FPC}vmovsd [rcx + rax], xmm0;{$ELSE}db $C5,$FB,$11,$04,$01;{$ENDIF} 
+
+       @nextLine:
+
+       // next line:
+       add rcx, rdx;
+
+   // loop y end
+   dec r9;
+   jnz @@addforyloop;
+
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
+end;
+
+// rcx = dest, rdx = destLineWidth;  r8 = width, r9 = height
+procedure AVXMatrixInitUnAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+asm
+    {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
+   lea rax, value;
+   {$IFDEF FPC}vbroadcastsd ymm1, [rax];{$ELSE}db $C4,$E2,$7D,$19,$08;{$ENDIF} 
+
+   //iters := -width*sizeof(double);
+   imul r8, -8;
+
+   // helper registers for the src and dest pointers
+   sub rcx, r8;
+
+   // for y := 0 to height - 1:
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov rax, r8;
+       @addforxloop:
+           add rax, 128;
+           jg @loopEnd;
+
+           // move:
+           {$IFDEF FPC}vmovupd [rcx + rax - 128], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$01,$80;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [rcx + rax - 96], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$01,$A0;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [rcx + rax - 64], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$01,$C0;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [rcx + rax - 32], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$01,$E0;{$ENDIF} 
+
+       jmp @addforxloop
+
+       @loopEnd:
+
+       sub rax, 128;
+
+       jz @nextLine;
+
+       @addforxloop2:
+          add rax, 16;
+          jg @loopEnd2;
+
+          {$IFDEF FPC}vmovupd [rcx + rax - 16], xmm1;{$ELSE}db $C5,$F9,$11,$4C,$01,$F0;{$ENDIF} 
+       jmp @addforxloop2;
+
+       @loopEnd2:
+       sub rax, 16;
+
+       jz @nextLine;
+
+       // last element
+       {$IFDEF FPC}vmovsd [rcx + rax], xmm1;{$ELSE}db $C5,$FB,$11,$0C,$01;{$ENDIF} 
+
+       @nextLine:
+
+       // next line:
+       add rcx, rdx;
+
+   // loop y end
+   dec r9;
+   jnz @@addforyloop;
+
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
+end;
 
 // uses non temporal moves so the cache is not poisned
 // rcx = A, rdx = NumBytes;

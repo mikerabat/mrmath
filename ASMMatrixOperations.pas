@@ -25,6 +25,7 @@ uses MatrixConst, Types;
 
 procedure ASMMatrixCopy(Dest : PDouble; destLineWidth : TASMNativeInt; src : PDouble; srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
 procedure ASMRowSwap(A, B : PDouble; width : TASMNativeInt);
+procedure ASMMatrixInit( dest : PDouble; destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; const Value : double );
 
 function ASMMatrixMult(mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
 procedure ASMMatrixMult(var dest : Array of Double; mt1, mt2 : Array of double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt); overload;
@@ -1003,6 +1004,26 @@ begin
           else
               ASMMatrixCopyUnAlignedOddW(dest, destLineWidth, src, srcLineWidth, width, height);
      end;
+end;
+
+procedure ASMMatrixInit( dest : PDouble; destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; const value : double );
+begin
+     if (width = 0) or (Height = 0) then
+        exit;
+
+     // check if they are vector operations:
+     if destLineWidth = width*sizeof(double)  then
+     begin
+          width := Height*Width;
+          height := 1;
+          destLineWidth := (width + 2 - width and $01)*sizeof(double);
+     end;
+
+     if (TASMNativeUInt(dest) and $0000000F = 0) and (destLineWidth and $0000000F = 0)
+     then
+         ASMMatrixInitAligned(dest, destLineWidth, Width, Height, Value)
+     else
+         ASMMatrixInitUnAligned(dest, destLineWidth, Width, Height, Value)
 end;
 
 procedure ASMRowSwap(A, B : PDouble; width : TASMNativeInt);

@@ -24,6 +24,7 @@ uses MatrixConst;
 
 procedure AVXMatrixCopy(Dest : PDouble; destLineWidth : TASMNativeInt; src : PDouble; srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
 procedure AVXRowSwap(A, B : PDouble; width : TASMNativeInt);
+procedure AVXMatrixInit( dest : PDouble; destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; const value : double );
 
 // note: The ASM routines always carry out 2x2 matrix multiplications thus there must be an additional zero line/column in the
 // input matrices if the width/height is uneven. The routine also performs better if the matrices are aligned to 16 byte boundaries!
@@ -682,6 +683,26 @@ begin
          AVXMatrixCopyAligned(dest, destLineWidth, src, srcLineWidth, width, height)
      else
          AVXMatrixCopyUnAligned(dest, destLineWidth, src, srcLineWidth, width, height);
+end;
+
+procedure AVXMatrixInit( dest : PDouble; destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; const value : double );
+begin
+     if (width = 0) or (height = 0) then
+        exit;
+
+     // check if they are vector operations:
+     if destLineWidth = width*sizeof(double)  then
+     begin
+          width := Height*Width;
+          height := 1;
+          destLineWidth := (width + 4 - width and $03)*sizeof(double);
+     end;
+
+     if (TASMNativeUInt(Dest) and $0000001F = 0) and (destLineWidth and $0000001F = 0)
+     then
+         AVXMatrixInitAligned(dest, destLineWidth, width, height, value)
+     else
+         AVXMatrixInitUnAligned(dest, destLineWidth, width, height, value);
 end;
 
 procedure AVXRowSwap(A, B : PDouble; width : TASMNativeInt);

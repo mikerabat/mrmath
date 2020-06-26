@@ -38,6 +38,7 @@ type
   published
     procedure TestIsAvail;
     procedure TestAVXMove;
+    procedure TestAVXInit;
     procedure TestAVXRowExchange;
     procedure TestAVXAdd;
     procedure TestAVXSub;
@@ -176,6 +177,95 @@ begin
      FreeMem(mem2);
      FreeMem(memxa);
 end;
+
+procedure TestAVXMatrixOperations.TestAVXInit;
+  var x : Array of double;
+      xa : PDouble;
+      mem : PDouble;
+      startTime1: Int64;
+      endTime1: Int64;
+      startTime2: Int64;
+      endTime2: Int64;
+      startTime3: Int64;
+      endTime3: Int64;
+      mtx : Array[0..15] of double;
+  const cMtxWidth = 2000;
+        cMtxHeight = 500;
+        cMtxSize = cMtxWidth*cMtxHeight;
+        cMtxLinewidth = cMtxWidth*sizeof(double);
+  begin
+       FillChar(mtx, sizeof(mtx), 0);
+       AVXMatrixInit( @mtx[0], 4*sizeof(double), 1, 1, 2);
+       CheckMtxVal(@mtx[0], 4*sizeof(double), 1, 1, 2);
+
+       AVXMatrixInit( @mtx[0], 4*sizeof(double), 2, 1, 1.2);
+       CheckMtxVal(@mtx[0], 4*sizeof(double), 2, 1, 1.2);
+
+       AVXMatrixInit( @mtx[0], 4*sizeof(double), 2, 2, 1.4);
+       CheckMtxVal(@mtx[0], 4*sizeof(double), 2, 2, 1.4);
+
+       AVXMatrixInit( @mtx[0], 4*sizeof(double), 3, 3, 1.5);
+       CheckMtxVal(@mtx[0], 4*sizeof(double), 3, 3, 1.5);
+
+       AVXMatrixInit( @mtx[0], 4*sizeof(double), 4, 3, 2.5);
+       CheckMtxVal(@mtx[0], 4*sizeof(double), 4, 3, 2.5);
+
+       SetLength(x, cMtxSize);
+       GetMem(mem, (cMTXSize + 4)*sizeof(double));
+
+       xa := AlignPtr32(mem);
+
+       startTime1 := MtxGetTime;
+       GenericMtxInit( @x[0], cMtxWidth*sizeof(double), cMtxWidth, cMtxHeight, 2.1 );
+       endTime1 := MtxGetTime;
+
+       Check(CheckMtxVal( x, 2.1), 'Failed to init');
+
+       startTime2 := MtxGetTime;
+       AVXMatrixInit( @x[0], cMtxWidth*sizeof(double), cMtxWidth, cMtxHeight, 2.2 );
+       endTime2 := MtxGetTime;
+
+       Check(CheckMtxVal( x, 2.2), 'Failed to init');
+
+
+       startTime3 := MtxGetTime;
+       AVXMatrixInit( xa, cMtxWidth*sizeof(double), cMtxWidth, cMtxHeight, 2.4 );
+       endTime3 := MtxGetTime;
+
+       Check(CheckMtxVal( xa, cmtxwidth*sizeof(double), cMtxWidth, cMtxHeight, 2.4), 'Failed aligned init');
+       Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+                          (endTime3 - startTime3)/mtxFreq*1000]));
+
+       FreeMem(mem);
+
+       SetLength(x, cMtxSize + cMtxHeight);
+       GetMem(mem, (cMTxSize + 2*cMtxHeight + 4)*sizeof(double));
+       xa := AlignPtr32(mem);
+
+       startTime1 := MtxGetTime;
+       GenericMtxInit( @x[0], (cMtxWidth + 1)*sizeof(double), cMtxWidth + 1, cMtxHeight, 2.1 );
+       endTime1 := MtxGetTime;
+
+       Check(CheckMtxVal( x, 2.1), 'Failed to init');
+
+       startTime2 := MtxGetTime;
+       AVXMatrixInit( @x[0], (cMtxWidth + 1)*sizeof(double), cMtxWidth + 1, cMtxHeight, 2.2 );
+       endTime2 := MtxGetTime;
+
+       Check(CheckMtxVal( x, 2.2), 'Failed to init');
+
+
+       startTime3 := MtxGetTime;
+       AVXMatrixInit( xa, (cMtxWidth + 2)*sizeof(double), cMtxWidth + 1, cMtxHeight, 2.4 );
+       endTime3 := MtxGetTime;
+
+       Check(CheckMtxVal( xa, (cmtxwidth + 2)*sizeof(double), cMtxWidth + 1, cMtxHeight, 2.4), 'Failed aligned init');
+       Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+                          (endTime3 - startTime3)/mtxFreq*1000]));
+
+       FreeMem(mem);
+end;
+
 
 procedure TestAVXMatrixOperations.TestAVXRowExchange;
 const mt1 : Array[0..7] of double = (0, 1, 2, 3, 4, 5, 6, 7);

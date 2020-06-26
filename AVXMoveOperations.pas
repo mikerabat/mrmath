@@ -33,6 +33,9 @@ procedure AVXMatrixCopyUnAligned(Dest : PDouble; const destLineWidth : TASMNativ
 procedure AVXRowSwapAligned(A, B : PDouble; width : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 procedure AVXRowSwapUnAligned(A, B : PDouble; width : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
+procedure AVXMatrixInitUnAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixInitAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+
 procedure AVXInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
@@ -43,7 +46,148 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
-// uses non temporal moves so the cache is not poisned
+// eax = dest, edx = destLineWidth, ecx = width
+procedure AVXMatrixInitAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+asm
+   push ebx;
+
+   lea ebx, Value;
+   {$IFDEF FPC}vbroadcastsd ymm1, [ebx];{$ELSE}db $C4,$E2,$7D,$19,$0B;{$ENDIF} 
+
+   //iters := -width*sizeof(double);
+   imul ecx, -8;
+
+   // helper registers for the src and dest pointers
+   sub eax, ecx;
+
+   // for y := 0 to height - 1:
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov ebx, ecx;
+       @addforxloop:
+           add ebx, 128;
+           jg @loopEnd;
+
+           // prefetch data...
+           // prefetch [ecx + ebx];
+           // prefetchw [eax + ebx];
+
+           // move:
+           {$IFDEF FPC}vmovapd [eax + ebx - 128], ymm1;{$ELSE}db $C5,$FD,$29,$4C,$18,$80;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [eax + ebx - 96], ymm1;{$ELSE}db $C5,$FD,$29,$4C,$18,$A0;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [eax + ebx - 64], ymm1;{$ELSE}db $C5,$FD,$29,$4C,$18,$C0;{$ENDIF} 
+           {$IFDEF FPC}vmovapd [eax + ebx - 32], ymm1;{$ELSE}db $C5,$FD,$29,$4C,$18,$E0;{$ENDIF} 
+
+       jmp @addforxloop
+
+       @loopEnd:
+
+       sub ebx, 128;
+
+       jz @nextLine;
+
+       @addforxloop2:
+          add ebx, 16;
+          jg @loopEnd2;
+
+          {$IFDEF FPC}vmovapd [eax + ebx - 16], xmm1;{$ELSE}db $C5,$F9,$29,$4C,$18,$F0;{$ENDIF} 
+       jmp @addforxloop2;
+
+       @loopEnd2:
+       sub ebx, 16;
+
+       jz @nextLine;
+
+       // last element
+       {$IFDEF FPC}vmovsd [eax + ebx], xmm1;{$ELSE}db $C5,$FB,$11,$0C,$18;{$ENDIF} 
+
+       @nextLine:
+
+       // next line:
+       add eax, edx;
+
+   // loop y end
+   dec height;
+   jnz @@addforyloop;
+
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
+
+   // epilog
+   pop ebx;
+end;
+
+procedure AVXMatrixInitUnAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+asm
+   push ebx;
+
+   lea ebx, Value;
+   {$IFDEF FPC}vbroadcastsd ymm1, [ebx];{$ELSE}db $C4,$E2,$7D,$19,$0B;{$ENDIF} 
+
+   //iters := -width*sizeof(double);
+   imul ecx, -8;
+
+   // helper registers for the src and dest pointers
+   sub eax, ecx;
+
+   // for y := 0 to height - 1:
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov ebx, ecx;
+       @addforxloop:
+           add ebx, 128;
+           jg @loopEnd;
+
+           // prefetch data...
+           // prefetch [ecx + ebx];
+           // prefetchw [eax + ebx];
+
+           // move:
+           {$IFDEF FPC}vmovupd [eax + ebx - 128], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$18,$80;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [eax + ebx - 96], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$18,$A0;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [eax + ebx - 64], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$18,$C0;{$ENDIF} 
+           {$IFDEF FPC}vmovupd [eax + ebx - 32], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$18,$E0;{$ENDIF} 
+
+       jmp @addforxloop
+
+       @loopEnd:
+
+       sub ebx, 128;
+
+       jz @nextLine;
+
+       @addforxloop2:
+          add ebx, 16;
+          jg @loopEnd2;
+
+          {$IFDEF FPC}vmovupd [eax + ebx - 16], xmm1;{$ELSE}db $C5,$F9,$11,$4C,$18,$F0;{$ENDIF} 
+       jmp @addforxloop2;
+
+       @loopEnd2:
+       sub ebx, 16;
+
+       jz @nextLine;
+
+       // last element
+       {$IFDEF FPC}vmovsd [eax + ebx], xmm1;{$ELSE}db $C5,$FB,$11,$0C,$18;{$ENDIF} 
+
+       @nextLine:
+
+       // next line:
+       add eax, edx;
+
+   // loop y end
+   dec height;
+   jnz @@addforyloop;
+
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
+
+   // epilog
+   pop ebx;
+end;
+
+
 // rcx = A, rdx = NumBytes;
 procedure AVXInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 asm
