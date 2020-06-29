@@ -40,8 +40,8 @@ procedure AVXRowSwapUnAligned(A, B : PDouble; width : TASMNativeInt); {$IFDEF FP
 procedure AVXInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; Value : double); {$IFDEF FPC}assembler;{$ENDIF}
 
 
-procedure AVXMatrixInitAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure AVXMatrixInitUnAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixInitAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; {$IFDEF UNIX}unixValue{$ELSE}Value{$ENDIF} : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixInitUnAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; {$IFDEF UNIX}unixValue{$ELSE}Value{$ENDIF} : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -52,7 +52,10 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 // rcx = dest, rdx = destLineWidth;  r8 = width, r9 = height
-procedure AVXMatrixInitAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixInitAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; {$IFDEF UNIX}unixValue{$ELSE}Value{$ENDIF} : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+{$IFDEF UNIX}
+var value : double;
+{$ENDIF}
 asm
     {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -63,6 +66,8 @@ asm
    mov r9, rcx;
    mov rcx, rdi;
    mov rdx, rsi;
+
+   movsd value, unixValue;
    {$ENDIF}
 
    lea rax, value;
@@ -125,7 +130,10 @@ asm
 end;
 
 // rcx = dest, rdx = destLineWidth;  r8 = width, r9 = height
-procedure AVXMatrixInitUnAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixInitUnAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; {$IFDEF UNIX}unixValue{$ELSE}Value{$ENDIF} : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+{$IFDEF UNIX}
+var value : double;
+{$ENDIF}
 asm
     {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -136,6 +144,8 @@ asm
    mov r9, rcx;
    mov rcx, rdi;
    mov rdx, rsi;
+
+   movsd value, unixValue;
    {$ENDIF}
 
    lea rax, value;
