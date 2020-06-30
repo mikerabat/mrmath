@@ -188,6 +188,10 @@ begin
      BlockedMatrixMultSize := (maxSize + minSize) div 2;
      BlockedMatrixMultSize := Max(32, BlockedMatrixMultSize - BlockedMatrixMultSize mod 16);
 
+     BlockedMatrixMultSize := Max( QRBlockSize, Max( QRMultBlockSize, Max(SVDBlockSize, Max(CholBlockSize, BlockedMatrixMultSize ) ) ) );
+     BlockedMatrixMultSize := Max( QRBlockSize, Max( QRMultBlockSize, Max(SVDBlockSize, Max(CholBlockSize, BlockedMatrixMultSize ) ) ) );
+
+
      FreeMem(a);
      FreeMem(b);
      FreeMem(dest);
