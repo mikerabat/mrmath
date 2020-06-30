@@ -55,6 +55,10 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date 30.6.2020
+* New optimized matrix initialization routines
+* Fixed bug in Blocksize setup -> the matrix mult block size may not be smaller than the QR/SVD or cholesky strip size.
+
 Date 27.04.2020
 * Implemented a new thread pool based on IO Completion ports (windows only)
 * Moved the setup of the thread pool type away from the initialization section
