@@ -461,7 +461,7 @@ end;
 
 procedure MatrixInit(dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; const value : Double);
 begin
-     assert((width > 0) and (height > 0) and (destLineWidth >= width*height*sizeof(double)), 'Dimension error');
+     assert((width > 0) and (height > 0) and (destLineWidth >= width*sizeof(double)), 'Dimension error');
 
      initfunc( dest, destLineWidth, width, height, Value);
 end;
