@@ -20,6 +20,8 @@ uses SysUtils, Math, MatrixConst, Matrix, BaseMathPersistence, Types;
 
 // standard simple linear correlation method:
 type
+  ECorrelateException = class(EBaseMatrixException);
+type
   TCorrelation = class(TMatrixClass)
   protected
     function InternalCorrelateArr( w1, w2 : PDouble; len : integer) : Double;
@@ -236,6 +238,9 @@ begin
      MatrixMeanVar( @meanVar1, 2*sizeof(double), w1.StartElement, w1.LineWidth, w1.Width, 1, True, True);
      MatrixMeanVar( @meanVar2, 2*sizeof(double), w2.StartElement, w2.LineWidth, w2.Width, 1, True, True);
 
+     if SameValue(meanVar1.aVar, 0, cDefEpsilon) or SameValue(meanVar2.aVar, 0, cDefEpsilon) then
+        raise ECorrelateException.Create('Correlation Error: variance is zero');
+     
      w1.AddInPlace( -meanVar1.aMean );     
      w2.AddInPlace( -meanVar2.aMean );
 
