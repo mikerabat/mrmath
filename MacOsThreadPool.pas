@@ -211,7 +211,7 @@ begin
         macThrPool := dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT,0);
 end;
 
-function TSimpleMacOSThreadPoolCreateTaskGroup : IMtxAsyncCallGroup;
+function TSimpleMacOSThreadPool.CreateTaskGroup : IMtxAsyncCallGroup;
 begin
      assert(macThrPool <> dispatch_group_t(nil), 'Error thread pool not initialized. Call InitMtxThreadPool first');
      Result := TMacMtxAsyncGroup.Create;

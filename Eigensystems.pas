@@ -86,7 +86,7 @@ function MatrixEigTridiagonalMatrix(Dest : PDouble; const LineWidthDest : TASMNa
 
 implementation
 
-uses Math, MathUtilFunc;
+uses Math, MathUtilFunc, MatrixASMStubSwitch;
 
 function MatrixEigTridiagonalMatrixInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; EigVals : PDouble; const LineWidthEigVals : TASMNativeInt) : TEigenvalueConvergence;
 var E : Array of double;
@@ -511,14 +511,8 @@ begin
      sqrdx := sqr(RADIX);
      last := False;
 
-     pScale := Scale;
-
-     for i := 0 to width - 1 do
-     begin
-          pScale^ := 1;
-          inc(PByte(pScale), LineWidthScale);
-     end;
-
+     MatrixInit(scale, LineWidthScale, 1, width, 1);
+     
      while last = False do
      begin
           last := True;
@@ -545,44 +539,36 @@ begin
                     inc(PByte(pAj), LineWidthA);
                end;
 
-               g := r/RADIX;
-               f := 1;
-               s := c + r;
-
-               // find the integer power of the machine radix that comes closest to balancing the matrix.
-               while c < g do
+               if (c <> 0) and (r <> 0) then
                begin
-                    f := f*RADIX;
-                    c := c*sqrdx;
-               end;
-               g := r*RADIX;
-               while c > g do
-               begin
-                    f := f/RADIX;
-                    c := c/sqrdx;
-               end;
+                    g := r/RADIX;
+                    f := 1;
+                    s := c + r;
 
-               if (c + r)/f < 0.95*s then
-               begin
-                    pScale^ := pScale^*f;
-                    last := False;
-                    g := 1/f;
-
-                    // Apply similarity transformation
-                    pA := pAi;
-                    for j := 0 to width - 1 do
+                    // find the integer power of the machine radix that comes closest to balancing the matrix.
+                    while c < g do
                     begin
-                         pA^ := pA^*g;
-                         inc(pA);
+                         f := f*RADIX;
+                         c := c*sqrdx;
+                    end;
+                    g := r*RADIX;
+                    while c > g do
+                    begin
+                         f := f/RADIX;
+                         c := c/sqrdx;
                     end;
 
-                    pAj := A;
-                    inc(pAj, i);
-                    for j := 0 to width - 1 do
+                    if (c + r)/f < 0.95*s then
                     begin
-                         pAj^ := pAj^*f;
+                         pScale^ := pScale^*f;
+                         last := False;
+                         g := 1/f;
 
-                         inc(PByte(pAj), LineWidthA);
+                         // Apply similarity transformation
+                         MatrixScaleAndAdd( pAi, LineWidthA, width, 1, 0, g );
+
+                         pAj := GenPtr(A, i, 0, LineWidthA);
+                         MatrixScaleAndAdd(pAj, LineWidthA, 1, width, 0, f);
                     end;
                end;
 
