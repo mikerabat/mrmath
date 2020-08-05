@@ -71,6 +71,8 @@ type
    procedure TestRandomInit;
    procedure TestSort;
    procedure TestAppend;
+   procedure TestSelect;
+   procedure TestDiag;
   end;
 
 type
@@ -299,6 +301,84 @@ begin
      meanMtx.Free;
 
      {$IFDEF FMX} TearDown; {$ENDIF};
+end;
+
+
+procedure TestTDoubleMatrix.TestDiag;
+var mtx : TDoubleMatrix;
+    mtx1 : TDoubleMatrix;
+    mtx2 : TDoubleMatrix;
+begin
+     mtx := TDoubleMatrix.CreateRand( 3, 5 );
+     mtx1 := mtx.Diag(True);
+
+     check( (mtx1.Width = 3) and (mtx1.Height = 3), 'Bad matrix size');
+     mtx1.Free;
+
+     mtx1 := mtx.Diag(False);
+     check( (mtx1.Width = 1) and (mtx1.Height = 3), 'Bad matrix size');
+     
+     mtx1.Free;
+
+     mtx1 := mtx.Diag(-1);
+     check( (mtx1.Width = 1) and (mtx1.Height = 3), 'Bad matrix size');
+     mtx2 := mtx1.Diag(-1);
+     Check( (mtx2.Width = 3) and (mtx2.Height = 4), 'Bad matrix size');
+     mtx2.Free;
+     mtx1.Free;
+
+
+     mtx1 := mtx.Diag(-2);
+     check( (mtx1.Width = 1) and (mtx1.Height = 3), 'Bad matrix size');
+     mtx2 := mtx1.Diag(-2);
+     Check( (mtx2.Width = 3) and (mtx2.Height = 5), 'Bad matrix size');
+     mtx2.Free;
+     mtx1.Free;
+
+     mtx1 := mtx.Diag(-3);
+     check( (mtx1.Width = 1) and (mtx1.Height = 2), 'Bad matrix size');
+     mtx2 := mtx1.Diag(-3);
+     Check( (mtx2.Width = 2) and (mtx2.Height = 5), 'Bad matrix size');
+     mtx2.Free;
+     mtx1.Free;
+
+     mtx1 := mtx.Diag(-4);
+     check( (mtx1.Width = 1) and (mtx1.Height = 1), 'Bad matrix size');
+     mtx2 := mtx1.Diag(-4);
+     Check( (mtx2.Width = 1) and (mtx2.Height = 5), 'Bad matrix size');
+     mtx2.Free;
+     mtx1.Free;
+
+     mtx.TransposeInPlace;
+     mtx1 := mtx.Diag(1);
+     check( (mtx1.Width = 1) and (mtx1.Height = 3), 'Bad matrix size');
+     mtx2 := mtx1.Diag(1);
+     Check( (mtx2.Width = 4) and (mtx2.Height = 3), 'Bad matrix size');
+     mtx2.Free;
+     mtx1.Free;
+
+     mtx1 := mtx.Diag(2);
+     check( (mtx1.Width = 1) and (mtx1.Height = 3), 'Bad matrix size');
+     mtx2 := mtx1.Diag(2);
+     Check( (mtx2.Width = 5) and (mtx2.Height = 3), 'Bad matrix size');
+     mtx2.Free;
+     mtx1.Free;
+
+     mtx1 := mtx.Diag(3);
+     check( (mtx1.Width = 1) and (mtx1.Height = 2), 'Bad matrix size');
+     mtx2 := mtx1.Diag(3);
+     Check( (mtx2.Width = 5) and (mtx2.Height = 2), 'Bad matrix size');
+     mtx2.Free;
+     mtx1.Free;
+
+     mtx1 := mtx.Diag(4);
+     check( (mtx1.Width = 1) and (mtx1.Height = 1), 'Bad matrix size');
+     mtx2 := mtx1.Diag(4);
+     Check( (mtx2.Width = 5) and (mtx2.Height = 1), 'Bad matrix size');
+     mtx2.Free;
+     mtx1.Free;
+     
+     mtx.Free;
 end;
 
 procedure TestTDoubleMatrix.TestEig;
@@ -581,6 +661,69 @@ begin
             mtx1.Free;
             mtx2.Free;
      end;
+end;
+
+procedure TestTDoubleMatrix.TestSelect;
+var mtx, mtx1 : TDoubleMatrix;
+    x, y : integer;
+    rows, cols : TIntegerDynArray;
+begin
+     mtx := TDoubleMatrix.CreateRand(20, 20);
+
+     // invert the columns
+     mtx1 := mtx.SubColMtx(19, 0);
+
+     for x := 0 to mtx.Width - 1 do
+     begin
+          for y := 0 to mtx.Height - 1 do
+              Check( mtx[19 - x, y] = mtx1[x, y], 'Bad selection');
+     end;
+
+     mtx1.Free;
+     
+     // invert the rows
+     mtx1 := mtx.SubRowMtx(19, 0);
+
+     for x := 0 to mtx.Width - 1 do
+     begin
+          for y := 0 to mtx.Height - 1 do
+              Check( mtx[x, 19 - y] = mtx1[x, y], 'Bad selection');
+     end;
+     mtx1.Free;
+     
+     // invert the rows
+     mtx1 := mtx.SubRowMtx(19, 0);
+
+     for x := 0 to mtx.Width - 1 do
+     begin
+          for y := 0 to mtx.Height - 1 do
+              Check( mtx[x, 19 - y] = mtx1[x, y], 'Bad selection');
+     end;
+     mtx1.Free;
+     
+     // invert both
+     mtx1 := mtx.SubMtx(19, 0, 19, 0);
+     for x := 0 to mtx.Width - 1 do
+     begin
+          for y := 0 to mtx.Height - 1 do
+              Check( mtx[19 - x, 19 - y] = mtx1[x, y], 'Bad selection');
+     end;
+     mtx1.Free;
+
+     // sub selection
+     rows := Arr([0, 2, 4, 5, 6, 7, 14, 19]);
+     cols :=Arr([0, 1, 3, 4, 5, 6, 7, 12, 18]);
+     
+     mtx1 := mtx.SubMtx(cols, rows);
+
+     for x := 0 to Length(cols) - 1 do
+     begin
+          for y := 0 to Length(rows) - 1 do
+              Check( mtx1[x, y] = mtx[ cols[x], rows[y] ], 'Bad selection');
+     end;
+
+     mtx1.Free;
+     mtx.Free;
 end;
 
 procedure TestTDoubleMatrix.TestSort;

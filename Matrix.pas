@@ -93,6 +93,13 @@ type
     procedure SetValue(const initVal : double); overload;
     procedure SetValue(const initVal : double; x, y, aWidth, aHeight : TASMNativeInt); overload;  // sets the value in a subsection of the matrix
 
+    function SubColMtx( colIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
+    function SubRowMtx( rowIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
+    function SubMtx( colIdx : TIntegerDynArray; rowIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
+    function SubColMtx( fromIdx, toIdx : integer ) : TDoubleMatrix; overload;
+    function SubRowMtx( fromIdx, toIdx : integer ) : TDoubleMatrix; overload;
+    function SubMtx( fromColIdx, ToColIdx, fromRowIdx, ToRowIdx : integer ) : TDoubleMatrix; overload;
+
     function Reshape(newWidth, newHeight : integer; RowMajor : boolean = False) : TDoubleMatrix;
     procedure ReshapeInPlace(newWidth, newHeight : integer; RowMajor : boolean = False);
     function AsVector( RowMajor : boolean = False ) : TDoubleMatrix;
@@ -107,7 +114,8 @@ type
     procedure AbsInPlace;
 
     procedure DiagInPlace(createDiagMtx : boolean);
-    function Diag(createDiagMtx : boolean) : TDoubleMatrix;
+    function Diag(createDiagMtx : boolean) : TDoubleMatrix; overload;
+    function Diag(K : integer) : TDoubleMatrix; overload; // returns the diagonal on offset k
     function Trace : double;
 
     procedure Normalize(RowWise : boolean);
@@ -394,6 +402,13 @@ type
     procedure SetValue(const initVal : double); overload;
     procedure SetValue(const initVal : double; x, y, aWidth, aHeight : TASMNativeInt); overload;  // sets the value in a subsection of the matrix
 
+    function SubColMtx( colIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
+    function SubRowMtx( rowIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
+    function SubMtx( colIdx : TIntegerDynArray; rowIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
+    function SubColMtx( fromIdx, toIdx : integer ) : TDoubleMatrix; overload;
+    function SubRowMtx( fromIdx, toIdx : integer ) : TDoubleMatrix; overload;
+    function SubMtx( fromColIdx, ToColIdx, fromRowIdx, ToRowIdx : integer ) : TDoubleMatrix; overload;
+
     function Reshape(newWidth, newHeight : integer; ColMajor : boolean = False) : TDoubleMatrix;
     procedure ReshapeInPlace(newWidth, newHeight : integer; ColMajor : boolean = False);
     function AsVector( ColMajor : boolean = False ) : TDoubleMatrix;
@@ -407,7 +422,8 @@ type
     procedure AbsInPlace;
 
     procedure DiagInPlace(createDiagMtx : boolean);
-    function Diag(createDiagMtx : boolean) : TDoubleMatrix;
+    function Diag(createDiagMtx : boolean) : TDoubleMatrix; overload;
+    function Diag(K : integer) : TDoubleMatrix; overload; // returns the diagonal on offset k
     function Trace : double;
 
     procedure Normalize(RowWise : boolean);
@@ -1110,6 +1126,53 @@ begin
           Result := TDoubleMatrix.Create(1, Math.Min(Width, Height));
           for x := 0 to Result.Height - 1 do
               Result[Math.Min(x, Result.width - 1), x] := Items[x, x];
+     end;
+end;
+
+function TDoubleMatrix.Diag(K: integer): TDoubleMatrix;
+var x : integer;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+
+     // vector converted to diagonal matrix
+     if (width = 1) or (height = 1) then
+     begin
+          if k < 0 then
+          begin
+               Result := TDoubleMatrix.Create(VecLen, VecLen + System.abs(k));
+
+               for x := 0 to VecLen - 1 do
+                   Result[x, x - k] := Vec[x];
+          end
+          else
+          begin
+               Result := TDoubleMatrix.Create(VecLen + System.abs(k), VecLen);
+
+               for x := 0 to VecLen - 1 do
+                   Result[x + k, x] := Vec[x];
+          end;
+     end
+     else
+     begin
+          if k < 0 
+          then
+              CheckAndRaiseError( (System.abs(k) < height), 'Offset out of bounds')
+          else
+              CheckAndRaiseError( (System.abs(k) < width), 'Offset out of bounds');
+         
+          // return a vector of the diagonal
+          if k < 0 then
+          begin
+               Result := TDoubleMatrix.Create(1, Math.Min(Width, Height + k));
+               for x := 0 to Math.Min(Width, Height + k) - 1 do
+                   Result.Vec[x] := Items[x, x - k];
+          end
+          else
+          begin
+               Result := TDoubleMatrix.Create(1, Math.Min(Width - k, Height));
+               for x := 0 to Math.Min(Width - k, Height) - 1 do
+                   Result.Vec[x] := Items[x + k, x];
+          end;
      end;
 end;
 
@@ -2461,6 +2524,122 @@ begin
 
      SetLength(Result, fSubWidth*fSubHeight);
      MatrixCopy( @Result[0], fSubWidth*sizeof(double), StartElement, LineWidth, fSubWidth, fSubHeight);
+end;
+
+function TDoubleMatrix.SubColMtx(fromIdx, toIdx: integer): TDoubleMatrix;
+var colIdx : TIntegerDynArray;
+    i: Integer;
+begin
+     CheckAndRaiseError( (fromIdx >= 0) and (fromIdx < width), 'Column Index out of bounds');
+     CheckAndRaiseError( (ToIdx >= 0) and (toIdx < width), 'Column Index out of bounds');
+
+     if toIdx >= fromIdx then
+     begin
+          SetLength(colIdx, toIdx - fromIdx + 1);
+          for i := 0 to Length(colIdx) - 1 do
+              colIdx[i] := fromIdx + i;
+     end
+     else
+     begin
+          SetLength(colIdx, fromIdx - toIdx + 1);
+          for i := 0 to Length(colIdx) - 1 do
+              colIdx[i] := fromIdx - i;
+     end;
+     Result := SubMtx(colIdx, nil );
+end;
+
+function TDoubleMatrix.SubRowMtx(fromIdx, toIdx: integer): TDoubleMatrix;
+var rowIdx : TIntegerDynArray;
+    i: Integer;
+begin
+     CheckAndRaiseError( (fromIdx >= 0) and (fromIdx < Height), 'Row Index out of bounds');
+     CheckAndRaiseError( (fromIdx >= 0) and (fromIdx < Height), 'Row Index out of bounds');
+
+     if toIdx >= fromIdx then
+     begin
+          SetLength(rowIdx, toIdx - fromIdx + 1);
+          for i := 0 to Length(rowIdx) - 1 do
+              rowIdx[i] := fromIdx + i;
+     end
+     else
+     begin
+          SetLength(rowIdx, fromIdx - toIdx + 1);
+          for i := 0 to Length(rowIdx) - 1 do
+              rowIdx[i] := fromIdx - i;
+     end;
+     Result := SubMtx(nil, rowIdx);
+end;
+
+
+function TDoubleMatrix.SubMtx(fromColIdx, ToColIdx, fromRowIdx,
+  ToRowIdx: integer): TDoubleMatrix;
+var colIdx : TIntegerDynArray;
+    rowIdx : TIntegerDynArray;
+    increment : integer;
+    i : integer;
+begin
+     CheckAndRaiseError( (fromColIdx >= 0) and (fromColIdx < width), 'Column Index out of bounds');
+     CheckAndRaiseError( (ToColIdx >= 0) and (toColIdx < width), 'Column Index out of bounds');
+     CheckAndRaiseError( (fromRowIdx >= 0) and (fromRowIdx < Height), 'Row Index out of bounds');
+     CheckAndRaiseError( (fromRowIdx >= 0) and (fromRowIdx < Height), 'Row Index out of bounds');
+
+     SetLength(colIdx, System.Abs(ToColIdx - fromColIdx) + 1);
+     SetLength(rowIdx, System.Abs(ToRowIdx - fromRowIdx) + 1);
+
+     increment := 1;
+     if ToColIdx < fromColIdx then
+        increment := -1;
+     for i := 0 to Length(colIdx) - 1 do
+         colIdx[i] := fromColIdx + i*increment;
+
+     increment := 1;
+     if ToRowIdx < fromRowIdx then
+        increment := -1;
+     for i := 0 to Length(rowIdx) - 1 do
+         rowIdx[i] := fromRowIdx + i*increment;
+
+     Result := SubMtx(colIdx, rowIdx);
+end;
+
+function TDoubleMatrix.SubColMtx(colIdx: TIntegerDynArray): TDoubleMatrix;
+begin
+     Result := SubMtx(colIdx, nil);
+end;
+
+function TDoubleMatrix.SubMtx(colIdx, rowIdx: TIntegerDynArray): TDoubleMatrix;
+var i : integer;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'Not allowed on an empty matrix');
+     // ###########################################
+     // #### A nil value in the parameter actually select all
+     if colIdx = nil then
+     begin
+          SetLength( colIdx, Width );
+          for i := 0 to Length(colIdx) - 1 do
+              colIdx[i] := i;
+     end;
+     if rowIdx = nil then
+     begin
+          SetLength( rowIdx, Height );
+          for i := 0 to Length(rowIdx) - 1 do
+              rowIdx[i] := i;
+     end;
+
+     // ###########################################
+     // #### Check if the index is out of bounds
+     for i := 0 to Length(colIdx) - 1 do
+         CheckAndRaiseError( (colIdx[i] >= 0) and (colIdx[i] < Width), 'Column index out of bounds');
+     for i := 0 to Length(rowIdx) - 1 do
+         CheckAndRaiseError( (rowIdx[i] >= 0) and (rowIdx[i] < Height), 'Column index out of bounds');
+
+     Result := ResultClass.Create( Length(colIdx), Length(rowIdx));
+
+     MatrixIndex(Result.StartElement, Result.LineWidth, StartElement, LineWidth, colIdx, rowIdx);
+end;
+
+function TDoubleMatrix.SubRowMtx(rowIdx: TIntegerDynArray): TDoubleMatrix;
+begin
+     Result := SubMtx( nil, rowIdx );
 end;
 
 function TDoubleMatrix.Sum(RowWise: boolean): TDoubleMatrix;

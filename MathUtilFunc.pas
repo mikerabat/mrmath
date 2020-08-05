@@ -66,6 +66,8 @@ function ei( x : double ) : double; // Ei(x) + gamma + lnx + x/(1*1!) + x^2/(2*2
 
 function GetLocalFMTSet : TFormatSettings;
 
+function Arr( const elements : Array of integer ) : TIntegerDynArray;
+
 implementation
 
 uses Math, Classes;
@@ -73,6 +75,15 @@ uses Math, Classes;
 // ##########################################
 // #### utility function implementation
 // ##########################################
+
+function Arr( const elements : Array of integer ) : TIntegerDynArray;
+var i: Integer;
+begin
+     SetLength(Result, Length(elements));
+
+     for i := 0 to Length(elements) - 1 do
+         Result[i] := elements[i];
+end;
 
 procedure DoubleSwap(var a, b : Double); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 var temp : double;

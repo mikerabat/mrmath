@@ -37,6 +37,8 @@ function MatrixCopy(Src : PDouble; const srcLineWidth : TASMNativeInt; width, he
 function MatrixCopy(const Src : Array of double; width, height : TASMNativeInt) : TDoubleDynArray; overload;
 procedure MatrixInit(dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; const value : Double);
 
+procedure MatrixIndex(dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; colIdx, rowIdx : TIntegerDynArray);
+
 procedure MatrixRowSwap(A, B : PDouble; width : TASMNativeInt);
 
 procedure MatrixAdd(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
@@ -457,6 +459,11 @@ begin
      assert((width > 0) and (height > 0) and (length(src) = width*height), 'Dimension error');
      SetLength(Result, width*height);
      copyfunc(@Result[0],  width*sizeof(double), @Src[0], width*sizeof(double), width, height);
+end;
+
+procedure MatrixIndex(dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; colIdx, rowIdx : TIntegerDynArray);
+begin
+     GenericMtxIndex( dest, destLineWidth, src, srcLineWidth, colIdx, rowIdx );
 end;
 
 procedure MatrixInit(dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; const value : Double);

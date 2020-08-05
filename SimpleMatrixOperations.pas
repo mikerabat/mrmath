@@ -28,6 +28,8 @@ procedure GenericMtxCopy(var dest : Array of double; const Src : Array of double
 function GenericMtxCopy(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt) : TDoubleDynArray; overload;
 function GenericMtxCopy(const Src : Array of double; width, height : TASMNativeInt) : TDoubleDynArray; overload;
 
+procedure GenericMtxIndex( dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; colIdx, rowIdx : TIntegerDynArray);
+
 procedure GenericMtxInit( dest : PDouble; destLineWidth : TASMNativeInt; width, height : TASMNativeInt; const value : double );
 
 procedure GenericRowSwap(A, B : PDouble; width : TASMNativeInt);
@@ -849,18 +851,35 @@ begin
      GenericMtxCopy(@Result[0], width*sizeof(double), @Src[0], width*sizeof(double), width, height);
 end;
 
+procedure GenericMtxIndex( dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; colIdx, rowIdx : TIntegerDynArray);
+var pDest : PConstDoubleArr;
+    pSrc : PConstDoubleArr;
+    x, y : TASMNativeInt;
+begin
+     pDest := PConstDoubleArr(dest);
+     for y := 0 to Length(rowIdx) - 1 do
+     begin
+          pSrc := PConstDoubleArr( GenPtrArr(src, 0, rowIdx[y], srcLineWidth) );
+
+          for x := 0 to Length(colIdx) - 1 do
+              pDest^[x] := pSrc^[colIdx[x]];
+
+          inc( PByte(pDest), destLineWidth );
+     end;
+end;
+
 procedure GenericRowSwap(A, B : PDouble; width : TASMNativeInt);
 var i : TASMNativeInt;
     tmp : double;
+    pA, pB : PConstDoubleArr;
 begin
+     pA := PConstDoubleArr(A);
+     pB := PConstDoubleArr(B);
      for i := 0 to width - 1 do
      begin
-          tmp := A^;
-          A^ := B^;
-          B^ := tmp;
-
-          inc(A);
-          inc(B);
+          tmp := pA^[i];
+          pA^[i] := pB^[i];
+          pB^[i] := tmp;
      end;
 end;
 
