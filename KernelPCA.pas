@@ -34,7 +34,7 @@ type
       kmGauss : ( sigma : double );
       kmPoly : ( Poly : Integer; C : double );
   end;
-  TKernelPCA = class(TCommonPCAClass)
+  TKernelPCA = class(TMatrixClass)
   private
     fSigma : double;
     fP : integer;

@@ -36,14 +36,13 @@ type
     MeanElem : TDoubleMatrix;
   end;
 
+procedure SortEigValsEigVecs(EigVals : TDoubleMatrix; EigVecs : TDoubleMatrix; L, R : integer);
+procedure SortSVD(W : TDoubleMatrix; U, V : TDoubleMatrix; L, R : integer);
+
 // ##########################################
 // #### base PCA algorithm based on Singular Value decomposition
 type
-  TCommonPCAClass = class(TMatrixClass)
-  protected
-    procedure SortEigValsEigVecs(EigVals : TDoubleMatrix; EigVecs : TDoubleMatrix; L, R : integer);
-  end;
-  TMatrixPCA = class(TCommonPCAClass)
+  TMatrixPCA = class(TMatrixClass)
   private
     fProgress : TMtxProgress;
 
@@ -194,7 +193,8 @@ implementation
 
 uses Math, MathUtilFunc;
 
-procedure TCommonPCAClass.SortEigValsEigVecs(EigVals : TDoubleMatrix; EigVecs : TDoubleMatrix; L, R : integer);
+
+procedure InternalSortSVD(W : TDoubleMatrix; U, V : TDoubleMatrix; L, R : integer);
 var I, J: Integer;
     P, T : Double;
     y : integer;
@@ -203,25 +203,35 @@ begin
      repeat
            I := L;
            J := R;
-           P := EigVals[0, (L + R) shr 1];
+           P := W[0, (L + R) shr 1];
            repeat
-                 while EigVals[0, i] > P do
+                 while W[0, i] > P do
                        Inc(I);
-                 while EigVals[0, j] < P do
+                 while W[0, j] < P do
                        Dec(J);
 
                  if I <= J then
                  begin
-                      T := EigVals[0, i];
-                      EigVals[0, i] := EigVals[0, j];
-                      EigVals[0, j] := T;
+                      T := W[0, i];
+                      W[0, i] := W[0, j];
+                      W[0, j] := T;
 
                       // Exchange Eigenvecs
-                      for y := 0 to EigVecs.Height - 1 do
+                      for y := 0 to U.Height - 1 do
                       begin
-                           T := EigVecs[i, y];
-                           EigVecs[i, y] := EigVecs[j, y];
-                           EigVecs[j, y] := T;
+                           T := U[i, y];
+                           U[i, y] := U[j, y];
+                           U[j, y] := T;
+                      end;
+
+                      if Assigned(V) then
+                      begin
+                           for y := 0 to V.Height - 1 do
+                           begin
+                                T := V[i, y];
+                                V[i, y] := V[j, y];
+                                V[j, y] := T;
+                           end;
                       end;
 
                       Inc(I);
@@ -230,11 +240,29 @@ begin
            until I > J;
 
            if L < J then
-              SortEigValsEigVecs(EigVals, EigVecs, L, J);
+              InternalSortSVD(W, U, V, L, J);
            L := I;
      until I >= R;
 end;
 
+procedure SortSVD(W : TDoubleMatrix; U, V : TDoubleMatrix; L, R : integer);
+var sorted : boolean;
+  y: Integer;
+begin
+     // check if already sorted
+     sorted := True;
+
+     for y := 1 to W.VecLen - 1 do
+         sorted := sorted and (W.Vec[y - 1] >= W.Vec[y]);
+
+     if not sorted then
+        InternalSortSVD(W, U, V, L, R);
+end;
+
+procedure SortEigValsEigVecs(EigVals : TDoubleMatrix; eigVecs : TDoubleMatrix; L, R : integer);
+begin
+     SortSVD(EigVals, eigVecs, nil, L, R);
+end;
 
 // ######################################################################
 // #### local definitions
