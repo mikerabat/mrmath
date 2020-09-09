@@ -60,7 +60,6 @@ type
     constructor CreateRec(pool : TMtxThreadPool; proc : TMtxRecProc; rec : pointer);
 
     destructor Destroy; override;
-    function _Release: Integer; stdcall;
     procedure ExecuteAsync;
 
     function GetEvent: TEvent;
@@ -340,13 +339,6 @@ begin
      fData.Free;
 
      inherited Destroy;
-end;
-
-function TLinuxMtxAsyncCall._Release: Integer; stdcall;
-begin
-     Result := InterlockedDecrement(FRefCount);
-     if Result = 0 then
-        Destroy;
 end;
 
 function TLinuxMtxAsyncCall.Finished: Boolean;

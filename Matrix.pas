@@ -2172,19 +2172,19 @@ end;
 
 procedure TDoubleMatrix.RepeatMatrixInPlace(numX, numY: integer);
 var origW, origH : integer;
-    subMtx : IMatrix;
+    aSubMtx : IMatrix;
     x, y : Integer;
 begin
      origW := Width;
      origH := Height;
 
-     subMtx := Clone;
+     aSubMtx := Clone;
 
      SetWidthHeight( Width*numX, Height*numY );
 
      for y := 0 to numY - 1 do
          for x := 0 to numX - 1 do
-             AssignSubMatrix(subMtx, x*origW, y*origH);
+             AssignSubMatrix(aSubMtx, x*origW, y*origH);
 end;
 
 procedure TDoubleMatrix.ReserveMem(width, height : integer);

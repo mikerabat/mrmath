@@ -60,7 +60,6 @@ type
     constructor Create(pool : TMtxThreadPool; proc : TMtxProc; obj : TObject);
     constructor CreateRec(pool : TMtxThreadPool; proc : TMtxRecProc; rec : Pointer);
     destructor Destroy; override;
-    function _Release: Integer; stdcall;
     procedure ExecuteAsync;
 
     procedure Sync;
@@ -354,13 +353,6 @@ begin
      fData.Free;
 
      inherited Destroy;
-end;
-
-function TWinMtxAsyncCall._Release: Integer; stdcall;
-begin
-     Result := InterlockedDecrement(FRefCount);
-     if Result = 0 then
-        Destroy;
 end;
 
 function TWinMtxAsyncCall.Finished: Boolean;
