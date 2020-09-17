@@ -101,8 +101,8 @@ type
     function SubMtx( fromColIdx, ToColIdx, fromRowIdx, ToRowIdx : integer ) : TDoubleMatrix; overload;
 
     function Reshape(newWidth, newHeight : integer; RowMajor : boolean = False) : TDoubleMatrix;
-    procedure ReshapeInPlace(newWidth, newHeight : integer; RowMajor : boolean = False);
-    function AsVector( RowMajor : boolean = False ) : TDoubleMatrix;
+    procedure ReshapeInPlace(newWidth, newHeight : integer; ColMajor : boolean = False);
+    function AsVector( ColMajor : boolean = False ) : TDoubleMatrix;
 
 
     // ###################################################
