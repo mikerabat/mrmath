@@ -26,7 +26,7 @@ uses Matrix, Types, PCA;
 // t-Distributed Stochastic Neighbor Embedding:
 type
   TTSNEDistFunc = (dfOrig, dfEuclid, dfNormEuclid, dfAbs, dfMahalanobis);
-  TTSNEProgress = procedure(Sender : TObject; iter : integer; cost : double; yMap : IMatrix) of Object;
+  TTSNEProgress = procedure(Sender : TObject; iter : integer; cost : double; yMap : IMatrix; var doCancel : boolean) of Object;
   TTSNEPCAInit = function : TMatrixPCA of Object;
   TtSNE = class(TMatrixClass)
   private
@@ -403,6 +403,7 @@ var n : integer;                        // number of instances
     num : IMatrix;
     L, Q : IMatrix;
     cost : double;
+    doCancel : boolean;
 const final_momentum : double = 0.8;    // value to which momentum is changed
       mom_switch_iter : integer = 250;  // iteration at which momentum is changed
       stop_lying_iter : integer = 100;   // iteration at which lying about P-values is stopped
@@ -512,7 +513,11 @@ begin
 
                cost := constEntr - PT[0,0];
 
-               fProgress(Self, iter, cost, yData);
+               doCancel := False;
+               fProgress(Self, iter, cost, yData, doCancel);
+
+               if doCancel then
+                  break;
           end;
      end;
 
