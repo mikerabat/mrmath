@@ -55,6 +55,10 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date 09.10.2020
+* New weighted correlation function
+* New asm optimized functions to add a value to a matrix
+
 Date 30.6.2020
 * New optimized matrix initialization routines
 * Fixed bug in Blocksize setup -> the matrix mult block size may not be smaller than the QR/SVD or cholesky strip size.
