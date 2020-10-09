@@ -284,6 +284,7 @@ type
     procedure Assign(Value : TDoubleMatrix; OnlySubElements : boolean); overload;
     procedure Assign(Value : IMatrix; OnlySubElements : boolean); overload;
     procedure Assign(const Mtx : Array of double; W, H : integer); overload;
+    procedure AssignDyn(Value : TDoubleDynArray; W, H : integer);
     procedure AssignSubMatrix(Value : TDoubleMatrix; X : integer = 0; Y : integer = 0); overload;
     procedure AssignSubMatrix(Value : IMatrix; X : integer = 0; Y : integer = 0); overload;
 
@@ -589,6 +590,7 @@ type
     procedure Assign(Value : TDoubleMatrix; OnlySubElements : boolean); overload;
     procedure Assign(Value : IMatrix; OnlySubElements : boolean); overload;
     procedure Assign(const Mtx : Array of double; W, H : integer); overload;
+    procedure AssignDyn(Value : TDoubleDynArray; W, H : integer);
     procedure AssignSubMatrix(Value : TDoubleMatrix; X : integer = 0; Y : integer = 0); overload;
     procedure AssignSubMatrix(Value : IMatrix; X : integer = 0; Y : integer = 0); overload;
 
@@ -734,7 +736,7 @@ begin
      Result := ResultClass.Create;
      Result.Assign(Self, True);
 
-     MatrixAddAndScale(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, Value, 1);
+     MatrixElemAdd(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, Value);
 end;
 
 function TDoubleMatrix.AddAndScale(const Offset, Scale: double): TDoubleMatrix;
@@ -779,6 +781,14 @@ begin
 
      SetWidthHeight(W, H);
      MatrixCopy(StartElement, LineWidth, @Mtx[0], W*sizeof(double), W, H);
+end;
+
+procedure TDoubleMatrix.AssignDyn(Value: TDoubleDynArray; W, H: integer);
+begin
+     CheckAndRaiseError((W*H > 0) and (Length(Value) = W*H), 'Dimension error');
+
+     SetWidthHeight(W, H);
+     MatrixCopy(StartElement, LineWidth, @Value[0], W*sizeof(double), W, H);
 end;
 
 procedure TDoubleMatrix.AssignSubMatrix(Value: IMatrix; X, Y: integer);
@@ -1211,16 +1221,12 @@ begin
 
      MatrixDiff(StartElement, LineWidth, StartElement, LineWidth, Width, height, RowWise);
 
-     if RowWise then
-     begin
-          dec(fSubWidth);
-          fWidth := fSubWidth;
-     end
+     // just reduce the sub width
+     if RowWise
+     then
+         dec(fSubWidth)
      else
-     begin
-          dec(fSubHeight);
-          fHeight := fHeight;
-     end;
+         dec(fSubHeight);
 end;
 
 function TDoubleMatrix.SolveLinEQ(Value: TDoubleMatrix; numRefinements : integer) : TDoubleMatrix;

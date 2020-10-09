@@ -51,6 +51,7 @@ procedure AVXMatrixSubVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; 
 procedure AVXMatrixElemMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
 procedure AVXMatrixElemDiv(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
 procedure AVXMatrixAddAndScale(Dest : PDouble;  LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure AVXMatrixElemAdd(Dest : PDouble;  LineWidth, Width, Height : TASMNativeInt; const dOffset : double);
 procedure AVXMatrixScaleAndAdd(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
 procedure AVXMatrixSQRT(Dest : PDouble; LineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
 procedure AVXMatrixAbs(Dest : PDouble; LineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
@@ -131,6 +132,38 @@ begin
               AVXMatrixAddScaleUnAlignedOddW(dest, LineWidth, width, height, dOffset, Scale);
      end;
 end;
+
+procedure AVXMatrixElemAdd(Dest : PDouble;  LineWidth, Width, Height : TASMNativeInt; const dOffset : double);
+begin
+     if (width = 0) or (height = 0) then
+        exit;
+
+     if (width = 1) and (LineWidth = sizeof(double)) then
+     begin
+          width := height;
+          height := 1;
+          LineWidth := width*sizeof(double);
+          LineWidth := LineWidth + 32 - LineWidth and $1F;
+     end;
+
+     if (TASMNativeUInt(dest) and $0000001F = 0) and (LineWidth and $0000001F = 0) then
+     begin
+          if (width and 1) = 0
+          then
+              AVXMatrixAddAlignedEvenW(dest, LineWidth, width, height, dOffset)
+          else
+              AVXMatrixAddAlignedOddW(dest, LineWidth, width, height, dOffset);
+     end
+     else
+     begin
+          if (width and 1) = 0
+          then
+              AVXMatrixAddUnAlignedEvenW(dest, LineWidth, width, height, dOffset)
+          else
+              AVXMatrixAddUnAlignedOddW(dest, LineWidth, width, height, dOffset);
+     end;
+end;
+
 
 procedure AVXMatrixScaleAndAdd(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
 begin

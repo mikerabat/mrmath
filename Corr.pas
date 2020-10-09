@@ -26,10 +26,14 @@ type
   protected
     function InternalCorrelateArr( w1, w2 : PDouble; len : integer) : Double;
     function InternalCorrelate(w1, w2 : IMatrix) : double;
+    function InternalWeightedCorrelate( w1, w2 : IMatrix; weights : IMatrix ) : double;
   public
     function Correlate(x, y : IMatrix) : double; overload; // correlation coefficient between t, r (must have the same length)
     function Correlate(x, y : IMatrix; var prob, z : double) : double; overload; // pearson correlation with Fishers's z and probobality 
 
+    function CorrelateWeighted(x, y, w : IMatrix) : double; overload; // weighted correlation
+    function CorrelateWeighted(x, y, w : IMatrix; var prob, z : double) : double; overload; // weighted correlation
+    
     // spearman correlation. X, Y need to be vectors
     class function CorrelateSpearman( x, y : IMatrix; var zd, probd, rs, probrs : double ) : double;
     class function Covariance(x, y : IMatrix; Unbiased : boolean = True) : IMatrix; overload; // covariance matrix
@@ -254,8 +258,6 @@ function TCorrelation.InternalCorrelateArr(w1, w2: PDouble;
 var meanVar1 : TMeanVarRec;
     meanVar2 : TMeanVarRec;
 begin
-     // note the routine avoids memory allocations thus it runs on the raw optimized functions:
-     
      // calc: 1/(n-1)/(var_w1*var_w2) sum_i=0_n (w1_i - mean_w1)*(w2_i - mean_w2)
      MatrixMeanVar( @meanVar1, 2*sizeof(double), w1, len*sizeof(double), len, 1, True, True);
      MatrixMeanVar( @meanVar2, 2*sizeof(double), w2, len*sizeof(double), len, 1, True, True);
@@ -266,6 +268,57 @@ begin
      // dot product:
      MatrixMult( @Result, sizeof(double), w1, w2, len, 1, 1, len, len*sizeof(double), sizeof(double));
      Result := Result/sqrt(meanVar1.aVar*meanVar2.aVar)/(len - 1);
+end;
+
+function TCorrelation.InternalWeightedCorrelate(w1, w2,
+  weights: IMatrix): double;
+var sumweights : double;
+    wMean1, wMean2 : double;
+    weightedW1, weightedW2 : IMatrix;
+    t : IMatrix;
+    ww : IMatrix;
+    sxx, syy : double;
+begin
+     // calculated correlation according to
+     // r = S_xy/sqrt(S_xx*S_yy)
+     // where S_xy = sum_i=0_n weights[i]*( x[i] - M(x, w) )*( y[i] - M(y, w))
+     // S_xx = sum_i=0_n weights[i]*( x[i] - M(x, w) )^2
+     // S_yy = sum_i=0_n weights[i]*( y[i] - M(y, w) )^2
+     // M(x, w) = sum_i=0_n w[i]*x[i] / sum w
+     // M(y, w) = sum_i=0_n w[i]*y[i] / sum w
+
+     // normalize weighted mean
+     MatrixSum( @sumweights, sizeof(double), weights.StartElement, weights.LineWidth, weights.Width, 1, True );
+     if SameValue(sumweights, 0, eps(1)) then
+        raise ECorrelateException.Create('Weighting vector sums to zero');
+     ww := weights;
+     if not sameValue(sumweights, 1, eps( 1 ) ) then
+        ww := weights.Scale( 1/sumweights );
+
+     if sumweights > cDefEpsilon then
+     begin
+          MatrixMtxVecMult( @wMean1, sizeof(double), w1.StartElement, ww.StartElement, w1.LineWidth, sizeof(double), w1.Width, 1, 1, 0 );
+          MatrixMtxVecMult( @wMean2, sizeof(double), w2.StartElement, ww.StartElement, w2.LineWidth, sizeof(double), w2.Width, 1, 1, 0 );
+          
+          weightedW1 := w1.ScaleAndAdd(-wMean1, 1);
+          weightedW2 := w2.ScaleAndAdd(-wMean2, 1);
+
+          t := weightedW1.ElementWiseMult(weightedw2);
+          MatrixMtxVecMult( @Result, sizeof(double), t.StartElement, ww.StartElement, t.LineWidth, sizeof(double), t.Width, 1, 1, 0);
+
+          weightedw1.ElementWiseMultInPlace(weightedw1);
+          weightedw2.ElementWiseMultInPlace(weightedw2);
+          MatrixMtxVecMult( @sxx, sizeof(double), weightedW1.StartElement, ww.StartElement, weightedW1.LineWidth, sizeof(double), weightedW1.Width, 1, 1, 0);
+          MatrixMtxVecMult( @syy, sizeof(double), weightedW2.StartElement, ww.StartElement, weightedW2.LineWidth, sizeof(double), weightedW2.Width, 1, 1, 0);
+
+          sxx := sqrt(sxx*syy);
+          if sxx < eps(Result) then
+             raise ECorrelateException.Create('Variances close too machine precission - out of bounds');
+          
+          Result := Result/sxx;
+     end
+     else
+         raise ECorrelateException.Create('Sum of weights <= 0');
 end;
 
 // ###########################################
@@ -1132,6 +1185,41 @@ begin
      spearmanCorr( PConstDoubleArr( @x1[0] ), PConstDoubleArr( @x2[0] ),
                    Length(x1), Result, zd, probd, rs, probrs);
 end;
+
+function TCorrelation.CorrelateWeighted(x, y, w: IMatrix; var prob,
+  z: double): double;
+var df : integer;
+    t : double;
+begin
+     Result := CorrelateWeighted(x, y, w);
+     df := (x.Width*x.Height - 2);
+     t := Result * sqrt( df/( (1 - Result + cTiny)*(1 + Result + cTiny) ) );
+     
+     z := 0.5*ln( (1 + (Result) + cTiny)/(1 - Result + cTiny)); // Fishers z transformation
+     prob := betaI( 0.5*df, 0.5, df/(df + sqr(t)) );            // probability
+end;
+
+
+function TCorrelation.CorrelateWeighted(x, y, w: IMatrix): double;
+var w1, w2 : IMatrix;
+    weights : IMatrix;
+begin
+     weights := w;
+     if weights.Height <> 1 then
+        weights := w.Reshape(w.Width*w.Height, 1);
+     w1 := x;
+     if x.Height <> 1 then
+        w1 := x.Reshape(x.Width*x.Height, 1);
+     w2 := y;
+     if y.Height <> 1 then
+        w2 := y.Reshape(y.Width*y.Height, 1);
+
+     assert(w1.Width = w2.Width, 'Dimension error');
+     assert(weights.Width = w1.Width, 'Dimension error');
+
+     Result := InternalWeightedCorrelate(w1, w2, weights);
+end;
+
 
 // ############################################################
 // #### procedures for spearman rank

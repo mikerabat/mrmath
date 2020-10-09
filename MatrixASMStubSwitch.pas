@@ -104,7 +104,7 @@ procedure MtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 
   width1, height1, width2, height2 : TASMNativeInt);
 
 
-// performs dest = alpha*dest + beta*mt1*v
+// performs dest = alpha*mt1*v + beta*dest
 // wheras dest is a vector, mt1 a width x height matrix and v again a vector
 procedure MatrixMtxVecMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 // performs matrix vector multiplication in the form: dest := alpha*mt1'*v + beta*dest
@@ -170,6 +170,7 @@ procedure MatrixSum(var dest : Array of double; const Src : Array of double; wid
 procedure MatrixCumulativeSum(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
 procedure MatrixDiff(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
 
+procedure MatrixElemAdd( Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset : double );
 procedure MatrixAddAndScale(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
 procedure MatrixScaleAndAdd(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
 procedure MatrixAbs(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
@@ -235,6 +236,7 @@ type
   TMatrixSubVecFunc = procedure(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
   TMatrixElemWiseFunc = TMatrixAddFunc;
   TMatrixAddScaleFunc = procedure(dest : PDouble; LineWidth, width, height : TASMNativeInt; const dOffset, Scale : double);
+  TMatrixElemAddFunc = procedure(dest : PDouble; LineWidth, width, height : TASMNativeInt; const dOffset : double);
   TMatrixSQRTFunc = procedure(dest : PDouble; LineWidth : TASMNativeInt; width, height : TASMNativeInt);
   TMatrixAbsFunc = procedure(dest : PDouble; LineWidth : TASMNativeInt; width, height : TASMNativeInt);
   TMatrixCopyFunc = procedure(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
@@ -300,6 +302,7 @@ var multFunc : TMatrixMultFunc;
     multTria2Store1UnitFunc : TMatrixMultTriaStoreT1;
     MtxVecMultFunc : TMatrixVecMultFunc;
     MtxVecMultTFunc : TMatrixVecMultFunc;
+    elemAddFunc : TMatrixElemAddFunc;
     addFunc : TMatrixAddFunc;
     subFunc : TMatrixSubFunc;
     subTFunc : TMatrixSubTFunc;
@@ -1055,6 +1058,14 @@ begin
      matrixDiffFunc(dest, destLineWidth, Src, srcLineWidth, width, height, RowWise);
 end;
 
+procedure MatrixElemAdd( Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset : double );
+begin
+     assert((width > 0) and (height > 0), 'Dimension error');
+     assert(LineWidth >= width*sizeof(double), 'Line width error');
+
+     elemAddFunc(dest, linewidth, width, height, Offset);
+end;
+
 procedure MatrixAddAndScale(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
 begin
      assert((width > 0) and (height > 0), 'Dimension error');
@@ -1252,6 +1263,7 @@ begin
         instrType := itSSE;
 
      initfunc := GenericMtxInit;
+     elemAddFunc := GenericMtxElemAdd;
 
      // check features
      if (IsAVXPresent and (instrType = itAVX)) or (IsFMAPresent and (instrType = itFMA)) then
@@ -1307,6 +1319,7 @@ begin
           PlaneRotSeqLVF := AVXApplyPlaneRotSeqLVF;
           memInitFunc := AVXInitMemAligned;
           vecConvolve := AVXVecConvolveRevB;
+          elemAddFunc := AVXMatrixElemAdd;
 
           TDynamicTimeWarp.UseSSE := True;
 
@@ -1444,6 +1457,7 @@ begin
           PlaneRotSeqLVF := GenericApplyPlaneRotSeqLVF;
           memInitFunc := GenericInitMemAligned;
           vecConvolve := GenericConvolveRevB;
+          elemAddFunc := GenericMtxElemAdd;
 
           TDynamicTimeWarp.UseSSE := False
      end;

@@ -21,7 +21,11 @@ uses
 
   {$IFNDEF FPC}
   {$IFDEF MSWINDOWS} //wrc
+  {$IF CompilerVersion >= 23.0}
+  Winapi.Windows,
+  {$ELSE}
   Windows,
+  {$IFEND}
   {$ENDIF}     //wrc
   TestFramework,
   {$ELSE}
