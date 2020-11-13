@@ -18,7 +18,7 @@ interface
 
 uses Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
      Dialogs, BasicExternalViewerVisualizer, ExtCtrls, StdCtrls, Matrix, Grids,
-     ToolsAPI, Buttons, mrMatrixSettings;
+     ToolsAPI, Buttons, mrMatrixSettings, mrMatrixPlot;
 
 type
   TmrMathMtxViewerFrame = class(TBasicVisualizerViewerFrame)
@@ -36,6 +36,7 @@ type
     lblLineWidth: TLabel;
     chkOnlySubMatrix: TCheckBox;
     btnConfigure: TSpeedButton;
+    btnPlot: TSpeedButton;
     procedure grdDataDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect;
       State: TGridDrawState);
     procedure chkOnlySubMatrixClick(Sender: TObject);
@@ -43,6 +44,7 @@ type
     procedure grdDataSetEditText(Sender: TObject; ACol, ARow: Integer;
       const Value: string);
     procedure btnConfigureClick(Sender: TObject);
+    procedure btnPlotClick(Sender: TObject);
   private
     type
       TMtxProps = record
@@ -60,6 +62,7 @@ type
     fName : string;
 
     fSettings : TfrmMtxSettings;
+    fPlot : TfrmMtxPlot;
 
     // settings
     fBaseMaxNumCols : Integer;
@@ -408,7 +411,8 @@ procedure TmrMathMtxViewerFrame.AfterConstruction;
 begin
      fSettings := TfrmMtxSettings.Create(self);
      fSettings.OnChanged := OnSettingsChanged;
-     
+     fPlot := TfrmMtxPlot.Create(self);
+
      ReadSettings;
 
      inherited;
@@ -475,6 +479,38 @@ begin
      fSettings.Top := pt.Y - fSettings.Height;
 
      fSettings.Show;
+end;
+
+procedure TmrMathMtxViewerFrame.btnPlotClick(Sender: TObject);
+var pt : TPoint;
+    x, y : TDoubleDynArray;
+    cnt : integer;
+begin
+     pt.X := btnConfigure.Left;
+     pt.Y := btnConfigure.Top;
+     pt := btnConfigure.Parent.ClientToScreen(pt);
+
+     fSettings.Left := pt.X - fPlot.Width;
+     fSettings.Top := pt.Y - fPlot.Height;
+
+     if fMtx.Height > 1 then
+     begin
+          fMtx.SetSubMatrix(0, 0, fMtx.Width, 1);
+          x := fMtx.SubMatrix;
+          fMtx.UseFullMatrix;
+
+          for cnt := 1 to fMtx.Height - 1 do
+          begin
+               fMtx.SetSubMatrix(0, cnt, fMtx.Width, 1);
+               y := fMtx.SubMatrix;
+               fPlot.AddPlot(y);
+          end;
+     end
+     else
+     begin
+          fPlot.InitVec( fMtx.SubMatrix );
+     end;
+     fPlot.Show;
 end;
 
 procedure TmrMathMtxViewerFrame.chkOnlySubMatrixClick(Sender: TObject);

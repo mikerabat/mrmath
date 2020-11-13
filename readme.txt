@@ -55,6 +55,10 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date 13.11.2020
+* Experimental: Added a plot command option in the matrix IDE viewer.
+* Updated CPUID checks to a new scheme (with more options)
+
 Date 09.10.2020
 * New weighted correlation function
 * New asm optimized functions to add a value to a matrix

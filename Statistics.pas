@@ -1433,7 +1433,7 @@ begin
      if minVal = 0 then
      begin
           for x := 0 to hist1.Width - 1 do
-              hist1.Vec[x] := Max(maxVal*cDefEpsilon, hist1.Vec[x]);
+              hist1.Vec[x] := Max(eps(maxVal), hist1.Vec[x]);
      end;
 
      // chi square on the histograms
