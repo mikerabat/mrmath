@@ -62,7 +62,7 @@ function MatrixEigHessenberg(A : PDouble; const LineWidthA : TASMNativeInt; widt
 // finds all eigenvalues and eigenvectors in an upper hessenberg matrix A. On input A can be exactly as output from MatrixHessenbergPerm, on
 // output A is destroyed. For complex eigenvalues (n, n+1) only one eigenvector is stored whereas the real part is stored in vector n and
 // the imaginary part is stored in n+1. Note the function does not seem to correctly work with matrices with rank lower than width!
- function MatrixEigVecHessenbergInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; WR : PDouble;
+function MatrixEigVecHessenbergInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; WR : PDouble;
  const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt; Eivec : PDouble; const LineWidthEivec : TASMNativeInt) : TEigenvalueConvergence;
 procedure MatrixNormEivecInPlace(Eivec : PDouble; const LineWidthEivec : TASMNativeInt; width : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt);
 

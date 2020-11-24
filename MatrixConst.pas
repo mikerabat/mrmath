@@ -39,10 +39,20 @@ type
    TYMMArr = Array[0..3] of double;
    PYMMArr = ^TYMMArr;
 
+   TZMMArr = Array[0..7] of double;
+   PZMMArr = ^TZMMArr;
+
    TMeanVarRec = record
      aMean : double;
      aVar : double;
    end;
+
+   TComplex = record
+     real : double;
+     imag : double;
+   end;
+   PComplex = ^TComplex;
+   TComplexDynArray = Array of TComplex;
 
 const cDefEpsilon : double = 1e-20;
       cMinusOne : double = -1;
@@ -73,6 +83,9 @@ type
 type
   TConstDoubleArr = Array[0..MaxInt div sizeof(double) - 1] of double;
   PConstDoubleArr = ^TConstDoubleArr;
+
+  TConstComplexArr = Array[0..MaxInt div sizeof(TComplex) - 1] of TComplex;
+  PConstComplexArr = ^TConstComplexArr;
 
 type
   TMatrixFunc = procedure(var Value : double);
@@ -134,7 +147,17 @@ function GenPtrArr(const A : PDouble; incX, incY : TASMNativeInt; const LineWidt
 function AlignPtr32( A : Pointer ) : Pointer; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function AlignPtr64( A : Pointer ) : Pointer; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 
+// ###########################################
+// #### Complex init
+function InitComplex( aReal, aImag : double ) : TComplex;
+
 implementation
+
+function InitComplex( aReal, aImag : double ) : TComplex;
+begin
+     Result.real := aReal;
+     Result.imag := aImag;
+end;
 
 function GenPtr(const A : PDouble; incX, incY : TASMNativeInt; const LineWidthA : TASMNativeInt) : PDouble; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 begin

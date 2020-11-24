@@ -521,6 +521,14 @@
         <Filename Value="..\..\IOCompletionPortsThreadPool.pas"/>
         <UnitName Value="IOCompletionPortsThreadPool"/>
       </Item127>
+      <Item128>
+        <Filename Value="..\..\Roots.pas"/>
+        <UnitName Value="Roots"/>
+      </Item128>
+      <Item129>
+        <Filename Value="..\..\SSA.pas"/>
+        <UnitName Value="SSA"/>
+      </Item129>
       
     </Files>
     <RequiredPkgs Count="1">

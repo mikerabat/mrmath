@@ -1378,7 +1378,7 @@ begin
 
      dummy := TDoubleMatrix.Create;
      dummy.Assign(self);
-     
+
      SetLength(perm, fSubWidth);
      MatrixHessenbergPerm(dummy.StartElement, dummy.LineWidth, StartElement, LineWidth, fSubWidth, @perm[0], sizeof(integer));
      Result := MatrixEigHessenbergInPlace(dummy.StartElement, dummy.LineWidth, fSubWidth, pReal, dt.LineWidth, pImag, dt.LineWidth);

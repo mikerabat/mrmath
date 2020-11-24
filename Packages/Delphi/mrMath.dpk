@@ -21,7 +21,7 @@ package mrMath;
 {$ALIGN 8}
 {$ASSERTIONS OFF}
 {$BOOLEVAL OFF}
-{$DEBUGINFO ON}
+{$DEBUGINFO OFF}
 {$EXTENDEDSYNTAX ON}
 {$IMPORTEDDATA ON}
 {$IOCHECKS OFF}
@@ -171,6 +171,8 @@ contains
   Statistics in '..\..\Statistics.pas',
   tSNE in '..\..\tSNE.pas',
   KernelPCA in '..\..\KernelPCA.pas',
-  IOCompletionPortsThreadPool in '..\..\IOCompletionPortsThreadPool.pas';
+  IOCompletionPortsThreadPool in '..\..\IOCompletionPortsThreadPool.pas',
+  Roots in '..\..\Roots.pas',
+  SSA in '..\..\SSA.pas';
 
 end.

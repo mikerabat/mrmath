@@ -175,7 +175,9 @@ uses
   KernelPCA in '..\KernelPCA.pas',
   IOCompletionPortsThreadPool in '..\IOCompletionPortsThreadPool.pas',
   SSA in '..\SSA.pas',
-  TestSSA in 'TestSSA.pas';
+  TestSSA in 'TestSSA.pas',
+  Roots in '..\Roots.pas',
+  TestRootFinding in 'TestRootFinding.pas';
 
 {$R *.RES}
 

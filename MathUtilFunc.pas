@@ -98,10 +98,7 @@ begin
      Result := CompareValue(PDouble(@Item1)^, PDouble(@Item2)^);
 end;
 
-procedure QuickSort(var A; ItemSize : integer; ItemCount : integer; ItemSort : TQuickSortFunc);
-var P : Array of byte;
-    Help : Array of Byte;
-procedure Qs(Lo, hi : integer);
+procedure recQs(Lo, hi : integer; A : PByteArray; ItemSize : Integer; ItemCount : integer; ItemSort : TQuickSortFunc; var P, help : Array of Byte);
 var I, J: Integer;
 begin
      // quick sort implementation of for double values
@@ -109,17 +106,17 @@ begin
            I := Lo;
            J := Hi;
 
-           Move(PByteArray(@A)[ItemSize*((Lo + Hi) div 2)], P[0], ItemSize);
+           Move(A^[ItemSize*((Lo + Hi) div 2)], P[0], ItemSize);
            repeat
-                 while ItemSort(PByteArray(@A)[ItemSize*I], P[0]) < 0 do
+                 while ItemSort(A^[ItemSize*I], P[0]) < 0 do
                        Inc(I);
-                 while ItemSort(PByteArray(@A)[ItemSize*J], P[0]) > 0 do
+                 while ItemSort(A^[ItemSize*J], P[0]) > 0 do
                        Dec(J);
                  if I <= J then
                  begin
-                      Move(PByteArray(@A)[ItemSize*I], Help[0], ItemSize);
-                      Move(PByteArray(@A)[ItemSize*J], PByteArray(@A)[ItemSize*I], ItemSize);
-                      Move(Help[0], PByteArray(@A)[ItemSize*J], ItemSize);
+                      Move(A^[ItemSize*I], Help[0], ItemSize);
+                      Move(A^[ItemSize*J], A^[ItemSize*I], ItemSize);
+                      Move(Help[0], A^[ItemSize*J], ItemSize);
 
                       Inc(I);
                       Dec(J);
@@ -127,17 +124,21 @@ begin
            until I > J;
 
            if Lo < J then
-              Qs(Lo, J);
+              recQs(Lo, J, A, ItemSize, ItemCount, ItemSort, P, Help);
            Lo := I;
      until I >= Hi;
 end;
+
+procedure QuickSort(var A; ItemSize : integer; ItemCount : integer; ItemSort : TQuickSortFunc);
+var P : Array of byte;
+    Help : Array of Byte;
 begin
      if (ItemCount <= 0) or (ItemSize <= 0) then
         exit;
 
      SetLength(P, ItemSize);
      SetLength(Help, ItemSize);
-     Qs(0, ItemCount - 1);
+     recQs(0, ItemCount - 1, @A, ItemSize, ItemCount, ItemSort, P, Help);
 end;
 
 

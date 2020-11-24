@@ -144,7 +144,9 @@ uses
   Statistics in '..\..\Statistics.pas',
   tSNE in '..\..\tSNE.pas',
   KernelPCA in '..\..\KernelPCA.pas',
-  IOCompletionPortsThreadPool in '..\..\IOCompletionPortsThreadPool.pas';
+  IOCompletionPortsThreadPool in '..\..\IOCompletionPortsThreadPool.pas',
+  Roots in '..\..\Roots.pas',
+  SSA in '..\..\SSA.pas';
 
 begin
 end.
