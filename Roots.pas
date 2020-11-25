@@ -211,8 +211,22 @@ end;
 // ###########################################
 
 function CAbs( const val : TComplex ) : double;
+var x, y : double;
+    temp : double;
 begin
-     Result := sqrt( sqr(val.real) + sqr(val.imag));
+     x := abs( val.real );
+     y := abs( val.imag );
+     if x = 0
+     then
+         Result := y
+     else if y = 0
+     then
+         Result := x
+     else
+     begin
+          temp := min(y, x)/max(y, x);
+          Result := max(x, y)*sqrt(1 + sqr(temp));
+     end;
 end;
 
 function CAdd( const x1, x2 : TComplex ) : TComplex;
@@ -236,10 +250,23 @@ end;
 
 function CDiv( const x1, x2 : TComplex ) : TComplex;
 var denom : double;
+    r : double;
 begin
-     denom := sqr(x2.real) + sqr(x2.imag);
-     Result.real := (x1.real*x2.real + x1.imag*x2.imag)/denom;
-     Result.imag := (x1.imag*x2.real - x1.real*x2.imag)/denom;
+     if abs( x2.real ) >= abs(x2.imag) then
+     begin
+          r := x2.imag/x2.real;
+          denom := x2.real + x2.imag*r;
+          Result.real := (x1.real + r*x1.imag)/denom;
+          Result.imag := (x1.imag - r*x1.real)/denom;
+     end
+     else
+     begin
+          r := x2.real/x2.imag;
+          denom := x2.imag + x2.real*r;
+
+          Result.real := (x1.real*r + x1.imag)/denom;
+          Result.imag := (x1.imag*r - x1.real)/denom;
+     end;
 end;
 
 function RCMul(x1 : double; x2 : TComplex ) : TComplex;
@@ -249,10 +276,13 @@ begin
 end;
 
 function CSqrt( const x : TComplex ) : TComplex;
-var r : double;
-    phi : double;
+var a, b : double;
+    r, w : double;
 begin
      Result := InitComplex(0, 0);
+     if (x.real = 0) and (x.imag = 0) then
+        exit;
+
      if x.imag = 0 then
      begin
           if x.real < 0
@@ -263,16 +293,22 @@ begin
      end
      else
      begin
-          // convert to r*e^(i*phi)
-          r := sqrt(sqr(x.real) + sqr(x.imag));
-          phi := ArcTan2(x.imag, x.real);
+          a := abs(x.Real);
+          b := abs(x.imag);
 
-          // now sqrt in polar form
-          r := sqrt(r);
-          phi := phi/2;
+          r := Min(a, b)/Max(a, b);
+          w := sqrt(Max(a, b))*sqrt(0.5*(1 + sqrt(1 + sqr(r))));
 
-          Result.real := r*cos(phi);
-          Result.imag := r*sin(phi);
+          if x.real >= 0 then
+          begin
+               Result.real := w;
+               Result.imag := x.imag/(2*w);
+          end
+          else
+          begin
+               Result.imag := w*math.sign(x.imag);
+               Result.real := x.imag/(2*Result.imag);
+          end;
      end;
 end;
 
