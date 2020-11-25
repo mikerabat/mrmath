@@ -278,6 +278,7 @@ end;
 function CSqrt( const x : TComplex ) : TComplex;
 var a, b : double;
     r, w : double;
+    c : double;
 begin
      Result := InitComplex(0, 0);
      if (x.real = 0) and (x.imag = 0) then
@@ -297,7 +298,8 @@ begin
           b := abs(x.imag);
 
           r := Min(a, b)/Max(a, b);
-          w := sqrt(Max(a, b))*sqrt(0.5*(1 + sqrt(1 + sqr(r))));
+          c := ifthen( a >= b, 1, r);
+          w := sqrt(Max(a, b))*sqrt(0.5*(c + sqrt(1 + sqr(r))));
 
           if x.real >= 0 then
           begin
