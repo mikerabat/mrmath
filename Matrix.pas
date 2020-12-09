@@ -1418,8 +1418,7 @@ begin
            Result := MatrixUnsymEigVecInPlace(dummy.StartElement, dummy.LineWidth,
                                               fSubWidth, 
                                               pReal, dt.LineWidth, pImag, dt.LineWidth, 
-                                              vecs.StartElement, vecs.LineWidth,
-                                              True);
+                                              vecs.StartElement, vecs.LineWidth);
         finally
                dummy.Free;
         end;

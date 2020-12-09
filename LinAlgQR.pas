@@ -1356,7 +1356,7 @@ begin
      end
      else
      begin
-          // reserve some meory
+          // reserve some memory
           w2 := width + width and $1;
 
           // reserve memory for tau and R

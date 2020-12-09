@@ -27,9 +27,9 @@ uses MatrixConst;
 // #### functions for nonsymmetric matrices:
 // executes the functions below in order to get the result.
 function MatrixUnsymEigVecInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; WR : PDouble;
- const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt; Eivec : PDouble; const LineWidthEivec : TASMNativeInt; balance : boolean) : TEigenvalueConvergence;
+ const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt; Eivec : PDouble; const LineWidthEivec : TASMNativeInt) : TEigenvalueConvergence;
 function MatrixUnsymEigVec(const A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; WR : PDouble;
- const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt; Eivec : PDouble; const LineWidthEivec : TASMNativeInt; balance : boolean) : TEigenvalueConvergence;
+ const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt; Eivec : PDouble; const LineWidthEivec : TASMNativeInt) : TEigenvalueConvergence;
 
 function MatrixUnsymEigInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; WR : PDouble;
  const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt; balance : boolean) : TEigenvalueConvergence;
@@ -39,7 +39,7 @@ function MatrixUnsymEig(const A : PDouble; const LineWidthA : TASMNativeInt; wid
 // Given a Matrix A[0..width-1][0..Width-1], this routine replaces it by a balanced matrix
 // with identical eigenvalues. A symmetric matrix is already balanced and is unaffected by this procedure.
 procedure MatrixBalanceInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Scale : PDouble; const LineWidthScale : TASMNativeInt);
-procedure MatrixBalanceBackInPlace(Eivec : PDouble; const LineWidthEivec : TASMNativeInt; width : TASMNativeInt; Scale : PDouble; const LineWidthScale : TASMNativeInt);
+procedure MatrixBalanceBackInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Scale : PDouble; const LineWidthScale : TASMNativeInt);
 // Reduction of Matrix A to hessenberg form by the elimination method. The real, nonsymmetric matrix
 // A is replaced by an upper Hessenberg matrix with identical eigenvalues. Recommended, but not
 // required, i sthat this routine be preceded by MatrixBalance. Non Hessenberg elements (which should be zero)
@@ -48,6 +48,7 @@ procedure MatrixHessenbergPermInPlace(A : PDouble; const LineWidthA : TASMNative
 procedure MatrixHessenbergPerm(dest : PDouble; const LineWidthDest : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; perm : PInteger; const LineWidthPerm : TASMNativeInt);
 procedure MatrixHessenbergInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt);
 procedure MatrixHessenberg(dest : PDouble; const LineWidthDest : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt);
+
 // copies the hessenberg matrix to dest using the permutation vector from the hessenberg transformation. Initializes the destination matrix for the eigenvector
 // finding routine for unsymmetric matrices
 procedure MatrixInitEivecHess(hess : PDouble; const LineWidthHess : TASMNativeInt; width : TASMNativeInt; dest : PDouble; const LineWidthDest : TASMNativeInt; perm : PInteger; const LineWidthPerm : TASMNativeInt);
@@ -476,25 +477,19 @@ begin
      Result := qlOk;
 end;
 
-procedure MatrixBalanceBackInPlace(Eivec : PDouble; const LineWidthEivec : TASMNativeInt; width : TASMNativeInt; Scale : PDouble; const LineWidthScale : TASMNativeInt);
-var i, j : TASMNativeInt;
-    pEiveci : PDouble;
-    pEivecj : PDouble;
-    pScale : PDouble;
+procedure MatrixBalanceBackInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Scale : PDouble; const LineWidthScale : TASMNativeInt);
+var i : TASMNativeInt;
 begin
-     pEiveci := Eivec;
-     pScale := Scale;
      for i := 0 to width - 1 do
      begin
-          pEivecj := pEiveci;
-          for j := 0 to width - 1 do
+          if Scale^ <> 1 then
           begin
-               pEivecj^ := pEivecj^*pScale^;
-               inc(pEivecj);
+               // Apply similarity transformation
+               MatrixScaleAndAdd( GenPtr(A, 0, i, LineWidthA), LineWidthA, width, 1, 0, Scale^ );
+               MatrixScaleAndAdd( GenPtr(A, i, 0, LineWidthA), LineWidthA, 1, width, 0, 1/Scale^ );
           end;
 
-          inc(PByte(pEiveci), LineWidthEivec);
-          inc(PByte(pScale), LineWidthScale);
+          inc(PByte(Scale), LineWidthScale);
      end;
 end;
 
@@ -502,7 +497,8 @@ procedure MatrixBalanceInPlace(A : PDouble; const LineWidthA : TASMNativeInt; wi
 var j, i : TASMNativeInt;
     last : boolean;
     s, r, g, f, c, sqrdx : double;
-    pAi, pAj, pA, pScale : PDouble;
+    pAi : PConstDoubleArr;
+    pAj, pScale : PDouble;
 const RADIX = 2.0;
 begin
      assert(lineWidthA >= width*sizeof(double), 'Dimension error');
@@ -517,25 +513,22 @@ begin
      begin
           last := True;
 
-          pAi := A;
           pScale := Scale;
           for i := 0 to width - 1 do
           begin
                r := 0;
                c := 0;
 
-               pA := pAi;
-               pAj := A;
-               inc(pAj, i);
+               pAi := GenPtrArr(A, 0, i, LineWidthA);
+               pAj := GenPtr(A, i, 0, LineWidthA);
                for j := 0 to width - 1 do
                begin
                     if i <> j then
                     begin
                          c := c + abs(pAj^);
-                         r := r + abs(pA^);
+                         r := r + abs(pAi^[j]);
                     end;
 
-                    inc(pA);
                     inc(PByte(pAj), LineWidthA);
                end;
 
@@ -565,35 +558,22 @@ begin
                          g := 1/f;
 
                          // Apply similarity transformation
-                         MatrixScaleAndAdd( pAi, LineWidthA, width, 1, 0, g );
-
-                         pAj := GenPtr(A, i, 0, LineWidthA);
-                         MatrixScaleAndAdd(pAj, LineWidthA, 1, width, 0, f);
+                         MatrixScaleAndAdd( GenPtr(A, 0, i, LineWidthA), LineWidthA, width, 1, 0, g );
+                         MatrixScaleAndAdd( GenPtr(A, i, 0, LineWidthA), LineWidthA, 1, width, 0, f );
                     end;
                end;
 
-               inc(PByte(pAi), LineWidthA);
                inc(PByte(pScale), LineWidthScale);
           end;
      end;
 end;
 
 procedure MatrixHessenbergPerm(dest : PDouble; const LineWidthDest : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; perm : PInteger; const LineWidthPerm : TASMNativeInt);
-var pDest : PDouble;
-    i : TASMNativeInt;
 begin
      assert(LineWidthA >= width*sizeof(double), 'Dimension Error');
      assert(LineWidthDest >= width*sizeof(double), 'Dimension Error');
 
-     pDest := dest;
-     // copy data -> now we can perform an inline LU decomposition
-     for i := 0 to width - 1 do
-     begin
-          Move(A^, pDest^, sizeof(double)*width);
-          inc(PByte(A), LineWidthA);
-          inc(PByte(pDest), LineWidthDest);
-     end;
-
+     MatrixCopy(Dest, LineWidthDest, A, LineWidthA, width, width);
      MatrixHessenbergPermInPlace(dest, LineWidthDest, width, perm, LineWidthPerm);
 end;
 
@@ -2010,7 +1990,7 @@ begin
 end;
 
 function MatrixUnsymEigVecInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; WR : PDouble;
- const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt; Eivec : PDouble; const LineWidthEivec : TASMNativeInt; balance : boolean) : TEigenvalueConvergence;
+ const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt; Eivec : PDouble; const LineWidthEivec : TASMNativeInt) : TEigenvalueConvergence;
 var perm : array of integer;
     scale : Array of double;
     pDest : PDouble;
@@ -2018,10 +1998,6 @@ var perm : array of integer;
 begin
      setLength(perm, width);
      setLength(scale, width);
-
-     // balance matrix for numericaly stability
-     if balance then
-        MatrixBalanceInPlace(A, LineWidthA, width, @scale[0], sizeof(double));
 
      // determine upper hessenberg matrix
      MatrixHessenbergPermInPlace(A, LineWidthA, width, @perm[0], sizeof(integer));
@@ -2042,13 +2018,10 @@ begin
 
      if Result <> qlOk then
         exit;
-
-     if Balance then
-        MatrixBalanceBackInPlace(Eivec, LineWidthEivec, width, @scale[0], sizeof(double));
 end;
 
 function MatrixUnsymEigVec(const A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; WR : PDouble;
- const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt; Eivec : PDouble; const LineWidthEivec : TASMNativeInt; balance : boolean) : TEigenvalueConvergence;
+ const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt; Eivec : PDouble; const LineWidthEivec : TASMNativeInt) : TEigenvalueConvergence;
 var dest : Array of double;
     pA : Pdouble;
     i : TASMNativeInt;
@@ -2062,7 +2035,7 @@ begin
           inc(PByte(pA), LineWidthA);
      end;
 
-     Result := MatrixUnsymEigVecInPlace(@dest[0], width*sizeof(double), width, WR, LineWidthWR, WI, LineWidthWI, Eivec, LineWidthEivec, balance);
+     Result := MatrixUnsymEigVecInPlace(@dest[0], width*sizeof(double), width, WR, LineWidthWR, WI, LineWidthWI, Eivec, LineWidthEivec);
 end;
 
 function MatrixUnsymEigInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; WR : PDouble;
