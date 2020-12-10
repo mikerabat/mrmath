@@ -55,6 +55,10 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date 10.12.2020
+* Started a new file that contains some useful matrix functions that do not fit anywhere else
+* Started with matrix exponential e^A where A is a matrix
+
 Date 25.11.2020
 * New polynom root finding method according to eigenvalues and Luaguerre's method
 * New function root finding method (newton raphson, brent)

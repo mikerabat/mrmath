@@ -146,7 +146,8 @@ uses
   KernelPCA in '..\..\KernelPCA.pas',
   IOCompletionPortsThreadPool in '..\..\IOCompletionPortsThreadPool.pas',
   Roots in '..\..\Roots.pas',
-  SSA in '..\..\SSA.pas';
+  SSA in '..\..\SSA.pas',
+  MtxUtilFunc in '..\..\MtxUtilFunc.pas';
 
 begin
 end.

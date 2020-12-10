@@ -21,7 +21,7 @@ package mrMath;
 {$ALIGN 8}
 {$ASSERTIONS OFF}
 {$BOOLEVAL OFF}
-{$DEBUGINFO OFF}
+{$DEBUGINFO ON}
 {$EXTENDEDSYNTAX ON}
 {$IMPORTEDDATA ON}
 {$IOCHECKS OFF}
@@ -42,6 +42,8 @@ package mrMath;
 {$DESCRIPTION 'mrMath Matrix library'}
 {$RUNONLY}
 {$IMPLICITBUILD OFF}
+{$DEFINE DEBUG}
+{$DEFINE madExcept}
 
 requires
   rtl;
@@ -173,6 +175,7 @@ contains
   KernelPCA in '..\..\KernelPCA.pas',
   IOCompletionPortsThreadPool in '..\..\IOCompletionPortsThreadPool.pas',
   Roots in '..\..\Roots.pas',
-  SSA in '..\..\SSA.pas';
+  SSA in '..\..\SSA.pas',
+  MtxUtilFunc in '..\..\MtxUtilFunc.pas';
 
 end.

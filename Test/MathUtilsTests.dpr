@@ -177,7 +177,8 @@ uses
   SSA in '..\SSA.pas',
   TestSSA in 'TestSSA.pas',
   Roots in '..\Roots.pas',
-  TestRootFinding in 'TestRootFinding.pas';
+  TestRootFinding in 'TestRootFinding.pas',
+  MtxUtilFunc in '..\MtxUtilFunc.pas';
 
 {$R *.RES}
 
