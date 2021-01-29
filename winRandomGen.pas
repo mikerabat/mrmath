@@ -104,7 +104,7 @@ begin
      begin
           locBCryptHdl := LoadLibrary('BCrypt.dll');
           if locBCryptHdl = 0 then
-             RaiseLastOSError;
+             exit;
 
           locBCrytGenRandom := TBCryptGenRandom( GetProcAddress(locBCryptHdl, 'BCryptGenRandom') );
      end;
@@ -153,8 +153,6 @@ type
     procedure Init(seed : LongWord); override;
     function Random : LongWord; override;
 
-    class var UseBCrypt : boolean;
-
     constructor Create;
     destructor Destroy; override;
   end;
@@ -170,29 +168,29 @@ constructor TWinRndEngine.Create;
 begin
      inherited Create;
 
-     if UseBCrypt then
+     if (locBCryptHdl = 0) and (locADVAPIHdl = 0) then
      begin
+          fBufIdx := cNumPreCalc;
+
           if locBCryptHdl = 0 then
              InitBCrypt;
 
-          fBufIdx := cNumPreCalc;
-     end
-     else
-     begin
-          if locADVAPIHdl = 0 then
-             InitADVAPI;
-
-          // create a random object context with default parameters
-          fBufIdx := cNumPreCalc;
-          if not CryptAcquireContext(fPhProv, nil, nil, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT) then
+          if locBCryptHdl = 0 then
           begin
-               if GetLastError = LongWord( NTE_BAD_KEYSET ) then
+               InitADVAPI;
+
+               // create a random object context with default parameters
+               fBufIdx := cNumPreCalc;
+               if not CryptAcquireContext(fPhProv, nil, nil, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT) then
                begin
-                    if not CryptAcquireContext(fPhProv, nil, nil, PROV_RSA_FULL, CRYPT_NEWKEYSET or CRYPT_VERIFYCONTEXT) then
-                       RaiseLastOSError;
-               end
-               else
-                   RaiseLastOSError;
+                    if GetLastError = LongWord( NTE_BAD_KEYSET ) then
+                    begin
+                         if not CryptAcquireContext(fPhProv, nil, nil, PROV_RSA_FULL, CRYPT_NEWKEYSET or CRYPT_VERIFYCONTEXT) then
+                            RaiseLastOSError;
+                    end
+                    else
+                        RaiseLastOSError;
+               end;
           end;
      end;
 end;
@@ -207,7 +205,7 @@ end;
 
 procedure TWinRndEngine.Init(seed: LongWord);
 begin
-     if UseBCrypt then
+     if locBCryptHdl <> 0 then
      begin
           fBufIdx := 0;
           // use default system RNG
@@ -232,9 +230,6 @@ begin
      Result := fBuf[fBufIdx];
      inc(fBufIdx);
 end;
-
-initialization
-  TWinRndEngine.UseBCrypt := True;
 
 {$ENDIF}
 
