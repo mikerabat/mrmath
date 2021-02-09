@@ -604,6 +604,7 @@ type
     function Clone : TDoubleMatrix;
 
     constructor Create; overload;
+    constructor CreateVec( aLen : integer; const initVal : double = 0 );
     constructor Create(aWidth, aHeight : integer; const initVal : double = 0); overload;
     constructor CreateEye(aWidth : integer);
     constructor Create(data : PDouble; aLineWidth : integer; aWidth, aHeight : integer); overload;
@@ -1086,6 +1087,16 @@ begin
 
      SetWidthHeight(aWidth, aHeight);
      ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}MtxRand);
+end;
+
+constructor TDoubleMatrix.CreateVec( aLen : integer; const initVal : double = 0 );
+begin
+     inherited Create;
+
+     SetWidthHeight( aLen, 1 );
+
+     if initVal <> 0 then
+        SetValue( initVal );   
 end;
 
 function TDoubleMatrix.CumulativeSum(RowWise: boolean): TDoubleMatrix;

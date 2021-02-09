@@ -17,6 +17,8 @@ unit SSA;
 // ###########################################
 // #### singular spectrum analysis
 // #### based on: https://github.com/ElsevierSoftwareX/SOFTX-D-17-00081/tree/master/script_ov_SSA_example
+// #### See: % For a complete discussion about the method, see Leles et al (2017) A New
+// #### Algorithm in Singular Spectrum Analysis Framework: the Overlap-SSA (ov-SSA).
 // ###########################################
 
 interface
@@ -33,14 +35,43 @@ type
     fEigVals : IMatrix;
     fM, fN, fK : Integer;
 
-    function InternalCalcSSA(mtx : IMatrix; L : integer) : IMatrix;
+    procedure InternalCalcSSA(mtx : IMatrix; L : integer);
+    function InternalCalcOverlappedSSA(mtx : IMatrix; L, Z, q : integer; numComponents : integer; idx : TIntegerDynArray ) : IMatrix;
+
     function EmbedMtx( values : IMatrix; L : integer ) : IMatrix;
   public
     function Reconstruct( numComponents : integer ) : IMatrix; overload;
     function Reconstruct( idx : TIntegerDynArray ) : IMatrix; overload;
 
+    // calculate ssa in one run.
     procedure CalcSSA( values : TDoubleDynArray; L : integer ); overload;
     procedure CalcSSA( values : IMatrix; L : integer ); overload;
+
+{ direct comment from the original implementation:
+% Consider a time series segment of length Z.
+% All samples within this segment are used to compute the SSA locally.
+% However, since the SSA method suffers from boundary effects,
+% the extreme points in the left and right edges are discarded.
+% The quantity of discarded samples is given by L_B = (Z-q)/2.
+% Only an inner subset of samples, q, is considered meaningful to represent the local time-series Z.
+% The final reconstruction is given by the concatenation of the inner segmentes q, which do not overlap.
+% The extreme edges of the original time-series need special attention.
+% In the first run only the last L_B points are discarded.
+% On the other hand, in the last run, the first L_B points are discarded.
+% This approach is a modification of  the overlap-save method,
+% a classic tool to calculate FFT (Fast Fourier Transform) convolution of
+% infinite (and finite) duration time series.
+% This adaptation was necessary because the standard SSA algorithm suffers
+% from boundary effects on both sides. In the overlap-save method only the initial
+% points must be discarded, because boundary effects occur only at the filtering initialization.
+% For a complete discussion about the method, see Leles et al (2017) A New
+% Algorithm in Singular Spectrum Analysis Framework: the Overlap-SSA (ov-SSA).
+% SoftwareX. In Press
+%
+% Written by Michel Leles, 07/05/2015
+}
+    class function CalcSSAOverlap( values : TDoubleDynArray; L : integer; Z : integer; q : integer; numComponents : integer; idx : TIntegerDynArray ) : TDoubleDynArray; overload;
+    class function CalcSSAOverlap( values : IMatrix; L : integer; Z : integer; q : integer; numComponents : integer; idx : TIntegerDynArray ) : IMatrix; overload;
   end;
 
 implementation
@@ -56,6 +87,8 @@ begin
      if Length(values) < L - 1 then
         raise ESingularSpectrumException.Create('Error: Vector length is too short for the given embedding length.');
      mtx := MatrixClass.Create( values, Length(values), 1);
+
+     InternalCalcSSA(mtx, L);
 end;
 
 procedure TSingularSpectrumAnalysis.CalcSSA(values: IMatrix; L: integer);
@@ -67,6 +100,42 @@ begin
 
      InternalCalcSSA(mtx, L);
 end;
+
+class function TSingularSpectrumAnalysis.CalcSSAOverlap(values: TDoubleDynArray; L,
+  Z, q: integer; numComponents : integer; idx : TIntegerDynArray) : TDoubleDynArray;
+var mtx : IMatrix;
+    res : IMatrix;
+begin
+     if Length(values) < L - 1 then
+        raise ESingularSpectrumException.Create('Error: Vector length is too short for the given embedding length.');
+
+     with TSingularSpectrumAnalysis.Create do
+     try
+        mtx := MatrixClass.Create( values, Length(values), 1);
+
+        res := InternalCalcOverlappedSSA(mtx, L, Z, q, numComponents, idx);
+        Result := res.SubMatrix;
+     finally
+            Free;
+     end;
+end;
+
+class function TSingularSpectrumAnalysis.CalcSSAOverlap(values: IMatrix; L, Z,
+  q: integer; numComponents : integer; idx : TIntegerDynArray) : IMatrix;
+var mtx : IMatrix;
+begin
+     mtx := values.AsVector(True);
+     if mtx.Width < L - 1 then
+        raise ESingularSpectrumException.Create('Error: Vector length is too short for the given embedding length.');
+
+     with TSingularSpectrumAnalysis.Create do
+     try
+        Result := InternalCalcOverlappedSSA(mtx, L, Z, q, numComponents, idx);
+     finally
+            Free;
+     end;
+end;
+
 
 function TSingularSpectrumAnalysis.EmbedMtx(values: IMatrix;
   L: integer): IMatrix;
@@ -85,12 +154,67 @@ begin
      Result.TransposeInPlace;
 end;
 
-function TSingularSpectrumAnalysis.InternalCalcSSA(mtx: IMatrix;
-  L: integer): IMatrix;
+function TSingularSpectrumAnalysis.InternalCalcOverlappedSSA(mtx: IMatrix; L,
+  Z, q: integer; numComponents : integer; idx : TIntegerDynArray) : IMatrix;
+var n, p, pp : integer;
+    L_B : integer;
+    y_aux : IMatrix;
+    rho : integer;
+function CalcSSA( fromIdx, toIdx : integer ) : IMatrix;
+var series : IMatrix;
+begin
+     series := mtx.SubColMtx(fromIdx, toIdx);
+     InternalCalcSSA(series, L);
+
+     if Length(idx) > 0
+     then
+         Result := Reconstruct( idx )
+     else
+         Result := Reconstruct( numComponents );
+
+     Result.TransposeInPlace;
+end;
+begin
+     n := mtx.VecLen;
+     Result := MatrixClass.Create( n, 1 );
+
+     // number of iterations
+     p := (N - Z) div q + 1;
+
+     L_B := (Z - q) div 2; // number of points discarded at each iterations
+
+     // first run
+     y_aux := CalcSSA(0, Z - 1);
+     y_aux.SetSubMatrix(0, 0, Z - L_B, 1);
+     Result.AssignSubMatrix(y_aux, 0, 0);
+     // loop
+     for pp := 1 to P - 2 do
+     begin
+          rho := pp*q;
+          y_aux := CalcSSA(rho, rho + Z - 1);
+
+          y_aux.SetSubMatrix(L_B, 0, q, 1);
+          Result.AssignSubMatrix(y_aux, rho + L_B, 0);
+     end;
+
+     // last run
+     pp := P - 1;
+     rho := (pp - 1)*q;
+     y_aux := CalcSSA( rho, n - 1);
+     y_aux.SetSubMatrix(L_B, 0, y_aux.Width - L_B, 1);
+     Result.AssignSubMatrix(y_aux, rho + L_B, 0);
+end;
+
+procedure TSingularSpectrumAnalysis.InternalCalcSSA(mtx: IMatrix;
+  L: integer);
 var X : IMatrix;
 begin
      if L > mtx.VecLen div 2 then
-        L := Result.VecLen - L;
+        L := mtx.VecLen - L;
+
+     fU := nil;
+     fV := nil;
+     fEigVals := nil;
 
      // ###################################
      // ######  create embededd matrix

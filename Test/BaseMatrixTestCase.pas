@@ -65,6 +65,7 @@ type
    function CheckMtxIdx(data1, data2 : PDouble; const mtxSize : integer; out idx : integer; const epsilon : double = 1e-4) : boolean; overload;
    function CheckMtxIdx(data1, data2 : PDouble; LineWidth1, LineWidth2 : TASMNativeInt; mtxWidth, mtxHeight : integer; out idx : integer; const epsilon : double = 1e-4) : boolean; overload;
    function WriteMtxDyn(const data : TDoubleDynArray; width : integer; prec : integer = 3) : string; overload;
+   function LoadBin( fn : String ) : TDoubleDynArray;
  end;
 
  TBaseImgTestCase = class(TBaseMatrixTestCase)
@@ -385,6 +386,18 @@ begin
      end;
 end;
 
+
+function TBaseMatrixTestCase.LoadBin(fn: String): TDoubleDynArray;
+begin
+     with TFileStream.Create(fn, fmOpenRead or fmShareDenyNone) do
+     try
+        SetLength(Result, Size div sizeof(double));
+        if Length(Result) > 0 then
+           ReadBuffer( Result[0], Length(Result)*sizeof(double));
+     finally
+            Free;
+     end;
+end;
 
 function TBaseMatrixTestCase.WriteMtx(const data: array of Double;
   width: integer; prec : integer = 3): string; 
