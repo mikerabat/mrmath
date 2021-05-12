@@ -40,12 +40,12 @@ type
     procedure TestExponentialIntegral;
     procedure TestIncompleteBeta;
     procedure TestGammaP;
-    
+    procedure TestMatrixExp;
   end;
 
 implementation
 
-uses MathUtilFunc, Types, Statistics, MtxTimer, Math, Matrix;
+uses MathUtilFunc, Types, Statistics, MtxTimer, MtxUtilFunc, Matrix, Math;
 
 { TTestEM }
 
@@ -296,6 +296,76 @@ begin
      // #### check agains reference
      for ia := 0 to imRef.Height - 1 do
          check( SameValue( imRef.Vec[ia], imx[3, ia], 1e-6), 'Error in incomplete beta function evaluation');
+end;
+
+(*procedure Log2Ex( value : double; var F, E : double );
+begin
+     F := 0;
+     E := 0;
+     if value = 0 then
+        exit;
+
+     E := floor( log2( abs(value))) + 1;
+     F := value/power(2, E);
+end;*)
+
+{---------------------------------------------------------------------------}
+// special thanks to: https://github.com/CMCHTPC/ChromaPrint/blob/master/DAMath/damath_2015-07-01/damath.pas
+type
+  THexDblW = packed array[0..3] of Word;
+  
+procedure frexpd(d: double; out m: double; out e: longint);
+  {-Return the mantissa m and exponent e of d with d = m*2^e, 0.5 <= abs(m) < 1;}
+  { if d is 0, +-INF, NaN, return m=d, e=0}
+var w: integer;
+const H2_54: THexDblW = ($0000,$0000,$0000,$4350);  {2^54}
+begin
+     w := THexDblW(d)[3] and $7FF0;
+     e := 0;
+     if (w=$7FF0) or (d=0) then 
+     begin
+          {+-INF, NaN, 0}
+          m := d;
+     end
+     else 
+     begin
+          if w < $0010 then 
+          begin
+               d := d*double(H2_54);
+               e := -54;
+               w := THexDblW(d)[3] and $7FF0;
+          end;
+
+          inc(e, (w shr 4) - 1022);
+          m := d;
+          THexDblW(m)[3] := (THexDblW(m)[3] and $800F) or $3FE0;
+     end;
+end;
+
+procedure TTestSpecialFuncs.TestMatrixExp;
+const cA : Array[0..3] of double = (3, -1, 1, 1);
+      cA2 : Array[0..8] of double = ( 21, 17, 6, -5, -1, -6, 4, 4, 16 ); // from wikipedia 
+      cA3 : Array[0..3] of double = (-49, 24, -64, 31);
+var em : IMatrix;
+    x : IMatrix;
+begin
+     x := TDoubleMatrix.Create( cA, 2, 2);
+     em := expm( x );
+
+     Status( WriteMtx( em.GetObjRef ) );
+
+     x := TDoubleMatrix.CreateEye(4);
+     em := expm( x );
+     Status( WriteMtx( em.GetObjRef ) );
+
+     x := TDoubleMatrix.Create( cA2, 3, 3);
+     em := expm( x );
+     Status( WriteMtx( em.GetObjRef ) );
+
+     x := TDoubleMatrix.Create( cA3, 2, 2);
+     em := expm( x );
+
+     Status( WriteMtx( em.GetObjRef ) );
 end;
 
 initialization

@@ -58,7 +58,7 @@ begin
      
      Move(B, dest, sizeof(B));
      Check(qlOk = MatrixUnsymEigVecInPlace(@dest[0], 3*sizeof(double), 3, @Wr[0], sizeof(double), @wi[0], sizeof(double), 
-                              @eivec[0], 3*sizeof(double), True), 'Error no convergence');
+                              @eivec[0], 3*sizeof(double)), 'Error no convergence');
      MatrixNormEivecInPlace(@Eivec[0], 3*SizeOf(double), 3, @WI[0], sizeof(double));
 
      Check(CheckMtx(EigVals, Wr, -1, -1, 0.001), 'Error wrong eigenvalues');
@@ -81,7 +81,7 @@ begin
      Move(B, dest, sizeof(dest));
      
      checK(qlOk = MatrixUnsymEigVecInPlace(@dest[0], 3*sizeof(double), 3, @wr[0], sizeof(double), @wi[0], sizeof(double), 
-                                           @eivec[0], 3*sizeof(double), false), 'Error no convergence');
+                                           @eivec[0], 3*sizeof(double)), 'Error no convergence');
 
      MatrixNormEivecInPlace(@Eivec[0], 3*SizeOf(double), 3, @WI[0], sizeof(double));
 
@@ -104,7 +104,7 @@ begin
      FillChar(Eivec[0], sizeof(Eivec), 0);
      Move(A, dest, sizeof(dest));
      checK(qlOk = MatrixUnsymEigVecInPlace(@dest[0], 4*sizeof(double), 4, @wr[0], sizeof(double), @wi[0], sizeof(double), 
-                                           @eivec[0], 4*sizeof(double), false), 'Error no convergence');
+                                           @eivec[0], 4*sizeof(double)), 'Error no convergence');
 
      MatrixNormEivecInPlace(@Eivec[0], 4*SizeOf(double), 4, @WI[0], sizeof(double));
 
@@ -188,7 +188,7 @@ begin
      FillChar(EiVec, sizeof(EiVec), 0);
      FillChar(wr, sizeof(wr), 0);
      FillChar(wi, sizeof(wi), 0);
-     Check(qlOk = MatrixUnsymEigVec(@B[0], 3*sizeof(double), 3, @Wr[0], sizeof(double), @Wi[0], sizeof(double), @Eivec[0], 3*sizeof(double), True), 'error in convergence of eigenvector routine');
+     Check(qlOk = MatrixUnsymEigVec(@B[0], 3*sizeof(double), 3, @Wr[0], sizeof(double), @Wi[0], sizeof(double), @Eivec[0], 3*sizeof(double)), 'error in convergence of eigenvector routine');
      MatrixNormEivecInPlace(@Eivec[0], 3*sizeof(double), 3, @wi[0], sizeof(double));
      
      Check(CheckMtx(EigVals, Wr, -1, -1, 0.001), 'Error wrong eigenvalues');

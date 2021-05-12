@@ -90,6 +90,7 @@ type
     procedure TestBigTransposedASM;
     procedure TestElementWiseMult;
     procedure TestElementWiseDiv;
+    procedure TestElementWiseAdd;
     procedure TestElemWiseNorm2;
     procedure TestMtxNormalizeRow;
     procedure TestMtxNormalizeColumn;
@@ -1129,6 +1130,82 @@ begin
      FreeMem(dest1a);
      FreeMem(dest2a);
      FreeMem(xa);
+end;
+
+procedure TASMMatrixOperations.TestElementWiseAdd;
+const cBlkWidth = 24;
+      cBlkHeight = 3;
+var cMtx : Array[0..cBlkWidth*cBlkHeight - 1] of double;
+    i : integer;
+    dest : Array[0..cBlkWidth*cBlkHeight - 1] of double;
+    dest1 : Array[0..cBlkWidth*cBlkHeight - 1] of double;
+    aDest : PDouble;
+begin
+     for i := 0 to Length(cMtx) - 1 do
+         cMtx[i] := i;
+
+     // check result
+     Move(cMtx, dest, sizeof(cMtx));
+     GenericMtxElemAdd(@dest[0], cBlkWidth*sizeof(double), cBlkWidth, cBlkHeight, 1);
+     // check result
+     for i := 0 to Length(cMtx) - 1 do
+         check( (cMtx[i] + 1) = dest[i], 'Error in add and scale');
+
+     Move(cMtx, dest, sizeof(cMtx));
+     ASMMatrixElemAdd(@dest[0], cBlkWidth*sizeof(double), cBlkWidth, cBlkHeight, 1);
+     // check result
+     for i := 0 to Length(cMtx) - 1 do
+         check( (cMtx[i] + 1) = dest[i], 'Error in scale and add');
+
+     Move(cMtx, dest, sizeof(cMtx));
+     ASMMatrixElemAdd(@dest[0], cBlkWidth*sizeof(double), cBlkWidth - 1, cBlkHeight, 1);
+     // check result
+     for i := 0 to Length(cMtx) - 1 do
+         if (i + 1) mod cBlkWidth = 0
+         then
+             check( cMtx[i] = dest[i], 'error in scale and add')
+         else
+             check( (cMtx[i] + 1) = dest[i], 'Error in scale and add');
+
+     Move(cMtx, dest, sizeof(cMtx));
+     ASMMatrixElemAdd(@dest[0], cBlkWidth*sizeof(double), 1, cBlkHeight, 1);
+     // check result
+     for i := 0 to Length(cMtx) - 1 do
+         if (i) mod cBlkWidth = 0
+         then
+             check( (cMtx[i] + 1) = dest[i], 'Error in scale and add')
+         else
+             check( cMtx[i] = dest[i], 'error in scale and add');
+
+
+     // ###########################################
+     // #### Scale and add with one width or height element
+     aDest := GetMemory(cBlkWidth*(cBlkheight + 1)*sizeof(double));
+     Move(cMtx, dest, sizeof(cMtx));
+     Move(cMtx, dest1, sizeof(cMtx));
+     Move(cMtx, aDest^, sizeof(cMtx));
+
+     GenericMtxElemAdd(@dest[0], sizeof(double), 1, cBlkWidth, -0.1);
+     ASMMatrixElemAdd(@dest1[0], sizeof(double), 1, cBlkWidth, -0.1);
+     ASMMatrixElemAdd(aDest, sizeof(double), 1, cBlkWidth, -0.1);
+
+     Check(CheckMtx(dest, dest1), 'Error add and scale width=1');
+     Move(aDest^, dest1, sizeof(dest1));
+     Check(CheckMtx(dest, dest1), 'Error add and scale aligned width=1');
+
+     Move(cMtx, dest, sizeof(cMtx));
+     Move(cMtx, dest1, sizeof(cMtx));
+     Move(cMtx, aDest^, sizeof(cMtx));
+
+     GenericMtxElemAdd(@dest[0], cBlkWidth*sizeof(double), cBlkWidth, 1, -0.1);
+     ASMMatrixElemAdd(@dest1[0], cBlkWidth*sizeof(double), cBlkWidth, 1, -0.1);
+     ASMMatrixElemAdd(aDest, cBlkWidth*sizeof(double), cBlkWidth, 1, -0.1);
+
+     Check(CheckMtx(dest, dest1), 'Error scale and add height=1');
+     Move(aDest^, dest1, sizeof(dest1));
+     Check(CheckMtx(dest, dest1), 'Error scale and add height=1');
+
+     FreeMem(aDest);
 end;
 
 procedure TASMMatrixOperations.TestElementWiseDiv;

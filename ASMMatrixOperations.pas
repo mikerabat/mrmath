@@ -54,6 +54,7 @@ procedure ASMMatrixSubVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; 
 
 procedure ASMMatrixElemMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
 procedure ASMMatrixElemDiv(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixElemAdd(Dest : PDouble;  LineWidth, Width, Height : TASMNativeInt; const dOffset : double);
 procedure ASMMatrixAddAndScale(Dest : PDouble;  LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
 procedure ASMMatrixScaleAndAdd(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
 procedure ASMMatrixSQRT(Dest : PDouble; LineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
@@ -141,6 +142,37 @@ begin
 
      Result := ASMMatrixMult(@mt1[0], @mt2[0], width1, height1, width2, height2, width1*sizeof(double), width2*sizeof(double));
 end;
+
+procedure ASMMatrixElemAdd(Dest : PDouble;  LineWidth, Width, Height : TASMNativeInt; const dOffset : double);
+begin
+     if (width = 0) or (height = 0) then
+        exit;
+
+     if (width = 1) and (LineWidth = sizeof(double)) then
+     begin
+          width := height;
+          height := 1;
+          LineWidth := width*sizeof(double) + (width and 1)*sizeof(double);
+     end;
+
+     if (TASMNativeUInt(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
+     begin
+          if (width and 1) = 0
+          then
+              ASMMatrixElemAddAlignedEvenW(dest, LineWidth, width, height, dOffset)
+          else
+              ASMMatrixElemAddAlignedOddW(dest, LineWidth, width, height, dOffset);
+     end
+     else
+     begin
+          if (width and 1) = 0
+          then
+              ASMMatrixElemAddUnAlignedEvenW(dest, LineWidth, width, height, dOffset)
+          else
+              ASMMatrixElemAddUnAlignedOddW(dest, LineWidth, width, height, dOffset);
+     end;
+end;
+
 
 procedure ASMMatrixAddAndScale(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
 begin

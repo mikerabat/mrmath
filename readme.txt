@@ -55,6 +55,23 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date 10.12.2020
+* Started a new file that contains some useful matrix functions that do not fit anywhere else
+* Started with matrix exponential e^A where A is a matrix
+
+Date 25.11.2020
+* New polynom root finding method according to eigenvalues and Luaguerre's method
+* New function root finding method (newton raphson, brent)
+* Introduced TComplex and some functions
+
+Date 13.11.2020
+* Experimental: Added a plot command option in the matrix IDE viewer.
+* Updated CPUID checks to a new scheme (with more options)
+
+Date 09.10.2020
+* New weighted correlation function
+* New asm optimized functions to add a value to a matrix
+
 Date 30.6.2020
 * New optimized matrix initialization routines
 * Fixed bug in Blocksize setup -> the matrix mult block size may not be smaller than the QR/SVD or cholesky strip size.

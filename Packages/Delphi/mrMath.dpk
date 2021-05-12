@@ -42,6 +42,8 @@ package mrMath;
 {$DESCRIPTION 'mrMath Matrix library'}
 {$RUNONLY}
 {$IMPLICITBUILD OFF}
+{$DEFINE DEBUG}
+{$DEFINE madExcept}
 
 requires
   rtl;
@@ -171,6 +173,9 @@ contains
   Statistics in '..\..\Statistics.pas',
   tSNE in '..\..\tSNE.pas',
   KernelPCA in '..\..\KernelPCA.pas',
-  IOCompletionPortsThreadPool in '..\..\IOCompletionPortsThreadPool.pas';
+  IOCompletionPortsThreadPool in '..\..\IOCompletionPortsThreadPool.pas',
+  Roots in '..\..\Roots.pas',
+  SSA in '..\..\SSA.pas',
+  MtxUtilFunc in '..\..\MtxUtilFunc.pas';
 
 end.

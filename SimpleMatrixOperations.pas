@@ -72,9 +72,9 @@ procedure GenericMtxMultTranspAdd(dest : PDouble; const destLineWidth : TASMNati
 procedure GenericMtxDeltaUpdate(dest : PDouble; destLineWidth : TASMNativeInt; A11, B11 : PDouble; width, height, LineWidth1 : TASMNativeInt);
 procedure GenericStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 
-// performs matrix vector multiplication in the form: dest := alpha*mt1*v + beta*y
+// performs matrix vector multiplication in the form: dest := alpha*mt1*v + beta*dest
 procedure GenericMtxVecMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-// performs matrix vector multiplication in the form: dest := alpha*mt1'*v + beta*y
+// performs matrix vector multiplication in the form: dest := alpha*mt1'*v + beta*dest
 procedure GenericMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 
 procedure GenericMtxElemMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt); overload;
@@ -123,6 +123,7 @@ procedure GenericMtxMedian(dest : PDouble; destLineWidth : TASMNativeInt; Src : 
 
 procedure GenericMtxSort(dest : PDouble; destLineWidth : TASMNativeInt; width, height : integer; RowWise : boolean; tmp : PDouble = nil);
 
+procedure GenericMtxElemAdd(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const Offset : double);
 procedure GenericMtxAddAndScale(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
 procedure GenericMtxScaleAndAdd(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
 
@@ -900,6 +901,21 @@ begin
           inc(PByte(pMt), LineWidth);
      end;
 end;
+
+procedure GenericMtxElemAdd(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const Offset : double);
+var x, y : TASMNativeInt;
+begin
+     assert((width > 0) and (height > 0) and (width*sizeof(double) <= LineWidth), 'Dimension error');
+
+     for y := 0 to height - 1 do
+     begin
+          for x := 0 to width - 1 do
+              PConstDoubleArr(dest)^[x] := PConstDoubleArr(dest)^[x] + Offset;
+
+          inc(PByte(dest), LineWidth);
+     end;
+end;
+
 
 procedure GenericMtxAddAndScale(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
 var x, y : TASMNativeInt;

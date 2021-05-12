@@ -29,11 +29,12 @@ type
 
   published
     procedure Test1;
+    procedure TestOVerlap;
   end;
 
 implementation
 
-uses Matrix, ssa, RandomEng;
+uses Matrix, ssa, RandomEng, Types, MatrixASMStubSwitch, Windows, Dialogs;
 
 { TTestSSA }
 
@@ -71,6 +72,15 @@ begin
      end;
 
      //MatrixToTxtFile('D:\y.txt', y.GetObjRef);
+end;
+
+procedure TTestSSA.TestOVerlap;
+var x : IMatrix;
+    res : IMatrix;
+begin
+     x := MatrixFromTxtFile(BaseDataPath + 'ssaTest.txt');
+     res := TSingularSpectrumAnalysis.CalcSSAOverlap(x, 24, 60, 2, 14, nil);
+     //MatrixToTxtFile('D:\SSAexample\delphiOut.txt', res.GetObjRef, 4);
 end;
 
 initialization

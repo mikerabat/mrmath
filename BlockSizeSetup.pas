@@ -27,10 +27,10 @@ interface
 // AMD A8 ~ 128
 const cDefCacheBlkSize = 128;
 
-var BlockMatrixCacheSize : integer = cDefCacheBlkSize;
+var BlockMatrixCacheSize : integer = cDefCacheBlkSize;    // use this to determine the blocked multiplication cache size
 
 
-var BlockedMatrixMultSize : integer = 512;
+var BlockedMatrixMultSize : integer = 512;   // used to get a threshold on how to switch between mult procedures (e.g. use inner loop)
     BlockedVectorMatrixMultSize : integer = cDefCacheBlkSize*cDefCacheBlkSize;
     QRBlockSize : integer = 24;
     QRMultBlockSize : integer = 64;

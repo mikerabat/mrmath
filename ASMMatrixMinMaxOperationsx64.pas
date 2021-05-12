@@ -273,8 +273,8 @@ asm
        @nextLine:
 
        // special care of the last column:
-       movsd xmm1, [rcx];
-       maxsd xmm0, xmm1;
+       movsd xmm4, [rcx];
+       maxsd xmm0, xmm4;
 
        // next line:
        add rcx, r9;
@@ -601,8 +601,8 @@ asm
        @nextLine:
 
        // special care of the last column:
-       movsd xmm1, [rcx];
-       Minsd xmm0, xmm1;
+       movsd xmm4, [rcx];
+       Minsd xmm0, xmm4;
 
        // next line:
        add rcx, r9;

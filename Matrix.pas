@@ -284,6 +284,7 @@ type
     procedure Assign(Value : TDoubleMatrix; OnlySubElements : boolean); overload;
     procedure Assign(Value : IMatrix; OnlySubElements : boolean); overload;
     procedure Assign(const Mtx : Array of double; W, H : integer); overload;
+    procedure AssignDyn(Value : TDoubleDynArray; W, H : integer);
     procedure AssignSubMatrix(Value : TDoubleMatrix; X : integer = 0; Y : integer = 0); overload;
     procedure AssignSubMatrix(Value : IMatrix; X : integer = 0; Y : integer = 0); overload;
 
@@ -589,6 +590,7 @@ type
     procedure Assign(Value : TDoubleMatrix; OnlySubElements : boolean); overload;
     procedure Assign(Value : IMatrix; OnlySubElements : boolean); overload;
     procedure Assign(const Mtx : Array of double; W, H : integer); overload;
+    procedure AssignDyn(Value : TDoubleDynArray; W, H : integer);
     procedure AssignSubMatrix(Value : TDoubleMatrix; X : integer = 0; Y : integer = 0); overload;
     procedure AssignSubMatrix(Value : IMatrix; X : integer = 0; Y : integer = 0); overload;
 
@@ -602,6 +604,7 @@ type
     function Clone : TDoubleMatrix;
 
     constructor Create; overload;
+    constructor CreateVec( aLen : integer; const initVal : double = 0 );
     constructor Create(aWidth, aHeight : integer; const initVal : double = 0); overload;
     constructor CreateEye(aWidth : integer);
     constructor Create(data : PDouble; aLineWidth : integer; aWidth, aHeight : integer); overload;
@@ -734,7 +737,7 @@ begin
      Result := ResultClass.Create;
      Result.Assign(Self, True);
 
-     MatrixAddAndScale(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, Value, 1);
+     MatrixElemAdd(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, Value);
 end;
 
 function TDoubleMatrix.AddAndScale(const Offset, Scale: double): TDoubleMatrix;
@@ -779,6 +782,14 @@ begin
 
      SetWidthHeight(W, H);
      MatrixCopy(StartElement, LineWidth, @Mtx[0], W*sizeof(double), W, H);
+end;
+
+procedure TDoubleMatrix.AssignDyn(Value: TDoubleDynArray; W, H: integer);
+begin
+     CheckAndRaiseError((W*H > 0) and (Length(Value) = W*H), 'Dimension error');
+
+     SetWidthHeight(W, H);
+     MatrixCopy(StartElement, LineWidth, @Value[0], W*sizeof(double), W, H);
 end;
 
 procedure TDoubleMatrix.AssignSubMatrix(Value: IMatrix; X, Y: integer);
@@ -1078,6 +1089,16 @@ begin
      ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}MtxRand);
 end;
 
+constructor TDoubleMatrix.CreateVec( aLen : integer; const initVal : double = 0 );
+begin
+     inherited Create;
+
+     SetWidthHeight( aLen, 1 );
+
+     if initVal <> 0 then
+        SetValue( initVal );   
+end;
+
 function TDoubleMatrix.CumulativeSum(RowWise: boolean): TDoubleMatrix;
 begin
      Result := TDoubleMatrix.Create(Width, Height);
@@ -1211,16 +1232,12 @@ begin
 
      MatrixDiff(StartElement, LineWidth, StartElement, LineWidth, Width, height, RowWise);
 
-     if RowWise then
-     begin
-          dec(fSubWidth);
-          fWidth := fSubWidth;
-     end
+     // just reduce the sub width
+     if RowWise
+     then
+         dec(fSubWidth)
      else
-     begin
-          dec(fSubHeight);
-          fHeight := fHeight;
-     end;
+         dec(fSubHeight);
 end;
 
 function TDoubleMatrix.SolveLinEQ(Value: TDoubleMatrix; numRefinements : integer) : TDoubleMatrix;
@@ -1372,7 +1389,7 @@ begin
 
      dummy := TDoubleMatrix.Create;
      dummy.Assign(self);
-     
+
      SetLength(perm, fSubWidth);
      MatrixHessenbergPerm(dummy.StartElement, dummy.LineWidth, StartElement, LineWidth, fSubWidth, @perm[0], sizeof(integer));
      Result := MatrixEigHessenbergInPlace(dummy.StartElement, dummy.LineWidth, fSubWidth, pReal, dt.LineWidth, pImag, dt.LineWidth);
@@ -1412,8 +1429,7 @@ begin
            Result := MatrixUnsymEigVecInPlace(dummy.StartElement, dummy.LineWidth,
                                               fSubWidth, 
                                               pReal, dt.LineWidth, pImag, dt.LineWidth, 
-                                              vecs.StartElement, vecs.LineWidth,
-                                              True);
+                                              vecs.StartElement, vecs.LineWidth);
         finally
                dummy.Free;
         end;

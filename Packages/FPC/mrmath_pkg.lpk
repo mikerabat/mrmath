@@ -12,7 +12,7 @@
         <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)\"/>
       </SearchPaths>
     </CompilerOptions>
-    <Files Count="126">
+    <Files Count="130">
       <Item1>
         <Filename Value="..\..\ASMMatrixAbsOperations.pas"/>
         <UnitName Value="ASMMatrixAbsOperations"/>
@@ -521,7 +521,18 @@
         <Filename Value="..\..\IOCompletionPortsThreadPool.pas"/>
         <UnitName Value="IOCompletionPortsThreadPool"/>
       </Item127>
-      
+      <Item128>
+        <Filename Value="..\..\Roots.pas"/>
+        <UnitName Value="Roots"/>
+      </Item128>
+      <Item129>
+        <Filename Value="..\..\SSA.pas"/>
+        <UnitName Value="SSA"/>
+      </Item129>
+      <Item130>
+        <Filename Value="..\..\MtxUtilFunc.pas"/>
+        <UnitName Value="MtxUtilFunc"/>
+      </Item130>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>

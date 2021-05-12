@@ -204,7 +204,6 @@ asm
    movddup xmm0, cLocNegMaxDouble;
    movapd xmm3, xmm0;
 
-   movddup xmm0, cLocNegMaxDouble;
    movapd xmm1, xmm0;
    movapd xmm2, xmm0;
    movapd xmm3, xmm0;
@@ -246,8 +245,8 @@ asm
        @nextLine:
 
        // special care of the last column:
-       movsd xmm1, [eax];
-       maxsd xmm0, xmm1;
+       movsd xmm4, [eax];
+       maxsd xmm0, xmm4;
 
        // next line:
        add eax, LineWidth;
@@ -535,8 +534,8 @@ asm
        @nextLine:
 
        // special care of the last column:
-       movsd xmm1, [eax];
-       minsd xmm0, xmm1;
+       movsd xmm4, [eax];
+       minsd xmm0, xmm4;
 
        // next line:
        add eax, LineWidth;

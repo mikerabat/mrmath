@@ -29,6 +29,7 @@ type
   TestCorrelation = class(TBaseMatrixTestCase)
   published
     procedure TestCorrelation;
+    procedure TestWeightedCorrelation;
     procedure TestCovariance;
     procedure TestDynamicTimeWarp;
     procedure TestDTWChirp;
@@ -335,6 +336,40 @@ begin
         Check( SameValue(dist, 21.58345, 1e-3), 'Distance calculation wrong in Chirp test');
      finally
             dtw.Free;
+     end;
+end;
+
+procedure TestCorrelation.TestWeightedCorrelation;
+const cw1 : Array[0..4] of double = (1, 2, 3, 4, 5);
+      cwref : Array[0..3] of Array[0..4] of double = ( 
+                            (2, 1, 2, 1, 2), (-1, -2, -3, -4, -5),
+                            (2, 4, 6, 8, 10),
+                            (1, 2, 3, 3, 3) );
+      cCoreCoeffs : Array[0..3] of double = (0, -1, 1, 0.8839);
+var cor : TCorrelation;
+    w1 : IMatrix;
+    w2 : IMatrix;
+    counter : integer;
+    cr : double;
+    weights : IMatrix;
+begin
+     w1 := TDoubleMatrix.Create(cW1, Length(cW1), 1);
+     weights := TDoubleMatrix.Create(Length(cW1), 1, 1 );
+     
+     cor := TCorrelation.Create;
+     try
+        for counter := 0 to High(cWref) do
+        begin
+             w2 := TDoubleMatrix.Create(cwref[counter], Length(cw1), 1);
+
+             cr := cor.CorrelateWeighted(w1, w2, weights);
+
+             Status(Format('Correlation %d: %.5f', [counter + 1, cr]));   
+
+             Check( SameValue( cCoreCoeffs[counter], cr, 1e-4), 'Correlation failed');
+        end;
+     finally
+            cor.Free;
      end;
 end;
 

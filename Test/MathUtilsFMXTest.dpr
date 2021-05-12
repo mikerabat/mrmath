@@ -171,7 +171,12 @@ uses
   tSNE in '..\tSNE.pas',
   TestTSNE in 'TestTSNE.pas',
   KernelPCA in '..\KernelPCA.pas',
-  IOCompletionPortsThreadPool in '..\IOCompletionPortsThreadPool.pas';
+  IOCompletionPortsThreadPool in '..\IOCompletionPortsThreadPool.pas',
+  SSA in '..\SSA.pas',
+  TestSSA in 'TestSSA.pas',
+  Roots in '..\Roots.pas',
+  TestRootFinding in 'TestRootFinding.pas',
+  MtxUtilFunc in '..\MtxUtilFunc.pas';
 
 var
   runner : ITestRunner;
