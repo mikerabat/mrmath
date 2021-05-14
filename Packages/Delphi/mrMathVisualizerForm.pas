@@ -493,7 +493,7 @@ begin
      fSettings.Left := pt.X - fPlot.Width;
      fSettings.Top := pt.Y - fPlot.Height;
 
-     if fMtx.Height > 1 then
+     if (fMtx.Height > 1) and (fMtx.Width > 1) then
      begin
           fMtx.SetSubMatrix(0, 0, fMtx.Width, 1);
           x := fMtx.SubMatrix;

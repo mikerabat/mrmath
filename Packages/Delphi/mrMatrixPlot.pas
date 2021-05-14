@@ -64,7 +64,6 @@ var ox : integer;
     xInc : double;
     tx : TSize;
     aLabel : string;
-    adjustFact : double;
 begin
      // ###########################################
      // #### Draw Frame
@@ -78,33 +77,27 @@ begin
      // start from the middle, find a nice value
      fBmp.Canvas.Font.Name := 'Arial';
      fBmp.Canvas.Font.Size := 8;
-     gridTxtW := fBmp.Canvas.TextWidth('00000');
+     gridTxtW := fBmp.Canvas.TextWidth('000000');
 
      numTicks := Max(1, fBmp.Width div gridTxtW);
 
      // start at a "nice" number and evaluate a nice increment (1, 2, 5)
-
-     axisPow := power(10, ceil( log10( eps( Abs(fMaxX - fMinX) ) + Abs( fMaxX- fMinX ) ) ) );
+     axisPow := power(10, floor( log10( eps( Abs(fMaxX - fMinX) ) + Abs( fMaxX- fMinX ) ) ) );
 
      xInc := Abs(fMaxX - fMinX)/numTicks;
-     xInc := xInc/axisPow;
+     xInc := xInc/axisPow;                // bring it into a range of 0 to 1
 
-     adjustFact := 1;
-     while xInc > 10 do
-     begin
-          xInc := xInc/10;
-          adjustFact := adjustFact*10;
-     end;
+     // now adjust to 1 to 10
      while xInc < 1 do
      begin
           xInc := xInc*10;
-          adjustFact := adjustFact/10;
+          axisPow := axisPow/10;
      end;
 
      // adjust to the number of ticks -> a maximum of 10
 
      // now round to 1, 2, 5
-     if xInc < 2
+     if xInc <= 2
      then
          xInc := 2
      else if xInc <= 5
@@ -113,12 +106,17 @@ begin
      else
          xInc := 10;
 
-     xInc := xInc*axisPow*adjustFact;
-     // start at 0 or the next power of ten
-     xStart := axisPow;
+     xInc := xInc*axisPow;
 
-     if xStart > fMinX then
-        xStart := -xStart;
+     // start at 0 or the next power of ten
+     if fMinX < 0
+     then
+         xStart := -xInc
+     else
+         xStart := xInc;
+
+     while xStart > fMinX do
+           xStart := xStart - xInc;
 
      ox := V2PX(xStart);
      while ox < fBmp.Width - gridTxtW do
@@ -227,7 +225,6 @@ var oy : integer;
     axisPow : double;
     yInc : double;
     aLabel : string;
-    adjustFact : double;
 begin
           // ###########################################
      // #### y Axis
@@ -240,27 +237,23 @@ begin
      // start at a "nice" number and evaluate a nice increment (1, 2, 5)
 
      // get power base 10 of the displayed value
-     axisPow := power(10, ceil( log10( eps( Abs(fMaxY - fMinY) ) + Abs( fMaxY- fMinY ) ) ) );
+          // start at a "nice" number and evaluate a nice increment (1, 2, 5)
+     axisPow := power(10, floor( log10( eps( Abs(fMaxY - fMinY) ) + Abs( fMaxY - fMinY ) ) ) );
 
      yInc := Abs(fMaxY - fMinY)/numTicks;
-     yInc := yInc/axisPow;
+     yInc := yInc/axisPow;                // bring it into a range of 0 to 1
 
-     adjustFact := 1;
-     while yInc > 10 do
-     begin
-          yInc := yInc/10;
-          adjustFact := adjustFact*10;
-     end;
+     // now adjust to 1 to 10
      while yInc < 1 do
      begin
           yInc := yInc*10;
-          adjustFact := adjustFact/10;
+          axisPow := axisPow/10;
      end;
 
      // adjust to the number of ticks -> a maximum of 10
 
      // now round to 1, 2, 5
-     if yInc < 2
+     if yInc <= 2
      then
          yInc := 2
      else if yInc <= 5
@@ -269,12 +262,17 @@ begin
      else
          yInc := 10;
 
-     yInc := yInc*axisPow*adjustFact;
-     // start at 0 or the next power of ten
-     yStart := axisPow;
+     yInc := yInc*axisPow;
 
-     if yStart > fMinY then
-        yStart := -yStart;
+     // start at 0 or the next power of ten
+     if fMinY < 0
+     then
+         yStart := -yInc
+     else
+         yStart := yInc;
+
+     while yStart > fMinY do
+           yStart := yStart - yInc;
 
      oy := V2PY(yStart);
      while oy > fMarginY do
@@ -349,7 +347,7 @@ begin
                var tx : TSize;
                begin
                     tx := fBmp.Canvas.TextExtent(aLabel);
-                    maxW := max( maxW, tx.cy);
+                    maxW := max( maxW, tx.cx);
                end
                );
 
@@ -364,6 +362,8 @@ begin
      begin
           fMinX := 0;
           fMaxX := Length(fYData);
+          if fMaxX > 0 then
+             fMaxX := Length(fYData[0]);
      end
      else
      begin
@@ -386,9 +386,8 @@ begin
                if Length(fYData[cnt]) = 0 then
                   continue;
 
-               yMin := MatrixMin( @fYData[cnt][0], Length(fYData), 1, Length(fYData)*sizeof(double));
-               yMax := MatrixMax( @fYData[cnt][0], Length(fYData), 1, Length(fYData)*sizeof(double));
-
+               yMin := MatrixMin( @fYData[cnt][0], Length(fYData[cnt]), 1, Length(fYData[cnt])*sizeof(double));
+               yMax := MatrixMax( @fYData[cnt][0], Length(fYData[cnt]), 1, Length(fYData[cnt])*sizeof(double));
 
                fMaxY := max( ymax, fMaxY );
                fMinY := min( ymin, fMinY );
@@ -403,6 +402,7 @@ begin
                fMaxY := 1;
           end;
      end;
+
      fScaleY := (fBmp.Height - 2*fMarginY)/(fMaxY - fMinY);
      fOY := Round(fBmp.Height - fMarginY);
 
