@@ -370,6 +370,7 @@ type
     // qr decomposition without clearing the lower triangular matrix and factors tau
     function QR(out ecosizeR : TDoubleMatrix; out tau : TDoubleMatrix) : TQRResult; overload; virtual;
     function QR(out ecosizeR : IMatrix; out tau : IMatrix) : TQRResult; overload;
+    function Hess( out h : TDoubleMatrix; out tau : TDoubleMatrix ) : TEigenvalueConvergence; overload; virtual;
   public
     property Width : integer read GetSubWidth write SetWidth;
     property Height : integer read GetSubHeight write SetHeight;
@@ -583,6 +584,13 @@ type
     function QRFull(out Q, R : TDoubleMatrix) : TQRResult; overload; virtual;
     function QRFull(out Q, R : IMatrix) : TQRResult; overload;
 
+    // hessenberg decomposition. Lower part is zeroed out
+    function Hess( out h : TDoubleMAtrix ) : TEigenvalueConvergence; overload;
+    function Hess( out h : IMatrix ) : TEigenvalueConvergence; overload;
+    // for the full transformation: Q*H*Q' = A
+    function HessFull(out Q, h : TDoubleMatrix) : TEigenvalueConvergence; overload;
+    function HessFull(out Q, h : IMatrix) : TEigenvalueConvergence; overload;
+    
     // ###################################################
     // #### Matrix assignment operations
     procedure Assign(Value : TDoubleMatrix); overload;
@@ -608,6 +616,7 @@ type
     constructor Create(aWidth, aHeight : integer; const initVal : double = 0); overload;
     constructor CreateEye(aWidth : integer);
     constructor Create(data : PDouble; aLineWidth : integer; aWidth, aHeight : integer); overload;
+    constructor CreateCpy( aWidth, aHeight : integer; data : PDouble; aLineWidth : integer);   // different params than in create since delphi complains 
     constructor CreateDyn(const Data : TDoubleDynArray; aWidth, aHeight : integer); overload;
     constructor CreateDyn(const Data : TDoubleDynArray; fromDataIdx : integer; aWidth, aHeight : integer); overload;
     constructor Create(const Mtx : Array of double; W, H : integer); overload;
@@ -1058,6 +1067,19 @@ begin
 
      SetWidthHeight(W, H);
      MatrixCopy(StartElement, LineWidth, @Mtx[0], W*sizeof(double), W, H);
+end;
+
+constructor TDoubleMatrix.CreateCpy(aWidth, aHeight : integer; data : PDouble; aLineWidth : integer); 
+begin
+     CheckAndRaiseError((aWidth*aHeight >= 0) and (aLineWidth >= aWidth*sizeof(double)), 'Dimension error');
+     
+     inherited Create;
+
+     if (data <> nil) then
+     begin
+          SetWidthHeight(aWidth, aHeight);
+          MatrixCopy( StartElement, LineWidth, data, aLineWidth, aWidth, aHeight);
+     end;
 end;
 
 constructor TDoubleMatrix.CreateDyn(const Data: TDoubleDynArray; fromDataIdx,
@@ -2103,6 +2125,7 @@ var tau : TDoubleMatrix;
 begin
      Q := nil;
      R := nil;
+     tau := nil;
 
      // ###########################################
      // #### First create a compact QR decomposition
@@ -2111,6 +2134,7 @@ begin
      if Result <> qrOK then
      begin
           FreeAndNil(R);
+          FreeAndNil(tau);
           exit;
      end;
 
@@ -2180,6 +2204,117 @@ begin
      end;
 end;
 
+// ###########################################
+// #### Hessenberg decomponsition
+// ###########################################
+
+function TDoubleMatrix.Hess( out h : TDoubleMatrix ) : TEigenvalueConvergence; 
+var tau : TDoubleMatrix;
+    x, y : integer;
+    pData : PConstDoubleArr;
+begin
+     CheckAndRaiseError( Width = Height, 'Hessenberg decomposition only allowed on square matrices');
+     
+     Result := Hess( h, tau );
+     tau.Free;
+     // clear h so we only have an upper (+1) triangle matrix
+     // zero out the parts occupied by Q
+     for y := 2 to h.Height - 1 do
+     begin
+          pData := PConstDoubleArr( h.StartElement );
+          inc(PByte(pData), y*h.LineWidth);
+          for x := 0 to y - 2 do
+              pData^[x] := 0;
+     end;
+end;
+
+function TDoubleMatrix.Hess( out h : IMatrix ) : TEigenvalueConvergence;
+var tmp, tau : TDoubleMatrix;
+    x, y : integer;
+    pData : PConstDoubleArr;
+begin
+     CheckAndRaiseError( Width = Height, 'Hessenberg decomposition only allowed on square matrices');
+     
+     Result := Hess( tmp, tau );
+     tau.Free;
+     h := tmp;
+
+     // clear h so we only have an upper (+1) triangle matrix
+     // zero out the parts occupied by Q
+     for y := 2 to h.Height - 1 do
+     begin
+          pData := PConstDoubleArr( h.StartElement );
+          inc(PByte(pData), y*h.LineWidth);
+          for x := 0 to y - 2 do
+              pData^[x] := 0;
+     end;
+end;
+
+// for the full transformation: Q*H*Q' = A
+function TDoubleMatrix.HessFull(out Q, h : TDoubleMatrix) : TEigenvalueConvergence; 
+var tau : TDoubleMatrix;
+    x, y : integer;
+    pdata : PConstDoubleArr;
+begin
+     CheckAndRaiseError( Width = Height, 'Hessenberg decomposition only allowed on square matrices');
+     
+     Q := nil;
+     h := nil;
+     Tau := nil;
+
+     // ###########################################
+     // #### First create a compact QR decomposition
+     Result := Hess(h, Tau);
+
+     if Result <> qlOk then
+     begin
+          FreeAndNil(h);
+          FreeAndNil(tau);
+          exit;
+     end;
+
+     // ###########################################
+     // #### Calculation Q from the previous operation
+     Q := h.Clone;
+     try
+        MatrixQFromHessenbergDecomp(Q.StartElement, Q.LineWidth, Width, tau.StartElement, fLinEQProgress);
+        
+        // clear h so we only have an upper (+1) triangle matrix
+        // zero out the parts occupied by Q
+        for y := 2 to h.Height - 1 do
+        begin
+             pData := PConstDoubleArr( h.StartElement );
+             inc(PByte(pData), y*h.LineWidth);
+             for x := 0 to y - 2 do
+                 pData^[x] := 0;
+        end;
+     finally
+            Tau.Free;
+     end;
+end;
+
+function TDoubleMatrix.Hess(out h, tau: TDoubleMatrix): TEigenvalueConvergence;
+begin
+     tau := ResultClass.Create( width, 1 );
+     h := Clone;
+     try
+        Result := MatrixHessenberg2InPlace( h.StartElement, h.LineWidth, Width, tau.StartElement, HessBlockSize );
+     except
+           FreeAndNil(tau);
+           FreeAndNil(h);
+           
+           raise;
+     end;
+end;
+
+function TDoubleMatrix.HessFull(out Q, h : IMatrix) : TEigenvalueConvergence; 
+var temp1, temp2 : TDoubleMatrix;
+begin
+     Result := HessFull(temp1, temp2);
+     Q := temp1;
+     h := temp2;
+end;
+
 function TDoubleMatrix.RepeatMatrix(numX, numy : integer): TDoubleMatrix;
 begin
      Result := Clone;
@@ -2231,6 +2366,8 @@ begin
                fData := AlignPtr32( fMemory ); 
                fLineWidth := sizeof(double);
           end;
+
+          CheckAndRaiseError(fMemory <> nil, 'Failed to allocate memory');
      end;
 end;
 

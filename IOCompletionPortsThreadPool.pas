@@ -207,6 +207,9 @@ var bytesTransferred : DWORD;
     Task : PIOAsyncCall;
     finishedCalled : boolean;
 begin
+     {$IFNDEF FPC}
+     NameThreadForDebugging('mrMath Worker Thread');
+     {$ENDIF}
      while not Terminated do
      begin
           finishedCalled := True;

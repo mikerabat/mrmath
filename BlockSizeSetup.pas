@@ -32,10 +32,12 @@ var BlockMatrixCacheSize : integer = cDefCacheBlkSize;    // use this to determi
 
 var BlockedMatrixMultSize : integer = 512;   // used to get a threshold on how to switch between mult procedures (e.g. use inner loop)
     BlockedVectorMatrixMultSize : integer = cDefCacheBlkSize*cDefCacheBlkSize;
-    QRBlockSize : integer = 24;
-    QRMultBlockSize : integer = 64;
-    CholBlockSize : integer = 24;
-    SVDBlockSize : integer = 24;
+    QRBlockSize : integer = 32;
+    QRMultBlockSize : integer = 128;
+    CholBlockSize : integer = 32;
+    SVDBlockSize : integer = 32;
+    HessBlockSize : integer = 32;
+    HessMultBlockSize : integer = 128;
 
 // checks when first applying a transpose operation is better for the multiplication
 procedure SetupOptBlockMatrixSize;

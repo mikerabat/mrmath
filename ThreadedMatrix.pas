@@ -39,6 +39,9 @@ type
   protected
     class function ResultClass : TDoubleMatrixClass; override;
     class function ClassIdentifier : String; override;
+
+    function QR(out ecosizeR : TDoubleMatrix; out tau : TDoubleMatrix) : TQRResult; override;
+    function Hess(out h, tau: TDoubleMatrix): TEigenvalueConvergence; override;
   public
     procedure MultInPlace(Value : TDoubleMatrix); override;
     function Mult(Value : TDoubleMatrix) : TDoubleMatrix; override;
@@ -85,7 +88,6 @@ type
     function SolveLinEQ(Value : TDoubleMatrix; numRefinements : integer = 0) : TDoubleMatrix; override;
     procedure SolveLinEQInPlace(Value : TDoubleMatrix; numRefinements : integer = 0); override;
     function Determinant: double; override;
-    function QR(out ecosizeR : TDoubleMatrix; out tau : TDoubleMatrix) : TQRResult; override;
     function QRFull(out Q, R : TDoubleMatrix) : TQRResult; override;
     function Cholesky(out Chol : TDoubleMatrix) : TCholeskyResult; overload; override;
     function SVD(out U, V, W : TDoubleMatrix; onlyDiagElements : boolean = False) : TSVDResult; override;
@@ -101,7 +103,8 @@ type
 implementation
 
 uses SysUtils, ThreadedMatrixOperations, MtxThreadPool, BlockSizeSetup,
-     Math, LinAlgQR, LinAlgCholesky, LinAlgLU, LinAlgSVD, MatrixASMStubSwitch;
+     Math, LinAlgQR, LinAlgCholesky, LinAlgLU, LinAlgSVD, MatrixASMStubSwitch, 
+  Eigensystems;
 
 { TThreadedMatrix }
 
@@ -429,6 +432,22 @@ begin
         Result := ThrMatrixQRDecomp(ecosizeR.StartElement, ecosizeR.LineWidth, width, height, tau.StartElement, nil, QRBlockSize, fLinEQProgress);
      except
            FreeAndNil(ecosizeR);
+           FreeAndNil(tau);
+
+           raise;
+     end;
+end;
+
+function TThreadedMatrix.Hess(out h,
+  tau: TDoubleMatrix): TEigenvalueConvergence;
+begin
+     h := ResultClass.Create;
+     tau := ResultClass.Create(width, 1);
+     try
+        h.Assign(self);
+        Result := ThrMtxHessenberg2InPlace(h.StartElement, h.LineWidth, width, tau.StartElement, HessBlockSize);
+     except
+           FreeAndNil(h);
            FreeAndNil(tau);
 
            raise;

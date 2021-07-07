@@ -830,9 +830,9 @@ begin
      w2FitCacheSize := (width2 mod blockSize) = 0;
      w1FitCacheSize := (width1 mod blockSize) = 0;
 
-     w1 := width1 div blockSize + TASMNativeInt(not h1FitCacheSize) - 1;
+     w1 := width1 div blockSize + TASMNativeInt(not w1FitCacheSize) - 1;
      w := width2 div blockSize + TASMNativeInt(not w2FitCacheSize) - 1;
-     gamma := height1 div blockSize + TASMNativeInt(not w1FitCacheSize) - 1;
+     gamma := height1 div blockSize + TASMNativeInt(not h1FitCacheSize) - 1;
 
      blockByteSize := blockSize*blockSize*sizeof(double);
 

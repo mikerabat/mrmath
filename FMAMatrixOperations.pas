@@ -49,7 +49,7 @@ implementation
 
 {$IFDEF FPC} {$S-} {$ENDIF}
 
-uses Math, MatrixASMStubSwitch, AVXMatrixOperations,
+uses Math, MatrixASMStubSwitch, AVXMatrixOperations, ASMMatrixOperations,
      {$IFDEF x64}
      FMAMatrixMultTransposedOperationsx64, FMAMatrixVectorMultOperationsx64, FMAMatrixMultOperationsx64,
      {$ELSE}
@@ -469,7 +469,11 @@ begin
      if (width <= 0) or (height <= 0) then
         exit;
 
-     if ((TASMNativeUInt(A) and $0000001F) = 0) and ((TASMNativeUInt(Y) and $0000001F) = 0) and (LineWidthA and $1F = 0)
+     // we only have a SSE optimized routine for the non sequential rank1 update
+     if incY <> sizeof(double) 
+     then
+         ASMRank1Update(A, LineWidthA, width, height, x, y, incx, incy, alpha)
+     else if ((TASMNativeUInt(A) and $0000001F) = 0) and ((TASMNativeUInt(Y) and $0000001F) = 0) and (LineWidthA and $1F = 0)
      then
          FMARank1UpdateSeqAligned(A, LineWidthA, width, height, x, y, incX, incY, alpha)
      else

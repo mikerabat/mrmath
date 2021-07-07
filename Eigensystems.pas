@@ -85,9 +85,34 @@ function MatrixTridiagonalQLImplicitInPlace(Z : PDouble; const LineWidthZ : TASM
 function MatrixEigTridiagonalMatrixInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; EigVals : PDouble; const LineWidthEigVals : TASMNativeInt) : TEigenvalueConvergence;
 function MatrixEigTridiagonalMatrix(Dest : PDouble; const LineWidthDest : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; EigVals : PDouble; const LineWidthEigVals : TASMNativeInt) : TEigenvalueConvergence;
 
+// ###########################################
+// #### Reduction of a real general matrix A to upper Hessenberg form H by
+// an orthogonal similarity transformation Q' * A * Q = H
+// original DGEHRD
+
+// A: On entry, the N-by-N general matrix to be reduced.
+// On exit, the upper triangle and the first subdiagonal of A
+// are overwritten with the upper Hessenberg matrix H, and the
+// elements below the first subdiagonal, with the array TAU,
+// represent the orthogonal matrix Q as a product of elementary
+// reflectors. 
+function MatrixHessenberg2InPlace(A : PDouble; const LineWidthA : TASMNAtiveInt; width : TASMNativeInt; tau : PDouble; hessBlockSize : integer) : TEigenvalueConvergence; 
+function ThrMtxHessenberg2InPlace(A : PDouble; const LineWidthA : TASMNAtiveInt; width : TASMNativeInt; tau : PDouble; hessBlockSize : integer) : TEigenvalueConvergence; 
+
+// generate a real orthogonal matrix Q from the element reflectors (matrixhessenberg2inplace) to
+// satisfy Q' * A * Q = H (or Q * H * Q' = A)
+// the input matrix A is overwritten by the orhogonal matrix Q
+procedure MatrixQFromHessenbergDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt;
+ tau : PDouble; BlockSize : TASMNativeInt; work : PDouble; progress : TLinEquProgress = nil); overload;
+procedure MatrixQFromHessenbergDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt;
+ tau : PDouble; progress : TLinEquProgress = nil); overload;
+
 implementation
 
-uses Math, MathUtilFunc, MatrixASMStubSwitch;
+uses Math, MathUtilFunc, MatrixASMStubSwitch, HouseholderReflectors, types, 
+     BlockSizeSetup, ThreadedMatrixOperations, MtxThreadPool,
+     LinAlgQR,
+     SysUtils;
 
 function MatrixEigTridiagonalMatrixInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; EigVals : PDouble; const LineWidthEigVals : TASMNativeInt) : TEigenvalueConvergence;
 var E : Array of double;
@@ -2070,5 +2095,459 @@ begin
      Result := MatrixUnsymEigInPlace(@dest[0], width*sizeof(double), width, WR, LineWidthWR, WI, LineWidthWI, balance);
 end;
 
+
+// ###########################################
+// #### LAPCK Hessenberg
+// ###########################################
+
+type
+  THessData = record
+    mem : Pointer;
+    work : PDouble;
+    PnlSize : integer;
+
+    reflData : TBlockReflrec; 
+    
+    // helper pointers
+    T : PDouble;       // point to work // (w x h) = (pnlsize + 1 x pnlsize)
+    Y : PDouble;       // point to T + tlinewidth*(pnlSize)  (w x h) = (pnlsize x height) 
+    tLineWidth : TASMNativeInt;      // pnlsize*sizeof(double)  
+    yLineWidth : TASMNativeInt;      // pnlsize*sizeof(double)
+    blkMultMem : Pointer; // point to Y + N * NB * sizeof(Double)  
+  end;
+
+procedure InitReflectorBlk( var eigData : THessData );
+begin
+     eigData.reflData.T := eigData.T;
+     eigData.reflData.LineWidthT := eigData.tLineWidth;
+     eigData.reflData.BlkMultMem := eigData.BlkMultMem;
+end;
+
+// single threaded work mem need:
+function EigMemSize(const hessData : THessData; width : TASMNativeInt) : TASMNativeInt;
+var w4 : TASMNativeInt;
+begin
+     // for factors of 4.. (better aligned memory)
+     w4 := width;
+     if w4 and $03 <> 0 then
+        w4 := width + 4 - width and $03;
+
+     // + 64 to get aligned ptr for both Y and multiplication (and rank1 updates)
+     Result := 64 + Max(2*w4*sizeof(double), hessData.PnlSize*w4*sizeof(double) +  // Y
+               hessData.PnlSize*(hessData.PnlSize + 1)*sizeof(double) +  // T
+               BlockMultMemSize( Max(QRMultBlockSize, HessMultBlockSize ) ) );  // mult
+end;
+
+// unblocked hessenberg decomposition based on DGEHD2
+function InternalHessenbergUnblocked( A : PDouble; const LineWidthA : TASMNAtiveInt; iLo : TASMNativeInt; width : TASMNativeInt; tau : PDouble; const eigData : THessData ) : boolean;
+var i : TASMNativeInt;
+    pA : PDouble;
+    pTau : PDouble;
+    aii : double;
+    pAlpha : PDouble;
+    lineRes : boolean;
+    pC : PDouble;
+begin
+     Result := True;
+     pTau := Tau;
+     for i := iLo to width - 2 do
+     begin
+          // Generate elemetary reflector H(i) to  annihilate A(i+2:ihi,i)
+          pAlpha := GenPtr(A, i, i + 1, LineWidthA);
+          pA := GenPtr(A, i, min(i + 2, width - 1), LineWidthA);
+
+          lineRes := GenElemHousholderRefl(pA, LineWidthA, width - i - 1, pAlpha^, pTau);
+
+          Result := lineRes and Result;
+
+          // Apply H(i) to A(1:ihi,i+1:ihi) from the right
+          aii := pAlpha^;
+          pAlpha^ := 1;
+
+          pC := GenPtr(A, i + 1, 0, LineWidthA);
+          ApplyElemHousholderReflRight(pAlpha, LineWidthA, pC, LineWidthA, width - i - 1, width, pTau, eigData.work);
+
+          // Apply H(i) to A(i+1:ihi,i+1:n) from the left
+          pC := GenPtr(A, i + 1, i + 1, LineWidthA);
+          ApplyElemHousholderReflLeft (pAlpha, LineWidthA, pC, LineWidthA, width - i - 1, width - i - 1, pTau, eigData.work);
+          pAlpha^ := aii;
+
+          inc(pTau);
+     end;
+end;
+
+
+//function WriteMtx(data : PDouble; LineWidth : TASMNativeInt; width : integer; height : integer; prec : integer = 4) : string; 
+//var x, y : integer;
+//    pData : PConstDoubleArr;
+//begin
+//     Result := '';
+//
+//     for y := 0 to height - 1 do
+//     begin
+//          pData := PConstDoubleArr( data );
+//          for x := 0 to width - 1 do
+//              Result := Result + Format('%.*f ', [prec, pData^[x]]);
+//
+//          inc(PByte(data), LineWidth);
+//          Result := Result + #13#10;
+//     end;
+//end;
+
+
+
+//  DLAHR2 reduces the first NB columns of A real general n-BY-(n-k+1)
+//  matrix A so that elements below the k-th subdiagonal are zero. The
+//  reduction is performed by an orthogonal similarity transformation
+//  Q' * A * Q. The routine returns the matrices V and T which determine
+//  Q as a block reflector I - V*T*V', and also the matrix Y = A * V * T.
+//procedure dlahr2( A : PDouble; const LineWidthA : TASMNativeInt; T : PDouble; const LineWidthT : TASMNativeInt; Y : PDouble; const LineWidthY : TASMNativeInt; Tau : PDouble; N, K, NB : integer; const eigData : THessData);
+function InternalHessenbergBlocked( A : PDouble; const LineWidthA : TASMNativeInt; Tau : PDouble; N, K, NB : integer; const eigData : THessData) : boolean;
+var i: Integer;
+    pA : PDouble;
+    pV : PDouble;
+    pY : PDouble;
+    pT : PDouble;
+    ei : double;
+    pb1 : PDouble;
+    pb2 : PDouble;
+    pV1 : PDouble;
+    pV2 : PDouble;
+    pW : PDouble;
+    pALpha : PDouble;
+    pA1 : PDouble;
+    nki : Integer;
+    lineRes : boolean;
+    //s : string;
+begin
+     // quick return
+     Result := True;
+     
+     if n <= 1 then
+        exit;
+
+     //s := WriteMtx( A, LineWidthA, 7, 7, 3 );
+     ei := 0;
+     pAlpha := nil;
+
+     for i := 0 to NB - 1 do
+     begin
+          // N-K-I+1 -> height
+          nki := N - k - i - 1;
+
+          if i > 0 then
+          begin
+               // Let V = (V1)   b = (b1)  (first I - 1 rows)
+               //         (V2)       (b2)
+               // where V1 is unit lower triangular
+               
+               // Update A(K+1:N,I)
+               // Update I-th column of A - Y * V'
+               pA := GenPtr(A, i, K + 1, LineWidthA);    // A(k + 1, i )
+               pV := GenPtr(A, 0, K + i, LineWidthA );   // A(k + i - 1, 1);
+               pY := GenPtr(eigData.Y, 0, K + 1, eigData.yLineWidth );   // y(k + 1, 1)
+               MatrixMtxVecMult( pA, LineWidthA, pY, pV, eigData.yLineWidth, sizeof(double), i, N-k-1, -1, 1 );
+
+               //s := WriteMtx(A, LineWidthA, 2*nb, 5);
+               
+               // apply I - V*T'*V' to this column (call it b) from the left using the last column of T as workspace
+
+               // w = V1'*b1
+               pV1 := GenPtr(A, 0, k + 1, LineWidthA);
+               pV2 := GenPtr(A, 0, k + i + 1, LineWidthA );
+
+               pb1 := GenPtr(A, i, k + 1, LineWidthA );
+               pb2 := GenPtr(A, i, k + i + 1, LineWidthA );
+
+               pW := GenPtr(eigData.T, NB - 1, 0, eigData.tLineWidth );
+
+               MatrixCopy( pW, eigData.tLineWidth, pb1, LineWidthA, 1, i );
+               // s := WriteMtx(pW, LineWidthT, nb, 5);
+               // orig dtrmv lower transpose unit
+               MtxMultLowTranspUnitVec( pV1, LineWidthA, pW, eigData.tLineWidth, i );
+
+               //s := WriteMtx(pW, LineWidthT, nb, 5);
+               
+               // w := w + V2'*b2
+               MatrixMtxVecMultT(pW, eigData.tLineWidth, pV2, pB2, LineWidthA, LineWidthA, i, nki, 1, 1);
+               //s := WriteMtx(pW, LineWidthT, nb, 5);
+
+               // w := T'*w
+               MtxMultUpTranspNoUnitVec( eigData.T, eigData.tLineWidth, pW, eigData.tLineWidth, i );
+               //s := WriteMtx(pW, LineWidthT, nb, 5);
+               
+               // b2 = b2 - V2*w
+               //MatrixMultEx(pb2, LineWidthA, pV2, pW, i, N - k - i, 1, i, LineWidthA, LineWidthT, BlockMatrixCacheSize, doSub, eigData.blkMultMem );
+               MatrixMtxVecMult(pB2, LineWidthA, pV2, pW, LineWidthA, eigData.tLineWidth, i, nki, -1, 1);
+               //s := WriteMtx(A, LineWidthA, 2*nb, 5);
+               
+               // b1 = b1 - V1*w
+               MtxMultLowNoTranspUnitVec( pV1, LineWidthA, pW, eigData.tLineWidth, i );
+               MatrixSub( pb1, LineWidthA, pb1, pW, 1, i, LineWidthA, eigData.tLineWidth );
+
+               //s := WriteMtx(A, LineWidthA, 2*nb, 5);
+
+               pAlpha^ := ei;
+          end;
+
+          // ###########################################
+          // #### Elementary reflector H(i) to annihilate A(k + i + 1:N, i)
+          pAlpha := GenPtr( A, i, K + i + 1, LineWidthA );
+          pA := GenPtr( A, i, Min( K + i + 2, N - 1), LineWidthA );
+          Result := GenElemHousholderRefl( pA, LineWidthA, nki, pAlpha^, tau ) and Result;
+          ei := pAlpha^;
+          pAlpha^ := 1;
+
+          // compute y(k + 1:N, i )
+          pA1 := GenPtr( A, i + 1, k + 1, LineWidthA );
+          pY := GenPtr( eigData.Y, i, k + 1, eigData.yLineWidth );
+          pT := GenPtr( eigData.T, i, 0, eigData.tLineWidth );
+
+          MatrixMtxVecMult( pY, eigData.yLineWidth, pA1, pAlpha, LineWidthA, LineWidthA, nki, N - k - 1, 1, 0 );
+
+          //s := WriteMtx(eigData.Y, eigData.yLineWidth, nb, 5);
+          
+          if i > 0 then
+          begin
+               MatrixMtxVecMultT( pT, eigData.tLineWidth, GenPtr( A, 0, k + i + 1, LineWidthA), pAlpha, LineWidthA, LineWidthA, i, nki, 1, 0 );
+               MatrixMtxVecMult( pY, eigData.yLineWidth, GenPtr( eigData.Y, 0, k + 1, eigData.yLineWidth ), pT, eigData.yLineWidth, eigData.tLineWidth, i, N - k - 1, -1, 1 );
+          end;
+          MatrixScaleAndAdd( pY, eigData.yLineWidth, 1, N - k - 1, 0, tau^ );
+
+          //s := WriteMtx(eigData.Y, eigData.yLineWidth, nb, 5);
+          
+          // compute T(1:i, i)
+          if i > 0 then
+          begin
+               MatrixScaleAndAdd( pT, eigData.tLineWidth, 1, i, 0, -tau^ );
+               MtxMultUpNoTranspNoUnitVec( eigData.T, eigData.tLineWidth, pT, eigData.tLineWidth, i );
+          end;
+          pT := GenPtr(eigData.T, i, i, eigData.tLineWidth );
+          pT^ := tau^;
+          //s := WriteMtx(T, LineWidthT, nb, nb);
+
+          inc(tau);
+     end;
+
+     //s := WriteMtx(eigData.Y, eigData.yLineWidth, nb, 5);
+
+     pA := GenPtr( A, NB - 1, k + NB, LineWidthA );
+     pA^ := ei;
+
+     // compute Y(1:K, 1:NB)
+     MatrixCopy( eigData.Y, eigData.yLineWidth, GenPtr(A, 1, 0, LineWidthA ), LineWidthA, NB, k + 1);
+     //s := WriteMtx(eigData.Y, eigData.yLineWidth, nb, 5);
+     MtxMultTria2LowerUnit( GenPtr(A, 0, k + 1, LineWidthA ), LineWidthA, eigData.Y, eigData.yLineWidth, NB, NB, NB, k + 1 );
+     //s := WriteMtx(eigData.Y, eigData.yLineWidth, nb, 5);
+//        IF( n.GT.k+nb )
+//      $   CALL dgemm( 'NO TRANSPOSE', 'NO TRANSPOSE', k,
+//      $               nb, n-k-nb, one,
+//      $               a( 1, 2+nb ), lda, a( k+1+nb, 1 ), lda, one, y,
+//      $               ldy )
+     if n >= k + nb then
+        eigData.reflData.MatrixMultEx( eigData.Y, eigData.yLineWidth,
+                                       GenPtr(A, 1 + NB, 0, LineWidthA),
+                                       GenPtr(A, 0, K + 1 + NB, LineWidthA),
+                                       n - k - nb - 1, k + 1, nb, n - k - nb - 1,
+                                       LineWidthA, LineWidthA,
+                                       HessMultBlockSize, doAdd, eigData.blkMultMem );
+                                       
+     //s := WriteMtx(eigData.Y, eigData.yLineWidth, nb, 5);
+     MtxMultTria2UpperNoUnit( eigData.T, eigData.tLineWidth, eigData.Y, eigData.yLineWidth, NB, NB, NB, K + 1 );
+     //s := WriteMtx(T, LineWidthT, nb, nb);
+end;
+
+
+// original DGEHRD
+function InternalMatrixHessenberg(A : PDouble; const LineWidthA : TASMNAtiveInt; width : TASMNativeInt; tau : PDouble; const eigData : THessData ) : boolean;
+var i : integer;
+    pA : PDouble;
+    pTau : PDouble;
+    ib : integer;
+    ei : double;
+    pAib : PDouble;
+    pA1, pA2 : PDouble;
+    j : Integer;
+    //s, s1, s2 : string;
+begin
+     MtxMemInit( tau, width*sizeof(double), 0 );
+
+     Result := True;
+     // ###########################################
+     // #### blocked code
+     i := 0;
+     pTau := tau;
+     while i + eigData.PnlSize + 2 < width do
+     begin
+          ib := eigData.PnlSize;
+          
+          // reduce colums i:i+pnlsize -1  to hessenberg form returning the matrices V and T of the block reflector H  I _ V*T*V' 
+          // which performs the reduction and also the matrix Y = A*V*T
+          pA := GenPtr(A, i, 0, LineWidthA);
+          //dlahr2( pA, LineWidthA, eigData.T, eigData.tLineWidth, eigData.Y, eigData.yLineWidth, pTau, width, i, ib, eigData );
+          Result := InternalHessenbergBlocked( pA, LineWidthA, pTau, width, i, ib, eigData ) and Result;
+
+         // s := WriteMtx(eigData.T, eigData.tLineWidth, ib, ib);
+//          s2 := WriteMtx(eigData.Y, eigData.yLineWidth, ib, width - ib);
+//          s1 := WriteMtx(A, LineWidthA, 5, 5);
+          
+
+          //  Apply the block reflector H to A(1:ihi,i+ib:ihi) from the
+          // right, computing  A := A - Y * V'. V(i+ib,ib-1) must be set to 1
+          pAib := GenPtr( A, i + ib - 1, i + ib, LineWidthA );
+          ei := pAib^;
+          pAib^ := 1;
+          pA1 := GenPtr( A, i, i + ib, LineWidthA );
+          pA2 := GenPtr( A, i + ib, 0, LineWidthA );
+
+          //  EI = A( I+IB, I+IB-1 )
+          //  A( I+IB, I+IB-1 ) = ONE
+          //  CALL DGEMM( 'No transpose', 'Transpose',
+     //$                  IHI, IHI-I-IB+1,
+     //$                  IB, -ONE, WORK, LDWORK, A( I+IB, I ), LDA, ONE,
+     //$                  A( 1, I+IB ), LDA )
+          eigData.reflData.MatrixMultT2(pA2, LineWidthA, eigData.Y, pA1, ib, width, ib, width - i - ib,
+                                        eigData.yLineWidth, LineWidthA, HessMultBlockSize, doSub, eigData.blkMultMem );
+          pAib^ := ei;
+
+          //s1 := WriteMtx(A, LineWidthA, 5, 5);
+//          s2 := WriteMtx(pA2, LineWidthA, 5, 5);
+
+          // apply the block reflector H to A from the right
+          // dtrmm right lower transpose unit
+          pA := GenPtr( A, i, i + 1, LineWidthA );
+          //CALL DTRMM( 'Right', 'Lower', 'Transpose',
+//     $                  'Unit', I, IB-1,
+//     $                  ONE, A( I+1, I ), LDA, WORK, LDWORK )
+          MtxMultLowTria2T2Store1(eigData.Y, eigData.yLineWidth,
+                                  pA, LineWidthA, ib - 1, i + 1,
+                                  ib - 1, ib - 1 );
+
+          // DO 30 j = 0, ib-2
+                //CALL daxpy( i, -one, work( ldwork*j+1 ), 1,
+//      $                     a( 1, i+j+1 ), 1 )
+//    30       CONTINUE
+          for j := 0 to ib - 2 do
+              MatrixSubVec( GenPtr( A, i + j + 1, 0, LineWidthA ), LineWidthA, GenPtr(eigData.Y, j, 0, eigData.yLineWidth ), eigData.yLineWidth,
+                             1, i + 1, False );
+
+          //s1 := WriteMtx(A, LineWidthA, 5, 5);
+          // apply the block reflector H to A from the left
+           //CALL DLARFB( 'Left', 'Transpose', 'Forward',
+//     $                   'Columnwise',
+//     $                   IHI-I, N-I-IB+1, IB, A( I+1, I ), LDA, T, LDT,
+//     $                   A( I+1, I+IB ), LDA, WORK, LDWORK )
+          ApplyBlockReflectorLTFC(pA, LineWidthA, eigData.reflData, width - i - ib, width - i - 1, ib, false);   // original dlarfb call is transposed but dlarfb reroutes to non transposed?!?
+
+          //s1 := WriteMtx(A, LineWidthA, 5, 5);
+//          s2 := WriteMtx(pA, LineWidthA, 5, 5);          
+     
+          inc(pTau, eigData.PnlSize);
+          inc(i, eigData.PnlSize);
+     end;
+
+     // ###########################################
+     // #### last non blocked part
+     Result := InternalHessenbergUnblocked( A, LineWidthA, i, width, pTau, eigData) and Result;
+end;
+
+procedure MatrixQFromHessenbergDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt;
+ tau : PDouble; progress : TLinEquProgress = nil); overload;
+begin  
+     MatrixQFromHessenbergDecomp(A, LineWidthA, width, tau, QRBlockSize, nil, progress); 
+end;
+
+procedure MatrixQFromHessenbergDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt;
+ tau : PDouble; BlockSize : TASMNativeInt; work : PDouble; progress : TLinEquProgress = nil);
+var i, j : TASMNativeInt;
+    pAj : PConstDoubleArr;
+begin
+     // shift the vectors which define the elementary feflectors one column to the right
+     // 
+     pAj := PConstDoubleArr(A);
+     pAj^[0] := 1;
+     for i := 1 to width - 1 do
+         pAj^[i] := 0;
+
+     // shift columns and zero out
+     for j := 1 to width - 1 do
+     begin
+          pAj := GenPtrArr(A, 0, j, LineWidthA);
+          for i := j downto 1 do
+              pAj^[i] := pAj^[i - 1];
+          for i := j + 1 to width - 1 do
+              pAj^[i] := 0;
+              
+          pAj^[0] := 0;
+     end;
+
+     MatrixQFromQRDecomp(GenPtr(A, 1, 1, LineWidthA), LineWidthA, width - 1, width - 1, tau, BlockSize, work, progress);
+end;
+
+function MatrixHessenberg2InPlace(A : PDouble; const LineWidthA : TASMNAtiveInt; width : TASMNativeInt; tau : PDouble; hessBlockSize : integer) : TEigenvalueConvergence; 
+var hessWork : THessData;
+begin
+     FillChar(hessWork, sizeof(hessWork), 0 );
+     
+     hesswork.PnlSize := hessBlockSize;
+     hessWork.work := MtxAllocAlign( EigMemSize(hesswork, width), hessWork.mem ); 
+     hessWork.T := hessWork.work;
+     hessWork.tLineWidth := sizeof(double)*hesswork.PnlSize;
+     // Y needs to point directly "under" T to work with the block reflectors
+     hessWork.Y := GenPtr(hessWork.work, 0, hesswork.PnlSize, hessWork.tLineWidth);
+     hessWork.yLineWidth := hessWork.tLineWidth;
+
+     // align ptr just around "under" Y
+     hessWork.blkMultMem := AlignPtr32( GenPtr( hessWork.work, 0, hesswork.PnlSize + width, hessWork.tLineWidth ) );
+     
+     hessWork.reflData.MatrixMultT1 := {$IFDEF FPC}@{$ENDIF}MatrixMultT1Ex;
+     hessWork.reflData.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}MatrixMultT2Ex;
+     hessWork.reflData.MatrixMultEx := {$IFDEF FPC}@{$ENDIF}MatrixMultEx;
+
+     Result := qlOk;     
+     InitReflectorBlk(hessWork);
+     try
+        if not InternalMatrixHessenberg( A, LineWidthA, width, tau, hessWork ) then
+           Result := qlMatrixError;
+     finally
+            FreeMem(hessWork.mem);
+     end;
+end;
+
+function ThrMtxHessenberg2InPlace(A : PDouble; const LineWidthA : TASMNAtiveInt; width : TASMNativeInt; tau : PDouble; hessBlockSize : integer) : TEigenvalueConvergence; 
+var hessWork : THessData;
+begin
+     // around here is a good crossover point where multithreaded code starts to be faster
+     if width < 150 then
+     begin
+          Result := MatrixHessenberg2InPlace(A, LineWidthA, width, tau, hessBlockSize);
+          exit;
+     end;
+     FillChar(hessWork, sizeof(hessWork), 0 );
+     
+     hesswork.PnlSize := hessBlockSize;
+     hessWork.work := MtxAllocAlign( EigMemSize(hesswork, width) + (numCPUCores - 1)*BlockMultMemSize( Max(QRMultBlockSize, HessMultBlockSize) ), hessWork.mem ); 
+     hessWork.T := hessWork.work;
+     hessWork.tLineWidth := sizeof(double)*hesswork.PnlSize;
+     // Y needs to point directly "under" T to work with the block reflectors
+     hessWork.Y := GenPtr(hessWork.work, 0, hesswork.PnlSize, hessWork.tLineWidth);
+     hessWork.yLineWidth := hessWork.tLineWidth;
+
+     // align ptr just around "under" Y
+     hessWork.blkMultMem := AlignPtr32( GenPtr( hessWork.work, 0, hesswork.PnlSize + width, hessWork.tLineWidth ) );
+     
+     hessWork.reflData.MatrixMultT1 := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultT1Ex;
+     hessWork.reflData.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultT2Ex;
+     hessWork.reflData.MatrixMultEx := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultEx;
+
+     Result := qlOk;     
+     InitReflectorBlk(hessWork);
+     try
+        if not InternalMatrixHessenberg( A, LineWidthA, width, tau, hessWork ) then
+           Result := qlMatrixError;
+     finally
+            FreeMem(hessWork.mem);
+     end;
+end;
 
 end.
