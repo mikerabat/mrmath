@@ -442,7 +442,7 @@ begin
      
      // estimate working space
      if fWork.Width <> x.Height then
-        fWork.SetWidthHeight(x.Height, 4 + N + QRDecompMemSize(QRBlockSize, x.Height) div (sizeof(double)*x.Height));
+        fWork.SetWidthHeight(x.Height, 4 + N + QRDecompMemSize(QRBlockSize, x.Width, x.Height ) div (sizeof(double)*x.Height));
 
      pWork := fWork.StartElement;
      pX := PConstDoubleArr(pWork);
@@ -518,7 +518,7 @@ begin
 
      // estimate working space
      if fWork.Width <> fV.Height then
-        fWork.SetWidthHeight(fV.Height, 4 + fOrder + QRDecompMemSize(QRBlockSize, fV.Height) div (sizeof(double)*fV.Height));
+        fWork.SetWidthHeight(fV.Height, 4 + fOrder + QRDecompMemSize(QRBlockSize, fV.Height, fV.Width) div (sizeof(double)*fV.Height));
 
      pWork := fWork.StartElement;
      pX := PConstDoubleArr(pWork);

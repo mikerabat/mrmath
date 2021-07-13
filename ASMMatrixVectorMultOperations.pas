@@ -49,6 +49,10 @@ procedure ASMRank1UpdateSeq(A : PDouble; const LineWidthA : TASMNativeInt; width
 procedure ASMRank1UpdateSeqAligned(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
   X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
+// same as above but it's assumed that the vector y is non sequential
+procedure ASMRank1UpdateNonSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
+  X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+
 {$ENDIF}
 
 implementation
@@ -1283,6 +1287,90 @@ asm
        // next results:
        add edi, incx;
        add eax, edx;
+   dec height;
+   jnz @@foryloop;
+
+   // epilog
+   pop esi;
+   pop edi;
+   pop ebx;
+end;
+
+procedure ASMRank1UpdateNonSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
+  X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+var wd2 : TASMNativeInt;
+    aWidth : TASMNativeInt;
+    aLineWidthTmp : TASMNativeInt;
+// performs A = A + alpha*X*Y' in row major form
+asm
+   push ebx;
+   push edi;
+   push esi;
+
+   mov aLineWidthTmp, edx;
+   mov aWidth, ecx;
+   shr ecx, 1;
+   mov wd2, ecx;
+        
+   mov edi, X;
+   mov edx, incY;
+
+   // for the temp calculation
+   movddup xmm7, alpha;
+
+   // prepare for loop
+
+   // init for y := 0 to height - 1:
+   @@foryloop:
+
+       // init values:
+       movddup xmm0, [edi];  // res := 0;
+       mulpd xmm0, xmm7;     // tmp := alpha*pX^
+       mov esi, eax;         // esi = first destination element
+       mov ebx, Y;           // ebx = first y vector element
+
+       // for j := 0 to width - 1 do
+       mov ecx, wd2;
+       test ecx, ecx;
+       jz @@lastElem;
+
+       @@forxloop:
+           movupd xmm1, [esi];
+           movlpd xmm2, [ebx];
+           movhpd xmm2, [ebx + edx];
+
+           // pA^[j] := pA^[j] + tmp*pY1^[j];
+           mulpd xmm2, xmm0;
+           addpd xmm1, xmm2;
+
+           movupd [esi], xmm1;
+
+           add esi, 16;
+           add ebx, edx;
+           add ebx, edx;
+
+       dec ecx;
+       jnz @@forxloop;
+
+       // check if we need to handle the last element
+       mov ecx, aWidth;
+       and ecx, 1;
+       jz @@nextline;
+
+       @@lastElem:
+
+       movsd xmm1, [esi];
+       movsd xmm2, [ebx];
+
+       mulsd xmm2, xmm0;
+       addsd xmm1, xmm2;
+       movsd [esi], xmm1;
+
+       @@nextline:
+
+       // next results:
+       add edi, incx;
+       add eax, aLineWidthTmp;
    dec height;
    jnz @@foryloop;
 

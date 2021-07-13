@@ -84,7 +84,7 @@ implementation
 
 {$IFDEF FPC} {$S-} {$ENDIF}
 
-uses Math,
+uses Math, 
      {$IFDEF x64}
      AVXMatrixMultTransposedOperationsx64, AVXMoveOperationsx64, AVXMatrixAbsOperationsx64,
      AVXMatrixScaleOperationsx64, AVXMatrixTransposeOperationsx64, AVXMatrixVectorMultOperationsx64,
@@ -99,7 +99,7 @@ uses Math,
      AVXMatrixNormOperations, AVXMatrixSumOperations,
      AVXMatrixCumSumDiffOperations, MatrixASMStubSwitch,
      {$ENDIF}
-     SimpleMatrixOperations;
+     ASMMatrixOperations, SimpleMatrixOperations;
 
 
 procedure AVXMatrixAddAndScale(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
@@ -1163,7 +1163,10 @@ begin
      if (width <= 0) or (height <= 0) then
         exit;
 
-     if ((TASMNativeUInt(A) and $0000001F) = 0) and ((TASMNativeUInt(Y) and $0000001F) = 0) and (LineWidthA and $1F = 0)
+     if incY <> sizeof(double) 
+     then
+         ASMRank1Update(A, LineWidthA, width, height, x, y, incx, incy, alpha)
+     else if ((TASMNativeUInt(A) and $0000001F) = 0) and ((TASMNativeUInt(Y) and $0000001F) = 0) and (LineWidthA and $1F = 0)
      then
          AVXRank1UpdateSeqAligned(A, LineWidthA, width, height, x, y, incX, incY, alpha)
      else

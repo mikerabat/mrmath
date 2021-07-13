@@ -55,6 +55,11 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Daten 07.07.2021
+* Implemented new matrix decomposition according to lapack: Hessian decomposition
+* Threaded hess decomposition version
+* Todo: check when the optimal crossover from blocked to unblocked version is due
+
 Date 10.12.2020
 * Started a new file that contains some useful matrix functions that do not fit anywhere else
 * Started with matrix exponential e^A where A is a matrix

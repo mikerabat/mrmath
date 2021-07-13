@@ -1604,7 +1604,10 @@ begin
      if (width <= 0) or (height <= 0) then
         exit;
 
-     if ((TASMNativeUInt(A) and $0000000F) = 0) and ((TASMNativeUInt(Y) and $0000000F) = 0) and (LineWidthA and $F = 0)
+     if incY <> sizeof(double) 
+     then
+         ASMRank1UpdateNonSeq(A, LineWidthA, width, height, x, y, incx, incy, alpha)
+     else if ((TASMNativeUInt(A) and $0000000F) = 0) and ((TASMNativeUInt(Y) and $0000000F) = 0) and (LineWidthA and $F = 0)
      then
          ASMRank1UpdateSeqAligned(A, LineWidthA, width, height, x, y, incX, incY, alpha)
      else

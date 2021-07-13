@@ -115,6 +115,7 @@ type
     procedure TestRank1Upd;
     procedure TestBigRank1Upd;
     procedure TestDiagMtxMult1;
+    procedure TestDiagMtxMultVec;
     procedure TestConvolve;
     procedure TestConvolveBig;
   end;
@@ -4297,7 +4298,41 @@ begin
      ASMMtxMultTria2Store1Unit(@a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 3, 4, 3, 3);
 
      Check(CheckMtx(a, a1), 'MtxMultTria2Store1Unit');
+end;
 
+procedure TASMMatrixOperations.TestDiagMtxMultVec;
+const cB : Array[0..3] of double = (-1, -2, 1, 2);
+      cA : Array[0..15] of double = ( 1, 2, 3, 4,
+                                      -1, 2, -1, 1,
+                                      3, 4, 5, 2,
+                                      -1, -1, 0, 3);
+       cRes1 : Array[0..3] of double = (2, 0, 1, 2);
+       cRes2 : Array[0..3] of double = (-1, -6, 4, 2);
+       cRes3 : Array[0..3] of double = (6, -3, 9, 6);
+       cRes4 : Array[0..3] of double = (-1, -1, -10, 5);
+var a : Array[0..15] of double;
+    b : Array[0..3] of double;
+  procedure Init;
+  begin
+       Move( cA, a, sizeof(cA));
+       Move( cB, b, sizeof(cb));
+  end;
+begin
+     Init;
+     GenericMtxMultLowTranspUnitVec( @a[0], 4*sizeof(double), @b[0], sizeof(double), 4 );
+     Check( CheckMtx( b, cRes1), 'GenericMtxMultLowTranspUnitVec failed');
+
+     Init;
+     GenericMtxMultUpTranspNoUnitVec(@a[0], 4*sizeof(double), @b[0], sizeof(double), 4 );
+     Check( CheckMtx( b, cRes2), 'GenericMtxMultUpTranspNoUnitVec failed');
+
+     Init;
+     GenericMtxMultUpNoTranspNoUnitVec(@a[0], 4*sizeof(double), @b[0], sizeof(double), 4 );
+     Check( CheckMtx( b, cRes3), 'GenericMtxMultUpNoTranspNoUnitVec failed');
+
+     Init;
+     GenericMtxMultLowNoTranspUnitVec(@a[0], 4*sizeof(double), @b[0], sizeof(double), 4 );
+     Check( CheckMtx( b, cRes4), 'GenericMtxMultLowNoTranspUnitVec failed');
 end;
 
 procedure TASMMatrixOperations.TestSubT;

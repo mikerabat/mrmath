@@ -50,6 +50,10 @@ procedure ASMRank1UpdateSeq(A : PDouble; const LineWidthA : TASMNativeInt; width
 procedure ASMRank1UpdateSeqAligned(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
   {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : TASMNativeInt; alpha : double);  {$IFDEF FPC}assembler;{$ENDIF}
 
+
+procedure ASMRank1UpdateNonSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
+  {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : TASMNativeInt; alpha : double);  {$IFDEF FPC}assembler;{$ENDIF}
+
 {$ENDIF}
 
 implementation
@@ -1592,17 +1596,17 @@ asm
       jz @@lastElem;
 
       @@forxloop:
-      movupd xmm1, [rax];
-      movupd xmm2, [rbx];
+         movupd xmm1, [rax];
+         movupd xmm2, [rbx];
 
-      // pA^[j] := pA^[j] + tmp*pY1^[j];
-      mulpd xmm2, xmm0;
-      addpd xmm1, xmm2;
+         // pA^[j] := pA^[j] + tmp*pY1^[j];
+         mulpd xmm2, xmm0;
+         addpd xmm1, xmm2;
 
-      movupd [rax], xmm1;
+         movupd [rax], xmm1;
 
-      add rax, 16;
-      add rbx, 16;
+         add rax, 16;
+         add rbx, 16;
 
       dec r14;
       jnz @@forxloop;
@@ -1638,6 +1642,112 @@ asm
    mov r14, iR14;
 end;
 
+procedure ASMRank1UpdateNonSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
+  {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : TASMNativeInt; alpha : double);  {$IFDEF FPC}assembler;{$ENDIF}
+var iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
+    {$ifdef UNIX}
+    X, Y : PDouble;
+    {$endif}
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov X, r8;
+   mov Y, r9;
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
+   // prolog - simulate stack
+   mov iRBX, rbx;
+   mov iRSI, rsi;
+   mov iRDI, rdi;
+   mov iR12, r12;
+   mov iR13, r13;
+   mov iR14, r14;
+   mov iR15, r15;
+
+   mov r15, incY;
+   mov r12, r8;
+   sar r12, 1;   // width div 2
+
+   // performs A = A + alpha*X*Y' in row major form
+
+   mov rdi, X;
+   mov r13, Y;
+
+   // for the temp calculation
+   movddup xmm3, alpha;
+
+   // prepare for loop
+   mov rsi, incx;
+   // init for y := 0 to height - 1:
+   @@foryloop:
+
+      // init values:
+      movddup xmm0, [rdi];  // res := 0;
+      mulpd xmm0, xmm3;     // tmp := alpha*pX^
+      mov rax, rcx;         // eax = first destination element A
+      mov rbx, r13;           // ebx = first y vector element
+
+      // for j := 0 to width - 1 do
+      mov r14, r12;
+      test r14, r14;
+      jz @@lastElem;
+
+      @@forxloop:
+         movupd xmm1, [rax];
+         movlpd xmm2, [rbx];
+         movhpd xmm2, [rbx + r15];
+
+         // pA^[j] := pA^[j] + tmp*pY1^[j];
+         mulpd xmm2, xmm0;
+         addpd xmm1, xmm2;
+
+         movupd [rax], xmm1;
+
+         add rax, 16;
+         add rbx, r15;
+         add rbx, r15;
+
+      dec r14;
+      jnz @@forxloop;
+
+      // check if we need to handle the last element
+      mov r14, r8;
+      and r14, 1;
+      jz @@nextline;
+
+      @@lastElem:
+
+      movsd xmm1, [rax];
+      movsd xmm2, [rbx];
+
+      mulsd xmm2, xmm0;
+      addsd xmm1, xmm2;
+      movsd [rax], xmm1;
+
+      @@nextline:
+
+      // next results:
+      add rdi, rsi;
+      add rcx, rdx;
+   dec r9;          // r9 = height
+   jnz @@foryloop;
+
+   // epilog
+   mov rbx, iRBX;
+   mov rsi, iRSI;
+   mov rdi, iRDI;
+   mov r12, iR12;
+   mov r13, iR13;
+   mov r14, iR14;
+   mov r15, iR15;
+end;
 
 procedure ASMRank1UpdateSeqAligned(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
   {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : TASMNativeInt; alpha : double); {$IFDEF FPC}assembler;{$ENDIF}

@@ -42,8 +42,6 @@ package mrMath;
 {$DESCRIPTION 'mrMath Matrix library'}
 {$RUNONLY}
 {$IMPLICITBUILD OFF}
-{$DEFINE DEBUG}
-{$DEFINE madExcept}
 
 requires
   rtl;

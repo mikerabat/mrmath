@@ -20,24 +20,54 @@ unit HouseholderReflectors;
 
 interface
 
-uses MatrixConst;
+uses MatrixConst, MatrixASMStubSwitch;
 
 function GenElemHousholderRefl(A : PDouble; LineWidthA : TASMNativeInt; Height : TASMNativeInt; var Alpha : double; Tau : PDouble) : boolean;
 
 procedure ApplyElemHousholderReflLeft(V : PDouble; LineWidthV : TASMNativeInt; C : PDouble; const LineWidthC : TASMNativeInt; width, height : TASMNativeInt;
   Tau : PDouble; Work : PDouble);
 
+// work needs to be at least w4 + h4 where w4 is the next number of width that is divisable by 4 without rest and same for h4
 procedure ApplyElemHousholderReflRight(V : PDouble; LineWidthV : TASMNativeInt; C : PDouble; const LineWidthC : TASMNativeInt; width, height : TASMNativeInt;
   Tau : PDouble; Work : PDouble);
+
+
+  // ###########################################
+// #### Base implementation of Block reflectors for the Lapack decompositions
+type
+  TBlockReflrec = record
+  //   work : PDouble;
+  //   LineWidthWork : TASMNativeInt;
+     T : PDouble;
+     LineWidthT : TASMNativeInt;
+
+     BlkMultMem : PDouble;
+
+     MatrixMultT1 : TMatrixBlockedMultfunc;
+     MatrixMultT2 : TMatrixBlockedMultfunc;
+     MatrixMultEx : TMatrixBlockedMultfunc;
+  end;
+
+// apply block reflector to a matrix
+// original DLARFB in Lapack - Left, Transpose, Forward, Columnwise
+procedure ApplyBlockReflectorLTFC(A : PDouble; LineWidthA : TASMNativeInt; const reflData : TBlockReflrec;
+  width, height : TASMNativeInt; k : TASMNativeInt; Transposed : boolean);
+
+
+// block reflector right transposed forward rowwise
+procedure ApplyBlockReflectorRTFR(A : PDouble; LineWidthA : TASMNativeInt; const reflData : TBlockReflrec; //const qrData : TRecMtxQRDecompData;
+  width, height : TASMNativeInt; widthT : TASMNativeInt; Transposed : boolean);
 
 
 implementation
 
-uses MatrixASMStubSwitch, MathUtilFunc;
+uses BlockSizeSetup, MathUtilFunc;
 
 // "right" part of dlarf
 procedure ApplyElemHousholderReflRight(V : PDouble; LineWidthV : TASMNativeInt; C : PDouble; const LineWidthC : TASMNativeInt; width, height : TASMNativeInt;
   Tau : PDouble; Work : PDouble);
+var pVWork : PDouble;
+    h4 : TASMNativeInt;
 begin
      // work = A(1:m, 2:n)T*A(1:m, 1)
      if tau^ <> 0 then
@@ -45,10 +75,25 @@ begin
           // note: the original routine has here an option C -> but in all cases it's
           // A + 1
 
+          h4 := height;
+          if height and $03 <> 0 then
+             h4 := height + 4 - height and $03;
+          pVWork := V;
+          if LineWidthV <> sizeof(double) then
+          begin
+               pVWork := GenPtr(Work, h4, 0, sizeof(double));
+               // make it a vector
+               MatrixCopy(pVWork, sizeof(double), V, LineWidthV, 1, width);
+          end;
+          
+          MatrixMtxVecMult(work, sizeof(double), C, pVWork, LineWidthC, sizeof(double), width, height, 1, 0);
+          MatrixRank1Update(C, LineWidthC, width, height, -Tau^, work, pVWork, sizeof(double), sizeof(double));
+
           // todo: there is some other scanning going on for non zero columns...
           // do the basic operation here...
-          MatrixMtxVecMult(work, sizeof(double), C, V, LineWidthC, LineWidthV, width, height, 1, 0);
-          MatrixRank1Update(C, LineWidthC, width, height, -Tau^, work, V, sizeof(double), LineWidthV);
+
+          //MatrixMtxVecMult(work, sizeof(double), C, V, LineWidthC, LineWidthV, width, height, 1, 0);
+          //MatrixRank1Update(C, LineWidthC, width, height, -Tau^, work, V, sizeof(double), LineWidthV);
      end;
 end;
 
@@ -129,6 +174,147 @@ begin
           MatrixMtxVecMultT(work, sizeof(double), C, V, LineWidthC, LineWidthV, width, height, 1, 0);
           MatrixRank1Update(C, LineWidthC, width, height, -tau^, V, work, LineWidthV, sizeof(double));
      end;
+end;
+
+// ###########################################
+// #### Blocked reflectors
+// ###########################################
+
+// apply block reflector to a matrix
+// original DLARFB in Lapack - Left, Transpose, Forward, Columnwise
+procedure ApplyBlockReflectorLTFC(A : PDouble; LineWidthA : TASMNativeInt; const reflData : TBlockReflrec;
+  width, height : TASMNativeInt; k : TASMNativeInt; Transposed : boolean);
+var pC1, pC2 : PDouble;
+    pV1, pV2 : PDouble;
+    T : PDouble;
+    LineWidthT : TASMNativeInt;
+    mem : PDouble;
+    LineWidthMem : TASMNativeInt;
+    //s : string;
+    //s1, s2 : string;
+begin
+     if (width <= 0) or (height <= 0) then
+        exit;
+
+     mem := reflData.T;
+     inc(PByte(mem), k*reflData.LineWidthT);  // upper part (nb x nb) is dedicated to T, lower part to W in dlarfb
+     LineWidthMem := reflData.LineWidthT;
+
+     T := reflData.T;
+     //s := WriteMtx(T, reflData.LineWidthT, 3, 3);
+     lineWidthT := reflData.LineWidthT;
+
+     // (I - Y*T*Y')xA_trailing
+     pV1 := A;
+     pV2 := GenPtr(A, 0, k, LineWidthA);
+     pC1 := GenPtr(A, k, 0, LineWidthA);
+     pC2 := GenPtr(A, k, k, LineWidthA);
+
+     // W = C1'*V1
+     MatrixMultTria2T1(mem, LineWidthMem, pC1, LineWidthA, pV1, LineWidthA, width, k, k, k);
+
+     //s := WriteMtx( mem, LineWidthMem, k, 5 );
+
+     // W = W + C2'*V2
+     if height > k then
+        reflData.MatrixMultT1(mem, LineWidthMem, pC2, pV2, Width, height - k, k, height - k, LineWidthA, LineWidthA, QRMultBlockSize, doAdd, reflData.BlkMultMem);
+
+     // W = W * T (using dtrm)  or W = W*T'
+     if transposed
+     then
+         MtxMultTria2T1StoreT1(mem, LineWidthMem, T, LineWidthT, k, width, k, k)
+     else
+         MtxMultTria2Store1(mem, LineWidthMem, T, LineWidthT, k, width, k, k);
+
+     if height > k then
+     begin
+          // C2 = C2 - V2*W'
+          reflData.MatrixMultT2(pC2, LineWidthA, pV2, mem, k, height - k, k, width,
+                              LineWidthA, LineWidthMem, QRMultBlockSize, doSub, reflData.BlkMultMem);
+
+          // W = W*V1' (lower left part of Y1! -> V1)
+          MtxMultLowTria2T2Store1(mem, LineWidthMem, A, LineWidthA, k, width, k, k);
+     end;
+
+     // C1 = C1 - W'
+     MatrixSubT(pC1, LineWidthA, mem, LineWidthMem, width, k);
+end;
+
+// dlarfb 'Right', 'Transpose', 'Forward', 'Rowwise'
+procedure ApplyBlockReflectorRTFR(A : PDouble; LineWidthA : TASMNativeInt; const reflData : TBlockReflrec;
+  width, height : TASMNativeInt; widthT : TASMNativeInt; Transposed : boolean);
+var pC1, pC2 : PDouble;
+    pV1, pV2 : PDouble;
+    T : PDouble;
+    LineWidthT : TASMNativeInt;
+    LineWidthW : TASMNativeInt;
+    W : PDouble;
+    heightC1, widthC1 : TASMNativeInt;
+    widthC2, heightC2 : TASMNativeInt;
+
+    widthV1, heightV1 : TASMNativeInt;
+    widthV2, heightV2 : TASMNativeInt;
+
+    widthW, heightW : TASMNativeInt;
+begin
+     // it is assumed that height contains the full height of the input matrix A
+     // we subsect it in this routine
+     widthC1 := widthT;
+     heightC1 := height - widthT;
+     widthC2 := width - widthT;
+     heightC2 := height - widthT;
+
+     widthV1 := widthT;
+     heightV1 := widthT;
+     widthV2 := width - widthT;
+     heightV2 := widthT;
+
+     widthW := widthT;
+     heightW := height - widthT;
+
+     // W := C * V**T  =  (C1*V1**T + C2*V2**T)  (stored in WORK)
+     // upper part (nb x nb) is dedicated to T, lower part to W in dlarfb
+     W := GenPtr(reflData.T, 0, widthT, reflData.LineWidthT);
+     LineWidthW := reflData.LineWidthT;
+
+     T := reflData.T;
+     LineWidthT := reflData.LineWidthT;
+
+     pC1 := GenPtr(A, 0, widthT, LineWidthA);
+     pC2 := pC1;
+     inc(pC2, widthT);
+
+     pV1 := A; // GenPtr(A, 0, 0, LineWidthA);
+     pV2 := GenPtr(pV1, widthT, 0, LineWidthA);
+
+     // W := W * V1**T  // dtrm right upper transpose unit combined with copy
+     MtxMultTria2TUpperUnit(W, LineWidthW, pC1, LineWidthA, pV1, LineWidthA, widthC1, heightC1, widthV1, heightV1);
+
+     if width > widthT then
+     begin
+          //  W := W + C2 * V2**T
+          reflData.MatrixMultT2(W, LineWidthW, pC2, pV2,
+                              widthC2, heightC2, widthV2, heightV2,
+                              LineWidthA, LineWidthA, QRMultBlockSize, doAdd, reflData.BlkMultMem);
+     end;
+
+     // W := W * T  or  W * T**T
+     if transposed
+     then
+         MtxMultTria2T1StoreT1(W, LineWidthW, T, LineWidthT, widthW, heightW, WidthT, WidthT)
+     else
+         MtxMultTria2Store1(W, LineWidthW, T, LineWidthT, widthW, heightW, WidthT, WidthT);
+
+     // C2 := C2 - W * V2
+     if width > widthT then
+        reflData.MatrixMultEx(pC2, LineWidthA, W, pV2, widthW, heightW, widthV2, heightV2, LineWidthW,
+                     LineWidthA, QRMultBlockSize, doSub, reflData.BlkMultMem);
+
+     // W := W * V1
+     MtxMultTria2Store1Unit(W, LineWidthW, pV1, LineWidthA, widthW, heightW, widthV1, heightV1);
+
+     // C1 := C1 - W
+     MatrixSub(pC1, LineWidthA, pC1, W, widthC1, heightC1, LineWidthA, LineWidthW);
 end;
 
 
