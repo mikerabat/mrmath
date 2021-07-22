@@ -3392,7 +3392,7 @@ begin
         h := aFile.Count;
         
         slLine := TStringList.Create;
-        slLine.Delimiter := ' ';
+        slLine.Delimiter := ',';
         try
            for cnt := 0 to h - 1 do
            begin
