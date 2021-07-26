@@ -24,18 +24,14 @@ Uses SysUtils, MatrixConst, Matrix, BaseMathPersistence;
 // #### Partial least squares   
 // ###########################################
 Type
+  TPLSAlgorithm = (paEig, paSVD);
   TMatrixPLS = Class(TMatrixClass)
   private
-    fSSQDif: TDoubleMatrix;
-    fCW: TDoubleMatrix;
-    fW: TDoubleMatrix;
-    fBeta: TDoubleMatrix;
-    fYRes: TDoubleMatrix;
-    fTheta: TDoubleMatrix;
+    fAlgorithm : TPLSAlgorithm;
+    fBeta: IMatrix;
+    fXMean, fYMean : IMatrix;
   protected
     procedure Clear;
-    // part of matlabs "\" algo
-    function mlDivide(A, y: TDoubleMatrix): IMatrix;
 
     // persistence
     procedure DefineProps; override;
@@ -45,18 +41,18 @@ Type
     function OnLoadObject(const Name : String; obj : TBaseMathPersistence) : boolean; override;
   public
     destructor Destroy; override;
-    procedure Plsr(Xreg, Yreg: TDoubleMatrix; NInput, NComp: Integer); overload;
-    procedure Plsr(Xreg, Yreg: TDoubleMatrix; CNComp: Integer); overload;
+
+    function PLSRegress( Xreg, Yreg : TDoubleMatrix; NComp : integer ) : boolean; overload;
+    function PLSRegress( Xreg, Yreg : TDoubleMatrix; NComp : integer; fitted : TDoubleMatrix ) : boolean; overload;
 
     function Project(x : TDoubleMatrix) : TDoubleMatrix;
-    
+
+    property Algorithm : TPLSAlgorithm read fAlgorithm write fAlgorithm;
+
     // out
-    property SSQDif: TDoubleMatrix read fSSQDif;
-    property CW: TDoubleMatrix read fCW;
-    property W: TDoubleMatrix read fW;
-    property Beta: TDoubleMatrix read fBeta;
-    property YRes: TDoubleMatrix read fYRes;         // residual when calculating plsr
-    property Theta: TDoubleMatrix read fTheta;       
+    property Beta: IMatrix read fBeta;
+    property YMean: IMatrix read fYMean;         // residual when calculating plsr
+    property XMean: IMatrix read fXMean;
   End;
 
 
@@ -67,13 +63,9 @@ implementation
 
 procedure TMatrixPLS.Clear;
 begin
-     // free stuff
-     FreeAndNil(fSSQDif);
-     FreeAndNil(fCW);
-     FreeAndNil(fW);
-     FreeAndNil(fBeta);
-     FreeAndNil(fYRes);
-     FreeAndNil(fTheta);
+     fXMean := Nil;
+     fYMean := nil;
+     fBeta := nil;
 end;
 
 destructor TMatrixPLS.Destroy;
@@ -83,136 +75,20 @@ begin
      inherited;
 end;
 
-function TMatrixPLS.mlDivide(A, y: TDoubleMatrix): IMatrix;
-var tmp : TDoubleMatrix;
-begin
-     if A.SolveLeastSquares(tmp, y) <> qrOK then
-        raise Exception.Create('Error: Failed to solve equation system.');
-     Result := tmp;
-end;
-
-procedure TMatrixPLS.Plsr(Xreg, Yreg: TDoubleMatrix; NInput, NComp: Integer);
-var LNrx, LNcx, LNry: Integer;
-    Lssqx, Lssqy: IMatrix;
-    Lx,Ly, LR, LSSQ: IMatrix;
-    i,j: Integer;
-    n: integer;
-
-  //test
-    Lwt: IMatrix;
-    LYPred: IMatrix;
-begin
-     Clear;
-     //[nrx,ncx] = size(xreg);
-     LNrx := Xreg.Height;
-     LNcx := Xreg.Width;
-     
-     //[nry,ncy] = size(yreg);
-     LNry := Yreg.Height;
-     
-     //if nrx ~= nry
-     if LNrx <> LNry then
-       raise Exception.Create('Number of rows for input and output must be same!');
-
-     // alloc ssq
-     LSSQ := MatrixClass.Create(NComp, 2);
-
-     //ssqx = sum(sum(xreg.^2)');
-     Lssqx := ((Xreg.ElementWiseMult(Xreg) As IMatrix).Sum(FALSE) As IMatrix).Sum(TRUE);
-     //ssqy = sum(sum(yreg.^2)');
-     Lssqy := ((Yreg.ElementWiseMult(Yreg) As IMatrix).Sum(FALSE) As IMatrix).Sum(TRUE);
-     //x = xreg;
-     Lx := xreg.Clone;
-     //y = yreg;
-     Ly := yreg.Clone;
-     //I = eye(ncx);
-     //LI := MatrixClass.CreateEye(LNcx);
-     //w = zeros(ncx,lv);
-     fW := MatrixClass.Create(NComp, LNcx);
-     LR := MatrixClass.Create(NComp, LNrx);
-
-     //for i = 1:lv
-     for i := 0 to NComp-1 do
-     begin
-          //w(:,i) = x'*y;
-          fW.SetColumn(i, (Lx.Transpose As IMatrix).Mult(Ly) As IMatrix);
-          //w(:,i) = w(:,i)/norm(w(:,i));
-          fW.SetSubMatrix(i,0,1,fW.Height);
-          fW.ScaleInPlace(1/fW.ElementwiseNorm2);
-          //r(:,i) = x * w(:,i);
-          LR.SetColumn(i, Lx.Mult(fW) As IMatrix);
-          //x = x -  r(:,i) * w(:,i)';
-          LR.SetSubMatrix(i, 0, 1, LR.Height);
-          Lx.SubInPlace(LR.MultT2(fW) As IMatrix);
-          //y = y - r*(r\y);
-          LR.SetSubMatrix(0, 0, i+1, LR.Height);        
-          Ly.SubInPlace(Lr.Mult( mlDivide(Lr.GetObjRef, Ly.GetObjRef) ) As IMatrix);
-
-          //ssq(i,1) = (sum(sum(x.^2)'))*100/ssqx;
-          Lwt := ((Lx.ElementWiseMult(Lx) As IMatrix).Sum(false) As IMatrix).Sum(True);
-          LSSQ[i, 0] := (lwt[0,0]*100)/Lssqx[0,0];
-
-          //ssq(i,2) = (sum(sum(y.^2)'))*100/ssqy;
-          Lwt := ((Ly.ElementWiseMult(Ly) As IMatrix).Sum(false) As IMatrix).Sum(True);
-          LSSQ[i, 1] := (lwt[0,0]*100)/Lssqy[0,0];
-
-          fW.UseFullMatrix;
-          LR.UseFullMatrix;
-     end;
-
-     //cw = r\yreg;
-     fCW := mlDivide(Lr.GetObjRef, yreg).Clone;
-     //thetam = w * cw; == fBeta
-     fBeta := fW.Mult(fCW);
-
-     //ssqdif = zeros(lv,2);
-     fSSQDif := MatrixClass.Create(NComp, 2);
-     //ssqdif(1,1) = 100 - ssq(1,1);
-     fSSQDif[0,0] := 100 - LSSQ[0,0];
-     //ssqdif(1,2) = 100 - ssq(1,2);
-     fSSQDif[0,1] := 100 - LSSQ[0,1];
-     //for i = 2:lv
-     for i := 1 to NComp-1 do
-     begin
-          //for j = 1:2
-          for j := 0 to 1 do
-          begin
-               //ssqdif(i,j) = -ssq(i,j) + ssq(i-1,j);
-               fSSQDif[i,j] := -LSSQ[i,j] + LSSQ[i-1,j];
-          end;
-     end;
-
-     //ypred = xreg * thetam;
-     LYPred := Xreg.Mult(fBeta);
-     //yres = yreg - ypred;
-     fYRes := YReg.Sub(LYPred);
-     //rms = norm(yres); <- dont needed
-
-     //n = ncx / ninput;
-     n := LNcx div NInput;
-     fTheta := MatrixClass.Create(NInput, n);
-     
-     //for i = 1:ninput
-     for i := 0 to NInput - 1 do
-     begin
-          //   theta(:,i) = thetam(n*(i-1)+1:n*i);
-          fBeta.SetSubMatrix(0, n*i, 1, Trunc(n));
-          fTheta.SetColumn(i, fBeta);
-     end;
-     fBeta.UseFullMatrix;
-end;
-
-
 function TMatrixPLS.Project(x: TDoubleMatrix): TDoubleMatrix;
+var tmp : IMatrix;
 begin
-     Result := x.Mult(fTheta);
+     tmp := TDoubleMatrix.Create(X.Width + 1, X.Height);
+     tmp := x.SubVec(fXMean, True);
+     //
+     Result := tmp.Mult(fBeta);
+     Result.AddVecInPlace(fYMean, True);
 end;
 
 
 function TMatrixPLS.PropTypeOfName(const Name: string): TPropType;
 begin
-     if SameText(Name, 'theta') or SameText(Name, 'ssqdif') or SameText(Name, 'cw') or
-        SameText(Name, 'w') or SameText(Name, 'beta') or SameText(Name, 'yres') 
+     if SameText(Name, 'beta') or SameText(Name, 'xmean') or SameText(Name, 'ymean')
      then
          Result := ptObject
      else
@@ -225,51 +101,196 @@ end;
 
 procedure TMatrixPLS.DefineProps;
 begin
-     if not Assigned(fTheta) then
+     if not Assigned(fBeta) then
         exit;
 
-     AddObject('theta', fTheta);
-     AddObject('ssqdif', fSSQDif);
-     AddObject('cw', fCW);
-     AddObject('w', fW);
-     AddObject('beta', fBeta);
-     AddObject('yres', fYRes);
+     AddObject('beta', fBeta.GetObjRef);
+     AddObject('ymean', fYMean.GetObjRef);
+     AddObject('xmean', fXMean.GetObjRef);
 end;
 
 class function TMatrixPLS.ClassIdentifier: String;
 begin
-     Result := 'PLS';
+     Result := 'PLSREGRESS';
 end;
 
 function TMatrixPLS.OnLoadObject(const Name: String;
   obj: TBaseMathPersistence): boolean;
 begin
      Result := True;
-     if CompareText(Name, 'theta') = 0 
-     then
-         fTheta := obj as TDoubleMatrix
-     else if CompareText(Name, 'ssqdif') = 0 
-     then
-         fSSQDif := obj as TDoubleMatrix
-     else if CompareText(Name, 'cw') = 0 
-     then
-         fCW := obj as TDoubleMatrix
-     else if CompareText(Name, 'w') = 0 
-     then
-         fW := obj as TDoubleMatrix
-     else if CompareText(Name, 'beta') = 0 
+     if CompareText(Name, 'beta') = 0
      then
          fBeta := obj as TDoubleMatrix
-     else if CompareText(Name, 'yres') = 0 
+     else if CompareText(Name, 'ymean') = 0
      then
-         fYRes := obj as TDoubleMatrix
+         fYMean := obj as TDoubleMatrix
+     else if CompareText(Name, 'xmean') = 0
+     then
+         fXMean := obj as TDoubleMatrix
      else
          Result := inherited OnLoadObject(name, obj);
 end;
 
-procedure TMatrixPLS.Plsr(Xreg, Yreg: TDoubleMatrix; CNComp: Integer);
+function TMatrixPLS.PLSRegress(Xreg, Yreg: TDoubleMatrix; NComp: integer): boolean;
 begin
-     Plsr(Xreg, yReg, YReg.Height, CNComp);
+     Result := PLSRegress(Xreg, yReg, NComp, nil );
+end;
+
+function TMatrixPLS.PLSRegress(Xreg, Yreg: TDoubleMatrix; NComp: integer; fitted : TDoubleMatrix) : boolean;
+var nobs : Integer;
+    npred : integer;
+    nresp : integer;
+    ym, xm : IMatrix;
+    S : IMatrix;
+    R, P, V : IMatrix;
+    T, U : IMatrix;
+    Q : IMatrix;
+    i, j : Integer;
+    domIdx : integer;
+    eigMax : double;
+    eigVec, eigVal, tmp : IMatrix;
+    rl, tl : IMatrix;
+    tm : IMatrix;
+    nt : double;
+    pl, ql, ul, vl : IMatrix;
+begin
+     Result := False;
+
+     nobs := XReg.Height;  // number of observations
+     npred := XReg.Width;  // number of predictor values
+     nresp := YReg.Width;  // number of responses
+
+     // mean centering data matrix
+     fXMean := Xreg.Mean(False);
+     xm := Xreg.SubVec(fXMean, True);
+
+     // mean centering responses
+     fYMean := Yreg.Mean(False);
+     ym := Yreg.SubVec(fYMean, True);
+
+     // S = X'*Y;
+     S := xm.MultT1(ym);
+
+     // R = P = V = zeros (npred, NCOMP);
+     // T = U = zeros (nobs, NCOMP);
+     // Q = zeros (nresp, NCOMP);
+
+     R := MatrixClass.Create( NCOMP, npred );
+     P := MatrixClass.Create( NCOMP, npred );
+     V := MatrixClass.Create( NCOMP, npred );
+     T := MatrixClass.Create( NCOMP, nobs );
+     U := MatrixClass.Create( NCOMP, nobs );
+     Q := MatrixClass.Create( NCOMP, nresp );
+
+     for i := 0 to NCOMP - 1 do
+     begin
+          // [eigvec eigval] = eig (S'*S);         # Y factor weights
+          // domindex = find (diag (eigval) == max (diag (eigval))); # get dominant eigenvector
+          // q  = eigvec(:,domindex);
+          if fAlgorithm = paEig then
+          begin
+               tmp := S.MultT1(S);
+               if tmp.SymEig(eigVal, eigVec ) <> qlOk then
+                  exit;
+          end
+          else
+          begin
+               // actually eigenvalues are the sqrt of the SymEig values
+               // -> since we seek just the largest we don't do that
+               if S.SVD(tmp, eigVec, eigVal) <> srOk then
+                  exit;
+          end;
+
+          // find maximum
+          domIdx := 0;
+          eigMax := eigVal.Vec[0];
+          for j := 1 to eigVal.VecLen - 1 do
+          begin
+               if eigVal.Vec[j] > eigMax then
+               begin
+                    domIdx := j;
+                    eigMax := eigVal.Vec[j];
+               end;
+          end;
+
+          eigVec.SetSubMatrix(domIdx, 0, 1, eigVec.Height);
+
+
+          // r  = S*q;            # X block factor weights
+          // t  = X*r;            # X block factor scores
+          // t  = t - mean (t);
+          rl := S.Mult(eigVec);
+          tl := xm.Mult(rl);
+          tm := tl.Mean(False);
+          tl.AddAndScaleInPlace(-tm.Vec[0], 1);
+
+          // nt = sqrt (t'*t);     # compute norm
+          // t  = t/nt;
+          // r  = r/nt;            # normalize
+          nt := tl.ElementwiseNorm2(True);
+          tl.ScaleInPlace(1/nt);
+          rl.ScaleInPlace(1/nt);
+
+          // p  = X'*t;     # X block factor loadings
+          // q  = Y'*t;     # Y block factor loadings
+          // u  = Y*q;      # Y block factor scores
+          // v  = p;
+          pl := xm.MultT1(tl);
+          ql := ym.MultT1(tl);
+          ul := ym.Mult(ql);
+          vl := pl;
+
+          //## Ensure orthogonality
+          //if a > 1
+          //     v = v - V*(V'*p);
+          //     u = u - T*(T'*u);
+          //endif
+          if i > 0 then
+          begin
+               tmp := V.MultT1(pl);
+               tmp := V.Mult(tmp);
+               vl.SubInPlace(tmp);
+
+               tmp := T.MultT1(ul);
+               tmp := T.Mult(tmp);
+               ul.SubInPlace(tmp);
+          end;
+
+          // v = v/sqrt(v'*v); # normalize orthogonal loadings
+          // S = S - v*(v'*S); # deflate S wrt loadings
+          vl.Normalize(False);
+          tmp := vl.MultT1(S);
+          tmp := vl.Mult(tmp);
+          S.SubInPlace(tmp);
+
+          // ## Store data
+          // R(:,a) = r;
+          // T(:,a) = t;
+          // P(:,a) = p;
+          // Q(:,a) = q;
+          // U(:,a) = u;
+          // V(:,a) = v;
+          R.SetColumn(i, rl);
+          T.SetColumn(i, tl);
+          P.SetColumn(i, pl);
+          Q.SetColumn(i, ql);
+          U.SetColumn(i, ul);
+          V.SetColumn(i, vl);
+     end;
+
+     // ## Regression coefficients
+     // B = R*Q';
+     fBeta := R.MultT2(Q);
+
+     // in case a resulting object is provided we do the multiplication here
+     if Assigned(fitted) then
+     begin
+          fitted.Assign(T);
+          fitted.MultInPlaceT2(Q);
+          fitted.AddVecInPlace(fYMean, True);
+     end;
+
+     Result := True;
 end;
 
 initialization

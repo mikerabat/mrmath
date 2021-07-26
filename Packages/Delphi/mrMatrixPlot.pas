@@ -226,7 +226,7 @@ var oy : integer;
     yInc : double;
     aLabel : string;
 begin
-          // ###########################################
+     // ###########################################
      // #### y Axis
      gridTxtH := 4*fBmp.Canvas.TextHeight('A');
      numTicks := Max(1, fBmp.Height div gridTxtH);

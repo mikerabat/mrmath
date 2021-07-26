@@ -41,6 +41,7 @@ type
     procedure TestPLS;
     procedure TestPLSPersistence;
     procedure TestPLSImages;
+    procedure TestPlsRegress;
   end;
  
 implementation
@@ -285,29 +286,38 @@ begin
 
      LPLS := TMatrixPLS.Create;
 
-     LPLS.Plsr(X.GetObjRef,Y.GetObjRef, Y.Height, FNComp);
+     LPLS.PLSRegress(X.GetObjRef,Y.GetObjRef, FNComp);
  
-     LPLS.Free
+     LPLS.Free;
 end;
 
 procedure TTestPLS.TestPLSImages;
 var x, y : TDoubleMatrix;
     w, h, i : integer;
     yp : IMatrix;
+    yFit : IMatrix;
+    y2 : IMatrix;
 begin
      // load images
      x := LoadImages(w, h, 'CCATest', '*.bmp');
      x.TransposeInPlace;
-     
+
      // training orientations
      y := TDoubleMatrix.Create(1, 360 div 12);
      for i := 0 to y.Height - 1 do
          y.Vec[i] := sin(i*12*pi/180);
 
+     WriteMatlabData('D:\img.txt', x.SubMatrix, x.Width);
+     WriteMatlabData('D:\yres.txt', y.SubMatrix, y.Width);
+
      with TMatrixPLS.Create do
      try
-        Plsr(X, Y, 1, 20);
-        
+        yFit := TDoubleMatrix.Create;
+        PLSRegress(X, Y, 4, yFit.GetObjRef);
+
+        y2 := yFit.Clone;
+        Check( CheckMtx(yFit.SubMatrix, y.SubMatrix, -1, -1, 0.05), 'Projections not accurate' );
+
         // ###########################################
         // #### Test projection
         for i := 0 to x.height - 1 do
@@ -316,8 +326,11 @@ begin
              Y.SetSubMatrix(0, i, y.Width, 1);
              yp := Project(X);
 
-             Check( CheckMtx( yp.SubMatrix, y.SubMatrix, -1, -1, 1e-1 ), 'Projections not accurate');
+             y2.Vec[i] := yp.Vec[0];
+             //Check( CheckMtx( yp.SubMatrix, y.SubMatrix, -1, -1, 1e-1 ), 'Projections not accurate');
         end;
+
+        Check( CheckMtx(y2.SubMatrix, yFit.SubMatrix, -1, -1, 0.001), 'Single projection failed');
      finally
             Free;
      end;
@@ -335,30 +348,48 @@ begin
      // load images
      x := LoadImages(w, h, 'CCATest', '*.bmp');
      x.TransposeInPlace;
-     
+
      // training orientations
      y := TDoubleMatrix.Create(1, 360 div 12);
      for i := 0 to y.Height - 1 do
          y.Vec[i] := sin(i*12*pi/180);
 
      plsObj := TMatrixPLS.Create;
-     plsObj.Plsr(X, Y, 1, 20);
+     plsObj.PLSRegress(X, Y, 20);
 
      TJsonReaderWriter.StaticSaveToFile(plsObj, 'PLSObj.json');
 
      plsObjRest := ReadObjFromFile( 'PLSObj.json' ) as TMatrixPLS;
 
-     Check(CheckMtx( plsObj.SSQDif.SubMatrix, plsObjRest.SSQDif.SubMatrix ), 'SSQDif not equal');
-     Check(CheckMtx( plsObj.W.SubMatrix, plsObjRest.W.SubMatrix ), 'W not equal');
      Check(CheckMtx( plsObj.Beta.SubMatrix, plsObjRest.Beta.SubMatrix ), 'Beta not equal');
-     Check(CheckMtx( plsObj.YRes.SubMatrix, plsObjRest.YRes.SubMatrix ), 'YRes not equal');
-     Check(CheckMtx( plsObj.Theta.SubMatrix, plsObjRest.Theta.SubMatrix ), 'Theta not equal');
-     
+     Check(CheckMtx( plsObj.YMean.SubMatrix, plsObjRest.YMean.SubMatrix ), 'ymean not equal');
+     Check(CheckMtx( plsObj.XMean.SubMatrix, plsObjRest.XMean.SubMatrix ), 'xmean not equal');
+
      plsObj.Free;
      plsObjRest.Free;
 
      x.Free;
      y.Free;
+end;
+
+// test from data stemming from Andrea Mauri
+procedure TTestPLS.TestPlsRegress;
+var x : IMatrix;
+    y : IMatrix;
+    pls : TMatrixPLS;
+    fit : IMatrix;
+begin
+     InitMathFunctions(itFMA, false);
+     x := MatrixFromTxtFile(BaseDataPath + 'x_pls.txt');
+     y := MatrixFromTxtFile(BaseDataPath + 'y_pls.txt');
+
+     fit := TDoubleMatrix.Create;
+     pls := TMatrixPLS.Create;
+     try
+        pls.PLSRegress(x.GetObjRef, y.GetObjRef, 4, fit.GetObjRef);
+     finally
+            pls.Free;
+     end;
 end;
 
 initialization

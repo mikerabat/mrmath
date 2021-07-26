@@ -55,6 +55,10 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date 22.07.2021
+* Revisited PLS -> implemented different algorithm more compatible with octave
+* fixed problem in AVX version of the vector subtraction method
+
 Daten 07.07.2021
 * Implemented new matrix decomposition according to lapack: Hessian decomposition
 * Threaded hess decomposition version
