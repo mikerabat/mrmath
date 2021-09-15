@@ -49,11 +49,13 @@ Developer:
 
 Rabatscher Michael - main windows and core development - contact via www.mrsoft.com
 William Cantrall - special thanks for making the library MacOs compatible. 
-Gustav Kaiser - special thanks for implementing the PLS algorithm.
 Andrea Mauri - pointing out a few issues with FPC and conditional compilation and helped fixing them.
 
 // ###################################################################
 changelog:
+
+Date 15.09.2021
+* New assembler functions for fast min(abs(X)) and fast max(abs(X))
 
 Date 22.07.2021
 * Revisited PLS -> implemented different algorithm more compatible with octave

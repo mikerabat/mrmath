@@ -74,7 +74,9 @@ type
     procedure TestMtxCumulativeSumColumn;
     procedure TestMtxDifferentiate;
     procedure TestMinMaxASM;
+    procedure TestAbsMinMaxASM;
     procedure TestMatrixBigASMMinMax;
+    procedure TestMatrixBigASMAbsMinMax;
     procedure TestMultASM;
     procedure TestMultTransposed;
     procedure TestMultMod16Transposed;
@@ -112,6 +114,7 @@ type
     procedure TestMtxMeanVarNormalize;
     procedure TestMtxVecMult;
     procedure TestBigMtxVecMult;
+    procedure TestSymVecMult;
     procedure TestRank1Upd;
     procedure TestBigRank1Upd;
     procedure TestDiagMtxMult1;
@@ -2877,12 +2880,124 @@ begin
      check(dest1 = dest3, 'Max error');
      check(dest2 = dest4, 'Min error');
 
-     Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+     Status(Format('Even Width: %.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+                        (endTime3 - startTime3)/mtxFreq*1000]));
+
+     startTime1 := MtxGetTime;
+     dest1 := GenericMtxMax(@x[0], cMtxWidth - 1, cMtxheight, cMtxLineWidth);
+     dest2 := GenericMtxMin(@x[0], cMtxWidth - 1, cMtxheight, cMtxLineWidth);
+     endTime1 := MtxGetTime;
+
+     startTime2 := MtxGetTime;
+     dest3 := ASMMatrixMax(@x[0], cMtxWidth - 1, cMtxheight, cMtxLineWidth);
+     dest4 := ASMMatrixMin(@x[0], cMtxWidth - 1, cMtxheight, cMtxLineWidth);
+     endTime2 := MtxGetTime;
+
+     check(dest1 = dest3, 'Max error');
+     check(dest2 = dest4, 'Min error');
+
+     startTime3 := MtxGetTime;
+     dest3 := ASMMatrixMax(xa, cMtxWidth - 1, cMtxheight, cMtxLineWidth);
+     dest4 := ASMMatrixMin(xa, cMtxWidth - 1, cMtxheight, cMtxLineWidth);
+     endTime3 := MtxGetTime;
+
+     check(dest1 = dest3, 'Max error');
+     check(dest2 = dest4, 'Min error');
+
+     Status(Format('Odd width: %.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
                         (endTime3 - startTime3)/mtxFreq*1000]));
 
      freeMem(xa);
 end;
 
+procedure TASMMatrixOperations.TestMatrixBigASMAbsMinMax;
+var x : Array of double;
+    xa : PDouble;
+    px : PDouble;
+    idx : integer;
+    startTime1: Int64;
+    endTime1: Int64;
+    startTime2: Int64;
+    endTime2: Int64;
+    startTime3: Int64;
+    endTime3: Int64;
+    dest1, dest2, dest3, dest4 : double;
+const cMtxWidth = 2000;
+      cMtxHeight = 500;
+      cMtxSize = cMtxWidth*cMtxHeight;
+      cMtxLinewidth = cMtxWidth*sizeof(double);
+begin
+     randomize;
+     SetLength(x, cMtxSize);
+     GetMem(xa, cMtxSize*sizeof(double));
+
+     // fill randomly:
+     px := @x[0];
+     for Idx := 0 to cMtxSize - 1 do
+     begin
+          px^ := random - 1;
+          inc(px);
+     end;
+
+     px := xa;
+     for Idx := 0 to cMtxSize - 1 do
+     begin
+          px^ := x[idx];
+          inc(px);
+     end;
+
+     startTime1 := MtxGetTime;
+     dest1 := GenericMtxAbsMax(@x[0], cMtxWidth, cMtxheight, cMtxLineWidth);
+     dest2 := GenericMtxAbsMin(@x[0], cMtxWidth, cMtxheight, cMtxLineWidth);
+     endTime1 := MtxGetTime;
+
+     startTime2 := MtxGetTime;
+     dest3 := ASMMatrixAbsMax(@x[0], cMtxWidth, cMtxheight, cMtxLineWidth);
+     dest4 := ASMMatrixAbsMin(@x[0], cMtxWidth, cMtxheight, cMtxLineWidth);
+     endTime2 := MtxGetTime;
+
+     check(dest1 = dest3, 'Max error');
+     check(dest2 = dest4, 'Min error');
+
+     startTime3 := MtxGetTime;
+     dest3 := ASMMatrixAbsMax(xa, cMtxWidth, cMtxheight, cMtxLineWidth);
+     dest4 := ASMMatrixAbsMin(xa, cMtxWidth, cMtxheight, cMtxLineWidth);
+     endTime3 := MtxGetTime;
+
+     check(dest1 = dest3, 'Max error');
+     check(dest2 = dest4, 'Min error');
+
+     Status(Format('Even width: %.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+                        (endTime3 - startTime3)/mtxFreq*1000]));
+
+
+     startTime1 := MtxGetTime;
+     dest1 := GenericMtxAbsMax(@x[0], cMtxWidth - 1, cMtxheight, cMtxLineWidth);
+     dest2 := GenericMtxAbsMin(@x[0], cMtxWidth - 1, cMtxheight, cMtxLineWidth);
+     endTime1 := MtxGetTime;
+
+     startTime2 := MtxGetTime;
+     dest3 := ASMMatrixAbsMax(@x[0], cMtxWidth - 1, cMtxheight, cMtxLineWidth);
+     dest4 := ASMMatrixAbsMin(@x[0], cMtxWidth - 1, cMtxheight, cMtxLineWidth);
+     endTime2 := MtxGetTime;
+
+     check(dest1 = dest3, 'Max error');
+     check(dest2 = dest4, 'Min error');
+
+     startTime3 := MtxGetTime;
+     dest3 := ASMMatrixAbsMax(xa, cMtxWidth - 1, cMtxheight, cMtxLineWidth);
+     dest4 := ASMMatrixAbsMin(xa, cMtxWidth - 1, cMtxheight, cMtxLineWidth);
+     endTime3 := MtxGetTime;
+
+     check(dest1 = dest3, 'Max error');
+     check(dest2 = dest4, 'Min error');
+
+     Status(Format('Odd Width: %.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+                        (endTime3 - startTime3)/mtxFreq*1000]));
+
+
+     freeMem(xa);
+end;
 
 procedure TASMMatrixOperations.TestMatrixMultTria2T1;
 const mt1 : Array[0..15] of double = (-4, 1, 2, -2, 3, 4, 5, 2, 6, 7, -1, 2, -3, 1, -1, -1);
@@ -2923,6 +3038,23 @@ begin
      Check(minmax = -1, 'Min error');
      minmax := ASMMatrixOperations.ASMMatrixMax(@mt6[0], 4, 4, 4*sizeof(double));
      Check(minmax = 162, 'Max error');
+end;
+
+procedure TASMMatrixOperations.TestAbsMinMaxASM;
+const mt1 : Array[0..15] of double = (0, 1, 2, -20, 3, 4, 5, 0, 6, -7, -1, 0, 0, 0, 0, 0);
+      mt5 : Array[0..15] of double = (-1, -8, 0.125, 1, 2, 3, 4, 2, 5, 6, 7, 3, 4, 5, 6, 7);
+
+var minmax : double;
+begin
+     minmax := ASMMatrixOperations.ASMMatrixAbsMin(@mt1[0], 3, 3, 4*sizeof(double));
+     Check(minmax = 0, 'Min error');
+     minmax := ASMMatrixOperations.ASMMatrixAbsMax(@mt1[0], 3, 3, 4*sizeof(double));
+     Check(minmax = 7, 'Max error');
+
+     minmax := ASMMatrixOperations.ASMMatrixAbsMin(@mt5[0], 4, 4, 4*sizeof(double));
+     Check(minmax = 0.125, 'Min error');
+     minmax := ASMMatrixOperations.ASMMatrixAbsMax(@mt5[0], 4, 4, 4*sizeof(double));
+     Check(minmax = 8, 'Max error');
 end;
 
 procedure TASMMatrixOperations.TestMtxBigNormalizeRow;
@@ -4347,6 +4479,38 @@ begin
      GenericMatrixSubT(@res[0], 3*sizeof(double), @mt2, 2*sizeof(double), 3, 2);
      ASMMatrixSubT(@res1[0], 3*sizeof(double), @mt2, 2*sizeof(double), 3, 2);
      Check(CheckMtx(res, res1), 'Error ASM subT');
+end;
+
+procedure TASMMatrixOperations.TestSymVecMult;
+const mt1 : Array[0..8] of double = (1, 2, 3, 2, 2, 2, 3, 2, 4);
+      v : Array[0..2] of double = (3, 2, 1);
+var d1, d2 : Array[0..2] of double;
+    mt : Array[0..8] of double;
+begin
+     FillChar(d1, sizeof(d1), 0);
+     FillChar(d2, sizeof(d2), 0);
+
+     GenericMtxVecMult(@d2[0], sizeof(double), @mt1[0], @v[0], 3*sizeof(double), sizeof(double), 3, 3, 1, 1);
+     // clean lower part
+     Move( mt1, mt, sizeof(mt1));
+     mt[3] := -1;
+     mt[6] := -1;
+     mt[7] := -1;
+
+     GenericMtxVecMultUpperSym(@d1[0], sizeof(double), @mt[0], @v[0], 3*sizeof(double), sizeof(double), 3, 1, 1 );
+     Check(CheckMtx(d1, d2), 'Symmetric matrix vector mult failed');
+
+     FillChar(d1, sizeof(d1), 0);
+     FillChar(d2, sizeof(d2), 0);
+     // clean upper part
+     Move( mt1, mt, sizeof(mt1));
+     mt[1] := -1;
+     mt[2] := -1;
+     mt[5] := -1;
+
+     GenericMtxVecMultLowerSym(@d1[0], sizeof(double), @mt[0], @v[0], 3*sizeof(double), sizeof(double), 3, 1, 1 );
+     GenericMtxVecMult(@d2[0], sizeof(double), @mt1[0], @v[0], 3*sizeof(double), sizeof(double), 3, 3, 1, 1);
+     Check(CheckMtx(d1, d2), 'Symmetric matrix vector mult failed');
 end;
 
 procedure TASMMatrixOperations.TestMtxCumulativeSumColumn;

@@ -465,14 +465,17 @@ begin
      absA := abs(A);
      absB := abs(B);
 
-     if absA > absB
+     if absA = 0
+     then
+         Result := absB
+     else if absB = 0
+     then
+         Result := absA
+     else if absA > absB
      then
          Result := absa*sqrt(1 + sqr(absb/absa))
-     else if absb <> 0
-     then
-         Result := absb*sqrt(1 + sqr(absa/absb))
      else
-         Result := 0;
+         Result := absb*sqrt(1 + sqr(absa/absb));
 end;
 
 function sign(const a : double; const b : double) : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}

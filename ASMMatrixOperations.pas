@@ -62,6 +62,8 @@ procedure ASMMatrixAbs(Dest : PDouble; LineWidth : TASMNativeInt; Width, Height 
 
 function ASMMatrixMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 function ASMMatrixMin(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixAbsMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixAbsMin(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 
 procedure ASMMatrixTranspose(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
 function ASMMatrixElementwiseNorm2(dest : PDouble; LineWidth : TASMNativeInt; Width, height : TASMNativeInt; doSqrt : boolean) : double;
@@ -569,6 +571,58 @@ begin
               Result := ASMMatrixMinUnAlignedEvenW(mt, width, height, LineWidth)
           else
               Result := ASMMatrixMinUnAlignedOddW(mt, width, height, LineWidth);
+     end;
+end;
+
+function ASMMatrixAbsMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+begin
+     Result := -MaxDouble;
+     if (width = 0) or (height = 0) then
+        exit;
+     assert((width*sizeof(double) <= LineWidth), 'Dimension error');
+
+     if (TASMNativeUInt(mt) and $0000000F = 0) and (LineWidth and $0000000F = 0)
+     then
+     begin
+          if (width and 1) = 0
+          then
+              Result := ASMMatrixAbsMaxAlignedEvenW(mt, width, height, LineWidth)
+          else
+              Result := ASMMatrixAbsMaxAlignedOddW(mt, width, height, LineWidth);
+     end
+     else
+     begin
+          if (width and 1) = 0
+          then
+              Result := ASMMatrixAbsMaxUnAlignedEvenW(mt, width, height, LineWidth)
+          else
+              Result := ASMMatrixAbsMaxUnAlignedOddW(mt, width, height, LineWidth);
+     end;
+end;
+
+function ASMMatrixAbsMin(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+begin
+     Result := MaxDouble;
+     if (width = 0) or (height = 0) then
+        exit;
+     assert((width*sizeof(double) <= LineWidth), 'Dimension error');
+
+     if (TASMNativeUInt(mt) and $0000000F = 0) and (LineWidth and $0000000F = 0)
+     then
+     begin
+          if (width and 1) = 0
+          then
+              Result := ASMMatrixAbsMinAlignedEvenW(mt, width, height, LineWidth)
+          else
+              Result := ASMMatrixAbsMinAlignedOddW(mt, width, height, LineWidth);
+     end
+     else
+     begin
+          if (width and 1) = 0
+          then
+              Result := ASMMatrixAbsMinUnAlignedEvenW(mt, width, height, LineWidth)
+          else
+              Result := ASMMatrixAbsMinUnAlignedOddW(mt, width, height, LineWidth);
      end;
 end;
 
