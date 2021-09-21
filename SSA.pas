@@ -160,7 +160,7 @@ var n, p, pp : integer;
     L_B : integer;
     y_aux : IMatrix;
     rho : integer;
-function CalcSSA( fromIdx, toIdx : integer ) : IMatrix;
+function LocCalcSSA( fromIdx, toIdx : integer ) : IMatrix;
 var series : IMatrix;
 begin
      series := mtx.SubColMtx(fromIdx, toIdx);
@@ -184,14 +184,14 @@ begin
      L_B := (Z - q) div 2; // number of points discarded at each iterations
 
      // first run
-     y_aux := CalcSSA(0, Z - 1);
+     y_aux := LocCalcSSA(0, Z - 1);
      y_aux.SetSubMatrix(0, 0, Z - L_B, 1);
      Result.AssignSubMatrix(y_aux, 0, 0);
      // loop
      for pp := 1 to P - 2 do
      begin
           rho := pp*q;
-          y_aux := CalcSSA(rho, rho + Z - 1);
+          y_aux := LocCalcSSA(rho, rho + Z - 1);
 
           y_aux.SetSubMatrix(L_B, 0, q, 1);
           Result.AssignSubMatrix(y_aux, rho + L_B, 0);
@@ -200,7 +200,7 @@ begin
      // last run
      pp := P - 1;
      rho := (pp - 1)*q;
-     y_aux := CalcSSA( rho, n - 1);
+     y_aux := LocCalcSSA( rho, n - 1);
      y_aux.SetSubMatrix(L_B, 0, y_aux.Width - L_B, 1);
      Result.AssignSubMatrix(y_aux, rho + L_B, 0);
 end;

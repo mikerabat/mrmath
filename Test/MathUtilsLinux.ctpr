@@ -32,7 +32,7 @@
         <PackageName Value="adLCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="152">
+    <Units Count="153">
       <Unit0>
         <Filename Value="MathUtilsLinux.ppr"/>
         <IsPartOfProject Value="True"/>
@@ -645,6 +645,11 @@
         <FRMtype Value="0"/>
         <IsPartOfProject Value="True"/>
       </Unit151>
+      <Unit152>
+        <Filename Value="../MtxUtilFunc.pas"/>
+        <FRMtype Value="0"/>
+        <IsPartOfProject Value="True"/>
+      </Unit152>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

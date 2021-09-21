@@ -36,6 +36,8 @@ type
     procedure TestHardwareRandom;
     procedure TestMersenneTwister;
     procedure TestMersenneTwisterStdTest;
+    procedure TestChaCha;
+    procedure TestChaChaBig;
     procedure TestOSRandom;
     procedure TestInt64Rnd;
     procedure TestGaussRnd;
@@ -49,6 +51,79 @@ uses RandomEng, CPUFeatures, MtxTimer, MathUtilFunc, MatrixASMStubSwitch,
 const cNumRandNum = 1000000;
 
 { TestMatrixOperations }
+
+procedure TestRandomOperations.TestChaCha;
+var gen : TRandomGenerator;
+    cnt : integer;
+    outputPas : Array[0..9] of integer;
+    outputSSE : Array[0..9] of integer;
+begin
+     gen := TRandomGenerator.Create(raChaCha);
+     try
+        gen.UseSSE := False;
+        gen.Init(7);
+        for cnt := 0 to High(outputPas) do
+        begin
+             outputPas[cnt] := gen.RandInt(20);
+        end
+     finally
+            gen.Free;
+     end;
+
+     gen := TRandomGenerator.Create(raChaCha);
+     try
+        gen.UseSSE := True;
+        gen.Init(7);
+
+        for cnt := 0 to High(outputSSE) do
+            outputSSE[cnt] := gen.RandInt(20);
+     finally
+            gen.Free;
+     end;
+
+     for cnt := 0 to High(outputPas) do
+     begin
+          Status(Format('%d, %d', [outputpas[cnt], outputSSE[cnt]]));
+          Check(outputPas[cnt] = outputSSE[cnt], 'ChaCha Random failed');
+     end;
+end;
+
+procedure TestRandomOperations.TestChaChaBig;
+var gen : TRandomGenerator;
+    s1, s2, e1, e2 : Int64;
+    freq : int64;
+    pasRnd, sseRnd : LongWord;
+    i : Integer;
+begin
+     freq := mtxFreq;
+
+     gen := TRandomGenerator.Create(raChaCha);
+     try
+        gen.Init( 175 );
+        gen.UseSSE := False;
+        s1 := MtxGetTime;
+        for i := 0 to cNumRandNum - 1 do
+            pasRnd := gen.RandLW($FFFFFFFF);
+        e1 := MtxGetTime;
+     finally
+            gen.Free;
+     end;
+
+     gen := TRandomGenerator.Create(raChaCha);
+     try
+        gen.Init( 175 );
+        gen.UseSSE := True;
+        s2 := MtxGetTime;
+        for i := 0 to cNumRandNum - 1 do
+            sseRnd := gen.RandLW($FFFFFFFF);
+        e2 := MtxGetTime;
+     finally
+            gen.Free;
+     end;
+
+     Status(Format('ChaChaRnd of %d elements took pas: %.3f, sse: %.3f', [cNumRandNum, (e1 - s1)*1000/freq, (e2 - s2)*1000/freq]));
+     check( sseRnd = pasRnd, 'Large ChaCha Rnd failed');
+end;
 
 procedure TestRandomOperations.TestGaussRnd;
 var gen : TRandomGenerator;

@@ -353,7 +353,8 @@ uses ASMMatrixOperations, BlockedMult,
      ASMMatrixTransposeOperationsx64, FMAMatrixOperations, FMAMatrixMultOperationsx64,
      ASMVecConvolvex64, AVXVecConvolvex64, FMAVecConvolvex64,
      {$ENDIF}
-     BlockSizeSetup, SimpleMatrixOperations, CPUFeatures, MatrixRotations, Corr;
+     BlockSizeSetup, SimpleMatrixOperations, CPUFeatures, MatrixRotations, Corr,
+     RandomEng;
 
 var multFunc : TMatrixMultFunc;
     blockedMultFunc : TMatrixBlockedMultfunc;
@@ -1549,6 +1550,12 @@ begin
      MtxVecMultLowerSymFunc := GenericMtxVecMultLowerSym;
      MatrixVecDotMultFunc := GenericVecDotMult;
      MatrixVecAddFunc := GenericVecAdd;
+     matrixMedianFunc := GenericMtxMedian;
+     matrixSortFunc := GenericMtxSort;
+
+
+     TDynamicTimeWarp.UseSSE := True;
+     TRandomGenerator.UseSSE := True;
 
      // check features
      if (IsAVXPresent and (instrType = itAVX)) or (IsFMAPresent and (instrType = itFMA)) then
@@ -1605,8 +1612,6 @@ begin
           memInitFunc := AVXInitMemAligned;
           vecConvolve := AVXVecConvolveRevB;
           elemAddFunc := AVXMatrixElemAdd;
-
-          TDynamicTimeWarp.UseSSE := True;
 
           // ##############################################
           // #### override if fma is requested
@@ -1746,11 +1751,9 @@ begin
           vecConvolve := GenericConvolveRevB;
           elemAddFunc := GenericMtxElemAdd;
 
-          TDynamicTimeWarp.UseSSE := False
+          TDynamicTimeWarp.UseSSE := False;
+          TRandomGenerator.UseSSE := False;
      end;
-
-     matrixMedianFunc := GenericMtxMedian;
-     matrixSortFunc := GenericMtxSort;
 
      curUsedStrassenMult := useStrassenMult;
 

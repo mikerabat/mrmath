@@ -34,7 +34,7 @@ type
 
 implementation
 
-uses Matrix, ssa, RandomEng, Types, MatrixASMStubSwitch, Windows, Dialogs;
+uses Matrix, ssa, RandomEng, MatrixASMStubSwitch, Dialogs;
 
 { TTestSSA }
 

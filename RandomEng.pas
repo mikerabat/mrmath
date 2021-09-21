@@ -29,10 +29,15 @@ type
     function Random : LongWord; virtual; abstract;
   end;
 
-  TRandomAlgorithm = (raSystem, raMersenneTwister, raIntelRAND, raOS);
+  TRandomAlgorithm = (raSystem, raMersenneTwister, raIntelRAND, raOS, raChaCha);
   TRandomInt = function(const ARange : integer) : LongInt of object;
   TRandomLW = function(const ARange : LongWord) : LongWord of object;
   TRandomDouble = function : double of object;
+
+  TChaChaK = Array[0..7] of LongWord;
+  TChaChaIV = Array[0..1] of LongWord;
+  TChaChaMode = (cmSpeed, cmBalance, cmSecure); // number of rounds...
+
   TRandomGenerator = class(TObject)
   private
     fRandGFlag : boolean;
@@ -66,7 +71,31 @@ type
     function RDRandInt(const aRange : LongInt): LongInt;
     function RDRandLW(const aRange : LongWord) : LongWord;
     function RDRandDbl: double;
+  private
+    type
+      TChaChaMtx = Array[0..15] of LongWord;
+      PChaChaMtx = ^TChaChaMtx;
+  private
+    fChaChaMem : Pointer;
+    fInpChaChaMTX : PChaChaMtx;
+    fOutChaChaMtx : PChaChaMtx;
+    fChaChaIdx : integer;
+    fChaChaMode : TChaChaMode;
+    fNumChaChaRounds : integer;
 
+    procedure ChaChaQuarterRound( var a, b, c, d : LongWord );
+    function RandChaChaDblWord : LongWord;
+    procedure ChaChaRound;         // makes 8, 12, or 20 rounds
+    procedure PasChaChaDoubleQuarterRound;   // one column and row round
+    procedure SSEChaChaDoubleQuarterRound; register;
+
+    function RandChaChaInt(const ARange: LongInt) : LongInt;
+    function RandChaChaDbl : double;
+    function RandChaChaLW(const ARange: LongWord): LongWord;
+
+    procedure InitChaChaByVec(k : TChaChaK; iv : TChaChaIV);
+    procedure SeedChaCha(seed : longInt);
+    procedure SetChaChaMode(const Value: TChaChaMode);
   private
     const cRDRAND_RETRIES = 10;
 
@@ -110,8 +139,15 @@ type
     function RandErlang(k : integer) : double; // mean=1
     function RandPoission(mean : integer) : integer;
   public
-    // special initialization 
+    class var UseSSE : boolean;
+
+    property ChaChaMode : TChaChaMode read fChaChaMode write SetChaChaMode;
+
+    // special initialization
     procedure InitMersenneByArr(const initKey: array of LongWord);
+    procedure InitChaCha(const k : TChaChaK; const iv : TChaChaIV);
+    procedure InitChaChaRandom; // randomly init the matrix by random numbers created by the mersenne twister
+    procedure ChaChaAddEntropy( const inBuf : Array of Byte );
 
     constructor Create(aRandMethod : TRandomAlgorithm = raSystem);
     destructor Destroy; override;
@@ -119,7 +155,7 @@ type
   
 implementation
 
-uses SysUtils, CPUFeatures, Math, Classes, MtxTimer{$IFDEF MSWINDOWS}, winRandomGen {$ENDIF} {$IFNDEF MSWINDOWS}, MacOsRandomGen {$ENDIF};
+uses SysUtils, CPUFeatures, Math, Classes, MatrixConst, MtxTimer{$IFDEF MSWINDOWS}, winRandomGen {$ENDIF} {$IFNDEF MSWINDOWS}, MacOsRandomGen {$ENDIF};
 
 const two2neg32: double = ((1.0/$10000) / $10000);  // 2^-32
 
@@ -143,7 +179,9 @@ const two2neg32: double = ((1.0/$10000) / $10000);  // 2^-32
 destructor TRandomGenerator.Destroy;
 begin
      fOsRndEngine.Free;
-     
+     if fChaChaMem <> nil then
+        FreeMem(fChaChaMem);
+
      inherited;
 end;
 
@@ -156,6 +194,7 @@ begin
                 else
                     fSysRandSeed := Seed;
       raMersenneTwister: InitMersenne(seed);
+      raChaCha: SeedChaCha(seed);
       raOS: if Seed = 0
             then
                 OsRandomize
@@ -286,6 +325,16 @@ begin
      Result := k - 1;
 end;
 
+procedure TRandomGenerator.SetChaChaMode(const Value: TChaChaMode);
+begin
+     fChaChaMode := Value;
+     case fChaChaMode of
+       cmSpeed: fNumChaChaRounds := 4;      // we use double rounds... so it's half of the proposed number of rounds
+       cmBalance: fNumChaChaRounds := 6;
+       cmSecure: fNumChaChaRounds := 10;
+     end;
+end;
+
 procedure TRandomGenerator.SetRandMethod(const Value: TRandomAlgorithm);
 begin
      FreeAndNil(fOsRndEngine);
@@ -298,7 +347,7 @@ begin
                       fRandLW := {$IFDEF FPC}@{$ENDIF}SysRandLw;
                  end;
        raMersenneTwister: begin
-                               SetLength(fMt, cN);      
+                               SetLength(fMt, cN);
                                fMTi := cN + 1;
 
                                fRandDbl := {$IFDEF FPC}@{$ENDIF}RandMersenneDbl;
@@ -321,11 +370,16 @@ begin
                   fRandDbl := {$IFDEF FPC}@{$ENDIF}OsRand;
                   fRandLW := {$IFDEF FPC}@{$ENDIF}OsRandLw;
              end;
+       raChaCha: begin
+                      fRandDbl := {$IFDEF FPC}@{$ENDIF}RandChaChaDbl;
+                      fRandInt := {$IFDEF FPC}@{$ENDIF}RandChaChaInt;
+                      fRandLW := {$IFDEF FPC}@{$ENDIF}RandChaChaLW;
+                 end;
      end;
 end;
 
 
-{$R-} {$Q-}  // range checking and overflowchecking needs to be off 
+{$R-} {$Q-}  // range checking and overflowchecking needs to be off
 
 // ###########################################
 // #### Standard random generator
@@ -647,6 +701,7 @@ end;
 
 constructor TRandomGenerator.Create(aRandMethod: TRandomAlgorithm);
 begin
+     SetChaChaMode(cmSpeed);
      SetRandMethod(aRandMethod);
 
      inherited Create;
@@ -677,6 +732,373 @@ begin
           idx[i] := tmp;
      end;
 
+end;
+
+// ###########################################
+// #### ChaCha cipher random number generator
+// some bases are from
+// https://github.com/vnmakarov/mum-hash/blob/master/src/chacha-prng.h
+
+{$IFDEF x64}
+function rol(value: LongWord; Bits: Byte): LongWord;
+begin
+     Result := (value shl Bits) or (value shr (32 - bits));
+end;
+
+{$ELSE}
+function rol(value: LongWord; Bits: Byte): LongWord;
+{$IFDEF FPC}
+begin
+{$ENDIF}
+asm
+   xchg cl,dl
+   rol eax, cl
+end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+{$ENDIF}
+
+procedure TRandomGenerator.InitChaCha(const k: TChaChaK; const iv: TChaChaIV);
+begin
+     InitChaChaByVec(k, iv);
+end;
+
+procedure TRandomGenerator.SeedChaCha(seed: Integer);
+var k : TChaChaK;
+    iv : TChaChaIV;
+begin
+     if seed = 0 then
+        seed := Integer(MtxGetTime);
+
+     FillChar(k, sizeof(k), 0);
+     FillChar(iv, sizeof(iv), 0);
+     k[0] := LongWord(seed);
+     InitChaChaByVec(k, iv);
+end;
+
+procedure TRandomGenerator.InitChaChaByVec(k: TChaChaK; iv: TChaChaIV);
+var i : integer;
+    numBytes : integer;
+// from chacha-prng.h
+const cChaChaConst : Array[0..15] of AnsiChar = 'expand 32-byte k';
+begin
+     if fChaChaMem = nil then
+     begin
+          numBytes := $20 + 3*sizeof(TChaChaMtx);
+          fChaChaMem := GetMemory( numBytes );
+
+          fInpChaChaMtx := AlignPtr32(fChaChaMem);
+          fOutChaChaMTX := fInpChaChaMtx;
+          inc(fOutChaChaMTX);
+     end;
+
+     Move(cChaChaConst[0], fInpChaChaMTX^[0], sizeof(cChaChaConst));
+     for i := 0 to High(k) - 1 do
+         fInpChaChaMTX^[i + 4] := k[i];
+     fInpChaChaMTX^[12] := 0;
+     fInpChaChaMTX^[13] := 0;
+     fInpChaChaMTX^[14] := iv[0];
+     fInpChaChaMTX^[15] := iv[1];
+
+     fChaChaIdx := Length(fInpChaChaMTX^);
+end;
+
+
+procedure TRandomGenerator.InitChaChaRandom;
+var k : TChaChaK;
+    iv : TChaChaIV;
+    i : integer;
+begin
+     // init with random mersenne twister random numbers (maybe something else is better?)
+     InitMersenne(0);
+     for i := 0 to High(k) do
+         k[i] := RandMersenneDblWord;
+     iv[0] := RandMersenneDblWord;
+     iv[1] := RandMersenneDblWord;
+
+     InitChaChaByVec(k, iv);
+end;
+
+// file from https://github.com/google/google-ctf/blob/master/third_party/tomcrypt/src/prngs/chacha20.c
+// or https://git.ssrc.us:4443/elm/twizzler-public/-/tree/public/third-party/libtomcrypt/src/stream/chacha
+// chacha random generator from:
+// https://cr.yp.to/chacha/chacha-20080128.pdf
+procedure TRandomGenerator.ChaChaAddEntropy(const inBuf: array of Byte);
+var buf : Array[0..39] of byte; // 64byte - constants (16bytes) - counter (8bytes)
+    aVal : LongWord;
+    i : Integer;
+begin
+     if fChaChaMem = nil then
+        raise Exception.Create('Error - ChaCha not initialized');
+     // get the next 40 random numbers from the stream and fill buf
+     for i := 0 to Length(buf) div 4 - 1 do
+     begin
+          aVal := RandChaChaDblWord;
+          Move( aVal, buf[i*sizeof(LongWord)], sizeof(longword));
+     end;
+
+     // now mix it up with the input
+     for i := 0 to Length(inbuf) - 1 do
+         buf[i mod Length(buf)] := buf[i mod Length(buf)] xor inBuf[i];
+
+     // setup prng fields
+     Move( buf[0], fInpChaChaMTX^[4], 32 );
+     Move( buf[32], fInpChaChaMTX^[14], 8 );
+     fInpChaChaMTX^[12] := 0;  // counter (UINT64) is 0: counter and $FFFFFFFF
+     fInpChaChaMTX^[13] := 0;  // counter shr 32;
+end;
+
+procedure TRandomGenerator.ChaChaQuarterRound(var a, b, c, d: LongWord);
+begin
+     // ###########################################
+     // ####
+     // a += b; d ^= a; d <<<= 16;
+     // c += d; b ^= c; b <<<= 12;
+     // a += b; d ^= a; d <<<= 8;
+     // c += d; b ^= c; b <<<= 7;
+     a := a + b;
+     d := d xor a;
+     d := rol(d, 16);
+
+     c := c + d;
+     b := b xor c;
+     b := rol(b, 12);
+
+     a := a + b;
+     d := d xor a;
+     d := rol(d, 8);
+
+     c := c + d;
+     b := b xor c;
+     b := rol(b, 7);
+end;
+
+procedure TrandomGenerator.PasChaChaDoubleQuarterRound;
+begin
+     ChaChaQuarterRound( fOutChaChaMtx^[0], fOutChaChaMtx^[4], fOutChaChaMtx^[8], fOutChaChaMtx^[12]);
+     ChaChaQuarterRound( fOutChaChaMtx^[1], fOutChaChaMtx^[5], fOutChaChaMtx^[9], fOutChaChaMtx^[13]);
+     ChaChaQuarterRound( fOutChaChaMtx^[2], fOutChaChaMtx^[6], fOutChaChaMtx^[10], fOutChaChaMtx^[14]);
+     ChaChaQuarterRound( fOutChaChaMtx^[3], fOutChaChaMtx^[7], fOutChaChaMtx^[11], fOutChaChaMtx^[15]);
+     ChaChaQuarterRound( fOutChaChaMtx^[0], fOutChaChaMtx^[5], fOutChaChaMtx^[10], fOutChaChaMtx^[15]);
+     ChaChaQuarterRound( fOutChaChaMtx^[1], fOutChaChaMtx^[6], fOutChaChaMtx^[11], fOutChaChaMtx^[12]);
+     ChaChaQuarterRound( fOutChaChaMtx^[2], fOutChaChaMtx^[7], fOutChaChaMtx^[8], fOutChaChaMtx^[13]);
+     ChaChaQuarterRound( fOutChaChaMtx^[3], fOutChaChaMtx^[4], fOutChaChaMtx^[9], fOutChaChaMtx^[14]);
+end;
+
+(*
+// https://eprint.iacr.org/2013/759.pdf
+Algorithm 5: DOUBLEQUARTERROUND (optimized for 128-bit vectors)
+Input:  v0, v1, v2, v3 (state matrix as four 4x32-bit vectors, each vector includes one row)
+Output: v0, v1, v2, v3 (updated state matrix)
+Flow
+    v0 += v1; v3 ^= v0; v3 <<<= (16, 16, 16, 16);
+    v2 += v3; v1 ^= v2; v1 <<<= (12, 12, 12, 12);
+    v0 += v1; v3 ^= v0; v3 <<<= ( 8,  8,  8,  8);
+    v2 += v3; v1 ^= v2; v1 <<<= ( 7,  7,  7,  7);
+    v1 >>>= 32; v2 >>>= 64; v3 >>>= 96;
+    v0 += v1; v3 ^= v0; v3 <<<= (16, 16, 16, 16);
+    v2 += v3; v1 ^= v2; v1 <<<= (12, 12, 12, 12);
+    v0 += v1; v3 ^= v0; v3 <<<= ( 8,  8,  8,  8);
+    v2 += v3; v1 ^= v2; v1 <<<= ( 7,  7,  7,  7);
+    v1 <<<= 32; v2 <<<= 64; v3 <<<= 96; Return
+*)
+const cShuf8 : Array[0..15] of byte = (3, 0, 1, 2,
+                                       7, 4, 5, 6,
+                                       11, 8, 9, 10,
+                                       15, 12, 13, 14 );
+
+{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
+
+procedure TRandomGenerator.SSEChaChaDoubleQuarterRound;
+{$IFDEF x64}
+var dXMM4, dXMM5 : TXMMArr;
+{$ENDIF}
+{$IFDEF FPC}
+begin
+{$ENDIF}
+asm
+   // rcx seems to have "self" as reference
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX, r8, r9 -> mov to RCX, RDX, R8, R9, width and height
+   // in our case only rdi to rcx
+   mov rcx, rdi;
+   {$ENDIF}
+   {$IFDEF x64}
+   movupd dXMM4, xmm4;
+   movupd dXMM5, xmm5;
+
+   // 64bit version
+   movdqu xmm5, [rip + cShuf8];
+
+   // move the matrix to xmm0 to xmm3
+   mov rdx, TRandomGenerator(rcx).fOutChaChaMtx;
+   movdqa xmm0, [rdx];
+   movdqa xmm1, [rdx + 16];
+   movdqa xmm2, [rdx + 32];
+   movdqa xmm3, [rdx + 48];
+   {$ELSE}
+   movdqu xmm5, cShuf8;
+
+   // move the matrix to xmm0 to xmm3
+   mov edx, TRandomGenerator(eax).fOutChaChaMtx;
+   movdqa xmm0, [edx];
+   movdqa xmm1, [edx + 16];
+   movdqa xmm2, [edx + 32];
+   movdqa xmm3, [edx + 48];
+   {$ENDIF}
+
+   // v0 += v1; v3 ^= v0; v3 <<<= 16
+   paddd xmm0, xmm1;
+   pxor xmm3, xmm0;
+   pshufhw xmm3, xmm3, $B1;  // 10 11 00 01
+   pshuflw xmm3, xmm3, $B1;
+
+   // v2 += v3; v1 ^= v2; v1 <<<= (12, 12, 12, 12);
+   paddd xmm2, xmm3;
+   pxor xmm1, xmm2;
+   // rotate is x << n | x >> 32 - n
+   movapd xmm4, xmm1;
+   pslld xmm4, 12;
+   psrld xmm1, 20;  // 32 - 12
+   por xmm1, xmm4;
+
+   // v0 += v1; v3 ^= v0; v3 <<<= ( 8,  8,  8,  8);
+   paddd xmm0, xmm1;
+   pxor xmm3, xmm0;
+   pshufb xmm3, xmm5;
+
+   // v2 += v3; v1 ^= v2; v1 <<<= ( 7,  7,  7,  7);
+   paddd xmm2, xmm3;
+   pxor xmm1, xmm2;
+   movapd xmm4, xmm1;
+   pslld xmm4, 7;
+   psrld xmm1, 25;  // 32 - 7
+   por xmm1, xmm4;
+
+   // v1 >>>= 32; v2 >>>= 64; v3 >>>= 96;
+
+   // palignr is actually a sse3 opcode but ok...
+   movapd xmm4, xmm1;
+   palignr xmm1, xmm4, 4;
+   movapd xmm4, xmm2;
+   palignr xmm2, xmm4, 8;
+   movapd xmm4, xmm3;
+   palignr xmm3, xmm4, 12;
+
+
+   // v0 += v1; v3 ^= v0; v3 <<<= 16
+   paddd xmm0, xmm1;
+   pxor xmm3, xmm0;
+   pshufhw xmm3, xmm3, $B1;  // 10 11 00 01
+   pshuflw xmm3, xmm3, $B1;
+
+   // v2 += v3; v1 ^= v2; v1 <<<= (12, 12, 12, 12);
+   paddd xmm2, xmm3;
+   pxor xmm1, xmm2;
+   // rotate is x << n | x >> 32 - n
+   movapd xmm4, xmm1;
+   pslld xmm4, 12;
+   psrld xmm1, 20;  // 32 - 12
+   por xmm1, xmm4;
+
+   // v0 += v1; v3 ^= v0; v3 <<<= ( 8,  8,  8,  8);
+   paddd xmm0, xmm1;
+   pxor xmm3, xmm0;
+   pshufb xmm3, xmm5;
+
+   // v2 += v3; v1 ^= v2; v1 <<<= ( 7,  7,  7,  7);
+   paddd xmm2, xmm3;
+   pxor xmm1, xmm2;
+   movapd xmm4, xmm1;
+   pslld xmm4, 7;
+   psrld xmm1, 25;  // 32 - 7
+   por xmm1, xmm4;
+
+   // v1 <<<= 32; v2 <<<= 64; v3 <<<= 96; Return
+   movapd xmm4, xmm1;
+   palignr xmm1, xmm4, 12;
+   movapd xmm4, xmm2;
+   palignr xmm2, xmm4, 8;
+   movapd xmm4, xmm3;
+   palignr xmm3, xmm4, 4;
+
+   // move back
+   {$IFDEF x64}
+   movdqa [rdx], xmm0;
+   movdqa [rdx + 16], xmm1;
+   movdqa [rdx + 32], xmm2;
+   movdqa [rdx + 48], xmm3;
+
+   // cleanup registers
+   movupd xmm4, dXMM4;
+   movupd xmm5, dXMM5;
+   {$ELSE}
+   movdqa [edx], xmm0;
+   movdqa [edx + 16], xmm1;
+   movdqa [edx + 32], xmm2;
+   movdqa [edx + 48], xmm3;
+   {$ENDIF}
+end;
+{$IFDEF FPC}
+end;
+{$ENDIF}
+
+procedure TRandomGenerator.ChaChaRound;
+var i: Integer;
+begin
+     Move(fInpChaChaMTX^, fOutChaChaMtx^, sizeof(TChaChaMtx));
+
+     if UseSSE then
+     begin
+          for i := 0 to fNumChaChaRounds - 1 do
+              SSEChaChaDoubleQuarterRound;
+     end
+     else
+     begin
+          for i := 0 to fNumChaChaRounds - 1 do
+              PasChaChaDoubleQuarterRound;
+     end;
+
+     for i := 0 to High(fInpChaChaMTX^) do
+         inc(fOutChaChaMtx^[i], fInpChaChaMTX^[i]);
+end;
+
+
+function TRandomGenerator.RandChaChaDbl: double;
+begin
+     Result := RandChaChaDblWord*two2neg32;
+end;
+
+function TRandomGenerator.RandChaChaDblWord: LongWord;
+begin
+     if fChaChaIdx > High(fInpChaChaMTX^) then
+     begin
+          ChaChaRound;
+          fChaChaIdx := 0;
+
+          inc(fInpChaChaMTX^[12]);
+          if fInpChaChaMTX^[12] = 0 then
+             inc(fInpChaChaMTX^[13]);
+     end;
+
+     Result := fOutChaChaMtx^[fChaChaIdx];
+     inc(fChaChaIdx);
+end;
+
+function TRandomGenerator.RandChaChaInt(const ARange: Integer): LongInt;
+var y : LongWord;
+begin
+     y := RandChaChaDblWord;
+     // ensure positive integer (base range from 0 - maxint)
+     Result := (LongInt(y and $7FFFFFFF)) mod aRange;
+end;
+
+function TRandomGenerator.RandChaChaLW(const ARange: LongWord): LongWord;
+begin
+     Result := RandChaChaDblWord mod aRange;
 end;
 
 end.
