@@ -54,7 +54,7 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
-Date: 21.08.2021
+Date: 21.09.2021
 * Just for fun: a new random generator was introduced: ChaCha. Including a 32bit and 64bit sse3 optimized version.
 
 Date 15.09.2021
