@@ -32,7 +32,7 @@
         <PackageName Value="adLCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="153">
+    <Units Count="155">
       <Unit0>
         <Filename Value="MathUtilsLinux.ppr"/>
         <IsPartOfProject Value="True"/>
@@ -650,6 +650,16 @@
         <FRMtype Value="0"/>
         <IsPartOfProject Value="True"/>
       </Unit152>
+      <Unit153>
+        <Filename Value="../AVXChaCha.pas"/>
+        <FRMtype Value="0"/>
+        <IsPartOfProject Value="True"/>
+      </Unit153>
+      <Unit154>
+        <Filename Value="../AVXChaChax64.pas"/>
+        <FRMtype Value="0"/>
+        <IsPartOfProject Value="True"/>
+      </Unit154>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -662,20 +672,16 @@
       <OtherUnitFiles Value=".."/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)/$(LCLWidgetType)"/>
     </SearchPaths>
-    <Parsing>
-      <SyntaxOptions>
-        <IncludeAssertionCode Value="True"/>
-      </SyntaxOptions>
-    </Parsing>
     <CodeGeneration>
-      <Checks>
-        <IOChecks Value="True"/>
-        <RangeChecks Value="True"/>
-        <OverflowChecks Value="True"/>
-        <StackChecks Value="True"/>
-      </Checks>
-      <VerifyObjMethodCallValidity Value="True"/>
+      <Optimizations>
+        <OptimizationLevel Value="3"/>
+      </Optimizations>
     </CodeGeneration>
+    <Linking>
+      <Debugging>
+        <GenerateDebugInfo Value="False"/>
+      </Debugging>
+    </Linking>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="5">

@@ -334,7 +334,7 @@ asm
            {$IFDEF FPC}vmovsd xmm0, [r8 + rax];{$ELSE}db $C4,$C1,$7B,$10,$04,$00;{$ENDIF} 
            {$IFDEF FPC}vsubsd xmm2, xmm0, xmm1;{$ELSE}db $C5,$FB,$5C,$D1;{$ENDIF} 
            {$IFDEF FPC}vmovsd [rcx + rax - 8], xmm2;{$ELSE}db $C5,$FB,$11,$54,$01,$F8;{$ENDIF} 
-           {$IFDEF FPC}vmovapd xmm1, xmm0;{$ELSE}db $C5,$F9,$28,$C8;{$ENDIF} 
+           {$IFDEF FPC}vmovapd xmm1, xmm0;{$ELSE}db $C5,$F9,$29,$C1;{$ENDIF} 
        add rax, 8;
        jnz @@forxloop;
 
@@ -400,7 +400,7 @@ asm
            {$IFDEF FPC}vsubpd ymm2, ymm1, ymm0;{$ELSE}db $C5,$F5,$5C,$D0;{$ENDIF} 
            {$IFDEF FPC}vmovupd [rcx + rsi], ymm2;{$ELSE}db $C5,$FD,$11,$14,$31;{$ENDIF} 
 
-           {$IFDEF FPC}vmovapd ymm0, ymm1;{$ELSE}db $C5,$FD,$28,$C1;{$ENDIF} 
+           {$IFDEF FPC}vmovapd ymm0, ymm1;{$ELSE}db $C5,$FD,$29,$C8;{$ENDIF} 
 
            add rdi, r9;
            add rsi, rdx;
@@ -432,7 +432,7 @@ asm
           {$IFDEF FPC}vsubsd xmm2, xmm1, xmm0;{$ELSE}db $C5,$F3,$5C,$D0;{$ENDIF} 
           {$IFDEF FPC}vmovsd [rcx + rsi], xmm2;{$ELSE}db $C5,$FB,$11,$14,$31;{$ENDIF} 
 
-          {$IFDEF FPC}vmovsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$10,$C1;{$ENDIF} 
+          {$IFDEF FPC}vmovsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$11,$C8;{$ENDIF} 
 
           add rdi, r9;
           add rsi, rdx;
@@ -503,7 +503,7 @@ asm
            {$IFDEF FPC}vsubpd ymm2, ymm1, ymm0;{$ELSE}db $C5,$F5,$5C,$D0;{$ENDIF} 
            {$IFDEF FPC}vmovapd [rcx + rsi], ymm2;{$ELSE}db $C5,$FD,$29,$14,$31;{$ENDIF} 
 
-           {$IFDEF FPC}vmovapd ymm0, ymm1;{$ELSE}db $C5,$FD,$28,$C1;{$ENDIF} 
+           {$IFDEF FPC}vmovapd ymm0, ymm1;{$ELSE}db $C5,$FD,$29,$C8;{$ENDIF} 
 
            add rdi, r9;
            add rsi, rdx;
@@ -535,7 +535,7 @@ asm
           {$IFDEF FPC}vsubsd xmm2, xmm1, xmm0;{$ELSE}db $C5,$F3,$5C,$D0;{$ENDIF} 
           {$IFDEF FPC}vmovsd [rcx + rsi], xmm2;{$ELSE}db $C5,$FB,$11,$14,$31;{$ENDIF} 
 
-          {$IFDEF FPC}vmovsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$10,$C1;{$ENDIF} 
+          {$IFDEF FPC}vmovsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$11,$C8;{$ENDIF} 
 
           add rdi, r9;
           add rsi, rdx;

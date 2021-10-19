@@ -148,8 +148,8 @@ asm
            {$IFDEF FPC}vmovupd xmm3, [r8 + rdi];{$ELSE}db $C4,$C1,$79,$10,$1C,$38;{$ENDIF} 
 
            // temp store...
-           {$IFDEF FPC}vmovapd xmm4, xmm2{$ELSE}db $C5,$F9,$28,$E2;{$ENDIF} 
-           {$IFDEF FPC}vmovapd xmm5, xmm3;{$ELSE}db $C5,$F9,$28,$EB;{$ENDIF} 
+           {$IFDEF FPC}vmovapd xmm4, xmm2{$ELSE}db $C5,$F9,$29,$D4;{$ENDIF} 
+           {$IFDEF FPC}vmovapd xmm5, xmm3;{$ELSE}db $C5,$F9,$29,$DD;{$ENDIF} 
 
            {$IFDEF FPC}vmulpd xmm3, xmm3, xmm0; {$ELSE}db $C5,$E1,$59,$D8;{$ENDIF} // ctemp*pcay1^[x] and ctemp*a[x+1]
            {$IFDEF FPC}vmulpd xmm2, xmm2, xmm1;  {$ELSE}db $C5,$E9,$59,$D1;{$ENDIF} // stemp*pcAy^[x] and stemp*a[x+1]
@@ -182,8 +182,8 @@ asm
        {$IFDEF FPC}vmovsd xmm2, [r11];{$ELSE}db $C4,$C1,$7B,$10,$13;{$ENDIF} 
        {$IFDEF FPC}vmovsd xmm3, [r8];{$ELSE}db $C4,$C1,$7B,$10,$18;{$ENDIF} 
 
-       {$IFDEF FPC}vmovsd xmm4, xmm4, xmm2;{$ELSE}db $C5,$DB,$10,$E2;{$ENDIF} 
-       {$IFDEF FPC}vmovsd xmm5, xmm5, xmm3;{$ELSE}db $C5,$D3,$10,$EB;{$ENDIF} 
+       {$IFDEF FPC}vmovsd xmm4, xmm4, xmm2;{$ELSE}db $C5,$DB,$11,$D4;{$ENDIF} 
+       {$IFDEF FPC}vmovsd xmm5, xmm5, xmm3;{$ELSE}db $C5,$D3,$11,$DD;{$ENDIF} 
 
        {$IFDEF FPC}vmulsd xmm3, xmm3, xmm0;{$ELSE}db $C5,$E3,$59,$D8;{$ENDIF} 
        {$IFDEF FPC}vmulsd xmm2, xmm2, xmm1;{$ELSE}db $C5,$EB,$59,$D1;{$ENDIF} 
@@ -560,7 +560,7 @@ asm
            {$IFDEF FPC}vhaddpd xmm4, xmm4, xmm4;{$ELSE}db $C5,$D9,$7C,$E4;{$ENDIF} 
 
            // write back first two values
-           {$IFDEF FPC}vmovsd xmm2, xmm2, xmm3;{$ELSE}db $C5,$EB,$10,$D3;{$ENDIF} 
+           {$IFDEF FPC}vmovsd xmm2, xmm2, xmm3;{$ELSE}db $C5,$EB,$11,$DA;{$ENDIF} 
            {$IFDEF FPC}vmovsd [r8 + rdi], xmm4;{$ELSE}db $C4,$C1,$7B,$11,$24,$38;{$ENDIF} 
 
            // next one

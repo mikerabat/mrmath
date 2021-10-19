@@ -147,7 +147,9 @@ uses
   IOCompletionPortsThreadPool in '..\..\IOCompletionPortsThreadPool.pas',
   Roots in '..\..\Roots.pas',
   SSA in '..\..\SSA.pas',
-  MtxUtilFunc in '..\..\MtxUtilFunc.pas';
+  MtxUtilFunc in '..\..\MtxUtilFunc.pas',
+  AVXChaCha in '..\..\AVXChaCha.pas',
+  AVXChaChax64 in '..\..\AVXChaChax64.pas';
 
 begin
 end.

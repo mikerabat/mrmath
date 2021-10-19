@@ -65,8 +65,8 @@ asm
    // init result
    lea rax, [rip + cNegMaxDouble];
    {$IFDEF FPC}vbroadcastsd ymm0, [rax];{$ELSE}db $C4,$E2,$7D,$19,$00;{$ENDIF} 
-   {$IFDEF FPC}vmovapd ymm3, ymm0;{$ELSE}db $C5,$FD,$28,$D8;{$ENDIF} 
-   {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$28,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovapd ymm3, ymm0;{$ELSE}db $C5,$FD,$29,$C3;{$ENDIF} 
+   {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$29,$C4;{$ENDIF} 
 
    // for y := 0 to height - 1:
    @@addforyloop:
@@ -161,8 +161,8 @@ asm
    // init result
    lea rax, [rip + cNegMaxDouble];
    {$IFDEF FPC}vbroadcastsd ymm0, [rax];{$ELSE}db $C4,$E2,$7D,$19,$00;{$ENDIF} 
-   {$IFDEF FPC}vmovapd ymm3, ymm0;{$ELSE}db $C5,$FD,$28,$D8;{$ENDIF} 
-   {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$28,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovapd ymm3, ymm0;{$ELSE}db $C5,$FD,$29,$C3;{$ENDIF} 
+   {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$29,$C4;{$ENDIF} 
 
    // for y := 0 to height - 1:
    @@addforyloop:
@@ -262,8 +262,8 @@ asm
    // init result
    lea rax, [rip + cMaxDouble];
    {$IFDEF FPC}vbroadcastsd ymm0, [rax];{$ELSE}db $C4,$E2,$7D,$19,$00;{$ENDIF} 
-   {$IFDEF FPC}vmovapd ymm3, ymm0;{$ELSE}db $C5,$FD,$28,$D8;{$ENDIF} 
-   {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$28,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovapd ymm3, ymm0;{$ELSE}db $C5,$FD,$29,$C3;{$ENDIF} 
+   {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$29,$C4;{$ENDIF} 
 
    // for y := 0 to height - 1:
    @@addforyloop:
@@ -356,8 +356,8 @@ asm
    // init result
    lea rax, [rip + cMaxDouble];
    {$IFDEF FPC}vbroadcastsd ymm0, [rax];{$ELSE}db $C4,$E2,$7D,$19,$00;{$ENDIF} 
-   {$IFDEF FPC}vmovapd ymm3, ymm0;{$ELSE}db $C5,$FD,$28,$D8;{$ENDIF} 
-   {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$28,$E0;{$ENDIF} 
+   {$IFDEF FPC}vmovapd ymm3, ymm0;{$ELSE}db $C5,$FD,$29,$C3;{$ENDIF} 
+   {$IFDEF FPC}vmovapd ymm4, ymm0;{$ELSE}db $C5,$FD,$29,$C4;{$ENDIF} 
 
    // for y := 0 to height - 1:
    @@addforyloop:

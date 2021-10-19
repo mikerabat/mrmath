@@ -55,28 +55,28 @@ const cNumRandNum = 1000000;
 procedure TestRandomOperations.TestChaCha;
 var gen : TRandomGenerator;
     cnt : integer;
-    outputPas : Array[0..9] of integer;
-    outputSSE : Array[0..9] of integer;
+    outputPas : Array[0..255] of integer;
+    outputSSE : Array[0..255] of integer;
 begin
      gen := TRandomGenerator.Create(raChaCha);
      try
-        gen.UseSSE := False;
+        gen.SetCpuInstrSet(TChaChaCPUInstrType.itFPU);
         gen.Init(7);
         for cnt := 0 to High(outputPas) do
         begin
-             outputPas[cnt] := gen.RandInt(20);
-        end
+             outputPas[cnt] := gen.RandInt($7F);
+        end;
      finally
             gen.Free;
      end;
 
      gen := TRandomGenerator.Create(raChaCha);
      try
-        gen.UseSSE := True;
+        gen.SetCpuInstrSet(TChaChaCPUInstrType.itSSE);
         gen.Init(7);
 
         for cnt := 0 to High(outputSSE) do
-            outputSSE[cnt] := gen.RandInt(20);
+            outputSSE[cnt] := gen.RandInt($7F);
      finally
             gen.Free;
      end;
@@ -85,6 +85,27 @@ begin
      begin
           Status(Format('%d, %d', [outputpas[cnt], outputSSE[cnt]]));
           Check(outputPas[cnt] = outputSSE[cnt], 'ChaCha Random failed');
+     end;
+
+     if IsAVXPresent then
+     begin
+          gen := TRandomGenerator.Create(raChaCha);
+          try
+             gen.SetCpuInstrSet(TChaChaCPUInstrType.itAVX2);
+
+             gen.Init(7);
+
+             for cnt := 0 to High(outputSSE) do
+                 outputSSE[cnt] := gen.RandInt($7F);
+          finally
+                 gen.Free;
+          end;
+          Status('');
+          for cnt := 0 to High(outputPas) do
+          begin
+               Status(Format('%d, %d', [outputpas[cnt], outputSSE[cnt]]));
+               Check(outputPas[cnt] = outputSSE[cnt], 'ChaCha Random failed');
+          end;
      end;
 end;
 
@@ -99,8 +120,9 @@ begin
 
      gen := TRandomGenerator.Create(raChaCha);
      try
+        gen.SetCpuInstrSet(TChaChaCPUInstrType.itFPU);
+
         gen.Init( 175 );
-        gen.UseSSE := False;
         s1 := MtxGetTime;
         for i := 0 to cNumRandNum - 1 do
             pasRnd := gen.RandLW($FFFFFFFF);
@@ -111,8 +133,8 @@ begin
 
      gen := TRandomGenerator.Create(raChaCha);
      try
+        gen.SetCpuInstrSet(TChaChaCPUInstrType.itSSE);
         gen.Init( 175 );
-        gen.UseSSE := True;
         s2 := MtxGetTime;
         for i := 0 to cNumRandNum - 1 do
             sseRnd := gen.RandLW($FFFFFFFF);
@@ -123,6 +145,24 @@ begin
 
      Status(Format('ChaChaRnd of %d elements took pas: %.3f, sse: %.3f', [cNumRandNum, (e1 - s1)*1000/freq, (e2 - s2)*1000/freq]));
      check( sseRnd = pasRnd, 'Large ChaCha Rnd failed');
+
+     if IsAVXPresent then
+     begin
+          gen := TRandomGenerator.Create(raChaCha);
+          try
+             gen.SetCpuInstrSet(TChaChaCPUInstrType.itAVX2);
+             gen.Init( 175 );
+             s2 := MtxGetTime;
+             for i := 0 to cNumRandNum - 1 do
+                 sseRnd := gen.RandLW($FFFFFFFF);
+             e2 := MtxGetTime;
+          finally
+                 gen.Free;
+          end;
+
+          Status(Format('ChaChaRnd of %d elements took pas: %.3f, avx: %.3f', [cNumRandNum, (e1 - s1)*1000/freq, (e2 - s2)*1000/freq]));
+          check( sseRnd = pasRnd, 'Large ChaCha Rnd failed');
+     end;
 end;
 
 procedure TestRandomOperations.TestGaussRnd;

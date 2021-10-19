@@ -34,9 +34,21 @@ type
   TRandomLW = function(const ARange : LongWord) : LongWord of object;
   TRandomDouble = function : double of object;
 
-  TChaChaK = Array[0..7] of LongWord;
-  TChaChaIV = Array[0..1] of LongWord;
-  TChaChaMode = (cmSpeed, cmBalance, cmSecure); // number of rounds...
+type
+  TChaChaCPUInstrType = (itFPU, itSSE, itAVX2);
+  TChaChaK = Array[0..7] of LongWord;            // key
+  TChaChaIV = Array[0..1] of LongWord;           // nonce 64 bit (todo: 96 bit implementation)
+  TChaChaMode = (cmSpeed, cmBalance, cmSecure);  // number of rounds... (4, 12, 20)
+
+type
+  TChaChaMtx = Array[0..15] of LongWord;
+  PChaChaMtx = ^TChaChaMtx;
+
+  TChaChaAVXMtx = Array[0..31] of LongWord;
+  PChaChaAVXMtx = ^TChaChaAVXMtx;
+
+
+  { TRandomGenerator }
 
   TRandomGenerator = class(TObject)
   private
@@ -73,21 +85,32 @@ type
     function RDRandDbl: double;
   private
     type
-      TChaChaMtx = Array[0..15] of LongWord;
-      PChaChaMtx = ^TChaChaMtx;
+      TChaChaDWRand = function : LongWord of object;
+      TChaChaInitVec = procedure(k : TChaChaK; iv : TChaChaIV) of Object;
+
   private
     fChaChaMem : Pointer;
     fInpChaChaMTX : PChaChaMtx;
     fOutChaChaMtx : PChaChaMtx;
+
+    fOutChaChaMtxAVX : PChaChaAVXMtx;
+
     fChaChaIdx : integer;
     fChaChaMode : TChaChaMode;
     fNumChaChaRounds : integer;
 
+    fChaChaDblWord : TChaChaDWRand;
+    fChaChaInitVec : TChaChaInitVec;
+
+    function PasRandChaChaDblWord : Longword;
     procedure ChaChaQuarterRound( var a, b, c, d : LongWord );
-    function RandChaChaDblWord : LongWord;
-    procedure ChaChaRound;         // makes 8, 12, or 20 rounds
     procedure PasChaChaDoubleQuarterRound;   // one column and row round
-    procedure SSEChaChaDoubleQuarterRound; register;
+
+    function SSERandChaChaDblWord : Longword;
+    procedure SSEChaChaDoubleQuarterRound;
+
+    function AVXRandChaChaDblWord : Longword;
+    procedure AVXInitChaChaByVec(k : TChaChaK; iv : TChaChaIV);
 
     function RandChaChaInt(const ARange: LongInt) : LongInt;
     function RandChaChaDbl : double;
@@ -139,7 +162,9 @@ type
     function RandErlang(k : integer) : double; // mean=1
     function RandPoission(mean : integer) : integer;
   public
-    class var UseSSE : boolean;
+    class var cpuSet : TChaChaCPUInstrType;
+
+    procedure SetCpuInstrSet( aCpuSet : TChaChaCPUInstrType );
 
     property ChaChaMode : TChaChaMode read fChaChaMode write SetChaChaMode;
 
@@ -155,16 +180,19 @@ type
   
 implementation
 
-uses SysUtils, CPUFeatures, Math, Classes, MatrixConst, MtxTimer{$IFDEF MSWINDOWS}, winRandomGen {$ENDIF} {$IFNDEF MSWINDOWS}, MacOsRandomGen {$ENDIF};
-
-const two2neg32: double = ((1.0/$10000) / $10000);  // 2^-32
-
 {$IFDEF CPUX64}
 {$DEFINE x64}
 {$ENDIF}
 {$IFDEF cpux86_64}
 {$DEFINE x64}
 {$ENDIF}
+
+uses SysUtils, CPUFeatures, Math, Classes, MatrixConst,
+     {$IFDEF x64}AVXChaChax64, {$ELSE}AVXChaCha,{$ENDIF}
+     MtxTimer{$IFDEF MSWINDOWS}, winRandomGen {$ENDIF} {$IFNDEF MSWINDOWS}, MacOsRandomGen {$ENDIF};
+
+const two2neg32: double = ((1.0/$10000) / $10000);  // 2^-32
+
 
 
 // Mersenne Twister translated from
@@ -185,7 +213,7 @@ begin
      inherited;
 end;
 
-procedure TRandomGenerator.Init(Seed: Integer = 0);
+procedure TRandomGenerator.Init(Seed: LongInt);
 begin
      case fRandMethod of
       raSystem: if Seed = 0 
@@ -200,6 +228,7 @@ begin
                 OsRandomize
             else
                 fOsRndEngine.Init(seed);
+      raIntelRAND: // do nothing here; todo: maybe call rdseed
      end;
 end;
 
@@ -276,7 +305,7 @@ begin
      fRandGFlag := not fRandGFlag;
 end;
 
-function TRandomGenerator.RandInt(const ARange: Integer): LongInt;
+function TRandomGenerator.RandInt(const ARange: LongInt): LongInt;
 begin
      Result := fRandInt(ARange);
 end;
@@ -332,6 +361,25 @@ begin
        cmSpeed: fNumChaChaRounds := 4;      // we use double rounds... so it's half of the proposed number of rounds
        cmBalance: fNumChaChaRounds := 6;
        cmSecure: fNumChaChaRounds := 10;
+     end;
+end;
+
+procedure TRandomGenerator.SetCpuInstrSet(aCpuSet: TChaChaCPUInstrType);
+begin
+     if (aCpuSet = itAVX2) then
+     begin
+          fChaChaDblWord := {$IFDEF FPC}@{$ENDIF}AVXRandChaChaDblWord;
+          fChaChaInitVec := {$IFDEF FPC}@{$ENDIF}AVXInitChaChaByVec;
+     end
+     else if (aCpuSet = itSSE) then
+     begin
+          fChaChaDblWord := {$IFDEF FPC}@{$ENDIF}SSERandChaChaDblWord;
+          fChaChaInitVec := {$IFDEF FPC}@{$ENDIF}InitChaChaByVec;
+     end
+     else
+     begin
+          fChaChaDblWord := {$IFDEF FPC}@{$ENDIF}PasRandChaChaDblWord;
+          fChaChaInitVec := {$IFDEF FPC}@{$ENDIF}InitChaChaByVec;
      end;
 end;
 
@@ -435,7 +483,7 @@ begin
      Result := fOsRndEngine.Random*two2neg32;
 end;
 
-function TRandomGenerator.OsRandInt(const aRange: Integer): LongInt;
+function TRandomGenerator.OsRandInt(const aRange: LongInt): LongInt;
 begin
      Result := LongInt(fOsRndEngine.Random and $7FFFFFFF) mod aRange;
 end;
@@ -454,7 +502,7 @@ end;
 // #### hardware random generator (intel RAND asm call)
 // ###########################################
 
-function TRAndomGenerator.RDRandDbl : double;
+function TRandomGenerator.RDRandDbl: double;
 begin
      // do that the same as in the system unit
      Result := RDRandInt(MaxInt)*two2neg32;
@@ -559,7 +607,7 @@ end;
 // #### Mersenne Twister
 // ###########################################
 
-procedure TRandomGenerator.InitMersenne(Seed: Integer);
+procedure TRandomGenerator.InitMersenne(Seed: LongInt);
 var mti : LongWord;
 begin
      if seed = 0 then
@@ -579,7 +627,7 @@ begin
      fMag01[1] := cMatrix_A;
 end;
 
-procedure TRandomGenerator.InitMersenneByArr(const initKey : Array of LongWord);
+procedure TRandomGenerator.InitMersenneByArr(const initKey: array of LongWord);
 var k : integer;
     i, j : LongWord;
     
@@ -667,7 +715,7 @@ begin
      Result := y;
 end;
 
-function TRandomGenerator.RandMersenneInt(const ARange: Integer): LongInt;
+function TRandomGenerator.RandMersenneInt(const ARange: LongInt): LongInt;
 var y : LongWord;
 begin
      y := RandMersenneDblWord;
@@ -701,6 +749,7 @@ end;
 
 constructor TRandomGenerator.Create(aRandMethod: TRandomAlgorithm);
 begin
+     SetCpuInstrSet(cpuSet);
      SetChaChaMode(cmSpeed);
      SetRandMethod(aRandMethod);
 
@@ -710,6 +759,7 @@ end;
 function TRandomGenerator.RandIndexArr(aFrom, aTo: integer): TIntegerDynArray;
 var i: Integer;
 begin
+     Result := nil;
      SetLength(Result, aTo - aFrom + 1);
 
      for i := 0 to Length(Result) - 1 do
@@ -761,10 +811,10 @@ end;
 
 procedure TRandomGenerator.InitChaCha(const k: TChaChaK; const iv: TChaChaIV);
 begin
-     InitChaChaByVec(k, iv);
+     fChaChaInitVec(k, iv);
 end;
 
-procedure TRandomGenerator.SeedChaCha(seed: Integer);
+procedure TRandomGenerator.SeedChaCha(seed: longInt);
 var k : TChaChaK;
     iv : TChaChaIV;
 begin
@@ -774,7 +824,7 @@ begin
      FillChar(k, sizeof(k), 0);
      FillChar(iv, sizeof(iv), 0);
      k[0] := LongWord(seed);
-     InitChaChaByVec(k, iv);
+     fChaChaInitVec(k, iv);
 end;
 
 procedure TRandomGenerator.InitChaChaByVec(k: TChaChaK; iv: TChaChaIV);
@@ -785,7 +835,8 @@ const cChaChaConst : Array[0..15] of AnsiChar = 'expand 32-byte k';
 begin
      if fChaChaMem = nil then
      begin
-          numBytes := $20 + 3*sizeof(TChaChaMtx);
+          // allocate for the AVX case -> 2 cha cha matrices at once
+          numBytes := $20 + 2*sizeof(TChaChaMtx);
           fChaChaMem := GetMemory( numBytes );
 
           fInpChaChaMtx := AlignPtr32(fChaChaMem);
@@ -794,7 +845,7 @@ begin
      end;
 
      Move(cChaChaConst[0], fInpChaChaMTX^[0], sizeof(cChaChaConst));
-     for i := 0 to High(k) - 1 do
+     for i := 0 to High(k) do
          fInpChaChaMTX^[i + 4] := k[i];
      fInpChaChaMTX^[12] := 0;
      fInpChaChaMTX^[13] := 0;
@@ -834,7 +885,7 @@ begin
      // get the next 40 random numbers from the stream and fill buf
      for i := 0 to Length(buf) div 4 - 1 do
      begin
-          aVal := RandChaChaDblWord;
+          aVal := fChaChaDblWord();
           Move( aVal, buf[i*sizeof(LongWord)], sizeof(longword));
      end;
 
@@ -874,7 +925,7 @@ begin
      b := rol(b, 7);
 end;
 
-procedure TrandomGenerator.PasChaChaDoubleQuarterRound;
+procedure TRandomGenerator.PasChaChaDoubleQuarterRound;
 begin
      ChaChaQuarterRound( fOutChaChaMtx^[0], fOutChaChaMtx^[4], fOutChaChaMtx^[8], fOutChaChaMtx^[12]);
      ChaChaQuarterRound( fOutChaChaMtx^[1], fOutChaChaMtx^[5], fOutChaChaMtx^[9], fOutChaChaMtx^[13]);
@@ -1042,41 +1093,87 @@ asm
    movdqa [edx + 48], xmm3;
    {$ENDIF}
 end;
+
 {$IFDEF FPC}
 end;
 {$ENDIF}
 
-procedure TRandomGenerator.ChaChaRound;
-var i: Integer;
+procedure TRandomGenerator.AVXInitChaChaByVec(k: TChaChaK; iv: TChaChaIV);
+var i : integer;
+    numBytes : integer;
+// from chacha-prng.h
+const cChaChaConst : Array[0..15] of AnsiChar = 'expand 32-byte k';
 begin
-     Move(fInpChaChaMTX^, fOutChaChaMtx^, sizeof(TChaChaMtx));
+     if fChaChaMem = nil then
+     begin
+          // allocate for the AVX case -> 2 cha cha matrices at once
+          numBytes := $40 + sizeof(TChaChaMtx) + Sizeof(TChaChaAVXMtx);
+          fChaChaMem := GetMemory( numBytes );
 
-     if UseSSE then
-     begin
-          for i := 0 to fNumChaChaRounds - 1 do
-              SSEChaChaDoubleQuarterRound;
-     end
-     else
-     begin
-          for i := 0 to fNumChaChaRounds - 1 do
-              PasChaChaDoubleQuarterRound;
+          fInpChaChaMtx := AlignPtr64(fChaChaMem);
+          fOutChaChaMtxAVX := PChaChaAVXMtx( fInpChaChaMtx );
+          inc(PByte(fOutChaChaMtxAVX), sizeof(TChaChaMtx));
      end;
 
-     for i := 0 to High(fInpChaChaMTX^) do
-         inc(fOutChaChaMtx^[i], fInpChaChaMTX^[i]);
+     Move(cChaChaConst[0], fInpChaChaMTX^[0], sizeof(cChaChaConst));
+     for i := 0 to High(k) do
+         fInpChaChaMTX^[i + 4] := k[i];
+     fInpChaChaMTX^[12] := 0;
+     fInpChaChaMTX^[13] := 0;
+     fInpChaChaMTX^[14] := iv[0];
+     fInpChaChaMTX^[15] := iv[1];
+
+     fChaChaIdx := High(TChaChaAVXMtx) + 1;
 end;
 
 
-function TRandomGenerator.RandChaChaDbl: double;
+function TRandomGenerator.AVXRandChaChaDblWord: Longword;
+var i : integer;
+    j : Integer;
 begin
-     Result := RandChaChaDblWord*two2neg32;
+     if fChaChaIdx > High(TChaChaAVXMtx) then
+     begin
+          // move the input matrix so we have nicely aligned memory for the quarter round
+          for i := 0 to 3 do
+          begin
+               Move(fInpChaChaMtx^[4*i], fOutChaChaMtxAVX^[8*i], 4*sizeof(LongWord));
+               Move(fInpChaChaMtx^[4*i], fOutChaChaMtxAVX^[8*i + 4], 4*sizeof(LongWord));
+          end;
+
+          // update index in the "second" matrix - this one is always odd so no further check
+          inc(fOutChaChaMtxAVX^[3*8 + 4]);
+
+          for i := 0 to fNumChaChaRounds - 1 do
+              AVXChaChaDoubleQuarterRound(fOutChaChaMtxAVX);
+          // undo the alignment so both matrices are adjacent again (not intermittent as used for the rounds)
+          AVXRealingAndAddMtx(fOutChaChaMtxAVX, fInpChaChaMTX);
+
+          // increment the one value that is off by one from the input matrix
+          inc(fOutChaChaMtxAVX^[16 + 12]);
+
+          // increment input matrix by 2
+          fChaChaIdx := 0;
+          inc(fInpChaChaMTX^[12], 2);
+          if fInpChaChaMTX^[12] = 0 then
+             inc(fInpChaChaMTX^[13]);
+     end;
+
+     Result := fOutChaChaMtxAVX^[fChaChaIdx];
+     inc(fChaChaIdx);
 end;
 
-function TRandomGenerator.RandChaChaDblWord: LongWord;
+function TRandomGenerator.SSERandChaChaDblWord: Longword;
+var i : integer;
 begin
      if fChaChaIdx > High(fInpChaChaMTX^) then
      begin
-          ChaChaRound;
+          Move(fInpChaChaMTX^, fOutChaChaMtx^, sizeof(TChaChaMtx));
+
+          for i := 0 to fNumChaChaRounds - 1 do
+              SSEChaChaDoubleQuarterRound;
+          for i := 0 to High(fInpChaChaMTX^) do
+              inc(fOutChaChaMtx^[i], fInpChaChaMTX^[i]);
+
           fChaChaIdx := 0;
 
           inc(fInpChaChaMTX^[12]);
@@ -1088,17 +1185,48 @@ begin
      inc(fChaChaIdx);
 end;
 
-function TRandomGenerator.RandChaChaInt(const ARange: Integer): LongInt;
+function TRandomGenerator.PasRandChaChaDblWord: Longword;
+var i : integer;
+begin
+     if fChaChaIdx > High(fInpChaChaMTX^) then
+     begin
+          Move(fInpChaChaMTX^, fOutChaChaMtx^, sizeof(TChaChaMtx));
+
+          for i := 0 to fNumChaChaRounds - 1 do
+              PasChaChaDoubleQuarterRound;
+          for i := 0 to High(fInpChaChaMTX^) do
+              inc(fOutChaChaMtx^[i], fInpChaChaMTX^[i]);
+
+          fChaChaIdx := 0;
+
+          inc(fInpChaChaMTX^[12]);
+          if fInpChaChaMTX^[12] = 0 then
+             inc(fInpChaChaMTX^[13]);
+     end;
+
+     Result := fOutChaChaMtx^[fChaChaIdx];
+     inc(fChaChaIdx);
+end;
+
+function TRandomGenerator.RandChaChaDbl: double;
+begin
+     Result := fChaChaDblWord()*two2neg32;
+end;
+
+function TRandomGenerator.RandChaChaInt(const ARange: LongInt): LongInt;
 var y : LongWord;
 begin
-     y := RandChaChaDblWord;
+     y := fChaChaDblWord();
      // ensure positive integer (base range from 0 - maxint)
      Result := (LongInt(y and $7FFFFFFF)) mod aRange;
 end;
 
 function TRandomGenerator.RandChaChaLW(const ARange: LongWord): LongWord;
 begin
-     Result := RandChaChaDblWord mod aRange;
+     Result := fChaChaDblWord() mod aRange;
 end;
+
+initialization
+  TRandomGenerator.cpuSet := itSSE;
 
 end.

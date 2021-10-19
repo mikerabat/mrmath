@@ -287,7 +287,7 @@ asm
            {$IFDEF FPC}vmovsd xmm0, [ecx + esi];{$ELSE}db $C5,$FB,$10,$04,$31;{$ENDIF} 
            {$IFDEF FPC}vsubsd xmm2, xmm0, xmm1;{$ELSE}db $C5,$FB,$5C,$D1;{$ENDIF} 
            {$IFDEF FPC}vmovsd [eax + esi - 8], xmm2;{$ELSE}db $C5,$FB,$11,$54,$30,$F8;{$ENDIF} 
-           {$IFDEF FPC}vmovapd xmm1, xmm0;{$ELSE}db $C5,$F9,$28,$C8;{$ENDIF} 
+           {$IFDEF FPC}vmovapd xmm1, xmm0;{$ELSE}db $C5,$F9,$29,$C1;{$ENDIF} 
        add esi, 8;
        jnz @@forxloop;
 
@@ -339,7 +339,7 @@ asm
            {$IFDEF FPC}vsubpd ymm2, ymm1, ymm0;{$ELSE}db $C5,$F5,$5C,$D0;{$ENDIF} 
            {$IFDEF FPC}vmovupd [eax + esi], ymm2;{$ELSE}db $C5,$FD,$11,$14,$30;{$ENDIF} 
 
-           {$IFDEF FPC}vmovapd ymm0, ymm1;{$ELSE}db $C5,$FD,$28,$C1;{$ENDIF} 
+           {$IFDEF FPC}vmovapd ymm0, ymm1;{$ELSE}db $C5,$FD,$29,$C8;{$ENDIF} 
 
            add edi, srcLineWidth;
            add esi, edx;
@@ -371,7 +371,7 @@ asm
           {$IFDEF FPC}vsubsd xmm2, xmm1, xmm0;{$ELSE}db $C5,$F3,$5C,$D0;{$ENDIF} 
           {$IFDEF FPC}vmovsd [eax + esi], xmm2;{$ELSE}db $C5,$FB,$11,$14,$30;{$ENDIF} 
 
-          {$IFDEF FPC}vmovsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$10,$C1;{$ENDIF} 
+          {$IFDEF FPC}vmovsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$11,$C8;{$ENDIF} 
 
           add edi, srcLineWidth;
           add esi, edx;
@@ -426,7 +426,7 @@ asm
            {$IFDEF FPC}vsubpd ymm2, ymm1, ymm0;{$ELSE}db $C5,$F5,$5C,$D0;{$ENDIF} 
            {$IFDEF FPC}vmovapd [eax + esi], ymm2;{$ELSE}db $C5,$FD,$29,$14,$30;{$ENDIF} 
 
-           {$IFDEF FPC}vmovapd ymm0, ymm1;{$ELSE}db $C5,$FD,$28,$C1;{$ENDIF} 
+           {$IFDEF FPC}vmovapd ymm0, ymm1;{$ELSE}db $C5,$FD,$29,$C8;{$ENDIF} 
 
            add edi, srcLineWidth;
            add esi, edx;
@@ -458,7 +458,7 @@ asm
           {$IFDEF FPC}vsubsd xmm2, xmm1, xmm0;{$ELSE}db $C5,$F3,$5C,$D0;{$ENDIF} 
           {$IFDEF FPC}vmovsd [eax + esi], xmm2;{$ELSE}db $C5,$FB,$11,$14,$30;{$ENDIF} 
 
-          {$IFDEF FPC}vmovsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$10,$C1;{$ENDIF} 
+          {$IFDEF FPC}vmovsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$11,$C8;{$ENDIF} 
 
           add edi, srcLineWidth;
           add esi, edx;

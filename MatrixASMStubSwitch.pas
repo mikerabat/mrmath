@@ -1555,9 +1555,9 @@ begin
 
 
      TDynamicTimeWarp.UseSSE := True;
-     TRandomGenerator.UseSSE := True;
+     TRandomGenerator.cpuSet := TChaChaCPUInstrType.itSSE;
 
-     // check features
+     // check features - IsAVXPresent actually checks for avx2
      if (IsAVXPresent and (instrType = itAVX)) or (IsFMAPresent and (instrType = itFMA)) then
      begin
           curUsedCPUInstrSet := itAVX;
@@ -1752,7 +1752,7 @@ begin
           elemAddFunc := GenericMtxElemAdd;
 
           TDynamicTimeWarp.UseSSE := False;
-          TRandomGenerator.UseSSE := False;
+          TRandomGenerator.cpuSet := TChaChaCPUInstrType.itFPU;
      end;
 
      curUsedStrassenMult := useStrassenMult;

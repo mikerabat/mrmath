@@ -3,7 +3,7 @@
 // #### offered under the licence agreement described on
 // #### http://www.mrsoft.org/
 // ####
-// #### Copyright:(c) 2011, Michael R. . All rights reserved.
+// #### Copyright:(c) 2019, Michael R. . All rights reserved.
 // ####
 // #### Unless required by applicable law or agreed to in writing, software
 // #### distributed under the License is distributed on an "AS IS" BASIS,
@@ -147,7 +147,9 @@ uses
   IOCompletionPortsThreadPool in '..\..\IOCompletionPortsThreadPool.pas',
   Roots in '..\..\Roots.pas',
   SSA in '..\..\SSA.pas',
-  MtxUtilFunc in '..\..\MtxUtilFunc.pas';
+  MtxUtilFunc in '..\..\MtxUtilFunc.pas',
+  AVXChaCha in '..\..\AVXChaCha.pas',
+  AVXChaChax64 in '..\..\AVXChaChax64.pas';
 
 begin
 end.

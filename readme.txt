@@ -54,6 +54,10 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date: 19.10.2021
+* Nerd fun goes on: ChaCha random engine now supports AVX instructions to create 2 matrices at once which
+  reduces the time of creating random matrices.
+
 Date: 21.09.2021
 * Just for fun: a new random generator was introduced: ChaCha. Including a 32bit and 64bit sse3 optimized version.
 
