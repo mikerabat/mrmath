@@ -1129,7 +1129,6 @@ end;
 
 function TRandomGenerator.AVXRandChaChaDblWord: Longword;
 var i : integer;
-    j : Integer;
 begin
      if fChaChaIdx > High(TChaChaAVXMtx) then
      begin
