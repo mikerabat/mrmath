@@ -13,6 +13,7 @@ type
     procedure pbPlotPaint(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure pbPlotDblClick(Sender: TObject);
   private
     { Private-Deklarationen }
     fYData : Array of TDoubleDynArray;
@@ -22,10 +23,15 @@ type
 
     fMinX, fMinY,
     fMaxX, fMaxY : single;
+    fDataMinX, fDataMaxX : single;
+    fDataMinY, fDataMaxY : single;
     fScaleX, fScaleY : single;
     fOX, fOY : integer;
 
     fMarginX, fMarginY : integer;
+
+    fUserDefMinX, fUserDefMaxX : single;
+    fUserDefMinY, fUserDefMaxY : single;
 
     function V2PX( X : single ) : integer; inline;
     function V2PY( Y : single ) : integer; inline;
@@ -49,7 +55,7 @@ var
 
 implementation
 
-uses MatrixASMStubSwitch, Math, MatrixConst, MathUtilFunc;
+uses MatrixASMStubSwitch, Math, MatrixConst, MathUtilFunc, mrMatrixPlotOptions;
 
 {$R *.dfm}
 
@@ -237,7 +243,7 @@ begin
      // start at a "nice" number and evaluate a nice increment (1, 2, 5)
 
      // get power base 10 of the displayed value
-          // start at a "nice" number and evaluate a nice increment (1, 2, 5)
+     // start at a "nice" number and evaluate a nice increment (1, 2, 5)
      axisPow := power(10, floor( log10( eps( Abs(fMaxY - fMinY) ) + Abs( fMaxY - fMinY ) ) ) );
 
      yInc := Abs(fMaxY - fMinY)/numTicks;
@@ -299,6 +305,10 @@ procedure TfrmMtxPlot.FormCreate(Sender: TObject);
 begin
      fMarginX := 20;
      fMarginY := 20;
+     fUserDefMinX := 0;
+     fUserDefMaxX := 0;
+     fUserDefMinY := 0;
+     fUserDefMaxY := 0;
 end;
 
 procedure TfrmMtxPlot.FormDestroy(Sender: TObject);
@@ -325,6 +335,57 @@ begin
      pbPlot.Invalidate;
 end;
 
+
+procedure TfrmMtxPlot.pbPlotDblClick(Sender: TObject);
+var fmt : TFormatSettings;
+begin
+     // ###########################################
+     // #### Double clik shows the options to UserDefly set the axis options
+     with TfrmMtxPlotOptions.Create(nil) do
+     try
+        fmt := GetLocalFMTSet;
+        fmt.DecimalSeparator := '.';
+
+        edMinXAxis.Text := Format( '%.3e', [fMinX], fmt );
+        edMaxXAxis.Text := Format( '%.3e', [fMaxX], fmt );
+        edMinYAxis.Text := Format( '%.3e', [fMinY], fmt );
+        edMaxYAxis.Text := Format( '%.3e', [fMaxY], fmt );
+
+        lblCurXAxis.Caption := Format( '%.3e - %.3e', [fMinX, fMaxX], fmt );
+        lblCurYAxis.Caption := Format( '%.3e - %.3e', [fMinY, fMaxY], fmt );
+        lblDataX.Caption := Format( '%.3e - %.3e', [fDataMinX, fDataMaxX], fmt );
+        lblDataY.Caption := Format( '%.3e - %.3e', [fDataMinY, fDataMaxY], fmt );
+
+        if ShowModal = mrOk then
+        begin
+             try
+                if not TryStrToFloat( edMinXAxis.Text, fUserDefMinX, fmt ) then
+                   raise Exception.Create('Error - the minimum X value has a wrong format.');
+                if not TryStrToFloat( edMaxXAxis.Text, fUserDefMaxX, fmt ) then
+                   raise Exception.Create('Error - the maximum X value has a wrong format.');
+                if not TryStrToFloat( edMinYAxis.Text, fUserDefMinY, fmt ) then
+                   raise Exception.Create('Error - the minimum Y value has a wrong format.');
+                if not TryStrToFloat( edMaxYAxis.Text, fUserDefMaxY, fmt ) then
+                   raise Exception.Create('Error - the maximum Y value has a wrong format.');
+
+                FreeAndNil(fBmp);
+                pbPlot.Invalidate;
+             except
+                   on E : Exception do
+                   begin
+                        fUserDefMinX := fMinX;
+                        fUserDefMaxX := fMaxX;
+                        fUserDefMinY := fMinY;
+                        fUserDefMaxY := fMaxY;
+
+                        MessageDlg(E.Message, mtError, [mbOk], -1);
+                   end;
+             end;
+        end;
+     finally
+            Free;
+     end;
+end;
 
 procedure TfrmMtxPlot.pbPlotPaint(Sender: TObject);
 begin
@@ -358,49 +419,67 @@ procedure TfrmMtxPlot.SetupParams;
 var cnt: Integer;
     yMin, yMax : double;
 begin
-     if Length(fXData) = 0 then
+     if (fUserDefMinX - fUserDefMaxX = 0) or (fUserDefMaxY - fUserDefMinY = 0) then
      begin
-          fMinX := 0;
-          fMaxX := Length(fYData);
-          if fMaxX > 0 then
-             fMaxX := Length(fYData[0]);
+          if Length(fXData) = 0 then
+          begin
+               fMinX := 0;
+               fMaxX := Length(fYData);
+               if fMaxX > 0 then
+                  fMaxX := Length(fYData[0]);
+          end
+          else
+          begin
+               fMinX := MatrixMin( @fXData[0], Length(fXData), 1, Length(fXData)*sizeof(double));
+               fMaxX := MatrixMax( @fXData[0], Length(fXData), 1, Length(fXData)*sizeof(double))
+          end;
+
+          fDataMinX := fMinX;
+          fDataMaxX := fMaxX;
+
+          if SameValue( fMinX, fMaxX, eps(1)) then
+          begin
+               fMinX := -1;
+               fMaxX := 1;
+          end;
+
+          if Length(fYData) > 0 then
+          begin
+               fMaxY := -MaxDouble;
+               fMinY := MaxDouble;
+               for cnt := 0 to Length(fYData) - 1 do
+               begin
+                    if Length(fYData[cnt]) = 0 then
+                       continue;
+
+                    yMin := MatrixMin( @fYData[cnt][0], Length(fYData[cnt]), 1, Length(fYData[cnt])*sizeof(double));
+                    yMax := MatrixMax( @fYData[cnt][0], Length(fYData[cnt]), 1, Length(fYData[cnt])*sizeof(double));
+
+                    fMaxY := max( ymax, fMaxY );
+                    fMinY := min( ymin, fMinY );
+               end;
+
+               fDataMinY := fMinY;
+               fDataMaxY := fMaxY;
+
+               fMaxY := fMaxY + 0.1*(fMaxY - fMinY);
+               fMinY := fMinY - 0.1*(fMaxY - fMinY);
+
+               if SameValue( fMinY, fMaxY, eps(1)) then
+               begin
+                    fMinY := -1;
+                    fMaxY := 1;
+               end;
+          end;
      end
      else
      begin
-          fMinX := MatrixMin( @fXData[0], Length(fXData), 1, Length(fXData)*sizeof(double));
-          fMaxX := MatrixMax( @fXData[0], Length(fXData), 1, Length(fXData)*sizeof(double))
-     end;
-
-     if SameValue( fMinX, fMaxX, eps(1)) then
-     begin
-          fMinX := -1;
-          fMaxX := 1;
-     end;
-
-     if Length(fYData) > 0 then
-     begin
-          fMaxY := -MaxDouble;
-          fMinY := MaxDouble;
-          for cnt := 0 to Length(fYData) - 1 do
-          begin
-               if Length(fYData[cnt]) = 0 then
-                  continue;
-
-               yMin := MatrixMin( @fYData[cnt][0], Length(fYData[cnt]), 1, Length(fYData[cnt])*sizeof(double));
-               yMax := MatrixMax( @fYData[cnt][0], Length(fYData[cnt]), 1, Length(fYData[cnt])*sizeof(double));
-
-               fMaxY := max( ymax, fMaxY );
-               fMinY := min( ymin, fMinY );
-          end;
-
-          fMaxY := fMaxY + 0.1*(fMaxY - fMinY);
-          fMinY := fMinY - 0.1*(fMaxY - fMinY);
-
-          if SameValue( fMinY, fMaxY, eps(1)) then
-          begin
-               fMinY := -1;
-               fMaxY := 1;
-          end;
+          // ###########################################
+          // #### override with user defined values
+          fMinX := fUserDefMinX;
+          fMaxX := fUserDefMaxX;
+          fMinY := fUserDefMinY;
+          fMaxY := fUserDefMaxY;
      end;
 
      fScaleY := (fBmp.Height - 2*fMarginY)/(fMaxY - fMinY);
