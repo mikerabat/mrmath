@@ -43,11 +43,14 @@ type
   procedure TestEigVecComplex;
   procedure TestBalance;
   procedure TestLinearDependentVectors;
+
+  procedure TestEigValFromTridiagMtx;
+  procedure TEstEigValFromTridiagMtx2;
  end;
 
 implementation
 
-uses Eigensystems, MatrixConst, MatrixASMStubSwitch, Matrix, Types, MtxTimer, 
+uses RandomEng, Eigensystems, MatrixConst, MatrixASMStubSwitch, Matrix, Types, MtxTimer,
   BlockSizeSetup, MtxThreadPool;
 
 { TTestEigensystems }
@@ -72,6 +75,73 @@ begin
      Check(CheckMtx(EigVec, Eivec, -1, -1, 0.001), 'Error wrong eigenvectors');
 end;
 
+
+procedure TTestEigensystems.TestEigValFromTridiagMtx;
+var D : Array[0..7] of double;
+    E : Array[0..7] of double;
+    // from octave
+const eigVals : Array[0..2] of double = (  -2.2645, 1.4192, 6.8453 );
+begin
+     d[0] := 1;
+     d[1] := 2;
+     d[2] := 3;
+
+     e[0] := 2;
+     e[1] := 4;
+
+     InternalEigValFromSymMatrix(PConstDoubleArr(@D[0]), PConstDoubleArr(@E[0]), 3);
+
+     Status( WriteMtx(PDouble(@E[0]), 3*sizeof(double), 3, 1 ) );
+     Status( WriteMtx(PDouble(@D[0]), 3*sizeof(double), 3, 1 ) );
+
+     Check( CheckMtx(eigVals, Slice(D, 3), 3, 1 ));
+
+
+
+end;
+
+procedure TTestEigensystems.TEstEigValFromTridiagMtx2;
+var E, D : TDoubleDynArray;
+    rnd : TRandomGenerator;
+    N : integer;
+    i: Integer;
+    j: Integer;
+begin
+     // just a test
+     rnd := TRandomGenerator.Create( raMersenneTwister );
+     try
+        rnd.Init(641);
+
+        for i := 0 to 64 - 1 do
+        begin
+             N := 2 + rnd.RandInt( 63 );
+
+             SetLength(D, N);
+             SetLength(E, N - 1);
+
+             for j := 0 to N - 1 do
+                 D[j] := rnd.RandInt(256) - 128;
+
+             for j := 0 to N - 2 do
+                 E[j] := rnd.RandInt(256) - 128;
+
+             // use these arrays in octave to crosscheck with this implementation
+             // -> load both arrays in E and D -> create X = diag(D,0)+diag(E,-1)+diag(E,1);
+             // ei = eig(X);
+             // and finally calcualte the residual err = [err; max( DE - ei' )];
+             // where DE is the data loaded from the eig file here...
+
+             //WriteMatlabData('D:\d' + intToStr(i) + '.txt', D, Length(D));
+             //WriteMatlabData('D:\E' + intToStr(i) + '.txt', E, Length(E));
+
+             Check( InternalEigValFromSymMatrix(PConstDoubleArr(@D[0]), PConstDoubleArr(@E[0]), N) = qlOk, 'Failed eigenvalues on tridiagonal mtx');
+
+             //WriteMatlabData('D:\eig' + IntToStr(i) + '.txt', D, Length(D));
+        end;
+     finally
+            rnd.Free;
+     end;
+end;
 
 procedure TTestEigensystems.TestEigVec1;
 const B : Array[0..8] of double = (3, 1, 1, 2, -2, -1, 5, -1, 8);

@@ -515,13 +515,13 @@ begin
      ptr := A;
      while (NumBytes > 0) and ( (TASMNativeUInt(ptr) and $1F) <> 0 ) do
      begin
-          ptr^ := 0;
+          ptr^ := Value;
           inc(ptr);
           dec(NumBytes, sizeof(double));
      end;
 
      if NumBytes > 0 then
-        memInitfunc(ptr, NumBytes, 0);
+        memInitfunc(ptr, NumBytes, Value);
 end;
 
 procedure MatrixCopy(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);

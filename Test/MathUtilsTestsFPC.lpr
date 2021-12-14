@@ -73,7 +73,6 @@ uses
   ThreadedMatrixOperations in '..\ThreadedMatrixOperations.pas',
   BaseMathPersistence in '..\BaseMathPersistence.pas',
   BinaryReaderWriter in '..\BinaryReaderWriter.pas',
-  BufferedStream in '..\BufferedStream.pas',
   CCA in '..\CCA.pas',
   PCA in '..\PCA.pas',
   NonLinearFit in '..\NonLinearFit.pas',
