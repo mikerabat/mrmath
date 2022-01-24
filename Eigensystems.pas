@@ -3048,7 +3048,7 @@ L50:
                m := l;
                while m < lend do
                begin
-                    if abs( e^[m] ) <= eps2*abs( d^[m]*d[m + 1] ) then
+                    if abs( e^[m] ) <= eps2*abs( d^[m]*d^[m + 1] ) then
                        goto L70;
                     inc(m);
                end;
