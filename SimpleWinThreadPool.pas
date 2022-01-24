@@ -223,8 +223,6 @@ end;
 
 initialization
 
-  SetThreadPoolProvider( {$IFDEF FPD}@{$ENDIF}SimpleWinThreadPoolProvdier );
-
 {$ENDIF}
 
 end.
