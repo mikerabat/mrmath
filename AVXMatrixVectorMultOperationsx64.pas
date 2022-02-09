@@ -44,9 +44,9 @@ procedure AVXMatrixVectMultUnAlignedVAligned(dest : PDouble; destLineWidth : TAS
 procedure AVXMatrixVecMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
 
 function AVXMatrixVecDotMultUneven( x : PDouble; Y : PDouble; incX : TASMNativeInt; incY : TASMNativeInt;
- {$ifdef UNIX} unixN {$ELSE} N {$ENDIF} : TASMNativeInt) : Double;
-function AVXMatrixVecDotMultUnAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double;
-function AVXMatrixVecDotMultAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double;
+ {$ifdef UNIX} unixN {$ELSE} N {$ENDIF} : TASMNativeInt) : Double; {$IFDEF FPC}assembler;{$ENDIF}
+function AVXMatrixVecDotMultUnAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double; {$IFDEF FPC}assembler;{$ENDIF}
+function AVXMatrixVecDotMultAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double; {$IFDEF FPC}assembler;{$ENDIF}
 
 
 // rank1 update: A = A + alpha*X*Y' where x and y are vectors. It's assumed that y is sequential
@@ -1564,55 +1564,39 @@ asm
    sub rcx, r8;
    sub rdx, r8;
 
-   xorpd xmm0, xmm0;
+   {$IFDEF FPC}vxorpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
 
    // unrolled loop
    @Loop1:
        add r8, 128;
        jg @loopEnd1;
 
-       movapd xmm1, [rcx + r8 - 128];
-       movapd xmm2, [rdx + r8 - 128];
-       mulpd xmm1, xmm2;
-       addpd xmm0, xmm1;
+       {$IFDEF FPC}vmovapd ymm1, [rcx + r8 - 128];{$ELSE}db $C4,$A1,$7D,$28,$4C,$01,$80;{$ENDIF} 
+       {$IFDEF FPC}vmovapd ymm2, [rdx + r8 - 128];{$ELSE}db $C4,$A1,$7D,$28,$54,$02,$80;{$ENDIF} 
+       {$IFDEF FPC}vmulpd ymm1, ymm1, ymm2;{$ELSE}db $C5,$F5,$59,$CA;{$ENDIF} 
+       {$IFDEF FPC}vaddpd ymm0, ymm0, ymm1;{$ELSE}db $C5,$FD,$58,$C1;{$ENDIF} 
 
-       movapd xmm3, [rcx + r8 - 112];
-       movapd xmm4, [rdx + r8 - 112];
-       mulpd xmm3, xmm4;
-       addpd xmm0, xmm3;
+       {$IFDEF FPC}vmovapd ymm3, [rcx + r8 - 96];{$ELSE}db $C4,$A1,$7D,$28,$5C,$01,$A0;{$ENDIF} 
+       {$IFDEF FPC}vmovapd ymm4, [rdx + r8 - 96];{$ELSE}db $C4,$A1,$7D,$28,$64,$02,$A0;{$ENDIF} 
+       {$IFDEF FPC}vmulpd ymm3, ymm3, ymm4;{$ELSE}db $C5,$E5,$59,$DC;{$ENDIF} 
+       {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
 
-       movapd xmm1, [rcx + r8 - 96];
-       movapd xmm2, [rdx + r8 - 96];
-       mulpd xmm1, xmm2;
-       addpd xmm0, xmm1;
+       {$IFDEF FPC}vmovapd ymm1, [rcx + r8 - 64];{$ELSE}db $C4,$A1,$7D,$28,$4C,$01,$C0;{$ENDIF} 
+       {$IFDEF FPC}vmovapd ymm2, [rdx + r8 - 64];{$ELSE}db $C4,$A1,$7D,$28,$54,$02,$C0;{$ENDIF} 
+       {$IFDEF FPC}vmulpd ymm1, ymm1, ymm2;{$ELSE}db $C5,$F5,$59,$CA;{$ENDIF} 
+       {$IFDEF FPC}vaddpd ymm0, ymm0, ymm1;{$ELSE}db $C5,$FD,$58,$C1;{$ENDIF} 
 
-       movapd xmm3, [rcx + r8 - 80];
-       movapd xmm4, [rdx + r8 - 80];
-       mulpd xmm3, xmm4;
-       addpd xmm0, xmm3;
+       {$IFDEF FPC}vmovapd ymm3, [rcx + r8 - 32];{$ELSE}db $C4,$A1,$7D,$28,$5C,$01,$E0;{$ENDIF} 
+       {$IFDEF FPC}vmovapd ymm4, [rdx + r8 - 32];{$ELSE}db $C4,$A1,$7D,$28,$64,$02,$E0;{$ENDIF} 
+       {$IFDEF FPC}vmulpd ymm3, ymm3, ymm4;{$ELSE}db $C5,$E5,$59,$DC;{$ENDIF} 
+       {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
 
-       movapd xmm1, [rcx + r8 - 64];
-       movapd xmm2, [rdx + r8 - 64];
-       mulpd xmm1, xmm2;
-       addpd xmm0, xmm1;
-
-       movapd xmm3, [rcx + r8 - 48];
-       movapd xmm4, [rdx + r8 - 48];
-       mulpd xmm3, xmm4;
-       addpd xmm0, xmm3;
-
-       movapd xmm1, [rcx + r8 - 32];
-       movapd xmm2, [rdx + r8 - 32];
-       mulpd xmm1, xmm2;
-       addpd xmm0, xmm1;
-
-       movapd xmm3, [rcx + r8 - 16];
-       movapd xmm4, [rdx + r8 - 16];
-       mulpd xmm3, xmm4;
-       addpd xmm0, xmm3;
    jmp @Loop1;
 
    @loopEnd1:
+
+   {$IFDEF FPC}vextractf128 xmm2, ymm0, 1;{$ELSE}db $C4,$E3,$7D,$19,$C2,$01;{$ENDIF} 
+   {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$7C,$C2;{$ENDIF} 
 
    sub r8, 128;
    jz @loopEnd2;
@@ -1622,10 +1606,10 @@ asm
       add r8, 16;
       jg @loop2End;
 
-      movapd xmm3, [rcx + r8 - 16];
-      movapd xmm4, [rdx + r8 - 16];
-      mulpd xmm3, xmm4;
-      addpd xmm0, xmm3;
+      {$IFDEF FPC}vmovapd xmm3, [rcx + r8 - 16];{$ELSE}db $C4,$A1,$79,$28,$5C,$01,$F0;{$ENDIF} 
+      {$IFDEF FPC}vmovapd xmm4, [rdx + r8 - 16];{$ELSE}db $C4,$A1,$79,$28,$64,$02,$F0;{$ENDIF} 
+      {$IFDEF FPC}vmulpd xmm3, xmm3, xmm4;{$ELSE}db $C5,$E1,$59,$DC;{$ENDIF} 
+      {$IFDEF FPC}vaddpd xmm0, xmm0, xmm3;{$ELSE}db $C5,$F9,$58,$C3;{$ENDIF} 
    jmp @loop2;
 
    @loop2End:
@@ -1634,16 +1618,17 @@ asm
    sub r8, 16;
    jz @loopEnd2;
 
-   movsd xmm3, [rcx - 8];
-   movsd xmm4, [rdx - 8];
-   mulsd xmm3, xmm4;
-   addsd xmm0, xmm3;
+   {$IFDEF FPC}vmovsd xmm3, [rcx - 8];{$ELSE}db $C5,$FB,$10,$59,$F8;{$ENDIF} 
+   {$IFDEF FPC}vmovsd xmm4, [rdx - 8];{$ELSE}db $C5,$FB,$10,$62,$F8;{$ENDIF} 
+   {$IFDEF FPC}vmulsd xmm3, xmm3, xmm4;{$ELSE}db $C5,$E3,$59,$DC;{$ENDIF} 
+   {$IFDEF FPC}vaddsd xmm0, xmm0, xmm3;{$ELSE}db $C5,$FB,$58,$C3;{$ENDIF} 
 
    @loopEnd2:
 
    // build result
-   haddpd xmm0, xmm0;
-   movupd xmm4, dXMM4;
+   {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$7C,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$E8;{$ENDIF} 
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
 function AVXMatrixVecDotMultUnAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double;
@@ -1669,55 +1654,39 @@ asm
    sub rcx, r8;
    sub rdx, r8;
 
-   xorpd xmm0, xmm0;
+   {$IFDEF FPC}vxorpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
 
    // unrolled loop
    @Loop1:
        add r8, 128;
        jg @loopEnd1;
 
-       movupd xmm1, [rcx + r8 - 128];
-       movupd xmm2, [rdx + r8 - 128];
-       mulpd xmm1, xmm2;
-       addpd xmm0, xmm1;
+       {$IFDEF FPC}vmovupd ymm1, [rcx + r8 - 128];{$ELSE}db $C4,$A1,$7D,$10,$4C,$01,$80;{$ENDIF} 
+       {$IFDEF FPC}vmovupd ymm2, [rdx + r8 - 128];{$ELSE}db $C4,$A1,$7D,$10,$54,$02,$80;{$ENDIF} 
+       {$IFDEF FPC}vmulpd ymm1, ymm1, ymm2;{$ELSE}db $C5,$F5,$59,$CA;{$ENDIF} 
+       {$IFDEF FPC}vaddpd ymm0, ymm0, ymm1;{$ELSE}db $C5,$FD,$58,$C1;{$ENDIF} 
 
-       movupd xmm3, [rcx + r8 - 112];
-       movupd xmm4, [rdx + r8 - 112];
-       mulpd xmm3, xmm4;
-       addpd xmm0, xmm3;
+       {$IFDEF FPC}vmovupd ymm3, [rcx + r8 - 96];{$ELSE}db $C4,$A1,$7D,$10,$5C,$01,$A0;{$ENDIF} 
+       {$IFDEF FPC}vmovupd ymm4, [rdx + r8 - 96];{$ELSE}db $C4,$A1,$7D,$10,$64,$02,$A0;{$ENDIF} 
+       {$IFDEF FPC}vmulpd ymm3, ymm3, ymm4;{$ELSE}db $C5,$E5,$59,$DC;{$ENDIF} 
+       {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
 
-       movupd xmm1, [rcx + r8 - 96];
-       movupd xmm2, [rdx + r8 - 96];
-       mulpd xmm1, xmm2;
-       addpd xmm0, xmm1;
+       {$IFDEF FPC}vmovupd ymm1, [rcx + r8 - 64];{$ELSE}db $C4,$A1,$7D,$10,$4C,$01,$C0;{$ENDIF} 
+       {$IFDEF FPC}vmovupd ymm2, [rdx + r8 - 64];{$ELSE}db $C4,$A1,$7D,$10,$54,$02,$C0;{$ENDIF} 
+       {$IFDEF FPC}vmulpd ymm1, ymm1, ymm2;{$ELSE}db $C5,$F5,$59,$CA;{$ENDIF} 
+       {$IFDEF FPC}vaddpd ymm0, ymm0, ymm1;{$ELSE}db $C5,$FD,$58,$C1;{$ENDIF} 
 
-       movupd xmm3, [rcx + r8 - 80];
-       movupd xmm4, [rdx + r8 - 80];
-       mulpd xmm3, xmm4;
-       addpd xmm0, xmm3;
+       {$IFDEF FPC}vmovupd ymm3, [rcx + r8 - 32];{$ELSE}db $C4,$A1,$7D,$10,$5C,$01,$E0;{$ENDIF} 
+       {$IFDEF FPC}vmovupd ymm4, [rdx + r8 - 32];{$ELSE}db $C4,$A1,$7D,$10,$64,$02,$E0;{$ENDIF} 
+       {$IFDEF FPC}vmulpd ymm3, ymm3, ymm4;{$ELSE}db $C5,$E5,$59,$DC;{$ENDIF} 
+       {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
 
-       movupd xmm1, [rcx + r8 - 64];
-       movupd xmm2, [rdx + r8 - 64];
-       mulpd xmm1, xmm2;
-       addpd xmm0, xmm1;
-
-       movupd xmm3, [rcx + r8 - 48];
-       movupd xmm4, [rdx + r8 - 48];
-       mulpd xmm3, xmm4;
-       addpd xmm0, xmm3;
-
-       movupd xmm1, [rcx + r8 - 32];
-       movupd xmm2, [rdx + r8 - 32];
-       mulpd xmm1, xmm2;
-       addpd xmm0, xmm1;
-
-       movupd xmm3, [rcx + r8 - 16];
-       movupd xmm4, [rdx + r8 - 16];
-       mulpd xmm3, xmm4;
-       addpd xmm0, xmm3;
    jmp @Loop1;
 
    @loopEnd1:
+
+   {$IFDEF FPC}vextractf128 xmm2, ymm0, 1;{$ELSE}db $C4,$E3,$7D,$19,$C2,$01;{$ENDIF} 
+   {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$7C,$C2;{$ENDIF} 
 
    sub r8, 128;
    jz @loopEnd2;
@@ -1727,10 +1696,10 @@ asm
       add r8, 16;
       jg @loop2End;
 
-      movupd xmm3, [rcx + r8 - 16];
-      movupd xmm4, [rdx + r8 - 16];
-      mulpd xmm3, xmm4;
-      addpd xmm0, xmm3;
+      {$IFDEF FPC}vmovupd xmm3, [rcx + r8 - 16];{$ELSE}db $C4,$A1,$79,$10,$5C,$01,$F0;{$ENDIF} 
+      {$IFDEF FPC}vmovupd xmm4, [rdx + r8 - 16];{$ELSE}db $C4,$A1,$79,$10,$64,$02,$F0;{$ENDIF} 
+      {$IFDEF FPC}vmulpd xmm3, xmm3, xmm4;{$ELSE}db $C5,$E1,$59,$DC;{$ENDIF} 
+      {$IFDEF FPC}vaddpd xmm0, xmm0, xmm3;{$ELSE}db $C5,$F9,$58,$C3;{$ENDIF} 
    jmp @loop2;
 
    @loop2End:
@@ -1739,16 +1708,17 @@ asm
    sub r8, 16;
    jz @loopEnd2;
 
-   movsd xmm3, [rcx - 8];
-   movsd xmm4, [rdx - 8];
-   mulsd xmm3, xmm4;
-   addsd xmm0, xmm3;
+   {$IFDEF FPC}vmovsd xmm3, [rcx - 8];{$ELSE}db $C5,$FB,$10,$59,$F8;{$ENDIF} 
+   {$IFDEF FPC}vmovsd xmm4, [rdx - 8];{$ELSE}db $C5,$FB,$10,$62,$F8;{$ENDIF} 
+   {$IFDEF FPC}vmulsd xmm3, xmm3, xmm4;{$ELSE}db $C5,$E3,$59,$DC;{$ENDIF} 
+   {$IFDEF FPC}vaddsd xmm0, xmm0, xmm3;{$ELSE}db $C5,$FB,$58,$C3;{$ENDIF} 
 
    @loopEnd2:
 
    // build result
-   haddpd xmm0, xmm0;
-   movupd xmm4, dXMM4;
+   {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$7C,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovupd xmm4, dXMM4;{$ELSE}db $C5,$F9,$10,$65,$E8;{$ENDIF} 
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
 function AVXMatrixVecDotMultUneven( x : PDouble; Y : PDouble; incX : TASMNativeInt; incY : TASMNativeInt;
@@ -1771,15 +1741,15 @@ asm
    {$ENDIF}
 
    mov rax, N;
-   xorpd xmm0, xmm0;
+   {$IFDEF FPC}vxorpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
 
    test rax, rax;
    jz @loopEnd;
    @loop:
-      movsd xmm1, [rcx];
-      movsd xmm2, [rdx];
-      mulsd xmm1, xmm2;
-      addsd xmm0, xmm1;
+      {$IFDEF FPC}vmovsd xmm1, [rcx];{$ELSE}db $C5,$FB,$10,$09;{$ENDIF} 
+      {$IFDEF FPC}vmovsd xmm2, [rdx];{$ELSE}db $C5,$FB,$10,$12;{$ENDIF} 
+      {$IFDEF FPC}vmulsd xmm1, xmm1, xmm2;{$ELSE}db $C5,$F3,$59,$CA;{$ENDIF} 
+      {$IFDEF FPC}vaddsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$58,$C1;{$ENDIF} 
 
       // next element
       add rcx, r8;
@@ -1789,6 +1759,8 @@ asm
       dec rax;
       jnz @loop;
    @loopEnd:
+
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
 {$ENDIF}

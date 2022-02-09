@@ -104,7 +104,7 @@ implementation
 
 uses SysUtils, ThreadedMatrixOperations, MtxThreadPool, BlockSizeSetup,
      Math, LinAlgQR, LinAlgCholesky, LinAlgLU, LinAlgSVD, MatrixASMStubSwitch, 
-  Eigensystems;
+     Eigensystems, BaseMathPersistence;
 
 { TThreadedMatrix }
 
@@ -724,5 +724,8 @@ begin
            raise;
      end;
 end;
+
+initialization
+  RegisterMathIO(TThreadedMatrix);
 
 end.

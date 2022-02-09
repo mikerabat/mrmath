@@ -140,7 +140,7 @@ implementation
 {$DEFINE x64}
 {$ENDIF}
 
-uses ASMMatrixOperations, ThreadedMatrixOperations, MtxThreadPool, mtxTimer,
+uses ASMMatrixOperations, AVXMatrixOperations, ThreadedMatrixOperations, MtxThreadPool, mtxTimer,
      BlockSizeSetup, math, BlockedMult,
      {$IFDEF x64}
      ASMMatrixMultOperationsx64, ASMMatrixVectorMultOperationsx64, ASMMatrixMultTransposedOperationsx64,
@@ -4475,10 +4475,11 @@ end;
 procedure TASMMatrixOperations.TestDotProd;
 const x : Array[0..4] of double = (1, 2, 3, 1, 2);
       y : Array[0..4] of double = (-1, 2, -1, 2, 2);
-var res1, res2 : double;
+var res1, res2, res3 : double;
     v1, v2 : TDoubleDynArray;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : Int64;
+    startTime3, endTime3 : Int64;
     i: Integer;
 begin
      res1 := GenericVecDotMult(@x[0], sizeof(double), @y[0], sizeof(double), Length(x));
@@ -4487,8 +4488,10 @@ begin
      check( res1 = res2, 'Failed to calculate dot product');
      res1 := GenericVecDotMult(@x[0], 2*sizeof(double), @y[0], sizeof(double), 3);
      res2 := ASMMatrixVecDotMult(@x[0], 2*sizeof(double), @y[0], sizeof(double), 3);
+     res3 := AVXMatrixVecDotMult(@x[0], 2*sizeof(double), @y[0], sizeof(double), 3);
 
      check( res1 = res2, 'Failed to calculate dot product');
+     check( res1 = res3, 'Failed to calculate dot product');
 
      SetLength(v1, 8177);
      SetLength(v2, 8177);
@@ -4507,8 +4510,13 @@ begin
      res2 := ASMMatrixVecDotMult(@v1[0], sizeof(double), @v2[0], sizeof(double), Length(v1));
      endTime2 := MtxGetTime;
 
-     Status( Format('Long dot product 1 took %.3f ms, %.3f ms', [ (endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000 ] ) );
+     startTime3 := MtxGetTime;
+     res3 := AVXMatrixVecDotMult(@v1[0], sizeof(double), @v2[0], sizeof(double), Length(v1));
+     endTime3 := MtxGetTime;
+
+     Status( Format('Long dot product 1 took %.3f ms, %.3f ms, %.3f ms', [ (endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000, (endTime3 - startTime3)/mtxFreq*1000 ] ) );
      Check( SameValue(res1, res2, 1e-7), 'Failed to calculate long dot product');
+     Check( SameValue(res1, res3, 1e-7), 'Failed to calculate long dot product');
 
 
      startTime1 := MtxGetTime;
@@ -4519,7 +4527,11 @@ begin
      res2 := ASMMatrixVecDotMult(@v1[1], sizeof(double), @v2[1], sizeof(double), Length(v1) - 1);
      endTime2 := MtxGetTime;
 
-     Status( Format('Long dot product 2 took %.3f ms, %.3f ms', [ (endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000 ] ) );
+     startTime3 := MtxGetTime;
+     res2 := AVXMatrixVecDotMult(@v1[1], sizeof(double), @v2[1], sizeof(double), Length(v1) - 1);
+     endTime3 := MtxGetTime;
+
+     Status( Format('Long dot product 2 took %.3f ms, %.3f ms, %.3f ms', [ (endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000, (endTime3 - startTime3)/mtxFreq*1000 ] ) );
      Check( SameValue(res1, res2, 1e-7), 'Failed to calculate long dot product');
 
 end;

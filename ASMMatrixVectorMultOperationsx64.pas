@@ -41,9 +41,9 @@ procedure ASMMatrixVectMultEvenUnAlignedVAligned(dest : PDouble; destLineWidth :
 procedure ASMMatrixVectMultOddUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double); {$IFDEF FPC}assembler;{$ENDIF}
 
 function ASMMatrixVecDotMultUneven( x : PDouble; Y : PDouble; incX : TASMNativeInt; incY : TASMNativeInt;
- {$ifdef UNIX} unixN {$ELSE} N {$ENDIF} : TASMNativeInt) : Double;
-function ASMMatrixVecDotMultUnAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double;
-function ASMMatrixVecDotMultAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double;
+ {$ifdef UNIX} unixN {$ELSE} N {$ENDIF} : TASMNativeInt) : Double; {$IFDEF FPC}assembler;{$ENDIF}
+function ASMMatrixVecDotMultUnAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double; {$IFDEF FPC}assembler;{$ENDIF}
+function ASMMatrixVecDotMultAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double; {$IFDEF FPC}assembler;{$ENDIF}
 
 
 // destlinewidth needs to be sizeof(double)!
