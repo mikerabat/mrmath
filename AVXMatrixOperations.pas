@@ -39,6 +39,8 @@ procedure AVXMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v :
 procedure AVXRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
   X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
 
+function AVXMatrixVecDotMult( x : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt ) : double;
+
 
 // note: the matrix add routine tries to add two values at once and does not carry out any range checks thus the line widhts must
 // be multiple of 16.
@@ -1171,6 +1173,20 @@ begin
          AVXRank1UpdateSeqAligned(A, LineWidthA, width, height, x, y, incX, incY, alpha)
      else
          AVXRank1UpdateSeq(A, LineWidthA, width, height, x, y, incX, incY, alpha);
+end;
+
+function AVXMatrixVecDotMult( x : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt ) : double;
+begin
+     if (incx = sizeof(double)) and (incy = sizeof(double)) then
+     begin
+          if (TASMNativeUInt(X) and $0000001F = 0) and (TASMNativeUInt(Y) and $0000001F = 0)
+          then
+              Result := AVXMatrixVecDotMultAligned(X, Y, N)
+          else
+              Result := AVXMatrixVecDotMultUnAligned(X, Y, N);
+     end
+     else
+         Result := AVXMatrixVecDotMultUneven(X, Y, incX, incY, N);
 end;
 
 end.

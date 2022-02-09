@@ -115,6 +115,7 @@ function ConvEQUProgress(value : TLinEquProgressWOObj) : TLinEquProgress;
 const cStrassenMinSize = 32;
       cCacheMtxSize = 256;
       cCacheBlkSize = 16;
+      cSymEigSmallSize = 25;
 
 {$IFDEF CPUX64}
 {$DEFINE x64}

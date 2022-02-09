@@ -43,6 +43,7 @@ procedure ASMMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v :
 procedure ASMRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
   X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
 
+function ASMMatrixVecDotMult( x : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt ) : double;
 
 // note: the matrix add routine tries to add two values at once and does not carry out any range checks thus the line widhts must
 // be multiple of 16.
@@ -1666,6 +1667,20 @@ begin
          ASMRank1UpdateSeqAligned(A, LineWidthA, width, height, x, y, incX, incY, alpha)
      else
          ASMRank1UpdateSeq(A, LineWidthA, width, height, x, y, incX, incY, alpha);
+end;
+
+function ASMMatrixVecDotMult( x : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt ) : double;
+begin
+     if (incx = sizeof(double)) and (incy = sizeof(double)) then
+     begin
+          if (TASMNativeUInt(X) and $0000000F = 0) and (TASMNativeUInt(Y) and $0000000F = 0)
+          then
+              Result := ASMMatrixVecDotMultAligned(X, Y, N)
+          else
+              Result := ASMMatrixVecDotMultUnAligned(X, Y, N);
+     end
+     else
+         Result := ASMMatrixVecDotMultUneven(X, Y, incX, incY, N);
 end;
 
 end.

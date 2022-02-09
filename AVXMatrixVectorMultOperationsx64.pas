@@ -43,6 +43,12 @@ procedure AVXMatrixVectMultUnAlignedVAligned(dest : PDouble; destLineWidth : TAS
 // no speed gain agains amsmatrixVectMultT
 procedure AVXMatrixVecMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
 
+function AVXMatrixVecDotMultUneven( x : PDouble; Y : PDouble; incX : TASMNativeInt; incY : TASMNativeInt;
+ {$ifdef UNIX} unixN {$ELSE} N {$ENDIF} : TASMNativeInt) : Double;
+function AVXMatrixVecDotMultUnAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double;
+function AVXMatrixVecDotMultAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double;
+
+
 // rank1 update: A = A + alpha*X*Y' where x and y are vectors. It's assumed that y is sequential
 procedure AVXRank1UpdateSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
   {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
@@ -1533,6 +1539,256 @@ asm
    mov r13, iR13;
    mov r14, iR14;
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
+end;
+
+function AVXMatrixVecDotMultAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double;
+// rcx = x, rdx = y, r8 = N
+var dXMM4 : TXMMArr;
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX -> mov to RCX, RDX, R8
+   mov r8, rdx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
+   movupd dXMM4, xmm4;
+
+   // iters
+   imul r8, -8;
+
+   // helper registers for the mt1, mt2 and dest pointers
+   sub rcx, r8;
+   sub rdx, r8;
+
+   xorpd xmm0, xmm0;
+
+   // unrolled loop
+   @Loop1:
+       add r8, 128;
+       jg @loopEnd1;
+
+       movapd xmm1, [rcx + r8 - 128];
+       movapd xmm2, [rdx + r8 - 128];
+       mulpd xmm1, xmm2;
+       addpd xmm0, xmm1;
+
+       movapd xmm3, [rcx + r8 - 112];
+       movapd xmm4, [rdx + r8 - 112];
+       mulpd xmm3, xmm4;
+       addpd xmm0, xmm3;
+
+       movapd xmm1, [rcx + r8 - 96];
+       movapd xmm2, [rdx + r8 - 96];
+       mulpd xmm1, xmm2;
+       addpd xmm0, xmm1;
+
+       movapd xmm3, [rcx + r8 - 80];
+       movapd xmm4, [rdx + r8 - 80];
+       mulpd xmm3, xmm4;
+       addpd xmm0, xmm3;
+
+       movapd xmm1, [rcx + r8 - 64];
+       movapd xmm2, [rdx + r8 - 64];
+       mulpd xmm1, xmm2;
+       addpd xmm0, xmm1;
+
+       movapd xmm3, [rcx + r8 - 48];
+       movapd xmm4, [rdx + r8 - 48];
+       mulpd xmm3, xmm4;
+       addpd xmm0, xmm3;
+
+       movapd xmm1, [rcx + r8 - 32];
+       movapd xmm2, [rdx + r8 - 32];
+       mulpd xmm1, xmm2;
+       addpd xmm0, xmm1;
+
+       movapd xmm3, [rcx + r8 - 16];
+       movapd xmm4, [rdx + r8 - 16];
+       mulpd xmm3, xmm4;
+       addpd xmm0, xmm3;
+   jmp @Loop1;
+
+   @loopEnd1:
+
+   sub r8, 128;
+   jz @loopEnd2;
+
+   // loop to get all fitting into an array of 2
+   @loop2:
+      add r8, 16;
+      jg @loop2End;
+
+      movapd xmm3, [rcx + r8 - 16];
+      movapd xmm4, [rdx + r8 - 16];
+      mulpd xmm3, xmm4;
+      addpd xmm0, xmm3;
+   jmp @loop2;
+
+   @loop2End:
+
+   // handle last element
+   sub r8, 16;
+   jz @loopEnd2;
+
+   movsd xmm3, [rcx - 8];
+   movsd xmm4, [rdx - 8];
+   mulsd xmm3, xmm4;
+   addsd xmm0, xmm3;
+
+   @loopEnd2:
+
+   // build result
+   haddpd xmm0, xmm0;
+   movupd xmm4, dXMM4;
+end;
+
+function AVXMatrixVecDotMultUnAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double;
+// rcx = x, rdx = y, r8 = N
+var dXMM4 : TXMMArr;
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX -> mov to RCX, RDX, R8
+   mov r8, rdx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
+   movupd dXMM4, xmm4;
+
+   // iters
+   imul r8, -8;
+
+   // helper registers for the mt1, mt2 and dest pointers
+   sub rcx, r8;
+   sub rdx, r8;
+
+   xorpd xmm0, xmm0;
+
+   // unrolled loop
+   @Loop1:
+       add r8, 128;
+       jg @loopEnd1;
+
+       movupd xmm1, [rcx + r8 - 128];
+       movupd xmm2, [rdx + r8 - 128];
+       mulpd xmm1, xmm2;
+       addpd xmm0, xmm1;
+
+       movupd xmm3, [rcx + r8 - 112];
+       movupd xmm4, [rdx + r8 - 112];
+       mulpd xmm3, xmm4;
+       addpd xmm0, xmm3;
+
+       movupd xmm1, [rcx + r8 - 96];
+       movupd xmm2, [rdx + r8 - 96];
+       mulpd xmm1, xmm2;
+       addpd xmm0, xmm1;
+
+       movupd xmm3, [rcx + r8 - 80];
+       movupd xmm4, [rdx + r8 - 80];
+       mulpd xmm3, xmm4;
+       addpd xmm0, xmm3;
+
+       movupd xmm1, [rcx + r8 - 64];
+       movupd xmm2, [rdx + r8 - 64];
+       mulpd xmm1, xmm2;
+       addpd xmm0, xmm1;
+
+       movupd xmm3, [rcx + r8 - 48];
+       movupd xmm4, [rdx + r8 - 48];
+       mulpd xmm3, xmm4;
+       addpd xmm0, xmm3;
+
+       movupd xmm1, [rcx + r8 - 32];
+       movupd xmm2, [rdx + r8 - 32];
+       mulpd xmm1, xmm2;
+       addpd xmm0, xmm1;
+
+       movupd xmm3, [rcx + r8 - 16];
+       movupd xmm4, [rdx + r8 - 16];
+       mulpd xmm3, xmm4;
+       addpd xmm0, xmm3;
+   jmp @Loop1;
+
+   @loopEnd1:
+
+   sub r8, 128;
+   jz @loopEnd2;
+
+   // loop to get all fitting into an array of 2
+   @loop2:
+      add r8, 16;
+      jg @loop2End;
+
+      movupd xmm3, [rcx + r8 - 16];
+      movupd xmm4, [rdx + r8 - 16];
+      mulpd xmm3, xmm4;
+      addpd xmm0, xmm3;
+   jmp @loop2;
+
+   @loop2End:
+
+   // handle last element
+   sub r8, 16;
+   jz @loopEnd2;
+
+   movsd xmm3, [rcx - 8];
+   movsd xmm4, [rdx - 8];
+   mulsd xmm3, xmm4;
+   addsd xmm0, xmm3;
+
+   @loopEnd2:
+
+   // build result
+   haddpd xmm0, xmm0;
+   movupd xmm4, dXMM4;
+end;
+
+function AVXMatrixVecDotMultUneven( x : PDouble; Y : PDouble; incX : TASMNativeInt; incY : TASMNativeInt;
+ {$ifdef UNIX} unixN {$ELSE} N {$ENDIF} : TASMNativeInt) : Double;
+// rcx = x, rdx = y, r8 = inx, r9 = incy
+{$IFDEF UNIX}
+var N : TASMNativeInt;
+{$ENDIF}
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov N, unixN;
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
+   mov rax, N;
+   xorpd xmm0, xmm0;
+
+   test rax, rax;
+   jz @loopEnd;
+   @loop:
+      movsd xmm1, [rcx];
+      movsd xmm2, [rdx];
+      mulsd xmm1, xmm2;
+      addsd xmm0, xmm1;
+
+      // next element
+      add rcx, r8;
+      add rdx, r9;
+
+      // counter
+      dec rax;
+      jnz @loop;
+   @loopEnd:
 end;
 
 {$ENDIF}

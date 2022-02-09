@@ -39,6 +39,10 @@ procedure AVXMatrixVectMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, 
 procedure AVXMatrixVectMultAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 procedure AVXMatrixVectMultUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
+function AVXMatrixVecDotMultUneven( x : PDouble; Y : PDouble; incX : TASMNativeInt; incY : TASMNativeInt; N : TASMNativeInt) : Double;
+function AVXMatrixVecDotMultUnAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double;
+function AVXMatrixVecDotMultAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double;
+
 // destlinewidth needs to be sizeof(double)!
 // no speed gain agains amsmatrixVectMultT
 procedure AVXMatrixVecMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
@@ -1325,6 +1329,235 @@ asm
    pop esi;
    pop edi;
    pop ebx;
+end;
+
+function AVXMatrixVecDotMultAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double;
+// eax = x, edx = y, ecx = N
+asm
+   push edi;
+
+   // iters
+   imul ecx, -8;
+
+   // helper registers for the mt1, mt2 and dest pointers
+   sub eax, ecx;
+   sub edx, ecx;
+
+   xorpd xmm0, xmm0;
+
+   // unrolled loop
+   @Loop1:
+       add ecx, 128;
+       jg @loopEnd1;
+
+       movapd xmm1, [eax + ecx - 128];
+       movapd xmm2, [edx + ecx - 128];
+       mulpd xmm1, xmm2;
+       addpd xmm0, xmm1;
+
+       movapd xmm3, [eax + ecx - 112];
+       movapd xmm4, [edx + ecx - 112];
+       mulpd xmm3, xmm4;
+       addpd xmm0, xmm3;
+
+       movapd xmm1, [eax + ecx - 96];
+       movapd xmm2, [edx + ecx - 96];
+       mulpd xmm1, xmm2;
+       addpd xmm0, xmm1;
+
+       movapd xmm3, [eax + ecx - 80];
+       movapd xmm4, [edx + ecx - 80];
+       mulpd xmm3, xmm4;
+       addpd xmm0, xmm3;
+
+       movapd xmm1, [eax + ecx - 64];
+       movapd xmm2, [edx + ecx - 64];
+       mulpd xmm1, xmm2;
+       addpd xmm0, xmm1;
+
+       movapd xmm3, [eax + ecx - 48];
+       movapd xmm4, [edx + ecx - 48];
+       mulpd xmm3, xmm4;
+       addpd xmm0, xmm3;
+
+       movapd xmm1, [eax + ecx - 32];
+       movapd xmm2, [edx + ecx - 32];
+       mulpd xmm1, xmm2;
+       addpd xmm0, xmm1;
+
+       movapd xmm3, [eax + ecx - 16];
+       movapd xmm4, [edx + ecx - 16];
+       mulpd xmm3, xmm4;
+       addpd xmm0, xmm3;
+   jmp @Loop1;
+
+   @loopEnd1:
+
+   sub ecx, 128;
+   jz @loopEnd2;
+
+   // loop to get all fitting into an array of 2
+   @loop2:
+      add ecx, 16;
+      jg @loop2End;
+
+      movapd xmm3, [eax + ecx - 16];
+      movapd xmm4, [edx + ecx - 16];
+      mulpd xmm3, xmm4;
+      addpd xmm0, xmm3;
+   jmp @loop2;
+
+   @loop2End:
+
+   // handle last element
+   sub ecx, 16;
+   jz @loopEnd2;
+
+   movsd xmm3, [eax - 8];
+   movsd xmm4, [edx - 8];
+   mulsd xmm3, xmm4;
+   addsd xmm0, xmm3;
+
+   @loopEnd2:
+
+   // build result
+   haddpd xmm0, xmm0;
+   movsd Result, xmm0;
+
+   pop edi;
+end;
+
+function AVXMatrixVecDotMultUnAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double;
+// eax = x, edx = y, ecx = N
+asm
+   push edi;
+
+   // iters
+   imul ecx, -8;
+
+   // helper registers for the mt1, mt2 and dest pointers
+   sub eax, ecx;
+   sub edx, ecx;
+
+   xorpd xmm0, xmm0;
+
+   // unrolled loop
+   @Loop1:
+       add ecx, 128;
+       jg @loopEnd1;
+
+       movupd xmm1, [eax + ecx - 128];
+       movupd xmm2, [edx + ecx - 128];
+       mulpd xmm1, xmm2;
+       addpd xmm0, xmm1;
+
+       movupd xmm3, [eax + ecx - 112];
+       movupd xmm4, [edx + ecx - 112];
+       mulpd xmm3, xmm4;
+       addpd xmm0, xmm3;
+
+       movupd xmm1, [eax + ecx - 96];
+       movupd xmm2, [edx + ecx - 96];
+       mulpd xmm1, xmm2;
+       addpd xmm0, xmm1;
+
+       movupd xmm3, [eax + ecx - 80];
+       movupd xmm4, [edx + ecx - 80];
+       mulpd xmm3, xmm4;
+       addpd xmm0, xmm3;
+
+       movupd xmm1, [eax + ecx - 64];
+       movupd xmm2, [edx + ecx - 64];
+       mulpd xmm1, xmm2;
+       addpd xmm0, xmm1;
+
+       movupd xmm3, [eax + ecx - 48];
+       movupd xmm4, [edx + ecx - 48];
+       mulpd xmm3, xmm4;
+       addpd xmm0, xmm3;
+
+       movupd xmm1, [eax + ecx - 32];
+       movupd xmm2, [edx + ecx - 32];
+       mulpd xmm1, xmm2;
+       addpd xmm0, xmm1;
+
+       movupd xmm3, [eax + ecx - 16];
+       movupd xmm4, [edx + ecx - 16];
+       mulpd xmm3, xmm4;
+       addpd xmm0, xmm3;
+   jmp @Loop1;
+
+   @loopEnd1:
+
+   sub ecx, 128;
+   jz @loopEnd2;
+
+   // loop to get all fitting into an array of 2
+   @loop2:
+      add ecx, 16;
+      jg @loop2End;
+
+      movupd xmm3, [eax + ecx - 16];
+      movupd xmm4, [edx + ecx - 16];
+      mulpd xmm3, xmm4;
+      addpd xmm0, xmm3;
+   jmp @loop2;
+
+   @loop2End:
+
+   // handle last element
+   sub ecx, 8;
+   jg @loopEnd2;
+
+   movsd xmm3, [eax - 8];
+   movsd xmm4, [edx - 8];
+   mulsd xmm3, xmm4;
+   addsd xmm0, xmm3;
+
+   @loopEnd2:
+
+   // build result
+   haddpd xmm0, xmm0;
+   movsd Result, xmm0;
+
+   pop edi;
+end;
+
+function AVXMatrixVecDotMultUneven( x : PDouble; Y : PDouble; incX : TASMNativeInt; incY : TASMNativeInt;
+ N : TASMNativeInt) : Double;
+// eax = x, edx = y, ecx = incx
+asm
+   push edi;
+   push esi;
+   push ebx;
+
+   mov ebx, N;
+   mov esi, incY;
+   xorpd xmm0, xmm0;
+
+   test ebx, ebx;
+   jz @loopEnd;
+   @loop:
+      movsd xmm1, [eax];
+      movsd xmm2, [edx];
+      mulsd xmm1, xmm2;
+      addsd xmm0, xmm1;
+
+      // next element
+      add eax, ecx;
+      add edx, esi;
+
+      // counter
+      dec ebx;
+      jnz @loop;
+   @loopEnd:
+
+   movsd Result, xmm0;
+
+   // restore register
+   pop ebx;
+   pop esi;
+   pop edi;
 end;
 
 {$ENDIF}

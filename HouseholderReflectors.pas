@@ -41,6 +41,7 @@ type
      T : PDouble;
      LineWidthT : TASMNativeInt;
 
+     BlkMultSize : TASMNativeInt;
      BlkMultMem : PDouble;
 
      MatrixMultT1 : TMatrixBlockedMultfunc;
@@ -57,6 +58,11 @@ procedure ApplyBlockReflectorLTFC(A : PDouble; LineWidthA : TASMNativeInt; const
 // block reflector right transposed forward rowwise
 procedure ApplyBlockReflectorRTFR(A : PDouble; LineWidthA : TASMNativeInt; const reflData : TBlockReflrec; //const qrData : TRecMtxQRDecompData;
   width, height : TASMNativeInt; widthT : TASMNativeInt; Transposed : boolean);
+
+// block reflector left, No transpose, backward, columnwise
+procedure ApplyBlockReflectorLNTBC(V : PDouble; LineWidthV : TASMNativeInt;
+  C : PDouble; LineWidthC : TASMNativeInt; work : PDouble; LineWidthWork : TASMNativeInt;
+  width, height : TASMNativeInt; k : TASMNativeInt; Transposed : boolean; const reflData : TBlockReflrec);
 
 
 implementation
@@ -315,6 +321,48 @@ begin
 
      // C1 := C1 - W
      MatrixSub(pC1, LineWidthA, pC1, W, widthC1, heightC1, LineWidthA, LineWidthW);
+end;
+
+
+// used in symmetric eigenvalue problem:
+// dlarfb 'left', 'No transpose', 'backward', 'columnwise'
+procedure ApplyBlockReflectorLNTBC(V : PDouble; LineWidthV : TASMNativeInt;
+  C : PDouble; LineWidthC : TASMNativeInt; work : PDouble; LineWidthWork : TASMNativeInt;
+  width, height : TASMNativeInt; k : TASMNativeInt; Transposed : boolean; const reflData : TBlockReflrec);
+var pC1, pC2 : PDouble;
+    pV1, pV2 : PDouble;
+begin
+     if (width <= 0) or (height <= 0) then
+        exit;
+
+     pV1 := V;
+     pV2 := GenPtr(V, 0, height - k, LineWidthV);
+     pC1 := C;
+     pC2 := GenPtr(C, 0, k, LineWidthC);
+
+     MatrixTranspose( work, LineWidthWork, pC2, LineWidthC, width, k);
+     MtxMultTria2Store1Unit(work, LineWidthWork, pV2, LineWidthV, k, width, k, k);
+
+     if height > k then
+        reflData.MatrixMultT1(work, LineWidthWork, pC1, pV1, k, width, height - k, width, LineWidthC, LineWidthV,
+                       reflData.blkMultSize, doAdd, reflData.blkMultMem);
+
+
+     if Transposed
+     then
+         MtxMultLowTria2T2Store1( work, LineWidthWork, reflData.T, reflData.LineWidthT, k, width, k, k )
+     else
+         MtxMultTria2Store1(work, LineWidthWork, reflData.T, reflData.LineWidthT, k, width, k, k );
+
+
+     if height > k then
+        reflData.MatrixMultT2( pC1, LineWidthC, V, work, width, height - k, width, k,
+                        LineWidthV, LineWidthWork, reflData.blkMultSize, doSub, reflData.blkMultMem );
+
+     MtxMultLowTria2T2Store1(work, LineWidthWork, pV2, LineWidthV, k, width, k, k);
+
+     // C2 := C2 - W**T
+     MatrixSubT(pC2, LineWidthC, work, LineWidthWork, width, k);
 end;
 
 

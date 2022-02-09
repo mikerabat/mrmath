@@ -121,6 +121,7 @@ type
     procedure TestDiagMtxMultVec;
     procedure TestConvolve;
     procedure TestConvolveBig;
+    procedure TestDotProd;
   end;
 
   {$IFDEF FMX} [TestFixture] {$ENDIF}
@@ -4225,7 +4226,7 @@ begin
      startTime3 := MtxGetTime;
      ASMMatrixVectMultOddUnAlignedVAligned(@dest3[0], cMtxSize*sizeof(double), @x[0], @row[0], cMtxSize*sizeof(double), sizeof(double), cMtxSize - 1, cMtxSize - 1, 2, -0.2);
      endTime3 := MtxGetTime;
-     
+
      Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000, (endTime3 - startTime3)/mtxFreq*1000]));
 
      Check(CheckMtx(dest1, dest2), 'Error odd len matrix vector multiplication failed');
@@ -4401,7 +4402,11 @@ begin
      Check(CheckMtx(a, a1), 'MtxMultTria2TUpperUnit');
 
      Init;
-     GenericMtxMultLowTria2T2Store1(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+     GenericMtxMultLowTria2T2NoUnitStore1(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+     //Check(CheckMtx(a, a1), 'MtxMultLowTria2T2Store1');
+
+     Init;
+     MtxMultLowTria2T2Store1(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
      ASMMtxMultLowTria2T2Store1(@a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
 
      Check(CheckMtx(a, a1), 'MtxMultTria2TUpperUnit');
@@ -4465,6 +4470,58 @@ begin
      Init;
      GenericMtxMultLowNoTranspUnitVec(@a[0], 4*sizeof(double), @b[0], sizeof(double), 4 );
      Check( CheckMtx( b, cRes4), 'GenericMtxMultLowNoTranspUnitVec failed');
+end;
+
+procedure TASMMatrixOperations.TestDotProd;
+const x : Array[0..4] of double = (1, 2, 3, 1, 2);
+      y : Array[0..4] of double = (-1, 2, -1, 2, 2);
+var res1, res2 : double;
+    v1, v2 : TDoubleDynArray;
+    startTime1, endTime1 : Int64;
+    startTime2, endTime2 : Int64;
+    i: Integer;
+begin
+     res1 := GenericVecDotMult(@x[0], sizeof(double), @y[0], sizeof(double), Length(x));
+     res2 := ASMMatrixVecDotMult(@x[0], sizeof(double), @y[0], sizeof(double), Length(x));
+
+     check( res1 = res2, 'Failed to calculate dot product');
+     res1 := GenericVecDotMult(@x[0], 2*sizeof(double), @y[0], sizeof(double), 3);
+     res2 := ASMMatrixVecDotMult(@x[0], 2*sizeof(double), @y[0], sizeof(double), 3);
+
+     check( res1 = res2, 'Failed to calculate dot product');
+
+     SetLength(v1, 8177);
+     SetLength(v2, 8177);
+
+     for i := 0 to Length(v1) - 1 do
+     begin
+          v1[i] := random;
+          v2[i] := random;
+     end;
+
+     startTime1 := MtxGetTime;
+     res1 := GenericVecDotMult(@v1[0], sizeof(double), @v2[0], sizeof(double), Length(v1));
+     endTime1 := MtxGetTime;
+
+     startTime2 := MtxGetTime;
+     res2 := ASMMatrixVecDotMult(@v1[0], sizeof(double), @v2[0], sizeof(double), Length(v1));
+     endTime2 := MtxGetTime;
+
+     Status( Format('Long dot product 1 took %.3f ms, %.3f ms', [ (endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000 ] ) );
+     Check( SameValue(res1, res2, 1e-7), 'Failed to calculate long dot product');
+
+
+     startTime1 := MtxGetTime;
+     res1 := GenericVecDotMult(@v1[1], sizeof(double), @v2[1], sizeof(double), Length(v1) - 1);
+     endTime1 := MtxGetTime;
+
+     startTime2 := MtxGetTime;
+     res2 := ASMMatrixVecDotMult(@v1[1], sizeof(double), @v2[1], sizeof(double), Length(v1) - 1);
+     endTime2 := MtxGetTime;
+
+     Status( Format('Long dot product 2 took %.3f ms, %.3f ms', [ (endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000 ] ) );
+     Check( SameValue(res1, res2, 1e-7), 'Failed to calculate long dot product');
+
 end;
 
 procedure TASMMatrixOperations.TestSubT;
