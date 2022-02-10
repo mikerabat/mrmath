@@ -32,7 +32,7 @@
         <PackageName Value="adLCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="152">
+    <Units Count="154">
       <Unit0>
         <Filename Value="MathUtilsLinux.ppr"/>
         <IsPartOfProject Value="True"/>
@@ -182,469 +182,473 @@
         <IsPartOfProject Value="True"/>
       </Unit36>
       <Unit37>
-        <Filename Value="../BufferedStream.pas"/>
+        <Filename Value="../CCA.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit37>
       <Unit38>
-        <Filename Value="../CCA.pas"/>
+        <Filename Value="../Corr.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit38>
       <Unit39>
-        <Filename Value="../Corr.pas"/>
+        <Filename Value="../CPUFeatures.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit39>
       <Unit40>
-        <Filename Value="../CPUFeatures.pas"/>
+        <Filename Value="../Eigensystems.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit40>
       <Unit41>
-        <Filename Value="../Eigensystems.pas"/>
+        <Filename Value="../HouseholderReflectors.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit41>
       <Unit42>
-        <Filename Value="../HouseholderReflectors.pas"/>
+        <Filename Value="../ICA.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit42>
       <Unit43>
-        <Filename Value="../ICA.pas"/>
+        <Filename Value="../IncrementalPCA.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit43>
       <Unit44>
-        <Filename Value="../IncrementalPCA.pas"/>
+        <Filename Value="../JSONReaderWriter.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit44>
       <Unit45>
-        <Filename Value="../JSONReaderWriter.pas"/>
+        <Filename Value="../LICENSE.txt"/>
         <IsPartOfProject Value="True"/>
       </Unit45>
       <Unit46>
-        <Filename Value="../LICENSE.txt"/>
+        <Filename Value="../LinAlgCholesky.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit46>
       <Unit47>
-        <Filename Value="../LinAlgCholesky.pas"/>
+        <Filename Value="../LinAlgLU.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit47>
       <Unit48>
-        <Filename Value="../LinAlgLU.pas"/>
+        <Filename Value="../LinAlgQR.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit48>
       <Unit49>
-        <Filename Value="../LinAlgQR.pas"/>
+        <Filename Value="../LinAlgSVD.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit49>
       <Unit50>
-        <Filename Value="../LinAlgSVD.pas"/>
+        <Filename Value="../LinearAlgebraicEquations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit50>
       <Unit51>
-        <Filename Value="../LinearAlgebraicEquations.pas"/>
+        <Filename Value="../MathUtilFunc.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit51>
       <Unit52>
-        <Filename Value="../MathUtilFunc.pas"/>
+        <Filename Value="../Matrix.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit52>
       <Unit53>
-        <Filename Value="../Matrix.pas"/>
+        <Filename Value="../MatrixConst.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit53>
       <Unit54>
-        <Filename Value="../MatrixConst.pas"/>
+        <Filename Value="../MatrixRotations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit54>
       <Unit55>
-        <Filename Value="../MatrixRotations.pas"/>
+        <Filename Value="../MtxThreadPool.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit55>
       <Unit56>
-        <Filename Value="../MtxThreadPool.pas"/>
+        <Filename Value="../MtxTimer.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit56>
       <Unit57>
-        <Filename Value="../MtxTimer.pas"/>
+        <Filename Value="../NNMF.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit57>
       <Unit58>
-        <Filename Value="../NNMF.pas"/>
+        <Filename Value="../NonLinearFit.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit58>
       <Unit59>
-        <Filename Value="../NonLinearFit.pas"/>
+        <Filename Value="../PCA.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit59>
       <Unit60>
-        <Filename Value="../PCA.pas"/>
+        <Filename Value="../PLS.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit60>
       <Unit61>
-        <Filename Value="../PLS.pas"/>
+        <Filename Value="../RandomEng.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit61>
       <Unit62>
-        <Filename Value="../RandomEng.pas"/>
+        <Filename Value="../SimpleMatrixOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit62>
       <Unit63>
-        <Filename Value="../SimpleMatrixOperations.pas"/>
+        <Filename Value="../ThreadedMatrix.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit63>
       <Unit64>
-        <Filename Value="../ThreadedMatrix.pas"/>
+        <Filename Value="../ThreadedMatrixOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit64>
       <Unit65>
-        <Filename Value="../ThreadedMatrixOperations.pas"/>
+        <Filename Value="BaseMatrixTestCase.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit65>
       <Unit66>
-        <Filename Value="BaseMatrixTestCase.pas"/>
+        <Filename Value="TestCCA.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit66>
       <Unit67>
-        <Filename Value="TestCCA.pas"/>
+        <Filename Value="TestCorr.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit67>
       <Unit68>
-        <Filename Value="TestCorr.pas"/>
+        <Filename Value="TestEigensystems.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit68>
       <Unit69>
-        <Filename Value="TestEigensystems.pas"/>
+        <Filename Value="TestICA.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit69>
       <Unit70>
-        <Filename Value="TestICA.pas"/>
+        <Filename Value="TestLineEquations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit70>
       <Unit71>
-        <Filename Value="TestLineEquations.pas"/>
+        <Filename Value="TestMatrixClass.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit71>
       <Unit72>
-        <Filename Value="TestMatrixClass.pas"/>
+        <Filename Value="TestNMF.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit72>
       <Unit73>
-        <Filename Value="TestNMF.pas"/>
+        <Filename Value="TestNonLinFit.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit73>
       <Unit74>
-        <Filename Value="TestNonLinFit.pas"/>
+        <Filename Value="TestPCA.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit74>
       <Unit75>
-        <Filename Value="TestPCA.pas"/>
+        <Filename Value="TestRandom.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit75>
       <Unit76>
-        <Filename Value="TestRandom.pas"/>
+        <Filename Value="TestSimpleMatrixOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit76>
       <Unit77>
-        <Filename Value="TestSimpleMatrixOperations.pas"/>
+        <Filename Value="TestAVX.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit77>
       <Unit78>
-        <Filename Value="TestAVX.pas"/>
+        <Filename Value="../BlockedMult.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit78>
       <Unit79>
-        <Filename Value="../BlockedMult.pas"/>
+        <Filename Value="../AVXMatrixOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit79>
       <Unit80>
-        <Filename Value="../AVXMatrixOperations.pas"/>
+        <Filename Value="../AVXMoveOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit80>
       <Unit81>
-        <Filename Value="../AVXMoveOperationsx64.pas"/>
+        <Filename Value="../AVXMatrixMultTransposedOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit81>
       <Unit82>
-        <Filename Value="../AVXMatrixMultTransposedOperationsx64.pas"/>
+        <Filename Value="../AVXMatrixAbsOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit82>
       <Unit83>
-        <Filename Value="../AVXMatrixAbsOperationsx64.pas"/>
+        <Filename Value="../AVXMatrixMultOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit83>
       <Unit84>
-        <Filename Value="../AVXMatrixMultOperationsx64.pas"/>
+        <Filename Value="../AVXMatrixScaleOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit84>
       <Unit85>
-        <Filename Value="../AVXMatrixScaleOperationsx64.pas"/>
+        <Filename Value="../AVXMatrixTransposeOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit85>
       <Unit86>
-        <Filename Value="../AVXMatrixTransposeOperationsx64.pas"/>
+        <Filename Value="../AVXMatrixAddSubOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit86>
       <Unit87>
-        <Filename Value="../AVXMatrixAddSubOperationsx64.pas"/>
+        <Filename Value="../AVXMatrixCumSumDiffOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit87>
       <Unit88>
-        <Filename Value="../AVXMatrixCumSumDiffOperationsx64.pas"/>
+        <Filename Value="../AVXMatrixRotationsx64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit88>
       <Unit89>
-        <Filename Value="../AVXMatrixRotationsx64.pas"/>
+        <Filename Value="../AVXMatrixVectorMultOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit89>
       <Unit90>
-        <Filename Value="../AVXMatrixVectorMultOperationsx64.pas"/>
+        <Filename Value="../AVXMoveOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit90>
       <Unit91>
-        <Filename Value="../AVXMoveOperations.pas"/>
+        <Filename Value="../AVXMatrixElementwiseMultOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit91>
       <Unit92>
-        <Filename Value="../AVXMatrixElementwiseMultOperationsx64.pas"/>
+        <Filename Value="../AVXMatrixElementwiseMultOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit92>
       <Unit93>
-        <Filename Value="../AVXMatrixElementwiseMultOperations.pas"/>
+        <Filename Value="../AVXMatrixAbsOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit93>
       <Unit94>
-        <Filename Value="../AVXMatrixAbsOperations.pas"/>
+        <Filename Value="../AVXMatrixMultOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit94>
       <Unit95>
-        <Filename Value="../AVXMatrixMultOperations.pas"/>
+        <Filename Value="../AVXMatrixScaleOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit95>
       <Unit96>
-        <Filename Value="../AVXMatrixScaleOperations.pas"/>
+        <Filename Value="../AVXMatrixMultTransposedOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit96>
       <Unit97>
-        <Filename Value="../AVXMatrixMultTransposedOperations.pas"/>
+        <Filename Value="../AVXMatrixTransposeOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit97>
       <Unit98>
-        <Filename Value="../AVXMatrixTransposeOperations.pas"/>
+        <Filename Value="../AVXMatrixVectorMultOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit98>
       <Unit99>
-        <Filename Value="../AVXMatrixVectorMultOperations.pas"/>
+        <Filename Value="../AVXMatrixAddSubOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit99>
       <Unit100>
-        <Filename Value="../AVXMatrixAddSubOperations.pas"/>
+        <Filename Value="../AVXMatrixCumSumDiffOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit100>
       <Unit101>
-        <Filename Value="../AVXMatrixCumSumDiffOperations.pas"/>
+        <Filename Value="../AVXMatrixRotations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit101>
       <Unit102>
-        <Filename Value="../AVXMatrixRotations.pas"/>
+        <Filename Value="../AVXMatrixMinMaxOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit102>
       <Unit103>
-        <Filename Value="../AVXMatrixMinMaxOperationsx64.pas"/>
+        <Filename Value="../AVXMatrixMinMaxOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit103>
       <Unit104>
-        <Filename Value="../AVXMatrixMinMaxOperations.pas"/>
+        <Filename Value="../AVXMatrixMeanOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit104>
       <Unit105>
-        <Filename Value="../AVXMatrixMeanOperationsx64.pas"/>
+        <Filename Value="../AVXMatrixMeanOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit105>
       <Unit106>
-        <Filename Value="../AVXMatrixMeanOperations.pas"/>
+        <Filename Value="../AVXMatrixNormOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit106>
       <Unit107>
-        <Filename Value="../AVXMatrixNormOperations.pas"/>
+        <Filename Value="../AVXMatrixNormOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit107>
       <Unit108>
-        <Filename Value="../AVXMatrixNormOperationsx64.pas"/>
+        <Filename Value="../AVXMatrixSqrtOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit108>
       <Unit109>
-        <Filename Value="../AVXMatrixSqrtOperations.pas"/>
+        <Filename Value="../AVXMatrixSqrtOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit109>
       <Unit110>
-        <Filename Value="../AVXMatrixSqrtOperationsx64.pas"/>
+        <Filename Value="../AVXMatrixSumOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit110>
       <Unit111>
-        <Filename Value="../AVXMatrixSumOperations.pas"/>
+        <Filename Value="../AVXMatrixSumOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit111>
       <Unit112>
-        <Filename Value="../AVXMatrixSumOperationsx64.pas"/>
+        <Filename Value="TestEM.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit112>
       <Unit113>
-        <Filename Value="TestEM.pas"/>
+        <Filename Value="../EM.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit113>
       <Unit114>
-        <Filename Value="../EM.pas"/>
+        <Filename Value="TestRBSpline.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit114>
       <Unit115>
-        <Filename Value="TestRBSpline.pas"/>
+        <Filename Value="../RBSplines.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit115>
       <Unit116>
-        <Filename Value="../RBSplines.pas"/>
+        <Filename Value="../Dist.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit116>
       <Unit117>
-        <Filename Value="../Dist.pas"/>
+        <Filename Value="TestDist.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit117>
       <Unit118>
-        <Filename Value="TestDist.pas"/>
+        <Filename Value="../FMAMatrixMultOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit118>
       <Unit119>
-        <Filename Value="../FMAMatrixMultOperations.pas"/>
+        <Filename Value="../FMAMatrixMultOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit119>
       <Unit120>
-        <Filename Value="../FMAMatrixMultOperationsx64.pas"/>
+        <Filename Value="../FMAMatrixMultTransposedOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit120>
       <Unit121>
-        <Filename Value="../FMAMatrixMultTransposedOperations.pas"/>
+        <Filename Value="../FMAMatrixMultTransposedOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit121>
       <Unit122>
-        <Filename Value="../FMAMatrixMultTransposedOperationsx64.pas"/>
+        <Filename Value="../FMAMatrixOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit122>
       <Unit123>
-        <Filename Value="../FMAMatrixOperations.pas"/>
+        <Filename Value="../FMAMatrixVectorMultOperations.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit123>
       <Unit124>
-        <Filename Value="../FMAMatrixVectorMultOperations.pas"/>
+        <Filename Value="../FMAMatrixVectorMultOperationsx64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit124>
       <Unit125>
-        <Filename Value="../FMAMatrixVectorMultOperationsx64.pas"/>
+        <Filename Value="TestFMA.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit125>
       <Unit126>
-        <Filename Value="TestFMA.pas"/>
+        <Filename Value="../ASMVecConvolve.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit126>
       <Unit127>
-        <Filename Value="../ASMVecConvolve.pas"/>
+        <Filename Value="../ASMVecConvolvex64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit127>
       <Unit128>
-        <Filename Value="../ASMVecConvolvex64.pas"/>
+        <Filename Value="../AVXVecConvolvex64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit128>
       <Unit129>
-        <Filename Value="../AVXVecConvolvex64.pas"/>
+        <Filename Value="../AVXVecConvolve.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit129>
       <Unit130>
-        <Filename Value="../AVXVecConvolve.pas"/>
+        <Filename Value="../FMAVecConvolve.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit130>
       <Unit131>
-        <Filename Value="../FMAVecConvolve.pas"/>
+        <Filename Value="../FMAVecConvolvex64.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit131>
       <Unit132>
-        <Filename Value="../FMAVecConvolvex64.pas"/>
+        <Filename Value="../MatrixASMStubSwitch.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit132>
       <Unit133>
-        <Filename Value="../MatrixASMStubSwitch.pas"/>
+        <Filename Value="../GCDDispatch.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit133>
       <Unit134>
-        <Filename Value="../GCDDispatch.pas"/>
+        <Filename Value="../linuxthrpool.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit134>
       <Unit135>
-        <Filename Value="../linuxthrpool.pas"/>
+        <Filename Value="../MacOsRandomGen.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit135>
       <Unit136>
-        <Filename Value="../MacOsRandomGen.pas"/>
+        <Filename Value="../MacOsThreadPool.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit136>
       <Unit137>
-        <Filename Value="../MacOsThreadPool.pas"/>
+        <Filename Value="../winCPUInfo.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit137>
       <Unit138>
-        <Filename Value="../winCPUInfo.pas"/>
+        <Filename Value="../winRandomGen.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit138>
       <Unit139>
-        <Filename Value="../winRandomGen.pas"/>
+        <Filename Value="../WinThreadPool.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit139>
       <Unit140>
-        <Filename Value="../WinThreadPool.pas"/>
+        <Filename Value="TestSpecialFunc.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit140>
       <Unit141>
-        <Filename Value="TestSpecialFunc.pas"/>
+        <Filename Value="TestStat.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit141>
       <Unit142>
-        <Filename Value="TestStat.pas"/>
+        <Filename Value="../Statistics.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit142>
       <Unit143>
-        <Filename Value="../Statistics.pas"/>
+        <Filename Value="../tSNE.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit143>
       <Unit144>
-        <Filename Value="../tSNE.pas"/>
+        <Filename Value="TestTSNE.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit144>
       <Unit145>
-        <Filename Value="TestTSNE.pas"/>
+        <Filename Value="../KernelPCA.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit145>
       <Unit146>
-        <Filename Value="../KernelPCA.pas"/>
+        <Filename Value="../IOCompletionPortsThreadPool.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit146>
       <Unit147>
-        <Filename Value="../IOCompletionPortsThreadPool.pas"/>
+        <Filename Value="../SSA.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit147>
       <Unit148>
-        <Filename Value="../SSA.pas"/>
-        <FRMtype Value="0"/>
+        <Filename Value="TestSSA.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit148>
       <Unit149>
-        <Filename Value="TestSSA.pas"/>
-        <FRMtype Value="0"/>
+        <Filename Value="../Roots.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit149>
       <Unit150>
-        <Filename Value="../Roots.pas"/>
-        <FRMtype Value="0"/>
+        <Filename Value="TestRootFinding.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit150>
       <Unit151>
-        <Filename Value="TestRootFinding.pas"/>
-        <FRMtype Value="0"/>
+        <Filename Value="../MtxUtilFunc.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit151>
+      <Unit152>
+        <Filename Value="../AVXChaCha.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit152>
+      <Unit153>
+        <Filename Value="../AVXChaChax64.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit153>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -657,20 +661,16 @@
       <OtherUnitFiles Value=".."/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)/$(LCLWidgetType)"/>
     </SearchPaths>
-    <Parsing>
-      <SyntaxOptions>
-        <IncludeAssertionCode Value="True"/>
-      </SyntaxOptions>
-    </Parsing>
     <CodeGeneration>
-      <Checks>
-        <IOChecks Value="True"/>
-        <RangeChecks Value="True"/>
-        <OverflowChecks Value="True"/>
-        <StackChecks Value="True"/>
-      </Checks>
-      <VerifyObjMethodCallValidity Value="True"/>
+      <Optimizations>
+        <OptimizationLevel Value="3"/>
+      </Optimizations>
     </CodeGeneration>
+    <Linking>
+      <Debugging>
+        <GenerateDebugInfo Value="False"/>
+      </Debugging>
+    </Linking>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="5">

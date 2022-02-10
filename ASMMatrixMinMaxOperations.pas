@@ -39,6 +39,20 @@ function ASMMatrixMinUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt;
 function ASMMatrixMinAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 function ASMMatrixMinUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
+// same as above but added Abs operation before taking max/min
+function ASMMatrixAbsMaxAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function ASMMatrixAbsMaxUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+
+function ASMMatrixAbsMaxAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function ASMMatrixAbsMaxUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+
+function ASMMatrixAbsMinAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function ASMMatrixAbsMinUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+
+function ASMMatrixAbsMinAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function ASMMatrixAbsMinUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+
+
 {$ENDIF}
 
 implementation
@@ -49,6 +63,7 @@ implementation
 
 const cLocNegMaxDouble : double = -1.7e+308;
       cLocMaxDouble : double = 1.7e+308;
+      cLocAbsMask : Int64 = ($7FFFFFFFFFFFFFFF);
 
 function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 asm
@@ -62,8 +77,6 @@ asm
 
    movddup xmm0, cLocNegMaxDouble;
    movapd xmm1, xmm0;
-   movapd xmm2, xmm0;
-   movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:
    @@addforyloop:
@@ -80,12 +93,12 @@ asm
            // max:
            maxpd xmm0, [eax + edi - 128];
            maxpd xmm1, [eax + edi - 112];
-           maxpd xmm2, [eax + edi - 96];
+           maxpd xmm0, [eax + edi - 96];
            maxpd xmm1, [eax + edi - 80];
            maxpd xmm0, [eax + edi - 64];
            maxpd xmm1, [eax + edi - 48];
-           maxpd xmm2, [eax + edi - 32];
-           maxpd xmm3, [eax + edi - 16];
+           maxpd xmm0, [eax + edi - 32];
+           maxpd xmm1, [eax + edi - 16];
        jmp @addforxloop
 
        @loopEnd:
@@ -110,8 +123,6 @@ asm
 
    // final max ->
    maxpd xmm0, xmm1;
-   maxpd xmm0, xmm2;
-   maxpd xmm0, xmm3;
    movhlps xmm1, xmm0;
    maxsd xmm0, xmm1;
    movsd Result, xmm0;
@@ -202,11 +213,7 @@ asm
    sub eax, edx;
 
    movddup xmm0, cLocNegMaxDouble;
-   movapd xmm3, xmm0;
-
    movapd xmm1, xmm0;
-   movapd xmm2, xmm0;
-   movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:
    @@addforyloop:
@@ -223,12 +230,12 @@ asm
            // max:
            maxpd xmm0, [eax + edi - 128];
            maxpd xmm1, [eax + edi - 112];
-           maxpd xmm2, [eax + edi - 96];
-           maxpd xmm3, [eax + edi - 80];
+           maxpd xmm0, [eax + edi - 96];
+           maxpd xmm1, [eax + edi - 80];
            maxpd xmm0, [eax + edi - 64];
            maxpd xmm1, [eax + edi - 48];
-           maxpd xmm2, [eax + edi - 32];
-           maxpd xmm3, [eax + edi - 16];
+           maxpd xmm0, [eax + edi - 32];
+           maxpd xmm1, [eax + edi - 16];
        jmp @addforxloop
 
        @loopEnd:
@@ -257,8 +264,6 @@ asm
 
    // final max ->
    maxpd xmm0, xmm1;
-   maxpd xmm0, xmm2;
-   maxpd xmm0, xmm3;
    movhlps xmm1, xmm0;
    maxsd xmm0, xmm1;
    movsd Result, xmm0;
@@ -354,8 +359,6 @@ asm
 
    movddup xmm0, cLocMaxDouble;
    movapd xmm1, xmm0;
-   movapd xmm2, xmm0;
-   movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:
    @@addforyloop:
@@ -372,12 +375,12 @@ asm
            // min:
            minpd xmm0, [eax + edi - 128];
            minpd xmm1, [eax + edi - 112];
-           minpd xmm2, [eax + edi - 96];
-           minpd xmm3, [eax + edi - 80];
+           minpd xmm0, [eax + edi - 96];
+           minpd xmm1, [eax + edi - 80];
            minpd xmm0, [eax + edi - 64];
            minpd xmm1, [eax + edi - 48];
-           minpd xmm2, [eax + edi - 32];
-           minpd xmm3, [eax + edi - 16];
+           minpd xmm0, [eax + edi - 32];
+           minpd xmm1, [eax + edi - 16];
        jmp @addforxloop
 
        @loopEnd:
@@ -402,8 +405,6 @@ asm
 
    // final min ->
    minpd xmm0, xmm1;
-   minpd xmm0, xmm2;
-   minpd xmm0, xmm3;
    movhlps xmm1, xmm0;
    minsd xmm0, xmm1;
    movsd Result, xmm0;
@@ -494,8 +495,6 @@ asm
 
    movddup xmm0, cLocMaxDouble;
    movapd xmm1, xmm0;
-   movapd xmm2, xmm0;
-   movapd xmm3, xmm0;
 
    // for y := 0 to height - 1:
    @@addforyloop:
@@ -512,12 +511,12 @@ asm
            // min:
            minpd xmm0, [eax + edi - 128];
            minpd xmm1, [eax + edi - 112];
-           minpd xmm2, [eax + edi - 96];
-           minpd xmm3, [eax + edi - 80];
+           minpd xmm0, [eax + edi - 96];
+           minpd xmm1, [eax + edi - 80];
            minpd xmm0, [eax + edi - 64];
            minpd xmm1, [eax + edi - 48];
-           minpd xmm2, [eax + edi - 32];
-           minpd xmm3, [eax + edi - 16];
+           minpd xmm0, [eax + edi - 32];
+           minpd xmm1, [eax + edi - 16];
        jmp @addforxloop
 
        @loopEnd:
@@ -546,8 +545,6 @@ asm
 
    // final Max ->
    minpd xmm0, xmm1;
-   minpd xmm0, xmm2;
-   minpd xmm0, xmm3;
    movhlps xmm1, xmm0;
    minsd xmm0, xmm1;
    movsd Result, xmm0;
@@ -624,6 +621,701 @@ asm
 
    // final min ->
    minpd xmm0, xmm3;
+   movhlps xmm1, xmm0;
+   minsd xmm0, xmm1;
+   movsd Result, xmm0;
+
+   pop edi;
+end;
+
+// ###########################################
+// #### abs max/min operations
+// ###########################################
+
+function ASMMatrixAbsMaxAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+asm
+   push edi;
+
+   // iter
+   imul edx, -8;
+
+   // helper registers for the mt1, mt2 and dest pointers
+   sub eax, edx;
+
+   movddup xmm0, cLocNegMaxDouble;
+   movapd xmm1, xmm0;
+   movddup xmm4, cLocAbsMask;
+
+   // for y := 0 to height - 1:
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, edx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
+
+           // prefetch data...
+           // prefetch [eax + edi];
+
+           // max:
+           movapd xmm2, [eax + edi - 128];
+           andpd xmm2, xmm4;
+           maxpd xmm0, xmm2;
+           movapd xmm3, [eax + edi - 112];
+           andpd xmm3, xmm4;
+           maxpd xmm1, xmm3;
+           movapd xmm2, [eax + edi - 96];
+           andpd xmm2, xmm4;
+           maxpd xmm0, xmm2;
+           movapd xmm3, [eax + edi - 80];
+           andpd xmm3, xmm4;
+           maxpd xmm1, xmm3;
+           movapd xmm2, [eax + edi - 64];
+           andpd xmm2, xmm4;
+           maxpd xmm0, xmm2;
+           movapd xmm3, [eax + edi - 48];
+           andpd xmm3, xmm4;
+           maxpd xmm1, xmm3;
+           movapd xmm2, [eax + edi - 32];
+           andpd xmm2, xmm4;
+           maxpd xmm0, xmm2;
+           movapd xmm3, [eax + edi - 16];
+           andpd xmm3, xmm4;
+           maxpd xmm1, xmm3;
+       jmp @addforxloop
+
+       @loopEnd:
+
+       sub edi, 128;
+
+       jz @nextLine;
+
+       @addforxloop2:
+           movapd xmm2, [eax + edi];
+           andpd xmm2, xmm4;
+           maxpd xmm0, xmm2;
+       add edi, 16;
+       jnz @addforxloop2;
+
+       @nextLine:
+
+       // next line:
+       add eax, LineWidth;
+
+   // loop y end
+   dec ecx;
+   jnz @@addforyloop;
+
+   // final max ->
+   maxpd xmm0, xmm1;
+   movhlps xmm1, xmm0;
+   maxsd xmm0, xmm1;
+   movsd Result, xmm0;
+
+   pop edi;
+end;
+
+function ASMMatrixAbsMaxUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+asm
+   push edi;
+
+   // iter
+   imul edx, -8;
+
+   // helper registers for the mt1, mt2 and dest pointers
+   sub eax, edx;
+
+   movddup xmm0, cLocNegMaxDouble;
+   movapd xmm1, xmm0;
+   movddup xmm4, cLocAbsMask;
+
+   // for y := 0 to height - 1:
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, edx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
+
+           // prefetch data...
+           // prefetch [eax + edi];
+
+           // max:
+           movupd xmm2, [eax + edi - 128];
+           andpd xmm2, xmm4;
+           maxpd xmm0, xmm2;
+           movupd xmm3, [eax + edi - 112];
+           andpd xmm3, xmm4;
+           maxpd xmm1, xmm3;
+           movupd xmm2, [eax + edi - 96];
+           andpd xmm2, xmm4;
+           maxpd xmm0, xmm2;
+           movupd xmm3, [eax + edi - 80];
+           andpd xmm3, xmm4;
+           maxpd xmm1, xmm3;
+           movupd xmm2, [eax + edi - 64];
+           andpd xmm2, xmm4;
+           maxpd xmm0, xmm2;
+           movupd xmm3, [eax + edi - 48];
+           andpd xmm3, xmm4;
+           maxpd xmm1, xmm3;
+           movupd xmm2, [eax + edi - 32];
+           andpd xmm2, xmm4;
+           maxpd xmm0, xmm2;
+           movupd xmm3, [eax + edi - 16];
+           andpd xmm3, xmm4;
+           maxpd xmm1, xmm3;
+       jmp @addforxloop
+
+       @loopEnd:
+
+       sub edi, 128;
+
+       jz @nextLine;
+
+       @addforxloop2:
+           movupd xmm2, [eax + edi];
+           andpd xmm2, xmm4;
+           maxpd xmm0, xmm2;
+       add edi, 16;
+       jnz @addforxloop2;
+
+       @nextLine:
+
+       // next line:
+       add eax, LineWidth;
+
+   // loop y end
+   dec ecx;
+   jnz @@addforyloop;
+
+   // final max ->
+   maxpd xmm0, xmm1;
+   movhlps xmm1, xmm0;
+   maxsd xmm0, xmm1;
+   movsd Result, xmm0;
+
+   pop edi;
+end;
+
+function ASMMatrixAbsMaxAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+asm
+   push edi;
+
+   // iter
+   dec edx;
+   imul edx, -8;
+
+   // helper registers for the mt1, mt2 and dest pointers
+   sub eax, edx;
+
+   movddup xmm0, cLocNegMaxDouble;
+   movapd xmm1, xmm0;
+   movddup xmm4, cLocAbsMask;
+
+   // for y := 0 to height - 1:
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, edx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
+
+           // prefetch data...
+           // prefetch [eax + edi];
+
+           // max:
+           movapd xmm2, [eax + edi - 128];
+           andpd xmm2, xmm4;
+           maxpd xmm0, xmm2;
+           movapd xmm3, [eax + edi - 112];
+           andpd xmm3, xmm4;
+           maxpd xmm1, xmm3;
+           movapd xmm2, [eax + edi - 96];
+           andpd xmm2, xmm4;
+           maxpd xmm0, xmm2;
+           movapd xmm3, [eax + edi - 80];
+           andpd xmm3, xmm4;
+           maxpd xmm1, xmm3;
+           movapd xmm2, [eax + edi - 64];
+           andpd xmm2, xmm4;
+           maxpd xmm0, xmm2;
+           movapd xmm3, [eax + edi - 48];
+           andpd xmm3, xmm4;
+           maxpd xmm1, xmm3;
+           movapd xmm2, [eax + edi - 32];
+           andpd xmm2, xmm4;
+           maxpd xmm0, xmm2;
+           movapd xmm3, [eax + edi - 16];
+           andpd xmm3, xmm4;
+           maxpd xmm1, xmm3;
+       jmp @addforxloop
+
+       @loopEnd:
+
+       sub edi, 128;
+
+       jz @nextLine;
+
+       @addforxloop2:
+           movapd xmm2, [eax + edi];
+           andpd xmm2, xmm4;
+           maxpd xmm0, xmm2;
+       add edi, 16;
+       jnz @addforxloop2;
+
+       @nextLine:
+
+       // special care of the last column:
+       movsd xmm2, [eax];
+       andpd xmm2, xmm4
+       maxsd xmm0, xmm2;
+
+       // next line:
+       add eax, LineWidth;
+
+   // loop y end
+   dec ecx;
+   jnz @@addforyloop;
+
+   // final max ->
+   maxpd xmm0, xmm1;
+   movhlps xmm1, xmm0;
+   maxsd xmm0, xmm1;
+   movsd Result, xmm0;
+
+   pop edi;
+end;
+
+function ASMMatrixAbsMaxUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+asm
+   push edi;
+
+   // iter
+   dec edx;
+   imul edx, -8;
+
+   // helper registers for the mt1, mt2 and dest pointers
+   sub eax, edx;
+
+   movddup xmm0, cLocNegMaxDouble;
+   movapd xmm1, xmm0;
+   movddup xmm4, cLocAbsMask;
+
+   // for y := 0 to height - 1:
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, edx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
+
+           // max:
+           movupd xmm2, [eax + edi - 128];
+           andpd xmm2, xmm4;
+           maxpd xmm0, xmm2;
+           movupd xmm3, [eax + edi - 112];
+           andpd xmm3, xmm4;
+           maxpd xmm1, xmm3;
+           movupd xmm2, [eax + edi - 96];
+           andpd xmm2, xmm4;
+           maxpd xmm0, xmm2;
+           movupd xmm3, [eax + edi - 80];
+           andpd xmm3, xmm4;
+           maxpd xmm1, xmm3;
+           movupd xmm2, [eax + edi - 64];
+           andpd xmm2, xmm4;
+           maxpd xmm0, xmm2;
+           movupd xmm3, [eax + edi - 48];
+           andpd xmm3, xmm4;
+           maxpd xmm1, xmm3;
+           movupd xmm2, [eax + edi - 32];
+           andpd xmm2, xmm4;
+           maxpd xmm0, xmm2;
+           movupd xmm3, [eax + edi - 16];
+           andpd xmm3, xmm4;
+           maxpd xmm1, xmm3;
+       jmp @addforxloop
+
+       @loopEnd:
+
+       sub edi, 128;
+
+       jz @nextLine;
+
+       @addforxloop2:
+           movupd xmm2, [eax + edi];
+           andpd xmm2, xmm4;
+           maxpd xmm0, xmm2;
+       add edi, 16;
+       jnz @addforxloop2;
+
+       @nextLine:
+
+       // special care of the last column:
+       movsd xmm2, [eax];
+       andpd xmm2, xmm4;
+       maxsd xmm0, xmm2;
+
+       // next line:
+       add eax, LineWidth;
+
+   // loop y end
+   dec ecx;
+   jnz @@addforyloop;
+
+   // final Max ->
+   maxpd xmm0, xmm1;
+   movhlps xmm1, xmm0;
+   maxsd xmm0, xmm1;
+   movsd Result, xmm0;
+
+   pop edi;
+end;
+
+function ASMMatrixAbsMinAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+asm
+   push edi;
+
+   // iter
+   imul edx, -8;
+
+   // helper registers for the mt1, mt2 and dest pointers
+   sub eax, edx;
+
+   movddup xmm0, cLocMaxDouble;
+   movapd xmm1, xmm0;
+   movddup xmm4, cLocAbsMask;
+
+   // for y := 0 to height - 1:
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, edx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
+
+           // prefetch data...
+           // prefetch [eax + edi];
+
+           // max:
+           movapd xmm2, [eax + edi - 128];
+           andpd xmm2, xmm4;
+           minpd xmm0, xmm2;
+           movapd xmm3, [eax + edi - 112];
+           andpd xmm3, xmm4;
+           minpd xmm1, xmm3;
+           movapd xmm2, [eax + edi - 96];
+           andpd xmm2, xmm4;
+           minpd xmm0, xmm2;
+           movapd xmm3, [eax + edi - 80];
+           andpd xmm3, xmm4;
+           minpd xmm1, xmm3;
+           movapd xmm2, [eax + edi - 64];
+           andpd xmm2, xmm4;
+           minpd xmm0, xmm2;
+           movapd xmm3, [eax + edi - 48];
+           andpd xmm3, xmm4;
+           minpd xmm1, xmm3;
+           movapd xmm2, [eax + edi - 32];
+           andpd xmm2, xmm4;
+           minpd xmm0, xmm2;
+           movapd xmm3, [eax + edi - 16];
+           andpd xmm3, xmm4;
+           minpd xmm1, xmm3;
+       jmp @addforxloop
+
+       @loopEnd:
+
+       sub edi, 128;
+
+       jz @nextLine;
+
+       @addforxloop2:
+           movapd xmm2, [eax + edi];
+           andpd xmm2, xmm4;
+           minpd xmm0, xmm2;
+       add edi, 16;
+       jnz @addforxloop2;
+
+       @nextLine:
+
+       // next line:
+       add eax, LineWidth;
+
+   // loop y end
+   dec ecx;
+   jnz @@addforyloop;
+
+   // final max ->
+   minpd xmm0, xmm1;
+   movhlps xmm1, xmm0;
+   minsd xmm0, xmm1;
+   movsd Result, xmm0;
+
+   pop edi;
+end;
+
+function ASMMatrixAbsMinUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+asm
+   push edi;
+
+   // iter
+   imul edx, -8;
+
+   // helper registers for the mt1, mt2 and dest pointers
+   sub eax, edx;
+
+   movddup xmm0, cLocMaxDouble;
+   movapd xmm1, xmm0;
+   movddup xmm4, cLocAbsMask;
+
+   // for y := 0 to height - 1:
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, edx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
+
+           // prefetch data...
+           // prefetch [eax + edi];
+
+           // min:
+           movupd xmm2, [eax + edi - 128];
+           andpd xmm2, xmm4;
+           minpd xmm0, xmm2;
+           movupd xmm3, [eax + edi - 112];
+           andpd xmm3, xmm4;
+           minpd xmm1, xmm3;
+           movupd xmm2, [eax + edi - 96];
+           andpd xmm2, xmm4;
+           minpd xmm0, xmm2;
+           movupd xmm3, [eax + edi - 80];
+           andpd xmm3, xmm4;
+           minpd xmm1, xmm3;
+           movupd xmm2, [eax + edi - 64];
+           andpd xmm2, xmm4;
+           minpd xmm0, xmm2;
+           movupd xmm3, [eax + edi - 48];
+           andpd xmm3, xmm4;
+           minpd xmm1, xmm3;
+           movupd xmm2, [eax + edi - 32];
+           andpd xmm2, xmm4;
+           minpd xmm0, xmm2;
+           movupd xmm3, [eax + edi - 16];
+           andpd xmm3, xmm4;
+           minpd xmm1, xmm3;
+       jmp @addforxloop
+
+       @loopEnd:
+
+       sub edi, 128;
+
+       jz @nextLine;
+
+       @addforxloop2:
+           movupd xmm2, [eax + edi];
+           andpd xmm2, xmm4;
+           minpd xmm0, xmm2;
+       add edi, 16;
+       jnz @addforxloop2;
+
+       @nextLine:
+
+       // next line:
+       add eax, LineWidth;
+
+   // loop y end
+   dec ecx;
+   jnz @@addforyloop;
+
+   // final min ->
+   minpd xmm0, xmm1;
+   movhlps xmm1, xmm0;
+   minsd xmm0, xmm1;
+   movsd Result, xmm0;
+
+   pop edi;
+end;
+
+function ASMMatrixAbsMinAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+asm
+   push edi;
+
+   // iter
+   dec edx;
+   imul edx, -8;
+
+   // helper registers for the mt1, mt2 and dest pointers
+   sub eax, edx;
+
+   movddup xmm0, cLocMaxDouble;
+   movapd xmm1, xmm0;
+   movddup xmm4, cLocAbsMask;
+
+   // for y := 0 to height - 1:
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, edx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
+
+           // prefetch data...
+           // prefetch [eax + edi];
+
+           // min:
+           movapd xmm2, [eax + edi - 128];
+           andpd xmm2, xmm4;
+           minpd xmm0, xmm2;
+           movapd xmm3, [eax + edi - 112];
+           andpd xmm3, xmm4;
+           minpd xmm1, xmm3;
+           movapd xmm2, [eax + edi - 96];
+           andpd xmm2, xmm4;
+           minpd xmm0, xmm2;
+           movapd xmm3, [eax + edi - 80];
+           andpd xmm3, xmm4;
+           minpd xmm1, xmm3;
+           movapd xmm2, [eax + edi - 64];
+           andpd xmm2, xmm4;
+           minpd xmm0, xmm2;
+           movapd xmm3, [eax + edi - 48];
+           andpd xmm3, xmm4;
+           minpd xmm1, xmm3;
+           movapd xmm2, [eax + edi - 32];
+           andpd xmm2, xmm4;
+           minpd xmm0, xmm2;
+           movapd xmm3, [eax + edi - 16];
+           andpd xmm3, xmm4;
+           minpd xmm1, xmm3;
+       jmp @addforxloop
+
+       @loopEnd:
+
+       sub edi, 128;
+
+       jz @nextLine;
+
+       @addforxloop2:
+           movapd xmm2, [eax + edi];
+           andpd xmm2, xmm4;
+           minpd xmm0, xmm2;
+       add edi, 16;
+       jnz @addforxloop2;
+
+       @nextLine:
+
+       // special care of the last column:
+       movsd xmm2, [eax];
+       andpd xmm2, xmm4
+       minsd xmm0, xmm2;
+
+       // next line:
+       add eax, LineWidth;
+
+   // loop y end
+   dec ecx;
+   jnz @@addforyloop;
+
+   // final min ->
+   minpd xmm0, xmm1;
+   movhlps xmm1, xmm0;
+   minsd xmm0, xmm1;
+   movsd Result, xmm0;
+
+   pop edi;
+end;
+
+
+function ASMMatrixAbsMinUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+asm
+   push edi;
+
+   // iter
+   dec edx;
+   imul edx, -8;
+
+   // helper registers for the mt1, mt2 and dest pointers
+   sub eax, edx;
+
+   movddup xmm0, cLocMaxDouble;
+   movapd xmm1, xmm0;
+   movddup xmm4, cLocAbsMask;
+
+   // for y := 0 to height - 1:
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, edx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
+
+           // min:
+           movupd xmm2, [eax + edi - 128];
+           andpd xmm2, xmm4;
+           minpd xmm0, xmm2;
+           movupd xmm3, [eax + edi - 112];
+           andpd xmm3, xmm4;
+           minpd xmm1, xmm3;
+           movupd xmm2, [eax + edi - 96];
+           andpd xmm2, xmm4;
+           minpd xmm0, xmm2;
+           movupd xmm3, [eax + edi - 80];
+           andpd xmm3, xmm4;
+           minpd xmm1, xmm3;
+           movupd xmm2, [eax + edi - 64];
+           andpd xmm2, xmm4;
+           minpd xmm0, xmm2;
+           movupd xmm3, [eax + edi - 48];
+           andpd xmm3, xmm4;
+           minpd xmm1, xmm3;
+           movupd xmm2, [eax + edi - 32];
+           andpd xmm2, xmm4;
+           minpd xmm0, xmm2;
+           movupd xmm3, [eax + edi - 16];
+           andpd xmm3, xmm4;
+           minpd xmm1, xmm3;
+       jmp @addforxloop
+
+       @loopEnd:
+
+       sub edi, 128;
+
+       jz @nextLine;
+
+       @addforxloop2:
+           movupd xmm2, [eax + edi];
+           andpd xmm2, xmm4;
+           minpd xmm0, xmm2;
+       add edi, 16;
+       jnz @addforxloop2;
+
+       @nextLine:
+
+       // special care of the last column:
+       movsd xmm2, [eax];
+       andpd xmm2, xmm4;
+       minsd xmm0, xmm2;
+
+       // next line:
+       add eax, LineWidth;
+
+   // loop y end
+   dec ecx;
+   jnz @@addforyloop;
+
+   // final min ->
+   minpd xmm0, xmm1;
    movhlps xmm1, xmm0;
    minsd xmm0, xmm1;
    movsd Result, xmm0;

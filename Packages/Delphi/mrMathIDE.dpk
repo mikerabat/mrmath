@@ -50,7 +50,8 @@ contains
   BasicExternalViewerVisualizer in 'BasicExternalViewerVisualizer.pas' {BasicVisualizerViewerFrame: TFrame},
   mrMathVisualizerForm in 'mrMathVisualizerForm.pas' {mrMathMtxViewerFrame: TFrame},
   mrMatrixSettings in 'mrMatrixSettings.pas' {frmMtxSettings},
-  mrMatrixPlot in 'mrMatrixPlot.pas' {frmMtxPlot};
+  mrMatrixPlot in 'mrMatrixPlot.pas' {frmMtxPlot},
+  mrMatrixPlotOptions in 'mrMatrixPlotOptions.pas' {frmMtxPlotOptions};
 
 end.
 

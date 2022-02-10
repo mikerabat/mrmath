@@ -630,7 +630,7 @@ type
   TDoubleMatrixDynArr = Array of TDoubleMatrix;
   IMatrixDynArr = Array of IMatrix;
 
-// default class used in derrived methods like in the global subspace methdos:
+// default class used in derrived methods like in the global subspace methods:
 // override the class value to use different matrix class implementations
 // e.g. the threaded version
 type

@@ -32,6 +32,7 @@ procedure GenericMtxIndex( dest : PDouble; destLineWidth : TASMNativeInt; Src : 
 
 procedure GenericMtxInit( dest : PDouble; destLineWidth : TASMNativeInt; width, height : TASMNativeInt; const value : double );
 
+procedure GenericColSwap(A, B : PDouble; const LineWidthAB : TASMNativeInt; Height : TASMNativeInt);
 procedure GenericRowSwap(A, B : PDouble; width : TASMNativeInt);
 
 function GenericMtxAdd(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
@@ -59,6 +60,13 @@ procedure GenericTranspMtxMult(dest : PDouble; const destLineWidth : TASMNativeI
 // calculates mt1*mt2'
 procedure GenericMtxMultTransp(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
 
+
+// calculates Result := sum_0_n-1( x[i]*y[i] );
+function GenericVecDotMult( x : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt ) : double;
+
+// calculates y[i] = y[i] + alpha*x[i]
+procedure GenericVecAdd( X : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt; const alpha : double );
+
 procedure GenericTranspMtxMultAdd(dest : PDouble; const destLineWidth : TASMNativeInt;
   mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
   const LineWidth1, LineWidth2 : TASMNativeInt; C : PDouble; LineWidthC : TASMNativeInt);
@@ -77,6 +85,13 @@ procedure GenericMtxVecMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, 
 // performs matrix vector multiplication in the form: dest := alpha*mt1'*v + beta*dest
 procedure GenericMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 
+// performs matrix vector multiplication in the form: dest := alpha*mt1*v + beta*dest
+// where the matrix mt1 is a symmetric matrix and only the upper part is touched in the multiplication
+procedure GenericMtxVecMultUpperSym( dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; N : TASMNativeInt; alpha, beta : double);
+// same as upper sym but uses the lower part of the matrix
+procedure GenericMtxVecMultLowerSym( dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; N : TASMNativeInt; alpha, beta : double);
+
+
 procedure GenericMtxElemMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt); overload;
 function GenericMtxElemMult(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
 procedure GenericMtxElemMult(var dest : Array of Double; const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt); overload;
@@ -86,8 +101,6 @@ procedure GenericMtxElemDiv(dest : PDouble; destLineWidth : TASMNativeInt; mt1, 
 function GenericMtxElemDiv(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
 procedure GenericMtxElemDiv(var dest : Array of Double; const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt); overload;
 function GenericMtxElemDiv(const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
-
-function GenericMtxDotProd(v1, v2 : PDouble; ByteInc1, ByteInc2 : TASMNativeInt; n :integer) : double;
 
 // GenericMtx transposition functions. Note the there is no inplace GenericMtx transpose - this will result in an unspecified end GenericMtx.
 function GenericMtxTranspose(mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
@@ -101,6 +114,19 @@ procedure GenericMtxTransposeInplace(dest : PDouble; const destLineWidth : TASMN
 
 function GenericMtxMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 function GenericMtxMin(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function GenericMtxAbsMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function GenericMtxAbsMin(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+
+// matrix max and min of an upper or lower diagonal matrix
+function GenericMtxMaxUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+function GenericMtxMinUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+function GenericMtxMaxLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+function GenericMtxMinLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+function GenericMtxAbsMaxUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+function GenericMtxAbsMinUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+function GenericMtxAbsMaxLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+function GenericMtxAbsMinLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+
 
 function GenericMtxNormalize(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
 function GenericMtxNormalize(const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
@@ -179,6 +205,11 @@ procedure GenericMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt
 procedure GenericMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 
+// calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be non unit!
+procedure GenericMtxMultLowTria2T2NoUnitStore1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+
+// mt1 = mt1*mt2; where mt2 is an upper triangular matrix - diagonal elements are unit
 procedure GenericMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 
@@ -213,6 +244,8 @@ procedure GenericMatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble
 // Assumes a lower triangualr matrix
 procedure GenericSymRankKUpd(dest : PDouble; LineWidthDest: TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt; k, height : TASMNativeInt; const Alpha, Beta : double);
 procedure GenericSolveLoTriMtxTranspNoUnit(A : PDouble; const LineWidthA : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
+procedure GenericSymRank2UpdateUpper( C : PDouble; LineWidthC : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
+  B : PDouble; LineWidthB : TASMNativeInt; N : TASMNativeInt; k : TASMNativeInt );
 
 procedure GenericRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
   X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
@@ -895,6 +928,22 @@ begin
      end;
 end;
 
+procedure GenericColSwap(A, B : PDouble; const LineWidthAB : TASMNativeInt; Height : TASMNativeInt);
+var tmp : double;
+    i : integer;
+begin
+     for i := 0 to Height - 1 do
+     begin
+          tmp := A^;
+          A^ := B^;
+          B^ := tmp;
+
+          inc(PByte(A), LineWidthAB);
+          inc(PByte(B), LineWidthAB);
+     end;
+end;
+
+
 procedure GenericRowSwap(A, B : PDouble; width : TASMNativeInt);
 var i : TASMNativeInt;
     tmp : double;
@@ -915,7 +964,7 @@ var x, y : TASMNativeInt;
     pMt : PDouble;
 begin
      assert((width > 0) and (height > 0) and (width*sizeof(double) <= LineWidth), 'Dimension error');
-     Result := -MaxDouble;
+     Result := mt^;
 
      pMt := mt;
 
@@ -927,6 +976,151 @@ begin
           inc(PByte(pMt), LineWidth);
      end;
 end;
+
+function GenericMtxMaxUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+var x, y : TASMNativeInt;
+    pMt : PDouble;
+begin
+     assert((N > 0) and (N*sizeof(double) <= LineWidth), 'Dimension error');
+     Result := mt^;
+
+     pMt := mt;
+
+     for y := 0 to N - 1 do
+     begin
+          for x := y to N - 1 do
+              Result := Max(Result, PConstDoubleArr(pMt)^[x]);
+
+          inc(PByte(pMt), LineWidth);
+     end;
+end;
+
+function GenericMtxMinUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+var x, y : TASMNativeInt;
+    pMt : PDouble;
+begin
+     assert((N > 0) and (N*sizeof(double) <= LineWidth), 'Dimension error');
+     Result := mt^;
+
+     pMt := mt;
+
+     for y := 0 to N - 1 do
+     begin
+          for x := y to N - 1 do
+              Result := Min(Result, PConstDoubleArr(pMt)^[x]);
+
+          inc(PByte(pMt), LineWidth);
+     end;
+end;
+
+function GenericMtxMaxLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+var x, y : TASMNativeInt;
+    pMt : PDouble;
+begin
+     assert((N > 0) and (N*sizeof(double) <= LineWidth), 'Dimension error');
+     Result := mt^;
+
+     pMt := mt;
+
+     for y := 0 to N - 1 do
+     begin
+          for x := 0 to y do
+              Result := Max(Result, PConstDoubleArr(pMt)^[x]);
+
+          inc(PByte(pMt), LineWidth);
+     end;
+end;
+
+function GenericMtxMinLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+var x, y : TASMNativeInt;
+    pMt : PDouble;
+begin
+     assert((N > 0) and (N*sizeof(double) <= LineWidth), 'Dimension error');
+     Result := mt^;
+
+     pMt := mt;
+
+     for y := 0 to N - 1 do
+     begin
+          for x := 0 to y do
+              Result := Min(Result, PConstDoubleArr(pMt)^[x]);
+
+          inc(PByte(pMt), LineWidth);
+     end;
+end;
+
+function GenericMtxAbsMaxUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+var x, y : TASMNativeInt;
+    pMt : PDouble;
+begin
+     assert((N > 0) and (N*sizeof(double) <= LineWidth), 'Dimension error');
+     Result := Abs(mt^);
+
+     pMt := mt;
+
+     for y := 0 to N - 1 do
+     begin
+          for x := y to N - 1 do
+              Result := Max(Result, Abs(PConstDoubleArr(pMt)^[x]));
+
+          inc(PByte(pMt), LineWidth);
+     end;
+end;
+
+function GenericMtxAbsMinUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+var x, y : TASMNativeInt;
+    pMt : PDouble;
+begin
+     assert((N > 0) and (N*sizeof(double) <= LineWidth), 'Dimension error');
+     Result := abs(mt^);
+
+     pMt := mt;
+
+     for y := 0 to N - 1 do
+     begin
+          for x := y to N - 1 do
+              Result := Min(Result, Abs(PConstDoubleArr(pMt)^[x]));
+
+          inc(PByte(pMt), LineWidth);
+     end;
+end;
+
+function GenericMtxAbsMaxLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+var x, y : TASMNativeInt;
+    pMt : PDouble;
+begin
+     assert((N > 0) and (N*sizeof(double) <= LineWidth), 'Dimension error');
+     Result := abs(mt^);
+
+     pMt := mt;
+
+     for y := 0 to N - 1 do
+     begin
+          for x := 0 to y do
+              Result := Max(Result, Abs(PConstDoubleArr(pMt)^[x]));
+
+          inc(PByte(pMt), LineWidth);
+     end;
+end;
+
+function GenericMtxAbsMinLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+var x, y : TASMNativeInt;
+    pMt : PDouble;
+begin
+     assert((N > 0) and (N*sizeof(double) <= LineWidth), 'Dimension error');
+     Result := abs(mt^);
+
+     pMt := mt;
+
+     for y := 0 to N - 1 do
+     begin
+          for x := 0 to y do
+              Result := Min(Result, Abs(PConstDoubleArr(pMt)^[x]));
+
+          inc(PByte(pMt), LineWidth);
+     end;
+end;
+
 
 procedure GenericMtxElemAdd(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const Offset : double);
 var x, y : TASMNativeInt;
@@ -976,7 +1170,7 @@ var x, y : TASMNativeInt;
     pMt : PByte;
 begin
      assert((width > 0) and (height > 0) and (width*sizeof(double) <= LineWidth), 'Dimension error');
-     Result := MaxDouble;
+     Result := mt^;
 
      pMt := PByte(mt);
 
@@ -989,6 +1183,41 @@ begin
      end;
 end;
 
+function GenericMtxAbsMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+var x, y : TASMNativeInt;
+    pMt : PByte;
+begin
+     assert((width > 0) and (height > 0) and (width*sizeof(double) <= LineWidth), 'Dimension error');
+     Result := Abs(mt^);
+
+     pMt := PByte(mt);
+
+     for y := 0 to height - 1 do
+     begin
+          for x := 0 to width - 1 do
+              Result := Max(Result, Abs(PConstDoubleArr(pMt)^[x]));
+
+          inc(PByte(pMt), LineWidth);
+     end;
+end;
+
+function GenericMtxAbsMin(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+var x, y : TASMNativeInt;
+    pMt : PByte;
+begin
+     assert((width > 0) and (height > 0) and (width*sizeof(double) <= LineWidth), 'Dimension error');
+     Result := abs(mt^);
+
+     pMt := PByte(mt);
+
+     for y := 0 to height - 1 do
+     begin
+          for x := 0 to width - 1 do
+              Result := Min(Result, Abs(PConstDoubleArr(pMt)^[x]));
+
+          inc(PByte(pMt), LineWidth);
+     end;
+end;
 
 procedure GenericMtxAdd(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
 var x, y : TASMNativeInt;
@@ -1270,6 +1499,55 @@ begin
           end;
           inc(PByte(mt1), LineWidth1);
           inc(PByte(dest), destLineWidth);
+     end;
+end;
+
+function GenericVecDotMult( x : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt ) : double;
+var pXa, pYa : PConstDoubleArr;
+    i : TASMNativeInt;
+begin
+     if (incX = sizeof(double)) and (incY = sizeof(double)) then
+     begin
+          pXA := PConstDoubleArr(X);
+          pYA := PConstDoubleArr(Y);
+
+          Result := 0;
+          for i := 0 to N - 1 do
+              Result := result + pXA^[i]*pYA^[i];
+     end
+     else
+     begin
+          Result := 0;
+
+          for i := 0 to N - 1 do
+          begin
+               Result := Result + x^*y^;
+               inc(PByte(x), incX);
+               inc(PByte(y), incY);
+          end;
+     end;
+end;
+
+procedure GenericVecAdd( X : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt; const alpha : double );
+var pXa, pYa : PConstDoubleArr;
+    i : TASMNativeInt;
+begin
+     if (incX = sizeof(double)) and (incY = sizeof(double)) then
+     begin
+          pXA := PConstDoubleArr(X);
+          pYA := PConstDoubleArr(Y);
+
+          for i := 0 to N - 1 do
+              pYA^[i] := pYA^[i] + alpha*pXA^[i];
+     end
+     else
+     begin
+          for i := 0 to N - 1 do
+          begin
+               y^ := y^ + alpha*x^;
+               inc(PByte(x), incX);
+               inc(PByte(y), incY);
+          end;
      end;
 end;
 
@@ -1561,21 +1839,96 @@ begin
      for i := (width div Length(res))*Length(res) to Width - 1 do
      begin
           res1 := 0;
-          
+
           pMt1 := PConstDoubleArr( mt1 );
           inc(Mt1);
-          pV := v; 
-          
+          pV := v;
+
           for j := 0 to Height - 1 do
           begin
                res1 := res1 + pV^*pMt1^[0];
-               
+
                inc(PByte(pV), LineWidthV);
                inc(PByte(pMt1), LineWidthMT);
           end;
 
           Dest^ := beta*Dest^ + alpha*res1;
           inc(PByte(Dest), destLineWidth);
+     end;
+end;
+
+// performs matrix vector multiplication in the form: dest := alpha*mt1*v + beta*dest
+// where the matrix mt1 is a symmetric matrix and only the upper part is touched in the multiplication
+procedure GenericMtxVecMultUpperSym( dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; N : TASMNativeInt; alpha, beta : double);
+var y, y1, x: TASMNativeInt;
+    res : double;
+    pMt1 : PConstDoubleArr;
+    pM : PDouble;
+    pV : PDouble;
+begin
+     pMt1 := PConstDoubleArr(mt1);
+     for y := 0 to N - 1 do
+     begin
+          res := 0;
+          pV := V;
+
+          // simulate the lower part
+          pM := GenPtr(mt1, y, 0, LineWidthMT);
+          for y1 := 0 to y - 1 do
+          begin
+               res := res + pV^*pM^;
+               inc(PByte(pM), LineWidthMT);
+               inc(PByte(pV), LineWidthV);
+          end;
+
+          // standard mult
+          for x := y to N - 1 do
+          begin
+               res := res + pV^*pMt1^[x];
+               inc(PByte(pV), LineWidthV);
+          end;
+
+          Dest^ := beta*Dest^ + alpha*res;
+          inc(PByte(Dest), destLineWidth);
+          inc(PByte(pMt1), LineWidthMT);
+     end;
+end;
+
+// performs matrix vector multiplication in the form: dest := alpha*mt1*v + beta*dest
+// where the matrix mt1 is a symmetric matrix and only the upper part is touched in the multiplication
+procedure GenericMtxVecMultLowerSym( dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; N : TASMNativeInt; alpha, beta : double);
+var y, y1, x: TASMNativeInt;
+    res : double;
+    pMt1 : PConstDoubleArr;
+    pM : PDouble;
+    pV : PDouble;
+begin
+     pMt1 := PConstDoubleArr(mt1);
+     for y := 0 to N - 1 do
+     begin
+          res := 0;
+          pV := V;
+
+          // simulate symmetric part
+          for x := 0 to y do
+          begin
+               res := res + pV^*pMt1^[x];
+               inc(PByte(pV), LineWidthV);
+          end;
+
+          // simulate the lower part
+          pM := GenPtr(mt1, y, y + 1, LineWidthMT);
+          for y1 := y + 1 to N - 1 do
+          begin
+               res := res + pV^*pM^;
+               inc(PByte(pM), LineWidthMT);
+               inc(PByte(pV), LineWidthV);
+          end;
+
+
+          Dest^ := beta*Dest^ + alpha*res;
+          inc(PByte(Dest), destLineWidth);
+          inc(PByte(pMt1), LineWidthMT);
      end;
 end;
 
@@ -1669,19 +2022,6 @@ begin
      assert(High(mt1) = High(mt2), 'Dimension Error');
 
      Result := GenericMtxElemMult(@mt1[0], @mt2[0], width, height, width*sizeof(double), width*sizeof(double));
-end;
-
-function GenericMtxDotProd(v1, v2 : PDouble; ByteInc1, Byteinc2 : TASMNativeInt; n :integer) : double;
-var i : Integer;
-begin
-     Result := 0;
-
-     for i := 0 to n - 1 do
-     begin
-          Result := Result + v1^*v2^;
-          inc(PByte(v1), ByteInc1);
-          inc(PByte(v2), Byteinc2);
-     end;
 end;
 
 function GenericMtxTranspose(mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray;
@@ -2643,6 +2983,38 @@ begin
      end;
 end;
 
+procedure GenericMtxMultLowTria2T2NoUnitStore1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+var x, y, idx : TASMNativeInt;
+    valCounter1 : PConstDoubleArr;
+    valCounter2 : PConstDoubleArr;
+    tmp : double;
+    pMT1 : PDouble;
+begin
+     assert((width1 > 0) and (height1 > 0) and (width1 = height2), 'Dimension error');
+     assert(width1 = width2, 'Widths need to be the same');
+     inc(PByte(mt2), (height2 - 1)*LineWidth2);
+
+     for x := 0 to width2 - 1 do
+     begin
+          pMt1 := mt1;
+          for y := 0 to height1 - 1 do
+          begin
+               tmp := 0;
+               valCounter1 := PConstDoubleArr(pMt1);
+               valCounter2 := PConstDoubleArr(mt2);
+               for idx := 0 to width2 - x - 1 do
+                   tmp := tmp + valCounter1^[idx]*valCounter2^[idx];
+
+               PConstDoubleArr(pMt1)^[width2 - x - 1] := tmp;
+
+               inc(PByte(pMt1), LineWidth1);
+          end;
+
+          dec(PByte(mt2), LineWidth2);
+     end;
+end;
+
 procedure GenericMatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
 var x, y : TASMNativeInt;
     pA : PConstDoubleArr;
@@ -2706,6 +3078,50 @@ begin
           end;
      end;
 end;
+
+// performs a rank2 update in the form
+// C = C - A*B' - B*A'
+// N...order of C (N x N matrix)
+// k... number of columns of A and B
+// the lower triangle of C is not referenced
+// dsyr2k in lapack upper no transpose with alpha = -1, beta = 1
+procedure GenericSymRank2UpdateUpper( C : PDouble; LineWidthC : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
+  B : PDouble; LineWidthB : TASMNativeInt; N : TASMNativeInt; k : TASMNativeInt );
+var i, j, l : TASMNativeInt;
+    pC, pA, pB : PDouble;
+    temp1, temp2 : double;
+begin
+     if (N = 0) or (k = 0) then
+        exit;
+
+     // todo: change the memory access pattern from column to row major
+     for j := 0 to N - 1 do
+     begin
+          for l := 0 to k - 1 do
+          begin
+               pA := GenPtr( A, l, j, LineWidthA );
+               pB := GenPtr( B, l, j, LineWidthB );
+               temp1 := pB^;
+               temp2 := pA^;
+
+               if (temp1 = 0) or (temp2 = 0) then
+                  continue;
+
+               pC := GenPtr( C, j, 0, LineWidthC );
+               pA := GenPtr( A, l, 0, LineWidthA );
+               pB := GenPtr( B, l, 0, LineWidthB );
+
+               for i := 0 to j do
+               begin
+                    pC^ := pC^ - pA^*temp1 - pB^*temp2;
+                    inc(PByte(pC), LineWidthC);
+                    inc(PByte(pA), LineWidthA);
+                    inc(PByte(pB), LineWidthB);
+               end;
+          end;
+     end;
+end;
+
 
 
 // originaly: STRSM with 'Right', 'Lower', 'Transpose', 'Non-unit'

@@ -39,6 +39,10 @@ procedure AVXMatrixVectMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, 
 procedure AVXMatrixVectMultAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 procedure AVXMatrixVectMultUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
+function AVXMatrixVecDotMultUneven( x : PDouble; Y : PDouble; incX : TASMNativeInt; incY : TASMNativeInt; N : TASMNativeInt) : Double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function AVXMatrixVecDotMultUnAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function AVXMatrixVecDotMultAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+
 // destlinewidth needs to be sizeof(double)!
 // no speed gain agains amsmatrixVectMultT
 procedure AVXMatrixVecMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
@@ -1325,6 +1329,206 @@ asm
    pop esi;
    pop edi;
    pop ebx;
+end;
+
+function AVXMatrixVecDotMultAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double;
+// eax = x, edx = y, ecx = N
+asm
+   push edi;
+
+   // iters
+   imul ecx, -8;
+
+   // helper registers for the mt1, mt2 and dest pointers
+   sub eax, ecx;
+   sub edx, ecx;
+
+   {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;{$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} 
+
+   // unrolled loop
+   @Loop1:
+       add ecx, 128;
+       jg @loopEnd1;
+
+       {$IFDEF FPC}vmovapd ymm1, [eax + ecx - 128];{$ELSE}db $C5,$FD,$28,$4C,$08,$80;{$ENDIF} 
+       {$IFDEF FPC}vmovapd ymm2, [edx + ecx - 128];{$ELSE}db $C5,$FD,$28,$54,$0A,$80;{$ENDIF} 
+       {$IFDEF FPC}vmulpd ymm1, ymm1, ymm2;{$ELSE}db $C5,$F5,$59,$CA;{$ENDIF} 
+       {$IFDEF FPC}vaddpd ymm0, ymm0, ymm1;{$ELSE}db $C5,$FD,$58,$C1;{$ENDIF} 
+
+       {$IFDEF FPC}vmovapd ymm3, [eax + ecx - 96];{$ELSE}db $C5,$FD,$28,$5C,$08,$A0;{$ENDIF} 
+       {$IFDEF FPC}vmovapd ymm4, [edx + ecx - 96];{$ELSE}db $C5,$FD,$28,$64,$0A,$A0;{$ENDIF} 
+       {$IFDEF FPC}vmulpd ymm3, ymm3, ymm4;{$ELSE}db $C5,$E5,$59,$DC;{$ENDIF} 
+       {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+
+       {$IFDEF FPC}vmovupd ymm1, [eax + ecx - 64];{$ELSE}db $C5,$FD,$10,$4C,$08,$C0;{$ENDIF} 
+       {$IFDEF FPC}vmovupd ymm2, [edx + ecx - 64];{$ELSE}db $C5,$FD,$10,$54,$0A,$C0;{$ENDIF} 
+       {$IFDEF FPC}vmulpd ymm1, ymm1, ymm2;{$ELSE}db $C5,$F5,$59,$CA;{$ENDIF} 
+       {$IFDEF FPC}vaddpd ymm0, ymm0, ymm1;{$ELSE}db $C5,$FD,$58,$C1;{$ENDIF} 
+
+       {$IFDEF FPC}vmovapd ymm3, [eax + ecx - 32];{$ELSE}db $C5,$FD,$28,$5C,$08,$E0;{$ENDIF} 
+       {$IFDEF FPC}vmovapd ymm4, [edx + ecx - 32];{$ELSE}db $C5,$FD,$28,$64,$0A,$E0;{$ENDIF} 
+       {$IFDEF FPC}vmulpd ymm3, ymm3, ymm4;{$ELSE}db $C5,$E5,$59,$DC;{$ENDIF} 
+       {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+
+   jmp @Loop1;
+
+   @loopEnd1:
+
+   {$IFDEF FPC}vextractf128 xmm2, ymm0, 1;{$ELSE}db $C4,$E3,$7D,$19,$C2,$01;{$ENDIF} 
+   {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$7C,$C2;{$ENDIF} 
+
+   sub ecx, 128;
+   jz @loopEnd2;
+
+   // loop to get all fitting into an array of 2
+   @loop2:
+      add ecx, 16;
+      jg @loop2End;
+
+      {$IFDEF FPC}vmovapd xmm3, [eax + ecx - 16];{$ELSE}db $C5,$F9,$28,$5C,$08,$F0;{$ENDIF} 
+      {$IFDEF FPC}vmovapd xmm4, [edx + ecx - 16];{$ELSE}db $C5,$F9,$28,$64,$0A,$F0;{$ENDIF} 
+      {$IFDEF FPC}vmulpd xmm3, xmm3, xmm4;{$ELSE}db $C5,$E1,$59,$DC;{$ENDIF} 
+      {$IFDEF FPC}vaddpd xmm0, xmm0, xmm3;{$ELSE}db $C5,$F9,$58,$C3;{$ENDIF} 
+   jmp @loop2;
+
+   @loop2End:
+
+   // handle last element
+   sub ecx, 8;
+   jg @loopEnd2;
+
+   {$IFDEF FPC}vmovsd xmm3, [eax - 8];{$ELSE}db $C5,$FB,$10,$58,$F8;{$ENDIF} 
+   {$IFDEF FPC}vmovsd xmm4, [edx - 8];{$ELSE}db $C5,$FB,$10,$62,$F8;{$ENDIF} 
+   {$IFDEF FPC}vmulsd xmm3, xmm3, xmm4;{$ELSE}db $C5,$E3,$59,$DC;{$ENDIF} 
+   {$IFDEF FPC}vaddsd xmm0, xmm0, xmm3;{$ELSE}db $C5,$FB,$58,$C3;{$ENDIF} 
+
+   @loopEnd2:
+
+   // build result
+   {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$7C,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovsd Result, xmm0;{$ELSE}db $C5,$FB,$11,$45,$F8;{$ENDIF} 
+
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
+   pop edi;
+end;
+
+function AVXMatrixVecDotMultUnAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double;
+// eax = x, edx = y, ecx = N
+asm
+   push edi;
+
+   // iters
+   imul ecx, -8;
+
+   // helper registers for the mt1, mt2 and dest pointers
+   sub eax, ecx;
+   sub edx, ecx;
+
+   {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;{$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} 
+
+   // unrolled loop
+   @Loop1:
+       add ecx, 128;
+       jg @loopEnd1;
+
+       {$IFDEF FPC}vmovupd ymm1, [eax + ecx - 128];{$ELSE}db $C5,$FD,$10,$4C,$08,$80;{$ENDIF} 
+       {$IFDEF FPC}vmovupd ymm2, [edx + ecx - 128];{$ELSE}db $C5,$FD,$10,$54,$0A,$80;{$ENDIF} 
+       {$IFDEF FPC}vmulpd ymm1, ymm1, ymm2;{$ELSE}db $C5,$F5,$59,$CA;{$ENDIF} 
+       {$IFDEF FPC}vaddpd ymm0, ymm0, ymm1;{$ELSE}db $C5,$FD,$58,$C1;{$ENDIF} 
+
+       {$IFDEF FPC}vmovupd ymm3, [eax + ecx - 96];{$ELSE}db $C5,$FD,$10,$5C,$08,$A0;{$ENDIF} 
+       {$IFDEF FPC}vmovupd ymm4, [edx + ecx - 96];{$ELSE}db $C5,$FD,$10,$64,$0A,$A0;{$ENDIF} 
+       {$IFDEF FPC}vmulpd ymm3, ymm3, ymm4;{$ELSE}db $C5,$E5,$59,$DC;{$ENDIF} 
+       {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+
+       {$IFDEF FPC}vmovupd ymm1, [eax + ecx - 64];{$ELSE}db $C5,$FD,$10,$4C,$08,$C0;{$ENDIF} 
+       {$IFDEF FPC}vmovupd ymm2, [edx + ecx - 64];{$ELSE}db $C5,$FD,$10,$54,$0A,$C0;{$ENDIF} 
+       {$IFDEF FPC}vmulpd ymm1, ymm1, ymm2;{$ELSE}db $C5,$F5,$59,$CA;{$ENDIF} 
+       {$IFDEF FPC}vaddpd ymm0, ymm0, ymm1;{$ELSE}db $C5,$FD,$58,$C1;{$ENDIF} 
+
+       {$IFDEF FPC}vmovupd ymm3, [eax + ecx - 32];{$ELSE}db $C5,$FD,$10,$5C,$08,$E0;{$ENDIF} 
+       {$IFDEF FPC}vmovupd ymm4, [edx + ecx - 32];{$ELSE}db $C5,$FD,$10,$64,$0A,$E0;{$ENDIF} 
+       {$IFDEF FPC}vmulpd ymm3, ymm3, ymm4;{$ELSE}db $C5,$E5,$59,$DC;{$ENDIF} 
+       {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+
+   jmp @Loop1;
+
+   @loopEnd1:
+
+   {$IFDEF FPC}vextractf128 xmm2, ymm0, 1;{$ELSE}db $C4,$E3,$7D,$19,$C2,$01;{$ENDIF} 
+   {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm2;{$ELSE}db $C5,$F9,$7C,$C2;{$ENDIF} 
+
+   sub ecx, 128;
+   jz @loopEnd2;
+
+   // loop to get all fitting into an array of 2
+   @loop2:
+      add ecx, 16;
+      jg @loop2End;
+
+      {$IFDEF FPC}vmovupd xmm3, [eax + ecx - 16];{$ELSE}db $C5,$F9,$10,$5C,$08,$F0;{$ENDIF} 
+      {$IFDEF FPC}vmovupd xmm4, [edx + ecx - 16];{$ELSE}db $C5,$F9,$10,$64,$0A,$F0;{$ENDIF} 
+      {$IFDEF FPC}vmulpd xmm3, xmm3, xmm4;{$ELSE}db $C5,$E1,$59,$DC;{$ENDIF} 
+      {$IFDEF FPC}vaddpd xmm0, xmm0, xmm3;{$ELSE}db $C5,$F9,$58,$C3;{$ENDIF} 
+   jmp @loop2;
+
+   @loop2End:
+
+   // handle last element
+   sub ecx, 8;
+   jg @loopEnd2;
+
+   {$IFDEF FPC}vmovsd xmm3, [eax - 8];{$ELSE}db $C5,$FB,$10,$58,$F8;{$ENDIF} 
+   {$IFDEF FPC}vmovsd xmm4, [edx - 8];{$ELSE}db $C5,$FB,$10,$62,$F8;{$ENDIF} 
+   {$IFDEF FPC}vmulsd xmm3, xmm3, xmm4;{$ELSE}db $C5,$E3,$59,$DC;{$ENDIF} 
+   {$IFDEF FPC}vaddsd xmm0, xmm0, xmm3;{$ELSE}db $C5,$FB,$58,$C3;{$ENDIF} 
+
+   @loopEnd2:
+
+   // build result
+   {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$7C,$C0;{$ENDIF} 
+   {$IFDEF FPC}vmovsd Result, xmm0;{$ELSE}db $C5,$FB,$11,$45,$F8;{$ENDIF} 
+
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
+   pop edi;
+end;
+
+function AVXMatrixVecDotMultUneven( x : PDouble; Y : PDouble; incX : TASMNativeInt; incY : TASMNativeInt;
+ N : TASMNativeInt) : Double;
+// eax = x, edx = y, ecx = incx
+asm
+   push edi;
+   push esi;
+   push ebx;
+
+   mov ebx, N;
+   mov esi, incY;
+   {$IFDEF FPC}vxorpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
+
+   test ebx, ebx;
+   jz @loopEnd;
+   @loop:
+      {$IFDEF FPC}vmovsd xmm1, [eax];{$ELSE}db $C5,$FB,$10,$08;{$ENDIF} 
+      {$IFDEF FPC}vmovsd xmm2, [edx];{$ELSE}db $C5,$FB,$10,$12;{$ENDIF} 
+      {$IFDEF FPC}vmulsd xmm1, xmm1, xmm2;{$ELSE}db $C5,$F3,$59,$CA;{$ENDIF} 
+      {$IFDEF FPC}vaddsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$58,$C1;{$ENDIF} 
+
+      // next element
+      add eax, ecx;
+      add edx, esi;
+
+      // counter
+      dec ebx;
+      jnz @loop;
+   @loopEnd:
+
+   movsd Result, xmm0;
+
+   // restore register
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
+   pop ebx;
+   pop esi;
+   pop edi;
 end;
 
 {$ENDIF}

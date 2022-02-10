@@ -41,6 +41,7 @@ type
     procedure TestIncompleteBeta;
     procedure TestGammaP;
     procedure TestMatrixExp;
+    procedure TestMillerRubin32;
   end;
 
 implementation
@@ -368,10 +369,29 @@ begin
      Status( WriteMtx( em.GetObjRef ) );
 end;
 
+procedure TTestSpecialFuncs.TestMillerRubin32;
+const cSuperWhitness : Array[0..2] of Uint32 = (2, 3, 11);  // up to 1373653
+var i : UInt32;
+begin
+     i := 13;
+
+     while i < 100000 do
+     begin
+          if MillerRubinTest32( i, cSuperWhitness[0]) and
+             MillerRubinTest32( i, cSuperWhitness[1]) and
+             MillerRubinTest32( i, cSuperWhitness[2])
+          then
+          begin
+               status( 'Prim: ' + IntToStr(i) );
+          end;
+
+          inc(i, 2);
+     end;
+end;
+
 initialization
 {$IFNDEF FMX}
   RegisterTest(TTestSpecialFuncs{$IFNDEF FPC}.Suite{$ENDIF});
 {$ENDIF}
-
 
 end.

@@ -34,21 +34,32 @@ type
   procedure TestHessenberg2;
   procedure TestHessenbergBlk;
   procedure TestHessenbergCmplx;
-  procedure TestHessenberg3;    
+  procedure TestHessenberg3;
   procedure TestHessenbergBig;
   procedure TestHessenbergThr;
   procedure TestFullHessenberg;
-  
+
   procedure TestEigVec1;
   procedure TestEigVecComplex;
   procedure TestBalance;
   procedure TestLinearDependentVectors;
+
+  procedure TestTridiagFromSymMatrix1;
+  procedure TestTridiagFromSymMatrixBlocked;
+  procedure TestTridiagFromSymMatrixBlocked2;
+
+  procedure TestEigValFromTridiagMtx;
+  procedure TestEigValFromTridiagMtx2;
+  procedure TestEigValEigVecFromTridiagMtx;
+  procedure TEstEigValEigVecFromTridiagMtx2;
+
+  procedure TestEigValFromSymMtx;
  end;
 
 implementation
 
-uses Eigensystems, MatrixConst, MatrixASMStubSwitch, Matrix, Types, MtxTimer, 
-  BlockSizeSetup, MtxThreadPool;
+uses RandomEng, Eigensystems, MatrixConst, MatrixASMStubSwitch, Matrix, Types, MtxTimer,
+  BlockSizeSetup, MtxThreadPool, MathUtilFunc;
 
 { TTestEigensystems }
 
@@ -72,6 +83,379 @@ begin
      Check(CheckMtx(EigVec, Eivec, -1, -1, 0.001), 'Error wrong eigenvectors');
 end;
 
+
+procedure TTestEigensystems.TestEigValEigVecFromTridiagMtx;
+var D : Array[0..2] of double;
+    E : Array[0..1] of double;
+    Z : Array[0..8] of double;
+    work : Array[0..13] of double;
+    // from octave
+const eigVals : Array[0..2] of double = (  -2.2645, 1.4192, 6.8453 );
+      eigVec : Array[0..8] of double = ( -0.4384, -0.8686, 0.2307,
+                                         0.7156, -0.1821, 0.6743,
+                                         -0.5437, 0.4608, 0.7015);
+begin
+     d[0] := 1;
+     d[1] := 2;
+     d[2] := 3;
+
+     e[0] := 2;
+     e[1] := 4;
+
+     InternalEigValEigVecFromSymTridiagMatrix(PConstDoubleArr(@D[0]), PConstDoubleArr(@E[0]),
+                                              PDouble(@Z[0]), 3*sizeof(double),
+                                              3, PConstDoubleArr(@work[0]));
+
+     Status( WriteMtx(PDouble(@E[0]), 3*sizeof(double), 2, 1 ) );
+     Status( WriteMtx(PDouble(@D[0]), 3*sizeof(double), 3, 1 ) );
+     Status( WriteMtx(PDouble(@Z[0]), 3*sizeof(double), 3, 3 ) );
+
+     Check( CheckMtx(eigVals, Slice(D, 3), 3, 1 ));
+     Check( CheckMtx(eigVec, Z, 3, 3, 0.001));
+end;
+
+procedure TTestEigensystems.TEstEigValEigVecFromTridiagMtx2;
+var E, D, Z : TDoubleDynArray;
+    rnd : TRandomGenerator;
+    N : integer;
+    i: Integer;
+    j: Integer;
+    work : PConstDoubleArr;
+    memWork : TDoubleDynArray;
+begin
+     // just a test
+     rnd := TRandomGenerator.Create( raMersenneTwister );
+     try
+        rnd.Init(641);
+
+        for i := 0 to 64 - 1 do
+        begin
+             N := 2 + rnd.RandInt( 63 );
+
+             SetLength(D, N);
+             SetLength(E, N - 1);
+             SetLength(Z, N*N);
+             SetLength(memWork, 2*N);
+             work := @memWork[0];
+
+             for j := 0 to N - 1 do
+                 D[j] := rnd.RandInt(256) - 128;
+
+             for j := 0 to N - 2 do
+                 E[j] := rnd.RandInt(256) - 128;
+
+             // use these arrays in octave to crosscheck with this implementation
+             // -> load both arrays in E and D -> create X = diag(D,0)+diag(E,-1)+diag(E,1);
+             // [ev, ei] = eig(X);
+             // and finally calcualte the residual err = [err; max( DE - ei' )];
+             // where DE is the data loaded from the eig file here...
+             // note: the eigenvectors may be off by a factor of -1 (for a column)
+             // so to check this error use abs(ev - EV) where EV is the loaded eigvec
+
+             //WriteMatlabData('D:\d' + intToStr(i) + '.txt', D, Length(D));
+//             WriteMatlabData('D:\E' + intToStr(i) + '.txt', E, Length(E));
+
+             Check( InternalEigValEigVecFromSymTridiagMatrix(PConstDoubleArr(@D[0]), PConstDoubleArr(@E[0]), @Z[0], N*sizeof(double), N, work) = qlOk, 'Failed eigenvalues on tridiagonal mtx');
+
+             //WriteMatlabData('D:\eig' + IntToStr(i) + '.txt', D, Length(D));
+             //WriteMatlabData('D:\eigvec' + intToStr(i) + '.txt', Z, N );
+        end;
+     finally
+            rnd.Free;
+     end;
+end;
+
+procedure TTestEigensystems.TestTridiagFromSymMatrix1;
+var A : Array[0..15] of double;
+    aSym : Array[0..15] of double;
+    aSym1 : Array[0..15] of double;
+    D0 : Array[0..3] of double;
+    E0 : Array[0..2] of double;
+    i : Integer;
+    E1, D1 : Array[0..3] of double;
+    N : Integer;
+    idx : integer;
+begin
+     for i := 0 to Length(A) - 1 do
+         a[i] := (i + 1)/10;
+
+     InitMathFunctions(itFPU, False);
+
+     a[0] := -a[0];
+     a[5] := -a[5];
+     a[10] := -a[10];
+     a[15] := -a[15];
+
+     // make symmetric matrix
+     MatrixMultT2(@aSym[0], 4*sizeof(double), @A[0], @A[0], 4, 4, 4, 4, 4*sizeof(double), 4*sizeof(double));
+     Move( aSym[0], aSym1[0], sizeof(aSym));
+
+     N := 4;
+     MatrixUpperSymToTridiagInPlace( @aSym[0], 4*sizeof(double), 4, @D0[0], @E0[0], nil, N);
+     MatrixTridiagonalHouseInPlace( @aSym1[0], 4*sizeof(double), 4, @D1[0], sizeof(double), @E1[0], sizeof(double));
+
+     Status( WriteMtx( D1, 4 ) );
+     Status( WriteMtx( E1, 4 ) );
+
+     Status('New:');
+     Status( WriteMtx( D0, 4 ) );
+     Status( WriteMtx( E0, 3 ) );
+
+     Check( CheckMtx( D1, D0 ), 'Failed to calculate Tridiagonal matrix' );
+     Check( CheckMtxIdx( @E1[1], @E0[0], 3*sizeof(double), 3*SizeOf(double), 3, 1, idx ), 'Failed to calculate Trididagonal Matrix');
+end;
+
+procedure TTestEigensystems.TestTridiagFromSymMatrixBlocked;
+var A : Array[0..35] of double;
+    aSym, aSym1 : Array[0..35] of double;
+    D0 : Array[0..5] of double;
+    E0 : Array[0..4] of double;
+    i : Integer;
+    E1, D1 : Array[0..5] of double;
+    N : Integer;
+begin
+     for i := 0 to Length(A) - 1 do
+         a[i] := (i + 1)/10;
+
+     InitMathFunctions(itFPU, False);
+
+     a[0] := -a[0];
+     a[7] := -a[7];
+     a[14] := -a[14];
+     a[21] := -a[21];
+     a[28] := -a[28];
+     a[35] := -a[35];
+
+     // make symmetric matrix
+     MatrixMultT2(@aSym[0], 6*sizeof(double), @A[0], @A[0], 6, 6, 6, 6, 6*sizeof(double), 6*sizeof(double));
+     Move( aSym[0], aSym1[0], sizeof(aSym));
+
+     N := 6;
+     MatrixUpperSymToTridiagInPlace( @aSym[0], 6*sizeof(double), N, @D0[0], @E0[0], nil, 2);
+     MatrixTridiagonalHouseInPlace( @aSym1[0], 6*sizeof(double), 6, @D1[0], sizeof(double), @E1[0], sizeof(double));
+
+     Status( WriteMtx( D1, 6 ) );
+     Status( WriteMtx( E1, 6 ) );
+
+     Status('New:');
+     Status( WriteMtx( D0, 6 ) );
+     Status( WriteMtx( E0, 5 ) );
+
+     Check( CheckMtx(D0, D1), 'Simple blocked sym to tridiagonal matrix failed');
+end;
+
+
+procedure TTestEigensystems.TestTridiagFromSymMatrixBlocked2;
+var N: Integer;
+    i: Integer;
+    D1, D2, D3 : TDoubleDynArray;
+    E1, E2, E3 : TDoubleDynArray;
+    Tau1, Tau2, Tau3 : TDoubleDynArray;
+    A : TDoubleDynArray;
+    aSym : TDoubleDynArray;
+    aSym1 : TDoubleDynArray;
+    pD, pE, pTau : PConstDoubleArr;
+    nb : integer;
+begin
+     InitSSEOptFunctions(itFPU);
+     RandSeed := 723;
+
+     for N := 3 to 33 do
+     begin
+          Setlength( D1, N );
+          SetLength( D2, N );
+          SetLength( D3, N );
+
+          SetLength( E1, N - 1);
+          SetLength( E2, N - 1);
+          SetLength( E3, N - 1);
+
+          SetLength( Tau1, N - 1);
+          SetLength( Tau2, N - 1);
+          SetLength( Tau3, N - 1);
+
+          SetLength( A, N*N );
+          for i := 0 to Length(A) - 1 do
+              A[i] := random;
+
+          for i := 0 to N - 2 do
+              A[i*(N + 1)] := -A[i*(N + 1)];
+
+          SetLength(aSym, Length(A));
+          MatrixMultT2(@aSym[0], N*sizeof(double), @A[0], @A[0], N, N, N, N, N*sizeof(double), N*sizeof(double));
+
+          pD := nil;
+          pE := nil;
+          pTau := nil;
+          nb := N;
+
+          for i := 0 to 2 do
+          begin
+               // ###########################################
+               // #### Eigenvalue calculation
+               aSym1 := Copy( aSym, 0, Length(aSym) );
+
+               case i of
+                 0: begin
+                         pD := @D1[0];
+                         pE := @E1[0];
+                         pTau := @Tau1[0];
+                         nb := 2;
+                    end;
+                 1: begin
+                         pD := @D2[0];
+                         pE := @E2[0];
+                         pTau := @Tau2[0];
+                         nb := 3;
+                    end;
+                 2: begin
+                         pD := @D3[0];
+                         pE := @E3[0];
+                         pTau := @Tau3[0];
+                         nb := N;
+                    end;
+               end;
+
+               MatrixUpperSymToTridiagInPlace(@aSym1[0], N*sizeof(double), N, pD, pE, pTau, nb);
+
+             //  Status( WriteMtx(aSym1, N) );
+             //  Status('');
+          end;
+
+          Check( CheckMtx( D1, D2 ), 'D1, D2 Blocked Trigdiagonal failed at N = ' + IntToStr(N));
+          Check( CheckMtx( D1, D3 ), 'D1, D3 Blocked Trigdiagonal failed at N = ' + IntToStr(N));
+
+          Check( CheckMtx( E1, E2 ), 'E1, E2 Blocked Trigdiagonal failed at N = ' + IntToStr(N));
+          Check( CheckMtx( E1, E3 ), 'E1, E3 Blocked Trigdiagonal failed at N = ' + IntToStr(N));
+
+          Check( CheckMtx( Tau1, Tau2 ), 'Tau1, Tau2 Blocked Trigdiagonal failed at N = ' + IntToStr(N));
+          Check( CheckMtx( Tau1, Tau3 ), 'Tau1, Tau3 Blocked Trigdiagonal failed at N = ' + IntToStr(N));
+     end;
+end;
+
+procedure TTestEigensystems.TestEigValFromSymMtx;
+var w, w1 : TDoubleDynArray;
+    N: Integer;
+    i: Integer;
+    A, A1, A2 : TDoubleDynArray;
+    nb : integer;
+function makeSym( A : TDoubleDynArray ) : TDoubleDynArray;
+  var
+    y: Integer;
+begin
+     Result := MatrixTranspose(A, N, N);
+     for y := 0 to N - 1 do
+         Move( A[y*N + Y + 1], Result[y*N + Y + 1], SizeOf(double)*(N - y - 1) );
+
+end;
+begin
+     InitSSEOptFunctions(itFPU);
+     RandSeed := 723;
+
+     for N := 3 to 33 do
+     begin
+          Setlength( W, N );
+          SetLength( w1, N );
+
+          SetLength( A, N*N );
+          for i := 0 to Length(A) - 1 do
+              A[i] := random;
+
+          for i := 0 to N - 2 do
+              A[i*(N + 1)] := -A[i*(N + 1)];
+
+          nb := N;
+
+          for i := 0 to 2 do
+          begin
+               // ###########################################
+               // #### Eigenvalue calculation
+               A2 := makeSym(A);
+               A1 := Copy(A, 0, Length(A));
+
+               case i of
+                 0: nb := 2;
+                 1: nb := 3;
+                 2: nb := N;
+               end;
+
+               MatrixEigUpperSymmetricMatrixInPlace2(@A1[0], N*sizeof(double), N, @W[0], True, nb);
+               MatrixEigTridiagonalMatrixInPlace(@A2[0], N*sizeof(double), N, @W1[0], sizeof(double));
+
+               quickSort( W1 );
+
+               Check( CheckMtx( w, w1 ), 'D1, D2 Blocked Trigdiagonal failed at N = ' + IntToStr(N));
+             //  Status( WriteMtx(aSym1, N) );
+             //  Status('');
+          end;
+
+
+     end;
+end;
+
+procedure TTestEigensystems.TestEigValFromTridiagMtx;
+var D : Array[0..7] of double;
+    E : Array[0..7] of double;
+    // from octave
+const eigVals : Array[0..2] of double = (  -2.2645, 1.4192, 6.8453 );
+begin
+     d[0] := 1;
+     d[1] := 2;
+     d[2] := 3;
+
+     e[0] := 2;
+     e[1] := 4;
+
+     InternalEigValFromSymMatrix(PConstDoubleArr(@D[0]), PConstDoubleArr(@E[0]), 3);
+
+     Status( WriteMtx(PDouble(@E[0]), 3*sizeof(double), 3, 1 ) );
+     Status( WriteMtx(PDouble(@D[0]), 3*sizeof(double), 3, 1 ) );
+
+     Check( CheckMtx(eigVals, Slice(D, 3), 3, 1 ));
+end;
+
+procedure TTestEigensystems.TEstEigValFromTridiagMtx2;
+var E, D : TDoubleDynArray;
+    rnd : TRandomGenerator;
+    N : integer;
+    i: Integer;
+    j: Integer;
+begin
+     // just a test
+     rnd := TRandomGenerator.Create( raMersenneTwister );
+     try
+        rnd.Init(641);
+
+        for i := 0 to 64 - 1 do
+        begin
+             N := 2 + rnd.RandInt( 63 );
+
+             SetLength(D, N);
+             SetLength(E, N - 1);
+
+             for j := 0 to N - 1 do
+                 D[j] := rnd.RandInt(256) - 128;
+
+             for j := 0 to N - 2 do
+                 E[j] := rnd.RandInt(256) - 128;
+
+             // use these arrays in octave to crosscheck with this implementation
+             // -> load both arrays in E and D -> create X = diag(D,0)+diag(E,-1)+diag(E,1);
+             // ei = eig(X);
+             // and finally calcualte the residual err = [err; max( DE - ei' )];
+             // where DE is the data loaded from the eig file here...
+
+             //WriteMatlabData('D:\d' + intToStr(i) + '.txt', D, Length(D));
+             //WriteMatlabData('D:\E' + intToStr(i) + '.txt', E, Length(E));
+
+             Check( InternalEigValFromSymMatrix(PConstDoubleArr(@D[0]), PConstDoubleArr(@E[0]), N) = qlOk, 'Failed eigenvalues on tridiagonal mtx');
+
+             //WriteMatlabData('D:\eig' + IntToStr(i) + '.txt', D, Length(D));
+        end;
+     finally
+            rnd.Free;
+     end;
+end;
 
 procedure TTestEigensystems.TestEigVec1;
 const B : Array[0..8] of double = (3, 1, 1, 2, -2, -1, 5, -1, 8);

@@ -54,8 +54,8 @@ uses
   AVXMatrixTransposeOperationsx64, AVXMatrixVectorMultOperations, 
   AVXMatrixVectorMultOperationsx64, AVXMoveOperations, AVXMoveOperationsx64, 
   AVXVecConvolve, AVXVecConvolvex64, BaseMathPersistence, BinaryReaderWriter, 
-  BlockedMult, BlockSizeSetup, BufferedStream, CCA, Corr, CPUFeatures, Dist, 
-  Eigensystems, EM, FMAMatrixMultOperations, FMAMatrixMultOperationsx64, 
+  BlockedMult, BlockSizeSetup, CCA, Corr, CPUFeatures, Dist, Eigensystems, EM, 
+  FMAMatrixMultOperations, FMAMatrixMultOperationsx64, 
   FMAMatrixMultTransposedOperations, FMAMatrixMultTransposedOperationsx64, 
   FMAMatrixOperations, FMAMatrixVectorMultOperations, 
   FMAMatrixVectorMultOperationsx64, FMAVecConvolve, FMAVecConvolvex64, 
@@ -65,8 +65,8 @@ uses
   MatrixASMStubSwitch, MatrixConst, MatrixRotations, MtxThreadPool, MtxTimer, 
   NNMF, NonLinearFit, PCA, PLS, RandomEng, RBSplines, SimpleMatrixOperations, 
   SimpleWinThreadPool, Statistics, ThreadedMatrix, ThreadedMatrixOperations, 
-  tSNE, winCPUInfo, winRandomGen, WinThreadPool, KernelPCA,
-  SSA, Roots, IOCompletionPortsThreadPool, LazarusPackageIntf;
+  tSNE, winCPUInfo, winRandomGen, WinThreadPool, KernelPCA, 
+  IOCompletionPortsThreadPool, Roots, SSA, MtxUtilFunc, LazarusPackageIntf;
 
 implementation
 

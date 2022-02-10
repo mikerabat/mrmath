@@ -68,6 +68,10 @@ function GetLocalFMTSet : TFormatSettings;
 
 function Arr( const elements : Array of integer ) : TIntegerDynArray;
 
+// ###########################################
+// #### prime stuff
+function MillerRubinTest32( n : UInt32; a : UInt32 ) : boolean;
+
 implementation
 
 uses Math, Classes;
@@ -465,14 +469,17 @@ begin
      absA := abs(A);
      absB := abs(B);
 
-     if absA > absB
+     if absA = 0
+     then
+         Result := absB
+     else if absB = 0
+     then
+         Result := absA
+     else if absA > absB
      then
          Result := absa*sqrt(1 + sqr(absb/absa))
-     else if absb <> 0
-     then
-         Result := absb*sqrt(1 + sqr(absa/absb))
      else
-         Result := 0;
+         Result := absb*sqrt(1 + sqr(absa/absb));
 end;
 
 function sign(const a : double; const b : double) : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
@@ -724,6 +731,67 @@ begin
                end;
           end;
      end;
+end;
+
+
+// ###########################################
+// #### Prime number stuff
+// ###########################################
+
+// miller rubin test for 32 bit (aka the integer range we can build with simple instructions)
+function MillerRubinTest32( n : UInt32; a : UInt32 ) : boolean;
+var m : UInt32;
+    d : UInt32;
+    e : UInt32;
+    p, q : UInt64;
+begin
+     // only valid for odd inputs
+     if n and 1 = 0 then
+        exit(False);
+
+     Result := True;
+
+     m := n - 1;
+     d := m shr 1;
+     e := 1;
+
+     while (d and 1) = 0 do
+     begin
+          d := d shr 1;
+          inc(e);
+     end;
+
+     p := a;
+     q := a;
+     d := d shr 1;
+     while d <> 0 do
+     begin
+          q := q*q;
+          q := q mod n;
+          if d and 1 <> 0 then
+             p := (p*q) mod n;
+
+          d := d shr 1;
+     end;
+     if (p = 1) or (p = m) then
+        exit;
+
+     dec(e);
+
+     while e <> 0 do
+     begin
+          p := (p*p) mod n;
+
+          if p = m then
+             exit;
+
+          if p <= 1 then
+             break;
+
+          dec(e);
+     end;
+
+     Result := False;
 end;
 
 initialization

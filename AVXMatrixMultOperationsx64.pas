@@ -149,7 +149,7 @@ asm
              // 4x4 block
              {$IFDEF FPC}vmovapd xmm2, [rbx];{$ELSE}db $C5,$F9,$28,$13;{$ENDIF} 
              add rbx, r11;
-             {$IFDEF FPC}vmovapd xmm4, xmm2;{$ELSE}db $C5,$F9,$28,$E2;{$ENDIF} 
+             {$IFDEF FPC}vmovapd xmm4, xmm2;{$ELSE}db $C5,$F9,$29,$D4;{$ENDIF} 
 
              {$IFDEF FPC}vmovapd xmm3, [rbx];{$ELSE}db $C5,$F9,$28,$1B;{$ENDIF} 
              add rbx, r11;
@@ -163,7 +163,7 @@ asm
              // next 4 elements
              {$IFDEF FPC}vmovapd xmm4, [rbx];{$ELSE}db $C5,$F9,$28,$23;{$ENDIF} 
              add rbx, r11;
-             {$IFDEF FPC}vmovapd xmm6, xmm4;{$ELSE}db $C5,$F9,$28,$F4;{$ENDIF} 
+             {$IFDEF FPC}vmovapd xmm6, xmm4;{$ELSE}db $C5,$F9,$29,$E6;{$ENDIF} 
 
              {$IFDEF FPC}vmovapd xmm5, [rbx];{$ELSE}db $C5,$F9,$28,$2B;{$ENDIF} 
              add rbx, r11;
@@ -368,7 +368,7 @@ asm
               // 4x4 block
               {$IFDEF FPC}vmovupd xmm2, [rbx];{$ELSE}db $C5,$F9,$10,$13;{$ENDIF} 
               add rbx, r11;
-              {$IFDEF FPC}vmovapd xmm4, xmm2;{$ELSE}db $C5,$F9,$28,$E2;{$ENDIF} 
+              {$IFDEF FPC}vmovapd xmm4, xmm2;{$ELSE}db $C5,$F9,$29,$D4;{$ENDIF} 
 
               {$IFDEF FPC}vmovupd xmm3, [rbx];{$ELSE}db $C5,$F9,$10,$1B;{$ENDIF} 
               add rbx, r11;
@@ -382,7 +382,7 @@ asm
               // next 4 elements
               {$IFDEF FPC}vmovupd xmm4, [rbx];{$ELSE}db $C5,$F9,$10,$23;{$ENDIF} 
               add rbx, r11;
-              {$IFDEF FPC}vmovupd xmm6, xmm4;{$ELSE}db $C5,$F9,$10,$F4;{$ENDIF} 
+              {$IFDEF FPC}vmovupd xmm6, xmm4;{$ELSE}db $C5,$F9,$11,$E6;{$ENDIF} 
 
               {$IFDEF FPC}vmovupd xmm5, [rbx];{$ELSE}db $C5,$F9,$10,$2B;{$ENDIF} 
               add rbx, r11;

@@ -21,6 +21,7 @@ object frmMtxPlot: TfrmMtxPlot
     Width = 635
     Height = 336
     Align = alClient
+    OnDblClick = pbPlotDblClick
     OnPaint = pbPlotPaint
   end
 end

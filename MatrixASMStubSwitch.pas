@@ -40,6 +40,7 @@ procedure MatrixInit(dest : PDouble; const destLineWidth : TASMNativeInt; Width,
 procedure MatrixIndex(dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; colIdx, rowIdx : TIntegerDynArray);
 
 procedure MatrixRowSwap(A, B : PDouble; width : TASMNativeInt);
+procedure MatrixColSwap(A, B : PDouble; const LineWidthAB : TASMNativeInt; Height : TASMNativeInt);
 
 procedure MatrixAdd(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
 function MatrixAdd(const mt1, mt2 : array of double; width : TASMNativeInt) : TDoubleDynArray; overload;
@@ -98,6 +99,9 @@ procedure MtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; 
 // calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be 1!
 procedure MtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
+// calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are non unit!
+procedure MtxMultLowTria2T2NoUnitStore1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
 // mt1 = mt1*mt2; where mt2 is an upper triangular matrix - diagonal elements are unit
 procedure MtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
@@ -109,7 +113,6 @@ procedure MtxMultTria2UpperNoUnit( mt1 : PDouble; LineWidth1 : TASMNativeInt; mt
 procedure MtxMultTria2LowerUnit( mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 
-  
 
 // calculates  x = mt1'*x where x is a vector and mt1 an upper triangular (len x len) matrix with non unit elements in the diagonal
 procedure MtxMultUpTranspNoUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; IncX : TASMNativeInt; len : TASMNativeInt);
@@ -130,9 +133,28 @@ procedure MtxMultUpNoTranspNoUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt;
 procedure MatrixMtxVecMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
 // performs matrix vector multiplication in the form: dest := alpha*mt1'*v + beta*dest
 procedure MatrixMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+// performs matrix vector multiplication in the form: dest := alpha*mt1*v + beta*dest
+// where the matrix mt1 is a symmetric matrix and only the upper part is touched in the multiplication
+procedure MatrixMtxVecMultUpperSym(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; N : TASMNativeInt; alpha, beta : double);
+// same as above but using the lower matrix part
+procedure MatrixMtxVecMultLowerSym(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; N : TASMNativeInt; alpha, beta : double);
+
+// calculates the dot product of x and y: Result := sum_i=0_n-1 ( x[i]*y[i] )
+function MatrixVecDotMult(  x : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt ) : double;
+// calculates y[i] = y[i] + alpha*x[i]
+procedure MatrixVecAdd( X : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt; const alpha : double );
 
 procedure MatrixRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
   const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+
+// performs C := beta*C - alpha*A*B**T - alpha*B*A**T
+// N...order of C (N x N matrix)
+// k... number of columns of A and B
+// the lower triangle of C is not referenced
+// this function uses as beta = 1, alpha = -1
+// dsyr2k in lapack upper no transpose with alpha = -1, beta = 1
+procedure MatrixUpperSymRank2Update( C : PDouble; LineWidthC : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
+  B : PDouble; LineWidthB : TASMNativeInt; N : TASMNativeInt; k : TASMNativeInt );
 
 // ###########################################
 // #### Element by element operations
@@ -174,6 +196,19 @@ procedure MatrixTransposeInplace(mt : PDouble; const LineWidth : TASMNativeInt; 
 
 function MatrixMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 function MatrixMin(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function MatrixAbsMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function MatrixAbsMin(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+
+// min/max of an square upper/lower matrix
+function MatrixMaxUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+function MatrixMinUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+function MatrixMaxLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+function MatrixMinLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+function MatrixAbsMaxUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+function MatrixAbsMinUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+function MatrixAbsMaxLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+function MatrixAbsMinLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+
 
 function MatrixNormalize(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
 function MatrixNormalize(const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
@@ -281,15 +316,22 @@ type
   TMatrixCopyFunc = procedure(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
   TMatrixInitFunc = procedure(dest : PDouble; destLIneWidth : TASMNativeInt; Width, Height : TASMNativeInt; const value : double );
   TMatrixMinMaxFunc = function(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+  TMatrixMinMaxTriaFunc = function(mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
   TMatrixTransposeFunc = procedure(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
   TMatrixTransposeInplaceFunc = procedure(mt : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt);
   TMatrixElemWiseNormFunc = function (dest : PDouble; LineWidth : TASMNativeInt; Width, height : TASMNativeInt; doSqrt : boolean) : double;
   TMatrixNormalizeFunc = procedure(dest : PDouble; destLineWidth : TASMNativeInt; src : PDouble; srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; RowWise : Boolean);
   TMatrixVarianceFunc = procedure(dest : PDouble; destLineWidth : TASMNativeInt; src : PDouble; srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; RowWise : Boolean; unbiased : boolean);
   TMatrixRowSwapFunc = procedure (A, B : PDouble; width : TASMNativeInt);
+  TMatrixColSwapFunc = procedure(A, B : PDouble; const LineWidthAB : TASMNativeInt; Height : TASMNativeInt);
   TMatrixMedianFunc = procedure (dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; tmp : PDouble = nil);
+  TMatrixSymRank2Func = procedure( C : PDouble; LineWidthC : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
+                                   B : PDouble; LineWidthB : TASMNativeInt; N : TASMNativeInt; k : TASMNativeInt );
   TMatrixSortFunc = procedure (dest : PDouble; destLineWidth : TASMNativeInt; width, height : integer; RowWise : boolean; tmp : PDouble = nil);
   TMatrixVecMultFunc = procedure (dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+  TMatrixVecMultSymFunc = procedure (dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; N : TASMNativeInt; alpha, beta : double);
+  TMatrixDotMultFunc = function( x : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt ) : double;
+  TMatrixVecAddFunc = procedure( X : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt; const alpha : double );
   TMatrixRank1UpdateFunc = procedure (A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
                                       X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
 
@@ -326,7 +368,8 @@ uses ASMMatrixOperations, BlockedMult,
      ASMMatrixTransposeOperationsx64, FMAMatrixOperations, FMAMatrixMultOperationsx64,
      ASMVecConvolvex64, AVXVecConvolvex64, FMAVecConvolvex64,
      {$ENDIF}
-     BlockSizeSetup, SimpleMatrixOperations, CPUFeatures, MatrixRotations, Corr;
+     BlockSizeSetup, SimpleMatrixOperations, CPUFeatures, MatrixRotations, Corr,
+     RandomEng;
 
 var multFunc : TMatrixMultFunc;
     blockedMultFunc : TMatrixBlockedMultfunc;
@@ -337,6 +380,7 @@ var multFunc : TMatrixMultFunc;
     multTria2TUpperFunc : TMatrixMultTria2T1;
     multTria2T1StoreT1Func : TMatrixMultTriaStoreT1;
     multLowTria2T2Store1Func : TMatrixMultTriaStoreT1;
+    multLowTria2T2NoUnitStore1Func : TMatrixMultTriaStoreT1;
     multTria2Store1Func : TMatrixMultTriaStoreT1;
     multTria2Store1UnitFunc : TMatrixMultTriaStoreT1;
     multTria2UpperNoUnitFunc : TMatrixMultTriaStoreT1;
@@ -347,6 +391,10 @@ var multFunc : TMatrixMultFunc;
     multUpNoTranspNoUnitVecFunc : TMatrixMultVecTriaStoreX;
     MtxVecMultFunc : TMatrixVecMultFunc;
     MtxVecMultTFunc : TMatrixVecMultFunc;
+    MtxVecMultUpperSymFunc : TMatrixVecMultSymFunc;
+    MtxVecMultLowerSymFunc : TMatrixVecMultSymFunc;
+    MatrixVecDotMultFunc : TMatrixDotMultFunc;
+    MatrixVecAddFunc : TMatrixVecAddFunc;
     elemAddFunc : TMatrixElemAddFunc;
     addFunc : TMatrixAddFunc;
     subFunc : TMatrixSubFunc;
@@ -363,6 +411,16 @@ var multFunc : TMatrixMultFunc;
     initfunc : TMatrixInitFunc;
     maxFunc : TMatrixMinMaxFunc;
     minFunc : TMatrixMinMaxFunc;
+    absMinFunc : TMatrixMinMaxFunc;
+    absMaxFunc : TMatrixMinMaxFunc;
+    minLowerFunc : TMatrixMinMaxTriaFunc;
+    maxLowerFunc : TMatrixMinMaxTriaFunc;
+    minUpperFunc : TMatrixMinMaxTriaFunc;
+    maxUpperFunc : TMatrixMinMaxTriaFunc;
+    absMinLowerFunc : TMatrixMinMaxTriaFunc;
+    absMaxLowerFunc : TMatrixMinMaxTriaFunc;
+    absMinUpperFunc : TMatrixMinMaxTriaFunc;
+    absMaxUpperFunc : TMatrixMinMaxTriaFunc;
     elemNormFunc : TMatrixElemWiseNormFunc;
     transposeFunc : TMatrixTransposeFunc;
     transposeInplaceFunc : TMatrixTransposeInplaceFunc;
@@ -376,7 +434,9 @@ var multFunc : TMatrixMultFunc;
     matrixCumulativeSumFunc : TMatrixNormalizeFunc;
     matrixDiffFunc : TMatrixNormalizeFunc;
     rowSwapFunc : TMatrixRowSwapFunc;
+    colSwapFunc : TMatrixColSwapFunc;
     Rank1UpdateFunc : TMatrixRank1UpdateFunc;
+    SymRank2UpdateFunc : TMatrixSymRank2Func;
     matrixRot : TMatrixRotate;
     PlaneRotSeqRVB : TApplyPlaneRotSeqMatrix;
     PlaneRotSeqRVF : TApplyPlaneRotSeqMatrix;
@@ -473,13 +533,13 @@ begin
      ptr := A;
      while (NumBytes > 0) and ( (TASMNativeUInt(ptr) and $1F) <> 0 ) do
      begin
-          ptr^ := 0;
+          ptr^ := Value;
           inc(ptr);
           dec(NumBytes, sizeof(double));
      end;
 
      if NumBytes > 0 then
-        memInitfunc(ptr, NumBytes, 0);
+        memInitfunc(ptr, NumBytes, Value);
 end;
 
 procedure MatrixCopy(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
@@ -541,6 +601,10 @@ begin
      rowSwapFunc(A, B, width);
 end;
 
+procedure MatrixColSwap(A, B : PDouble; const LineWidthAB : TASMNativeInt; Height : TASMNativeInt);
+begin
+     colswapFunc(A, B, LineWidthAB, Height);
+end;
 
 procedure MatrixAdd(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
 begin
@@ -764,6 +828,12 @@ begin
      multLowTria2T2Store1Func(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
 end;
 
+procedure MtxMultLowTria2T2NoUnitStore1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+begin
+     multLowTria2T2NoUnitStore1Func(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
+end;
+
 procedure MtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 begin
@@ -812,6 +882,39 @@ begin
      MtxVecMultTFunc(dest, destLineWidth, mt1, V, LineWidthMT, LineWidthV, width, height, alpha, beta);
 end;
 
+procedure MatrixMtxVecMultUpperSym(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; N : TASMNativeInt; alpha, beta : double);
+begin
+     if N > 0 then
+        MtxVecMultUpperSymFunc(dest, destLineWidth, mt1, V, LineWidthMT, LineWidthV, N, alpha, beta);
+end;
+
+function MatrixVecDotMult(  x : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt ) : double;
+begin
+     if N > 0 then
+     begin
+          Result := MatrixVecDotMultFunc( x, incX, y, incY, N);
+          
+          //if incX = sizeof(double) 
+//          then
+//              MatrixMtxVecMult(@result, sizeof(double), x, y, N*sizeof(double), incY, N, 1, 1, 0 )
+//          else
+//              MatrixMtxVecMultT(@result, sizeof(double), x, y, incX, incY, 1, N, 1, 0);
+     end
+     else
+         Result := 0;
+end;
+
+procedure MatrixVecAdd( X : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt; const alpha : double );
+begin
+     if N > 0 then
+        MatrixVecAddFunc( X, incX, Y, incY, N, alpha );
+end;
+
+procedure MatrixMtxVecMultLowerSym(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; N : TASMNativeInt; alpha, beta : double);
+begin
+     MtxVecMultLowerSymFunc(dest, destLineWidth, mt1, V, LineWidthMT, LineWidthV, N, alpha, beta);
+end;
+
 procedure MatrixRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
   const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
 begin
@@ -819,6 +922,15 @@ begin
         exit;
 
      Rank1UpdateFunc(A, LineWidthA, width, height, x, y, incx, incy, alpha)
+end;
+
+procedure MatrixUpperSymRank2Update( C : PDouble; LineWidthC : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
+  B : PDouble; LineWidthB : TASMNativeInt; N : TASMNativeInt; k : TASMNativeInt );
+begin
+     if (N <= 0) or (k > N) then
+        exit;
+
+     SymRank2UpdateFunc( C, LineWidthC, A, LineWidthA, B, LineWidthB, N, k );
 end;
 
 procedure MatrixElemMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
@@ -930,6 +1042,118 @@ begin
      else
          Result := minFunc(mt, width, height, LineWidth);
 end;
+
+function MatrixAbsMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+begin
+     assert((width > 0) and (height > 0) and (LineWidth >= width*sizeof(double)), 'Dimension error');
+
+     if Width = 1
+     then
+         Result := GenericMtxAbsMin(mt, width, height, LineWidth)
+     else
+         Result := absMinFunc(mt, width, height, LineWidth);
+end;
+
+function MatrixAbsMin(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+begin
+     assert((width > 0) and (height > 0) and (LineWidth >= width*sizeof(double)), 'Dimension error');
+
+     if Width = 1
+     then
+         Result := GenericMtxMax(mt, width, height, LineWidth)
+     else
+         Result := absMaxFunc(mt, width, height, LineWidth);
+end;
+
+
+function MatrixMaxUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+begin
+     assert((N > 0) and (LineWidth >= N*sizeof(double)), 'Dimension error');
+
+     if N = 1
+     then
+         Result := mt^
+     else
+         Result := maxUpperFunc(mt, N, LineWidth );
+end;
+
+function MatrixMinUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+begin
+     assert((N > 0) and (LineWidth >= N*sizeof(double)), 'Dimension error');
+
+     if N = 1
+     then
+         Result := mt^
+     else
+         Result := minUpperFunc(mt, N, LineWidth );
+end;
+
+function MatrixMaxLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+begin
+     assert((N > 0) and (LineWidth >= N*sizeof(double)), 'Dimension error');
+
+     if N = 1
+     then
+         Result := mt^
+     else
+         Result := maxLowerFunc(mt, N, LineWidth );
+end;
+
+function MatrixMinLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+begin
+     assert((N > 0) and (LineWidth >= N*sizeof(double)), 'Dimension error');
+
+     if N = 1
+     then
+         Result := mt^
+     else
+         Result := minLowerFunc(mt, N, LineWidth );
+end;
+
+function MatrixAbsMaxUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+begin
+     assert((N > 0) and (LineWidth >= N*sizeof(double)), 'Dimension error');
+
+     if N = 1
+     then
+         Result := Abs(mt^)
+     else
+         Result := absMaxUpperFunc(mt, N, LineWidth );
+end;
+
+function MatrixAbsMinUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+begin
+     assert((N > 0) and (LineWidth >= N*sizeof(double)), 'Dimension error');
+
+     if N = 1
+     then
+         Result := Abs(mt^)
+     else
+         Result := absMinUpperFunc(mt, N, LineWidth );
+end;
+
+function MatrixAbsMaxLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+begin
+     assert((N > 0) and (LineWidth >= N*sizeof(double)), 'Dimension error');
+
+     if N = 1
+     then
+         Result := Abs(mt^)
+     else
+         Result := absMaxLowerFunc(mt, N, LineWidth );
+end;
+
+function MatrixAbsMinLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+begin
+     assert((N > 0) and (LineWidth >= N*sizeof(double)), 'Dimension error');
+
+     if N = 1
+     then
+         Result := Abs(mt^)
+     else
+         Result := absMinLowerFunc(mt, N, LineWidth );
+end;
+
 
 function MatrixNormalize(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray;
 begin
@@ -1349,8 +1573,32 @@ begin
      multLowTranspUnitVecFunc := GenericMtxMultLowTranspUnitVec;
      multLowNoTranspUnitVecFunc := GenericMtxMultLowNoTranspUnitVec;
      multUpNoTranspNoUnitVecFunc := GenericMtxMultUpNoTranspNoUnitVec;
+     minLowerFunc := GenericMtxMinLower;
+     maxLowerFunc := GenericMtxMaxLower;
+     minUpperFunc := GenericMtxMinUpper;
+     maxUpperFunc := GenericMtxMaxUpper;
+     absMinFunc := GenericMtxAbsMin;
+     absMaxFunc := GenericMtxAbsMax;
+     absMinLowerFunc := GenericMtxAbsMinLower;
+     absMaxLowerFunc := GenericMtxAbsMaxLower;
+     absMinUpperFunc := GenericMtxAbsMinUpper;
+     absMaxUpperFunc := GenericMtxAbsMaxUpper;
+     MtxVecMultUpperSymFunc := GenericMtxVecMultUpperSym;
+     MtxVecMultLowerSymFunc := GenericMtxVecMultLowerSym;
+     MatrixVecAddFunc := GenericVecAdd;
+     matrixMedianFunc := GenericMtxMedian;
+     matrixSortFunc := GenericMtxSort;
+     colSwapFunc := GenericColSwap;
+     SymRank2UpdateFunc := GenericSymRank2UpdateUpper;
 
-     // check features
+     // tbd: asm versions:
+     multLowTria2T2Store1Func := GenericMtxMultLowTria2T2Store1;
+
+
+     TDynamicTimeWarp.UseSSE := True;
+     TRandomGenerator.cpuSet := TChaChaCPUInstrType.itSSE;
+
+     // check features - IsAVXPresent actually checks for avx2
      if (IsAVXPresent and (instrType = itAVX)) or (IsFMAPresent and (instrType = itFMA)) then
      begin
           curUsedCPUInstrSet := itAVX;
@@ -1405,8 +1653,7 @@ begin
           memInitFunc := AVXInitMemAligned;
           vecConvolve := AVXVecConvolveRevB;
           elemAddFunc := AVXMatrixElemAdd;
-
-          TDynamicTimeWarp.UseSSE := True;
+          MatrixVecDotMultFunc := AVXMatrixVecDotMult;
 
           // ##############################################
           // #### override if fma is requested
@@ -1455,6 +1702,8 @@ begin
           copyFunc := ASMMatrixCopy;
           minFunc := ASMMatrixMin;
           maxFunc := ASMMatrixMax;
+          absMinFunc := ASMMatrixAbsMin;
+          absMaxFunc := ASMMatrixAbsMax;
           transposeFunc := ASMMatrixTranspose;
           transposeInplaceFunc := ASMMatrixTransposeInplace;
           elemNormFunc := ASMMatrixElementwiseNorm2;
@@ -1485,6 +1734,7 @@ begin
           memInitFunc := ASMInitMemAligned;
           initfunc := ASMMatrixInit;
           vecConvolve := ASMVecConvolveRevB;
+          MatrixVecDotMultFunc := ASMMatrixVecDotMult;
 
           TDynamicTimeWarp.UseSSE := True;
      end
@@ -1529,6 +1779,7 @@ begin
           multTria2TUpperFunc := GenericMtxMultTria2TUpperUnit;
           multTria2T1StoreT1Func := GenericMtxMultTria2T1StoreT1;
           multLowTria2T2Store1Func := GenericMtxMultLowTria2T2Store1;
+          multLowTria2T2NoUnitStore1Func := GenericMtxMultLowTria2T2NoUnitStore1;
           multTria2Store1Func := GenericMtxMultTria2Store1;
           multTria2Store1UnitFunc := GenericMtxMultTria2Store1Unit;
           multT2Func := GenericMtxMultTransp;
@@ -1543,12 +1794,11 @@ begin
           memInitFunc := GenericInitMemAligned;
           vecConvolve := GenericConvolveRevB;
           elemAddFunc := GenericMtxElemAdd;
+          MatrixVecDotMultFunc := GenericVecDotMult;
 
-          TDynamicTimeWarp.UseSSE := False
+          TDynamicTimeWarp.UseSSE := False;
+          TRandomGenerator.cpuSet := TChaChaCPUInstrType.itFPU;
      end;
-
-     matrixMedianFunc := GenericMtxMedian;
-     matrixSortFunc := GenericMtxSort;
 
      curUsedStrassenMult := useStrassenMult;
 

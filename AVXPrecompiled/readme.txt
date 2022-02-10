@@ -5,7 +5,7 @@ The process to create new AVX instructions based code
 is to first develop the assembler based code in FPC.
 
 -> Use Codetyphoon for this purpose and the MathUtilsTest32/64 (or MathUtilsTestLinux)
-projects for this purpos.
+projects for this purpose.
 
 Compile all the projects without debug information and optimization o3 on.
 

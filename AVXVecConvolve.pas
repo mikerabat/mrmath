@@ -57,7 +57,7 @@ asm
    @@forxloop:
       mov edi, esi;
 
-      xorpd xmm0, xmm0;
+      {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;{$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} 
 
       // unrolled part
       @@innerLoopUnrolled:
