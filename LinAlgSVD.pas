@@ -143,30 +143,30 @@ type
 
   // for matrix rotation and rotation update
 type
-    TMatrixRotateRec = record
-    public
-      u : PDouble;
-      LineWidthU : TASMNativeInt;
-      vt : PDouble;
-      LineWidthVT : TASMNativeInt;
-      mm, nru, ncvt : TASMNativeInt;
-      w1, w2,
-      w3, w4 : PConstDoubleArr;
+  TMatrixRotateRec = record
+  public
+    u : PDouble;
+    LineWidthU : TASMNativeInt;
+    vt : PDouble;
+    LineWidthVT : TASMNativeInt;
+    mm, nru, ncvt : TASMNativeInt;
+    w1, w2,
+    w3, w4 : PConstDoubleArr;
 
-      cosl, sinl,
-      cosr, sinr : double;
+    cosl, sinl,
+    cosr, sinr : double;
 
-      procedure CreateRot(aU : PDouble; const aLineWidthU : TASMNativeInt;
-                         aVt : PDouble; const aLineWidthVT : TASMNativeInt;
-                         am, anru, ancvt : TASMNativeInt; const acosl, asinl, acosr, asinr : double);
+    procedure CreateRot(aU : PDouble; const aLineWidthU : TASMNativeInt;
+                       aVt : PDouble; const aLineWidthVT : TASMNativeInt;
+                       am, anru, ancvt : TASMNativeInt; const acosl, asinl, acosr, asinr : double);
 
-      procedure Create(aU : PDouble; const aLineWidthU : TASMNativeInt;
-                                aVt : PDouble; const aLineWidthVT : TASMNativeInt;
-                                aNM, anru, ancvt : TASMNativeInt;
-                                aw1, aw2,
-                                aw3, aw4 : PConstDoubleArr);
-    end;
-    PMatrixRotateRec = ^TMatrixRotateRec;
+    procedure Create(aU : PDouble; const aLineWidthU : TASMNativeInt;
+                              aVt : PDouble; const aLineWidthVT : TASMNativeInt;
+                              aNM, anru, ancvt : TASMNativeInt;
+                              aw1, aw2,
+                              aw3, aw4 : PConstDoubleArr);
+  end;
+  PMatrixRotateRec = ^TMatrixRotateRec;
 
   procedure TMatrixRotateRec.CreateRot(aU : PDouble; const aLineWidthU : TASMNativeInt;
                          aVt : PDouble; const aLineWidthVT : TASMNativeInt;

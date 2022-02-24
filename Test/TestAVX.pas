@@ -72,6 +72,7 @@ type
 
     procedure TestAVXBigSVDHeightGEWidth;
     procedure TestConvolveBig;
+    procedure TestAVXDotProd;
   end;
 
 implementation
@@ -1722,7 +1723,7 @@ begin
           for h := w to 12 do
           begin
                Init;
-               GenericMtxMultTria2T1StoreT1(@a[0], h*sizeof(double), @b[0], h*sizeof(double), w, h, w, w);
+               GenericMtxMultRightUpperTriaNoUnitT2(@a[0], h*sizeof(double), @b[0], h*sizeof(double), w, h, w, w);
                AVXMtxMultTria2T1StoreT1(@a1[0], h*sizeof(double), @b[0], h*sizeof(double), w, h, w, w);
                Check(CheckMtx(a, a1), 'AVXMtxMultTria2T1StoreT1');
           end;
@@ -1734,7 +1735,7 @@ begin
           for h := w to 12 do
           begin
                Init;
-               GenericMtxMultTria2Store1(@a[0], h*sizeof(double), @b[0], h*sizeof(double), w, h, w, w);
+               GenericMtxMultRightUpperTriaNoUnit(@a[0], h*sizeof(double), @b[0], h*sizeof(double), w, h, w, w);
                AVXMtxMultTria2Store1(@a1[0], h*sizeof(double), @b[0], h*sizeof(double), w, h, w, w);
                Check(CheckMtx(a, a1), 'AVXMtxMultTria2T1StoreT1');
           end;
@@ -1756,7 +1757,7 @@ begin
           for h := w to 12 do
           begin
                Init;
-               GenericMtxMultTria2Store1Unit(@a[0], h*sizeof(double), @b[0], h*sizeof(double), w, h, w, w);
+               GenericMtxMultRightUpperTriaUnit(@a[0], h*sizeof(double), @b[0], h*sizeof(double), w, h, w, w);
                AVXMtxMultTria2Store1Unit(@a1[0], h*sizeof(double), @b[0], h*sizeof(double), w, h, w, w );
 
                Check(CheckMtx(a, a1), 'AVXMtxMultTria2Store1Unit');
@@ -2644,6 +2645,71 @@ begin
           end;
      end;
 end;
+
+procedure TestAVXMatrixOperations.TestAVXDotProd;
+const x : Array[0..4] of double = (1, 2, 3, 1, 2);
+      y : Array[0..4] of double = (-1, 2, -1, 2, 2);
+var res1, res2, res3 : double;
+    v1, v2 : TDoubleDynArray;
+    startTime1, endTime1 : Int64;
+    startTime2, endTime2 : Int64;
+    startTime3, endTime3 : Int64;
+    i: Integer;
+begin
+     res1 := GenericVecDotMult(@x[0], sizeof(double), @y[0], sizeof(double), Length(x));
+     res2 := ASMMatrixVecDotMult(@x[0], sizeof(double), @y[0], sizeof(double), Length(x));
+
+     check( res1 = res2, 'Failed to calculate dot product');
+     res1 := GenericVecDotMult(@x[0], 2*sizeof(double), @y[0], sizeof(double), 3);
+     res2 := ASMMatrixVecDotMult(@x[0], 2*sizeof(double), @y[0], sizeof(double), 3);
+     res3 := AVXMatrixVecDotMult(@x[0], 2*sizeof(double), @y[0], sizeof(double), 3);
+
+     check( res1 = res2, 'Failed to calculate dot product');
+     check( res1 = res3, 'Failed to calculate dot product');
+
+     SetLength(v1, 8177);
+     SetLength(v2, 8177);
+
+     for i := 0 to Length(v1) - 1 do
+     begin
+          v1[i] := random;
+          v2[i] := random;
+     end;
+
+     startTime1 := MtxGetTime;
+     res1 := GenericVecDotMult(@v1[0], sizeof(double), @v2[0], sizeof(double), Length(v1));
+     endTime1 := MtxGetTime;
+
+     startTime2 := MtxGetTime;
+     res2 := ASMMatrixVecDotMult(@v1[0], sizeof(double), @v2[0], sizeof(double), Length(v1));
+     endTime2 := MtxGetTime;
+
+     startTime3 := MtxGetTime;
+     res3 := AVXMatrixVecDotMult(@v1[0], sizeof(double), @v2[0], sizeof(double), Length(v1));
+     endTime3 := MtxGetTime;
+
+     Status( Format('Long dot product 1 took %.3f ms, %.3f ms, %.3f ms', [ (endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000, (endTime3 - startTime3)/mtxFreq*1000 ] ) );
+     Check( SameValue(res1, res2, 1e-7), 'Failed to calculate long dot product');
+     Check( SameValue(res1, res3, 1e-7), 'Failed to calculate long dot product');
+
+
+     startTime1 := MtxGetTime;
+     res1 := GenericVecDotMult(@v1[1], sizeof(double), @v2[1], sizeof(double), Length(v1) - 1);
+     endTime1 := MtxGetTime;
+
+     startTime2 := MtxGetTime;
+     res2 := ASMMatrixVecDotMult(@v1[1], sizeof(double), @v2[1], sizeof(double), Length(v1) - 1);
+     endTime2 := MtxGetTime;
+
+     startTime3 := MtxGetTime;
+     res3 := AVXMatrixVecDotMult(@v1[1], sizeof(double), @v2[1], sizeof(double), Length(v1) - 1);
+     endTime3 := MtxGetTime;
+
+     Status( Format('Long dot product 2 took %.3f ms, %.3f ms, %.3f ms', [ (endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000, (endTime3 - startTime3)/mtxFreq*1000 ] ) );
+     Check( SameValue(res1, res2, 1e-7), 'Failed to calculate long dot product');
+     Check( SameValue(res1, res3, 1e-7), 'Failed to calculate long dot product');
+end;
+
 
 procedure TestAVXMatrixOperations.TestTranspose;
 const cA : Array[0..15] of double = (00, 01, 02, 03, 10, 11, 12, 13, 20, 21, 22, 23, 30, 31, 32, 33);

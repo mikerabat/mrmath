@@ -42,6 +42,8 @@ procedure ASMMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v :
 
 procedure ASMRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
   X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
+procedure ASMSymRank2UpdateUpper( C : PDouble; LineWidthC : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
+  B : PDouble; LineWidthB : TASMNativeInt; N : TASMNativeInt; k : TASMNativeInt );
 
 function ASMMatrixVecDotMult( x : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt ) : double;
 
@@ -1667,6 +1669,15 @@ begin
          ASMRank1UpdateSeqAligned(A, LineWidthA, width, height, x, y, incX, incY, alpha)
      else
          ASMRank1UpdateSeq(A, LineWidthA, width, height, x, y, incX, incY, alpha);
+end;
+
+procedure ASMSymRank2UpdateUpper( C : PDouble; LineWidthC : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
+  B : PDouble; LineWidthB : TASMNativeInt; N : TASMNativeInt; k : TASMNativeInt );
+begin
+     if (N <= 0) or (k <= 0) then
+        exit;
+
+     ASMSymRank2UpdateUpperUnaligned( C, LineWidthC, A, LineWidthA, B, LineWidthB, N, k );
 end;
 
 function ASMMatrixVecDotMult( x : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt ) : double;

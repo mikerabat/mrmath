@@ -119,6 +119,7 @@ type
     procedure TestSort;
     procedure TestCholesky;
     procedure TestSVD;
+    procedure TestSymEig;
     procedure TestLeastSquares;
   end;
 
@@ -836,7 +837,7 @@ end;
 procedure TestTDoubleMatrix.TestSymEig;
 var mtx : TDoubleMatrix;
     eigvals : TDoubleMatrix;
-const cEigs : Array[0..3] of double = ( 0.407837, 0.207753, 0.848242, 2.536168 );
+const cEigs : Array[0..3] of double = ( 0.207753, 0.407837, 0.848242, 2.536168 );
 // testcase from a. mauri
 begin
      mtx := TDoubleMatrix.Create(4, 4);
@@ -1261,6 +1262,44 @@ begin
      Check( CheckMtx( u2.SubMatrix, a ), 'Error threade SVD');
      {$IFDEF FMX} TearDown; {$ENDIF};
 end;
+
+procedure TestTThreadedMatrix.TestSymEig;
+const cBlkWidth = 512;
+      cBlkSize = cBlkWidth*cBlkWidth;
+var a : TDoubleDynArray;
+    i : integer;
+    start, stop : int64;
+    m1, m2 : IMatrix;
+
+    e1, v1 : IMatrix;
+    e2, v2 : IMatrix;
+begin
+     {$IFDEF FMX} Setup; {$ENDIF};
+     SetLength(a, cBlkSize);
+
+     RandSeed := 15;
+     for i := 0 to cBlkSize - 1 do
+         a[i] := Random - 0.5;
+
+     m1 := TDoubleMatrix.Create(a, cBlkWidth, cBlkWidth);
+     m2 := TThreadedMatrix.Create(a, cBlkWidth, cBlkWidth);
+
+     start := MtxGetTime;
+     m1.SymEig(e1, v1);
+     stop := MtxGetTime;
+     Status(Format('Symmetric eigenvalue: %.2fms', [(stop - start)/mtxfreq*1000]));
+
+     start := MtxGetTime;
+     m2.SymEig(e2, v2);
+     stop := MtxGetTime;
+     Status(Format('Threaded symmetric eigenvalue: %.2fms', [(stop - start)/mtxfreq*1000]));
+
+     Check( CheckMtx( e1.SubMatrix, e2.SubMatrix ), 'Error in symmetric eigenvalue problem');
+     Check( CheckMtx( v1.SubMatrix, v2.SubMatrix ), 'Error in symmetric eigenvector problem');
+     {$IFDEF FMX} TearDown; {$ENDIF};
+end;
+
+
 
 procedure TestTThreadedMatrix.TestThreadMult;
 var dest1, dest2 : IMatrix;

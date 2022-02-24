@@ -54,6 +54,12 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date: 24.02.2022
+* Implementation of one of the lapak versions of the symmetric eigenvalue problem including a threaded version that
+  is up to two times faster on my testing machine and on larger matrices (e.g. 1000x1000) up to 6 times faster
+* Implemented a few new matrix operations (e.g. Rank2 update) including some SSE implementations
+* Renamed the diagonal matrix to vector operations (they were a mess...)
+
 Date: 19.10.2021
 * Nerd fun goes on: ChaCha random engine now supports AVX instructions to create 2 matrices at once which
   reduces the time of creating random matrices.

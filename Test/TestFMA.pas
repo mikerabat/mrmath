@@ -677,7 +677,7 @@ begin
           for h := w to 12 do
           begin
                Init;
-               GenericMtxMultTria2T1StoreT1(@a[0], h*sizeof(double), @b[0], h*sizeof(double), w, h, w, w);
+               GenericMtxMultRightUpperTriaNoUnitT2(@a[0], h*sizeof(double), @b[0], h*sizeof(double), w, h, w, w);
                FMAMtxMultTria2T1StoreT1(@a1[0], h*sizeof(double), @b[0], h*sizeof(double), w, h, w, w);
                Check(CheckMtx(a, a1), 'FMAMtxMultTria2T1StoreT1');
           end;

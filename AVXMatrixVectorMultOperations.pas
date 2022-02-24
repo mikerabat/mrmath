@@ -1406,9 +1406,9 @@ asm
 
    // build result
    {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$7C,$C0;{$ENDIF} 
-   {$IFDEF FPC}vmovsd Result, xmm0;{$ELSE}db $C5,$FB,$11,$45,$F8;{$ENDIF} 
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF}
+   movsd Result, xmm0;
 
-   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
    pop edi;
 end;
 
@@ -1487,9 +1487,8 @@ asm
 
    // build result
    {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$7C,$C0;{$ENDIF} 
-   {$IFDEF FPC}vmovsd Result, xmm0;{$ELSE}db $C5,$FB,$11,$45,$F8;{$ENDIF} 
-
-   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF}
+   movsd Result, xmm0;
    pop edi;
 end;
 
