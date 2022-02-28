@@ -122,6 +122,7 @@ type
     work : PDouble;
     LineWidthWork : TASMNativeInt;
     BlkMultMem : PDouble;
+    BlkMultSize : integer;
     Progress : TLinEquProgress;
     qrWidth, qrHeight : TASMNativeInt;
     actIdx : TASMNativeInt;
@@ -139,6 +140,7 @@ begin
      qrData.reflData.T := qrData.work;
      qrData.reflData.LineWidthT := qrData.LineWidthWork;
      qrData.reflData.BlkMultMem := qrData.BlkMultMem;
+     qrData.reflData.BlkMultSize := qrData.BlkMultSize;
      qrData.reflData.MatrixMultT1 := qrData.MatrixMultT1;
      qrData.reflData.MatrixMultT2 := qrData.MatrixMultT2;
      qrData.reflData.MatrixMultEx := qrData.MatrixMultEx;
@@ -416,23 +418,20 @@ begin
 end;
 
 // original DLARFT in Lapack - forward columnwise
-procedure CreateTMtx(n, k : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt; Tau : PDouble; const qrData : TRecMtxQRDecompData);
+procedure CreateTMtx(n, k : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt; Tau : PDouble; const reflData : TBlockReflrec);
 var i, j : TASMNativeInt;
     pT : PDouble;
     pA1 : PDouble;
-    pDest : PDouble;
-    pT1 : PConstDoublearr;
-    pT2 : PDouble;
-    x, y : TASMNativeInt;
-    tmp : Double;
     T : PDouble;
     pAij : PDouble;
     pcAIJ : PConstDoubleArr;
+    LineWidthWork : TASMNativeInt;
 begin
      assert(k <= n, 'Error k needs to be smaller than n');
 
      // it is assumed that mem is a memory block of at least (n, k) where the first (k, k) elements are reserved for T
-     T := qrData.reflData.T;
+     T := reflData.T;
+     LineWidthWork := reflData.LineWidthT;
      for i := 0 to k - 1 do
      begin
           if Tau^ = 0 then
@@ -442,7 +441,7 @@ begin
                for j := 0 to i do
                begin
                     pT^ := 0;
-                    inc(PByte(pT), qrData.reflData.LineWidthT);
+                    inc(PByte(pT), reflData.LineWidthT);
                end;
           end
           else
@@ -453,43 +452,26 @@ begin
 
                // T(1:i-1,i) := - tau(i) * V(i:n,1:i-1)' * V(i:n,i) */
 
-               pT := GenPtr(T, i, 0, qrData.reflData.LineWidthT );
-               pcAIJ := PConstDoubleArr( GenPtr(A, 0, i, LineWidthA) );
+               pT := GenPtr(T, i, 0, reflData.LineWidthT );
+               pcAIJ := GenPtrArr(A, 0, i, LineWidthA);
                for j := 0 to i - 1 do
                begin
                     pT^ := -tau^*pcAij^[j];
-                    inc(PByte(pT), qrData.reflData.LineWidthT);
+                    inc(PByte(pT), reflData.LineWidthT);
                end;
 
                pA1 := GenPtr(A, 0, i + 1, LineWidthA);
                pAij := GenPtr(A, i, i + 1, LineWidthA);
-               pT := GenPtr(T, i, 0, qrData.LineWidthWork );
+               pT := GenPtr(T, i, 0, LineWidthWork );
 
-               MatrixMtxVecMultT(pT, qrData.reflData.LineWidthT, pA1, pAij, LineWidthA, LineWidthA, i, n - i - 1, -tau^, 1 );
+               MatrixMtxVecMultT(pT, reflData.LineWidthT, pA1, pAij, LineWidthA, LineWidthA, i, n - i - 1, -tau^, 1 );
           end;
 
           // dtrmv: upper triangle matrix mult T(1:i-1,i) := T(1:i-1, 1:i-1)*T(1:i-1,i)
           if i > 0 then
-          begin
-               pDest := T;
-               inc(pDest, i);
-               for y := 0 to i - 1 do
-               begin
-                    pT1 := PConstDoubleArr(GenPtr(T, 0, y, qrData.reflData.LineWidthT));
-                    pT2 := pDest;
-                    tmp := 0;
-                    for x := y to i - 1 do
-                    begin
-                         tmp := tmp + pT1^[x]*pT2^;
-                         inc(PByte(pT2), qrData.reflData.LineWidthT);
-                    end;
-
-                    pDest^ := tmp;
-                    inc(PByte(pDest), qrData.reflData.LineWidthT);
-               end;
-          end;
-
-          pT := GenPtr(T, i, i, qrData.reflData.LineWidthT);
+             MtxMultUpNoTranspNoUnitVec( T, reflData.LineWidthT, GenPtr( T, i, 0, reflData.LineWidthT ),
+                                         reflData.LineWidthT, i );
+          pT := GenPtr(T, i, i, reflData.LineWidthT);
           pT^ := Tau^;  // fill in last Tau
 
           inc(Tau);
@@ -528,10 +510,10 @@ begin
                // calculate T matrix
                if idx + ib <= height then
                begin
-                    CreateTMtx(height - idx, ib, pA, LineWidthA, Tau, qrData);
+                    CreateTMtx(height - idx, ib, pA, LineWidthA, Tau, qrData.reflData);
 
                     // apply H to A from the left
-                    ApplyBlockReflectorLTFC(pA, LineWidthA, qrData.reflData, width - idx - ib, height - idx, ib, False);
+                    ApplyBlockReflectorLFC(pA, LineWidthA, qrData.reflData, width - idx - ib, height - idx, ib, False);
                end;
 
                inc(qrData.actIdx, ib);
@@ -550,7 +532,7 @@ end;
 
 function QRDecompMemSize( pnlSize, width, height : TASMNativeInt) : TASMNativeInt;
 begin
-     Result := 64 + Max((width + height + 4)*sizeof(double), pnlSize*sizeof(double)*width + BlockMultMemSize(QRMultBlockSize) );
+     Result := 64 + Max((width + height + 4)*sizeof(double), pnlSize*sizeof(double)*width + BlockMultMemSize(Min(Max(height, width), QRMultBlockSize)) );
 end;
 
 function MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; tau : PDouble; progress : TLinEquProgress = nil) : TQRResult; overload;
@@ -565,6 +547,7 @@ begin
      qrData.pWorkMem := nil;
      qrData.work := work;
      qrData.BlkMultMem := nil;
+     qrData.BlkMultSize := Min( QRMultBlockSize, Max(height, width ) );
      qrData.Progress := progress;
      qrData.qrWidth := width;
      qrData.qrHeight := height;
@@ -757,9 +740,9 @@ begin
                     // form triangular factor of the block reflector
                     // H = H(i) H(i+1) . . . H(i+ib-1)
                     // calculate T matrix
-                    CreateTMtx(height - idx, qrData.pnlSize, pA, LineWidthA, pTau, qrData);
+                    CreateTMtx(height - idx, qrData.pnlSize, pA, LineWidthA, pTau, qrData.reflData);
                     // apply H to A from the left
-                    ApplyBlockReflectorLTFC(pA, LineWidthA, qrData.reflData, width - idx - qrdata.pnlSize, height - idx, qrdata.pnlSize, True);
+                    ApplyBlockReflectorLFC(pA, LineWidthA, qrData.reflData, width - idx - qrdata.pnlSize, height - idx, qrdata.pnlSize, True);
                end;
 
                InternalMatrixQFromQRDecomp(pA, LineWidthA, qrData.pnlSize, height - idx, qrData.pnlSize, pTau, qrData);
@@ -791,6 +774,7 @@ begin
      qrData.pWorkMem := nil;
      qrData.work := work;
      qrData.BlkMultMem := nil;
+     qrData.BlkMultSize := Min( QRMultBlockSize, Max( width, height ) );
      qrData.Progress := progress;
      qrData.qrWidth := width;
      qrData.qrHeight := height;
@@ -1049,7 +1033,7 @@ begin
                     // calculate T matrix
                     CreateTMtxR(width - idx, qrData.pnlSize, pA, LineWidthA, pTau, qrData);
                     // apply H to A from the left
-                    ApplyBlockReflectorRTFR(pA, LineWidthA, qrData.reflData, width - idx, height - idx, qrdata.pnlSize, True);
+                    ApplyBlockReflectorRFR(pA, LineWidthA, qrData.reflData, width - idx, height - idx, qrdata.pnlSize, True);
                end;
 
                InternalMatrixQLeftFromQRDecomp(pA, LineWidthA, width - idx, qrData.pnlSize, qrData.pnlSize, pTau, qrData);
@@ -1075,6 +1059,7 @@ begin
      qrData.pWorkMem := nil;
      qrData.work := work;
      qrData.BlkMultMem := nil;
+     qrData.BlkMultSize := Min( QRMultBlockSize, Max( width, height ) );
      qrData.Progress := progress;
      qrData.qrWidth := width;
      qrData.qrHeight := height;
@@ -1085,7 +1070,7 @@ begin
      qrData.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}MatrixMultT2Ex;
      qrData.MatrixMultEx := {$IFDEF FPC}@{$ENDIF}MatrixMultEx;
      if work = nil then
-        qrData.work := MtxAllocAlign( qrData.pnlSize*sizeof(double)*height + 64 + BlockMultMemSize(QRMultBlockSize), qrData.pWorkMem);
+        qrData.work := MtxAllocAlign( qrData.pnlSize*sizeof(double)*height + 64 + BlockMultMemSize(qrData.BlkMultSize), qrData.pWorkMem);
 
      // it's assumed that the work memory block may also be used
      // as blocked multiplication memory storage!
@@ -1114,6 +1099,7 @@ begin
      qrData.pWorkMem := nil;
      qrData.work := work;
      qrData.BlkMultMem := nil;
+     qrData.BlkMultSize := Min( QRMultBlockSize, Max( width, height ) );
      qrData.Progress := progress;
      qrData.qrWidth := width;
      qrData.qrHeight := height;
@@ -1127,7 +1113,7 @@ begin
      if work = nil then
         qrData.work := MtxAllocAlign(pnlSize*sizeof(double)*height + 64, qrData.pWorkMem );
      
-     qrData.BlkMultMem := MtxMallocAlign(numCPUCores*(4 + BlockMultMemSize(QRMultBlockSize)), ptrMem);
+     qrData.BlkMultMem := MtxMallocAlign(numCPUCores*(4 + BlockMultMemSize(qrData.BlkMultSize)), ptrMem);
 
      // reference block reflector structure
      InitReflectorBlk(qrData);
@@ -1154,6 +1140,7 @@ begin
      qrData.pWorkMem := nil;
      qrData.work := work;
      qrData.BlkMultMem := nil;
+     qrData.BlkMultSize := Min( QRMultBlockSize, Max( width, height ) );
      qrData.Progress := progress;
      qrData.qrWidth := width;
      qrData.qrHeight := height;
@@ -1167,7 +1154,7 @@ begin
      if work = nil then
         qrData.work := MtxAllocAlign(BlockSize*sizeof(double)*height + 64, qrData.pWorkMem );
 
-     qrData.BlkMultMem := MtxMallocAlign(numCPUCores*(4 + BlockMultMemSize(QRMultBlockSize)), ptrMem);
+     qrData.BlkMultMem := MtxMallocAlign(numCPUCores*(4 + BlockMultMemSize(qrData.BlkMultSize)), ptrMem);
 
      // reference block reflector structure
      InitReflectorBlk(qrData);
@@ -1187,6 +1174,7 @@ begin
      qrData.pWorkMem := nil;
      qrData.work := work;
      qrData.BlkMultMem := nil;
+     qrData.BlkMultSize := Min( QRMultBlockSize, Max( width, height ) );
      qrData.Progress := progress;
      qrData.qrWidth := width;
      qrData.qrHeight := height;
@@ -1200,7 +1188,7 @@ begin
      if work = nil then
         qrData.work := MtxAllocAlign(BlockSize*sizeof(double)*height + 64, qrData.pWorkMem );
 
-     qrData.BlkMultMem := MtxMallocAlign(numCPUCores*(4 + BlockMultMemSize(QRMultBlockSize)), ptrMem);
+     qrData.BlkMultMem := MtxMallocAlign(numCPUCores*(4 + BlockMultMemSize(qrData.BlkMultSize)), ptrMem);
 
      // reference block reflector structure
      InitReflectorBlk(qrData);

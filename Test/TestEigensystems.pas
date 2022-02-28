@@ -54,6 +54,9 @@ type
   procedure TEstEigValEigVecFromTridiagMtx2;
 
   procedure TestEigValFromSymMtx;
+  procedure TestEigValVecFromSymMtx;
+  procedure TestBigEigValVecFromSymMtx;
+  procedure TestBigThreadedEigValVecFromSymMtx;
  end;
 
 implementation
@@ -83,6 +86,127 @@ begin
      Check(CheckMtx(EigVec, Eivec, -1, -1, 0.001), 'Error wrong eigenvectors');
 end;
 
+
+procedure TTestEigensystems.TestBigEigValVecFromSymMtx;
+var w, w1 : TDoubleDynArray;
+    N: Integer;
+    i: Integer;
+    A, A1, A2 : TDoubleDynArray;
+    idx : integer;
+    start1, stop1 : Int64;
+    start2, stop2 : Int64;
+    start3, stop3 : Int64;
+const cN : Array[0..7] of integer = (12, 127, 256, 343, 512, 713, 812, 1024);
+function makeSym( A : TDoubleDynArray ) : TDoubleDynArray;
+  var
+    y: Integer;
+begin
+     Result := MatrixTranspose(A, N, N);
+     for y := 0 to N - 2 do
+         Move( A[y*N + Y + 1], Result[y*N + Y + 1], SizeOf(double)*(N - y - 1) );
+
+end;
+begin
+     InitSSEOptFunctions(itFMA);
+     RandSeed := 453;
+
+     for idx := 0 to High(cN) do
+     begin
+          N := cN[idx];
+
+          Setlength( W, N );
+          SetLength( w1, N );
+
+          SetLength( A, N*N );
+          for i := 0 to Length(A) - 1 do
+              A[i] := random;
+
+          for i := 0 to N - 2 do
+              A[i*(N + 1)] := -A[i*(N + 1)];
+
+          // ###########################################
+          // #### Eigenvalue calculation
+          A2 := makeSym(A);
+          A1 := Copy(A, 0, Length(A));
+
+          start1 := MtxGetTime;
+          MatrixEigTridiagonalMatrixInPlace(@A2[0], N*sizeof(double), N, @W1[0], sizeof(double));
+          stop1 := MtxGetTime;
+
+          quickSort( W1 );
+
+          start2 := MtxGetTime;
+          MatrixEigUpperSymmetricMatrixInPlace2(@A1[0], N*sizeof(double), N, @W[0], False, N);
+          stop2 := MtxGetTime;
+
+          Check( CheckMtx( w, w1 ), 'D1, D2 NonBlocked sym eig failed at N = ' + IntToStr(N));
+
+          start3 := MtxGetTime;
+          MatrixEigUpperSymmetricMatrixInPlace2(@A[0], N*sizeof(double), N, @W[0], False, 32);
+          stop3 := MtxGetTime;
+
+          Check( CheckMtx( w, w1 ), 'D1, D2 Blocked sym eig failed at N = ' + IntToStr(N));
+
+          Status( Format('%d sym eig took: %.3fms, %.3fms, %.3fms', [N, (stop1 - start1)/mtxfreq*1000, (stop2 - start2)/mtxfreq*1000, (stop3 - start3)/mtxfreq*1000]));
+     end;
+end;
+
+procedure TTestEigensystems.TestBigThreadedEigValVecFromSymMtx;
+var w, w1 : TDoubleDynArray;
+    N: Integer;
+    i: Integer;
+    A, A1 : TDoubleDynArray;
+    idx : integer;
+    start1, stop1 : Int64;
+    start2, stop2 : Int64;
+const cN : Array[0..7] of integer = (12, 127, 256, 343, 512, 713, 812, 1024);
+function makeSym( A : TDoubleDynArray ) : TDoubleDynArray;
+  var
+    y: Integer;
+begin
+     Result := MatrixTranspose(A, N, N);
+     for y := 0 to N - 2 do
+         Move( A[y*N + Y + 1], Result[y*N + Y + 1], SizeOf(double)*(N - y - 1) );
+
+end;
+begin
+     InitMtxThreadPool;
+     InitSSEOptFunctions(itFMA);
+     RandSeed := 453;
+
+     for idx := 0 to High(cN) do
+     begin
+          N := cN[idx];
+
+          Setlength( W, N );
+          SetLength( w1, N );
+
+          SetLength( A, N*N );
+          for i := 0 to Length(A) - 1 do
+              A[i] := random;
+
+          for i := 0 to N - 2 do
+              A[i*(N + 1)] := -A[i*(N + 1)];
+
+          // ###########################################
+          // #### Eigenvalue calculation
+          A1 := Copy(A, 0, Length(A));
+
+          start1 := MtxGetTime;
+          MatrixEigUpperSymmetricMatrixInPlace2(@A[0], N*sizeof(double), N, @W[0], False, 32);
+          stop1 := MtxGetTime;
+
+          start2 := MtxGetTime;
+          ThrMtxEigUpperSymmetricMatrixInPlace2(@A1[0], N*sizeof(double), N, @W1[0], False, 32);
+          stop2 := MtxGetTime;
+
+          Check( CheckMtx( w, w1 ), 'D1, D2 NonBlocked sym eig failed at N = ' + IntToStr(N));
+
+          Status( Format('%d sym eig thr took: %.3fms, %.3fms', [N, (stop1 - start1)/mtxfreq*1000, (stop2 - start2)/mtxfreq*1000]));
+     end;
+
+     FinalizeMtxThreadPool;
+end;
 
 procedure TTestEigensystems.TestEigValEigVecFromTridiagMtx;
 var D : Array[0..2] of double;
@@ -344,7 +468,7 @@ function makeSym( A : TDoubleDynArray ) : TDoubleDynArray;
     y: Integer;
 begin
      Result := MatrixTranspose(A, N, N);
-     for y := 0 to N - 1 do
+     for y := 0 to N - 2 do
          Move( A[y*N + Y + 1], Result[y*N + Y + 1], SizeOf(double)*(N - y - 1) );
 
 end;
@@ -388,8 +512,6 @@ begin
              //  Status( WriteMtx(aSym1, N) );
              //  Status('');
           end;
-
-
      end;
 end;
 
@@ -456,6 +578,72 @@ begin
             rnd.Free;
      end;
 end;
+
+procedure TTestEigensystems.TestEigValVecFromSymMtx;
+var w, w1 : TDoubleDynArray;
+    N: Integer;
+    i: Integer;
+    A, A1, A2 : TDoubleDynArray;
+    nb : integer;
+function makeSym( A : TDoubleDynArray ) : TDoubleDynArray;
+  var
+    y: Integer;
+begin
+     Result := MatrixTranspose(A, N, N);
+     for y := 0 to N - 2 do
+         Move( A[y*N + Y + 1], Result[y*N + Y + 1], SizeOf(double)*(N - y - 1) );
+
+end;
+begin
+     InitSSEOptFunctions(itFPU);
+     RandSeed := 723;
+
+     for N := 3 to 57 do
+     begin
+          Setlength( W, N );
+          SetLength( w1, N );
+
+          SetLength( A, N*N );
+          for i := 0 to Length(A) - 1 do
+              A[i] := random;
+
+          for i := 0 to N - 2 do
+              A[i*(N + 1)] := -A[i*(N + 1)];
+
+          nb := N;
+
+          for i := 0 to 3 do
+          begin
+               // ###########################################
+               // #### Eigenvalue calculation
+               A2 := makeSym(A);
+               A1 := Copy(A, 0, Length(A));
+
+               case i of
+                 0: nb := 2;
+                 1: nb := 3;
+                 2: nb := 8;
+                 3: nb := N;
+               end;
+
+               //WriteMatlabData('D:\sym' + IntToStr(N) + '.txt', A2, N );
+
+               MatrixEigUpperSymmetricMatrixInPlace2(@A1[0], N*sizeof(double), N, @W[0], False, nb);
+               MatrixEigTridiagonalMatrixInPlace(@A2[0], N*sizeof(double), N, @W1[0], sizeof(double));
+
+               // these lines here actually test the eigenvector output
+               // -> this can be used with the Matlab "eig" command
+               //WriteMatlabData('D:\eigval_' + IntToStr(N) + '_' + IntToStr(i) + '.txt', W, N);
+               //WriteMatlabData('D:\eigVec_' + IntToStr(N) + '_' + IntToStr(i) + '.txt', A1, N);
+
+               quickSort( W1 );
+
+               Check( CheckMtx( w, w1 ), 'D1, D2 Blocked Trigdiagonal failed at N = ' + IntToStr(N));
+          end;
+     end;
+end;
+
+
 
 procedure TTestEigensystems.TestEigVec1;
 const B : Array[0..8] of double = (3, 1, 1, 2, -2, -1, 5, -1, 8);
@@ -576,13 +764,6 @@ begin
      MatrixHessenbergPermInPlace(@dest[0], 4*sizeof(double), 4, nil, 0);
      Status(WriteMtx(dest, 4));
 end;
-
-type
- THessMtx = Array[0..24] of double;
- PHessMtx = ^THessMtx;
-
-var h2 : IMatrix;
-    
 
 procedure TTestEigensystems.TestHessenberg3;
 // output from octave and c++ test project.

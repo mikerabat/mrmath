@@ -91,7 +91,10 @@ type
     function QRFull(out Q, R : TDoubleMatrix) : TQRResult; override;
     function Cholesky(out Chol : TDoubleMatrix) : TCholeskyResult; overload; override;
     function SVD(out U, V, W : TDoubleMatrix; onlyDiagElements : boolean = False) : TSVDResult; override;
-    
+
+    function SymEig(out EigVals : TDoubleMatrix; out EigVect : TDoubleMatrix) : TEigenvalueConvergence; overload; override;
+    function SymEig(out EigVals : TDoubleMatrix) : TEigenvalueConvergence; overload; override;
+
     // solves least sqaures A*x = b using the QR decomposition
     function SolveLeastSquaresInPlace(out x : TDoubleMatrix; b : TDoubleMatrix) : TQRResult; overload; override;
     function SolveLeastSquares(out x : TDoubleMatrix; b : TDoubleMatrix) : TQRResult; overload; override;
@@ -725,7 +728,77 @@ begin
      end;
 end;
 
+function TThreadedMatrix.SymEig(out EigVals: TDoubleMatrix): TEigenvalueConvergence;
+var dt : TDoubleMatrix;
+    vecs : TDoubleMatrix;
+begin
+     CheckAndRaiseError((fSubWidth > 0) and (fSubWidth = fSubHeight), 'Eigenvalue calculation only allowed on square matrices');
+
+     EigVals := nil;
+
+     dt := ResultClass.Create(1, fSubHeight);
+     vecs := ResultClass.Create(fSubWidth, fSubWidth);
+     try
+        vecs.Assign(self, True);
+        Result := ThrMtxEigUpperSymmetricMatrixInPlace2(vecs.StartElement, vecs.LineWidth, fSubWidth,
+                                                        PConstDoubleArr( dt.StartElement ), True,
+                                                        SymEigBlockSize);
+        if Result = qlOk then
+        begin
+             dt.TransposeInPlace;
+             EigVals := dt;
+             vecs.Free;
+        end
+        else
+        begin
+             dt.Free;
+             vecs.Free;
+        end;
+     except
+           FreeAndNil(dt);
+           FreeAndNil(vecs);
+           raise;
+     end;
+end;
+
+function TThreadedMatrix.SymEig(out EigVals,
+  EigVect: TDoubleMatrix): TEigenvalueConvergence;
+var dt : TDoubleMatrix;
+    vecs : TDoubleMatrix;
+begin
+     CheckAndRaiseError((fSubWidth > 0) and (fSubWidth = fSubHeight), 'Eigenvalue calculation only allowed on square matrices');
+
+     EigVals := nil;
+     EigVect := nil;
+
+     dt := ResultClass.Create(fSubWidth, 1);
+     vecs := ResultClass.Create(fSubWidth, fSubWidth);
+     try
+        vecs.Assign(self, True);
+        Result := ThrMtxEigUpperSymmetricMatrixInPlace2(vecs.StartElement, vecs.LineWidth, fSubWidth,
+                                                        PConstDoubleArr( dt.StartElement ), False,
+                                                        SymEigBlockSize);
+        if Result = qlOk then
+        begin
+             dt.TransposeInPlace;
+             EigVals := dt;
+             EigVect := vecs;
+        end
+        else
+        begin
+             dt.Free;
+             vecs.Free;
+        end;
+     except
+           FreeAndNil(dt);
+           FreeAndNil(vecs);
+
+           raise;
+     end;
+end;
+
 initialization
   RegisterMathIO(TThreadedMatrix);
 
 end.
+

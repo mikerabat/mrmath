@@ -70,7 +70,13 @@ procedure ASMMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; m
   width1, height1, width2, height2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 
-
+// performs a rank2 update in the form
+// C = C - A*B' - B*A'
+// N...order of C (N x N matrix)
+// k... number of columns of A and B
+// the lower triangle of C is not referenced
+procedure ASMSymRank2UpdateUpperUnaligned( C : PDouble; LineWidthC : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
+  B : PDouble; LineWidthB : TASMNativeInt; N : TASMNativeInt; k : TASMNativeInt ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -1844,6 +1850,125 @@ asm
    pop esi;
    pop ebx;
 end;
+
+procedure ASMSymRank2UpdateUpperUnaligned( C : PDouble; LineWidthC : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
+  B : PDouble; LineWidthB : TASMNativeInt; N : TASMNativeInt; k : TASMNativeInt );
+// eax = c; edx = LineWidthC; ecx : A;
+var i, j : integer;
+    lC : Cardinal;
+asm
+   // save register
+   push ebx;
+   push edi;
+   push esi;
+
+   // switch register
+   mov lC, edx;
+
+   // eax -> pointer to C
+   // ecx -> ponter to pA1
+   // esi -> pointer to pB1
+   mov esi, B;
+
+   mov edi, k;
+   imul edi, -8;
+   mov k, edi;
+
+   sub ecx, edi;
+   sub esi, edi;
+
+   mov edi, N;
+   shl edi, 3;
+   add eax, edi;
+
+
+   // for j := 0 to N - 1 do
+   //
+   neg edi;
+   mov j, edi;
+   @@forNLoop:
+       mov edx, j;
+       mov i, edx;
+
+       // ###########################################
+       // #### Init A2 and B2
+       // pA2
+       mov ebx, ecx;
+       // pB2
+       mov edi, esi;
+
+
+       @@forjNLoop:
+            xorpd xmm0, xmm0;
+
+            // ###########################################
+            // #### Init loop
+            mov edx, k;
+
+            // accumulate
+            @@forlLoop:
+                add edx, 16;
+                jg @@forlLoopEnd;
+
+                movupd xmm1, [ecx + edx - 16]; // pA1;
+                movupd xmm2, [edi + edx - 16]; // pB2
+                movupd xmm3, [esi + edx - 16]; // pB1;
+                movupd xmm4, [ebx + edx - 16]; // pA2;
+
+                mulpd xmm1, xmm2;
+                addpd xmm0, xmm1;
+                mulpd xmm3, xmm4;
+                addpd xmm0, xmm3;
+            jmp @@forlLoop;
+
+            @@forlLoopEnd:
+
+            // is iterator actualy zero? (aka even k)
+            cmp edx, 16;
+            je @@NextN;
+
+            // last element
+            movsd xmm1, [ecx - 8]; // pA1;
+            movsd xmm2, [edi - 8]; // pB2
+            movsd xmm3, [esi - 8]; // pB1;
+            movsd xmm4, [ebx - 8]; // pA2;
+
+            mulsd xmm1, xmm2;
+            addsd xmm0, xmm1;
+            mulsd xmm3, xmm4;
+            addsd xmm0, xmm3;
+
+            @@NextN:
+
+            // ###########################################
+            // #### pC^[i] := pC^[i] - xmm0
+            mov edx, i;
+            haddpd xmm0, xmm0;
+            movsd xmm1, [eax + edx];
+
+            subsd xmm1, xmm0;
+            movsd [eax + edx], xmm1;
+
+            add ebx, LineWidthA;  // increment pA2
+            add edi, LineWidthB;  // increment pB2
+
+       add i, 8;
+       jnz @@forjNLoop;
+
+       // next line
+       add eax, lC;
+       add ecx, LineWidthA;
+       add esi, LineWidthB;
+   add j, 8;
+   jnz @@forNLoop;
+
+   // ###########################################
+   // #### Finalize stack
+   pop esi;
+   pop edi;
+   pop ebx;
+end;
+
 
 {$ENDIF}
 

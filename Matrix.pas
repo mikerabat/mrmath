@@ -259,12 +259,15 @@ type
     // #### Matrix transformations
     function SVD(out U, V, W : TDoubleMatrix; onlyDiagElements : boolean = False) : TSVDResult; overload;
     function SVD(out U, V, W : IMatrix; onlyDiagElements : boolean = False) : TSVDResult; overload;
+
+    // the symmetric eigenvalue calculation actually references only the upper part of the matrix
+    // -> therefore symmetry does not need to be maintained explicitly
     function SymEig(out EigVals : TDoubleMatrix; out EigVect : TDoubleMatrix) : TEigenvalueConvergence; overload;
     function SymEig(out EigVals : TDoubleMatrix) : TEigenvalueConvergence; overload;
     function SymEig(out EigVals : IMatrix; out EigVect : IMatrix) : TEigenvalueConvergence; overload;
     function SymEig(out EigVals : IMatrix) : TEigenvalueConvergence; overload;
-    function Eig(out EigVals : TDoublematrix; out EigVect : TDoubleMatrix; normEigVecs : boolean = False)  : TEigenvalueConvergence; overload;
-    function Eig(out EigVals : TDoublematrix)  : TEigenvalueConvergence; overload;
+    function Eig(out EigVals : TDoubleMatrix; out EigVect : TDoubleMatrix; normEigVecs : boolean = False)  : TEigenvalueConvergence; overload;
+    function Eig(out EigVals : TDoubleMatrix)  : TEigenvalueConvergence; overload;
     function Eig(out EigVals : IMatrix; out EigVect : IMatrix; normEigVecs : boolean = False) : TEigenvalueConvergence; overload;
     function Eig(out EigVals : IMatrix)  : TEigenvalueConvergence; overload;
     function Cholesky(out Chol : TDoubleMatrix) : TCholeskyResult; overload;
@@ -567,8 +570,11 @@ type
     // #### Matrix transformations
     function SVD(out U, V, W : TDoubleMatrix; onlyDiagElements : boolean = False) : TSVDResult; overload; virtual;
     function SVD(out U, V, W : IMatrix; onlyDiagElements : boolean = False) : TSVDResult; overload;
-    function SymEig(out EigVals : TDoubleMatrix; out EigVect : TDoubleMatrix) : TEigenvalueConvergence; overload;
-    function SymEig(out EigVals : TDoubleMatrix) : TEigenvalueConvergence; overload;
+
+    // the symmetric eigenvalue calculation actually references only the upper part of the matrix
+    // -> therefore symmetry does not need to be maintained explicitly
+    function SymEig(out EigVals : TDoubleMatrix; out EigVect : TDoubleMatrix) : TEigenvalueConvergence; overload; virtual;
+    function SymEig(out EigVals : TDoubleMatrix) : TEigenvalueConvergence; overload; virtual;
     function SymEig(out EigVals : IMatrix; out EigVect : IMatrix) : TEigenvalueConvergence; overload;
     function SymEig(out EigVals : IMatrix) : TEigenvalueConvergence; overload;
     function Eig(out EigVals : TDoublematrix; out EigVect : TDoubleMatrix; normEigVecs : boolean = False)  : TEigenvalueConvergence; overload;
@@ -2943,9 +2949,13 @@ begin
      dt := ResultClass.Create(1, fSubHeight);
      vecs := ResultClass.Create(fSubWidth, fSubWidth);
      try
-        Result := MatrixEigTridiagonalMatrix(vecs.StartElement, vecs.LineWidth, StartElement, LineWidth, fSubWidth, dt.StartElement, dt.LineWidth);
+        vecs.Assign(self, True);
+        Result := MatrixEigUpperSymmetricMatrixInPlace2(vecs.StartElement, vecs.LineWidth, fSubWidth,
+                                                        PConstDoubleArr( dt.StartElement ), True,
+                                                        SymEigBlockSize);
         if Result = qlOk then
         begin
+             dt.TransposeInPlace;
              EigVals := dt;
              vecs.Free;
         end
@@ -2971,12 +2981,16 @@ begin
      EigVals := nil;
      EigVect := nil;
 
-     dt := ResultClass.Create(1, fSubHeight);
+     dt := ResultClass.Create(fSubWidth, 1);
      vecs := ResultClass.Create(fSubWidth, fSubWidth);
      try
-        Result := MatrixEigTridiagonalMatrix(vecs.StartElement, vecs.LineWidth, StartElement, LineWidth, fSubWidth, dt.StartElement, dt.LineWidth);
+        vecs.Assign(self, True);
+        Result := MatrixEigUpperSymmetricMatrixInPlace2(vecs.StartElement, vecs.LineWidth, fSubWidth,
+                                                        PConstDoubleArr( dt.StartElement ), False,
+                                                        SymEigBlockSize);
         if Result = qlOk then
         begin
+             dt.TransposeInPlace;
              EigVals := dt;
              EigVect := vecs;
         end

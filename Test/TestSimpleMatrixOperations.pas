@@ -117,6 +117,8 @@ type
     procedure TestSymVecMult;
     procedure TestRank1Upd;
     procedure TestBigRank1Upd;
+    procedure TestRank2Upd;
+    procedure TestBigRank2Upd;
     procedure TestDiagMtxMult1;
     procedure TestDiagMtxMultVec;
     procedure TestConvolve;
@@ -4278,6 +4280,107 @@ begin
      FreeMem(ya);
 end;
 
+procedure TASMMatrixOperations.TestRank2Upd;
+// perform operation C = C - A*B' - B*A'
+const cN = 8;
+      ck = 3;
+var C : TDoubleDynArray;
+    A : TDoubleDynArray;
+    B : TDoubleDynArray;
+    tmp : TDoubleDynArray;
+    C1 : TDoubleDynArray;
+    i : Integer;
+
+function makeSym( A : TDoubleDynArray ) : TDoubleDynArray;
+  var
+    y: Integer;
+begin
+     Result := MatrixTranspose(A, cN, cN);
+     for y := 0 to cN - 2 do
+         Move( A[y*cN + Y + 1], Result[y*cN + Y + 1], SizeOf(double)*(cN - y - 1) );
+
+end;
+function SymCheck( A, B : TDoubleDynArray ) : boolean;
+  var
+    y: Integer;
+    x: Integer;
+begin
+     Result := True;
+     for y := 0 to cN - 1 do
+         for x := y to cN - 1 do
+             Result := Result and SameValue(A[x + cN*y], B[x + cN*y]);
+end;
+begin
+     SetLength(C, cN*cN);
+     SetLength(A, cN*ck);
+     SetLength(B, cN*ck);
+
+     for i := 0 to cN*ck - 1 do
+     begin
+          A[i] := i + 1;
+          B[i] := -1 + i*2;
+     end;
+     for i := 0 to Length(C) - 1 do
+         C[i] := 1;
+
+     C1 := Copy(C, 0, Length(C));
+     tmp := MakeSym(C);
+     GenericSymRank2UpdateUpper(@C[0], cN*sizeof(double), @A[0], ck*sizeof(double), @B[0], ck*sizeof(Double), cN, ck);
+
+     MatrixMultT2Ex( @tmp[0], cN*sizeof(double), @A[0], @B[0],
+                     ck, cN, ck, cN, ck*sizeof(Double), ck*sizeof(Double), 128, doSub, nil);
+     MatrixMultT2Ex( @tmp[0], cN*sizeof(double), @B[0], @A[0],
+                     ck, cN, ck, cN, ck*sizeof(Double), ck*sizeof(Double), 128, doSub, nil);
+
+     // upper matrix of C should match tmp
+     Check(SymCheck( C, tmp ), 'Failed to do rank2 update');
+
+
+     // ###########################################
+     // #### Do the assembler version:
+     ASMSymRank2UpdateUpper(@C1[0], cN*sizeof(double), @A[0], ck*sizeof(double), @B[0], ck*sizeof(Double), cN, ck);
+     Check(CheckMtx( C, C1 ),  'Error Asm Sym Rank2 update failed' );
+end;
+
+procedure TASMMatrixOperations.TestBigRank2Upd;
+const CN = 2048;
+      cK = 32;
+var
+    startTime1, endTime1 : Int64;
+    startTime2, endTime2 : int64;
+    i : integer;
+    C : TDoubleDynArray;
+    A : TDoubleDynArray;
+    B : TDoubleDynArray;
+    C1 : TDoubleDynArray;
+begin
+     SetLength(C, cN*cN);
+     SetLength(A, cN*ck);
+     SetLength(B, cN*ck);
+
+     for i := 0 to cN*ck - 1 do
+     begin
+          A[i] := i + 1;
+          B[i] := -1 + i*2;
+     end;
+     for i := 0 to Length(C) - 1 do
+         C[i] := 1;
+
+     C1 := Copy(C, 0, Length(C));
+
+     startTime1 := MtxGetTime;
+     GenericSymRank2UpdateUpper(@C[0], cN*sizeof(double), @A[0], ck*sizeof(double), @B[0], ck*sizeof(Double), cN, ck);
+     endTime1 := MtxGetTime;
+
+     startTime2 := MtxGetTime;
+     ASMSymRank2UpdateUpper(@C1[0], cN*sizeof(double), @A[0], ck*sizeof(double), @B[0], ck*sizeof(Double), cN, ck);
+     endTime2 := MtxGetTime;
+
+     Status(Format('%.2f,  %.2f', [(endTime1 - startTime1)/mtxFreq*1000,  (endTime2 - startTime2)/mtxFreq*1000]));
+
+     Check(CheckMtx(C, C1), 'Big rank 2 update failed');
+end;
+
 procedure TASMMatrixOperations.TestRank1Upd;
 const cV : Array[0..5] of double = (1, 2, 3, 4, 5, 6);
 var a, a1 : Array[0..35] of double;
@@ -4360,30 +4463,30 @@ var a1, a : Array[0..15] of double;
 begin
      Init;
 
-     GenericMtxMultTria2T1StoreT1(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+     GenericMtxMultRightUpperTriaNoUnitT2(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
      ASMMtxMultTria2T1StoreT1(@a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
 
      Check(CheckMtx(a, a1), 'MtxMultTria2T1StoreT1');
 
-     GenericMtxMultTria2T1StoreT1(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 3, 4, 3, 3);
+     GenericMtxMultRightUpperTriaNoUnitT2(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 3, 4, 3, 3);
      ASMMtxMultTria2T1StoreT1(@a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 3, 4, 3, 3);
 
      Check(CheckMtx(a, a1), 'MtxMultTria2T1StoreT1');
 
      Init;
-     GenericMtxMultTria2Store1(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+     GenericMtxMultRightUpperTriaNoUnit(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
      ASMMtxMultTria2Store1(@a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
 
      Check(CheckMtx(a, a1), 'MtxMultTria2Store1');
 
      Init;
-     GenericMtxMultTria2Store1(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+     GenericMtxMultRightUpperTriaNoUnit(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
      ASMMtxMultTria2Store1(@a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
 
      Check(CheckMtx(a, a1), 'MtxMultTria2Store1');
 
      Init;
-     GenericMtxMultTria2Store1(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 3, 4, 3, 3);
+     GenericMtxMultRightUpperTriaNoUnit(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 3, 4, 3, 3);
      ASMMtxMultTria2Store1(@a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 3, 4, 3, 3);
 
      Check(CheckMtx(a, a1), 'MtxMultTria2Store1');
@@ -4402,39 +4505,44 @@ begin
      Check(CheckMtx(a, a1), 'MtxMultTria2TUpperUnit');
 
      Init;
-     GenericMtxMultLowTria2T2NoUnitStore1(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+     GenericMtxMultRightLowerTriaNoUnitT2(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
      //Check(CheckMtx(a, a1), 'MtxMultLowTria2T2Store1');
 
      Init;
-     MtxMultLowTria2T2Store1(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+     MtxMultRightLowerTriaUnitT2(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
      ASMMtxMultLowTria2T2Store1(@a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
 
      Check(CheckMtx(a, a1), 'MtxMultTria2TUpperUnit');
 
      Init;
-     GenericMtxMultLowTria2T2Store1(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+     GenericMtxMultRightLowerTriaUnitT2(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
      ASMMtxMultLowTria2T2Store1(@a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
 
      Check(CheckMtx(a, a1), 'MtxMultLowTria2T2Store1');
 
 
      Init;
-     GenericMtxMultLowTria2T2Store1(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 3, 4, 3, 3);
+     GenericMtxMultRightLowerTriaUnitT2(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 3, 4, 3, 3);
      ASMMtxMultLowTria2T2Store1(@a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 3, 4, 3, 3);
 
      Check(CheckMtx(a, a1), 'MtxMultLowTria2T2Store1');
 
      Init;
-     GenericMtxMultTria2Store1Unit(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+     GenericMtxMultRightUpperTriaUnit(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
      ASMMtxMultTria2Store1Unit(@a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
 
      Check(CheckMtx(a, a1), 'MtxMultTria2Store1Unit');
 
      Init;
-     GenericMtxMultTria2Store1Unit(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 3, 4, 3, 3);
+     GenericMtxMultRightUpperTriaUnit(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 3, 4, 3, 3);
      ASMMtxMultTria2Store1Unit(@a1[0], 4*sizeof(double), @b[0], 4*sizeof(double), 3, 4, 3, 3);
 
      Check(CheckMtx(a, a1), 'MtxMultTria2Store1Unit');
+
+     Init;
+     GenericMtxMultRightUpperTriaUnitT2(@a[0], 4*sizeof(double), @b[0], 4*sizeof(double), 4, 4, 4, 4);
+
+     //Check(CheckMtx(a, a1), 'GenericMtxMultUpperTria2T2Store1');
 end;
 
 procedure TASMMatrixOperations.TestDiagMtxMultVec;
@@ -4475,11 +4583,10 @@ end;
 procedure TASMMatrixOperations.TestDotProd;
 const x : Array[0..4] of double = (1, 2, 3, 1, 2);
       y : Array[0..4] of double = (-1, 2, -1, 2, 2);
-var res1, res2, res3 : double;
+var res1, res2 : double;
     v1, v2 : TDoubleDynArray;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : Int64;
-    startTime3, endTime3 : Int64;
     i: Integer;
 begin
      res1 := GenericVecDotMult(@x[0], sizeof(double), @y[0], sizeof(double), Length(x));
@@ -4488,10 +4595,8 @@ begin
      check( res1 = res2, 'Failed to calculate dot product');
      res1 := GenericVecDotMult(@x[0], 2*sizeof(double), @y[0], sizeof(double), 3);
      res2 := ASMMatrixVecDotMult(@x[0], 2*sizeof(double), @y[0], sizeof(double), 3);
-     res3 := AVXMatrixVecDotMult(@x[0], 2*sizeof(double), @y[0], sizeof(double), 3);
 
      check( res1 = res2, 'Failed to calculate dot product');
-     check( res1 = res3, 'Failed to calculate dot product');
 
      SetLength(v1, 8177);
      SetLength(v2, 8177);
@@ -4510,13 +4615,8 @@ begin
      res2 := ASMMatrixVecDotMult(@v1[0], sizeof(double), @v2[0], sizeof(double), Length(v1));
      endTime2 := MtxGetTime;
 
-     startTime3 := MtxGetTime;
-     res3 := AVXMatrixVecDotMult(@v1[0], sizeof(double), @v2[0], sizeof(double), Length(v1));
-     endTime3 := MtxGetTime;
-
-     Status( Format('Long dot product 1 took %.3f ms, %.3f ms, %.3f ms', [ (endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000, (endTime3 - startTime3)/mtxFreq*1000 ] ) );
+     Status( Format('Long dot product 1 took %.3f ms, %.3f ms', [ (endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000] ) );
      Check( SameValue(res1, res2, 1e-7), 'Failed to calculate long dot product');
-     Check( SameValue(res1, res3, 1e-7), 'Failed to calculate long dot product');
 
 
      startTime1 := MtxGetTime;
@@ -4527,13 +4627,8 @@ begin
      res2 := ASMMatrixVecDotMult(@v1[1], sizeof(double), @v2[1], sizeof(double), Length(v1) - 1);
      endTime2 := MtxGetTime;
 
-     startTime3 := MtxGetTime;
-     res2 := AVXMatrixVecDotMult(@v1[1], sizeof(double), @v2[1], sizeof(double), Length(v1) - 1);
-     endTime3 := MtxGetTime;
-
-     Status( Format('Long dot product 2 took %.3f ms, %.3f ms, %.3f ms', [ (endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000, (endTime3 - startTime3)/mtxFreq*1000 ] ) );
+     Status( Format('Long dot product 2 took %.3f ms, %.3f ms', [ (endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000 ] ) );
      Check( SameValue(res1, res2, 1e-7), 'Failed to calculate long dot product');
-
 end;
 
 procedure TASMMatrixOperations.TestSubT;

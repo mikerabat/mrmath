@@ -40,7 +40,10 @@ function Next2Pwr(num : TASMNativeInt; maxSize : TASMNativeInt) : TASMNativeInt;
 function eps(const val : double) : double;
 function MinDblDiv : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 
-procedure WriteMtlMtx(const fileName : string; const mtx : TDoubleDynArray; width : integer; prec : integer = 8);
+procedure WriteMtlMtx(const fileName : string; const mtx : TDoubleDynArray; width : integer; prec : integer = 8); overload;
+procedure WriteMtlMtx(const fileName : string; mtx : PDouble; LineWidthmtx : TASMNativeInt; width, height : integer; prec : integer = 8); overload;
+procedure WriteBinaryMtxColMajor( fn : String; A : PDouble; LineWidthA : TASMNativeInt; w, h  :integer );
+
 
 type
   TQuickSortFunc = function(const Item1, Item2) : integer;
@@ -508,7 +511,7 @@ end;
 procedure WriteMtlMtx(const fileName : string; const mtx : TDoubleDynArray; width : integer; prec : integer = 8);
 var s : UTF8String;
     x, y : integer;
-    ft : TFormatSettings;    
+    ft : TFormatSettings;
 begin
      ft := GetLocalFMTSet;
 
@@ -531,6 +534,63 @@ begin
             Free;
      end;
 end;
+
+procedure WriteMtlMtx(const fileName : string; mtx : PDouble; LineWidthmtx : TASMNativeInt; width, height : integer; prec : integer = 8); overload;
+var s : UTF8String;
+    x, y : integer;
+    pMTx : PConstDoubleArr;
+    ft : TFormatSettings;
+begin
+     ft := GetLocalFMTSet;
+
+     ft.DecimalSeparator := '.';
+
+     with TFileStream.Create(fileName, fmCreate or fmOpenWrite) do
+     try
+        for y := 0 to height - 1 do
+        begin
+             pMtx := GenPtrArr(mtx, 0, y, LineWidthmtx);
+
+             s := '';
+             for x := 0 to width - 1 do
+                 s := s + UTF8String(Format('%.*f,', [prec, pMTx^[x]], ft));
+
+             s[length(s)] := #13;
+             s := s + #10;
+
+             WriteBuffer(s[1], Length(s));
+        end;
+     finally
+            Free;
+     end;
+end;
+
+
+// mostly used as output to directly test with various lapack packages
+procedure WriteBinaryMtxColMajor( fn : String; A : PDouble; LineWidthA : TASMNativeInt;
+  w, h  :integer );
+var x, y : integer;
+    pA : PDouble;
+begin
+     with TFileStream.Create(fn, fmCreate or fmOpenWrite ) do
+     try
+        WriteBuffer( w, SizeOf(w));
+        WriteBuffer( h, sizeof(h));
+
+        for x := 0 to w - 1 do
+        begin
+             for y := 0 to h - 1 do
+             begin
+                  pA := GenPtr(A, x, y, LineWidthA);
+                  WriteBuffer(pA^, sizeof(double) );
+             end;
+        end;
+
+     finally
+            free;
+     end;
+end;
+
 
 function KthLargest(var vals : TDoubleDynArray; elemNum : Cardinal) : double;
 begin

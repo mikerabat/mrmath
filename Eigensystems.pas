@@ -110,10 +110,11 @@ procedure MatrixQFromHessenbergDecomp(A : PDouble; const LineWidthA : TASMNative
 
 // lapack version
 function MatrixEigUpperSymmetricMatrixInPlace2(A : PDouble; LineWidthA : TASMNativeInt; N : TASMNativeInt; W : PConstDoubleArr; EigValOnly : boolean; blockSize : integer ) : TEigenvalueConvergence;
+function ThrMtxEigUpperSymmetricMatrixInPlace2(A : PDouble; LineWidthA : TASMNativeInt; N : TASMNativeInt; W : PConstDoubleArr; EigValOnly : boolean; blockSize : integer ) : TEigenvalueConvergence;
 
 function InternalEigValFromSymMatrix( D, E : PConstDoubleArr; N : TASMNativeInt) : TEigenvalueConvergence;
 function InternalEigValEigVecFromSymTridiagMatrix( D, E : PConstDoubleArr; Z : PDouble;
- LineWidthZ : TASMNativeInt; N : TASMNativeInt; work : PConstDoubleArr ) : TEigenvalueConvergence;
+ LineWidthZ : TASMNativeInt; N : TASMNativeInt; Work : PConstDoubleArr ) : TEigenvalueConvergence; overload;
 
 
 // on entry A is a symmetric matrix (upper part will be used)
@@ -131,7 +132,7 @@ implementation
 uses Math, MathUtilFunc, MatrixASMStubSwitch, HouseholderReflectors, types, 
      BlockSizeSetup, ThreadedMatrixOperations, MtxThreadPool,
      LinAlgQR,
-     SysUtils, MatrixRotations;
+     SysUtils, MatrixRotations, Classes;
 
 function MatrixEigTridiagonalMatrixInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; EigVals : PDouble; const LineWidthEigVals : TASMNativeInt) : TEigenvalueConvergence;
 var E : Array of double;
@@ -2132,7 +2133,8 @@ type
     Y : PDouble;       // point to T + tlinewidth*(pnlSize)  (w x h) = (pnlsize x height) 
     tLineWidth : TASMNativeInt;      // pnlsize*sizeof(double)  
     yLineWidth : TASMNativeInt;      // pnlsize*sizeof(double)
-    blkMultMem : Pointer; // point to Y + N * NB * sizeof(Double)  
+    blkMultMem : Pointer; // point to Y + N * NB * sizeof(Double)
+    blkMultSize : integer;
   end;
 
 procedure InitReflectorBlk( var eigData : THessData );
@@ -2140,6 +2142,7 @@ begin
      eigData.reflData.T := eigData.T;
      eigData.reflData.LineWidthT := eigData.tLineWidth;
      eigData.reflData.BlkMultMem := eigData.BlkMultMem;
+     eigData.reflData.BlkMultSize := eigData.blkMultSize;
 end;
 
 // single threaded work mem need:
@@ -2154,7 +2157,7 @@ begin
      // + 64 to get aligned ptr for both Y and multiplication (and rank1 updates)
      Result := 64 + Max(2*w4*sizeof(double), hessData.PnlSize*w4*sizeof(double) +  // Y
                hessData.PnlSize*(hessData.PnlSize + 1)*sizeof(double) +  // T
-               BlockMultMemSize( Max(QRMultBlockSize, HessMultBlockSize ) ) );  // mult
+               BlockMultMemSize( hessData.blkMultSize ) );  // mult
 end;
 
 // unblocked hessenberg decomposition based on DGEHD2
@@ -2196,25 +2199,6 @@ begin
 end;
 
 
-//function WriteMtx(data : PDouble; LineWidth : TASMNativeInt; width : integer; height : integer; prec : integer = 4) : string; 
-//var x, y : integer;
-//    pData : PConstDoubleArr;
-//begin
-//     Result := '';
-//
-//     for y := 0 to height - 1 do
-//     begin
-//          pData := PConstDoubleArr( data );
-//          for x := 0 to width - 1 do
-//              Result := Result + Format('%.*f ', [prec, pData^[x]]);
-//
-//          inc(PByte(data), LineWidth);
-//          Result := Result + #13#10;
-//     end;
-//end;
-
-
-
 //  DLAHR2 reduces the first NB columns of A real general n-BY-(n-k+1)
 //  matrix A so that elements below the k-th subdiagonal are zero. The
 //  reduction is performed by an orthogonal similarity transformation
@@ -2236,7 +2220,6 @@ var i: Integer;
     pALpha : PDouble;
     pA1 : PDouble;
     nki : Integer;
-    lineRes : boolean;
     //s : string;
 begin
      // quick return
@@ -2304,8 +2287,6 @@ begin
                MtxMultLowNoTranspUnitVec( pV1, LineWidthA, pW, eigData.tLineWidth, i );
                MatrixSub( pb1, LineWidthA, pb1, pW, 1, i, LineWidthA, eigData.tLineWidth );
 
-               //s := WriteMtx(A, LineWidthA, 2*nb, 5);
-
                pAlpha^ := ei;
           end;
 
@@ -2324,7 +2305,6 @@ begin
 
           MatrixMtxVecMult( pY, eigData.yLineWidth, pA1, pAlpha, LineWidthA, LineWidthA, nki, N - k - 1, 1, 0 );
 
-          //s := WriteMtx(eigData.Y, eigData.yLineWidth, nb, 5);
 
           if i > 0 then
           begin
@@ -2332,8 +2312,6 @@ begin
                MatrixMtxVecMult( pY, eigData.yLineWidth, GenPtr( eigData.Y, 0, k + 1, eigData.yLineWidth ), pT, eigData.yLineWidth, eigData.tLineWidth, i, N - k - 1, -1, 1 );
           end;
           MatrixScaleAndAdd( pY, eigData.yLineWidth, 1, N - k - 1, 0, tau^ );
-
-          //s := WriteMtx(eigData.Y, eigData.yLineWidth, nb, 5);
 
           // compute T(1:i, i)
           if i > 0 then
@@ -2343,7 +2321,6 @@ begin
           end;
           pT := GenPtr(eigData.T, i, i, eigData.tLineWidth );
           pT^ := tau^;
-          //s := WriteMtx(T, LineWidthT, nb, nb);
 
           inc(tau);
      end;
@@ -2356,7 +2333,7 @@ begin
      // compute Y(1:K, 1:NB)
      MatrixCopy( eigData.Y, eigData.yLineWidth, GenPtr(A, 1, 0, LineWidthA ), LineWidthA, NB, k + 1);
      //s := WriteMtx(eigData.Y, eigData.yLineWidth, nb, 5);
-     MtxMultTria2LowerUnit( GenPtr(A, 0, k + 1, LineWidthA ), LineWidthA, eigData.Y, eigData.yLineWidth, NB, NB, NB, k + 1 );
+     MtxMultRightLowerTriaUnit( eigData.Y, eigData.yLineWidth, GenPtr(A, 0, k + 1, LineWidthA ), LineWidthA, NB, k + 1, NB, NB );
      //s := WriteMtx(eigData.Y, eigData.yLineWidth, nb, 5);
 //        IF( n.GT.k+nb )
 //      $   CALL dgemm( 'NO TRANSPOSE', 'NO TRANSPOSE', k,
@@ -2369,11 +2346,9 @@ begin
                                        GenPtr(A, 0, K + 1 + NB, LineWidthA),
                                        n - k - nb - 1, k + 1, nb, n - k - nb - 1,
                                        LineWidthA, LineWidthA,
-                                       HessMultBlockSize, doAdd, eigData.blkMultMem );
+                                       Min( eigData.blkMultSize, HessMultBlockSize), doAdd, eigData.blkMultMem );
 
-     //s := WriteMtx(eigData.Y, eigData.yLineWidth, nb, 5);
-     MtxMultTria2UpperNoUnit( eigData.T, eigData.tLineWidth, eigData.Y, eigData.yLineWidth, NB, NB, NB, K + 1 );
-     //s := WriteMtx(T, LineWidthT, nb, nb);
+     MtxMultRightUpperTriaNoUnit(eigData.Y, eigData.yLineWidth, eigData.T, eigData.tLineWidth, NB, k + 1, NB, NB);
 end;
 
 
@@ -2426,7 +2401,7 @@ begin
      //$                  IB, -ONE, WORK, LDWORK, A( I+IB, I ), LDA, ONE,
      //$                  A( 1, I+IB ), LDA )
           eigData.reflData.MatrixMultT2(pA2, LineWidthA, eigData.Y, pA1, ib, width, ib, width - i - ib,
-                                        eigData.yLineWidth, LineWidthA, HessMultBlockSize, doSub, eigData.blkMultMem );
+                                        eigData.yLineWidth, LineWidthA, Min( HessMultBlockSize, eigData.blkMultSize ), doSub, eigData.blkMultMem );
           pAib^ := ei;
 
           //s1 := WriteMtx(A, LineWidthA, 5, 5);
@@ -2438,7 +2413,7 @@ begin
           //CALL DTRMM( 'Right', 'Lower', 'Transpose',
 //     $                  'Unit', I, IB-1,
 //     $                  ONE, A( I+1, I ), LDA, WORK, LDWORK )
-          MtxMultLowTria2T2Store1(eigData.Y, eigData.yLineWidth,
+          MtxMultRightLowerTriaUnitT2(eigData.Y, eigData.yLineWidth,
                                   pA, LineWidthA, ib - 1, i + 1,
                                   ib - 1, ib - 1 );
 
@@ -2456,7 +2431,7 @@ begin
 //     $                   'Columnwise',
 //     $                   IHI-I, N-I-IB+1, IB, A( I+1, I ), LDA, T, LDT,
 //     $                   A( I+1, I+IB ), LDA, WORK, LDWORK )
-          ApplyBlockReflectorLTFC(pA, LineWidthA, eigData.reflData, width - i - ib, width - i - 1, ib, false);   // original dlarfb call is transposed but dlarfb reroutes to non transposed?!?
+          ApplyBlockReflectorLFC(pA, LineWidthA, eigData.reflData, width - i - ib, width - i - 1, ib, false);   // original dlarfb call is transposed but dlarfb reroutes to non transposed?!?
 
           //s1 := WriteMtx(A, LineWidthA, 5, 5);
 //          s2 := WriteMtx(pA, LineWidthA, 5, 5);
@@ -2481,7 +2456,7 @@ procedure MatrixQFromHessenbergDecomp(A : PDouble; const LineWidthA : TASMNative
 var i, j : TASMNativeInt;
     pAj : PConstDoubleArr;
 begin
-     // shift the vectors which define the elementary feflectors one column to the right
+     // shift the vectors which define the elementary reflectors one column to the right
      //
      pAj := PConstDoubleArr(A);
      pAj^[0] := 1;
@@ -2509,6 +2484,8 @@ begin
      FillChar(hessWork, sizeof(hessWork), 0 );
 
      hesswork.PnlSize := hessBlockSize;
+     hesswork.blkMultSize := Min( width, Max(QRMultBlockSize, HessMultBlockSize) );
+
      hessWork.work := MtxAllocAlign( EigMemSize(hesswork, width), hessWork.mem );
      hessWork.T := hessWork.work;
      hessWork.tLineWidth := sizeof(double)*hesswork.PnlSize;
@@ -2545,7 +2522,8 @@ begin
      FillChar(hessWork, sizeof(hessWork), 0 );
 
      hesswork.PnlSize := hessBlockSize;
-     hessWork.work := MtxAllocAlign( EigMemSize(hesswork, width) + (numCPUCores - 1)*BlockMultMemSize( Max(QRMultBlockSize, HessMultBlockSize) ), hessWork.mem );
+     hesswork.blkMultSize := Min( width, Max(QRMultBlockSize, HessMultBlockSize) );
+     hessWork.work := MtxAllocAlign( EigMemSize(hesswork, width) + (numCPUCores - 1)*BlockMultMemSize( hesswork.blkMultSize ), hessWork.mem );
      hessWork.T := hessWork.work;
      hessWork.tLineWidth := sizeof(double)*hesswork.PnlSize;
      // Y needs to point directly "under" T to work with the block reflectors
@@ -2583,11 +2561,12 @@ type
     Z : PDouble;
     LineWidthZ : TASMNativeInt;
     Tau : PConstDoubleArr;
-    //W : PDouble; // derrived from work used when createing the eigenvectors
     iWork : PIntegerArray;
     mem2 : Pointer;
     reflData : TBlockReflrec;
     nb : integer;
+    ApplyPlaneRotSeqRVB : TApplyPlaneRotSeqMatrix;
+    ApplyPlaneRotSeqRVF : TApplyPlaneRotSeqMatrix;
   end;
 
 // DLATRD
@@ -3046,7 +3025,6 @@ var eps1 : double;
     jtot : integer;
     l1 : integer;
     m : integer;
-    found : boolean;
     l : integer;
     lsv : integer;
     iScale : integer;
@@ -3058,7 +3036,6 @@ var eps1 : double;
     rte : double;
     rt1, rt2 : double;
     r, c, s, gamma : double;
-    d3 : double;
     alpha, oldgam, oldc, bb : double;
 const cMaxIter = 30;
 
@@ -3380,7 +3357,7 @@ end;
 // DSTEQR computes all eigenvalues and, optionally, eigenvectors of a
 // symmetric tridiagonal matrix using the implicit QL or QR method with option 'I'
 function InternalEigValEigVecFromSymTridiagMatrix( D, E : PConstDoubleArr; Z : PDouble;
- LineWidthZ : TASMNativeInt; N : TASMNativeInt; work : PConstDoubleArr ) : TEigenvalueConvergence;
+ LineWidthZ : TASMNativeInt; N : TASMNativeInt; const eigWork : TSymEigRec ) : TEigenvalueConvergence; overload;
 const cMaxIter = 30;
 var eps1 : double;
     eps2 : double;
@@ -3391,7 +3368,6 @@ var eps1 : double;
     pZ : PDouble;
     k, i, ii : Integer;
     nmaxit : integer;
-    sigma : double;
     jtot : integer;
     l1 : integer;
     m: Integer;
@@ -3405,6 +3381,7 @@ var eps1 : double;
     pW1, pW2 : PConstDoubleArr;
     b, f, g, r : double;
     j : Integer;
+    work : PConstDoubleArr;
 label
    L10, L30, L40, L60, L80, L90, L110, L130, L140, L160, L190;
 begin
@@ -3416,6 +3393,8 @@ begin
           Z^ := 1;
           exit;
      end;
+
+     work := PConstDoubleArr(eigWork.work);
 
      // ###########################################
      // #### Get machine constants
@@ -3552,7 +3531,7 @@ L60:
                pW1^[0] := c;
                pW2^[0] := s;
 
-               ApplyPlaneRotSeqRVB( 2, n, GenPtr(Z, l, 0, LineWidthZ), LineWidthZ,
+               eigWork.ApplyPlaneRotSeqRVB( 2, n, GenPtr(Z, l, 0, LineWidthZ), LineWidthZ,
                                     pW1, pW2 );
                 //CALL dlaev2( d( l ), e( l ), d( l+1 ), rt1, rt2, c, s )
 //                work( l ) = c
@@ -3611,8 +3590,8 @@ L60:
           // ###########################################
           // #### Apply rotations
            //mm = m - l + 1
-          ApplyPlaneRotSeqRVB( m - l + 1, n, GenPtr(Z, l, 0, LineWidthZ), LineWidthZ,
-                               pW1, pW2 );
+          eigWork.ApplyPlaneRotSeqRVB( m - l + 1, n, GenPtr(Z, l, 0, LineWidthZ), LineWidthZ,
+                                       pW1, pW2 );
 
           //   CALL dlasr( 'R', 'V', 'B', n, mm, work( l ), work( n-1+l ),
           //               z( 1, l ), ldz )
@@ -3668,8 +3647,8 @@ L110:
                pW1^[0] := c;
                pW2^[0] := s;
 
-               ApplyPlaneRotSeqRVF( 2, n, GenPtr(Z, l - 1, 0, LineWidthZ), LineWidthZ,
-                                    pW1, pW2 );
+               eigWork.ApplyPlaneRotSeqRVF( 2, n, GenPtr(Z, l - 1, 0, LineWidthZ), LineWidthZ,
+                                            pW1, pW2 );
                 //CALL dlaev2( d( l ), e( l ), d( l+1 ), rt1, rt2, c, s )
 //                work( l ) = c
 //                work( n-1+l ) = s
@@ -3727,8 +3706,8 @@ L110:
 
           // ###########################################
           // #### Apply rotations to form Eigenvectors
-          ApplyPlaneRotSeqRVF( l - m + 1, n, GenPtr(Z, m, 0, LineWidthZ), LineWidthZ,
-                               pW1, pW2 );
+          eigWork.ApplyPlaneRotSeqRVF( l - m + 1, n, GenPtr(Z, m, 0, LineWidthZ), LineWidthZ,
+                                       pW1, pW2 );
 
           d^[l] := d^[l] - p;
           e^[l - 1] := g;
@@ -3796,6 +3775,21 @@ L160:
      end;
 end;
 
+function InternalEigValEigVecFromSymTridiagMatrix( D, E : PConstDoubleArr; Z : PDouble;
+ LineWidthZ : TASMNativeInt; N : TASMNativeInt; Work : PConstDoubleArr ) : TEigenvalueConvergence; overload;
+var eigWork : TSymEigRec;
+begin
+     eigWork.work := PDouble(Work);
+     eigWork.reflData.MatrixMultT1 := {$IFDEF FPC}@{$ENDIF}MatrixMultT1Ex;
+     eigWork.reflData.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}MatrixMultT2Ex;
+     eigWork.reflData.MatrixMultEx := {$IFDEF FPC}@{$ENDIF}MatrixMultEx;
+     eigWork.ApplyPlaneRotSeqRVB := {$IFDEF FPC}@{$ENDIF}ApplyPlaneRotSeqRVB;
+     eigWork.ApplyPlaneRotSeqRVF := {$IFDEF FPC}@{$ENDIF}ApplyPlaneRotSeqRVF;
+
+     Result := InternalEigValEigVecFromSymTridiagMatrix(D, E, Z, LineWidthZ, N, eigWork);
+end;
+
+(*
 // dlaeda
 procedure InternalCreateZMerge( N, tlvls, curlvl, curpbm : TASMNativeInt;
   prmptr, perm, givptr : PIntegerArray; givcol : PIntegerArray; givNum : PConstDoubleArr; Q : PConstDoubleArr; QPtr : PIntegerArray;
@@ -3845,6 +3839,8 @@ begin
 
 
 end;
+
+
 
 // dlaed7.f
 function InternalMergeEigSys(N, QSiz, tlvls, curlvl, curpbm : TASMNativeInt;
@@ -4068,7 +4064,7 @@ begin
      // #### Sort
 
 
-end;
+end; *)
 
 // DSTEDC computes all eigenvalues and, optionally, eigenvectors of a
 // symmetric tridiagonal matrix using the divide and conquer method.
@@ -4078,13 +4074,13 @@ end;
 // DSTEDC in netlib with option 'I'
 function InternalEigValEigVecFromSymTridiagMatrixDivedConquer( D, E : PConstDoubleArr; Z : PDouble; LineWidthZ : TASMNativeInt; N : TASMNativeInt;
   const eigWork : TSymEigRec ) : TEigenvalueConvergence;
-var start, fin : TASMNativeInt;
-    pStoreZ : PDouble;
-    LineWidthStoreZ : TASMNativeInt;
-    tiny : double;
-    m : TASMNativeInt;
-    pZ : PDouble;
-    orgNorm : double;
+//var start, fin : TASMNativeInt;
+//    pStoreZ : PDouble;
+//    LineWidthStoreZ : TASMNativeInt;
+//    tiny : double;
+//    m : TASMNativeInt;
+//    pZ : PDouble;
+//    orgNorm : double;
 begin
      Result := qlOk;
 
@@ -4102,13 +4098,14 @@ begin
      // #### do not use the divide an conquer algorithm for small sized matrices
      //if N <= cSymEigSmallSize then
 
-     // code is not ready yet for the divide and conquer algorithm
+     // code is not yet ready for the divide and conquer algorithm
      if True then
      begin
-          Result := InternalEigValEigVecFromSymTridiagMatrix( D, E, Z, LineWidthZ, N, PConstDoubleArr( eigWork.work ) );
+          Result := InternalEigValEigVecFromSymTridiagMatrix( D, E, Z, LineWidthZ, N, eigWork );
           exit;
      end;
 
+     {
      LineWidthStoreZ := N*sizeof(double);
      pStoreZ := GenPtr( eigWork.work, 0, N, LineWidthZ);
 
@@ -4176,33 +4173,43 @@ begin
      // ###########################################
      // #### Sorting...
 
-
+      }
 end;
 
 
 // dlarft backward columnwise
 procedure CreateTMtxBC(n, k : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
-  Tau : PDouble; reflData : TBlockReflrec);
+  Tau : PConstDoubleArr; reflData : TBlockReflrec);
 var i, j : TASMNativeInt;
     pT : PDouble;
     pA1 : PDouble;
-    pDest : PDouble;
-    pT1 : PConstdoubleArr;
-    pt2 : PDouble;
-    x, y : TASMNativeInt;
-    tmp : Double;
     pAij : PDouble;
+    prevLastA : TASMNativeInt;
+    lastA : TASMNativeInt;
+    k1 : TASMNativeInt;
+    nki : TASMNativeInt;
+    pcAij : PConstDoubleArr;
 begin
      assert(k <= n, 'Error k needs to be smaller than n');
 
-     // it is assumed that mem is a memory block of at least (n, k) where the first (k, k) elements are reserved for T
-     for i := 0 to k - 1 do
+     // A kxn matrix (k = width)
+     // T: kxk triangular factor
+
+     prevLastA := 0;
+     k1 := k - 1;
+     nki := n;  // n - k + i -> i starts from k
+
+     for i := k1 downto 0 do
      begin
-          if Tau^ = 0 then
+          dec(nki);
+          if Tau^[i] = 0 then
           begin
                // H = I
-               pT := reflData.T;
-               for j := 0 to i do
+               // DO j = i, k
+               //    t( j, i ) = zero
+               // END DO
+               pT := GenPtr(reflData.T, i, i, reflData.LineWidthT);
+               for j := i to k1 do
                begin
                     pT^ := 0;
                     inc(PByte(pT), reflData.LineWidthT);
@@ -4211,121 +4218,145 @@ begin
           else
           begin
                // general case
-
-               // T(1:i-1,i) := - tau(i) * V(1:i-1,i:j) * V(i,i:j)**T
-               pT := GenPtr(reflData.T, i, 0, reflData.LineWidthT );
-               pAij := GenPtr(A, i, 0, LineWidthA);
-               for j := 0 to i - 1 do
+               lastA := 0;
+               if i < k1 then
                begin
-                    pT^ := -tau^*pAij^;
-                    inc(PByte(pT), reflData.LineWidthT);
-                    inc(PByte(pAij), LineWidthA);
-               end;
+                    // DO lastv = 1, i-1
+                    //     IF( v( lastv, i ).NE.zero ) EXIT
+                    //  END DO
 
-               pA1 := GenPtr(A, i + 1, 0, LineWidthA);
-               pAij := GenPtr(A, i + 1, i, LineWidthA);
-               pT := GenPtr(reflData.T, i, 0, reflData.LineWidthT );
-               MatrixMtxVecMult(pT, reflData.LineWidthT, pA1, pAij, LineWidthA, sizeof(double), n - i - 1, i, -tau^, 1 );
-          end;
-
-          if i > 0 then
-          begin
-               pDest := reflData.T;
-               inc(pDest, i);
-               for y := 0 to i - 1 do
-               begin
-                    pT1 := PConstdoubleArr(GenPtr(reflData.T, 0, y, reflData.LineWidthT));
-                    pT2 := pDest;
-                    tmp := 0;
-                    for x := y to i - 1 do
+                    pAij := GenPtr(A, i, 0, LineWidthA);
+                    while (pAij^ = 0) and (lastA < i - 1) do
                     begin
-                         tmp := tmp + pT1^[x]*pT2^;
-                         inc(PByte(pT2), reflData.LineWidthT);
+                         inc(lastA);
+                         inc(PByte(pAij), LineWidthA);
                     end;
 
-                    pDest^ := tmp;
-                    inc(PByte(pDest), reflData.LineWidthT);
+                    // T(i+1:k,i) = -tau(i) * V(j:n-k+i,i+1:k)**T * V(j:n-k+i,i)
+
+                    (*  DIRECT = 'B' and STOREV = 'C':         DIRECT = 'B' and STOREV = 'R': */
+
+/*               V = ( v1 v2 v3 )     k x n
+/*                   ( v1 v2 v3 )
+/*                   (  1 v2 v3 )
+/*                   (     1 v3 )
+/*                   (        1 ) *)
+
+
+                    // loop to get the
+                    // DO j = i+1, k
+                    //     t( j, i ) = -tau( i ) * v( n-k+i , j )
+                    //  END DO
+                    //  j = max( lastv, prevlastv )
+                    pT := GenPtr( reflData.T, i, i + 1, reflData.LineWidthT);
+                    pcAij := GenPtrArr(A, 0, nki, LineWidthA);
+                    for j := i + 1 to k1 do
+                    begin
+                         pT^ := -tau^[i]*pcAij^[j];
+                         inc(PByte(pT), reflData.LineWidthT);
+                    end;
+
+                    j := Max(lastA, prevLastA);
+
+                    pT := GenPtr(reflData.T, i, i + 1, reflData.LineWidthT);
+                    pA1 := GenPtr(A, i + 1, j, LineWidthA);
+                    pAij := GenPtr(A, i, j, LineWidthA);
+                    // h = n - k + i - j, w = k - i
+
+                    // CALL dgemv( 'Transpose', n-k+i-j, k-i, -tau( i ),
+ //     $                           v( j, i+1 ), ldv, v( j, i ), 1, one,
+ //     $                           t( i+1, i ), 1 )
+                    MatrixMTxVecMultT( pT, reflData.LineWidthT, pA1, pAij, LineWidthA, LineWidthA,
+                                       k1 - i, nki - j, -tau^[i], 1.0 );
+
+                    // t(i + 1:k, i) := T(i + 1:k, i+1:k) * T(i + 1:k, i)
+                    // CALL dtrmv( 'Lower', 'No transpose', 'Non-unit', k-i,
+          // $                        t( i+1, i+1 ), ldt, t( i+1, i ), 1 )
+                    MtxMultLowNoTranspNoUnitVec(GenPtr(reflData.T, i + 1, i + 1, reflData.LineWidthT),
+                                                reflData.LineWidthT,
+                                                pT, reflData.LineWidthT, k1 - i );
+
+                    if i > 0
+                    then
+                        prevLastA := Min(prevLastA, lastA)
+                    else
+                        prevLastA := lastA;
                end;
+
+               pT := GenPtr(reflData.T, i, i, reflData.LineWidthT);
+               pT^ := Tau^[i];
           end;
-
-          pT := GenPtr(reflData.T, i, i, reflData.LineWidthT);
-          pT^ := Tau^;  // fill in last Tau
-
-          inc(Tau);
      end;
 end;
 
-
-
-////          CALL dormtr( 'L', uplo, 'N', n, n, a, lda, work( indtau ),
-//                       work( indwrk ), n, work( indwk2 ), llwrk2, iinfo )
-// uplo = 'U'
-
 // is actually dormQL
 procedure InternalEiVecFromQLeftUpperTranspose( A : PDouble; LineWidthA : TASMNativeInt; tau : PConstDoubleArr;
-                                       C : PDouble; LineWidthC : TASMNativeInt; lwork : PDouble;
-                                       lworkLen : TASMNativeInt;
+                                       C : PDouble; LineWidthC : TASMNativeInt;
                                        m, n : TASMNativeInt; const eigWork : TSymEigRec);
 var k : TASMNativeInt;
     pAii : PDouble;
+    pAi0 : PDouble;
     aii : double;
     i : Integer;
-    ib : integer;
     mi : integer;
+const cNBMin = 2;
 begin
-     k := n - 1;
+     // from input A is nxn ->
+     // A is dimension wxh = kxm after increment
+     k := m - 1;
      m := m - 1;
 
      if (m <= 0) or (n <= 1) then
         exit;
 
+
      // a(1, 2)
      inc(A);
 
-     // unblocked code
-     if eigWork.nb <= k then
+     i := 0;
+
+     // ###########################################
+     // #### Blocked part
+     if eigWork.nb > cNBMin then
      begin
-          // dorm2l
-          for i := 0 to k - 1 do
+          while i + eigWork.nb + 1 < k do
           begin
-               pAii := GenPtr( A, i, m - k + i, LineWidthA);
-               aii := pAii^;
-               pAii^ := 1;
-               ApplyElemHousholderReflLeft( GenPtr( A, i, 0, LineWidthA),
-                                            LineWidthA,
-                                            C, LineWidthC, n, m - k + i + 1,
-                                            @tau[i], lwork );
-               pAii^ := aii;
-
-          end;
-     end
-     else
-     begin
-          i := 0;
-
-          while i < k do
-          begin
-               ib := Min( eigWork.nb, k - i + 1 );
-
                // form triangular factor
-               CreateTMtxBC( m - k + i + ib, ib, GenPtr(A, i, 0,
-                             LineWidthA), LineWidthA,
+               // nq = m
+               // nw = n
+               // mi = m - k  + i + ib - 1
+               // k = ib
+               // ni = n
+               mi := m - k + i + eigWork.nb;
+               pAi0 := GenPtr(A, i, 0, LineWidthA);
+               CreateTMtxBC( mi, eigWork.nb, pAi0, LineWidthA,
                              @tau^[i], eigWork.reflData);
 
-               mi := m - k + i + ib;
                // apply the T matrix..
-               ApplyBlockReflectorLNTBC( GenPtr(A, i, 0, LineWidthA ), LineWidthA,
-                                         C, LineWidthC,
-                                         eigWork.work, eigWork.nb*SizeOf(double),
-                                         n, mi, ib, False, eigWork.reflData );
+               ApplyBlockReflectorLBC( pAi0, LineWidthA,
+                                       C, LineWidthC,
+                                       eigWork.work, eigWork.LineWidthWork,
+                                       n, mi, eigWork.nb, True, eigWork.reflData );
 
                inc(i, eigWork.nb);
           end;
      end;
 
-     // http://www.netlib.org/lapack/explore-html/da/dba/group__double_o_t_h_e_rcomputational_ga3654a5cee1f608135f7b32d7aa89a1d9.html#ga3654a5cee1f608135f7b32d7aa89a1d9
-     // http://www.netlib.org/lapack/explore-html/da/dba/group__double_o_t_h_e_rcomputational_ga588ea8b3bfba2c824be6cf3b89b4a226.html#ga588ea8b3bfba2c824be6cf3b89b4a226
-     // http://www.netlib.org/lapack/explore-html/d8/d9b/group__double_o_t_h_e_rauxiliary_ga39a2b39f56ce497b218c5f48339ee712.html#ga39a2b39f56ce497b218c5f48339ee712
+     // ###########################################
+     // #### Unblocked part
+     while i < k do
+     begin
+          pAii := GenPtr( A, i, m - k + i, LineWidthA);
+          aii := pAii^;
+          pAii^ := 1;
+          pAi0 := GenPtr(A, i, 0, LineWidthA);
+          ApplyElemHousholderReflLeft( pAi0, LineWidthA,
+                                       C, LineWidthC, n, m - k + i + 1,
+                                       @tau[i], eigWork.work );
+          pAii^ := aii;
+
+          inc(i);
+     end;
 end;
 
 // calculates Eigenvalues and optionally Eigenvectors from a symmetric
@@ -4370,7 +4401,7 @@ begin
      bignum := 1/smallnum;
 
      // ###########################################
-     // #### Scale to machine
+     // #### Scale to machine precission
      mtxMax := MatrixAbsMaxUpper(A, N, LineWidthA);
      doScale := False;
 
@@ -4412,7 +4443,7 @@ begin
           if Result = qlOk then
           begin
                InternalEiVecFromQLeftUpperTranspose( A, LineWidthA, eigWork.Tau, eigWork.Z, eigWork.LineWidthZ,
-                                            eigWork.work, eigWork.nb*N, N, N, eigWork );
+                                            N, N, eigWork );
                MatrixCopy( A, LineWidthA, eigWork.Z, eigWork.LineWidthZ, N, N );
           end;
      end;
@@ -4437,7 +4468,7 @@ begin
 
      if EigValOnly then
      begin
-          eigWork.E := MtxAllocAlign( blockSize*N*sizeof(double) +  // nb*N for reduction of symmetric to tridiagonal
+          eigWork.E := MtxAllocAlign( eigWork.nb*N*sizeof(double) +  // nb*N for reduction of symmetric to tridiagonal
                                       2*(N - 1)*sizeof(double),      // Tau + E
                                       eigWork.mem); // tau + E + work
           eigWork.LineWidthWork := eigWork.nb*sizeof(double);
@@ -4447,7 +4478,7 @@ begin
      else
      begin
           //workSize := 1 + 3*N + 2*N*Max(1, ceil( Log2( N ) ) ) + 4*N*N;
-          workSize := blockSize*N + 2*(N - 1) + N*N + 2*N;
+          workSize := eigWork.nb*eigWork.nb + eigWork.nb*N + 2*(N - 1) + N*N + 2*N;
 
          // iworkSize := 6 + 6*N + 5*N*ceil( Log2(N) );
          // iworkSize := iWorkSize + (iWorkSize and 1);
@@ -4464,20 +4495,20 @@ begin
           eigWork.iWork := PIntegerArray( GenPtr(eigWork.Z, 0, N, eigWork.LineWidthZ) );
 
           eigWork.work := PDouble( eigWork.iWork );
-          inc( PInteger(eigWork.work), iWorkSize );  // nb*N + N*N bytes left. nb*N is also used in InternalEigValEigVecFromSymTridiagMatrix
-
-          eigWork.reflData.blkMultSize := BlockedMatrixMultSize;
-          eigWork.reflData.blkMultMem := MtxAllocAlign(sqr(eigWork.reflData.blkMultSize)*
-                                                       sizeof(double), eigWork.mem2);
-
-          eigWork.reflData.T := eigWork.work;
+          inc( PInteger(eigWork.work), iWorkSize );  // nb*N bytes left. nb*N is also used in InternalEigValEigVecFromSymTridiagMatrix
+          eigWork.LineWidthWork := eigWork.nb*sizeof(double);
+          eigWork.reflData.T := GenPtr(eigWork.work, 0, N, eigWork.LineWidthWork);
           eigWork.reflData.LineWidthT := eigWork.nb*sizeof(double);
+
+          eigWork.reflData.blkMultSize := Min( N, QRMultBlockSize );
+          eigWork.reflData.blkMultMem := MtxAllocAlign(BlockMultMemSize(eigWork.reflData.blkMultSize), eigWork.mem2);
      end;
 
      eigWork.reflData.MatrixMultT1 := {$IFDEF FPC}@{$ENDIF}MatrixMultT1Ex;
      eigWork.reflData.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}MatrixMultT2Ex;
      eigWork.reflData.MatrixMultEx := {$IFDEF FPC}@{$ENDIF}MatrixMultEx;
-
+     eigWork.ApplyPlaneRotSeqRVB := {$IFDEF FPC}@{$ENDIF}ApplyPlaneRotSeqRVB;
+     eigWork.ApplyPlaneRotSeqRVF := {$IFDEF FPC}@{$ENDIF}ApplyPlaneRotSeqRVF;
 
      // ###########################################
      // #### Eigenvalue calculation
@@ -4489,5 +4520,202 @@ begin
                FreeMem(eigWork.mem2);
      end;
 end;
+
+// ###########################################
+// #### Threaded symmetric eigenvalue functions
+// ###########################################
+
+type
+  TMatrixRotateRec = record
+    Width, Height : TASMNativeInt;
+    A : PDouble;
+    LineWidthA : TASMNativeInt;
+    C, S : PConstDoubleArr;
+
+    procedure Create( aWidth, aHeight : TASMNativeInt; aA : PDouble; const aLineWidthA : TASMNativeInt; cC, cS : PConstDoubleArr);
+  end;
+  PMatrixRotateRec = ^TMatrixRotateRec;
+
+procedure TMatrixRotateRec.Create( aWidth, aHeight : TASMNativeInt; aA : PDouble; const aLineWidthA : TASMNativeInt; cC, cS : PConstDoubleArr);
+begin
+     width := aWidth;
+     Height := aHeight;
+     A := aA;
+     LineWidthA := aLineWidthA;
+     C := cC;
+     S := cS;
+end;
+
+procedure ThrApplyPlaneRotSeqRVBFunc( obj : Pointer);
+begin
+     with PMatrixRotateRec(obj)^ do
+     begin
+          if (Width > 0) and (Height > 0) then
+             ApplyPlaneRotSeqRVB(width, height, A, LineWidthA, C, S);
+     end;
+end;
+
+procedure ThrApplyPlaneRotSeqRVFFunc( obj : Pointer);
+begin
+     with PMatrixRotateRec(obj)^ do
+     begin
+          if (Width > 0) and (Height > 0) then
+             ApplyPlaneRotSeqRVF(width, height, A, LineWidthA, C, S);
+     end;
+end;
+
+procedure ThrApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+var obj : TMatrixRotateRec;
+    objs : Array[0..cMaxNumCores - 1] of TMatrixRotateRec;
+    numUsed : integer;
+    calls : IMtxAsyncCallGroup;
+    counter: TASMNativeInt;
+    h : TASMNativeInt;
+begin
+     //numUsed := numCPUCores - 1;
+     numUsed := numRealCores;
+
+     if numRealCores = numCPUCores then
+        dec(numUsed);
+
+     // check if threading is speeding up the process
+     if (numUsed < 2) or (Width*Height < 8*numUsed) then
+     begin
+          obj.Create(Width, height, A, LineWidthA, C, S );
+
+          ThrApplyPlaneRotSeqRVBFunc(@obj);
+          exit;
+     end;
+
+     h := height div numUsed;
+     for counter := 0 to numUsed - 1 do
+     begin
+          objs[counter].Create(width, h, A, LineWidthA, C, S);
+          objs[counter].A := GenPtr(A, 0, counter*h, LineWidthA);
+     end;
+
+     objs[numUsed - 1].height := height - (numUsed - 1)*h;
+
+     calls := MtxInitTaskGroup;
+     for counter := 0 to numUsed - 2 do
+         calls.AddTaskRec({$IFDEF FPC}@{$ENDIF}ThrApplyPlaneRotSeqRVBFunc, @objs[counter]);
+     ThrApplyPlaneRotSeqRVBFunc(@objs[numUsed - 1]);
+     calls.SyncAll;
+end;
+
+procedure ThrApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+var obj : TMatrixRotateRec;
+    objs : Array[0..cMaxNumCores - 1] of TMatrixRotateRec;
+    numUsed : integer;
+    calls : IMtxAsyncCallGroup;
+    counter: TASMNativeInt;
+    h : TASMNativeInt;
+begin
+     //numUsed := numCPUCores - 1;
+     numUsed := numRealCores;
+
+     if numRealCores = numCPUCores then
+        dec(numUsed);
+
+     // check if threading is speeding up the process
+     if (numUsed < 2) or (Width*Height < 8*numUsed) then
+     begin
+          obj.Create(Width, height, A, LineWidthA, C, S );
+
+          ThrApplyPlaneRotSeqRVFFunc(@obj);
+          exit;
+     end;
+
+     h := height div numUsed;
+     for counter := 0 to numUsed - 1 do
+     begin
+          objs[counter].Create(width, h, A, LineWidthA, C, S);
+          objs[counter].A := GenPtr(A, 0, counter*h, LineWidthA);
+     end;
+
+     objs[numUsed - 1].height := height - (numUsed - 1)*h;
+
+     calls := MtxInitTaskGroup;
+     for counter := 0 to numUsed - 2 do
+         calls.AddTaskRec({$IFDEF FPC}@{$ENDIF}ThrApplyPlaneRotSeqRVFFunc, @objs[counter]);
+     ThrApplyPlaneRotSeqRVFFunc(@objs[numUsed - 1]);
+     calls.SyncAll;
+end;
+
+function ThrMtxEigUpperSymmetricMatrixInPlace2(A : PDouble; LineWidthA : TASMNativeInt; N : TASMNativeInt; W : PConstDoubleArr; EigValOnly : boolean; blockSize : integer ) : TEigenvalueConvergence;
+var eigWork : TSymEigRec;
+    iworkSize : TASMNativeInt;
+    workSize : TASMNativeInt;
+begin
+     // ###########################################
+     // #### For small matrices don't use the threaded version
+     if N < 64 then
+     begin
+          Result := MatrixEigUpperSymmetricMatrixInPlace2(A, LineWidthA, N, W, EigValOnly, blockSize);
+          exit;
+     end;
+
+     // ###########################################
+     // #### Initialize memory
+     FillChar(eigWork, sizeof(eigWork), 0);
+
+     eigWork.nb := Min(N, Max(2, blockSize));
+     eigWork.D := PConstDoubleArr(W);
+
+     if EigValOnly then
+     begin
+          eigWork.E := MtxAllocAlign( eigWork.nb*N*sizeof(double) +  // nb*N for reduction of symmetric to tridiagonal
+                                      2*(N - 1)*sizeof(double),      // Tau + E
+                                      eigWork.mem); // tau + E + work
+          eigWork.LineWidthWork := eigWork.nb*sizeof(double);
+          eigWork.tau := GenPtrArr(PDouble(eigWork.E), N - 1, 0, 0);
+          eigWork.work := GenPtr( PDouble(eigWork.Tau), N - 1, 0, 0);
+     end
+     else
+     begin
+          //workSize := 1 + 3*N + 2*N*Max(1, ceil( Log2( N ) ) ) + 4*N*N;
+          workSize := eigWork.nb*eigWork.nb + eigWork.nb*N + 2*(N - 1) + N*N + 2*N;
+
+         // iworkSize := 6 + 6*N + 5*N*ceil( Log2(N) );
+         // iworkSize := iWorkSize + (iWorkSize and 1);
+          iWorkSize := 0; // not yet implemented
+          eigWork.E := MtxAllocAlign( workSize*sizeof(double) +  // maximum work size
+                                      iworkSize*sizeof(integer) //+ // iwork
+                                      //(1 + 3*N + N*N )*sizeof(double), // Tau, E, Z
+                                      ,eigWork.mem);
+          eigWork.tau := GenPtrArr(PDouble(eigWork.E), N - 1, 0, 0);
+
+          eigWork.LineWidthZ := N*sizeof(double);
+          eigWork.Z := GenPtr( PDouble(eigWork.tau), N - 1, 0, 0);
+
+          eigWork.iWork := PIntegerArray( GenPtr(eigWork.Z, 0, N, eigWork.LineWidthZ) );
+
+          eigWork.work := PDouble( eigWork.iWork );
+          inc( PInteger(eigWork.work), iWorkSize );  // nb*N bytes left. nb*N is also used in InternalEigValEigVecFromSymTridiagMatrix
+          eigWork.LineWidthWork := eigWork.nb*sizeof(double);
+          eigWork.reflData.T := GenPtr(eigWork.work, 0, N, eigWork.LineWidthWork);
+          eigWork.reflData.LineWidthT := eigWork.nb*sizeof(double);
+
+          eigWork.reflData.blkMultSize := Min( N, QRMultBlockSize );
+          eigWork.reflData.blkMultMem := MtxAllocAlign(numCPUCores*BlockMultMemSize(eigWork.reflData.blkMultSize), eigWork.mem2);
+     end;
+
+     eigWork.reflData.MatrixMultT1 := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultT1Ex;
+     eigWork.reflData.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultT2Ex;
+     eigWork.reflData.MatrixMultEx := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultEx;
+     eigWork.ApplyPlaneRotSeqRVB := {$IFDEF FPC}@{$ENDIF}ThrApplyPlaneRotSeqRVB;
+     eigWork.ApplyPlaneRotSeqRVF := {$IFDEF FPC}@{$ENDIF}ThrApplyPlaneRotSeqRVF;
+
+     // ###########################################
+     // #### Eigenvalue calculation
+     try
+        Result := InternalSymEigValUpper(A, LineWidthA, N, EigValOnly, eigWork);
+     finally
+            FreeMem(eigWork.mem);
+            if eigWork.mem2 <> nil then
+               FreeMem(eigWork.mem2);
+     end;
+end;
+
 
 end.

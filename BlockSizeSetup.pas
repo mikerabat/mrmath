@@ -38,6 +38,7 @@ var BlockedMatrixMultSize : integer = 512;   // used to get a threshold on how t
     SVDBlockSize : integer = 32;
     HessBlockSize : integer = 32;
     HessMultBlockSize : integer = 128;
+    SymEigBlockSize : integer = 32;
 
 // checks when first applying a transpose operation is better for the multiplication
 procedure SetupOptBlockMatrixSize;

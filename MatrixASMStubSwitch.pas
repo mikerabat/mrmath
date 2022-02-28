@@ -88,43 +88,48 @@ procedure MatrixMultT2Ex(dest : PDouble; const destLineWidth : TASMNativeInt; mt
 procedure MatrixMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
   // mt1 = mt1*mt2'; where mt2 is an upper triangular matrix
-procedure MtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
-// mt1 = mt1*mt2; where mt2 is an upper triangular matrix
-procedure MtxMultTria2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
 // W = V1'*T -> V1 is an upper triangular matrix with assumed unit diagonal entries. Operation on V1 transposition
 procedure MtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
-// calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be 1!
-procedure MtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+
+// mt1 = mt1*mt2' where mt2 is an upper triangular matrix with non unit diagonal elements
+procedure MtxMultRightUpperTriaNoUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
-// calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are non unit!
-procedure MtxMultLowTria2T2NoUnitStore1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+// mt1 = mt1*mt2; where mt2 is an upper triangular matrix with non unit diagonal elements
+procedure MtxMultRightUpperTriaNoUnit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 // mt1 = mt1*mt2; where mt2 is an upper triangular matrix - diagonal elements are unit
-procedure MtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure MtxMultRightUpperTriaUnit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
-  
-// performs mt2 = mt2*mt1 where mt1 is an upper triangular matrix with non unit elements in the diagonal
-procedure MtxMultTria2UpperNoUnit( mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+// mt1 = mt1*mt2' where mt2 is an upper triangular matrix with unit diagonal elements
+procedure MtxMultRightUpperTriaUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
-// performs mt2 = mt2*mt1 where mt1 is an lower triangular matrix with unit elements in the diagonal
-procedure MtxMultTria2LowerUnit( mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+
+
+// calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be 1!
+procedure MtxMultRightLowerTriaUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+// calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are non unit!
+procedure MtxMultRightLowerTriaNoUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+// performs mt1 = mt1*mt2 where mt2 is an lower triangular matrix with non unit elements in the diagonal
+procedure MtxMultRightLowerTriaNoUnit( mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+// performs mt1 = mt1*mt2 where mt2 is an lower triangular matrix with unit elements in the diagonal
+procedure MtxMultRightLowerTriaUnit( mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 
 
 // calculates  x = mt1'*x where x is a vector and mt1 an upper triangular (len x len) matrix with non unit elements in the diagonal
 procedure MtxMultUpTranspNoUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; IncX : TASMNativeInt; len : TASMNativeInt);
-
 // calculates x = mt1'*x where x is a vector and mt1 an lower triangular (len x len) matrix with unit elements in the diagonal
 procedure MtxMultLowTranspUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; IncX : TASMNativeInt; len : TASMNativeInt);
-
 // calculates x = mt1*x where x is a vector and mt1 is a lower triangular (len x len) matrix with unit elements in the diagonal
 procedure MtxMultLowNoTranspUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; IncX : TASMNativeInt; len : TASMNativeInt);
-
 // calculates x = mt1*x where x is a vector and mt1 is an upper triangular (len x len) matrix with non unit elements in the diagonal
 procedure MtxMultUpNoTranspNoUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; incX : TASMNativeInt; len : TASMNativeInt);
+// calculates x = mt1*x where x is a vector and mt1 is a lower triangular (len x len) matrix with unit elements in the diagonal
+procedure MtxMultLowNoTranspNoUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; IncX : TASMNativeInt; len : TASMNativeInt);
 
 
 
@@ -377,17 +382,19 @@ var multFunc : TMatrixMultFunc;
     blockedMultT2Func : TMatrixBlockedMultfunc;
     multT2Func : TMatrixMultFunc;
     multTria2T1Func : TMatrixMultTria2T1;
-    multTria2TUpperFunc : TMatrixMultTria2T1;
-    multTria2T1StoreT1Func : TMatrixMultTriaStoreT1;
-    multLowTria2T2Store1Func : TMatrixMultTriaStoreT1;
-    multLowTria2T2NoUnitStore1Func : TMatrixMultTriaStoreT1;
-    multTria2Store1Func : TMatrixMultTriaStoreT1;
-    multTria2Store1UnitFunc : TMatrixMultTriaStoreT1;
-    multTria2UpperNoUnitFunc : TMatrixMultTriaStoreT1;
-    multTria2LowerUnitFunc : TMatrixMultTriaStoreT1;
+    multTria2TUpperUnitFunc : TMatrixMultTria2T1;
+    multRightUpperTriaNoUnitT2Func : TMatrixMultTriaStoreT1;
+    multRightLowerTriaUnitT2Func : TMatrixMultTriaStoreT1;
+    multRightUpperTriaUnitT2Func : TMatrixMultTriaStoreT1;
+    multRightLowerTriaNoUnitT2Func : TMatrixMultTriaStoreT1;
+    multRightUpperTriaNoUnitFunc : TMatrixMultTriaStoreT1;
+    multRightUpperTriaUnitFunc : TMatrixMultTriaStoreT1;
+    multRightLowerTriaUnitFunc : TMatrixMultTriaStoreT1;
+    multRightLowerTriaNoUnitFunc : TMatrixMultTriaStoreT1;
     multUpTranspNoUnitVecFunc : TMatrixMultVecTriaStoreX;
     multLowTranspUnitVecFunc : TMatrixMultVecTriaStoreX;
     multLowNoTranspUnitVecFunc : TMatrixMultVecTriaStoreX;
+    multLowNoTranspNoUnitVecFunc : TMatrixMultVecTriaStoreX;
     multUpNoTranspNoUnitVecFunc : TMatrixMultVecTriaStoreX;
     MtxVecMultFunc : TMatrixVecMultFunc;
     MtxVecMultTFunc : TMatrixVecMultFunc;
@@ -804,52 +811,58 @@ begin
      multTria2T1Func(dest, LineWidthDest, mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
 end;
 
-procedure MtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure MtxMultRightUpperTriaNoUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 begin
-     multTria2T1StoreT1Func(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
+     multRightUpperTriaNoUnitT2Func(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
 end;
 
-procedure MtxMultTria2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure MtxMultRightUpperTriaNoUnit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 begin
-     multTria2Store1Func(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
+     multRightUpperTriaNoUnitFunc(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
 end;
 
 procedure MtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 begin
-     multTria2TUpperFunc(dest, LineWidthDest, mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
+     multTria2TUpperUnitFunc(dest, LineWidthDest, mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
 end;
 
-procedure MtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure MtxMultRightLowerTriaUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 begin
-     multLowTria2T2Store1Func(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
+     multRightLowerTriaUnitT2Func(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
 end;
 
-procedure MtxMultLowTria2T2NoUnitStore1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure MtxMultRightUpperTriaUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 begin
-     multLowTria2T2NoUnitStore1Func(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
+     multRightUpperTriaUnitT2Func(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
 end;
 
-procedure MtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure MtxMultRightLowerTriaNoUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 begin
-     multTria2Store1UnitFunc(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
+     multRightLowerTriaNoUnitT2Func(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
 end;
 
-procedure MtxMultTria2UpperNoUnit( mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure MtxMultRightUpperTriaUnit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 begin
-     multTria2UpperNoUnitFunc(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
+     multRightUpperTriaUnitFunc(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
 end;
 
-procedure MtxMultTria2LowerUnit( mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure MtxMultRightLowerTriaUnit( mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 begin
-     multTria2LowerUnitFunc(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
+     multRightLowerTriaUnitFunc(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
+end;
+
+procedure MtxMultRightLowerTriaNoUnit( mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+begin
+     multRightLowerTriaNoUnitFunc(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
 end;
 
 procedure MtxMultUpTranspNoUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; IncX : TASMNativeInt; len : TASMNativeInt);
@@ -866,6 +879,12 @@ procedure MtxMultLowNoTranspUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; 
 begin
      multLowNoTranspUnitVecFunc(mt1, LineWidth1, x, incX, len);
 end;
+
+procedure MtxMultLowNoTranspNoUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; IncX : TASMNativeInt; len : TASMNativeInt);
+begin
+     multLowNoTranspNoUnitVecFunc(mt1, LineWidth1, x, incX, len);
+end;
+
 
 procedure MtxMultUpNoTranspNoUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; incX : TASMNativeInt; len : TASMNativeInt);
 begin
@@ -927,7 +946,7 @@ end;
 procedure MatrixUpperSymRank2Update( C : PDouble; LineWidthC : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
   B : PDouble; LineWidthB : TASMNativeInt; N : TASMNativeInt; k : TASMNativeInt );
 begin
-     if (N <= 0) or (k > N) then
+     if (N = 0) or (k = 0) then
         exit;
 
      SymRank2UpdateFunc( C, LineWidthC, A, LineWidthA, B, LineWidthB, N, k );
@@ -1566,12 +1585,16 @@ begin
      // generic functions that have no specialized implementation
      initfunc := GenericMtxInit;
      elemAddFunc := GenericMtxElemAdd;
-     multTria2Store1UnitFunc := GenericMtxMultTria2Store1Unit;
-     multTria2UpperNoUnitFunc := GenericMtxMultTria2UpperNoUnit;
-     multTria2LowerUnitFunc := GenericMtxMultTria2LowerUnit;
+     multRightUpperTriaUnitFunc := GenericMtxMultRightUpperTriaUnit;
+     multRightLowerTriaUnitFunc := GenericMtxMultRightLowerTriaUnit;
+     multRightLowerTriaNoUnitFunc := GenericMtxMultRightLowerTriaNoUnit;
      multUpTranspNoUnitVecFunc := GenericMtxMultUpTranspNoUnitVec;
+     multRightUpperTriaUnitT2Func := GenericMtxMultRightUpperTriaUnitT2;
+     multRightLowerTriaUnitT2Func := GenericMtxMultRightLowerTriaUnitT2;
+     multRightLowerTriaNoUnitT2Func := GenericMtxMultRightLowerTriaNoUnitT2;
      multLowTranspUnitVecFunc := GenericMtxMultLowTranspUnitVec;
      multLowNoTranspUnitVecFunc := GenericMtxMultLowNoTranspUnitVec;
+     multLowNoTranspNoUnitVecFunc := GenericMtxMultLowNoTranspNoUnitVec;
      multUpNoTranspNoUnitVecFunc := GenericMtxMultUpNoTranspNoUnitVec;
      minLowerFunc := GenericMtxMinLower;
      maxLowerFunc := GenericMtxMaxLower;
@@ -1589,11 +1612,7 @@ begin
      matrixMedianFunc := GenericMtxMedian;
      matrixSortFunc := GenericMtxSort;
      colSwapFunc := GenericColSwap;
-     SymRank2UpdateFunc := GenericSymRank2UpdateUpper;
-
-     // tbd: asm versions:
-     multLowTria2T2Store1Func := GenericMtxMultLowTria2T2Store1;
-
+     SymRank2UpdateFunc := ASMSymRank2UpdateUpper;
 
      TDynamicTimeWarp.UseSSE := True;
      TRandomGenerator.cpuSet := TChaChaCPUInstrType.itSSE;
@@ -1637,11 +1656,11 @@ begin
           elemWiseDivFunc := AVXMatrixElemDiv;
           multT2Func := AVXMatrixMultTransposed;
           multTria2T1Func := AVXMtxMultTria2T1;
-          multTria2T1StoreT1Func := AVXMtxMultTria2T1StoreT1;
-          multTria2TUpperFunc := AVXMtxMultTria2TUpperUnit;
-          multTria2Store1Func := AVXMtxMultTria2Store1;
-          multTria2Store1UnitFunc := AVXMtxMultTria2Store1Unit;
-          multLowTria2T2Store1Func := AVXMtxMultLowTria2T2Store1;
+          multRightUpperTriaNoUnitT2Func := AVXMtxMultTria2T1StoreT1;
+          multTria2TUpperUnitFunc := AVXMtxMultTria2TUpperUnit;
+          multRightUpperTriaNoUnitFunc := AVXMtxMultTria2Store1;
+          multRightUpperTriaUnitFunc := AVXMtxMultTria2Store1Unit;
+          multRightLowerTriaUnitT2Func := AVXMtxMultLowTria2T2Store1;
           MtxVecMultFunc := AVXMtxVecMult;
           MtxVecMultTFunc := AVXMtxVecMultT;
           Rank1UpdateFunc := AVXRank1Update;
@@ -1661,9 +1680,9 @@ begin
           begin
                multT2Func := FMAMatrixMultTransposed;
                multTria2T1Func := FMAMtxMultTria2T1;
-               multTria2T1StoreT1Func := FMAMtxMultTria2T1StoreT1;
-               multTria2TUpperFunc := FMAMtxMultTria2TUpperUnit;
-               multLowTria2T2Store1Func := FMAMtxMultLowTria2T2Store1;
+               multRightUpperTriaNoUnitT2Func := FMAMtxMultTria2T1StoreT1;
+               multTria2TUpperUnitFunc := FMAMtxMultTria2TUpperUnit;
+               multRightLowerTriaUnitT2Func := FMAMtxMultLowTria2T2Store1;
 
                MtxVecMultFunc := FMAMtxVecMult;
                MtxVecMultTFunc := FMAMtxVecMultT;
@@ -1718,11 +1737,11 @@ begin
           absFunc := ASMMatrixAbs;
           elemWiseDivFunc := ASMMatrixElemDiv;
           multTria2T1Func := ASMMtxMultTria2T1;
-          multTria2T1StoreT1Func := ASMMtxMultTria2T1StoreT1;
-          multTria2TUpperFunc := ASMMtxMultTria2TUpperUnit;
-          multTria2Store1Func := ASMMtxMultTria2Store1;
-          multTria2Store1UnitFunc := ASMMtxMultTria2Store1Unit;
-          multLowTria2T2Store1Func := ASMMtxMultLowTria2T2Store1;
+          multRightUpperTriaNoUnitT2Func := ASMMtxMultTria2T1StoreT1;
+          multTria2TUpperUnitFunc := ASMMtxMultTria2TUpperUnit;
+          multRightUpperTriaNoUnitFunc := ASMMtxMultTria2Store1;
+          multRightUpperTriaUnitFunc := ASMMtxMultTria2Store1Unit;
+          multRightLowerTriaUnitT2Func := ASMMtxMultLowTria2T2Store1;
           MtxVecMultFunc := ASMMtxVecMult;
           MtxVecMultTFunc := ASMMtxVecMultT;
           Rank1UpdateFunc := ASMRank1Update;
@@ -1776,12 +1795,11 @@ begin
           absFunc := GenericMtxAbs;
           elemWiseDivFunc := GenericMtxElemDiv;
           multTria2T1Func := GenericMtxMultTria2T1Lower;
-          multTria2TUpperFunc := GenericMtxMultTria2TUpperUnit;
-          multTria2T1StoreT1Func := GenericMtxMultTria2T1StoreT1;
-          multLowTria2T2Store1Func := GenericMtxMultLowTria2T2Store1;
-          multLowTria2T2NoUnitStore1Func := GenericMtxMultLowTria2T2NoUnitStore1;
-          multTria2Store1Func := GenericMtxMultTria2Store1;
-          multTria2Store1UnitFunc := GenericMtxMultTria2Store1Unit;
+          multTria2TUpperUnitFunc := GenericMtxMultTria2TUpperUnit;
+          multRightUpperTriaNoUnitT2Func := GenericMtxMultRightUpperTriaNoUnitT2;
+          multRightLowerTriaUnitT2Func := GenericMtxMultRightLowerTriaUnitT2;
+          multRightUpperTriaNoUnitFunc := GenericMtxMultRightUpperTriaNoUnit;
+          multRightUpperTriaUnitFunc := GenericMtxMultRightUpperTriaUnit;
           multT2Func := GenericMtxMultTransp;
           MtxVecMultFunc := GenericMtxVecMult;
           MtxVecMultTFunc := GenericMtxVecMultT;
@@ -1795,6 +1813,7 @@ begin
           vecConvolve := GenericConvolveRevB;
           elemAddFunc := GenericMtxElemAdd;
           MatrixVecDotMultFunc := GenericVecDotMult;
+          SymRank2UpdateFunc := GenericSymRank2UpdateUpper;
 
           TDynamicTimeWarp.UseSSE := False;
           TRandomGenerator.cpuSet := TChaChaCPUInstrType.itFPU;

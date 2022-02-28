@@ -189,35 +189,41 @@ procedure GenericMtxMultTria2T1Lower(dest : PDouble; LineWidthDest : TASMNativeI
 procedure GenericMtxMultTria2T1_2(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt;
   mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
-
-
 // dtrm right upper transpose unit
 procedure GenericMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 
 
-procedure GenericMtxMultTria2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
-procedure GenericMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
-  
-// calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be 1!
-procedure GenericMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+// calculates mt1 = mt1*mt2, mt2 = upper triangular matrix with non unit diagonal elements
+procedure GenericMtxMultRightUpperTriaNoUnit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 
-// calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be non unit!
-procedure GenericMtxMultLowTria2T2NoUnitStore1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+// calculates mt1 = mt1*mt2', mt2 = upper triangular matrix with non unit diagonal elements
+procedure GenericMtxMultRightUpperTriaNoUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+
+// calculates mt1 = mt1*mt2', mt2 = upper triangular matrix. diagonal elements are assumed to be 1!
+procedure GenericMtxMultRightUpperTriaUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 
 // mt1 = mt1*mt2; where mt2 is an upper triangular matrix - diagonal elements are unit
-procedure GenericMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure GenericMtxMultRightUpperTriaUnit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 
-// performs mt2 = mt2*mt1 where mt1 is an upper triangular matrix with non unit elements in the diagonal
-procedure GenericMtxMultTria2UpperNoUnit( mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+// calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be non unit!
+procedure GenericMtxMultRightLowerTriaNoUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
-// performs mt2 = mt2*mt1 where mt1 is an lower triangular matrix with unit elements in the diagonal
-procedure GenericMtxMultTria2LowerUnit( mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+
+// performs mt1 = mt1*mt2 where mt2 is an lower triangular matrix with unit elements in the diagonal
+procedure GenericMtxMultRightLowerTriaUnit( mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+
+// performs mt1 = mt1*mt2 where mt2 is an lower triangular matrix with non unit elements in the diagonal
+procedure GenericMtxMultRightLowerTriaNoUnit( mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+
+// calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be 1!
+procedure GenericMtxMultRightLowerTriaUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 
   
@@ -230,6 +236,9 @@ procedure GenericMtxMultLowTranspUnitVec( mt1 : PDouble; LineWidth1 : TASMNative
 
 // calculates x = mt1*x where x is a vector and mt1 is a lower triangular (len x len) matrix with unit elements in the diagonal
 procedure GenericMtxMultLowNoTranspUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; IncX : TASMNativeInt; len : TASMNativeInt);
+
+// calculates x = mt1*x where x is a vector and mt1 is a lower triangular (len x len) matrix with non unit elements in the diagonal
+procedure GenericMtxMultLowNoTranspNoUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; IncX : TASMNativeInt; len : TASMNativeInt);
 
 // calculates x = mt1*x where x is a vector and mt1 is an upper triangular (len x len) matrix with non unit elements in the diagonal
 procedure GenericMtxMultUpNoTranspNoUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; incX : TASMNativeInt; len : TASMNativeInt);
@@ -2690,7 +2699,7 @@ end;
 
 // note the result is stored in mt1 again!
 // mt1 = mt1*mt2; where mt2 is an upper triangular matrix
-procedure GenericMtxMultTria2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure GenericMtxMultRightUpperTriaNoUnit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 var x, y, idx : TASMNativeInt;
     valCounter1 : PConstDoubleArr;
@@ -2727,7 +2736,7 @@ end;
 
 // note the result is stored in mt1 again!
 // mt1 = mt1*mt2; where mt2 is an upper triangular matrix - diagonal elements are unit
-procedure GenericMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure GenericMtxMultRightUpperTriaUnit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 var y: Integer;
     x : Integer;
@@ -2756,65 +2765,66 @@ begin
      end;
 end;
 
-// performs mt2 = mt2*mt1 where mt1 is an upper triangular matrix with non unit elements in the diagonal
-procedure GenericMtxMultTria2UpperNoUnit( mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+// performs mt1 = mt1*mt2 where mt2 is an lower triangular matrix with unit elements in the diagonal
+procedure GenericMtxMultRightLowerTriaUnit( mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 var y : Integer;
     y2 : integer;
-    pMT2 : PConstDoubleArr;
-    pMT1 : PDouble;
-    x : Integer;
+    pMT1 : PConstDoubleArr;
+    pMT2 : PDouble;
     val : double;
+    x : Integer;
 begin
-     assert((width1 > 0) and (height1 > 0) and (width2 = height1), 'Dimension error'); 
-     assert(width1 = height1, 'MT1 is expected to be square');
+     assert((width1 > 0) and (height1 > 0) and (width1 = height2), 'Dimension error');
+     assert(width2 = height2, 'MT2 is expected to be square');
 
-     for x := width1 - 1 downto 0 do
+     for x := 0 to width2 - 1 do
      begin
-          for y := 0 to Height2 - 1 do
+          for y := 0 to height1 - 1 do
           begin
-               val := 0;
-               pMT1 := GenPtr(mt1, x, 0, LineWidth1);
-               pMt2 := GenPtrArr(mt2, 0, y, LineWidth2);
-               for y2 := 0 to x - 1 do
+               pMT1 := GenPtrArr(MT1, 0, y, LineWidth1);
+               pMt2 := GenPtr(MT2, x, x + 1, LineWidth2);
+
+               val := pMt1^[x];
+               for y2 := x + 1 to Height2 - 1 do
                begin
-                    val := val + pMT1^*pMt2^[y2];
-                    inc(PByte(pMT1), LineWidth1);
+                    val := val + pMt1^[y2]*pMt2^;
+                    inc(PByte(pMt2), LineWidth2);
                end;
 
-               pMT2^[x] := val + pMt2^[x]*pMT1^;
+               pMt1^[x] := val;
           end;
      end;
 end;
 
-// performs mt2 = mt2*mt1 where mt1 is an lower triangular matrix with unit elements in the diagonal
-procedure GenericMtxMultTria2LowerUnit( mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+// performs mt1 = mt1*mt2 where mt2 is an lower triangular matrix with non unit elements in the diagonal
+procedure GenericMtxMultRightLowerTriaNoUnit( mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 var y : Integer;
     y2 : integer;
-    pMT2 : PConstDoubleArr;
-    pMT1 : PDouble;
+    pMT2 : PDouble;
+    pMT1 : PConstDoubleArr;
     val : double;
     x : Integer;
 begin
-     assert((width1 > 0) and (height1 > 0) and (height1 = width2), 'Dimension error'); 
-     assert(width1 = height1, 'MT1 is expected to be square');
+     assert((width1 > 0) and (height1 > 0) and (width1 = height2), 'Dimension error');
+     assert(width2 = height2, 'MT2 is expected to be square');
 
      for x := 0 to width1 - 1 do
      begin
-          for y := 0 to height2 - 1 do
+          for y := 0 to height1 - 1 do
           begin
-               pMT2 := GenPtrArr(MT2, 0, y, LineWidth2);
-               pMt1 := GenPtr(MT1, x, x + 1, LineWidth1);
+               pMT1 := GenPtrArr(MT1, 0, y, LineWidth1);
+               pMt2 := GenPtr(MT2, x, x, LineWidth2);
 
-               val := pMt2^[x];
-               for y2 := x + 1 to Height1 - 1 do
+               val := 0;
+               for y2 := x to Height2 - 1 do
                begin
-                    val := val + pMt2^[y2]*pMt1^;
-                    inc(PByte(pMt1), LineWidth1);
+                    val := val + pMt1^[y2]*pMt2^;
+                    inc(PByte(pMt2), LineWidth2);
                end;
 
-               pMt2^[x] := val;
+               pMt1^[x] := val;
           end;
      end;
 end;
@@ -2922,9 +2932,29 @@ begin
      end;
 end;
 
+procedure GenericMtxMultLowNoTranspNoUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; IncX : TASMNativeInt; len : TASMNativeInt);
+var pX : PDouble;
+    pMT1 : PConstDoubleArr;
+    i, j : Integer;
+    val : double;
+begin
+     for i := len - 1 downto 0 do
+     begin
+          pMT1 := GenPtrArr(mt1, 0, i, LineWidth1);
+          pX := x;
+          val := 0;
+          for j := 0 to i - 1 do
+          begin
+               val := val + pMT1^[j]*pX^;
+               inc(PByte(pX), incX);
+          end;
+          pX^ := val + pMt1^[i]*pX^;
+     end;
+end;
+
 // note the result is stored in mt1 again!
 // mt1 = mt1*mt2'; where mt2 is an upper triangular matrix
-procedure GenericMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure GenericMtxMultRightUpperTriaNoUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 var y: Integer;
     x : Integer;
@@ -2951,7 +2981,7 @@ begin
 end;
 
 // calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be 1!
-procedure GenericMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+procedure GenericMtxMultRightLowerTriaUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 var x, y, idx : TASMNativeInt;
     valCounter1 : PConstDoubleArr;
@@ -2983,7 +3013,38 @@ begin
      end;
 end;
 
-procedure GenericMtxMultLowTria2T2NoUnitStore1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+// calculates mt1 = mt1*mt2', mt2 = upper triangular matrix. diagonal elements are assumed to be 1!
+procedure GenericMtxMultRightUpperTriaUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
+  width1, height1, width2, height2 : TASMNativeInt);
+var x, y, idx : TASMNativeInt;
+    valCounter1 : PConstDoubleArr;
+    valCounter2 : PConstDoubleArr;
+    tmp : double;
+begin
+     assert((width1 > 0) and (height1 > 0), 'Dimension error');
+     assert(width1 = width2, 'Widths need to be the same');
+
+     for x := 0 to width1 - 2 do
+     begin
+          valCounter2 := GenPtrArr(mt2, 0, x, LineWidth2);
+          valCounter1 := PConstDoubleArr(mt1);
+
+          for y := 0 to height1 - 1 do
+          begin
+               // unit element
+               tmp := valCounter1^[x];
+
+               for idx := x + 1 to width2 - 1 do
+                   tmp := tmp + valCounter1^[idx]*valCounter2^[idx];
+               valCounter1^[x] := tmp;
+
+               inc(PByte(valCounter1), LineWidth1);
+          end;
+     end;
+end;
+
+
+procedure GenericMtxMultRightLowerTriaNoUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 var x, y, idx : TASMNativeInt;
     valCounter1 : PConstDoubleArr;
@@ -3088,36 +3149,21 @@ end;
 procedure GenericSymRank2UpdateUpper( C : PDouble; LineWidthC : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
   B : PDouble; LineWidthB : TASMNativeInt; N : TASMNativeInt; k : TASMNativeInt );
 var i, j, l : TASMNativeInt;
-    pC, pA, pB : PDouble;
-    temp1, temp2 : double;
+    pC1, pA1, pA2, pB1, pB2 : PConstDoubleArr;
 begin
-     if (N = 0) or (k = 0) then
-        exit;
-
-     // todo: change the memory access pattern from column to row major
      for j := 0 to N - 1 do
      begin
-          for l := 0 to k - 1 do
+          pA1 := GenPtrArr(A, 0, j, LineWidthA);
+          pB1 := GenPtrArr(B, 0, j, LineWidthB);
+          pC1 := GenPtrArr(C, 0, j, LineWidthC);
+
+          for i := j to N - 1 do
           begin
-               pA := GenPtr( A, l, j, LineWidthA );
-               pB := GenPtr( B, l, j, LineWidthB );
-               temp1 := pB^;
-               temp2 := pA^;
+               pA2 := GenPtrArr(A, 0, i, LineWidthA);
+               pB2 := GenPtrArr(B, 0, i, LineWidthB);
 
-               if (temp1 = 0) or (temp2 = 0) then
-                  continue;
-
-               pC := GenPtr( C, j, 0, LineWidthC );
-               pA := GenPtr( A, l, 0, LineWidthA );
-               pB := GenPtr( B, l, 0, LineWidthB );
-
-               for i := 0 to j do
-               begin
-                    pC^ := pC^ - pA^*temp1 - pB^*temp2;
-                    inc(PByte(pC), LineWidthC);
-                    inc(PByte(pA), LineWidthA);
-                    inc(PByte(pB), LineWidthB);
-               end;
+               for l := 0 to k - 1 do
+                   pC1^[i] := pC1^[i] - pA1^[l]*pB2^[l] - pB1^[l]*pA2^[l];
           end;
      end;
 end;
