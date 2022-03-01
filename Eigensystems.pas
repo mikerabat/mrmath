@@ -108,9 +108,15 @@ procedure MatrixQFromHessenbergDecomp(A : PDouble; const LineWidthA : TASMNative
  tau : PDouble; progress : TLinEquProgress = nil); overload;
 
 
-// lapack version
+// Symmetric eigenvalue problem.
+// the function first tries to reduce the input matrix to a tridiagonal one and
+// then tries to find the eigenvalues and optionaly eigenvectors
+// on entry A is an nxn matrix and W is an nx1 vector.
+// on exit W contains the eigenvalues and if wanted A the eigenvectors
 function MatrixEigUpperSymmetricMatrixInPlace2(A : PDouble; LineWidthA : TASMNativeInt; N : TASMNativeInt; W : PConstDoubleArr; EigValOnly : boolean; blockSize : integer ) : TEigenvalueConvergence;
 function ThrMtxEigUpperSymmetricMatrixInPlace2(A : PDouble; LineWidthA : TASMNativeInt; N : TASMNativeInt; W : PConstDoubleArr; EigValOnly : boolean; blockSize : integer ) : TEigenvalueConvergence;
+
+function UperSymEigMemorySize( N, blockSize : TASMNativeInt; EigValOnly : boolean; Threaded : Boolean; var blkMultSize : integer ) : TASMNativeInt;
 
 function InternalEigValFromSymMatrix( D, E : PConstDoubleArr; N : TASMNativeInt) : TEigenvalueConvergence;
 function InternalEigValEigVecFromSymTridiagMatrix( D, E : PConstDoubleArr; Z : PDouble;
@@ -2562,7 +2568,6 @@ type
     LineWidthZ : TASMNativeInt;
     Tau : PConstDoubleArr;
     iWork : PIntegerArray;
-    mem2 : Pointer;
     reflData : TBlockReflrec;
     nb : integer;
     ApplyPlaneRotSeqRVB : TApplyPlaneRotSeqMatrix;
@@ -4466,10 +4471,11 @@ begin
      eigWork.nb := Min(N, Max(2, blockSize));
      eigWork.D := PConstDoubleArr(W);
 
+     workSize := UperSymEigMemorySize( N, eigWork.nb, EigValOnly, False, eigWork.reflData.BlkMultSize);
+
      if EigValOnly then
      begin
-          eigWork.E := MtxAllocAlign( eigWork.nb*N*sizeof(double) +  // nb*N for reduction of symmetric to tridiagonal
-                                      2*(N - 1)*sizeof(double),      // Tau + E
+          eigWork.E := MtxAllocAlign( workSize,// // Tau + E and nb*N for reduction of symmetric to tridiagonal
                                       eigWork.mem); // tau + E + work
           eigWork.LineWidthWork := eigWork.nb*sizeof(double);
           eigWork.tau := GenPtrArr(PDouble(eigWork.E), N - 1, 0, 0);
@@ -4478,15 +4484,14 @@ begin
      else
      begin
           //workSize := 1 + 3*N + 2*N*Max(1, ceil( Log2( N ) ) ) + 4*N*N;
-          workSize := eigWork.nb*eigWork.nb + eigWork.nb*N + 2*(N - 1) + N*N + 2*N;
+          eigWork.reflData.blkMultSize := Min( N, QRMultBlockSize );
 
          // iworkSize := 6 + 6*N + 5*N*ceil( Log2(N) );
          // iworkSize := iWorkSize + (iWorkSize and 1);
           iWorkSize := 0; // not yet implemented
-          eigWork.E := MtxAllocAlign( workSize*sizeof(double) +  // maximum work size
-                                      iworkSize*sizeof(integer) //+ // iwork
+          eigWork.E := MtxAllocAlign( workSize,
                                       //(1 + 3*N + N*N )*sizeof(double), // Tau, E, Z
-                                      ,eigWork.mem);
+                                      eigWork.mem);
           eigWork.tau := GenPtrArr(PDouble(eigWork.E), N - 1, 0, 0);
 
           eigWork.LineWidthZ := N*sizeof(double);
@@ -4500,8 +4505,7 @@ begin
           eigWork.reflData.T := GenPtr(eigWork.work, 0, N, eigWork.LineWidthWork);
           eigWork.reflData.LineWidthT := eigWork.nb*sizeof(double);
 
-          eigWork.reflData.blkMultSize := Min( N, QRMultBlockSize );
-          eigWork.reflData.blkMultMem := MtxAllocAlign(BlockMultMemSize(eigWork.reflData.blkMultSize), eigWork.mem2);
+          eigWork.reflData.blkMultMem := GenPtr( eigwork.reflData.T, 0, eigWork.nb, eigWork.reflData.LineWidthT );
      end;
 
      eigWork.reflData.MatrixMultT1 := {$IFDEF FPC}@{$ENDIF}MatrixMultT1Ex;
@@ -4512,13 +4516,8 @@ begin
 
      // ###########################################
      // #### Eigenvalue calculation
-     try
-        Result := InternalSymEigValUpper(A, LineWidthA, N, EigValOnly, eigWork);
-     finally
-            FreeMem(eigWork.mem);
-            if eigWork.mem2 <> nil then
-               FreeMem(eigWork.mem2);
-     end;
+     Result := InternalSymEigValUpper(A, LineWidthA, N, EigValOnly, eigWork);
+     FreeMem(eigWork.mem);
 end;
 
 // ###########################################
@@ -4662,10 +4661,11 @@ begin
      eigWork.nb := Min(N, Max(2, blockSize));
      eigWork.D := PConstDoubleArr(W);
 
+     workSize := UperSymEigMemorySize( N, eigWork.nb, EigValOnly, True, eigWork.reflData.BlkMultSize);
+
      if EigValOnly then
      begin
-          eigWork.E := MtxAllocAlign( eigWork.nb*N*sizeof(double) +  // nb*N for reduction of symmetric to tridiagonal
-                                      2*(N - 1)*sizeof(double),      // Tau + E
+          eigWork.E := MtxAllocAlign( workSize, // // Tau + E, nb*N for reduction of symmetric to tridiagonal
                                       eigWork.mem); // tau + E + work
           eigWork.LineWidthWork := eigWork.nb*sizeof(double);
           eigWork.tau := GenPtrArr(PDouble(eigWork.E), N - 1, 0, 0);
@@ -4673,16 +4673,9 @@ begin
      end
      else
      begin
-          //workSize := 1 + 3*N + 2*N*Max(1, ceil( Log2( N ) ) ) + 4*N*N;
-          workSize := eigWork.nb*eigWork.nb + eigWork.nb*N + 2*(N - 1) + N*N + 2*N;
-
-         // iworkSize := 6 + 6*N + 5*N*ceil( Log2(N) );
-         // iworkSize := iWorkSize + (iWorkSize and 1);
           iWorkSize := 0; // not yet implemented
-          eigWork.E := MtxAllocAlign( workSize*sizeof(double) +  // maximum work size
-                                      iworkSize*sizeof(integer) //+ // iwork
-                                      //(1 + 3*N + N*N )*sizeof(double), // Tau, E, Z
-                                      ,eigWork.mem);
+          eigWork.E := MtxAllocAlign( workSize,  // Tau, E, Z + T + nb*n
+                                      eigWork.mem);
           eigWork.tau := GenPtrArr(PDouble(eigWork.E), N - 1, 0, 0);
 
           eigWork.LineWidthZ := N*sizeof(double);
@@ -4697,7 +4690,7 @@ begin
           eigWork.reflData.LineWidthT := eigWork.nb*sizeof(double);
 
           eigWork.reflData.blkMultSize := Min( N, QRMultBlockSize );
-          eigWork.reflData.blkMultMem := MtxAllocAlign(numCPUCores*BlockMultMemSize(eigWork.reflData.blkMultSize), eigWork.mem2);
+          eigWork.reflData.BlkMultMem := GenPtr(eigWork.reflData.T, 0, eigWork.nb, eigWork.reflData.LineWidthT);
      end;
 
      eigWork.reflData.MatrixMultT1 := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultT1Ex;
@@ -4708,12 +4701,31 @@ begin
 
      // ###########################################
      // #### Eigenvalue calculation
-     try
-        Result := InternalSymEigValUpper(A, LineWidthA, N, EigValOnly, eigWork);
-     finally
-            FreeMem(eigWork.mem);
-            if eigWork.mem2 <> nil then
-               FreeMem(eigWork.mem2);
+     Result := InternalSymEigValUpper(A, LineWidthA, N, EigValOnly, eigWork);
+     FreeMem(eigWork.mem);
+end;
+
+// determine the memory needed for optimal working set sizes
+function UperSymEigMemorySize( N, blockSize : TASMNativeInt;
+  EigValOnly : boolean; Threaded : Boolean; var blkMultSize : integer ) : TASMNativeInt;
+var multMem : TASMNativeInt;
+begin
+     blkMultSize := 0;
+     if EigValOnly then
+     begin
+          Result := blockSize*N*sizeof(double) +  // nb*N for reduction of symmetric to tridiagonal
+                    2*(N - 1)*sizeof(double);      // Tau + E
+     end
+     else
+     begin
+          blkMultSize := Min(N, QRMultBlockSize);
+                    //  T                work                 Tau/E     Z
+          Result := sqr(blockSize) + Max(2, blockSize)*N + 2*(N - 1) + N*N + 2*N; // maximum work size
+          MultMem := BlockMultMemSize( blkMultSize );
+          if Threaded then
+             multMem := numCPUCores*MultMem;
+
+          Result := Result*sizeof(double) + multMem;
      end;
 end;
 

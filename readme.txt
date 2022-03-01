@@ -54,6 +54,10 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date: 01.03.2022
+* Reduced memory allocations in the symmetric eigenvalue functions
+* Some asm added
+
 Date: 24.02.2022
 * Implementation of one of the lapak versions of the symmetric eigenvalue problem including a threaded version that
   is up to two times faster on my testing machine and on larger matrices (e.g. 1000x1000) up to 6 times faster

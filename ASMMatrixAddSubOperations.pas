@@ -61,6 +61,12 @@ procedure ASMMatrixAddVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt
 procedure ASMMatrixAddVecUnalignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 procedure ASMMatrixAddVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
+procedure ASMVecAddAlignedSeq( X : PDouble; y : PDouble; N : TASMNativeInt; alpha : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMVecAddUnAlignedSeq( X : PDouble; y : PDouble; N : TASMNativeInt; alpha : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+
+procedure ASMVecAddNonSeq( X : PDouble; y : PDouble; N : TASMNativeInt; incX, incY : TASMNativeInt; alpha : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+
+
 {$ENDIF}
 
 implementation
@@ -1721,6 +1727,224 @@ asm
    pop edi;
    pop ebx;
 end;
+
+// perform y[i] = y[i] + alpha * x[i]
+// unrolled 4 times
+procedure ASMVecAddUnAlignedSeq( X : PDouble; y : PDouble; N : TASMNativeInt; alpha : double );
+// eax = X, edx = Y, ecx = N
+asm
+   movddup xmm0, alpha;
+
+   imul ecx, -8;
+   sub eax, ecx;
+   sub edx, ecx;
+
+   @@forNLoop:
+     add ecx, 128;
+     jg @loopEnd;
+
+     movupd xmm1, [eax + ecx - 128];
+     movupd xmm2, [edx + ecx - 128];
+     mulpd xmm1, xmm0;
+     addpd xmm1, xmm2;
+     movupd [edx + ecx - 128], xmm1;
+
+     movupd xmm1, [eax + ecx - 112];
+     movupd xmm2, [edx + ecx - 112];
+     mulpd xmm1, xmm0;
+     addpd xmm1, xmm2;
+     movupd [edx + ecx - 112], xmm1;
+
+     movupd xmm3, [eax + ecx - 96];
+     movupd xmm4, [edx + ecx - 96];
+     mulpd xmm3, xmm0;
+     addpd xmm3, xmm4;
+     movupd [edx + ecx - 96], xmm3;
+
+     movupd xmm2, [eax + ecx - 80];
+     movupd xmm1, [edx + ecx - 80];
+     mulpd xmm2, xmm0;
+     addpd xmm1, xmm2;
+     movupd [edx + ecx - 80], xmm1;
+
+     movupd xmm4, [eax + ecx - 64];
+     movupd xmm3, [edx + ecx - 64];
+     mulpd xmm4, xmm0;
+     addpd xmm3, xmm4;
+     movupd [edx + ecx - 64], xmm3;
+
+     movupd xmm2, [eax + ecx - 48];
+     movupd xmm1, [edx + ecx - 48];
+     mulpd xmm2, xmm0;
+     addpd xmm1, xmm2;
+     movupd [edx + ecx - 48], xmm1;
+
+     movupd xmm4, [eax + ecx - 32];
+     movupd xmm3, [edx + ecx - 32];
+     mulpd xmm4, xmm0;
+     addpd xmm3, xmm4;
+     movupd [edx + ecx - 32], xmm3;
+
+     movupd xmm4, [eax + ecx - 16];
+     movupd xmm3, [edx + ecx - 16];
+     mulpd xmm4, xmm0;
+     addpd xmm3, xmm4;
+     movupd [edx + ecx - 16], xmm3;
+
+   jmp @@forNLoop
+
+   @loopEnd:
+
+   sub ecx, 128;
+   jz @endLine;
+
+   @forNLoop2:
+      add ecx, 16;
+      jg @endLine2;
+
+      movupd xmm4, [eax + ecx - 16];
+      movupd xmm3, [edx + ecx - 16];
+      mulpd xmm4, xmm0;
+      addpd xmm3, xmm4;
+      movupd [edx + ecx - 16], xmm3;
+   jmp @forNLoop2;
+
+   @endLine2:
+
+   // last odd element
+   sub ecx, 8;
+   jnz @endLine;
+
+   movsd xmm4, [eax - 8];
+   movsd xmm3, [edx - 8];
+   mulsd xmm4, xmm0;
+   addsd xmm3, xmm4;
+   movsd [edx - 8], xmm3;
+
+   @endLine:
+end;
+
+procedure ASMVecAddAlignedSeq( X : PDouble; y : PDouble; N : TASMNativeInt; alpha : double );
+// eax = X, edx = Y, ecx = N
+asm
+   movddup xmm0, alpha;
+
+   imul ecx, -8;
+   sub eax, ecx;
+   sub edx, ecx;
+
+   @@forNLoop:
+     add ecx, 128;
+     jg @loopEnd;
+
+     movapd xmm1, [eax + ecx - 128];
+     movapd xmm2, [edx + ecx - 128];
+     mulpd xmm1, xmm0;
+     addpd xmm1, xmm2;
+     movapd [edx + ecx - 128], xmm1;
+
+     movapd xmm1, [eax + ecx - 112];
+     movapd xmm2, [edx + ecx - 112];
+     mulpd xmm1, xmm0;
+     addpd xmm1, xmm2;
+     movapd [edx + ecx - 112], xmm1;
+
+     movapd xmm3, [eax + ecx - 96];
+     movapd xmm4, [edx + ecx - 96];
+     mulpd xmm3, xmm0;
+     addpd xmm3, xmm4;
+     movapd [edx + ecx - 96], xmm3;
+
+     movapd xmm2, [eax + ecx - 80];
+     movapd xmm1, [edx + ecx - 80];
+     mulpd xmm2, xmm0;
+     addpd xmm1, xmm2;
+     movapd [edx + ecx - 80], xmm1;
+
+     movapd xmm4, [eax + ecx - 64];
+     movapd xmm3, [edx + ecx - 64];
+     mulpd xmm4, xmm0;
+     addpd xmm3, xmm4;
+     movapd [edx + ecx - 64], xmm3;
+
+     movapd xmm2, [eax + ecx - 48];
+     movapd xmm1, [edx + ecx - 48];
+     mulpd xmm2, xmm0;
+     addpd xmm1, xmm2;
+     movapd [edx + ecx - 48], xmm1;
+
+     movapd xmm4, [eax + ecx - 32];
+     movapd xmm3, [edx + ecx - 32];
+     mulpd xmm4, xmm0;
+     addpd xmm3, xmm4;
+     movapd [edx + ecx - 32], xmm3;
+
+     movapd xmm4, [eax + ecx - 16];
+     movapd xmm3, [edx + ecx - 16];
+     mulpd xmm4, xmm0;
+     addpd xmm3, xmm4;
+     movapd [edx + ecx - 16], xmm3;
+
+   jmp @@forNLoop
+
+   @loopEnd:
+
+   sub ecx, 128;
+   jz @endLine;
+
+   @forNLoop2:
+      add ecx, 16;
+      jg @endLine2;
+
+      movapd xmm4, [eax + ecx - 16];
+      movapd xmm3, [edx + ecx - 16];
+      mulpd xmm4, xmm0;
+      addpd xmm3, xmm4;
+      movapd [edx + ecx - 16], xmm3;
+   jmp @forNLoop2;
+
+   @endLine2:
+
+   // last odd element
+   sub ecx, 8;
+   jnz @endLine;
+
+   movsd xmm4, [eax - 8];
+   movsd xmm3, [edx - 8];
+   mulsd xmm4, xmm0;
+   addsd xmm3, xmm4;
+   movsd [edx - 8], xmm3;
+
+   @endLine:
+end;
+
+procedure ASMVecAddNonSeq( X : PDouble; y : PDouble; N : TASMNativeInt; incX, incY : TASMNativeInt; alpha : double );
+// x = eax; y = edx; N = ecx
+asm
+   push edi;
+   push esi;
+
+   mov edi, incX;
+   mov esi, incY;
+
+   movsd xmm0, alpha;
+
+   @@loopN:
+      movsd xmm1, [eax];
+      movsd xmm2, [edx];
+      mulsd xmm1, xmm0;
+      addsd xmm2, xmm1;
+
+      movsd [edx], xmm2;
+      add edx, esi;
+      add eax, edi;
+   dec ecx;
+   jnz @@loopN;
+
+   pop esi;
+   pop edi;
+end;
+
 
 {$ENDIF}
 
