@@ -974,6 +974,7 @@ end;
 
 procedure ASMMatrixElemDivUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var iRBX, iR11, iR12 : TASMNativeInt;
+    dXMM4 : TXMMArr;
     {$ifdef UNIX}
     width : TASMNativeInt;
     height : TASMNativeInt;
@@ -997,6 +998,7 @@ asm
    mov iRBX, rbx;
    mov iR11, r11;
    mov iR12, r12;
+   movupd dXMM4, xmm4;
 
    mov r11, LineWidth1;
    mov r12, LineWidth2;
@@ -1106,6 +1108,7 @@ asm
    jnz @@addforyloop;
 
    // epilog
+   movupd xmm4, dXMM4;
    mov rbx, iRBX;
    mov r11, iR11;
    mov r12, iR12;

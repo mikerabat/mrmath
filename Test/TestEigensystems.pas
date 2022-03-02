@@ -154,7 +154,7 @@ end;
 procedure TTestEigensystems.TestBigThreadedEigValVecFromSymMtx;
 var w, w1 : TDoubleDynArray;
     N: Integer;
-    i: Integer;
+    i, j: Integer;
     A, A1 : TDoubleDynArray;
     idx : integer;
     start1, stop1 : Int64;
@@ -171,38 +171,45 @@ begin
 end;
 begin
      InitMtxThreadPool;
-     InitSSEOptFunctions(itFMA);
-     RandSeed := 453;
-
-     for idx := 0 to High(cN) do
+     for j := 0 to 2 do
      begin
-          N := cN[idx];
+          case j of
+            0: InitSSEOptFunctions(itFPU);
+            1: InitSSEOptFunctions(itSSE);
+            2: InitSSEOptFunctions(itFMA);
+          end;
+         RandSeed := 453;
 
-          Setlength( W, N );
-          SetLength( w1, N );
+         for idx := 0 to High(cN) do
+         begin
+              N := cN[idx];
 
-          SetLength( A, N*N );
-          for i := 0 to Length(A) - 1 do
-              A[i] := random;
+              Setlength( W, N );
+              SetLength( w1, N );
 
-          for i := 0 to N - 2 do
-              A[i*(N + 1)] := -A[i*(N + 1)];
+              SetLength( A, N*N );
+              for i := 0 to Length(A) - 1 do
+                  A[i] := random;
 
-          // ###########################################
-          // #### Eigenvalue calculation
-          A1 := Copy(A, 0, Length(A));
+              for i := 0 to N - 2 do
+                  A[i*(N + 1)] := -A[i*(N + 1)];
 
-          start1 := MtxGetTime;
-          MatrixEigUpperSymmetricMatrixInPlace2(@A[0], N*sizeof(double), N, @W[0], False, 32);
-          stop1 := MtxGetTime;
+              // ###########################################
+              // #### Eigenvalue calculation
+              A1 := Copy(A, 0, Length(A));
 
-          start2 := MtxGetTime;
-          ThrMtxEigUpperSymmetricMatrixInPlace2(@A1[0], N*sizeof(double), N, @W1[0], False, 32);
-          stop2 := MtxGetTime;
+              start1 := MtxGetTime;
+              MatrixEigUpperSymmetricMatrixInPlace2(@A[0], N*sizeof(double), N, @W[0], False, 32);
+              stop1 := MtxGetTime;
 
-          Check( CheckMtx( w, w1 ), 'D1, D2 NonBlocked sym eig failed at N = ' + IntToStr(N));
+              start2 := MtxGetTime;
+              ThrMtxEigUpperSymmetricMatrixInPlace2(@A1[0], N*sizeof(double), N, @W1[0], False, 32);
+              stop2 := MtxGetTime;
 
-          Status( Format('%d sym eig thr took: %.3fms, %.3fms', [N, (stop1 - start1)/mtxfreq*1000, (stop2 - start2)/mtxfreq*1000]));
+              Check( CheckMtx( w, w1 ), 'D1, D2 NonBlocked sym eig failed at N = ' + IntToStr(N));
+
+              Status( Format('%d sym eig thr took: %.3fms, %.3fms', [N, (stop1 - start1)/mtxfreq*1000, (stop2 - start2)/mtxfreq*1000]));
+         end;
      end;
 
      FinalizeMtxThreadPool;
@@ -937,8 +944,8 @@ procedure TTestEigensystems.TestHessenbergThr;
 const cBlkWidths : Array[0..8] of integer = (1, 7, 43, 48, 189, 256, 500, 789, 1024);
 var iter : integer;
     w : integer;
-    A, A2, A3, A4 : TDoubleDynArray;
-    tau, tau2, tau3, tau4 : TDoubleDynArray;
+    A, A2 : TDoubleDynArray;
+    tau, tau2 : TDoubleDynArray;
     i : integer;
     start1, stop1 : Int64;
     start2, stop2 : Int64;
@@ -952,15 +959,11 @@ begin
           SetLength(A, w*w);
           SetLength(tau, w);
           SetLength(tau2, w);
-          SetLength(tau3, w);
-          SetLength(tau4, w);
 
           RandSeed := 15;
           for i := 0 to Length(A) - 1 do
               A[i] := Random - 0.5;
           A2 := Copy(A, 0, Length(A));
-          A3 := copy(A, 0, Length(A));
-          A4 := copy(A, 0, Length(A));
 
           start1 := MtxGetTime;
           MatrixHessenberg2InPlace(@a[0], w*sizeof(double), w, @tau[0], HessBlockSize);

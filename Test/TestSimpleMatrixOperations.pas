@@ -4346,8 +4346,7 @@ var C : TDoubleDynArray;
     i : Integer;
 
 function makeSym( A : TDoubleDynArray ) : TDoubleDynArray;
-  var
-    y: Integer;
+var y: Integer;
 begin
      Result := MatrixTranspose(A, cN, cN);
      for y := 0 to cN - 2 do

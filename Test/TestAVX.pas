@@ -70,6 +70,7 @@ type
     procedure TestBlkThreadedMatrixMultT2;
     procedure TestBlkThreadedMatrixMult;
 
+    procedure TestRank2Update;
     procedure TestAVXBigSVDHeightGEWidth;
     procedure TestConvolveBig;
     procedure TestAVXDotProd;
@@ -1574,6 +1575,59 @@ begin
 
      Check(not errOccured, 'Problem with threaded matrix multiplication');
 end;
+
+procedure TestAVXMatrixOperations.TestRank2Update;
+//   perform operation C = C - A*B' - B*A'
+const cN = 25;
+      ck = 9;
+var C : TDoubleDynArray;
+    A : TDoubleDynArray;
+    B : TDoubleDynArray;
+    tmp : TDoubleDynArray;
+    C1 : TDoubleDynArray;
+    i : Integer;
+
+function makeSym( A : TDoubleDynArray ) : TDoubleDynArray;
+var y: Integer;
+begin
+     Result := MatrixTranspose(A, cN, cN);
+     for y := 0 to cN - 2 do
+         Move( A[y*cN + Y + 1], Result[y*cN + Y + 1], SizeOf(double)*(cN - y - 1) );
+
+end;
+function SymCheck( A, B : TDoubleDynArray ) : boolean;
+var y: Integer;
+    x: Integer;
+begin
+     Result := True;
+     for y := 0 to cN - 1 do
+         for x := y to cN - 1 do
+             Result := Result and SameValue(A[x + cN*y], B[x + cN*y]);
+end;
+begin
+     SetLength(C, cN*cN);
+     SetLength(A, cN*ck);
+     SetLength(B, cN*ck);
+
+       for i := 0 to cN*ck - 1 do
+       begin
+            A[i] := i + 1;
+            B[i] := -1 + i*2;
+       end;
+       for i := 0 to Length(C) - 1 do
+           C[i] := 1;
+
+       C1 := Copy(C, 0, Length(C));
+       tmp := MakeSym(C);
+       GenericSymRank2UpdateUpper(@C[0], cN*sizeof(double), @A[0], ck*sizeof(double), @B[0], ck*sizeof(Double), cN, ck);
+
+
+       // ###########################################
+       // #### Do the assembler version:
+       AVXSymRank2UpdateUpper(@C1[0], cN*sizeof(double), @A[0], ck*sizeof(double), @B[0], ck*sizeof(Double), cN, ck);
+       Check(CheckMtx( C, C1 ),  'Error Asm Sym Rank2 update failed' );
+end;
+
 
 
 procedure TestAVXMatrixOperations.TestAVXMult;
