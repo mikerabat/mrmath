@@ -64,7 +64,7 @@ procedure ASMMatrixAddVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B
 procedure ASMVecAddAlignedSeq( X : PDouble; y : PDouble; N : TASMNativeInt; alpha : double ); {$IFDEF FPC}assembler;{$ENDIF}
 procedure ASMVecAddUnAlignedSeq( X : PDouble; y : PDouble; N : TASMNativeInt; alpha : double ); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure ASMVecAddNonSeq( X : PDouble; y : PDouble; N : TASMNativeInt; incX, incY : TASMNativeInt; alpha : double ); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMVecAddNonSeq( X : PDouble; y : PDouble; N : TASMNativeInt; incX, {$ifdef UNIX}unixIncY{$ELSE}incY {$ENDIF} : TASMNativeInt; alpha : double ); {$IFDEF FPC}assembler;{$ENDIF}
 
 
 {$ENDIF}
@@ -2201,24 +2201,29 @@ asm
    @endLine:
 end;
 
-procedure ASMVecAddNonSeq( X : PDouble; y : PDouble; N : TASMNativeInt; incX, incY : TASMNativeInt; alpha : double );
+procedure ASMVecAddNonSeq( X : PDouble; y : PDouble; N : TASMNativeInt; incX, {$ifdef UNIX}unixIncY{$ELSE}incY {$ENDIF} : TASMNativeInt; alpha : double );
 // rcx = X, rdx = Y, r8 = N, incX = r9
+{$IFDEF UNIX}
+var incY : TASMNativeInt;
+{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov incY, unixIncY;
    mov r8, rdx;
    mov r9, rcx;
    mov rcx, rdi;
    mov rdx, rsi;
    {$ENDIF}
 
-   mov r9, incX;
    mov rax, incY;
 
+   {$IFNDEF UNIX}
    movsd xmm0, alpha;
+   {$ENDIF}
 
    @@loopN:
       movsd xmm1, [rcx];
