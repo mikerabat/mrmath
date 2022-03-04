@@ -524,6 +524,24 @@ begin
      end;
 end;
 
+procedure ASMVecAdd( X : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt; const alpha : double );
+begin
+     if N <= 0 then
+        exit;
+
+     if (incX = sizeof(double)) and (incY = sizeof(double)) then
+     begin
+          if (TASMNativeUInt(X) and $0000000F = 0) and (TASMNativeUInt(Y) and $0000000F = 0)
+          then
+              ASMVecAddAlignedSeq( X, Y, N, alpha )
+          else
+              ASMVecAddUnAlignedSeq( X, Y, N, alpha );
+     end
+     else
+         ASMVecAddNonSeq(X, Y, N, incX, incY, alpha);
+end;
+
+
 
 function ASMMatrixMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
 begin

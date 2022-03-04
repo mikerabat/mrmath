@@ -90,6 +90,9 @@ type
     function ModifyLastStringValue( Context: TVisualizerDebugContext; Value : String ) : Boolean;
     function ModifyLastLongWordValue( Context: TVisualizerDebugContext; Value : LongWord ) : Boolean;
 
+    procedure EvaluateComplete(const ExprStr, ResultStr: string; CanModify: Boolean;
+      ResultAddress, ResultSize: LongWord; ReturnCode: Integer);
+
     function AllocateRemoteMem(Context: TVisualizerDebugContext; ASize: Cardinal) : LongWord;
     procedure FreeRemoteMem(Context: TVisualizerDebugContext; ARemoteMem: LongWord);
 
@@ -261,6 +264,13 @@ begin
     AValue[1] := '$';
 
   Result := StrToIntDef(AValue, ADefaultValue);
+end;
+
+procedure TBasicVisualizerViewerFrame.EvaluateComplete(const ExprStr,
+  ResultStr: string; CanModify: Boolean; ResultAddress, ResultSize: LongWord;
+  ReturnCode: Integer);
+begin
+  // do nothing
 end;
 
 function TBasicVisualizerViewerFrame.EvaluateIntegerValue

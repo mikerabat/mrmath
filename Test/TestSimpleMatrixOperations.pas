@@ -56,6 +56,7 @@ type
     procedure TestASMAdd;
     procedure TestASMSubVec;
     procedure TestASMAddVec;
+    procedure TestASMVecAddVec;
     procedure TestSubT;
     procedure TestBigASMAdd;
     procedure TestAddAndScale;
@@ -462,6 +463,59 @@ begin
 end;
 
 
+
+procedure TASMMatrixOperations.TestASMVecAddVec;
+const cX : Array[0..5] of double = (1, 2, 3, 4, 5, 6);
+      cY : Array[0..5] of double = (-1, 1, -1, 1, -1, 1);
+      cRes : Array[0..5] of double = (2, 7, 8, 13, 14, 19);
+var y1, y2, y4 : Array[0..5] of double;
+    pY3 : PDouble;
+    y3 : Array[0..63] of byte;
+    X1 : Array[0..63] of byte;
+    pX1 : PDouble;
+    x : Array[0..5] of double;
+    idx : integer;
+
+    xbig, ybig1, ybig2 : TDoubleDynArray;
+begin
+     Move( cX, x, sizeof(x));
+     Move( cY, y1, sizeof(y1));
+     Move( cY, y2, sizeof(y1));
+     Move( cY, y4, sizeof(y1));
+
+     pY3 := AlignPtr32(@y3[0]);
+     Move( cY, pY3^, sizeof(cY));
+     pX1 := AlignPtr32(@x1[0]);
+     Move( cX, pX1^, sizeof(cX));
+
+     GenericVecAdd( @x[0], sizeof(double), @y1[0], sizeof(double), 6, 3);
+     Check(CheckMtx(y1, cRes), 'Vector to vector add failed');
+
+     ASMVecAddNonSeq( @x[0], @y2[0], 6, sizeof(double), sizeof(double), 3);
+     Check(CheckMtx(y2, cRes), 'Vector to vector add failed');
+
+     ASMVecAddAlignedSeq( pX1, pY3, 6, 3);
+     Check(CheckMtxIdx(pY3, @cRes[0], 6*sizeof(double), 6*sizeof(double), 6, 1, idx), 'Vector to vector add failed');
+
+     ASMVecAddUnAlignedSeq( @x[0], @y4[0], 6, 3);
+     Check(CheckMtx(y4, cRes), 'Vector to vector add failed');
+
+     SetLength(xbig, 1024);
+     SetLength(ybig1, 1024);
+     SetLength(ybig2, 1024);
+
+     for idx := 0 to Length(xBig) - 1 do
+     begin
+          xbig[idx] := random( 122 );
+          ybig1[idx] := random(232);
+          ybig2[idx] := ybig1[idx];
+     end;
+
+     GenericVecAdd( @xbig[0], sizeof(double), @ybig1[0], sizeof(double), Length(ybig1), -1);
+     ASMVecAddUnAlignedSeq( @xbig[0], @ybig2[0], Length(xbig), -1);
+
+     Check(CheckMtx(ybig1, ybig2), 'Big Vector to vector add failed');
+end;
 
 procedure TASMMatrixOperations.TestAddAndScale;
 const cBlkWidth = 24;
@@ -4292,8 +4346,7 @@ var C : TDoubleDynArray;
     i : Integer;
 
 function makeSym( A : TDoubleDynArray ) : TDoubleDynArray;
-  var
-    y: Integer;
+var y: Integer;
 begin
      Result := MatrixTranspose(A, cN, cN);
      for y := 0 to cN - 2 do

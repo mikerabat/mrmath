@@ -1612,7 +1612,6 @@ begin
      matrixMedianFunc := GenericMtxMedian;
      matrixSortFunc := GenericMtxSort;
      colSwapFunc := GenericColSwap;
-     SymRank2UpdateFunc := ASMSymRank2UpdateUpper;
 
      TDynamicTimeWarp.UseSSE := True;
      TRandomGenerator.cpuSet := TChaChaCPUInstrType.itSSE;
@@ -1673,6 +1672,8 @@ begin
           vecConvolve := AVXVecConvolveRevB;
           elemAddFunc := AVXMatrixElemAdd;
           MatrixVecDotMultFunc := AVXMatrixVecDotMult;
+          SymRank2UpdateFunc := AVXSymRank2UpdateUpper;
+
 
           // ##############################################
           // #### override if fma is requested
@@ -1754,6 +1755,7 @@ begin
           initfunc := ASMMatrixInit;
           vecConvolve := ASMVecConvolveRevB;
           MatrixVecDotMultFunc := ASMMatrixVecDotMult;
+          SymRank2UpdateFunc := ASMSymRank2UpdateUpper;
 
           TDynamicTimeWarp.UseSSE := True;
      end

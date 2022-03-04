@@ -41,7 +41,7 @@ type
      T : PDouble;
      LineWidthT : TASMNativeInt;
 
-     BlkMultSize : TASMNativeInt;
+     BlkMultSize : integer;
      BlkMultMem : PDouble;
 
      MatrixMultT1 : TMatrixBlockedMultfunc;

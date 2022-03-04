@@ -61,6 +61,12 @@ procedure ASMMatrixAddVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt
 procedure ASMMatrixAddVecUnalignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 procedure ASMMatrixAddVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
+procedure ASMVecAddAlignedSeq( X : PDouble; y : PDouble; N : TASMNativeInt; alpha : double ); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMVecAddUnAlignedSeq( X : PDouble; y : PDouble; N : TASMNativeInt; alpha : double ); {$IFDEF FPC}assembler;{$ENDIF}
+
+procedure ASMVecAddNonSeq( X : PDouble; y : PDouble; N : TASMNativeInt; incX, {$ifdef UNIX}unixIncY{$ELSE}incY {$ENDIF} : TASMNativeInt; alpha : double ); {$IFDEF FPC}assembler;{$ENDIF}
+
+
 {$ENDIF}
 
 implementation
@@ -1981,6 +1987,255 @@ asm
       add r8, r9;
    dec Height;
    jnz @@foryloop;
+end;
+
+// perform y[i] = y[i] + alpha * x[i]
+// unrolled 4 times
+procedure ASMVecAddUnAlignedSeq( X : PDouble; y : PDouble; N : TASMNativeInt; alpha : double );
+// rcx = X, rdx = Y, r8 = N, xmm3 = alpha
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+  {$ENDIF}
+
+   movddup xmm0, alpha;
+
+   imul r8, -8;
+   sub rcx, r8;
+   sub rdx, r8;
+
+   @@forNLoop:
+     add r8, 128;
+     jg @loopEnd;
+
+     movupd xmm1, [rcx + r8 - 128];
+     movupd xmm2, [rdx + r8 - 128];
+     mulpd xmm1, xmm0;
+     addpd xmm1, xmm2;
+     movupd [rdx + r8 - 128], xmm1;
+
+     movupd xmm1, [rcx + r8 - 112];
+     movupd xmm2, [rdx + r8 - 112];
+     mulpd xmm1, xmm0;
+     addpd xmm1, xmm2;
+     movupd [rdx + r8 - 112], xmm1;
+
+     movupd xmm3, [rcx + r8 - 96];
+     movupd xmm4, [rdx + r8 - 96];
+     mulpd xmm3, xmm0;
+     addpd xmm3, xmm4;
+     movupd [rdx + r8 - 96], xmm3;
+
+     movupd xmm2, [rcx + r8 - 80];
+     movupd xmm1, [rdx + r8 - 80];
+     mulpd xmm2, xmm0;
+     addpd xmm1, xmm2;
+     movupd [rdx + r8 - 80], xmm1;
+
+     movupd xmm4, [rcx + r8 - 64];
+     movupd xmm3, [rdx + r8 - 64];
+     mulpd xmm4, xmm0;
+     addpd xmm3, xmm4;
+     movupd [rdx + r8 - 64], xmm3;
+
+     movupd xmm2, [rcx + r8 - 48];
+     movupd xmm1, [rdx + r8 - 48];
+     mulpd xmm2, xmm0;
+     addpd xmm1, xmm2;
+     movupd [rdx + r8 - 48], xmm1;
+
+     movupd xmm4, [rcx + r8 - 32];
+     movupd xmm3, [rdx + r8 - 32];
+     mulpd xmm4, xmm0;
+     addpd xmm3, xmm4;
+     movupd [rdx + r8 - 32], xmm3;
+
+     movupd xmm4, [rcx + r8 - 16];
+     movupd xmm3, [rdx + r8 - 16];
+     mulpd xmm4, xmm0;
+     addpd xmm3, xmm4;
+     movupd [rdx + r8 - 16], xmm3;
+
+   jmp @@forNLoop
+
+   @loopEnd:
+
+   sub r8, 128;
+   jz @endLine;
+
+   @forNLoop2:
+      add r8, 16;
+      jg @endLine2;
+
+      movupd xmm4, [rcx + r8 - 16];
+      movupd xmm3, [rdx + r8 - 16];
+      mulpd xmm4, xmm0;
+      addpd xmm3, xmm4;
+      movupd [rdx + r8 - 16], xmm3;
+   jmp @forNLoop2;
+
+   @endLine2:
+
+   // last odd element
+   sub r8, 8;
+   jnz @endLine;
+
+   movsd xmm4, [rcx - 8];
+   movsd xmm3, [rdx - 8];
+   mulsd xmm4, xmm0;
+   addsd xmm3, xmm4;
+   movsd [rdx - 8], xmm3;
+
+   @endLine:
+end;
+
+procedure ASMVecAddAlignedSeq( X : PDouble; y : PDouble; N : TASMNativeInt; alpha : double );
+// rcx = X, rdx = Y, r8 = N, xmm3 = alpha
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+  {$ENDIF}
+
+   movddup xmm0, alpha;
+
+   imul r8, -8;
+   sub rcx, r8;
+   sub rdx, r8;
+
+   @@forNLoop:
+     add r8, 128;
+     jg @loopEnd;
+
+     movapd xmm1, [rcx + r8 - 128];
+     movapd xmm2, [rdx + r8 - 128];
+     mulpd xmm1, xmm0;
+     addpd xmm1, xmm2;
+     movapd [rdx + r8 - 128], xmm1;
+
+     movupd xmm1, [rcx + r8 - 112];
+     movupd xmm2, [rdx + r8 - 112];
+     mulpd xmm1, xmm0;
+     addpd xmm1, xmm2;
+     movupd [rdx + r8 - 112], xmm1;
+
+     movapd xmm3, [rcx + r8 - 96];
+     movapd xmm4, [rdx + r8 - 96];
+     mulpd xmm3, xmm0;
+     addpd xmm3, xmm4;
+     movapd [rdx + r8 - 96], xmm3;
+
+     movapd xmm2, [rcx + r8 - 80];
+     movapd xmm1, [rdx + r8 - 80];
+     mulpd xmm2, xmm0;
+     addpd xmm1, xmm2;
+     movapd [rdx + r8 - 80], xmm1;
+
+     movapd xmm4, [rcx + r8 - 64];
+     movapd xmm3, [rdx + r8 - 64];
+     mulpd xmm4, xmm0;
+     addpd xmm3, xmm4;
+     movapd [rdx + r8 - 64], xmm3;
+
+     movapd xmm2, [rcx + r8 - 48];
+     movapd xmm1, [rdx + r8 - 48];
+     mulpd xmm2, xmm0;
+     addpd xmm1, xmm2;
+     movapd [rdx + r8 - 48], xmm1;
+
+     movapd xmm4, [rcx + r8 - 32];
+     movapd xmm3, [rdx + r8 - 32];
+     mulpd xmm4, xmm0;
+     addpd xmm3, xmm4;
+     movapd [rdx + r8 - 32], xmm3;
+
+     movapd xmm4, [rcx + r8 - 16];
+     movapd xmm3, [rdx + r8 - 16];
+     mulpd xmm4, xmm0;
+     addpd xmm3, xmm4;
+     movapd [rdx + r8 - 16], xmm3;
+
+   jmp @@forNLoop
+
+   @loopEnd:
+
+   sub r8, 128;
+   jz @endLine;
+
+   @forNLoop2:
+      add r8, 16;
+      jg @endLine2;
+
+      movapd xmm4, [rcx + r8 - 16];
+      movapd xmm3, [rdx + r8 - 16];
+      mulpd xmm4, xmm0;
+      addpd xmm3, xmm4;
+      movapd [rdx + r8 - 16], xmm3;
+   jmp @forNLoop2;
+
+   @endLine2:
+
+   // last odd element
+   sub r8, 8;
+   jnz @endLine;
+
+   movsd xmm4, [rcx - 8];
+   movsd xmm3, [rdx - 8];
+   mulsd xmm4, xmm0;
+   addsd xmm3, xmm4;
+   movsd [rdx - 8], xmm3;
+
+   @endLine:
+end;
+
+procedure ASMVecAddNonSeq( X : PDouble; y : PDouble; N : TASMNativeInt; incX, {$ifdef UNIX}unixIncY{$ELSE}incY {$ENDIF} : TASMNativeInt; alpha : double );
+// rcx = X, rdx = Y, r8 = N, incX = r9
+{$IFDEF UNIX}
+var incY : TASMNativeInt;
+{$ENDIF}
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov incY, unixIncY;
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
+   mov rax, incY;
+
+   {$IFNDEF UNIX}
+   movsd xmm0, alpha;
+   {$ENDIF}
+
+   @@loopN:
+      movsd xmm1, [rcx];
+      movsd xmm2, [rdx];
+      mulsd xmm1, xmm0;
+      addsd xmm2, xmm1;
+
+      movsd [rdx], xmm2;
+      add rdx, rax;
+      add rcx, r9;
+   dec r8;
+   jnz @@loopN;
 end;
 
 {$ENDIF}

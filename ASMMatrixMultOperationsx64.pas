@@ -76,7 +76,9 @@ procedure ASMMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; m
 // k... number of columns of A and B
 // the lower triangle of C is not referenced
 procedure ASMSymRank2UpdateUpperUnaligned( C : PDouble; LineWidthC : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
-  B : PDouble; LineWidthB : TASMNativeInt; N : TASMNativeInt; k : TASMNativeInt ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+  {$IFDEF UNIX}unixB {$ELSE} B {$ENDIF}: PDouble;
+  {$IFDEF UNIX}unixLineWidthB {$ELSE} LineWidthB {$ENDIF} : TASMNativeInt;
+  N : TASMNativeInt; k : TASMNativeInt ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 

@@ -7,6 +7,7 @@ object BasicVisualizerViewerFrame: TBasicVisualizerViewerFrame
   Constraints.MinWidth = 220
   ParentBackground = False
   TabOrder = 0
+  PixelsPerInch = 96
   object MessageLabel: TLabel
     Left = 0
     Top = 0

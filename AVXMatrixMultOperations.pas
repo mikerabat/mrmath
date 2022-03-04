@@ -60,6 +60,16 @@ procedure AVXMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; m
   width1, height1, width2, height2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 
+// performs a rank2 update in the form
+// C = C - A*B' - B*A'
+// N...order of C (N x N matrix)
+// k... number of columns of A and B
+// the lower triangle of C is not referenced
+procedure AVXSymRank2UpdateUpperUnaligned( C : PDouble; LineWidthC : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
+  B : PDouble; LineWidthB : TASMNativeInt; N : TASMNativeInt; k : TASMNativeInt ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+
+
+
 {$ENDIF}
 
 implementation
@@ -1072,7 +1082,6 @@ asm
    pop ebx;
 end;
 
-// no avx optimization yet...
 procedure AVXMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
   width1, height1, width2, height2 : TASMNativeInt);
 var iter : TASMNativeInt;
@@ -1170,6 +1179,152 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 
    // cleanup stack
+   pop esi;
+   pop edi;
+   pop ebx;
+end;
+
+procedure AVXSymRank2UpdateUpperUnaligned( C : PDouble; LineWidthC : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
+  B : PDouble; LineWidthB : TASMNativeInt; N : TASMNativeInt; k : TASMNativeInt );
+// eax = c; edx = LineWidthC; ecx : A;
+var i, j : integer;
+    lC : Cardinal;
+asm
+   // save register
+   push ebx;
+   push edi;
+   push esi;
+
+   // switch register
+   mov lC, edx;
+
+   // eax -> pointer to C
+   // ecx -> ponter to pA1
+   // esi -> pointer to pB1
+   mov esi, B;
+
+   mov edi, k;
+   imul edi, -8;
+   mov k, edi;
+
+   sub ecx, edi;
+   sub esi, edi;
+
+   mov edi, N;
+   shl edi, 3;
+   add eax, edi;
+
+
+   // for j := 0 to N - 1 do
+   //
+   neg edi;
+   mov j, edi;
+   @@forNLoop:
+       mov edx, j;
+       mov i, edx;
+
+       // ###########################################
+       // #### Init A2 and B2
+       // pA2
+       mov ebx, ecx;
+       // pB2
+       mov edi, esi;
+
+
+       @@forjNLoop:
+            {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;{$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} 
+
+            // ###########################################
+            // #### Init loop
+            mov edx, k;
+
+            // ymm path
+            @@forlLoop2:
+               add edx, 32;
+               jg @@forlLoop2End;
+
+               {$IFDEF FPC}vmovupd ymm1, [ecx + edx - 32]; {$ELSE}db $C5,$FD,$10,$4C,$11,$E0;{$ENDIF} // pA1;
+               {$IFDEF FPC}vmovupd ymm2, [edi + edx - 32]; {$ELSE}db $C5,$FD,$10,$54,$17,$E0;{$ENDIF} // pB2
+               {$IFDEF FPC}vmovupd ymm3, [esi + edx - 32]; {$ELSE}db $C5,$FD,$10,$5C,$16,$E0;{$ENDIF} // pB1;
+               {$IFDEF FPC}vmovupd ymm4, [ebx + edx - 32]; {$ELSE}db $C5,$FD,$10,$64,$13,$E0;{$ENDIF} // pA2;
+
+               {$IFDEF FPC}vmulpd ymm1, ymm1, ymm2;{$ELSE}db $C5,$F5,$59,$CA;{$ENDIF} 
+               {$IFDEF FPC}vaddpd ymm0, ymm1, ymm0;{$ELSE}db $C5,$F5,$58,$C0;{$ENDIF} 
+               {$IFDEF FPC}vmulpd ymm3, ymm3, ymm4;{$ELSE}db $C5,$E5,$59,$DC;{$ENDIF} 
+               {$IFDEF FPC}vaddpd ymm0, ymm0, ymm3;{$ELSE}db $C5,$FD,$58,$C3;{$ENDIF} 
+
+            jmp @@forlLoop2;
+
+            @@forlLoop2End:
+
+            {$IFDEF FPC}vextractf128 xmm1, ymm0, 1;{$ELSE}db $C4,$E3,$7D,$19,$C1,$01;{$ENDIF} 
+            {$IFDEF FPC}vaddpd xmm0, xmm0, xmm1;{$ELSE}db $C5,$F9,$58,$C1;{$ENDIF} 
+
+            sub edx, 32;
+            cmp edx, 32;
+            je @@NextN;
+
+            // accumulate
+            @@forlLoop:
+                add edx, 16;
+                jg @@forlLoopEnd;
+
+                {$IFDEF FPC}vmovupd xmm1, [ecx + edx - 16]; {$ELSE}db $C5,$F9,$10,$4C,$11,$F0;{$ENDIF} // pA1;
+                {$IFDEF FPC}vmovupd xmm2, [edi + edx - 16]; {$ELSE}db $C5,$F9,$10,$54,$17,$F0;{$ENDIF} // pB2
+                {$IFDEF FPC}vmovupd xmm3, [esi + edx - 16]; {$ELSE}db $C5,$F9,$10,$5C,$16,$F0;{$ENDIF} // pB1;
+                {$IFDEF FPC}vmovupd xmm4, [ebx + edx - 16]; {$ELSE}db $C5,$F9,$10,$64,$13,$F0;{$ENDIF} // pA2;
+
+                {$IFDEF FPC}vmulpd xmm1, xmm1, xmm2;{$ELSE}db $C5,$F1,$59,$CA;{$ENDIF} 
+                {$IFDEF FPC}vaddpd xmm0, xmm1, xmm0;{$ELSE}db $C5,$F1,$58,$C0;{$ENDIF} 
+                {$IFDEF FPC}vmulpd xmm3, xmm3, xmm4;{$ELSE}db $C5,$E1,$59,$DC;{$ENDIF} 
+                {$IFDEF FPC}vaddpd xmm0, xmm0, xmm3;{$ELSE}db $C5,$F9,$58,$C3;{$ENDIF} 
+            jmp @@forlLoop;
+
+            @@forlLoopEnd:
+
+            // is iterator actualy zero? (aka even k)
+            cmp edx, 16;
+            je @@NextN;
+
+            // last element
+            {$IFDEF FPC}vmovsd xmm1, [ecx - 8]; {$ELSE}db $C5,$FB,$10,$49,$F8;{$ENDIF} // pA1;
+            {$IFDEF FPC}vmovsd xmm2, [edi - 8]; {$ELSE}db $C5,$FB,$10,$57,$F8;{$ENDIF} // pB2
+            {$IFDEF FPC}vmovsd xmm3, [esi - 8]; {$ELSE}db $C5,$FB,$10,$5E,$F8;{$ENDIF} // pB1;
+            {$IFDEF FPC}vmovsd xmm4, [ebx - 8]; {$ELSE}db $C5,$FB,$10,$63,$F8;{$ENDIF} // pA2;
+
+            {$IFDEF FPC}vmulsd xmm1, xmm1, xmm2;{$ELSE}db $C5,$F3,$59,$CA;{$ENDIF} 
+            {$IFDEF FPC}vaddsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$58,$C1;{$ENDIF} 
+            {$IFDEF FPC}vmulsd xmm3, xmm3, xmm4;{$ELSE}db $C5,$E3,$59,$DC;{$ENDIF} 
+            {$IFDEF FPC}vaddsd xmm0, xmm0, xmm3;{$ELSE}db $C5,$FB,$58,$C3;{$ENDIF} 
+
+            @@NextN:
+
+            // ###########################################
+            // #### pC^[i] := pC^[i] - xmm0
+            mov edx, i;
+            {$IFDEF FPC}vhaddpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$7C,$C0;{$ENDIF} 
+            {$IFDEF FPC}vmovsd xmm1, [eax + edx];{$ELSE}db $C5,$FB,$10,$0C,$10;{$ENDIF} 
+
+            {$IFDEF FPC}vsubsd xmm1, xmm1, xmm0;{$ELSE}db $C5,$F3,$5C,$C8;{$ENDIF} 
+            {$IFDEF FPC}vmovsd [eax + edx], xmm1;{$ELSE}db $C5,$FB,$11,$0C,$10;{$ENDIF} 
+
+            add ebx, LineWidthA;  // increment pA2
+            add edi, LineWidthB;  // increment pB2
+
+       add i, 8;
+       jnz @@forjNLoop;
+
+       // next line
+       add eax, lC;
+       add ecx, LineWidthA;
+       add esi, LineWidthB;
+   add j, 8;
+   jnz @@forNLoop;
+
+   // ###########################################
+   // #### Finalize stack
+   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
+
    pop esi;
    pop edi;
    pop ebx;
