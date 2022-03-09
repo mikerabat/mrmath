@@ -413,8 +413,8 @@ end;
 
 initialization
    numCPUCores := sysconf( _SC_NPROCESSORS_ONLN);
-   if numCPUCores > 64 then
-      numCPUCores := 64;
+   if numCPUCores > cMaxNumCores then
+      numCPUCores := cMaxNumCores;
    numRealCores := numCPUCores;
 
    numCoresForSimpleFuncs := numRealCores;

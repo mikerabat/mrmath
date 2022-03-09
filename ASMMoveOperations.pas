@@ -243,7 +243,6 @@ end;
 procedure ASMRowSwapAlignedEvenW(A, B : PDouble; width : TASMNativeInt);  {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 asm
    imul ecx, -8;
-   jz @endfunc;
 
    sub eax, ecx;
    sub edx, ecx;
@@ -297,7 +296,6 @@ end;
 procedure ASMRowSwapUnAlignedEvenW(A, B : PDouble; width : TASMNativeInt);
 asm
    imul ecx, -8;
-   jz @endfunc;
 
    sub eax, ecx;
    sub edx, ecx;
@@ -351,7 +349,6 @@ end;
 procedure ASMRowSwapAlignedOddW(A, B : PDouble; width : TASMNativeInt);
 asm
    imul ecx, -8;
-   jz @endfunc;
 
    add ecx, 8;
    jz @lastelem;
@@ -419,7 +416,6 @@ end;
 procedure ASMRowSwapUnAlignedOddW(A, B : PDouble; width : TASMNativeInt);
 asm
    imul ecx, -8;
-   jz @endfunc;
 
    add ecx, 8;
    jz @lastelem;

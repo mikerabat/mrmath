@@ -191,12 +191,10 @@ end;
 procedure TASMMatrixOperations.SetUp;
 begin
      InitSSEOptFunctions(itSSE);
-     MtxThreadPool.InitMtxThreadPool;
 end;
 
 procedure TASMMatrixOperations.TearDown;
 begin
-     FinalizeMtxThreadPool;
 end;
 
 procedure TASMMatrixOperations.TestAbs;
@@ -5035,5 +5033,7 @@ initialization
   RegisterTest(TASMMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});
   RegisterTest(TASMatrixBlockSizeSetup{$IFNDEF FPC}.Suite{$ENDIF});
 {$ENDIF}
+
+  MtxThreadPool.InitMtxThreadPool;
 end.
 

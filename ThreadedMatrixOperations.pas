@@ -41,8 +41,8 @@ procedure ThrMatrixMultT2Ex(dest : PDouble; const destLineWidth : TASMNativeInt;
                             op : TMatrixMultDestOperation; mem : PDouble);
 
 procedure ThrMatrixVecMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, v : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidthMt, LineWidthV : TASMNativeInt; const Alpha, Beta : double);
-procedure ThrMatrixAddAndScale(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
-procedure ThrMatrixScaleAndAdd(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
+procedure ThrMatrixAddAndScale(Dest : PDouble; const LineWidth: TASMNativeInt; Width, Height : TASMNativeInt; const Offset, Scale : double);
+procedure ThrMatrixScaleAndAdd(Dest : PDouble; const LineWidth: TASMNativeInt; Width, Height : TASMNativeInt; const Offset, Scale : double);
 
 procedure ThrMatrixAdd(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 procedure ThrMatrixSub(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
@@ -933,7 +933,7 @@ begin
      calls.SyncAll;
 end;
 
-procedure ThrMatrixScaleAndAdd(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
+procedure ThrMatrixScaleAndAdd(Dest : PDouble; const LineWidth: TASMNativeInt; Width, Height : TASMNativeInt; const Offset, Scale : double);
 var i: TASMNativeInt;
     calls : IMtxAsyncCallGroup;
     sizeFits : boolean;
@@ -1001,11 +1001,9 @@ begin
      calls.SyncAll;
 end;
 
-
-procedure ThrMatrixAddAndScale(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
+procedure ThrMatrixAddAndScale(Dest : PDouble; const LineWidth: TASMNativeInt; Width, Height : TASMNativeInt; const Offset, Scale : double);
 var i: TASMNativeInt;
     calls : IMtxAsyncCallGroup;
-    sizeFits : boolean;
     thrSize : TASMNativeInt;
     objs : Array[0..cMaxNumCores - 1] of TAsyncMatrixAddAndScaleRec;
     numUsed : integer;
@@ -1023,34 +1021,38 @@ begin
 
      if width > height then
      begin
-          sizeFits := (width mod numCoresForSimpleFuncs) = 0;
-          thrSize := width div numCoresForSimpleFuncs + TASMNativeInt(not sizeFits);
+          thrSize := Max(BlockMatrixCacheSize, width div numCoresForSimpleFuncs);
 
-          for i := 0 to numCoresForSimpleFuncs - 1 do
+          while width > 0 do
           begin
-               objs[numUsed].Create(dest, LineWidth, thrSize, height, Offset, Scale);
-
-               inc(objs[numUsed].dest, i*thrSize);
-               if width < (i + 1)*thrSize then
-                  objs[numUsed].Width := width - i*thrSize;
-
+               objs[numUsed].Create(dest, LineWidth, Min(width, thrSize), height, Offset, Scale);
+               inc(dest, thrSize);
+               dec(width, thrSize);
                inc(numUsed);
+          end;
+
+          if ((numUsed >= 2)) and ( (numUsed > numCoresForSimpleFuncs) ) then
+          begin
+               inc(objs[numUsed - 2].width, objs[numUsed - 1].width);
+               dec(numUsed);
           end;
      end
      else
      begin
-          sizeFits := (height mod numCoresForSimpleFuncs) = 0;
-          thrSize := height div numCoresForSimpleFuncs + TASMNativeInt(not sizeFits);
+          thrSize := Max(BlockMatrixCacheSize, height div numCoresForSimpleFuncs);
 
-          for i := 0 to numCoresForSimpleFuncs - 1 do
+          while height > 0 do
           begin
-               objs[numUsed].Create(dest, LineWidth, width, thrSize, Offset, Scale);
-
-               inc(PByte(objs[numUsed].dest), i*thrSize*LineWidth);
-               if height < (i + 1)*thrSize then
-                  objs[numUsed].Height := height - i*thrSize;
-
+               objs[numUsed].Create(dest, LineWidth, width, Min(height, thrSize), Offset, Scale);
+               inc(PByte(dest), thrSize*LineWidth);
+               dec(height, thrSize);
                inc(numUsed);
+          end;
+
+          if ((numUsed >= 2)) and ( (numUsed > numCoresForSimpleFuncs) ) then
+          begin
+               inc(objs[numUsed - 2].height, objs[numUsed - 1].height);
+               dec(numUsed);
           end;
      end;
 
@@ -1072,10 +1074,9 @@ end;
 procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixFunc);
 var i: TASMNativeInt;
     calls : IMtxAsyncCallGroup;
-    sizeFits : boolean;
     thrSize : TASMNativeInt;
 
-    objs : Array[0..cMaxNumCores - 1] of TAsyncMatrixFuncRec;
+    objs : Array[0..cMaxNumCores] of TAsyncMatrixFuncRec;
     numUsed : integer;
 begin
      // check if it is really necessary to thread the call:
@@ -1086,45 +1087,50 @@ begin
      end;
 
      numUsed := 0;
-
      if width > height then
      begin
-          sizeFits := (width mod numCPUCores) = 0;
-          thrSize := width div numCPUCores + TASMNativeInt(not sizeFits);
+          thrSize := Max(64, width div numCPUCores);
 
-          for i := 0 to numCPUCores - 1 do
+          while width > 0 do
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
-               objs[numUsed].width := thrSize;
+               objs[numUsed].width := Min(thrSize, width);
                objs[numUsed].height := height;
                objs[numUsed].func := func;
 
-               inc(objs[numUsed].dest, i*thrSize);
-               if width < (i + 1)*thrSize then
-                  objs[numUsed].Width := width - i*thrSize;
-
+               inc(dest, thrSize);
+               dec(width, thrSize);
                inc(numUsed);
+          end;
+
+          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          begin
+               inc(objs[numUsed - 2].width, objs[numUsed - 1].width);
+               dec(numUsed);
           end;
      end
      else
      begin
-          sizeFits := (height mod numCPUCores) = 0;
-          thrSize := height div numCPUCores + TASMNativeInt(not sizeFits);
+          thrSize := Max(64, height div numCPUCores);
 
-          for i := 0 to numCPUCores - 1 do
+          while height > 0 do
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
                objs[numUsed].width := width;
-               objs[numUsed].height := thrSize;
+               objs[numUsed].height := Min(thrSize, height);
                objs[numUsed].func := func;
 
-               inc(PByte(objs[numUsed].dest), i*thrSize*destLineWidth);
-               if height < (i + 1)*thrSize then
-                  objs[numUsed].Height := height - i*thrSize;
-
+               inc(PByte(dest), thrSize*destLineWidth);
                inc(numUsed);
+               dec(height, thrSize);
+          end;
+
+          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          begin
+               inc(objs[numUsed - 2].height, objs[numUsed - 1].height);
+               dec(numUsed);
           end;
      end;
 
@@ -1133,20 +1139,18 @@ begin
      calls := MtxInitTaskGroup;
 
      for i := 0 to numUsed - 2 do
-         calls.AddTaskRec(@MatrixFuncFunc, Pointer(@objs[i]));
+         calls.AddTaskRec(@MatrixFuncObjFunc, @objs[i]);
 
-     MatrixFuncFunc(Pointer(@objs[numUsed  - 1]));
+     MatrixFuncObjFunc(@objs[numUsed  - 1]);
 
      calls.SyncAll;
 end;
 
 procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixObjFunc);
-var i: TASMNativeInt;
+var i: integer;
     calls : IMtxAsyncCallGroup;
-    sizeFits : boolean;
     thrSize : TASMNativeInt;
-
-    objs : Array[0..cMaxNumCores - 1] of TAsyncMatrixFuncObjRec;
+    objs : Array[0..cMaxNumCores] of TAsyncMatrixFuncObjRec;
     numUsed : integer;
 begin
      // check if it is really necessary to thread the call:
@@ -1159,42 +1163,48 @@ begin
      numUsed := 0;
      if width > height then
      begin
-          sizeFits := (width mod numCPUCores) = 0;
-          thrSize := width div numCPUCores + TASMNativeInt(not sizeFits);
+          thrSize := Max(64, width div numCPUCores);
 
-          for i := 0 to numCPUCores - 1 do
+          while width > 0 do
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
-               objs[numUsed].width := thrSize;
+               objs[numUsed].width := Min(thrSize, width);
                objs[numUsed].height := height;
                objs[numUsed].func := func;
 
-               inc(objs[numUsed].dest, i*thrSize);
-               if width < (i + 1)*thrSize then
-                  objs[numUsed].Width := width - i*thrSize;
-
+               inc(dest, thrSize);
+               dec(width, thrSize);
                inc(numUsed);
+          end;
+
+          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          begin
+               inc(objs[numUsed - 2].width, objs[numUsed - 1].width);
+               dec(numUsed);
           end;
      end
      else
      begin
-          sizeFits := (height mod numCPUCores) = 0;
-          thrSize := height div numCPUCores + TASMNativeInt(not sizeFits);
+          thrSize := Max(64, height div numCPUCores);
 
-          for i := 0 to numCPUCores - 1 do
+          while height > 0 do
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
                objs[numUsed].width := width;
-               objs[numUsed].height := thrSize;
+               objs[numUsed].height := Min(thrSize, height);
                objs[numUsed].func := func;
 
-               inc(PByte(objs[numUsed].dest), i*thrSize*destLineWidth);
-               if height < (i + 1)*thrSize then
-                  objs[numUsed].Height := height - i*thrSize;
-
+               inc(PByte(dest), thrSize*destLineWidth);
                inc(numUsed);
+               dec(height, thrSize);
+          end;
+
+          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          begin
+               inc(objs[numUsed - 2].height, objs[numUsed - 1].height);
+               dec(numUsed);
           end;
      end;
 
@@ -1211,12 +1221,10 @@ begin
 end;
 
 procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFunc);
-var i: TASMNativeInt;
+var i: integer;
     calls : IMtxAsyncCallGroup;
-    sizeFits : boolean;
     thrSize : TASMNativeInt;
-
-    objs : Array[0..cMaxNumCores - 1] of TAsyncMatrixFuncRefRec;
+    objs : Array[0..cMaxNumCores] of TAsyncMatrixFuncRefRec;
     numUsed : integer;
 begin
      // check if it is really necessary to thread the call:
@@ -1227,45 +1235,50 @@ begin
      end;
 
      numUsed := 0;
-
      if width > height then
      begin
-          sizeFits := (width mod numCPUCores) = 0;
-          thrSize := width div numCPUCores + TASMNativeInt(not sizeFits);
+          thrSize := Max(64, width div numCPUCores);
 
-          for i := 0 to numCPUCores - 1 do
+          while width > 0 do
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
-               objs[numUsed].width := thrSize;
+               objs[numUsed].width := Min(thrSize, width);
                objs[numUsed].height := height;
                objs[numUsed].func := func;
 
-               inc(objs[numUsed].dest, i*thrSize);
-               if width < (i + 1)*thrSize then
-                  objs[numUsed].Width := width - i*thrSize;
-
+               inc(dest, thrSize);
+               dec(width, thrSize);
                inc(numUsed);
+          end;
+
+          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          begin
+               inc(objs[numUsed - 2].width, objs[numUsed - 1].width);
+               dec(numUsed);
           end;
      end
      else
      begin
-          sizeFits := (height mod numCPUCores) = 0;
-          thrSize := height div numCPUCores + TASMNativeInt(not sizeFits);
+          thrSize := Max(64, height div numCPUCores);
 
-          for i := 0 to numCPUCores - 1 do
+          while height > 0 do
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
                objs[numUsed].width := width;
-               objs[numUsed].height := thrSize;
+               objs[numUsed].height := Min(thrSize, height);
                objs[numUsed].func := func;
 
-               inc(PByte(objs[numUsed].dest), i*thrSize*destLineWidth);
-               if height < (i + 1)*thrSize then
-                  objs[numUsed].Height := height - i*thrSize;
-
+               inc(PByte(dest), thrSize*destLineWidth);
                inc(numUsed);
+               dec(height, thrSize);
+          end;
+
+          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          begin
+               inc(objs[numUsed - 2].height, objs[numUsed - 1].height);
+               dec(numUsed);
           end;
      end;
 
@@ -1274,20 +1287,18 @@ begin
      calls := MtxInitTaskGroup;
 
      for i := 0 to numUsed - 2 do
-         calls.AddTaskRec(@MatrixFuncRefFunc, @objs[i]);
+         calls.AddTaskRec(@MatrixFuncObjFunc, @objs[i]);
 
-     MatrixFuncRefFunc(@objs[numUsed  - 1]);
+     MatrixFuncObjFunc(@objs[numUsed  - 1]);
 
      calls.SyncAll;
 end;
 
 procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefObjFunc);
-var i: TASMNativeInt;
+var i: integer;
     calls : IMtxAsyncCallGroup;
-    sizeFits : boolean;
     thrSize : TASMNativeInt;
-
-    objs : Array[0..cMaxNumCores - 1] of TAsyncMatrixFuncRefObjRec;
+    objs : Array[0..cMaxNumCores] of TAsyncMatrixFuncRefObjRec;
     numUsed : integer;
 begin
      // check if it is really necessary to thread the call:
@@ -1298,45 +1309,50 @@ begin
      end;
 
      numUsed := 0;
-
      if width > height then
      begin
-          sizeFits := (width mod numCPUCores) = 0;
-          thrSize := width div numCPUCores + TASMNativeInt(not sizeFits);
+          thrSize := Max(64, width div numCPUCores);
 
-          for i := 0 to numCPUCores - 1 do
+          while width > 0 do
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
-               objs[numUsed].width := thrSize;
+               objs[numUsed].width := Min(thrSize, width);
                objs[numUsed].height := height;
                objs[numUsed].func := func;
 
-               inc(objs[numUsed].dest, i*thrSize);
-               if width < (i + 1)*thrSize then
-                  objs[numUsed].Width := width - i*thrSize;
-
+               inc(dest, thrSize);
+               dec(width, thrSize);
                inc(numUsed);
+          end;
+
+          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          begin
+               inc(objs[numUsed - 2].width, objs[numUsed - 1].width);
+               dec(numUsed);
           end;
      end
      else
      begin
-          sizeFits := (height mod numCPUCores) = 0;
-          thrSize := height div numCPUCores + TASMNativeInt(not sizeFits);
+          thrSize := Max(64, height div numCPUCores);
 
-          for i := 0 to numCPUCores - 1 do
+          while height > 0 do
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
                objs[numUsed].width := width;
-               objs[numUsed].height := thrSize;
+               objs[numUsed].height := Min(thrSize, height);
                objs[numUsed].func := func;
 
-               inc(PByte(objs[numUsed].dest), i*thrSize*destLineWidth);
-               if height < (i + 1)*thrSize then
-                  objs[numUsed].Height := height - i*thrSize;
-
+               inc(PByte(dest), thrSize*destLineWidth);
                inc(numUsed);
+               dec(height, thrSize);
+          end;
+
+          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          begin
+               inc(objs[numUsed - 2].height, objs[numUsed - 1].height);
+               dec(numUsed);
           end;
      end;
 
@@ -1345,9 +1361,9 @@ begin
      calls := MtxInitTaskGroup;
 
      for i := 0 to numUsed - 2 do
-         calls.AddTaskRec(@MatrixFuncRefObjFunc, @objs[i]);
+         calls.AddTaskRec(@MatrixFuncObjFunc, @objs[i]);
 
-     MatrixFuncRefObjFunc(@objs[numUsed  - 1]);
+     MatrixFuncObjFunc(@objs[numUsed  - 1]);
 
      calls.SyncAll;
 end;
@@ -1355,12 +1371,10 @@ end;
 {$IFDEF ANONMETHODS}
 
 procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixFuncRef);
-var i: TASMNativeInt;
+var i: integer;
     calls : IMtxAsyncCallGroup;
-    sizeFits : boolean;
     thrSize : TASMNativeInt;
-
-    objs : Array[0..cMaxNumCores - 1] of TAsyncMatrixFuncRecAnon;
+    objs : Array[0..cMaxNumCores] of TAsyncMatrixFuncRecAnon;
     numUsed : integer;
 begin
      // check if it is really necessary to thread the call:
@@ -1371,45 +1385,50 @@ begin
      end;
 
      numUsed := 0;
-
      if width > height then
      begin
-          sizeFits := (width mod numCPUCores) = 0;
-          thrSize := width div numCPUCores + TASMNativeInt(not sizeFits);
+          thrSize := Max(64, width div numCPUCores);
 
-          for i := 0 to numCPUCores - 1 do
+          while width > 0 do
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
-               objs[numUsed].width := thrSize;
+               objs[numUsed].width := Min(thrSize, width);
                objs[numUsed].height := height;
                objs[numUsed].func := func;
 
-               inc(objs[numUsed].dest, i*thrSize);
-               if width < (i + 1)*thrSize then
-                  objs[numUsed].Width := width - i*thrSize;
-
+               inc(dest, thrSize);
+               dec(width, thrSize);
                inc(numUsed);
+          end;
+
+          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          begin
+               inc(objs[numUsed - 2].width, objs[numUsed - 1].width);
+               dec(numUsed);
           end;
      end
      else
      begin
-          sizeFits := (height mod numCPUCores) = 0;
-          thrSize := height div numCPUCores + TASMNativeInt(not sizeFits);
+          thrSize := Max(64, height div numCPUCores);
 
-          for i := 0 to numCPUCores - 1 do
+          while height > 0 do
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
                objs[numUsed].width := width;
-               objs[numUsed].height := thrSize;
+               objs[numUsed].height := Min(thrSize, height);
                objs[numUsed].func := func;
 
-               inc(PByte(objs[numUsed].dest), i*thrSize*destLineWidth);
-               if height < (i + 1)*thrSize then
-                  objs[numUsed].Height := height - i*thrSize;
-
+               inc(PByte(dest), thrSize*destLineWidth);
                inc(numUsed);
+               dec(height, thrSize);
+          end;
+
+          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          begin
+               inc(objs[numUsed - 2].height, objs[numUsed - 1].height);
+               dec(numUsed);
           end;
      end;
 
@@ -1418,9 +1437,9 @@ begin
      calls := MtxInitTaskGroup;
 
      for i := 0 to numUsed - 2 do
-         calls.AddTaskRec(@MatrixFuncFunc, Pointer(@objs[i]));
+         calls.AddTaskRec(@MatrixFuncObjFunc, @objs[i]);
 
-     MatrixFuncFunc(Pointer(@objs[numUsed  - 1]));
+     MatrixFuncObjFunc(@objs[numUsed  - 1]);
 
      calls.SyncAll;
 end;
@@ -1428,10 +1447,8 @@ end;
 procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFuncRef);
 var i: TASMNativeInt;
     calls : IMtxAsyncCallGroup;
-    sizeFits : boolean;
     thrSize : TASMNativeInt;
-
-    objs : Array[0..cMaxNumCores - 1] of TAsyncMatrixFuncRefRecAnon;
+    objs : Array[0..cMaxNumCores] of TAsyncMatrixFuncRefRecAnon;
     numUsed : integer;
 begin
      // check if it is really necessary to thread the call:
@@ -1442,45 +1459,50 @@ begin
      end;
 
      numUsed := 0;
-
      if width > height then
      begin
-          sizeFits := (width mod numCPUCores) = 0;
-          thrSize := width div numCPUCores + TASMNativeInt(not sizeFits);
+          thrSize := Max(64, width div numCPUCores);
 
-          for i := 0 to numCPUCores - 1 do
+          while width > 0 do
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
-               objs[numUsed].width := thrSize;
+               objs[numUsed].width := Min(thrSize, width);
                objs[numUsed].height := height;
                objs[numUsed].func := func;
 
-               inc(objs[numUsed].dest, i*thrSize);
-               if width < (i + 1)*thrSize then
-                  objs[numUsed].Width := width - i*thrSize;
-
+               inc(dest, thrSize);
+               dec(width, thrSize);
                inc(numUsed);
+          end;
+
+          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          begin
+               inc(objs[numUsed - 2].width, objs[numUsed - 1].width);
+               dec(numUsed);
           end;
      end
      else
      begin
-          sizeFits := (height mod numCPUCores) = 0;
-          thrSize := height div numCPUCores + TASMNativeInt(not sizeFits);
+          thrSize := Max(64, height div numCPUCores);
 
-          for i := 0 to numCPUCores - 1 do
+          while height > 0 do
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
                objs[numUsed].width := width;
-               objs[numUsed].height := thrSize;
+               objs[numUsed].height := Min(thrSize, height);
                objs[numUsed].func := func;
 
-               inc(PByte(objs[numUsed].dest), i*thrSize*destLineWidth);
-               if height < (i + 1)*thrSize then
-                  objs[numUsed].Height := height - i*thrSize;
-
+               inc(PByte(dest), thrSize*destLineWidth);
                inc(numUsed);
+               dec(height, thrSize);
+          end;
+
+          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          begin
+               inc(objs[numUsed - 2].height, objs[numUsed - 1].height);
+               dec(numUsed);
           end;
      end;
 
@@ -1489,9 +1511,9 @@ begin
      calls := MtxInitTaskGroup;
 
      for i := 0 to numUsed - 2 do
-         calls.AddTaskRec(@MatrixFuncRefObjFunc, @objs[i]);
+         calls.AddTaskRec(@MatrixFuncObjFunc, @objs[i]);
 
-     MatrixFuncRefObjFunc(@objs[numUsed  - 1]);
+     MatrixFuncObjFunc(@objs[numUsed  - 1]);
 
      calls.SyncAll;
 end;
@@ -1503,8 +1525,7 @@ var i: TASMNativeInt;
     calls : IMtxAsyncCallGroup;
     sizeFits : boolean;
     thrSize : TASMNativeInt;
-
-    objs : Array[0..cMaxNumCores - 1] of TAsyncMatrixAddSubRec;
+    objs : Array[0..cMaxNumCores] of TAsyncMatrixAddSubRec;
     numUsed : integer;
 begin
      // check if it is really necessary to thread the call:
@@ -1519,40 +1540,48 @@ begin
      numUsed := 0;
      if width > height then
      begin
-          sizeFits := (width mod numCPUCores) = 0;
-          thrSize := width div numCPUCores + TASMNativeInt(not sizeFits);
+          thrSize := width div numCPUCores;
 
-          for i := 0 to numCPUCores - 1 do
+          while width > 0 do
           begin
-               objs[numUsed].Create(dest, destLineWidth, Mt1, Mt2, thrSize, height, LineWidth1, LineWidth2);
+               objs[numUsed].Create(dest, destLineWidth, Mt1, Mt2, Min(thrSize, width), height, LineWidth1, LineWidth2);
                objs[numUsed].func := func;
 
-               inc(objs[numUsed].dest, i*thrSize);
-               inc(objs[numUsed].mt1, i*thrSize);
-               inc(objs[numUsed].mt2, i*thrSize);
-               if width < (i + 1)*thrSize then
-                  objs[numUsed].Width := width - i*thrSize;
+               inc(mt1, thrSize);
+               inc(dest, thrSize);
+               inc(mt2, thrSize);
 
+               dec(width, thrSize);
                inc(numUsed);
+          end;
+
+          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          begin
+               inc(objs[numUsed - 2].width, objs[numUsed - 1].width);
+               dec(numUsed);
           end;
      end
      else
      begin
-          sizeFits := (height mod numCPUCores) = 0;
-          thrSize := height div numCPUCores + TASMNativeInt(not sizeFits);
+          thrSize := height div numCPUCores;
 
-          for i := 0 to numCPUCores - 1 do
+          while height > 0 do
           begin
-               objs[numUsed].Create(dest, destLineWidth, Mt1, Mt2, width, thrSize, LineWidth1, LineWidth2);
+               objs[numUsed].Create(dest, destLineWidth, Mt1, Mt2, width, Min(height, thrSize), LineWidth1, LineWidth2);
                objs[numUsed].func := func;
 
-               inc(PByte(objs[numUsed].dest), i*thrSize*destLineWidth);
-               inc(PByte(objs[numUsed].mt1), i*thrSize*LineWidth1);
-               inc(PByte(objs[numUsed].mt2), i*thrSize*LineWidth2);
-               if height < (i + 1)*thrSize then
-                  objs[numUsed].Height := height - i*thrSize;
+               inc(PByte(mt1), thrSize*LineWidth1);
+               inc(PByte(dest), thrSize*destLineWidth);
+               inc(PByte(mt2), thrSize*LineWidth2);
 
+               dec(height, thrSize);
                inc(numUsed);
+          end;
+
+          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          begin
+               inc(objs[numUsed - 2].height, objs[numUsed - 1].height);
+               dec(numUsed);
           end;
      end;
 
@@ -1584,14 +1613,12 @@ end;
 procedure ThrMatrixSort(dest : PDouble; destLineWidth : TASMNativeInt; width, height : integer; RowWise : boolean);
 var i: TASMNativeInt;
     calls : IMtxAsyncCallGroup;
-    sizeFits : boolean;
     thrSize : TASMNativeInt;
     maxNumCores : integer;
     hlpMem : PDouble;
     mem : Pointer;
-    objs : Array[0..cMaxNumCores - 1] of TAsyncMatrixSortRec;
+    objs : Array[0..cMaxNumCores] of TAsyncMatrixSortRec;
     numUsed : integer;
-
 begin
      // check if it is really necessary to thread the call:
      if (width < numCPUCores) and (height < numCPUCores) then
@@ -1606,50 +1633,54 @@ begin
      begin
           maxNumCores := Min(width, numCPUCores);
 
-          sizeFits := (width mod maxNumCores) = 0;
-          thrSize := width div maxNumCores + TASMNativeInt(not sizeFits);
+          thrSize := Max(64, width div maxNumCores);
           hlpMem := MtxMallocAlign( maxNumCores*height*sizeof(double), mem);
 
-          for i := 0 to maxNumCores - 1 do
+          while width > 0 do
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
-               objs[numUsed].width := thrSize;
+               objs[numUsed].width := Min(thrSize, width);
                objs[numUsed].height := height;
                objs[numUsed].RowWise := rowWise;
                objs[numUsed].hlpMem := hlpMem;
 
-
-               inc(objs[numUsed].dest, i*thrSize);
-               if width < (i + 1)*thrSize then
-                  objs[numUsed].Width := width - i*thrSize;
+               inc(dest, thrSize);
+               dec(width, thrSize);
 
                inc(numUsed);
-               //calls.AddTaskRec(@MatrixSortFunc, rec);
                inc(hlpMem, height);
+          end;
+          if (numUsed >= 2) and (numUsed > maxNumCores) then
+          begin
+               inc(objs[numUsed - 2].width, objs[numUsed - 1].width);
+               dec(numUsed);
           end;
      end
      else
      begin
           maxNumCores := Min(height, numCPUCores);
 
-          sizeFits := (height mod maxNumCores) = 0;
-          thrSize := height div maxNumCores + TASMNativeInt(not sizeFits);
+          thrSize := Max(64, height div maxNumCores);
 
-          for i := 0 to maxNumCores - 1 do
+          while height > 0 do
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
                objs[numUsed].width := width;
-               objs[numUsed].height :=  thrSize;
+               objs[numUsed].height := Min(height, thrSize);
                objs[numUsed].RowWise := rowWise;
                objs[numUsed].hlpMem := nil;
 
-               inc(PByte(objs[numUsed].dest), i*thrSize*destLineWidth);
-               if height < (i + 1)*thrSize then
-                  objs[numUsed].Height := height - i*thrSize;
-
+               inc(PByte(dest), thrSize*destLineWidth);
+               dec(height, thrSize);
                inc(numUsed);
+          end;
+
+          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          begin
+               inc(objs[numUsed - 2].height, objs[numUsed - 1].height);
+               dec(numUsed);
           end;
      end;
 
@@ -1671,10 +1702,9 @@ end;
 
 procedure ThrMatrixMedian(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
 var i: TASMNativeInt;
-    objs : Array[0..cMaxNumCores - 1] of TAsyncMatrixMedianRec;
+    objs : Array[0..cMaxNumCores] of TAsyncMatrixMedianRec;
     numUsed : integer;
     calls : IMtxAsyncCallGroup;
-    sizeFits : boolean;
     thrSize : TASMNativeInt;
     maxNumCores : integer;
     hlpMem : PDouble;
@@ -1692,28 +1722,31 @@ begin
      begin
           maxNumCores := Min(width, numCoresForSimpleFuncs);
 
-          sizeFits := (width mod maxNumCores) = 0;
-          thrSize := width div maxNumCores + TASMNativeInt(not sizeFits);
+          thrSize := width div maxNumCores;
           hlpMem := MtxMallocAlign(maxNumCores*height*sizeof(double), mem);
 
-          for i := 0 to maxNumCores - 1 do
+          while width > 0 do
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
                objs[numUsed].Src := src;
                objs[numUsed].srcLineWidth := srcLineWidth;
-               objs[numUsed].width := thrSize;
+               objs[numUsed].width := Min(thrSize, width);
                objs[numUsed].Height := height;
                objs[numUsed].rowWise := RowWise;
                objs[numUsed].hlpMem := hlpMem;
 
-               inc(objs[numUsed].dest, i*thrSize);
-               inc(objs[numUsed].src, i*thrSize);
-               if width < (i + 1)*thrSize then
-                  objs[numUsed].Width := width - i*thrSize;
-
+               inc(dest, thrSize);
+               inc(src, thrSize);
+               dec(width, thrSize);
                inc(numUsed);
                inc(hlpMem, height);
+          end;
+
+          if (numUsed >= 2) and (numUsed > numCoresForSimpleFuncs) then
+          begin
+               inc(objs[numUsed - 2].width, objs[numUsed - 1].width);
+               dec(numUsed);
           end;
      end
      else
@@ -1721,28 +1754,30 @@ begin
           maxNumCores := Min(height, numCoresForSimpleFuncs);
 
           hlpMem := MtxMallocAlign(maxNumCores*width*sizeof(double), mem);
+          thrSize := height div maxNumCores;
 
-          sizeFits := (height mod maxNumCores) = 0;
-          thrSize := height div maxNumCores + TASMNativeInt(not sizeFits);
-
-          for i := 0 to maxNumCores - 1 do
+          while height > 0 do
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
                objs[numUsed].Src := src;
                objs[numUsed].srcLineWidth := srcLineWidth;
                objs[numUsed].width := width;
-               objs[numUsed].Height := thrSize;
+               objs[numUsed].Height := Min(Height, thrSize);
                objs[numUsed].rowWise := RowWise;
                objs[numUsed].hlpMem := hlpMem;
 
-               inc(PByte(objs[numUsed].dest), i*thrSize*destLineWidth);
-               inc(PByte(objs[numUsed].src), i*thrSize*srcLineWidth);
-               if height < (i + 1)*thrSize then
-                  objs[numUsed].Height := height - i*thrSize;
-
+               inc(PByte(dest), thrSize*destLineWidth);
+               inc(PByte(src), thrSize*srcLineWidth);
+               dec(height, thrSize);
                inc(numUsed);
                inc(hlpMem, width);
+          end;
+
+          if (numUsed >= 2) and (numUsed > numCoresForSimpleFuncs) then
+          begin
+               inc(objs[numUsed - 2].height, objs[numUsed - 1].height);
+               dec(numUsed);
           end;
      end;
 
