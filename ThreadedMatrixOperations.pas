@@ -1523,7 +1523,6 @@ end;
 procedure ThrMatrixAddSub(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; func : TMatrixAddSubFunc);
 var i: TASMNativeInt;
     calls : IMtxAsyncCallGroup;
-    sizeFits : boolean;
     thrSize : TASMNativeInt;
     objs : Array[0..cMaxNumCores] of TAsyncMatrixAddSubRec;
     numUsed : integer;
