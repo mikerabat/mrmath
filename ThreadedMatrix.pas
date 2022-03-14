@@ -742,7 +742,7 @@ begin
         vecs.Assign(self, True);
         Result := ThrMtxEigUpperSymmetricMatrixInPlace2(vecs.StartElement, vecs.LineWidth, fSubWidth,
                                                         PConstDoubleArr( dt.StartElement ), True,
-                                                        SymEigBlockSize);
+                                                        SymEigBlockSize, fLinEQProgress);
         if Result = qlOk then
         begin
              dt.TransposeInPlace;
@@ -777,7 +777,7 @@ begin
         vecs.Assign(self, True);
         Result := ThrMtxEigUpperSymmetricMatrixInPlace2(vecs.StartElement, vecs.LineWidth, fSubWidth,
                                                         PConstDoubleArr( dt.StartElement ), False,
-                                                        SymEigBlockSize);
+                                                        SymEigBlockSize, fLinEQProgress);
         if Result = qlOk then
         begin
              dt.TransposeInPlace;

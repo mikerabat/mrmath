@@ -115,8 +115,8 @@ procedure MatrixQFromHessenbergDecomp(A : PDouble; const LineWidthA : TASMNative
 // then tries to find the eigenvalues and optionaly eigenvectors
 // on entry A is an nxn matrix and W is an nx1 vector.
 // on exit W contains the eigenvalues and if wanted A the eigenvectors
-function MatrixEigUpperSymmetricMatrixInPlace2(A : PDouble; LineWidthA : TASMNativeInt; N : TASMNativeInt; W : PConstDoubleArr; EigValOnly : boolean; blockSize : integer ) : TEigenvalueConvergence;
-function ThrMtxEigUpperSymmetricMatrixInPlace2(A : PDouble; LineWidthA : TASMNativeInt; N : TASMNativeInt; W : PConstDoubleArr; EigValOnly : boolean; blockSize : integer ) : TEigenvalueConvergence;
+function MatrixEigUpperSymmetricMatrixInPlace2(A : PDouble; LineWidthA : TASMNativeInt; N : TASMNativeInt; W : PConstDoubleArr; EigValOnly : boolean; blockSize : integer; progress : TLinEquProgress = nil ) : TEigenvalueConvergence;
+function ThrMtxEigUpperSymmetricMatrixInPlace2(A : PDouble; LineWidthA : TASMNativeInt; N : TASMNativeInt; W : PConstDoubleArr; EigValOnly : boolean; blockSize : integer; progress : TLinEquProgress = nil ) : TEigenvalueConvergence;
 
 function UperSymEigMemorySize( N, blockSize : TASMNativeInt; EigValOnly : boolean; Threaded : Boolean; var blkMultSize : integer ) : TASMNativeInt;
 
@@ -2578,6 +2578,7 @@ type
     iWork : PIntegerArray;
     reflData : TBlockReflrec;
     nb : integer;
+    progress : TLinEquProgress;
     ApplyPlaneRotSeqRVB : TApplyPlaneRotSeqMatrix;
     ApplyPlaneRotSeqRVF : TApplyPlaneRotSeqMatrix;
   end;
@@ -2816,12 +2817,17 @@ begin
           end;
 
           dec(i, eigWork.nb);
+
+          if Assigned(eigWork.progress) then
+             eigWork.progress( 50*(N - i) div N );
      end;
 
      // ###########################################
      // #### Unblocked part
      inc(i, eigWork.nb);
      Result := InternalSymmetricTridiagReduction(A, LineWidthA, i, eigWork );
+     if Assigned(eigWork.progress) then
+        eigWork.progress( 50 );
      //dsytd2(A, LineWidthA, D, E, tau, i);
 end;
 
@@ -3059,7 +3065,7 @@ begin
      Result := qlOk;
 
 // ###########################################
-// #### disclaimer: This is the most ugly from lapack I have ever encountered...
+// #### disclaimer: This is the ugliest from lapack I have ever encountered...
      if n <= 1 then
         exit;
 
@@ -3445,6 +3451,8 @@ begin
      l1 := 0;
 
 L10:
+     if Assigned(eigWork.Progress) then
+        eigWork.progress( 50 + 30*(N - l1) div N);
      if l1 >= n then
         goto L160;
 
@@ -4352,6 +4360,9 @@ begin
                                        n, mi, eigWork.nb, True, eigWork.reflData );
 
                inc(i, eigWork.nb);
+
+               if Assigned(eigWork.progress) then
+                  eigWork.progress( 80 + 20*i div k);
           end;
      end;
 
@@ -4368,6 +4379,8 @@ begin
                                        @tau^[i], eigWork.work );
           pAii^ := aii;
 
+          if Assigned(eigWork.progress) then
+             eigWork.progress( 80 + 20*i div k);
           inc(i);
      end;
 end;
@@ -4465,9 +4478,13 @@ begin
      // #### Undo scale
      if doScale then
         MatrixScaleAndAdd(PDouble(eigWork.D), N*SizeOf(double), N, 1, 0, 1/sigma);
+
+
+     if Assigned(eigWork.progress) then
+        eigWork.progress( 100 );
 end;
 
-function MatrixEigUpperSymmetricMatrixInPlace2(A : PDouble; LineWidthA : TASMNativeInt; N : TASMNativeInt; W : PConstDoubleArr; EigValOnly : boolean; blockSize : integer ) : TEigenvalueConvergence;
+function MatrixEigUpperSymmetricMatrixInPlace2(A : PDouble; LineWidthA : TASMNativeInt; N : TASMNativeInt; W : PConstDoubleArr; EigValOnly : boolean; blockSize : integer; progress : TLinEquProgress = nil ) : TEigenvalueConvergence;
 var eigWork : TSymEigRec;
     iworkSize : TASMNativeInt;
     workSize : TASMNativeInt;
@@ -4478,6 +4495,7 @@ begin
 
      eigWork.nb := Min(N, Max(2, blockSize));
      eigWork.D := PConstDoubleArr(W);
+     eigWork.progress := progress;
 
      workSize := UperSymEigMemorySize( N, eigWork.nb, EigValOnly, False, eigWork.reflData.BlkMultSize);
 
@@ -4680,7 +4698,7 @@ begin
      end;
 end;
 
-function ThrMtxEigUpperSymmetricMatrixInPlace2(A : PDouble; LineWidthA : TASMNativeInt; N : TASMNativeInt; W : PConstDoubleArr; EigValOnly : boolean; blockSize : integer ) : TEigenvalueConvergence;
+function ThrMtxEigUpperSymmetricMatrixInPlace2(A : PDouble; LineWidthA : TASMNativeInt; N : TASMNativeInt; W : PConstDoubleArr; EigValOnly : boolean; blockSize : integer; progress : TLinEquProgress = nil ) : TEigenvalueConvergence;
 var eigWork : TSymEigRec;
     iworkSize : TASMNativeInt;
     workSize : TASMNativeInt;
@@ -4699,6 +4717,7 @@ begin
 
      eigWork.nb := Min(N, Max(2, blockSize));
      eigWork.D := PConstDoubleArr(W);
+     eigWork.progress := progress;
 
      workSize := UperSymEigMemorySize( N, eigWork.nb, EigValOnly, True, eigWork.reflData.BlkMultSize);
 

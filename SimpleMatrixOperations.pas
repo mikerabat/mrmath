@@ -88,6 +88,8 @@ procedure GenericMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1,
 // performs matrix vector multiplication in the form: dest := alpha*mt1*v + beta*dest
 // where the matrix mt1 is a symmetric matrix and only the upper part is touched in the multiplication
 procedure GenericMtxVecMultUpperSym( dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; N : TASMNativeInt; alpha, beta : double);
+//procedure GenericMtxVecMultUpperSym1( dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; N : TASMNativeInt; alpha, beta : double);
+
 // same as upper sym but uses the lower part of the matrix
 procedure GenericMtxVecMultLowerSym( dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; N : TASMNativeInt; alpha, beta : double);
 
@@ -1868,13 +1870,76 @@ end;
 
 // performs matrix vector multiplication in the form: dest := alpha*mt1*v + beta*dest
 // where the matrix mt1 is a symmetric matrix and only the upper part is touched in the multiplication
+// the procedure tries to minimize the multiplications by accumulating the results in the resulting vector
 procedure GenericMtxVecMultUpperSym( dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; N : TASMNativeInt; alpha, beta : double);
+var y, x: TASMNativeInt;
+    res : double;
+    pMt1 : PConstDoubleArr;
+    pV : PDouble;
+    pD : PDouble;
+    tmp : double;
+begin
+     pMt1 := PConstDoubleArr(mt1);
+
+     if beta <> 1 then
+     begin
+          pD := dest;
+          if beta = 0 then
+          begin
+               for y := 0 to N - 1 do
+               begin
+                    pD^ := 0;
+                    inc(PByte(pD), destLineWidth);
+               end;
+          end
+          else
+          begin
+               for y := 0 to N - 1 do
+               begin
+                    pD^ := beta*pD^;
+                    inc(PByte(pD), destLineWidth);
+               end;
+          end;
+     end;
+
+     for y := 0 to N - 1 do
+     begin
+          pV := V;
+
+          // calculate one destination element and accumulate the on the others
+          pD := dest;
+          tmp := alpha*pV^;
+          res := pMt1^[y]*pV^;
+
+          inc(PByte(pD), destLineWidth);
+          inc(PByte(pV), LineWidthV);
+
+          for x := y + 1 to N - 1 do
+          begin
+               res := res + pV^*pMt1^[x];
+               pD^ := pD^ + tmp*pMt1^[x];
+               inc(PByte(pD), destLineWidth);
+               inc(PByte(pV), LineWidthV);
+          end;
+
+          Dest^ := Dest^ + alpha*res;
+          inc(PByte(Dest), destLineWidth);
+          inc(PByte(pMt1), LineWidthMT);
+          inc(PByte(V), LineWidthV);
+     end;
+end;
+
+(*
+procedure GenericMtxVecMultUpperSym1( dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; N : TASMNativeInt; alpha, beta : double);
 var y, y1, x: TASMNativeInt;
     res : double;
     pMt1 : PConstDoubleArr;
     pM : PDouble;
     pV : PDouble;
 begin
+     pMt1 := PConstDoubleArr(mt1);
+
+     // works
      pMt1 := PConstDoubleArr(mt1);
      for y := 0 to N - 1 do
      begin
@@ -1902,6 +1967,7 @@ begin
           inc(PByte(pMt1), LineWidthMT);
      end;
 end;
+*)
 
 // performs matrix vector multiplication in the form: dest := alpha*mt1*v + beta*dest
 // where the matrix mt1 is a symmetric matrix and only the upper part is touched in the multiplication

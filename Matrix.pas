@@ -382,7 +382,7 @@ type
 
     property Name : string read fName write fName;
 
-    property LineEQProgress : TLinEquProgress read GetLinEQProgress write SetLinEQProgress;
+    property LinEQProgress : TLinEquProgress read GetLinEQProgress write SetLinEQProgress;
 
     // general access
 
@@ -2952,7 +2952,7 @@ begin
         vecs.Assign(self, True);
         Result := MatrixEigUpperSymmetricMatrixInPlace2(vecs.StartElement, vecs.LineWidth, fSubWidth,
                                                         PConstDoubleArr( dt.StartElement ), True,
-                                                        SymEigBlockSize);
+                                                        SymEigBlockSize, fLinEQProgress);
         if Result = qlOk then
         begin
              dt.TransposeInPlace;
@@ -2987,7 +2987,7 @@ begin
         vecs.Assign(self, True);
         Result := MatrixEigUpperSymmetricMatrixInPlace2(vecs.StartElement, vecs.LineWidth, fSubWidth,
                                                         PConstDoubleArr( dt.StartElement ), False,
-                                                        SymEigBlockSize);
+                                                        SymEigBlockSize, fLinEQProgress);
         if Result = qlOk then
         begin
              dt.TransposeInPlace;
