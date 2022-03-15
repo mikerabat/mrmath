@@ -3800,6 +3800,7 @@ function InternalEigValEigVecFromSymTridiagMatrix( D, E : PConstDoubleArr; Z : P
  LineWidthZ : TASMNativeInt; N : TASMNativeInt; Work : PConstDoubleArr ) : TEigenvalueConvergence; overload;
 var eigWork : TSymEigRec;
 begin
+     FillChar(eigWork, sizeof(eigWork), 0);
      eigWork.work := PDouble(Work);
      eigWork.reflData.MatrixMultT1 := {$IFDEF FPC}@{$ENDIF}MatrixMultT1Ex;
      eigWork.reflData.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}MatrixMultT2Ex;
