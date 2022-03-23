@@ -54,6 +54,11 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date: 14.03.2022
+* Changed memory pattern access for the sym matrix vector mult.
+* Progress option for symmetric eigenvalue.
+* Change names
+
 Date: 01.03.2022
 * Reduced memory allocations in the symmetric eigenvalue functions
 * Some asm added

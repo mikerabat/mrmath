@@ -811,7 +811,7 @@ begin
      a := TDoubleMatrix.Create(4, 3);
      a.Assign(cA, 4, 3);
 
-     a.LineEQProgress := {$IFDEF FPC}@{$ENDIF}OnProgress;
+     a.LinEQProgress := {$IFDEF FPC}@{$ENDIF}OnProgress;
      a.SVD(u, v, w, False);
 
      Check((u.Width = 3) and (u.Height = 3), 'Error U has the wrong dimension');

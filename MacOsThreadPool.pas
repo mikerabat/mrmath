@@ -226,8 +226,8 @@ end;
 
 initialization
   numCPUCores := GetSystemThreadCount;
-  if numCpuCores > 64 then
-     numCpuCores := 64;
+  if numCpuCores > cMaxNumCores then
+     numCpuCores := cMaxNumCores;
   numRealCores := numCPUCores;
 
   numCoresForSimpleFuncs := numRealCores;
@@ -242,8 +242,8 @@ initialization
   cpuInfo := TNSProcessInfo.Create;
 
   numCPUCores := cpuInfo.processorCount;
-  if numCpuCores > 64 then
-     numCpuCores := 64;
+  if numCpuCores > cMaxNumCores then
+     numCpuCores := cMaxNumCores;
   numRealCores := numCPUCores;
 
   numCoresForSimpleFuncs := numRealCores;

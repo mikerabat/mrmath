@@ -191,12 +191,10 @@ end;
 procedure TASMMatrixOperations.SetUp;
 begin
      InitSSEOptFunctions(itSSE);
-     MtxThreadPool.InitMtxThreadPool;
 end;
 
 procedure TASMMatrixOperations.TearDown;
 begin
-     FinalizeMtxThreadPool;
 end;
 
 procedure TASMMatrixOperations.TestAbs;
@@ -470,8 +468,8 @@ const cX : Array[0..5] of double = (1, 2, 3, 4, 5, 6);
       cRes : Array[0..5] of double = (2, 7, 8, 13, 14, 19);
 var y1, y2, y4 : Array[0..5] of double;
     pY3 : PDouble;
-    y3 : Array[0..63] of byte;
-    X1 : Array[0..63] of byte;
+    y3 : Array[0..71] of byte;
+    X1 : Array[0..71] of byte;
     pX1 : PDouble;
     x : Array[0..5] of double;
     idx : integer;
@@ -5035,5 +5033,7 @@ initialization
   RegisterTest(TASMMatrixOperations{$IFNDEF FPC}.Suite{$ENDIF});
   RegisterTest(TASMatrixBlockSizeSetup{$IFNDEF FPC}.Suite{$ENDIF});
 {$ENDIF}
+
+  MtxThreadPool.InitMtxThreadPool;
 end.
 

@@ -392,7 +392,7 @@ begin
      try
         // subtract mean from each column
         fMeanNormExamples.Assign(Examples);
-        fMeanNormExamples.GetObjRef.LineEQProgress := {$IFDEF FPC}@{$ENDIF}OnLineEQProgress;
+        fMeanNormExamples.GetObjRef.LinEQProgress := {$IFDEF FPC}@{$ENDIF}OnLineEQProgress;
 
         for i := 0 to fMeanNormExamples.Width - 1 do
         begin
@@ -562,7 +562,7 @@ begin
      try
         // subtract mean from each column
         fMeanNormExamples.Assign(Examples, True);
-        fMeanNormExamples.GetObjRef.LineEQProgress := {$IFDEF FPC}@{$ENDIF}OnLineEQProgress;
+        fMeanNormExamples.GetObjRef.LinEQProgress := {$IFDEF FPC}@{$ENDIF}OnLineEQProgress;
         fMeanNormExamples.SubVecInPlace(fMeanElem, False);
 
         // calcluated Eigenvectors and eigenvalues using the SVD algorithm
