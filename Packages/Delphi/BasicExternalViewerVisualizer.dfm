@@ -10,8 +10,8 @@ object BasicVisualizerViewerFrame: TBasicVisualizerViewerFrame
   object MessageLabel: TLabel
     Left = 0
     Top = 0
-    Width = 439
-    Height = 369
+    Width = 91
+    Height = 18
     Align = alClient
     Alignment = taCenter
     Caption = 'MessageLabel'
