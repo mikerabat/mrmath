@@ -15,15 +15,15 @@ inherited mrMathMtxViewerFrame: TmrMathMtxViewerFrame
     object lblCapWidth: TLabel
       Left = 24
       Top = 3
-      Width = 28
-      Height = 13
+      Width = 32
+      Height = 15
       Caption = 'Width'
     end
     object lblCapHeight: TLabel
       Left = 24
       Top = 27
-      Width = 31
-      Height = 13
+      Width = 36
+      Height = 15
       Caption = 'Height'
     end
     object lblWidth: TLabel
@@ -55,8 +55,8 @@ inherited mrMathMtxViewerFrame: TmrMathMtxViewerFrame
     object lblCapSubWidth: TLabel
       Left = 128
       Top = 3
-      Width = 44
-      Height = 13
+      Width = 50
+      Height = 15
       Caption = 'Subwidth'
     end
     object lblSubHeight: TLabel
@@ -88,15 +88,15 @@ inherited mrMathMtxViewerFrame: TmrMathMtxViewerFrame
     object lblCapSubHeight: TLabel
       Left = 128
       Top = 27
-      Width = 48
-      Height = 13
+      Width = 54
+      Height = 15
       Caption = 'Subheight'
     end
     object lblCapLineWidth: TLabel
       Left = 248
       Top = 3
-      Width = 88
-      Height = 13
+      Width = 95
+      Height = 15
       Caption = 'Row width (bytes)'
     end
     object lblLineWidth: TLabel
@@ -202,7 +202,7 @@ inherited mrMathMtxViewerFrame: TmrMathMtxViewerFrame
     Height = 312
     Align = alClient
     DefaultColWidth = 48
-    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing]
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing]
     TabOrder = 1
     OnDblClick = grdDataDblClick
     OnDrawCell = grdDataDrawCell

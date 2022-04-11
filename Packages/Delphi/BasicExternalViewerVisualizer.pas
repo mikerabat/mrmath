@@ -270,7 +270,10 @@ procedure TBasicVisualizerViewerFrame.EvaluateComplete(const ExprStr,
   ResultStr: string; CanModify: Boolean; ResultAddress, ResultSize: LongWord;
   ReturnCode: Integer);
 begin
-  // do nothing
+     FEvaluteCompleted := True;
+     FDeferredEvaluteResult := ResultStr;
+     FDeferredEvaluteAddress := ResultAddress;
+     FDeferredEvaluteError := ReturnCode <> 0;
 end;
 
 function TBasicVisualizerViewerFrame.EvaluateIntegerValue
