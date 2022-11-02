@@ -168,10 +168,9 @@ constructor TWinRndEngine.Create;
 begin
      inherited Create;
 
+     fBufIdx := cNumPreCalc;
      if (locBCryptHdl = 0) and (locADVAPIHdl = 0) then
      begin
-          fBufIdx := cNumPreCalc;
-
           if locBCryptHdl = 0 then
              InitBCrypt;
 
