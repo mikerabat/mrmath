@@ -31,6 +31,7 @@ interface
 
 uses MatrixConst;
 
+procedure ASMCopyRepMov(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
 procedure ASMMatrixCopyAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 procedure ASMMatrixCopyUnAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
@@ -476,6 +477,39 @@ asm
    movsd [edx], xmm0;
 
    @endfunc:
+end;
+
+procedure ASMCopyRepMov(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+// eax=dest, edx=destLineWidth, ecx=src
+asm
+   push esi;
+   push edi;
+   push ebx;
+
+   mov ebx, ecx;  // save source
+
+   CLD;
+   // for y := 0 to height - 1:
+   @@addforyloop:
+       mov ecx, width;
+       shl ecx, 3; //*sizeof(double)
+
+       mov esi, ebx;
+       mov edi, eax;
+
+       rep movsb;
+
+       add eax, edx;
+       add ebx, srcLineWidth;
+
+   // loop y end
+   dec height;
+   jnz @@addforyloop;
+
+   // epilog
+   pop ebx;
+   pop edi;
+   pop esi;
 end;
 
 procedure ASMMatrixCopyAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);

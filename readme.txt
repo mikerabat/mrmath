@@ -53,6 +53,9 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 
 // ###################################################################
 changelog:
+Date: 04.11.2022
+* fixed a problem in the win random number generator (worked only correct once)
+* some minor changes on the matrix copy operations
 
 Date: 14.03.2022
 * Changed memory pattern access for the sym matrix vector mult.
