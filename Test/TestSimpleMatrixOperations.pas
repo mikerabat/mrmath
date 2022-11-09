@@ -155,7 +155,7 @@ uses ASMMatrixOperations, AVXMatrixOperations, ThreadedMatrixOperations, MtxThre
      ASMMatrixTransposeOperations, ASMMatrixNormOperations, ASMMatrixCumSumDiffOperations,
      ASMMatrixMeanOperations, ASMMatrixSumOperations,
      {$ENDIF}
-     MatrixConst, MathUtilFunc, Statistics, MatrixASMStubSwitch;
+     MatrixConst, MathUtilFunc, Statistics, MatrixASMStubSwitch, ASMMoveOperations;
 
 procedure TestMatrixOperations.TestAbs;
 const mt1 : Array[0..5] of double = (-1, 2, 2, -2, 3, -3);
@@ -2765,6 +2765,7 @@ begin
 
      startTime2 := MtxGetTime;
      ASMMatrixCopy(dest2a, cMtxLineWidth, xa, cMtxLinewidth, cMtxWidth, cMtxheight);
+     //ASMCopRepMov(dest2a, cMtxLineWidth, xa, cMtxLinewidth, cMtxWidth, cMtxheight);
      endTime2 := MtxGetTime;
 
      Move(dest1a^, dest1[0], length(dest2)*sizeof(double));
@@ -2775,7 +2776,7 @@ begin
      check(res);
 
      startTime3 := MtxGetTime;
-     ASMMatrixCopy(@dest2[0], cMtxLineWidth, @x[0], cMtxLinewidth, cMtxWidth, cMtxheight);
+     ASMCopyRepMov(@dest2[0], cMtxLineWidth, @x[0], cMtxLinewidth, cMtxWidth, cMtxheight);
      endTime3 := MtxGetTime;
 
      Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,

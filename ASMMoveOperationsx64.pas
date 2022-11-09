@@ -31,6 +31,7 @@ interface
 
 uses MatrixConst;
 
+procedure ASMCopyRepMov(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
 procedure ASMMatrixCopyAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 procedure ASMMatrixCopyUnAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
@@ -134,7 +135,7 @@ end;
 // rcx = dest, rdx = destLineWidth;  r8 = width, r9 = height
 procedure ASMMatrixInitUnAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 asm
-    {$IFDEF UNIX}
+   {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
    // (note that the 5th and 6th parameter are are on the stack)
    // The parameters are passed in the following order:
@@ -536,6 +537,56 @@ asm
 
    movsd [rcx], xmm1;
    movsd [rdx], xmm0;
+end;
+
+procedure ASMCopyRepMov(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+var aRSI : TASMNativeInt;
+    aRDI : TASMNativeInt;
+{$ifdef UNIX}
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+{$ENDIF}
+asm
+   // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov width, r8;
+   mov height, r9;
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
+   mov aRSI, rsi;
+   mov aRDI, rdi;
+
+   mov rax, rcx;
+
+   CLD;
+   // for y := 0 to height - 1:
+   @@addforyloop:
+       mov rcx, width;
+       shl rcx, 3; //*sizeof(double)
+
+       mov rsi, r8;
+       mov rdi, rax;
+
+       rep movsb;
+
+       add rax, rdx;
+       add r8, r9;
+
+   // loop y end
+   dec height;
+   jnz @@addforyloop;
+
+   // epilog
+   mov rsi, aRSI;
+   mov rdi, aRDI;
 end;
 
 procedure ASMMatrixCopyAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}

@@ -91,12 +91,14 @@ implementation
 
 uses Math, 
      {$IFDEF x64}
+     ASMMoveOperations64,
      AVXMatrixMultTransposedOperationsx64, AVXMoveOperationsx64, AVXMatrixAbsOperationsx64,
      AVXMatrixScaleOperationsx64, AVXMatrixTransposeOperationsx64, AVXMatrixVectorMultOperationsx64,
      AVXMatrixAddSubOperationsx64, AVXMatrixMultOperationsx64, AVXMatrixCumSumDiffOperationsx64,
      AVXMatrixElementwiseMultOperationsx64, AVXMatrixMinMaxOperationsx64, AVXMatrixMeanOperationsx64,
      AVXMatrixNormOperationsx64, AVXMatrixSqrtOperationsx64, AVXMatrixSumOperationsx64, MatrixASMStubSwitch,
      {$ELSE}
+     ASMMoveOperations,
      AVXMatrixMultOperations, AVXMatrixVectorMultOperations, AVXMatrixAbsOperations,
      AVXMatrixMultTransposedOperations, AVXMatrixAddSubOperations, AVXMatrixMeanOperations,
      AVXMatrixElementwiseMultOperations, AVXMatrixScaleOperations, AVXMatrixSQRTOperations,
@@ -706,16 +708,20 @@ begin
      if (width = 0) or (height = 0) then
         exit;
 
-     // check if they are vector operations:
-     if (width = 1) and (srcLineWidth = sizeof(double)) and (destLineWidth = sizeof(double)) then
+     // check if we have a block operation
+     if (width*sizeof(double) = srcLineWidth) and (width*sizeof(double) = destLineWidth) then
      begin
-          width := Height;
+          width := Height*width;
           height := 1;
           srcLineWidth := (width + (width and $03))*sizeof(double);
           destLineWidth := srcLineWidth;
      end;
 
-     if (TASMNativeUInt(Dest) and $0000001F = 0) and (TASMNativeUInt(src) and $0000001F = 0) and
+     (* todo: check if it's really faster... according to intel software optimiziation manual it's around factor 1.02 against AVX/SSE movs at memblocks > 2kB
+     if (width > 64) // and (width < maxcopy block
+     then
+         ASMCopyRepMov( dest, destLineWidth, src, srcLineWidth, width, height )
+     else *) if (TASMNativeUInt(Dest) and $0000001F = 0) and (TASMNativeUInt(src) and $0000001F = 0) and
         (destLineWidth and $0000001F = 0) and (srcLineWidth and $0000001F = 0)
      then
          AVXMatrixCopyAligned(dest, destLineWidth, src, srcLineWidth, width, height)

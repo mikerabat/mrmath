@@ -1084,17 +1084,21 @@ begin
      if (width = 0) or (height = 0) then
         exit;
 
-     // check if they are vector operations:
-     if (width = 1) and (srcLineWidth = sizeof(double)) and (destLineWidth = sizeof(double)) then
+     // check if they are vector or block operations:
+     if (width*sizeof(double) = srcLineWidth) and (width*sizeof(double) = destLineWidth) then
      begin
-          width := Height;
+          width := Height*width;
           height := 1;
           srcLineWidth := (width + (width and 1))*sizeof(double);
           destLineWidth := srcLineWidth;
      end;
 
-     if (TASMNativeUInt(Dest) and $0000000F = 0) and (TASMNativeUInt(src) and $0000000F = 0) and
-        (destLineWidth and $0000000F = 0) and (srcLineWidth and $0000000F = 0)
+     (* todo: check if it's really faster... according to intel software optimiziation manual it's around factor 1.02 against AVX/SSE movs at memblocks > 2kB
+     if (width > 64) // and (width < maxcopy block
+     then
+         ASMCopyRepMov( dest, destLineWidth, src, srcLineWidth, width, height )
+     else *)if (TASMNativeUInt(Dest) and $0000000F = 0) and (TASMNativeUInt(src) and $0000000F = 0) and
+         (destLineWidth and $0000000F = 0) and (srcLineWidth and $0000000F = 0)
      then
      begin
           if (width and 1) = 0
