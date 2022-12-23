@@ -91,14 +91,12 @@ implementation
 
 uses Math, 
      {$IFDEF x64}
-     ASMMoveOperations64,
      AVXMatrixMultTransposedOperationsx64, AVXMoveOperationsx64, AVXMatrixAbsOperationsx64,
      AVXMatrixScaleOperationsx64, AVXMatrixTransposeOperationsx64, AVXMatrixVectorMultOperationsx64,
      AVXMatrixAddSubOperationsx64, AVXMatrixMultOperationsx64, AVXMatrixCumSumDiffOperationsx64,
      AVXMatrixElementwiseMultOperationsx64, AVXMatrixMinMaxOperationsx64, AVXMatrixMeanOperationsx64,
      AVXMatrixNormOperationsx64, AVXMatrixSqrtOperationsx64, AVXMatrixSumOperationsx64, MatrixASMStubSwitch,
      {$ELSE}
-     ASMMoveOperations,
      AVXMatrixMultOperations, AVXMatrixVectorMultOperations, AVXMatrixAbsOperations,
      AVXMatrixMultTransposedOperations, AVXMatrixAddSubOperations, AVXMatrixMeanOperations,
      AVXMatrixElementwiseMultOperations, AVXMatrixScaleOperations, AVXMatrixSQRTOperations,
