@@ -78,6 +78,7 @@ type
     function Sub(Value : TDoubleMatrix) : TDoubleMatrix; override;
 
     function Median(RowWise : boolean) : TDoubleMatrix; override;
+    procedure RollMedianInPlace(RowWise : boolean; order : integer); override;
     procedure SortInPlace(RowWise : boolean); override;
 
     // threaded lin alg functions
@@ -334,6 +335,14 @@ begin
           ThrMatrixMedian(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise);
      end;
 end;
+
+procedure TThreadedMatrix.RollMedianInPlace(RowWise: boolean; order: integer);
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+
+     ThrMatrixRollMedianInPlace(StartElement, LineWidth, width, height, order, rowWise);
+end;
+
 
 function TThreadedMatrix.Mult(Value: TDoubleMatrix): TDoubleMatrix;
 begin

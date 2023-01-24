@@ -121,6 +121,7 @@ type
     procedure TestSVD;
     procedure TestSymEig;
     procedure TestLeastSquares;
+    procedure TestRollMedian;
   end;
 
 implementation
@@ -1174,6 +1175,33 @@ begin
      Check(CheckMtx(m1.SubMatrix, m2.SubMatrix), 'Error calculating threaded median');
      {$IFDEF FMX} TearDown; {$ENDIF};
 end;
+
+procedure TestTThreadedMatrix.TestRollMedian;
+var mtx : TThreadedMatrix;
+    stop, start : Int64;
+begin
+     {$IFDEF FMX} Setup; {$ENDIF};
+
+     mtx := TThreadedMatrix.CreateRand( 2048, 2048 );
+     try
+        start := MtxGetTime;
+        mtx.RollMedianInPlace(True, 5);
+        stop := MtxGetTime;
+        Status(Format('Multi thread roll median in %.3fms', [(stop - start)/mtxfreq*1000]));
+
+        start := MtxGetTime;
+        mtx.RollMedianInPlace(False, 5);
+        stop := MtxGetTime;
+        Status(Format('Multi thread roll median in %.3fms', [(stop - start)/mtxfreq*1000]));
+
+        // just check the size...
+        Check( (mtx.Width = mtx.Height) and (mtx.Width = 2048), 'Size changed?!?');
+     finally
+            mtx.Free;
+     end;
+end;
+
+
 
 procedure TestTThreadedMatrix.TestSort;
 const cBlkWidth = 2048;

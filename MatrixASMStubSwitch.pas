@@ -230,6 +230,8 @@ function MatrixMedian(const Src : Array of double; width, height : TASMNativeInt
 procedure MatrixMedian(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; hlpMem : PDouble); overload;
 procedure MatrixMedian(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean); overload;
 
+procedure MatrixRollMedian( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; order : integer; rowWise : boolean);
+
 procedure MatrixSort(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; hlpMem : PDouble = nil);
 
 function MatrixVar(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean) : TDoubleDynArray; overload;
@@ -374,7 +376,7 @@ uses ASMMatrixOperations, BlockedMult,
      ASMVecConvolvex64, AVXVecConvolvex64, FMAVecConvolvex64,
      {$ENDIF}
      BlockSizeSetup, SimpleMatrixOperations, CPUFeatures, MatrixRotations, Corr,
-     RandomEng;
+     RandomEng, RollingMedMean;
 
 var multFunc : TMatrixMultFunc;
     blockedMultFunc : TMatrixBlockedMultfunc;
@@ -1249,6 +1251,37 @@ procedure MatrixMedian(var dest : Array of double; const Src : Array of double; 
 begin
      assert((width > 0) and (height > 0) and (Length(dest) >= width*height) and (Length(src) >= width*height), 'Dimension error');
      MatrixMedian(@dest[0], width*sizeof(double), @src[0], width*sizeof(double), width, height, RowWise, nil);
+end;
+
+procedure MatrixRollMedian( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; order : integer; rowWise : boolean);
+var rollMed : TRollingMedian;
+    i : Integer;
+begin
+     if (width <= 0) or (height <= 0) then
+        exit;
+     rollMed := TRollingMedian.Create(order);
+     try
+        if RowWise then
+        begin
+             for i := 0 to Height - 1 do
+             begin
+                  rollMed.FilterVals(dest, sizeof(double), Width);
+                  rollMed.Clear;
+                  inc(PByte(dest), destLineWidth);
+             end;
+        end
+        else
+        begin
+             for i := 0 to Width - 1 do
+             begin
+                  rollMed.FilterVals(dest, destLineWidth, Height);
+                  rollMed.Clear;
+                  inc(dest);
+             end;
+        end;
+     finally
+            rollMed.Free;
+     end;
 end;
 
 procedure MatrixSort(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; hlpMem : PDouble = nil);

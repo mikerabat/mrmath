@@ -48,6 +48,7 @@ procedure ThrMatrixAdd(dest : PDouble; const destLineWidth : TASMNativeInt; mt1,
 procedure ThrMatrixSub(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
 
 procedure ThrMatrixMedian(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure ThrMatrixRollMedianInPlace( dest : PDouble; destLineWidth : TASMNativeInt; width, height : TASMNativeInt; order : integer; rowWise : boolean);
 procedure ThrMatrixSort(dest : PDouble; destLineWidth : TASMNativeInt; width, height : integer; RowWise : boolean);
 
 procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixFunc); overload;
@@ -155,6 +156,17 @@ type
     hlpMem : PDouble;
   end;
   PAsyncMatrixMedianRec = ^TAsyncMatrixMedianRec;
+type
+  TAsyncMatrixRollMedianRec = record
+    dest : PDouble;
+    destLineWidth : TASMNativeInt;
+    width : TASMNativeInt;
+    height : TASMNativeInt;
+    rowWise : boolean;
+    order : integer;
+  end;
+  PAsyncMatrixRollMedianRec = ^TAsyncMatrixRollMedianRec;
+
 type
   TAsyncMatrixSortRec = record
     dest : PDouble;
@@ -377,6 +389,16 @@ begin
                   PAsyncMatrixMedianRec(obj)^.height,
                   PAsyncMatrixMedianRec(obj)^.rowWise,
                   PAsyncMatrixMedianRec(obj)^.hlpMem);
+end;
+
+procedure MatrixRollMedianFunc(obj : Pointer);
+begin
+     MatrixRollMedian(PAsyncMatrixRollMedianRec(obj)^.dest,
+                      PAsyncMatrixRollMedianRec(obj)^.destLineWidth,
+                      PAsyncMatrixRollMedianRec(obj)^.width,
+                      PAsyncMatrixRollMedianRec(obj)^.height,
+                      PAsyncMatrixRollMedianRec(obj)^.order,
+                      PAsyncMatrixRollMedianRec(obj)^.rowWise);
 end;
 
 procedure MatrixSortFunc(obj : Pointer);
@@ -1793,6 +1815,87 @@ begin
         calls.SyncAll;
 
      FreeMem(mem);
+end;
+
+procedure ThrMatrixRollMedianInPlace( dest : PDouble; destLineWidth : TASMNativeInt; width, height : TASMNativeInt; order : integer; rowWise : boolean);
+var i: TASMNativeInt;
+    objs : Array[0..cMaxNumCores] of TAsyncMatrixRollMedianRec;
+    numUsed : integer;
+    calls : IMtxAsyncCallGroup;
+    thrSize : TASMNativeInt;
+    maxNumCores : integer;
+    mem : Pointer;
+begin
+     // check if it is really necessary to thread the call:
+     if (width < numCPUCores) and (height < numCPUCores) then
+     begin
+          MatrixRollMedian(Dest, destLineWidth, Width, height, order, rowWise);
+          exit;
+     end;
+
+     numUsed := 0;
+     if not RowWise then
+     begin
+          maxNumCores := Min(width, numCoresForSimpleFuncs);
+
+          thrSize := width div maxNumCores;
+          while width > 0 do
+          begin
+               objs[numUsed].dest := dest;
+               objs[numUsed].destLineWidth := destLineWidth;
+               objs[numUsed].width := Min(thrSize, width);
+               objs[numUsed].Height := height;
+               objs[numUsed].rowWise := RowWise;
+               objs[numUsed].order := order;
+
+               inc(dest, thrSize);
+               dec(width, thrSize);
+               inc(numUsed);
+          end;
+
+          if (numUsed >= 2) and (numUsed > numCoresForSimpleFuncs) then
+          begin
+               inc(objs[numUsed - 2].width, objs[numUsed - 1].width);
+               dec(numUsed);
+          end;
+     end
+     else
+     begin
+          maxNumCores := Min(height, numCoresForSimpleFuncs);
+
+          thrSize := height div maxNumCores;
+          while height > 0 do
+          begin
+               objs[numUsed].dest := dest;
+               objs[numUsed].destLineWidth := destLineWidth;
+               objs[numUsed].width := width;
+               objs[numUsed].Height := Min(Height, thrSize);
+               objs[numUsed].rowWise := RowWise;
+               objs[numUsed].order := order;
+
+               inc(PByte(dest), thrSize*destLineWidth);
+               dec(height, thrSize);
+               inc(numUsed);
+          end;
+
+          if (numUsed >= 2) and (numUsed > numCoresForSimpleFuncs) then
+          begin
+               inc(objs[numUsed - 2].height, objs[numUsed - 1].height);
+               dec(numUsed);
+          end;
+     end;
+
+     calls := nil;
+     if numUsed > 1 then
+        calls := MtxInitTaskGroup;
+
+     for i := 0 to numUsed - 2 do
+         calls.AddTaskRec(@MatrixRollMedianFunc, @objs[i]);
+
+     MatrixRollMedianFunc(@objs[numUsed - 1]);
+
+     if numUsed > 1 then
+        calls.SyncAll;
 end;
 
 { TAsyncMultRec }

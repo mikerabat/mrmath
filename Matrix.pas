@@ -188,6 +188,8 @@ type
 
     function Median(RowWise : boolean) : TDoubleMatrix;
     procedure MedianInPlace(RowWise : boolean);
+    function RollMedian(RowWise : boolean; order : integer) : TDoubleMatrix;
+    procedure RollMedianInPlace(RowWise : boolean; order : integer);
 
     procedure SortInPlace(RowWise : boolean);
     function Sort(RowWise : boolean) : TDoubleMatrix;
@@ -497,6 +499,8 @@ type
 
     function Median(RowWise : boolean) : TDoubleMatrix; virtual;
     procedure MedianInPlace(RowWise : boolean);
+    function RollMedian(RowWise : boolean; order : integer) : TDoubleMatrix;
+    procedure RollMedianInPlace(RowWise : boolean; order : integer); virtual;
 
     procedure SortInPlace(RowWise : boolean); virtual;
     function Sort(RowWise : boolean) : TDoubleMatrix;
@@ -663,7 +667,7 @@ procedure WriteBinary(const fn : string; mtx : IMatrix);
 implementation
 
 uses Math, MatrixASMStubSwitch, Eigensystems, LinAlgSVD, LinAlgQR, BlockSizeSetup, LinAlgCholesky,
-     LinAlgLU, MathUtilFunc;
+     LinAlgLU, MathUtilFunc, RollingMedMean;
 
 
 {$IFNDEF CPUX64}
@@ -1845,6 +1849,19 @@ begin
      finally
             dl.Free;
      end;
+end;
+
+function TDoubleMatrix.RollMedian(RowWise: boolean;
+  order: integer): TDoubleMatrix;
+begin
+     Result := Clone;
+     Result.RollMedianInPlace(RowWise, order);
+end;
+
+procedure TDoubleMatrix.RollMedianInPlace(RowWise: boolean; order: integer);
+begin
+     CheckAndRaiseError( (Width > 0) and (Height > 0), 'No data assigned');
+     MatrixRollMedian(StartElement, LineWidth, Width, Height, order, RowWise);
 end;
 
 function TDoubleMatrix.Sort(RowWise: boolean): TDoubleMatrix;

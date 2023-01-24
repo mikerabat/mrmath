@@ -39,6 +39,7 @@ type
    procedure TestApplyfunc;
    procedure TestAbs;
    procedure TestMedian;
+   procedure TestRollMedian;
    procedure TestCumSum;
    procedure TestDiff;
    procedure TestGamma;
@@ -1676,6 +1677,29 @@ begin
 
      GenericMtxMedian(@hlp[0], sizeof(double), @mt1[0], sizeof(double), 1, length(mt1), True);
      Check(CheckMtx(mt1, hlp), 'Median should be the input');
+end;
+
+procedure TestMatrixOperations.TestRollMedian;
+var rollMed : Array[0..11] of double;
+    i: Integer;
+begin
+     for i := 0 to Length(rollMed) - 1 do
+         rollMed[i] := i + 1;
+
+     MatrixRollMedian(@rollMed[0], Length(rollMed)*sizeof(double), Length(rollMed), 1, 3, True);
+
+     for i := 0 to Length(rollMed) - 1 do
+         Status( Format('RollMed %d: %d %.1f', [i, i + 1, rollMed[i]]));
+
+     for i := 2 to Length(rollMed) - 1 do
+         Check( SameValue(rollMed[i], i), 'Failed on index ' + IntToStr(i));
+
+     for i := 0 to Length(rollMed) - 1 do
+         rollMed[i] := i + 1;
+
+     MatrixRollMedian(@rollMed[0], sizeof(double), 1, Length(rollMed), 3, False);
+     for i := 2 to Length(rollMed) - 1 do
+         Check( SameValue(rollMed[i], i), 'Failed on index ' + IntToStr(i));
 end;
 
 procedure TestMatrixOperations.TestMult;
