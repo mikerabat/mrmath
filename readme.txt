@@ -53,6 +53,10 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 
 // ###################################################################
 changelog:
+
+Date 26.01.2023
+* Added a rolling mean/variance estimation based on Welfords (numerically more stable) algorithm.
+
 Date 24.01.2023
 * Added an rolling median algorithm for matrices. The algorithm performs O(n*log(k)) where k is the order. This can be
   used e.g. for fast median filtering of signals.

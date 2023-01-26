@@ -75,8 +75,44 @@ type
     constructor Create(order : SmallInt);
   end;
 
+// ###########################################
+// #### Moving mean and variance class
+// #### http://www.dsprelated.com/showthread/comp.dsp/97276-1.php
+// #### and http://calcandstuff.blogspot.se/2014/02/rolling-variance-calculation.html
+// ###########################################
+
+type
+  TMovingMeanVar = class(TObject)
+  private
+    fX : TDoubleDynArray;
+    fX2 : TDoubleDynArray;
+    fIdx : integer;
+    fIdx2 : integer;
+    fCnt : cardinal;
+    fWinSize : integer;
+
+    fSx1 : double;
+    fSx2 : double;
+  public
+    constructor Create(aWinSize : integer);
+
+    procedure Clear;
+
+    // for a one time use with an array of arbitrary size which we do not want to store
+    // this algorithm actually implements a (numericall not soooo stable) one pass algorithm
+    // but it's ok for standard things.
+    procedure AddVal( const Value : double );
+    procedure ReadMeanVar( var aMean, aVar : double );
+
+    // numerically more stable variance/mean estimation based on the given winsize
+    procedure FeedValWelford(const value : double; var aMean, aVar : double);  // preferred method (num stable and one pass)
+    // Direct but numerically more unstable implementation. Use Welford instead
+    procedure FeedValOnePass(const value : double; var aMean, aVar : double);
+  end;
 
 implementation
+
+uses Math;
 
 {$IFNDEF DEBUG_MEDIAN}
 {$R-}{$Q-}
@@ -310,6 +346,115 @@ begin
      end;
 
      Result := i = 0;
+end;
+
+
+// ###########################################
+// #### Moving/rolling mean variance
+// ###########################################
+
+constructor TMovingMeanVar.Create(aWinSize: integer);
+begin
+     fWinSize := aWinSize;
+     if aWinSize > 0 then
+     begin
+          SetLength(fX, aWinSize + 1);
+          SetLength(fX2, aWinSize + 1);
+     end;
+
+     Clear;
+
+     inherited Create;
+end;
+
+procedure TMovingMeanVar.Clear;
+begin
+     fIdx := 0;
+     fIdx2 := 1;
+     if Length(fX) > 0 then
+     begin
+          FillChar(fX[0], Length(fX)*sizeof(double), 0);
+          FillChar(fX2[0], Length(fX2)*sizeof(double), 0);
+     end;
+     fCnt := 0;
+     fSx1 := 0;
+     fSx2 := 0;
+end;
+
+procedure TMovingMeanVar.FeedValOnePass(const value: double; var aMean, aVar: double);
+begin
+     // numerically unstable but direct implementation of the base mean variance calculation
+     fX[fIdx] := Value;
+     fX2[fIdx] := sqr(Value);
+
+     fsx1 := fsx1 + fX[fIdx] - fX[fIdx2];
+     fsx2 := fsx2 + fX2[fIdx] - fX2[fIdx2];
+
+     inc(fIdx);
+     if fIdx > fWinSize then
+        fIdx := 0;
+     inc(fIdx2);
+     if fIdx2 > fWinSize then
+        fIdx2 := 0;
+
+     inc(fCnt);
+     if fCnt >= Cardinal(fWinSize) then
+     begin
+          aMean := fsx1/fWinSize;
+          aVar := (fWinSize*fSx2 - sqr(fsx1))/(fWinSize*(fWinSize - 1));
+     end
+     else
+     begin
+          aMean := 0;
+          aVar := 0;
+     end;
+end;
+
+procedure TMovingMeanVar.FeedValWelford(const value: double; var aMean,
+  aVar: double);
+var newMean : double;
+begin
+     // numerically stable one pass variance algorithm for sliding windows
+     fX[fIdx] := value;
+
+     newMean := fSx1 + (value - fX[fIdx2])/fWinSize;
+     fSx2 := fSx2 + (value - fSx1)*(value - newMean) - (fX[fIdx2] - fSx1)*(fX[fIdx2] - newMean);
+     fSx1 := newMean;
+
+     inc(fIdx);
+     if fIdx > fWinSize then
+        fIdx := 0;
+     inc(fIdx2);
+     if fIdx2 > fWinSize then
+        fIdx2 := 0;
+
+     inc(fCnt);
+     if fCnt >= Cardinal(fWinSize) then
+     begin
+          aMean := fsx1;
+          aVar := fSx2/(fWinSize - 1);
+     end
+     else
+     begin
+          aMean := 0;
+          aVar := 0;
+     end;
+end;
+
+procedure TMovingMeanVar.AddVal(const Value: double);
+begin
+     fSx1 := fSx1 + Value;
+     fSx2 := fSx2 + sqr(Value);
+     inc(fCnt);
+end;
+
+procedure TMovingMeanVar.ReadMeanVar(var aMean, aVar: double);
+var denom : double;
+begin
+     assert(fCnt >= 2, 'At least 2 values need to be feeded');
+     aMean := fsx1/fCnt;
+     denom := fCnt*1.0*(fCnt - 1);
+     aVar := Max(0, (fCnt*fSx2 - sqr(fsx1)))/denom;
 end;
 
 
