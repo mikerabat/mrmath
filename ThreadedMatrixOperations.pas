@@ -1824,7 +1824,6 @@ var i: TASMNativeInt;
     calls : IMtxAsyncCallGroup;
     thrSize : TASMNativeInt;
     maxNumCores : integer;
-    mem : Pointer;
 begin
      // check if it is really necessary to thread the call:
      if (width < numCPUCores) and (height < numCPUCores) then
