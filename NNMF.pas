@@ -50,7 +50,6 @@ type
     
     // procedures applied to each element of a matrix:
     procedure epsFunc(var value: double);
-    procedure RandFunc(var value : double);
     procedure maxFunc(var value : double);
   protected
     procedure DefineProps; override;
@@ -165,8 +164,7 @@ begin
      // ###########################################
      // #### Randomly initialize matrices
      try
-        fW := MatrixClass.Create(RankOfBasis, lenOfEigVec);
-        fW.ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}randFunc);
+        fW := MatrixClass.CreateRand(RankOfBasis, lenOfEigVec);
 
         sumW := fW.Sum(False);
         for counter := 0 to fW.Height - 1 do
@@ -177,8 +175,7 @@ begin
         fW.UseFullMatrix;
         sumW := nil;
 
-        fH := MatrixClass.Create(NumOfEigVec, RankOfBasis);
-        fH.ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}randFunc);
+        fH := MatrixClass.CreateRand(NumOfEigVec, RankOfBasis);
 
         if ( fProps.UseLastResIfFail ) and (fProps.method <> nnmfAlternateLeastSquare ) then
         begin
@@ -408,11 +405,6 @@ end;
 procedure TNNMF.epsFunc(var value : double);
 begin
      value := eps(value);
-end;
-
-procedure TNNMF.RandFunc(var value: double);
-begin
-     value := random;
 end;
 
 procedure TNNMF.maxFunc(var value: double);

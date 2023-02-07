@@ -2861,7 +2861,7 @@ begin
      if Tau = nil then
      begin
           eigWork.Tau := PConstDoubleArr(eigWork.work);
-          if nb >= (N div 2 - 1) then
+          if (2*nb < N) then
              eigWork.Tau := GenPtrArr( eigWork.work, 0, N, eigWork.LineWidthWork );
      end;
 

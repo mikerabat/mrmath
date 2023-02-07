@@ -49,7 +49,8 @@ function BlockMultMemSize(blkSize : integer) : integer;
 
 implementation
 
-uses Classes, ASMMatrixOperations, Types, MtxTimer, Math, MatrixASMStubSwitch, BlockedMult;
+uses Classes, ASMMatrixOperations, Types, MtxTimer, Math,
+     MatrixASMStubSwitch, BlockedMult, RandomEng;
 
 const cMatrixMaxTestSize = 2048;
       cNumIter = 5;
@@ -57,31 +58,38 @@ const cMatrixMaxTestSize = 2048;
 procedure SetupInitVars(out dest, a, b : PDouble; awidth, aheight, bwidth : integer); overload;
 var pa, pb, pDest : PDouble;
     x : integer;
+    rnd : TRandomGenerator;
 begin
      GetMem(a, aWidth*aHeight*sizeof(double));
      GetMem(b, bWidth*aWidth*sizeof(double));
      GetMem(dest, aHeight*bWidth*sizeof(double));
 
-     pa := a;
-     pb := b;
-     pDest := dest;
+     rnd := TRandomGenerator.Create(raChaCha);
+     try
+        rnd.Init(0);
+        pa := a;
+        pb := b;
+        pDest := dest;
 
-     for x := 0 to aWidth*aHeight - 1 do
-     begin
-          pa^ := random;
-          inc(pa);
-     end;
+        for x := 0 to aWidth*aHeight - 1 do
+        begin
+             pa^ := rnd.random;
+             inc(pa);
+        end;
 
-     for x := 0 to aWidth*bwidth - 1 do
-     begin
-          pb^ := random;
-          inc(pb);
-     end;
+        for x := 0 to aWidth*bwidth - 1 do
+        begin
+             pb^ := rnd.random;
+             inc(pb);
+        end;
 
-     for x := 0 to aHeight*bwidth - 1 do
-     begin
-          pDest^ := random;
-          inc(pDest);
+        for x := 0 to aHeight*bwidth - 1 do
+        begin
+             pDest^ := rnd.random;
+             inc(pDest);
+        end;
+     finally
+            rnd.Free;
      end;
 end;
 
@@ -282,6 +290,10 @@ begin
      FreeMem(dest);
 
      iterList.Free;
+
+     BlockMatrixCacheSize := Max(BlockMatrixCacheSize,
+                             Max( QRMultBlockSize,
+                             HessMultBlockSize ) );
 end;
 
 function BlockMultMemSize(blkSize : integer) : integer;

@@ -16,7 +16,7 @@ unit tSNE;
 
 interface
 
-uses Matrix, Types, PCA;
+uses Matrix, Types, RandomEng, PCA;
 
 // ###################################################################
 // this unit is based on the matlab implementation on
@@ -48,6 +48,9 @@ type
     fProgress : TTSNEProgress;
     fInitPCA : TTSNEPCAInit;
 
+    fSeed : integer;
+    fRandAlgorithm : TRandomAlgorithm;
+
     function DefInitPCA : TMatrixPCA;
 
     procedure UpdateGains(var Value : double; const data : PDouble; LineWidth : integer; x, y : integer);
@@ -73,22 +76,25 @@ type
     // incremental pca approach -> the algorithm starts with the pairwise distance calculation
     function SymTSNEPreprocessed( X : TDoubleMatrix; numDims : integer = 2) : TDoubleMatrix;
 
-    constructor Create( initDims : integer = 30; perplexity : integer = 30; numIter : integer = 1000; distFunc : TTSNEDistFunc = dfOrig);
+    constructor Create( initDims : integer = 30; perplexity : integer = 30; numIter : integer = 1000;
+                        distFunc : TTSNEDistFunc = dfOrig; randSeed : integer = 0; randAlgorithm : TRandomAlgorithm = raMersenneTwister);
 
     class function SymTSNE(X : TDoubleMatrix; numDims : integer;
                            initDims : integer; perplexity : integer; numIter : integer = 1000;
-                           distFunc : TTSNEDistFunc = dfOrig) : TDoubleMatrix; overload;
+                           distFunc : TTSNEDistFunc = dfOrig;
+                           randSeed : integer = 0; randAlgorithm : TRandomAlgorithm = raMersenneTwister) : TDoubleMatrix; overload;
   end;
 
 implementation
 
-uses SysUtils, MatrixConst, Math, RandomEng, Classes, MatrixASMStubSwitch,
-  Dist;
+uses SysUtils, MatrixConst, Math, Classes, MatrixASMStubSwitch,
+     Dist;
 
 { TtSNE }
 
 constructor TtSNE.Create( initDims : integer = 30; perplexity : integer = 30; 
-   numIter : integer = 1000; distFunc : TTSNEDistFunc = dfOrig);
+   numIter : integer = 1000; distFunc : TTSNEDistFunc = dfOrig; randSeed : integer = 0;
+   randAlgorithm : TRandomAlgorithm = raMersenneTwister);
 begin
      inherited Create;
 
@@ -97,13 +103,16 @@ begin
      fTol := 1e-5;
      fInitDims := initDims;
      fPerplexity := perplexity;
+     fSeed := RandSeed;
+     fRandAlgorithm := randAlgorithm;
 end;
 
 class function TtSNE.SymTSNE(X : TDoubleMatrix; numDims : integer;
   initDims : integer; perplexity : integer; numIter : integer = 1000;
-  distFunc : TTSNEDistFunc = dfOrig) : TDoubleMatrix; 
+  distFunc : TTSNEDistFunc = dfOrig; randSeed : integer = 0;
+  randAlgorithm : TRandomAlgorithm = raMersenneTwister) : TDoubleMatrix;
 begin
-     with TtSNE.Create(initDims, perplexity, numIter) do
+     with TtSNE.Create(initDims, perplexity, numIter, distFunc, randSeed, randAlgorithm) do
      try
         Result := SymTSNE( X, numDims );
      finally
@@ -437,7 +446,7 @@ begin
      constEntr := PT[0,0];
      P.ScaleInPlace(4);  // lie about the p-vals to find better local minima
 
-     yData := MatrixClass.CreateRand( numDims, n, raMersenneTwister, 0 );
+     yData := MatrixClass.CreateRand( numDims, n, fRandAlgorithm, fSeed );
      yData.ScaleInPlace(0.0001);
 
      fyincs := MatrixClass.Create(yData.Width, yData.Height );
