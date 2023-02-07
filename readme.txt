@@ -54,6 +54,11 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date: 07.02.2023
+* Implemented a parameter to reproduce results in TSNE by setting the random algorithm and seed.
+* exchanged random from math unit by the internal random engine
+* Fixed memory corruption on sym tridiagonal eigenvalue calculation in some edge cases.
+
 Date 26.01.2023
 * Added a rolling mean/variance estimation based on Welfords (numerically more stable) algorithm.
 
