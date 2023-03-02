@@ -89,7 +89,9 @@ type
     // fastdtw implementation based on the python package on: https://pypi.python.org/pypi/fastdtw
     // and: Stan Salvador, and Philip Chan. “FastDTW: Toward accurate dynamic time warping in linear time and space.”  Intelligent Data Analysis 11.5 (2007): 561-580.
     procedure ReduceByHalfPas(X : PConstDoubleArr; inLen, inOffset : TASMNativeInt; out newLen, newOffset : TASMNativeInt);
+    {$IFNDEF MRMATH_NOASM}
     procedure ReduceByHalfSSE(X : PConstDoubleArr; inLen, inOffset : TASMNativeInt; out newLen, newOffset : TASMNativeInt);
+    {$ENDIF}
     function ExpandWindow(inXLen, inYLen : integer; radius : integer) : Integer;
 
     procedure InternalFastDTW(inXOffset, inXLen, inYOffset, inYLen : integer; radius : integer; var dist : double);
@@ -331,10 +333,12 @@ constructor TDynamicTimeWarp.Create(DistMethod : TDynamicTimeWarpDistMethod = dt
 begin
      fMethod := DistMethod;
 
+     {$IFNDEF MRMATH_NOASM}
      if UseSSE
      then
          fReduceByHalf := {$IFDEF FPC}@{$ENDIF}ReduceByHalfSSE
      else
+     {$ENDIF}
          fReduceByHalf := {$IFDEF FPC}@{$ENDIF}ReduceByHalfPas;
 
      inherited Create;
@@ -776,6 +780,8 @@ begin
      end;
 end;
 
+{$IFNDEF MRMATH_NOASM}
+
 {$IFDEF CPUX64}
 {$DEFINE x64}
 {$ENDIF}
@@ -938,6 +944,7 @@ end;
 end;
 {$ENDIF}
 
+{$ENDIF}
 {$ENDIF}
 
 function TDynamicTimeWarp.ExpandWindow(inXLen, inYLen, radius: integer): Integer;

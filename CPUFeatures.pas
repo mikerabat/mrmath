@@ -82,6 +82,8 @@ var HW_MMX: boolean = False;
 // #### feature detection code
 // ##############################################################
 
+{$IFNDEF MRMATH_NOASM}
+
 type
   TRegisters = record
     EAX,
@@ -246,7 +248,20 @@ end;
 {$ENDIF}
 end;
 
+{$ELSE}
+
+// pas only:
+// todo: find a mechanism without assembler
+function GetCurrentProcessorNumber : LongWord; register;
+begin
+     REsult := 0;
+end;
+
+{$ENDIF}
+
+
 procedure InitFlags;
+{$IFNDEF MRMATH_NOASM}
 var nIds : LongWord;
     reg : TRegisters;
 begin
@@ -317,6 +332,11 @@ begin
              InitAVXOSSupportFlags;
      end;
 end;
+{$ELSE}
+begin
+
+end;
+{$ENDIF}
 
 function IsSSE3Present : boolean;
 begin

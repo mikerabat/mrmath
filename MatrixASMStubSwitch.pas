@@ -357,9 +357,18 @@ implementation
 {$DEFINE x64}
 {$ENDIF}
 
+{$IFDEF CPU86}
+{$DEFINE x86}
+{$ENDIF}
+{$IFDEF CPUX86}
+{$DEFINE x86}
+{$ENDIF}
+
+
 {$IFDEF FPC} {$S-} {$ENDIF}
 
-uses ASMMatrixOperations, BlockedMult,
+uses {$IFNDEF MRMATH_NOASM}
+     ASMMatrixOperations,
      {$IFNDEF x64}
      ASMMatrixMultOperations,
      ASMMatrixRotations, ASMMoveOperations, ASMVecConvolve, AVXVecConvolve,
@@ -375,7 +384,8 @@ uses ASMMatrixOperations, BlockedMult,
      ASMMatrixTransposeOperationsx64, FMAMatrixOperations, FMAMatrixMultOperationsx64,
      ASMVecConvolvex64, AVXVecConvolvex64, FMAVecConvolvex64,
      {$ENDIF}
-     BlockSizeSetup, SimpleMatrixOperations, CPUFeatures, MatrixRotations, Corr,
+     {$ENDIF}
+     BlockedMult, BlockSizeSetup, SimpleMatrixOperations, CPUFeatures, MatrixRotations, Corr,
      RandomEng, RollingMedMean;
 
 var multFunc : TMatrixMultFunc;
@@ -1607,13 +1617,17 @@ begin
 end;
 
 procedure InitMathFunctions(instrType : TCPUInstrType; useStrassenMult : boolean);
+{$IF defined(x86) or defined(x64)}
 var fpuCtrlWord : Word;
+{$IFEND}
 begin
      // decrease instruction set until we find one suitable
+     {$IFNDEF MRMATH_NOASM}
      if (instrType = itFMA) and not IsFMAPresent then
         instrType := itAVX;
      if (instrType = itAVX) and not IsAVXPresent then
         instrType := itSSE;
+     {$ENDIF}
 
      // generic functions that have no specialized implementation
      initfunc := GenericMtxInit;
@@ -1646,6 +1660,11 @@ begin
      matrixSortFunc := GenericMtxSort;
      colSwapFunc := GenericColSwap;
 
+     {$IFDEF MRMATH_NOASM}
+     TDynamicTimeWarp.UseSSE := False;
+     TRandomGenerator.cpuSet := TChaChaCPUInstrType.itFPU;
+     {$ENDIF}
+     {$IFNDEF MRMATH_NOASM}
      TDynamicTimeWarp.UseSSE := True;
      TRandomGenerator.cpuSet := TChaChaCPUInstrType.itSSE;
 
@@ -1793,6 +1812,7 @@ begin
           TDynamicTimeWarp.UseSSE := True;
      end
      else
+     {$ENDIF} // MRMATH_NOASM
      begin
           curUsedCPUInstrSet := itFPU;
           if useStrassenMult
@@ -1856,12 +1876,17 @@ begin
 
      curUsedStrassenMult := useStrassenMult;
 
+
+     {$IF defined(x86) or defined(x64)}
+
      // set only double precission for compatibility
      fpuCtrlWord := Get8087CW;
      // set bits 8 and 9 to "10" -> double precission calculation instead of extended!
      fpuCtrlWord := fpuCtrlWord or $0300;
      fpuCtrlWord := fpuCtrlWord and $FEFF;
      Set8087CW(fpuCtrlWord);
+     // todo: there must be something like this for ARM...
+     {$IFEND}
 end;
 
 initialization

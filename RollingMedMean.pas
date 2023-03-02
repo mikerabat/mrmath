@@ -72,7 +72,7 @@ type
     function FilterVal(const samp : double) : double;
     procedure FilterVals( buf : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt );
 
-    constructor Create(order : SmallInt);
+    constructor Create(aOrder : SmallInt);
   end;
 
 // ###########################################
@@ -161,13 +161,13 @@ begin
      end;
 end;
 
-constructor TRollingMedian.Create(order: SmallInt);
+constructor TRollingMedian.Create(aOrder: SmallInt);
 begin
      inherited Create;
 
-     fOrder := order;
-     fOrderD2 := order div 2;
-     fOrderD2M1 := (order - 1) div 2;
+     fOrder := aOrder;
+     fOrderD2 := aOrder div 2;
+     fOrderD2M1 := (aOrder - 1) div 2;
      SetLength(fBuf, fOrder);
      SetLength(fPos, fOrder);
      SetLength(fHeapArrBuf, fOrder);

@@ -54,6 +54,10 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date: 02.03.2023
+* Added a package mrMathPas that only uses pure pascal routines - all assembler stuff is either not
+  added or removed by a compiler switch.
+
 Date: 07.02.2023
 * Implemented a parameter to reproduce results in TSNE by setting the random algorithm and seed.
 * exchanged random from math unit by the internal random engine

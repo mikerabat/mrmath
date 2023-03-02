@@ -79,6 +79,8 @@ implementation
 uses Math, BlockSizeSetup, SimpleMatrixOperations, MatrixASMStubSwitch,
      MtxThreadPool, ThreadedMatrixOperations, MathUtilFunc;
 
+{$IFNDEF MRMATH_NOASM}
+
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 procedure YieldProcessor; {$IFDEF FPC} assembler; {$ENDIF}
@@ -95,7 +97,7 @@ end;
 
 procedure MemoryBarrier; {$IFDEF FPC} assembler; {$ENDIF}
 {$IFDEF x64}
-asm 
+asm
    push rax;
    XCHG [rsp],rax;
    POP  rax;
@@ -106,6 +108,21 @@ asm
    XCHG [esp],eax;
    POP  eax;
 end;
+{$ENDIF}
+
+{$ELSE}
+
+// MRMATH_NOASM for FPC - need to be adjusted for non x86 cores
+procedure YieldProcessor; //{$IFDEF FPC} assembler; {$ENDIF}
+begin
+     // todo
+end;
+
+procedure MemoryBarrier;
+begin
+     // todo
+end;
+
 {$ENDIF}
 
 procedure BlockMatrixVectorMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt); overload;

@@ -49,7 +49,7 @@ function BlockMultMemSize(blkSize : integer) : integer;
 
 implementation
 
-uses Classes, ASMMatrixOperations, Types, MtxTimer, Math,
+uses Classes, Types, MtxTimer, Math,
      MatrixASMStubSwitch, BlockedMult, RandomEng;
 
 const cMatrixMaxTestSize = 2048;
@@ -104,7 +104,7 @@ var startTime, endTime : Int64;
 begin
      startTime := MtxGetTime;
      for i := 0 to iter - 1 do
-         ASMMatrixMult(dest, destLineWidth, a, b, size, size, size, size, LineWidth1, LineWidth2);
+         MatrixMult(dest, destLineWidth, a, b, size, size, size, size, LineWidth1, LineWidth2);
      endTime := MtxGetTime;
 
      Result := endTime - startTime;
@@ -120,7 +120,7 @@ begin
      begin
           GetMem(transMtx, size*size*sizeof(double));
           MatrixTranspose(transMtx, size*sizeof(double), b, LineWidth2, size, size);
-          ASMMatrixMultTransposed(dest, destLineWidth, a, transMtx, size, size, size, size, LineWidth1, size*SizeOf(double));
+          MatrixMultT2(dest, destLineWidth, a, transMtx, size, size, size, size, LineWidth1, size*SizeOf(double));
           FreeMem(transMtx);
      end;
      endTime := MtxGetTime;
@@ -159,7 +159,7 @@ var startTime, endTime : Int64;
 begin
      startTime := MtxGetTime;
      for i := 0 to cNumIter - 1 do
-         ASMMatrixMult(dest, sizeof(double), a, b, aWidth, aHeight, 1, aWidth, LineWidth1, sizeof(double));
+         MatrixMult(dest, sizeof(double), a, b, aWidth, aHeight, 1, aWidth, LineWidth1, sizeof(double));
      endTime := MtxGetTime;
 
      Result := endTime - startTime;
