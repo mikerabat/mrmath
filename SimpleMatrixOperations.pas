@@ -2134,7 +2134,7 @@ end;
 function GenericMtxTranspose(const mt : Array of Double; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
 begin
      assert((width > 0) and (height > 0), 'Dimension Error');
-     assert(Length(mt) >= width, 'Dimension Error');
+     assert(Length(mt) >= width*height, 'Dimension Error');
 
      Result := GenericMtxTranspose(@mt[0], width*sizeof(double), width, height);
 end;
@@ -2142,10 +2142,10 @@ end;
 procedure GenericMtxTranspose(var dest : Array of Double; const mt : Array of Double; width : TASMNativeInt; height : TASMNativeInt); overload;
 begin
      assert((width > 0) and (height > 0), 'Dimension Error');
-     assert(High(mt) >= width + 1, 'Dimension Error');
-     assert(High(dest) >= width + 1, 'Dimension Error');
+     assert(Length(mt) >= width*height, 'Dimension Error');
+     assert(Length(dest) >= width*height, 'Dimension Error');
 
-     GenericMtxTranspose(@dest[0], width*sizeof(double), @mt[0], width, height, width*sizeof(double));
+     GenericMtxTranspose(@dest[0], height*sizeof(double), @mt[0], width*sizeof(double), width, height );
 end;
 
 procedure GenericMtxTransposeInplace(dest : PDouble; const destLineWidth : TASMNativeInt; n : TASMNativeInt);
