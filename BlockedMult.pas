@@ -79,6 +79,26 @@ implementation
 uses Math, BlockSizeSetup, SimpleMatrixOperations, MatrixASMStubSwitch,
      MtxThreadPool, ThreadedMatrixOperations, MathUtilFunc;
 
+
+{$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+
+{$IFDEF CPU86}
+{$DEFINE x86}
+{$ENDIF}
+{$IFDEF CPUX86}
+{$DEFINE x86}
+{$ENDIF}
+
+{$IF not defined(x86) and not defined(x64)}
+  {$DEFINE MRMATH_NOASM}
+{$ifend}
+
+
 {$IFNDEF MRMATH_NOASM}
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
@@ -87,13 +107,6 @@ procedure YieldProcessor; {$IFDEF FPC} assembler; {$ENDIF}
 asm
    PAUSE;
 end;
-
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
 
 procedure MemoryBarrier; {$IFDEF FPC} assembler; {$ENDIF}
 {$IFDEF x64}

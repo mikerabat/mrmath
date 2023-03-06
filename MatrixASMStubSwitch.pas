@@ -364,6 +364,9 @@ implementation
 {$DEFINE x86}
 {$ENDIF}
 
+{$IF not defined(x86) and not defined(x64)}
+  {$DEFINE MRMATH_NOASM}
+{$ifend}
 
 {$IFDEF FPC} {$S-} {$ENDIF}
 

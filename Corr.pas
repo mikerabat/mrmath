@@ -18,6 +18,25 @@ interface
 
 uses SysUtils, Math, MatrixConst, Matrix, BaseMathPersistence, Types;
 
+{$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+
+{$IFDEF CPU86}
+{$DEFINE x86}
+{$ENDIF}
+{$IFDEF CPUX86}
+{$DEFINE x86}
+{$ENDIF}
+
+{$IF not defined(x86) and not defined(x64)}
+  {$DEFINE MRMATH_NOASM}
+{$ifend}
+
+
 // standard simple linear correlation method:
 type
   ECorrelateException = class(EBaseMatrixException);
@@ -781,13 +800,6 @@ begin
 end;
 
 {$IFNDEF MRMATH_NOASM}
-
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 

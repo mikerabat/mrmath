@@ -82,6 +82,25 @@ var HW_MMX: boolean = False;
 // #### feature detection code
 // ##############################################################
 
+{$IFDEF CPUX64}
+{$DEFINE x64}
+{$ENDIF}
+{$IFDEF cpux86_64}
+{$DEFINE x64}
+{$ENDIF}
+
+{$IFDEF CPU86}
+{$DEFINE x86}
+{$ENDIF}
+{$IFDEF CPUX86}
+{$DEFINE x86}
+{$ENDIF}
+
+{$IF not defined(x86) and not defined(x64)}
+  {$DEFINE MRMATH_NOASM}
+{$ifend}
+
+
 {$IFNDEF MRMATH_NOASM}
 
 type
@@ -94,14 +113,7 @@ type
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
 {$IFDEF x64}
-
 function IsCPUID_Available : boolean;
 begin
      Result := true;
