@@ -123,15 +123,10 @@ const cStrassenMinSize = 32;
 {$IFDEF cpux86_64}
 {$DEFINE x64}
 {$ENDIF}
-{$IFDEF x64}
+{todo: get rid of TASMNativeInt}
 type
   TASMNativeInt = NativeInt;
   TASMNativeUInt = NativeUInt;
-{$ELSE}
-type
-  TASMNativeInt = integer;
-  TASMNativeUInt = Cardinal;
-{$ENDIF}
 
 type
   TMatrixMultDestOperation = (doNone, doAdd, doSub);

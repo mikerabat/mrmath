@@ -311,11 +311,6 @@ type
     type
       TLocConstDoubleArr = Array[0..MaxInt div sizeof(double) - 1] of double;
       PLocConstDoubleArr = ^TLocConstDoubleArr;
-      {$IFDEF x64}
-      TLocASMNativeInt = NativeInt;
-      {$ELSE}
-      TLocASMNativeInt = integer;
-      {$ENDIF}
   protected
     // used to determine which class type to use as a result
     // e.g. the threaded class does not override all standard functions but
@@ -345,7 +340,7 @@ type
   private
     fMemory : Pointer;
     fData : PLocConstDoubleArr;       // 16 byte aligned pointer:
-    fLineWidth : TLocASMNativeInt;
+    fLineWidth : NativeInt;
     fObj : TObject;                // arbitrary object
 
     procedure MtxRandWithEng(var value : double);
@@ -667,13 +662,7 @@ procedure WriteBinary(const fn : string; mtx : IMatrix);
 implementation
 
 uses Math, MatrixASMStubSwitch, Eigensystems, LinAlgSVD, LinAlgQR, BlockSizeSetup, LinAlgCholesky,
-     LinAlgLU, MathUtilFunc, RollingMedMean;
-
-
-{$IFNDEF CPUX64}
-type
-  NativeUInt = Cardinal;
-{$ENDIF}
+     LinAlgLU, MathUtilFunc;
 
 
 // ###########################################
