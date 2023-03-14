@@ -32,28 +32,28 @@ interface
 uses MatrixConst;
 
 
-procedure AVXMatrixVectMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
-procedure AVXMatrixVectMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt;{$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixVectMultT(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : NativeInt; width, height : NativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixVectMult(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : NativeInt; width, height : NativeInt;{$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
 
 // routines with special input layouts: LineWidthV needs to be sizeof(double)
-procedure AVXMatrixVectMultAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt;{$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
-procedure AVXMatrixVectMultUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt;{$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixVectMultAlignedVAligned(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : NativeInt; width, height : NativeInt;{$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixVectMultUnAlignedVAligned(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : NativeInt; width, height : NativeInt;{$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
 
 // destlinewidth needs to be sizeof(double)!
 // no speed gain agains amsmatrixVectMultT
-procedure AVXMatrixVecMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixVecMultTDestVec(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : NativeInt; width, height : NativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
 
-function AVXMatrixVecDotMultUneven( x : PDouble; Y : PDouble; incX : TASMNativeInt; incY : TASMNativeInt;
- {$ifdef UNIX} unixN {$ELSE} N {$ENDIF} : TASMNativeInt) : Double; {$IFDEF FPC}assembler;{$ENDIF}
-function AVXMatrixVecDotMultUnAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double; {$IFDEF FPC}assembler;{$ENDIF}
-function AVXMatrixVecDotMultAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double; {$IFDEF FPC}assembler;{$ENDIF}
+function AVXMatrixVecDotMultUneven( x : PDouble; Y : PDouble; incX : NativeInt; incY : NativeInt;
+ {$ifdef UNIX} unixN {$ELSE} N {$ENDIF} : NativeInt) : Double; {$IFDEF FPC}assembler;{$ENDIF}
+function AVXMatrixVecDotMultUnAligned( x : PDouble; y : PDouble; N : NativeInt ) : double; {$IFDEF FPC}assembler;{$ENDIF}
+function AVXMatrixVecDotMultAligned( x : PDouble; y : PDouble; N : NativeInt ) : double; {$IFDEF FPC}assembler;{$ENDIF}
 
 
 // rank1 update: A = A + alpha*X*Y' where x and y are vectors. It's assumed that y is sequential
-procedure AVXRank1UpdateSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
-procedure AVXRank1UpdateSeqAligned(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXRank1UpdateSeq(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
+  {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : NativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXRank1UpdateSeqAligned(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
+  {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : NativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
 
 {$ENDIF}
 
@@ -63,11 +63,11 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-}  {$warnings off} {$ENDIF}
 
-procedure AVXMatrixVectMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixVectMult(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : NativeInt; width, height : NativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
-var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
+var iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
     {$ifdef UNIX}
-    LineWidthMT, LineWidthV : TASMNativeInt;
+    LineWidthMT, LineWidthV : NativeInt;
     alpha : double;
     beta : double;
     {$endif}
@@ -248,11 +248,11 @@ end;
 
 
 // routines with special input layouts: LineWidthV needs to be sizeof(double)
-procedure AVXMatrixVectMultAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixVectMultAlignedVAligned(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : NativeInt; width, height : NativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
-var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
+var iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
     {$ifdef UNIX}
-    LineWidthMT, LineWidthV : TASMNativeInt;
+    LineWidthMT, LineWidthV : NativeInt;
     alpha, beta : double;
     {$endif}
 asm
@@ -509,11 +509,11 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXMatrixVectMultUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixVectMultUnAlignedVAligned(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : NativeInt; width, height : NativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v
-var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
+var iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
     {$ifdef UNIX}
-    LineWidthMT, LineWidthV : TASMNativeInt;
+    LineWidthMT, LineWidthV : NativeInt;
     alpha, beta : double;
     {$endif}
 asm
@@ -771,10 +771,10 @@ end;
 
 // this function is not that well suited for use of simd instructions...
 // so only this version exists
-procedure AVXMatrixVectMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
+procedure AVXMatrixVectMultT(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : NativeInt; width, height : NativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
+var iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
     {$ifdef UNIX}
-    LineWidthMT, LineWidthV : TASMNativeInt;
+    LineWidthMT, LineWidthV : NativeInt;
     alpha, beta : double;
     {$endif}
 asm
@@ -1085,10 +1085,10 @@ asm
 end;
 
 
-procedure AVXMatrixVecMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : TASMNativeInt; width, height : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
+procedure AVXMatrixVecMultTDestVec(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : NativeInt; width, height : NativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF}, {$ifdef UNIX}unixbeta {$ELSE}beta{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
+var iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
     {$ifdef UNIX}
-    LineWidthMT, LineWidthV : TASMNativeInt;
+    LineWidthMT, LineWidthV : NativeInt;
     alpha, beta : double;
     {$endif}
 asm
@@ -1294,10 +1294,10 @@ asm
 end;
 
 
-procedure AVXRank1UpdateSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXRank1UpdateSeq(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
+  {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : NativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
 // note: RCX = A, RDX = LineWidthA, R8 = width, R9 = height
-var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
+var iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
     {$ifdef UNIX}
     X, Y : PDouble;
     alpha : double;
@@ -1418,10 +1418,10 @@ asm
 end;
 
 
-procedure AVXRank1UpdateSeqAligned(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : TASMNativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXRank1UpdateSeqAligned(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
+  {$ifdef UNIX}unixX{$ELSE}X{$endif}, {$ifdef UNIX}unixY{$ELSE}Y{$ENDIF} : PDouble; incX, incY : NativeInt; {$ifdef UNIX}unixalpha {$ELSE}alpha{$ENDIF} : double); {$IFDEF FPC}assembler;{$ENDIF}
 // note: RCX = A, RDX = LineWidthA, R8 = width, R9 = height
-var iRBX, iRSI, iRDI, iR12, iR13, iR14 : TASMNativeInt;
+var iRBX, iRSI, iRDI, iR12, iR13, iR14 : NativeInt;
     {$ifdef UNIX}
     X, Y : PDouble;
     alpha : double;
@@ -1541,7 +1541,7 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-function AVXMatrixVecDotMultAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double;
+function AVXMatrixVecDotMultAligned( x : PDouble; y : PDouble; N : NativeInt ) : double;
 // rcx = x, rdx = y, r8 = N
 var dXMM4 : TXMMArr;
 asm
@@ -1631,7 +1631,7 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-function AVXMatrixVecDotMultUnAligned( x : PDouble; y : PDouble; N : TASMNativeInt ) : double;
+function AVXMatrixVecDotMultUnAligned( x : PDouble; y : PDouble; N : NativeInt ) : double;
 // rcx = x, rdx = y, r8 = N
 var dXMM4 : TXMMArr;
 asm
@@ -1721,11 +1721,11 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-function AVXMatrixVecDotMultUneven( x : PDouble; Y : PDouble; incX : TASMNativeInt; incY : TASMNativeInt;
- {$ifdef UNIX} unixN {$ELSE} N {$ENDIF} : TASMNativeInt) : Double;
+function AVXMatrixVecDotMultUneven( x : PDouble; Y : PDouble; incX : NativeInt; incY : NativeInt;
+ {$ifdef UNIX} unixN {$ELSE} N {$ENDIF} : NativeInt) : Double;
 // rcx = x, rdx = y, r8 = inx, r9 = incy
 {$IFDEF UNIX}
-var N : TASMNativeInt;
+var N : NativeInt;
 {$ENDIF}
 asm
    {$IFDEF UNIX}

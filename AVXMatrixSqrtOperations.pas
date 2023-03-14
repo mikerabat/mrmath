@@ -31,8 +31,8 @@ interface
 
 uses MatrixConst;
 
-procedure AVXMatrixSQRTAligned(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure AVXMatrixSQRTUnAligned(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixSQRTAligned(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixSQRTUnAligned(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -42,7 +42,7 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
-procedure AVXMatrixSQRTAligned(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
+procedure AVXMatrixSQRTAligned(Dest : PDouble; const LineWidth, Width, Height : NativeInt);
 asm
    push edi;
    push esi;
@@ -119,7 +119,7 @@ asm
    pop edi;
 end;
 
-procedure AVXMatrixSQRTUnAligned(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
+procedure AVXMatrixSQRTUnAligned(Dest : PDouble; const LineWidth, Width, Height : NativeInt);
 asm
    push edi;
    push esi

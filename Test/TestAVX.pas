@@ -74,6 +74,7 @@ type
     procedure TestAVXBigSVDHeightGEWidth;
     procedure TestConvolveBig;
     procedure TestAVXDotProd;
+    //procedure TestAVXSingleDotProd;
   end;
 
 implementation
@@ -446,7 +447,7 @@ const cMtxWidth : Array[0..11] of integer = (1, 3, 7, 8, 9, 10, 23, 43, 128, 102
       cMtxHeight : Array[0..11] of integer = (1, 3, 7, 8, 9, 10, 23, 43, 128, 1024, 2048, 2573);
 var pX : PDouble;
     pm1 : PByte;
-    LineWidthX : TASMNativeInt;
+    LineWidthX : NativeInt;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : int64;
     startTime3, endTime3 : int64;
@@ -499,7 +500,7 @@ var pX : PDouble;
     pY : PDouble;
     pY1 : PDouble;
     pm1, pm2, pm3 : PByte;
-    LineWidthX, LineWidthY, LineWidthY2 : TASMNativeInt;
+    LineWidthX, LineWidthY, LineWidthY2 : NativeInt;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : int64;
     startTime3, endTime3 : int64;
@@ -571,7 +572,7 @@ var pX : PDouble;
     pY : PDouble;
     pY1 : PDouble;
     pm1, pm2, pm3 : PByte;
-    LineWidthX, LineWidthY, LineWidthY2 : TASMNativeInt;
+    LineWidthX, LineWidthY, LineWidthY2 : NativeInt;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : int64;
     startTime3, endTime3 : int64;
@@ -649,7 +650,7 @@ var pX : PDouble;
     pY : PDouble;
     pY1 : PDouble;
     pm1, pm2, pm3 : PByte;
-    LineWidthX, LineWidthY, LineWidthY2 : TASMNativeInt;
+    LineWidthX, LineWidthY, LineWidthY2 : NativeInt;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : int64;
     startTime3, endTime3 : int64;
@@ -717,7 +718,7 @@ const cMtxWidth : Array[0..11] of integer = (1, 3, 7, 8, 9, 10, 23, 43, 128, 102
       cMtxHeight : Array[0..11] of integer = (1, 3, 7, 8, 9, 10, 23, 43, 128, 1024, 2048, 2573);
 var pX : PDouble;
     pm1 : PByte;
-    LineWidthX : TASMNativeInt;
+    LineWidthX : NativeInt;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : int64;
     i, j : Integer;
@@ -776,7 +777,7 @@ var pX : PDouble;
     pY : PDouble;
     pY1 : PDouble;
     pm1, pm2, pm3 : PByte;
-    LineWidthX, LineWidthY, LineWidthY2 : TASMNativeInt;
+    LineWidthX, LineWidthY, LineWidthY2 : NativeInt;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : int64;
     startTime3, endTime3 : int64;
@@ -850,7 +851,7 @@ const cMtxWidth : Array[0..11] of integer = (1, 3, 7, 8, 9, 10, 23, 43, 128, 102
 var pX : PDouble;
     pY : PDouble;
     pm1, pm2 : PByte;
-    LineWidthX, LineWidthY : TASMNativeInt;
+    LineWidthX, LineWidthY : NativeInt;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : int64;
     i, j, idx : Integer;
@@ -908,7 +909,7 @@ var pX : PDouble;
     pY : PDouble;
     pY1 : PDouble;
     pm1, pm2, pm3 : PByte;
-    LineWidthX, LineWidthY, LineWidthY2 : TASMNativeInt;
+    LineWidthX, LineWidthY, LineWidthY2 : NativeInt;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : int64;
     startTime3, endTime3 : int64;
@@ -989,7 +990,7 @@ const mt1 : Array[0..15] of double = (0, 1, 2, 0, 3, 4, 5, 0, 6, 7, 8, 0, 0, 0, 
 var dest : Array[0..15] of double;
     pX, pY, pDest, pDest2, pDest3 : PDouble;
     pm1, pm2, pm3, pm4, pm5 : PByte;
-    LineWidthX, LineWidthY, destLineWidth, destLn2, destLn3 : TASMNativeInt;
+    LineWidthX, LineWidthY, destLineWidth, destLn2, destLn3 : NativeInt;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : int64;
     startTime3, endTime3 : int64;
@@ -1058,7 +1059,7 @@ const cMtxWidth : Array[0..11] of integer = (1, 3, 7, 8, 9, 10, 23, 43, 128, 102
       cMtxHeight : Array[0..11] of integer = (1, 3, 7, 8, 9, 10, 23, 43, 128, 1024, 2048, 2573);
 var pX, pY, pDest, pDest2, pDest3 : PDouble;
     pm1, pm2, pm3, pm4, pm5 : PByte;
-    LineWidthX, LineWidthY, destLineWidth, destLn2, destLn3 : TASMNativeInt;
+    LineWidthX, LineWidthY, destLineWidth, destLn2, destLn3 : NativeInt;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : int64;
     startTime3, endTime3 : int64;
@@ -1115,7 +1116,7 @@ procedure TestAVXMatrixOperations.TestAVXSubVec;
 const cMtxWidth : Array[0..11] of integer = (1, 3, 7, 8, 9, 10, 23, 43, 128, 1024, 2048, 2573);
 var pX, pY, pDest, pDest2, pDest3 : PDouble;
     pm1, pm2, pm3, pm4, pm5 : PByte;
-    LineWidthX, LineWidthY, destLineWidth, destLn2, destLn3 : TASMNativeInt;
+    LineWidthX, LineWidthY, destLineWidth, destLn2, destLn3 : NativeInt;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : int64;
     startTime3, endTime3 : int64;
@@ -1210,7 +1211,7 @@ procedure TestAVXMatrixOperations.TestAVXAddVec;
 const cMtxWidth : Array[0..11] of integer = (1, 3, 7, 8, 9, 10, 23, 43, 128, 1024, 2048, 2573);
 var pX, pY, pDest, pDest2, pDest3 : PDouble;
     pm1, pm2, pm3, pm4, pm5 : PByte;
-    LineWidthX, LineWidthY, destLineWidth, destLn2, destLn3 : TASMNativeInt;
+    LineWidthX, LineWidthY, destLineWidth, destLn2, destLn3 : NativeInt;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : int64;
     startTime3, endTime3 : int64;
@@ -1392,7 +1393,7 @@ end;
 procedure TestAVXMatrixOperations.TestAVXMultTransposed;
 var p1, p2, p3, p4 : PDouble;
     pMem1, pMem2, pMem3, pMem4 : PByte;
-    LineWidth1, LineWidth2, LineWidth3, LineWidth4 : TASMNativeInt;
+    LineWidth1, LineWidth2, LineWidth3, LineWidth4 : NativeInt;
     start1, stop1, start2, stop2 : int64;
     outIdx : Integer;
     mtxWidth : integer;
@@ -1468,8 +1469,8 @@ var aMt1, aMt2 : PDouble;
     aMem1, aMem2 : PByte;
     aDest1, aDest2 : PDouble;
     aMem3, aMem4 : PByte;
-    aMt1LineWidth, aMt2LineWidth : TASMNativeInt;
-    aDestLineWidth1, aDestLineWidth2 : TASMNativeInt;
+    aMt1LineWidth, aMt2LineWidth : NativeInt;
+    aDestLineWidth1, aDestLineWidth2 : NativeInt;
     start1, start2 : Int64;
     end1, end2 : int64;
     idx : integer;
@@ -1526,8 +1527,8 @@ var aMt1, aMt2 : PDouble;
     aMem1, aMem2 : PByte;
     aDest1, aDest2 : PDouble;
     aMem3, aMem4 : PByte;
-    aMt1LineWidth, aMt2LineWidth : TASMNativeInt;
-    aDestLineWidth1, aDestLineWidth2 : TASMNativeInt;
+    aMt1LineWidth, aMt2LineWidth : NativeInt;
+    aDestLineWidth1, aDestLineWidth2 : NativeInt;
     start1, start2 : Int64;
     end1, end2 : int64;
     idx : integer;
@@ -1703,13 +1704,13 @@ begin
 
      blk := AllocMem((2*cMtxDestSize + cMtxSize + 32)*sizeof(double) + 32);
      dest2a := blk;
-     inc(Pbyte(dest2a), 32 - TASMNativeUint(blk) and $1F);
+     inc(Pbyte(dest2a), 32 - NativeUint(blk) and $1F);
      dest3a := dest2a;
      inc(dest3a, cMtxDestSize);
-     inc(PByte(dest3a), 32 - TASMNativeUint(dest3a) and $1F);
+     inc(PByte(dest3a), 32 - NativeUint(dest3a) and $1F);
      za := dest3a;
      inc(za, cMtxDestSize);
-     inc(PByte(za), 32 - TASMNativeUint(dest3a) and $1F);
+     inc(PByte(za), 32 - NativeUint(dest3a) and $1F);
 
      startTime1 := MtxGetTime;
      GenericMtxMult(@dest1[0], cMtxLineWidth, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2);
@@ -2073,7 +2074,7 @@ var dest1, dest : Array[0..2] of double;
     px, pv : PDouble;
     pd1, pd2 : PDouble;
     pm1, pm2, pm3, pm4 : PByte;
-    lineWidthX : TASMNativeInt;
+    lineWidthX : NativeInt;
     idx : integer;
 begin
      dest[0] := 1;
@@ -2405,7 +2406,7 @@ var i: Integer;
     pA, pB : PDouble;
     Dest, DestSSE : TDoubleDynArray;
     pMem1, pMem2 : PByte;
-    LineWidthA, LineWidthB : TASMNativeInt;
+    LineWidthA, LineWidthB : NativeInt;
     idx : integer;
 begin
      freq := mtxFreq;
@@ -2581,7 +2582,7 @@ const cMtxWidth : Array[0..10] of integer = (1, 3, 7, 8, 9, 10, 23, 128, 1024, 2
       cMtxHeight : Array[0..10] of integer = (1, 3, 7, 8, 9, 10, 23, 128, 1024, 2048, 2573);
 var pX, pDest, pDest2 : PDouble;
     pm1, pm2, pm3 : PByte;
-    LineWidthX, destLineWidth, destLn2 : TASMNativeInt;
+    LineWidthX, destLineWidth, destLn2 : NativeInt;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : int64;
     startTime3, endTime3 : int64;
@@ -2643,7 +2644,7 @@ const cMtxWidth : Array[0..10] of integer = (2, 3, 7, 8, 9, 10, 23, 128, 1024, 2
       cMtxHeight : Array[0..10] of integer = (2, 3, 7, 8, 9, 10, 23, 128, 1024, 2048, 2573);
 var pX, pDest, pDest2 : PDouble;
     pm1, pm2, pm3 : PByte;
-    LineWidthX, destLineWidth, destLn2 : TASMNativeInt;
+    LineWidthX, destLineWidth, destLn2 : NativeInt;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : int64;
     startTime3, endTime3 : int64;
@@ -2764,6 +2765,64 @@ begin
      Check( SameValue(res1, res3, 1e-7), 'Failed to calculate long dot product');
 end;
 
+function SingleDotProd( x, y : PSingle; numElem : integer ) : single;
+var i : integer;
+begin
+     Result := 0;
+     for i := 0 to numElem - 1 do
+     begin
+          Result := Result + x^*y^;
+          inc(x); inc(y);
+     end;
+end;
+
+{
+procedure TestAVXMatrixOperations.TestAVXSingleDotProd;
+const x : Array[0..4] of single = (1, 2, 3, 1, 2);
+      y : Array[0..4] of single = (-1, 2, -1, 2, 2);
+var res1, res2, res3 : single;
+    v1, v2 : TSingleDynArray;
+    startTime1, endTime1 : Int64;
+    startTime2, endTime2 : Int64;
+    i: Integer;
+begin
+     res1 := SingleDotProd(@x[0], @y[0], Length(x));
+     res2 := AVXDotProd(@x[0], @y[0], Length(x));
+
+     check( res1 = res2, 'Failed to calculate dot product');
+
+     SetLength(v1, 100);
+     SetLength(v2, 100);
+
+     for i := 0 to Length(v1) - 1 do
+     begin
+          v1[i] := random;
+          v2[i] := random;
+     end;
+
+     startTime1 := MtxGetTime;
+     res1 := SingleDotProd(@v1[0], @v2[0], Length(v1));
+     endTime1 := MtxGetTime;
+
+     startTime2 := MtxGetTime;
+     res2 := AVXDotProd(@v1[0], @v2[0], Length(v1));
+     endTime2 := MtxGetTime;
+
+     Status( Format('Long dot product 1 took %.3f ms, %.3f ms', [ (endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000] ) );
+     Check( SameValue(res1, res2, 1e-4), 'Failed to calculate long dot product');
+
+     startTime1 := MtxGetTime;
+     res1 := SingleDotProd(@v1[1], @v2[1], Length(v1) - 1);
+     endTime1 := MtxGetTime;
+
+     startTime2 := MtxGetTime;
+     res2 := AVXDotProd(@v1[1], @v2[1], Length(v1) - 1);
+     endTime2 := MtxGetTime;
+
+     Status( Format('Long dot product 2 took %.3f ms, %.3f ms', [ (endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000 ] ) );
+     Check( SameValue(res1, res2, 1e-4), 'Failed to calculate long dot product');
+end;
+}
 
 procedure TestAVXMatrixOperations.TestTranspose;
 const cA : Array[0..15] of double = (00, 01, 02, 03, 10, 11, 12, 13, 20, 21, 22, 23, 30, 31, 32, 33);
@@ -2773,19 +2832,19 @@ var cgb, cb : Array[0..15] of double;
     a, b : Array[0..19] of double;
     pa, pB : PDouble;
     i, j : integer;
-    dl1, dl2, dl3 : TASMNativeint;
+    dl1, dl2, dl3 : NativeInt;
     dest1, dest2, dest3 : PDouble;
     pDest1, pDest2, pDest3 : PByte;
     mt : PDouble;
     pMt : PByte;
-    mtLn : TASMNativeInt;
+    mtLn : NativeInt;
     idx : integer;
     start1, stop1, start2, stop2, start3, stop3 : int64;
 begin
      Status( WriteMtx( cA, 4) );
 
-     pa := PDouble( TASMNativeUInt(@a[0]) + 32 - TASMNativeUInt(@a[0]) and $1F);
-     pb := PDouble( TASMNativeUInt(@b[0]) + 32 - TASMNativeUInt(@b[0]) and $1F);
+     pa := PDouble( NativeUint(@a[0]) + 32 - NativeUint(@a[0]) and $1F);
+     pb := PDouble( NativeUint(@b[0]) + 32 - NativeUint(@b[0]) and $1F);
 
      Move(cA, cgb, sizeof(ca));
      Move(cA, cb, sizeof(ca));

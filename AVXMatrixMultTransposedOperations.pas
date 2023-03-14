@@ -32,10 +32,10 @@ interface
 
 uses MatrixConst;
 
-procedure AVXMatrixMultAlignedTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure AVXMatrixMultAlignedEvenW1EvenH2TransposedMod16(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure AVXMatrixMultAlignedEvenW1OddH2TransposedMod16(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure AVXMatrixMultUnAlignedTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixMultAlignedTransposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixMultAlignedEvenW1EvenH2TransposedMod16(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixMultAlignedEvenW1OddH2TransposedMod16(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixMultUnAlignedTransposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -45,13 +45,13 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
-procedure AVXMatrixMultAlignedEvenW1EvenH2TransposedMod16(dest : PDouble; const destLineWidth : TASMNativeInt;
-    mt1, mt2 : PDouble; width1 : TASMNativeInt;
-    height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-    const LineWidth1, LineWidth2 : TASMNativeInt);
-var iter : TASMNativeInt;
-    LineWidth2x2 : TASMNativeInt;
-    destOffset : TASMNativeInt;
+procedure AVXMatrixMultAlignedEvenW1EvenH2TransposedMod16(dest : PDouble; const destLineWidth : NativeInt;
+    mt1, mt2 : PDouble; width1 : NativeInt;
+    height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+    const LineWidth1, LineWidth2 : NativeInt);
+var iter : NativeInt;
+    LineWidth2x2 : NativeInt;
+    destOffset : NativeInt;
 // eax = dest, edx = destlinewidth, ecx = mt1
 asm
    push ebx;
@@ -181,13 +181,13 @@ asm
    pop ebx;
 end;
 
-procedure AVXMatrixMultAlignedEvenW1OddH2TransposedMod16(dest : PDouble; const destLineWidth : TASMNativeInt;
-    mt1, mt2 : PDouble; width1 : TASMNativeInt;
-    height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-    const LineWidth1, LineWidth2 : TASMNativeInt);
-var iter : TASMNativeInt;
-    LineWidth2x2 : TASMNativeInt;
-    destOffset : TASMNativeInt;
+procedure AVXMatrixMultAlignedEvenW1OddH2TransposedMod16(dest : PDouble; const destLineWidth : NativeInt;
+    mt1, mt2 : PDouble; width1 : NativeInt;
+    height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+    const LineWidth1, LineWidth2 : NativeInt);
+var iter : NativeInt;
+    LineWidth2x2 : NativeInt;
+    destOffset : NativeInt;
 // eax = dest, edx = destlinewidth, ecx = mt1
 asm
    push ebx;
@@ -361,9 +361,9 @@ asm
 end;
 
 // note mt2 is transposed this time -> width1 and width2 must be the same!
-procedure AVXMatrixMultUnAlignedTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var iter : TASMNativeInt;
-    destOffset : TASMNativeInt;
+procedure AVXMatrixMultUnAlignedTransposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
+var iter : NativeInt;
+    destOffset : NativeInt;
 asm
    push ebx;
    push edi;
@@ -546,9 +546,9 @@ asm
 end;
 
 // note mt2 is transposed this time -> width1 and width2 must be the same!
-procedure AVXMatrixMultAlignedTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var iter : TASMNativeInt;
-    destOffset : TASMNativeInt;
+procedure AVXMatrixMultAlignedTransposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
+var iter : NativeInt;
+    destOffset : NativeInt;
 asm
    push ebx;
    push edi;

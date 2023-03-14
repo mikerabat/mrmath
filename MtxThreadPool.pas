@@ -69,9 +69,9 @@ function MtxInitTaskGroup : IMtxAsyncCallGroup;
 
 const cMaxNumCores = 64;                          // limit the maximum usabel cores
 
-var numCPUCores : TASMNativeInt = 0;
-    numRealCores : TASMNativeInt = 0;             // cores without hyperthreading
-    numCoresForSimpleFuncs : TASMNativeInt = 0;   // for median and scaling operations
+var numCPUCores : NativeInt = 0;
+    numRealCores : NativeInt = 0;             // cores without hyperthreading
+    numCoresForSimpleFuncs : NativeInt = 0;   // for median and scaling operations
 
 implementation
 

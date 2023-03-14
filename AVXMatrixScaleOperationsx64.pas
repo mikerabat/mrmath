@@ -27,23 +27,23 @@ interface
 
 uses MatrixConst;
 
-procedure AVXMatrixAddscaleAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
-procedure AVXMatrixAddscaleUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixAddscaleAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixAddscaleUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure AVXMatrixAddscaleAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
-procedure AVXMatrixAddscaleUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixAddscaleAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixAddscaleUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure AVXMatrixScaleAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
-procedure AVXMatrixScaleAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixScaleAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixScaleAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure AVXMatrixScaleAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
-procedure AVXMatrixScaleAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixScaleAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixScaleAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure AVXMatrixAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
-procedure AVXMatrixAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure AVXMatrixAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
-procedure AVXMatrixAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
 
 {$ENDIF}
 
@@ -53,7 +53,7 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
-procedure AVXMatrixAddscaleAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixAddscaleAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
 {$IFDEF UNIX}
 var dOffset, Scale : double;
 {$ENDIF}
@@ -151,7 +151,7 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXMatrixAddscaleUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixAddscaleUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
 {$IFDEF UNIX}
 var dOffset, scale : double;
 {$ENDIF}
@@ -249,7 +249,7 @@ asm
 end;
 
 
-procedure AVXMatrixAddscaleAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixAddscaleAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
 {$IFDEF UNIX}
 var dOffset, scale : double;
 {$ENDIF}
@@ -354,7 +354,7 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXMatrixAddscaleUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixAddscaleUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
 {$IFDEF UNIX}
 var dOffset, scale : double;
 {$ENDIF}
@@ -459,7 +459,7 @@ asm
 end;
 
 
-procedure AVXMatrixScaleAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixScaleAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
 {$IFDEF UNIX}
 var dOffset, scale : double;
 {$ENDIF}
@@ -556,7 +556,7 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXMatrixScaleAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixScaleAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
 {$IFDEF UNIX}
 var dOffset, scale : double;
 {$ENDIF}
@@ -653,7 +653,7 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXMatrixScaleAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixScaleAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
 {$IFDEF UNIX}
 var dOffset, scale : double;
 {$ENDIF}
@@ -758,7 +758,7 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXMatrixScaleAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixScaleAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
 {$IFDEF UNIX}
 var dOffset, scale : double;
 {$ENDIF}
@@ -867,7 +867,7 @@ end;
 // #### Offset a matrix
 // ###########################################
 
-procedure AVXMatrixAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
 {$IFDEF UNIX}
 var dOffset : double;
 {$ENDIF}
@@ -955,7 +955,7 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXMatrixAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
 {$IFDEF UNIX}
 var dOffset : double;
 {$ENDIF}
@@ -1044,7 +1044,7 @@ asm
 end;
 
 
-procedure AVXMatrixAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
 {$IFDEF UNIX}
 var dOffset : double;
 {$ENDIF}
@@ -1138,7 +1138,7 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXMatrixAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
 {$IFDEF UNIX}
 var dOffset : double;
 {$ENDIF}

@@ -31,22 +31,22 @@ interface
 
 uses MatrixConst;
 
-procedure FMAMatrixVectMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure FMAMatrixVectMultT(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 // routines with special input layouts: LineWidthV needs to be sizeof(double)
-procedure FMAMatrixVectMultAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure FMAMatrixVectMultUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure FMAMatrixVectMultAlignedVAligned(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure FMAMatrixVectMultUnAlignedVAligned(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 // destlinewidth needs to be sizeof(double)!
 // no speed gain agains amsmatrixVectMultT
-procedure FMAMatrixVecMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure FMAMatrixVecMultTDestVec(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 // rank1 update: A = A + alpha*X*Y' where x and y are vectors. It's assumed that y is sequential
-procedure FMARank1UpdateSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure FMARank1UpdateSeq(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
+  X, Y : PDouble; incX, incY : NativeInt; alpha : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure FMARank1UpdateSeqAligned(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure FMARank1UpdateSeqAligned(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
+  X, Y : PDouble; incX, incY : NativeInt; alpha : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -57,8 +57,8 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 // routines with special input layouts: LineWidthV needs to be sizeof(double)
-procedure FMAMatrixVectMultAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-var aDestLineWidth : TASMNativeInt;
+procedure FMAMatrixVectMultAlignedVAligned(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double);
+var aDestLineWidth : NativeInt;
 asm
    // prolog - simulate stack
    push ebx;
@@ -269,8 +269,8 @@ asm
    pop ebx;
 end;
 
-procedure FMAMatrixVectMultUnAlignedVAligned(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-var aDestLineWidth : TASMNativeInt;
+procedure FMAMatrixVectMultUnAlignedVAligned(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double);
+var aDestLineWidth : NativeInt;
 asm
    // prolog - simulate stack
    push ebx;
@@ -490,9 +490,9 @@ end;
 
 // this function is not that well suited for use of simd instructions...
 // so only this version exists
-procedure FMAMatrixVectMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure FMAMatrixVectMultT(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double);
 // var dymm8, dymm9, dymm10, dymm11 : TYMMArr;
-var aDestLineWidth : TASMNativeInt;
+var aDestLineWidth : NativeInt;
     aMt1 : PDouble;
 asm
    // prolog - simulate stack
@@ -771,8 +771,8 @@ asm
 end;
 
 
-procedure FMAMatrixVecMultTDestVec(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-var aDestLineWidth : TASMNativeInt;
+procedure FMAMatrixVecMultTDestVec(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double);
+var aDestLineWidth : NativeInt;
     aMt1 : PDouble;
 asm
    // prolog - simulate stack
@@ -951,10 +951,10 @@ asm
    pop ebx;
 end;
 
-procedure FMARank1UpdateSeq(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
-var aLineWidthA : TASMNativeInt;
-    aWidth : TASMNativeInt;
+procedure FMARank1UpdateSeq(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
+  X, Y : PDouble; incX, incY : NativeInt; alpha : double);
+var aLineWidthA : NativeInt;
+    aWidth : NativeInt;
 asm
    // prolog - simulate stack
    push ebx;
@@ -1046,10 +1046,10 @@ asm
    pop ebx;
 end;
 
-procedure FMARank1UpdateSeqAligned(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
-var aLineWidthA : TASMNativeInt;
-    aWidth : TASMNativeInt;
+procedure FMARank1UpdateSeqAligned(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
+  X, Y : PDouble; incX, incY : NativeInt; alpha : double);
+var aLineWidthA : NativeInt;
+    aWidth : NativeInt;
 asm
    // prolog - simulate stack
    push ebx;

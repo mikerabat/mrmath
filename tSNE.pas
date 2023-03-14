@@ -253,8 +253,8 @@ begin
 end;
 
 function TtSNE.D2P(D: IMatrix): IMatrix;
-var i : TASMNativeInt;
-    numPts : TASMNativeInt;
+var i : NativeInt;
+    numPts : NativeInt;
     betaMin, betaMax : double;
     beta : TDoubleDynArray;
     subVec : IMatrix;

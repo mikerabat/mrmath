@@ -31,29 +31,29 @@ interface
 
 uses MatrixConst;
 
-procedure AVXMatrixAddAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure AVXMatrixAddUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixAddAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixAddUnAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure AVXMatrixSubAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure AVXMatrixSubUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixSubAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixSubUnAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure AVXMatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixSubT(A : PDouble; LineWidthA : NativeInt; B : PDouble; LineWidthB : NativeInt; width, height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure AVXMatrixSubVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure AVXMatrixSubVecAlignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure AVXMatrixSubVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixSubVecAlignedVecRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixSubVecAlignedRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixSubVecAlignedCol(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure AVXMatrixSubVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure AVXMatrixSubVecUnalignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure AVXMatrixSubVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixSubVecUnalignedVecRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixSubVecUnalignedRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixSubVecUnalignedCol(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure AVXMatrixAddVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure AVXMatrixAddVecAlignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure AVXMatrixAddVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixAddVecAlignedVecRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixAddVecAlignedRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixAddVecAlignedCol(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure AVXMatrixAddVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure AVXMatrixAddVecUnalignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure AVXMatrixAddVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixAddVecUnalignedVecRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixAddVecUnalignedRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixAddVecUnalignedCol(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -63,7 +63,7 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
-procedure AVXMatrixAddAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure AVXMatrixAddAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
 // eax = dest, edx = destLineWidth, mt1 = ecx
 asm
    push ebx;
@@ -157,7 +157,7 @@ asm
    pop ebx;
 end;
 
-procedure AVXMatrixAddUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure AVXMatrixAddUnAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
 asm
    push ebx;
    push esi;
@@ -256,7 +256,7 @@ asm
    pop ebx;
 end;
 
-procedure AVXMatrixSubAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure AVXMatrixSubAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
 asm
    push ebx;
    push esi;
@@ -350,7 +350,7 @@ asm
    pop ebx;
 end;
 
-procedure AVXMatrixSubUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure AVXMatrixSubUnAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
 asm
    push ebx;
    push esi;
@@ -449,9 +449,9 @@ asm
    pop ebx;
 end;
 
-procedure AVXMatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
+procedure AVXMatrixSubT(A : PDouble; LineWidthA : NativeInt; B : PDouble; LineWidthB : NativeInt; width, height : NativeInt);
 // eax = A, edx = LineWidthA, ecx = B
-var aLineWidthA : TASMNativeInt;
+var aLineWidthA : NativeInt;
 asm
    push esi;
    push edi;
@@ -499,7 +499,7 @@ end;
 // #### Matrix add, sub to vector operations
 // ########################################################
 
-procedure AVXMatrixSubVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure AVXMatrixSubVecAlignedVecRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 // eax = A, edx = LineWidthA, ecx = B
 asm
    push ebx;
@@ -556,9 +556,9 @@ asm
    pop ebx;
 end;
 
-procedure AVXMatrixSubVecAlignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure AVXMatrixSubVecAlignedRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 var vecIter : integer;
-    aLineWidthA : TASMNativeInt;
+    aLineWidthA : NativeInt;
 asm
    push ebx;
    push edi;
@@ -606,7 +606,7 @@ asm
    pop ebx;
 end;
 
-procedure AVXMatrixSubVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure AVXMatrixSubVecAlignedCol(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 asm
    push ebx;
    push esi;
@@ -663,7 +663,7 @@ asm
    pop ebx;
 end;
 
-procedure AVXMatrixSubVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure AVXMatrixSubVecUnalignedVecRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 asm
    push ebx;
    push esi;
@@ -721,9 +721,9 @@ asm
    pop ebx;
 end;
 
-procedure AVXMatrixSubVecUnalignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure AVXMatrixSubVecUnalignedRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 var vecIter : integer;
-    aLineWidthA : TASMNativeInt;
+    aLineWidthA : NativeInt;
 asm
    push ebx;
    push edi;
@@ -769,7 +769,7 @@ asm
    pop ebx;
 end;
 
-procedure AVXMatrixSubVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure AVXMatrixSubVecUnalignedCol(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 asm
    push ebx;
    push esi;
@@ -827,7 +827,7 @@ asm
 end;
 
 
-procedure AVXMatrixAddVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure AVXMatrixAddVecAlignedVecRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 asm
    push ebx;
    push esi;
@@ -883,9 +883,9 @@ asm
    pop ebx;
 end;
 
-procedure AVXMatrixAddVecAlignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure AVXMatrixAddVecAlignedRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 var vecIter : integer;
-    aLineWidthA : TASMNativeInt;
+    aLineWidthA : NativeInt;
 asm
    push ebx;
    push edi;
@@ -931,7 +931,7 @@ asm
    pop ebx;
 end;
 
-procedure AVXMatrixAddVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure AVXMatrixAddVecAlignedCol(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 asm
    push ebx;
    push esi;
@@ -988,7 +988,7 @@ asm
    pop ebx;
 end;
 
-procedure AVXMatrixAddVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure AVXMatrixAddVecUnalignedVecRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 asm
    push ebx;
    push esi;
@@ -1046,9 +1046,9 @@ asm
    pop ebx;
 end;
 
-procedure AVXMatrixAddVecUnalignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure AVXMatrixAddVecUnalignedRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 var vecIter : integer;
-    aLineWidthA : TASMNativeInt;
+    aLineWidthA : NativeInt;
 asm
    push ebx;
    push edi;
@@ -1094,7 +1094,7 @@ asm
    pop ebx;
 end;
 
-procedure AVXMatrixAddVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure AVXMatrixAddVecUnalignedCol(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 asm
    push ebx;
    push esi;

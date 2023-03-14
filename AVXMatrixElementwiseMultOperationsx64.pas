@@ -27,11 +27,11 @@ interface
 
 uses MatrixConst;
 
-procedure AVXMatrixElemMultAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-procedure AVXMatrixElemMultUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixElemMultAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : NativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixElemMultUnAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : NativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure AVXMatrixElemDivAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-procedure AVXMatrixElemDivUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixElemDivAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : NativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixElemDivUnAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : NativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
 {$ENDIF}
 
@@ -41,11 +41,11 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
-procedure AVXMatrixElemMultAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX, iR12 : TASMNativeInt;
+procedure AVXMatrixElemMultAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : NativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+var iRBX, iR12 : NativeInt;
     {$ifdef UNIX}
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    width : NativeInt;
+    height : NativeInt;
     {$ENDIF}
 asm
 {$IFDEF UNIX}
@@ -156,11 +156,11 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXMatrixElemMultUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX, iR12 : TASMNativeInt;
+procedure AVXMatrixElemMultUnAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : NativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+var iRBX, iR12 : NativeInt;
     {$ifdef UNIX}
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    width : NativeInt;
+    height : NativeInt;
     {$ENDIF}
 asm
 {$IFDEF UNIX}
@@ -280,11 +280,11 @@ end;
 // #### Elementwise divide of matrix 1 to matrix 2
 // ##############################################################
 
-procedure AVXMatrixElemDivAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX, iR12 : TASMNativeInt;
+procedure AVXMatrixElemDivAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : NativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+var iRBX, iR12 : NativeInt;
     {$ifdef UNIX}
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    width : NativeInt;
+    height : NativeInt;
     {$ENDIF}
 asm
 {$IFDEF UNIX}
@@ -394,11 +394,11 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXMatrixElemDivUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : TASMNativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX, iR12 : TASMNativeInt;
+procedure AVXMatrixElemDivUnAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth{$ELSE}width{$endif} : NativeInt; {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+var iRBX, iR12 : NativeInt;
     {$ifdef UNIX}
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    width : NativeInt;
+    height : NativeInt;
     {$ENDIF}
 asm
 {$IFDEF UNIX}

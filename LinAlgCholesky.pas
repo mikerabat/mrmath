@@ -20,28 +20,28 @@ uses MatrixConst;
 
 // Inplace Cholesky decomposition of the matrix A (A=L*L'). A must be a positive-definite symmetric matrix.
 // The cholesky factor L is returned in the lower triangle of a, except for its diagonal elements which are returned in p
-function MatrixCholeskyInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; P : PDouble; LineWidthP : TASMNativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
-function MatrixCholesky(dest : PDouble; const LineWidthDest : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt;
-  P : PDouble; const LineWidthP : TASMNativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
+function MatrixCholeskyInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; P : PDouble; LineWidthP : NativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
+function MatrixCholesky(dest : PDouble; const LineWidthDest : NativeInt; A : PDouble; const LineWidthA : NativeInt; width : NativeInt;
+  P : PDouble; const LineWidthP : NativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
 // solves the set of linear equations Ax = b where A is a positive-definite symmetric matrix. A and P are input as the output of
 // MatrixCholeskyInPlace. Only the lower triangle is accessed. The result is stored in X, thus the routine can be called multiple
 // times. B and X can point to the same memory!
-procedure MatrixCholeskySolveLinEq(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; P : PDouble;
-  const LineWidthP : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt; progress : TLinEquProgress = nil);
+procedure MatrixCholeskySolveLinEq(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; P : PDouble;
+  const LineWidthP : NativeInt; B : PDouble; const LineWidthB : NativeInt; X : PDouble; const LineWidthX : NativeInt; progress : TLinEquProgress = nil);
 
 
 // Lapack version of cholesky decomposition
-function MatrixCholeskyInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
-function MatrixCholeskyInPlace3(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
-function MatrixCholeskyInPlace4(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; pnlSize : TASMNativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
+function MatrixCholeskyInPlace2(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
+function MatrixCholeskyInPlace3(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
+function MatrixCholeskyInPlace4(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; pnlSize : NativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
 
 // A is an lower triangular matrix. This function then solves for A*x = b (b is a vector)
-procedure MatrixCholeskyBackSolve(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; 
-      B : PDouble; const LineWidthB : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt);
+procedure MatrixCholeskyBackSolve(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; 
+      B : PDouble; const LineWidthB : NativeInt; X : PDouble; const LineWidthX : NativeInt);
 
 
 // threaded version of Cholesky decomposition which makes use of the threaded matrix multiplication routine
-function ThrMatrixCholeskyDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; pnlSize : integer; work : PDouble; progress : TLinEquProgress) : TCholeskyResult;
+function ThrMatrixCholeskyDecomp(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; pnlSize : integer; work : PDouble; progress : TLinEquProgress) : TCholeskyResult;
 
 
 implementation
@@ -53,7 +53,7 @@ uses MatrixASMStubSwitch, SimpleMatrixOperations, BlockSizeSetup, Math,
 // #### Cholesky routines
 // ##########################################################
 
-function InternalBlkCholeskyInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; pnlSize : TASMNativeInt;
+function InternalBlkCholeskyInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; pnlSize : NativeInt;
    aMatrixMultT2Ex : TMatrixBlockedMultfunc; multMem : PDouble; progress : TLinEquProgress = nil) : TCholeskyResult;
 var j : integer;
     jb : integer;
@@ -103,7 +103,7 @@ begin
      end;
 end;
 
-function MatrixCholeskyInPlace4(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; pnlSize : TASMNativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
+function MatrixCholeskyInPlace4(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; pnlSize : NativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
 var multMem : PDouble;
 begin
      if pnlSize = 0 then
@@ -138,8 +138,8 @@ end;
 
 
 
-function InternaRecursivelCholeskyInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt) : TCholeskyResult;
-var n1, n2 : TASMNativeInt;
+function InternaRecursivelCholeskyInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt) : TCholeskyResult;
+var n1, n2 : NativeInt;
     A21, A22 : PDouble;
 begin
      Result := crNoPositiveDefinite;
@@ -185,15 +185,15 @@ begin
 end;
 
 
-function MatrixCholeskyInPlace3(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
+function MatrixCholeskyInPlace3(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
 begin
      Result := InternaRecursivelCholeskyInPlace(A, LineWidthA, width)
 end;
 
 // single line but memory access optimal version of the cholesky decomposition
-function MatrixCholeskyInPlace2(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
-var i : TASMNativeInt;
-    j, k : TASMNativeInt;
+function MatrixCholeskyInPlace2(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; progress : TLinEquProgress = nil) : TCholeskyResult;
+var i : NativeInt;
+    j, k : NativeInt;
     pAi : PDouble;
     sum : double;
     pAij : PDouble;
@@ -251,7 +251,7 @@ end;
 // #### Cholesky decomposition
 // ###########################################
 
-function ThrMatrixCholeskyDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; pnlSize : integer; work : PDouble; progress : TLinEquProgress) : TCholeskyResult;
+function ThrMatrixCholeskyDecomp(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; pnlSize : integer; work : PDouble; progress : TLinEquProgress) : TCholeskyResult;
 var data : PDouble;
     multMem : PDouble;
 begin
@@ -273,9 +273,9 @@ end;
 // #### NR functions
 // ###########################################
 
-function MatrixCholeskyInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; P : PDouble;
-  LineWidthP : TASMNativeInt; progress : TLinEquProgress) : TCholeskyResult;
-var i, j, k : TASMNativeInt;
+function MatrixCholeskyInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; P : PDouble;
+  LineWidthP : NativeInt; progress : TLinEquProgress) : TCholeskyResult;
+var i, j, k : NativeInt;
     sum : double;
     pA : PDouble;
     pA1 : PDouble;
@@ -299,7 +299,7 @@ begin
 
           for j := i to width - 1 do
           begin
-               sum := PDouble(TASMNativeUInt(pA) + TASMNativeUInt(j*sizeof(double)))^;
+               sum := PDouble(NativeUint(pA) + NativeUint(j*sizeof(double)))^;
 
                pAj1 := pAj;
                pA1 := pA;
@@ -322,13 +322,13 @@ begin
                     if sum <= 0 then
                        exit;
 
-                    PDouble(TASMNativeUInt(P) + TASMNativeUInt(i*LineWidthP))^ := sqrt(sum);
+                    PDouble(NativeUint(P) + NativeUint(i*LineWidthP))^ := sqrt(sum);
                end
                else
                begin
                     pAj1 := pAj;
                     inc(pAj1, i);
-                    pAj1^ := sum/PDouble(TASMNativeUInt(P) + TASMNativeUInt(i*LineWidthP))^;
+                    pAj1^ := sum/PDouble(NativeUint(P) + NativeUint(i*LineWidthP))^;
                end;
 
                inc(PByte(pAj), LineWidthA);
@@ -343,11 +343,11 @@ begin
      Result := crOk;
 end;
 
-function MatrixCholesky(dest : PDouble; const LineWidthDest : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt;
-  width : TASMNativeInt; P : PDouble; const LineWidthP : TASMNativeInt; progress : TLinEquProgress) : TCholeskyResult;
+function MatrixCholesky(dest : PDouble; const LineWidthDest : NativeInt; A : PDouble; const LineWidthA : NativeInt;
+  width : NativeInt; P : PDouble; const LineWidthP : NativeInt; progress : TLinEquProgress) : TCholeskyResult;
 var pDest : PDouble;
     pA : PDouble;
-    i : TASMNativeInt;
+    i : NativeInt;
 begin
      // copy A to dest
      pA := A;
@@ -362,10 +362,10 @@ begin
      Result := MatrixCholeskyInPlace(dest, LineWidthDest, width, P, LineWidthP, progress);
 end;
 
-procedure MatrixCholeskySolveLinEq(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; P : PDouble;
-  const LineWidthP : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
+procedure MatrixCholeskySolveLinEq(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; P : PDouble;
+  const LineWidthP : NativeInt; B : PDouble; const LineWidthB : NativeInt; X : PDouble; const LineWidthX : NativeInt;
   progress : TLinEquProgress);
-var i, k : TASMNativeInt;
+var i, k : NativeInt;
     sum : double;
     pX : PDouble;
     pXi : PDouble;
@@ -444,9 +444,9 @@ begin
         progress(100);
 end;
 
-procedure MatrixCholeskyBackSolve(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; 
-      B : PDouble; const LineWidthB : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt);
-var i, k : TASMNativeInt;
+procedure MatrixCholeskyBackSolve(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; 
+      B : PDouble; const LineWidthB : NativeInt; X : PDouble; const LineWidthX : NativeInt);
+var i, k : NativeInt;
     sum : double;
     pX : PDouble;
     pXi : PDouble;

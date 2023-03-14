@@ -30,11 +30,11 @@ interface
 
 uses MatrixConst;
 
-procedure ASMMatrixAbsAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-procedure ASMMatrixAbsUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixAbsAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixAbsUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure ASMMatrixAbsAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-procedure ASMMatrixAbsUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixAbsAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixAbsUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
 {$ENDIF}
 
@@ -46,7 +46,7 @@ implementation
 
 const cLocSignBits : Array[0..1] of int64 = ($7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF);
 
-procedure ASMMatrixAbsAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixAbsAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -137,7 +137,7 @@ asm
    jnz @@addforyloop;
 end;
 
-procedure ASMMatrixAbsUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixAbsUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -226,7 +226,7 @@ asm
    jnz @@addforyloop;
 end;
 
-procedure ASMMatrixAbsAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixAbsAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -324,7 +324,7 @@ asm
    jnz @@addforyloop;
 end;
 
-procedure ASMMatrixAbsUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixAbsUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI

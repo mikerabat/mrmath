@@ -32,18 +32,18 @@ interface
 
 uses MatrixConst;
 
-procedure ASMMatrixMultAlignedEvenW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : TASMNativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-procedure ASMMatrixMultAlignedEvenW1EvenH2TransposedMod16(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : TASMNativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-procedure ASMMatrixMultUnAlignedEvenW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : TASMNativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixMultAlignedEvenW1EvenH2Transposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : NativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixMultAlignedEvenW1EvenH2TransposedMod16(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : NativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixMultUnAlignedEvenW1EvenH2Transposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : NativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure ASMMatrixMultAlignedEvenW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : TASMNativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-procedure ASMMatrixMultUnAlignedEvenW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : TASMNativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixMultAlignedEvenW1OddH2Transposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : NativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixMultUnAlignedEvenW1OddH2Transposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : NativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure ASMMatrixMultAlignedOddW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : TASMNativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-procedure ASMMatrixMultUnAlignedOddW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : TASMNativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixMultAlignedOddW1EvenH2Transposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : NativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixMultUnAlignedOddW1EvenH2Transposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : NativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure ASMMatrixMultAlignedOddW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : TASMNativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-procedure ASMMatrixMultUnAlignedOddW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : TASMNativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixMultAlignedOddW1OddH2Transposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : NativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixMultUnAlignedOddW1OddH2Transposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : NativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
 {$ENDIF}
 
@@ -53,12 +53,12 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
-procedure ASMMatrixMultUnAlignedEvenW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : TASMNativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixMultUnAlignedEvenW1OddH2Transposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : NativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM4 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
     {$ifdef UNIX}
-    width1 : TASMNativeInt;
-    height1 : TASMNativeInt;
+    width1 : NativeInt;
+    height1 : NativeInt;
     {$ENDIF}
 asm
    {$IFDEF UNIX}
@@ -205,12 +205,12 @@ asm
    movupd xmm4, dXMM4;
 end;
 
-procedure ASMMatrixMultAlignedEvenW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : TASMNativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixMultAlignedEvenW1OddH2Transposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : NativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM4 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
     {$ifdef UNIX}
-    width1 : TASMNativeInt;
-    height1 : TASMNativeInt;
+    width1 : NativeInt;
+    height1 : NativeInt;
     {$ENDIF}
 asm
    {$IFDEF UNIX}
@@ -357,12 +357,12 @@ asm
    movupd xmm4, dXMM4;
 end;
 
-procedure ASMMatrixMultAlignedEvenW1EvenH2TransposedMod16(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : TASMNativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixMultAlignedEvenW1EvenH2TransposedMod16(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : NativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM4 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
     {$ifdef UNIX}
-    width1 : TASMNativeInt;
-    height1 : TASMNativeInt;
+    width1 : NativeInt;
+    height1 : NativeInt;
     {$ENDIF}
 
 asm
@@ -579,12 +579,12 @@ asm
 end;
 
 // note mt2 is transposed this time -> width1 and width2 must be the same!
-procedure ASMMatrixMultAlignedEvenW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : TASMNativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixMultAlignedEvenW1EvenH2Transposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : NativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM4 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
     {$ifdef UNIX}
-    width1 : TASMNativeInt;
-    height1 : TASMNativeInt;
+    width1 : NativeInt;
+    height1 : NativeInt;
     {$ENDIF}
 
 asm
@@ -707,12 +707,12 @@ asm
    movupd xmm4, dXMM4;
 end;
 
-procedure ASMMatrixMultUnAlignedEvenW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : TASMNativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixMultUnAlignedEvenW1EvenH2Transposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : NativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM4 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
     {$ifdef UNIX}
-    width1 : TASMNativeInt;
-    height1 : TASMNativeInt;
+    width1 : NativeInt;
+    height1 : NativeInt;
     {$ENDIF}
 asm
    {$IFDEF UNIX}
@@ -833,12 +833,12 @@ asm
    movupd xmm4, dXMM4;
 end;
 
-procedure ASMMatrixMultUnAlignedOddW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : TASMNativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixMultUnAlignedOddW1EvenH2Transposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : NativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM4 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
     {$ifdef UNIX}
-    width1 : TASMNativeInt;
-    height1 : TASMNativeInt;
+    width1 : NativeInt;
+    height1 : NativeInt;
     {$ENDIF}
 asm
    {$IFDEF UNIX}
@@ -971,12 +971,12 @@ asm
    movupd xmm4, dXMM4;
 end;
 
-procedure ASMMatrixMultAlignedOddW1EvenH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : TASMNativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixMultAlignedOddW1EvenH2Transposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : NativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM4 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
     {$ifdef UNIX}
-    width1 : TASMNativeInt;
-    height1 : TASMNativeInt;
+    width1 : NativeInt;
+    height1 : NativeInt;
     {$ENDIF}
 asm
    {$IFDEF UNIX}
@@ -1109,12 +1109,12 @@ asm
    movupd xmm4, dXMM4;
 end;
 
-procedure ASMMatrixMultAlignedOddW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : TASMNativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixMultAlignedOddW1OddH2Transposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : NativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM4 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
     {$ifdef UNIX}
-    width1 : TASMNativeInt;
-    height1 : TASMNativeInt;
+    width1 : NativeInt;
+    height1 : NativeInt;
     {$ENDIF}
 asm
    {$IFDEF UNIX}
@@ -1279,12 +1279,12 @@ asm
    movupd xmm4, dXMM4;
 end;
 
-procedure ASMMatrixMultUnAlignedOddW1OddH2Transposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : TASMNativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixMultUnAlignedOddW1OddH2Transposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF} : NativeInt;  {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF} : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM4 : Array[0..1] of double;
     iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : int64;
     {$ifdef UNIX}
-    width1 : TASMNativeInt;
-    height1 : TASMNativeInt;
+    width1 : NativeInt;
+    height1 : NativeInt;
     {$ENDIF}
 asm
    {$IFDEF UNIX}

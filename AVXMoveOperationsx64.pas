@@ -31,17 +31,17 @@ interface
 
 uses MatrixConst;
 
-procedure AVXMatrixCopyAligned(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-procedure AVXMatrixCopyUnAligned(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixCopyAligned(Dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixCopyUnAligned(Dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure AVXRowSwapAligned(A, B : PDouble; width : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-procedure AVXRowSwapUnAligned(A, B : PDouble; width : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXRowSwapAligned(A, B : PDouble; width : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXRowSwapUnAligned(A, B : PDouble; width : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure AVXInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; Value : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXInitMemAligned(A : PDouble; NumBytes : NativeInt; Value : double); {$IFDEF FPC}assembler;{$ENDIF}
 
 
-procedure AVXMatrixInitAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; {$IFDEF UNIX}unixValue{$ELSE}Value{$ENDIF} : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure AVXMatrixInitUnAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; {$IFDEF UNIX}unixValue{$ELSE}Value{$ENDIF} : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixInitAligned( dest : PDouble; const destLineWidth : NativeInt; Width, Height : NativeInt; {$IFDEF UNIX}unixValue{$ELSE}Value{$ENDIF} : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixInitUnAligned( dest : PDouble; const destLineWidth : NativeInt; Width, Height : NativeInt; {$IFDEF UNIX}unixValue{$ELSE}Value{$ENDIF} : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -52,7 +52,7 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 // rcx = dest, rdx = destLineWidth;  r8 = width, r9 = height
-procedure AVXMatrixInitAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; {$IFDEF UNIX}unixValue{$ELSE}Value{$ENDIF} : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixInitAligned( dest : PDouble; const destLineWidth : NativeInt; Width, Height : NativeInt; {$IFDEF UNIX}unixValue{$ELSE}Value{$ENDIF} : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 {$IFDEF UNIX}
 var value : double;
 {$ENDIF}
@@ -130,7 +130,7 @@ asm
 end;
 
 // rcx = dest, rdx = destLineWidth;  r8 = width, r9 = height
-procedure AVXMatrixInitUnAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; {$IFDEF UNIX}unixValue{$ELSE}Value{$ENDIF} : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixInitUnAligned( dest : PDouble; const destLineWidth : NativeInt; Width, Height : NativeInt; {$IFDEF UNIX}unixValue{$ELSE}Value{$ENDIF} : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 {$IFDEF UNIX}
 var value : double;
 {$ENDIF}
@@ -209,7 +209,7 @@ end;
 
 // uses non temporal moves so the cache is not poisned
 // rcx = A, rdx = NumBytes;
-procedure AVXInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; Value : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXInitMemAligned(A : PDouble; NumBytes : NativeInt; Value : double); {$IFDEF FPC}assembler;{$ENDIF}
 var tmp : Double;
 asm
    {$IFDEF UNIX}
@@ -268,7 +268,7 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXRowSwapAligned(A, B : PDouble; width : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXRowSwapAligned(A, B : PDouble; width : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -351,7 +351,7 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXRowSwapUnAligned(A, B : PDouble; width : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXRowSwapUnAligned(A, B : PDouble; width : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -434,10 +434,10 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXMatrixCopyAligned(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixCopyAligned(Dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 {$ifdef UNIX}
-var width : TASMNativeInt;
-    height : TASMNativeInt;
+var width : NativeInt;
+    height : NativeInt;
 {$ENDIF}
 asm
    {$IFDEF UNIX}
@@ -527,10 +527,10 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXMatrixCopyUnAligned(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixCopyUnAligned(Dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 {$ifdef UNIX}
-var width : TASMNativeInt;
-    height : TASMNativeInt;
+var width : NativeInt;
+    height : NativeInt;
 {$ENDIF}
 asm
    {$IFDEF UNIX}

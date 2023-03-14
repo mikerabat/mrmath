@@ -28,27 +28,27 @@ interface
 uses MatrixConst;
 
 // full matrix operations
-procedure FMAMatrixMultAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-procedure FMAMatrixMultUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure FMAMatrixMultAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure FMAMatrixMultUnAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
 // some special types of multiplications used e.g. in QR Decomposition
 // dest = mt1'*mt2; where mt2 is a lower triangular matrix and the operation is transposition
 // the function assumes a unit diagonal (does not touch the real middle elements)
 // width and height values are assumed to be the "original" (non transposed) ones
-procedure FMAMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; {$ifdef UNIX}unixMT2{$ELSE}mt2{$endif} : PDouble; {$ifdef UNIX}unixLineWidth2{$ELSE}LineWidth2{$endif} : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure FMAMtxMultTria2T1(dest : PDouble; LineWidthDest : NativeInt; mt1 : PDouble; LineWidth1 : NativeInt; {$ifdef UNIX}unixMT2{$ELSE}mt2{$endif} : PDouble; {$ifdef UNIX}unixLineWidth2{$ELSE}LineWidth2{$endif} : NativeInt;
+  width1, height1, width2, height2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 // mt1 = mt1*mt2'; where mt2 is an upper triangular matrix
-procedure FMAMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure FMAMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
 // W = C1*V1*T -> V1 is an upper triangular matrix with assumed unit diagonal entries. Operation on V1 transposition
-procedure FMAMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt;
-  {$ifdef UNIX}unixMT2{$ELSE}mt2{$endif} : PDouble; {$ifdef UNIX}unixLineWidth2{$ELSE}LineWidth2{$endif} : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure FMAMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : NativeInt; mt1 : PDouble; LineWidth1 : NativeInt;
+  {$ifdef UNIX}unixMT2{$ELSE}mt2{$endif} : PDouble; {$ifdef UNIX}unixLineWidth2{$ELSE}LineWidth2{$endif} : NativeInt;
+  width1, height1, width2, height2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
 // calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be 1!
-procedure FMAMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure FMAMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
 {$ENDIF}
 
@@ -58,11 +58,11 @@ implementation
 
 {$IFDEF x64}
 
-procedure FMAMatrixMultAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
+procedure FMAMatrixMultAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+var iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : NativeInt;
     {$ifdef UNIX}
-    width1 : TASMNativeInt;
-    height1 : TASMNativeInt;
+    width1 : NativeInt;
+    height1 : NativeInt;
     {$ENDIF}
 asm
    {$IFDEF UNIX}
@@ -273,11 +273,11 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure FMAMatrixMultUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
+procedure FMAMatrixMultUnAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+var iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : NativeInt;
     {$ifdef UNIX}
-    width1 : TASMNativeInt;
-    height1 : TASMNativeInt;
+    width1 : NativeInt;
+    height1 : NativeInt;
    {$ENDIF}
 
 asm
@@ -494,12 +494,12 @@ end;
 // #### Special multiplication routines (for now only used in QR Decomposition)
 // ###########################################
 
-procedure FMAMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX, iRDI, iRSI : TASMNativeInt;
+procedure FMAMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+var iRBX, iRDI, iRSI : NativeInt;
     {$ifdef UNIX}
-    width1 : TASMNativeInt;
-    height1 : TASMNativeInt;
+    width1 : NativeInt;
+    height1 : NativeInt;
    {$ENDIF}
 // rcx = mt1, rdx = LineWidth1, r8 = mt2, r9 = LineWidth2
 asm
@@ -613,13 +613,13 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure FMAMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt;
-  {$ifdef UNIX}unixMT2{$ELSE}mt2{$endif} : PDouble; {$ifdef UNIX}unixLineWidth2{$ELSE}LineWidth2{$endif} : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX, iRDI, iRSI, iR12, iR13 : TASMNativeInt;
+procedure FMAMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : NativeInt; mt1 : PDouble; LineWidth1 : NativeInt;
+  {$ifdef UNIX}unixMT2{$ELSE}mt2{$endif} : PDouble; {$ifdef UNIX}unixLineWidth2{$ELSE}LineWidth2{$endif} : NativeInt;
+  width1, height1, width2, height2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+var iRBX, iRDI, iRSI, iR12, iR13 : NativeInt;
     {$IFDEF UNIX}
     mt2 : PDouble;
-    LineWidth2 : TASMNativeInt;
+    LineWidth2 : NativeInt;
     {$ENDIF}
 // rcx = dest, rdx = LineWidthDest, r8 = mt1, r9 = LineWidth1
 asm
@@ -765,14 +765,14 @@ end;
 // dest = mt1'*mt2; where mt2 is a lower triangular matrix and the operation is transposition
 // the function assumes a unit diagonal (does not touch the real middle elements)
 // width and height values are assumed to be the "original" (non transposed) ones
-procedure FMAMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt;
-  {$ifdef UNIX}unixMT2{$ELSE}mt2{$endif} : PDouble; {$ifdef UNIX}unixLineWidth2{$ELSE}LineWidth2{$endif} : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure FMAMtxMultTria2T1(dest : PDouble; LineWidthDest : NativeInt; mt1 : PDouble; LineWidth1 : NativeInt;
+  {$ifdef UNIX}unixMT2{$ELSE}mt2{$endif} : PDouble; {$ifdef UNIX}unixLineWidth2{$ELSE}LineWidth2{$endif} : NativeInt;
+  width1, height1, width2, height2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var pMt2 : PDouble;
-    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : TASMNativeInt;
+    iRBX, iRSI, iRDI, iR12, iR13, iR14, iR15 : NativeInt;
     {$IFDEF UNIX}
     mt2 : PDouble;
-    LineWidth2 : TASMNativeInt;
+    LineWidth2 : NativeInt;
     {$ENDIF}
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = LineWidth1
 // prolog - simulate stack
@@ -905,7 +905,7 @@ asm
           // write back result
 
           // pDest^ := tmp[0];
-          // PDouble(TASMNativeUInt(pDest) + sizeof(double))^ := tmp[1];
+          // PDouble(NativeUint(pDest) + sizeof(double))^ := tmp[1];
 
           {$IFDEF FPC}vmovupd [r13], xmm0;{$ELSE}db $C4,$C1,$79,$11,$45,$00;{$ENDIF} 
 
@@ -966,12 +966,12 @@ asm
 end;
 
 // calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be 1!
-procedure FMAMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX, iRDI, iRSI : TASMNativeInt;
+procedure FMAMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  {$ifdef UNIX}unixWidth1{$ELSE}width1{$ENDIF}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$ENDIF}, width2, height2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+var iRBX, iRDI, iRSI : NativeInt;
     {$ifdef UNIX}
-    width1 : TASMNativeInt;
-    height1 : TASMNativeInt;
+    width1 : NativeInt;
+    height1 : NativeInt;
    {$ENDIF}
 // rcx: mt1, rdx: LineWidth1, r8 : mt2, r9 : LineWidth2
 asm

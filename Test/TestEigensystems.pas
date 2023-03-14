@@ -360,6 +360,10 @@ begin
      // make symmetric matrix
      MatrixMultT2(@aSym[0], 6*sizeof(double), @A[0], @A[0], 6, 6, 6, 6, 6*sizeof(double), 6*sizeof(double));
      Move( aSym[0], aSym1[0], sizeof(aSym));
+     FillChar( d0[0], sizeof(d0), 0);
+     FillChar( e0[0], sizeof(e0), 0);
+     FillChar( d1[0], sizeof(d1), 0);
+     FillChar( e1[0], sizeof(e1), 0);
 
      N := 6;
      MatrixUpperSymToTridiagInPlace( @aSym[0], 6*sizeof(double), N, @D0[0], @E0[0], nil, 2);

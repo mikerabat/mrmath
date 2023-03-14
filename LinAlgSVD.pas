@@ -26,34 +26,34 @@ uses SysUtils, Types, MatrixConst, MatrixASMStubSwitch, Math, MathUtilFunc;
 
 // Inplace svd decomposition of a Matrix A
 // The output is the computation of A= U*W*V' whereas U is stored in A, and W is a vector 0..Width-1. The matrix V (not V') must be as large as Width*Width!
-function MatrixSVDInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt; W : PDouble; const LineWidthW : TASMNativeInt;
-                           V : PDouble; const LineWidthV : TASMNativeInt; progress : TLinEquProgress = nil) : TSVDResult;
-function MatrixSVD(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt;
-                   U : PDouble; const LineWidthU : TASMNativeInt; W : PDouble; const LineWidthW : TASMNativeInt;
-                   V : PDouble; const LineWidthV : TASMNativeInt; progress : TLinEquProgress = nil) : TSVDResult;
+function MatrixSVDInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; Height : NativeInt; W : PDouble; const LineWidthW : NativeInt;
+                           V : PDouble; const LineWidthV : NativeInt; progress : TLinEquProgress = nil) : TSVDResult;
+function MatrixSVD(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; Height : NativeInt;
+                   U : PDouble; const LineWidthU : NativeInt; W : PDouble; const LineWidthW : NativeInt;
+                   V : PDouble; const LineWidthV : NativeInt; progress : TLinEquProgress = nil) : TSVDResult;
 
 // lapack implementation of the svd . this routine returns V transposed!
-function MatrixSVDInPlace2( A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt;
-                 W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt; SVDBlockSize : TASMNativeInt = 32;
+function MatrixSVDInPlace2( A : PDouble; const LineWidthA : NativeInt; width : NativeInt; Height : NativeInt;
+                 W : PConstDoubleArr; V : PDouble; const LineWidthV : NativeInt; SVDBlockSize : NativeInt = 32;
                  progress : TLinEquProgress = nil) : TSVDResult; 
 // same as above but spares an allocation and copy of A in some cases if ACopy is not nil!
-function MatrixSVDInPlace2Ex( A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt;
-                 W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt; 
-                 ACopy : PDouble; const LineWidthACopy : TASMNativeInt;
-                 SVDBlockSize : TASMNativeInt = 32;
+function MatrixSVDInPlace2Ex( A : PDouble; const LineWidthA : NativeInt; width : NativeInt; Height : NativeInt;
+                 W : PConstDoubleArr; V : PDouble; const LineWidthV : NativeInt; 
+                 ACopy : PDouble; const LineWidthACopy : NativeInt;
+                 SVDBlockSize : NativeInt = 32;
                  progress : TLinEquProgress = nil) : TSVDResult; 
 
 
 // threaded version of SVD decomposition
 // makes use of threaded versions of matrix multiplication and parallel plane rotations
-function ThrMatrixSVDInPlace( A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt;
-                 W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt; SVDBlockSize : TASMNativeInt = 32;
+function ThrMatrixSVDInPlace( A : PDouble; const LineWidthA : NativeInt; width : NativeInt; Height : NativeInt;
+                 W : PConstDoubleArr; V : PDouble; const LineWidthV : NativeInt; SVDBlockSize : NativeInt = 32;
                  progress : TLinEquProgress = nil) : TSVDResult; 
 // same as above but spares an allocation and copy of A in some cases if ACopy is not nil!
-function ThrMatrixSVDInPlaceEx( A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt;
-                 W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt; 
-                 ACopy : PDouble; const LineWidthACopy : TASMNativeInt;
-                 SVDBlockSize : TASMNativeInt = 32;
+function ThrMatrixSVDInPlaceEx( A : PDouble; const LineWidthA : NativeInt; width : NativeInt; Height : NativeInt;
+                 W : PConstDoubleArr; V : PDouble; const LineWidthV : NativeInt; 
+                 ACopy : PDouble; const LineWidthACopy : NativeInt;
+                 SVDBlockSize : NativeInt = 32;
                  progress : TLinEquProgress = nil) : TSVDResult; 
 
 
@@ -66,16 +66,16 @@ function ThrMatrixSVDInPlaceEx( A : PDouble; const LineWidthA : TASMNativeInt; w
 //  The default tolerance is MAX(SIZE(A)) * NORM(A) * EPS(class(A))
 // Note the Matrix in X is also used in the calculations, thus it's content is destroyed!
 // dest must be at least as big as the transposed of X
-function MatrixPseudoinverse(dest : PDouble; const LineWidthDest : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
-  width, height : TASMNativeInt; progress : TLinEquProgress = nil) : TSVDResult;
+function MatrixPseudoinverse(dest : PDouble; const LineWidthDest : NativeInt; X : PDouble; const LineWidthX : NativeInt;
+  width, height : NativeInt; progress : TLinEquProgress = nil) : TSVDResult;
 
 // using MatrixsvdInPlac2
-function MatrixPseudoinverse2(dest : PDouble; const LineWidthDest : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
-  width, height : TASMNativeInt; progress : TLinEquProgress = nil) : TSVDResult; 
+function MatrixPseudoinverse2(dest : PDouble; const LineWidthDest : NativeInt; X : PDouble; const LineWidthX : NativeInt;
+  width, height : NativeInt; progress : TLinEquProgress = nil) : TSVDResult; 
 // same as above but one can give an additional parameter that contains a copy of X -> if this parameter is not nil then
 // we spare an additional matrix copy in SVD
-function MatrixPseudoinverse2Ex(dest : PDouble; const LineWidthDest : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
-  width, height : TASMNativeInt; XCopy : PDouble; const LineWidthXCopy : TASMNativeInt; progress : TLinEquProgress = nil) : TSVDResult; 
+function MatrixPseudoinverse2Ex(dest : PDouble; const LineWidthDest : NativeInt; X : PDouble; const LineWidthX : NativeInt;
+  width, height : NativeInt; XCopy : PDouble; const LineWidthXCopy : NativeInt; progress : TLinEquProgress = nil) : TSVDResult; 
 
 
 implementation
@@ -89,14 +89,14 @@ uses BlockSizeSetup, Classes,
 // ########################################################################
 
 type
-  TMatrixSingularVecUpd = procedure(u : PDouble; const LineWidthU : TASMNativeInt;
-                           vt : PDouble; const LineWidthVT : TASMNativeInt;
-                           mm, nru, ncvt : TASMNativeInt;
+  TMatrixSingularVecUpd = procedure(u : PDouble; const LineWidthU : NativeInt;
+                           vt : PDouble; const LineWidthVT : NativeInt;
+                           mm, nru, ncvt : NativeInt;
                            w1, w2,
                            w3, w4 : PConstDoubleArr);
-  TMatrixSingularVecRotate = procedure (u : PDouble; const LineWidthU : TASMNativeInt;
-                       vt : PDouble; const LineWidthVT : TASMNativeInt;
-                       m, nru, ncvt : TASMNativeInt; const cosl, sinl, cosr, sinr : double);
+  TMatrixSingularVecRotate = procedure (u : PDouble; const LineWidthU : NativeInt;
+                       vt : PDouble; const LineWidthVT : NativeInt;
+                       m, nru, ncvt : NativeInt; const cosl, sinl, cosr, sinr : double);
 
 type
 // #######################################################
@@ -106,14 +106,14 @@ type
   TMtxSVDDecompData = record
     pWorkMem : PByte;
     ACopy : PDouble;
-    LineWidthACopy : TASMNativeInt;
+    LineWidthACopy : NativeInt;
     Progress : TLinEquProgress;
     QrProgressObj : TQRProgressObj;
     QRProgress : TLinEquProgress;
-    SVDPnlSize : TASMNativeInt;
-    QRPnlSize : TASMNativeInt;
-    BlkMltSize : TASMNativeInt;
-    SVDMultSize : TASMNativeInt;
+    SVDPnlSize : NativeInt;
+    QRPnlSize : NativeInt;
+    BlkMltSize : NativeInt;
+    SVDMultSize : NativeInt;
     qrDecomp : TQRDecompFunc;
     qFromQRDecomp : TQFromQRFunc;
     LeftQFromQRDecomp : TQFromQRFunc;
@@ -146,31 +146,31 @@ type
   TMatrixRotateRec = record
   public
     u : PDouble;
-    LineWidthU : TASMNativeInt;
+    LineWidthU : NativeInt;
     vt : PDouble;
-    LineWidthVT : TASMNativeInt;
-    mm, nru, ncvt : TASMNativeInt;
+    LineWidthVT : NativeInt;
+    mm, nru, ncvt : NativeInt;
     w1, w2,
     w3, w4 : PConstDoubleArr;
 
     cosl, sinl,
     cosr, sinr : double;
 
-    procedure CreateRot(aU : PDouble; const aLineWidthU : TASMNativeInt;
-                       aVt : PDouble; const aLineWidthVT : TASMNativeInt;
-                       am, anru, ancvt : TASMNativeInt; const acosl, asinl, acosr, asinr : double);
+    procedure CreateRot(aU : PDouble; const aLineWidthU : NativeInt;
+                       aVt : PDouble; const aLineWidthVT : NativeInt;
+                       am, anru, ancvt : NativeInt; const acosl, asinl, acosr, asinr : double);
 
-    procedure Create(aU : PDouble; const aLineWidthU : TASMNativeInt;
-                              aVt : PDouble; const aLineWidthVT : TASMNativeInt;
-                              aNM, anru, ancvt : TASMNativeInt;
+    procedure Create(aU : PDouble; const aLineWidthU : NativeInt;
+                              aVt : PDouble; const aLineWidthVT : NativeInt;
+                              aNM, anru, ancvt : NativeInt;
                               aw1, aw2,
                               aw3, aw4 : PConstDoubleArr);
   end;
   PMatrixRotateRec = ^TMatrixRotateRec;
 
-  procedure TMatrixRotateRec.CreateRot(aU : PDouble; const aLineWidthU : TASMNativeInt;
-                         aVt : PDouble; const aLineWidthVT : TASMNativeInt;
-                         am, anru, ancvt : TASMNativeInt; const acosl, asinl, acosr, asinr : double);
+  procedure TMatrixRotateRec.CreateRot(aU : PDouble; const aLineWidthU : NativeInt;
+                         aVt : PDouble; const aLineWidthVT : NativeInt;
+                         am, anru, ancvt : NativeInt; const acosl, asinl, acosr, asinr : double);
   begin
        u := aU;
        LineWidthU := aLineWidthU;
@@ -186,9 +186,9 @@ type
        sinr := asinr;
   end;
 
-  procedure TMatrixRotateRec.Create(aU : PDouble; const aLineWidthU : TASMNativeInt;
-                                      aVt : PDouble; const aLineWidthVT : TASMNativeInt;
-                                      aNM, anru, ancvt : TASMNativeInt;
+  procedure TMatrixRotateRec.Create(aU : PDouble; const aLineWidthU : NativeInt;
+                                      aVt : PDouble; const aLineWidthVT : NativeInt;
+                                      aNM, anru, ancvt : NativeInt;
                                       aw1, aw2, aw3, aw4 : PConstDoubleArr);
   begin
        u := aU;
@@ -210,13 +210,13 @@ type
 // #### Numerical recipies svd
 // ########################################################################
 
-function MatrixSVDInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt; W : PDouble; const LineWidthW : TASMNativeInt;
-  V : PDouble; const LineWidthV : TASMNativeInt; progress : TLinEquProgress) : TSVDResult;
+function MatrixSVDInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; Height : NativeInt; W : PDouble; const LineWidthW : NativeInt;
+  V : PDouble; const LineWidthV : NativeInt; progress : TLinEquProgress) : TSVDResult;
 const cMaxNumSVDIter = 75;
 var flag : boolean;
-    i, j, jj, k, l : TASMNativeInt;
-    its : TASMNativeInt;
-    nm : TASMNativeInt;
+    i, j, jj, k, l : NativeInt;
+    its : NativeInt;
+    nm : NativeInt;
     anorm : double;
     c, f, g, h : double;
     s, scale, x, y, z : double;
@@ -612,7 +612,7 @@ begin
                          break;
                     end;
 
-                    if abs(PDouble(TASMNativeUInt(W) + TASMNativeUInt(nm*LineWidthW))^) + anorm = anorm then
+                    if abs(PDouble(NativeUint(W) + NativeUint(nm*LineWidthW))^) + anorm = anorm then
                        break;
                end;
 
@@ -627,9 +627,9 @@ begin
                          rv1[i] := c*rv1[i];
                          if abs(f) + anorm <> anorm then    // check if the value is lower than the precission in contrast to anorm
                          begin
-                              g := PDouble(TASMNativeUInt(W) + TASMNativeUInt(i*LineWidthW))^;
+                              g := PDouble(NativeUint(W) + NativeUint(i*LineWidthW))^;
                               h := pythag(f, g);
-                              PDouble(TASMNativeUInt(W) + TASMNativeUInt(i*LineWidthW))^ := h;
+                              PDouble(NativeUint(W) + NativeUint(i*LineWidthW))^ := h;
                               h := 1/h;
                               c := g*h;
                               s := -f*h;
@@ -652,13 +652,13 @@ begin
                     end;
                end;
 
-               z := PDouble(TASMNativeUInt(W) + TASMNativeUInt(k*LineWidthW))^;
+               z := PDouble(NativeUint(W) + NativeUint(k*LineWidthW))^;
                // convergence
                if l = k then
                begin
                     if z < 0 then
                     begin
-                         PDouble(TASMNativeUInt(W) + TASMNativeUInt(k*LineWidthW))^ := -z;
+                         PDouble(NativeUint(W) + NativeUint(k*LineWidthW))^ := -z;
 
                          pV := V;
                          inc(pV, k);
@@ -676,9 +676,9 @@ begin
                if its = cMaxNumSVDIter - 1 then
                   exit;
 
-               x := PDouble(TASMNativeUInt(W) + TASMNativeUInt(l*LineWidthW))^;
+               x := PDouble(NativeUint(W) + NativeUint(l*LineWidthW))^;
                nm := k - 1;
-               y := PDouble(TASMNativeUInt(W) + TASMNativeUInt(nm*LineWidthW))^;
+               y := PDouble(NativeUint(W) + NativeUint(nm*LineWidthW))^;
                g := rv1[nm];
                h := rv1[k];
                f := ((y - z)*(y + z) + (g - h)*(g + h))/(2*h*y);
@@ -695,7 +695,7 @@ begin
                begin
                     i := j + 1;
                     g := rv1[i];
-                    y := PDouble(TASMNativeUInt(W) + TASMNativeUInt(i*LineWidthW))^;
+                    y := PDouble(NativeUint(W) + NativeUint(i*LineWidthW))^;
                     h := s*g;
                     g := c*g;
                     z := pythag(f, h);
@@ -723,7 +723,7 @@ begin
                     end;
 
                     z := pythag(f, h);
-                    PDouble(TASMNativeUInt(W) + TASMNativeUInt(j*LineWidthW))^ := z;
+                    PDouble(NativeUint(W) + NativeUint(j*LineWidthW))^ := z;
                     // rotation can be arbitrary if z = 0
                     if z <> 0 then
                     begin
@@ -752,16 +752,16 @@ begin
 
                rv1[l] := 0;
                rv1[k] := f;
-               PDouble(TASMNativeUInt(W) + TASMNativeUInt(k*LineWidthW))^ := x;
+               PDouble(NativeUint(W) + NativeUint(k*LineWidthW))^ := x;
           end;
      end;
 
      Result := srOk;
 end;
 
-function MatrixSVD(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt;
-                   U : PDouble; const LineWidthU : TASMNativeInt; W : PDouble; const LineWidthW : TASMNativeInt;
-                   V : PDouble; const LineWidthV : TASMNativeInt; progress : TLinEquProgress) : TSVDResult;
+function MatrixSVD(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; Height : NativeInt;
+                   U : PDouble; const LineWidthU : NativeInt; W : PDouble; const LineWidthW : NativeInt;
+                   V : PDouble; const LineWidthV : NativeInt; progress : TLinEquProgress) : TSVDResult;
 begin
      assert(LineWidthA >= width*sizeof(double), 'Dimension error');
      assert(LineWidthV >= width*sizeof(double), 'Dimension error');
@@ -780,9 +780,9 @@ end;
 // lapack: dgebd2
 // work needs to be at least Max(width, height)
 // the other arrays need to be at least min(width, height)
-procedure MatrixBidiagonalUnblocked(A : PDouble; const LineWidthA : TASMNativeInt; Width, Height : TASMNativeInt;
+procedure MatrixBidiagonalUnblocked(A : PDouble; const LineWidthA : NativeInt; Width, Height : NativeInt;
                  D, E, TauQ, TauP : PConstDoubleArr; work : PDouble);
-var i : TASMNativeInt;
+var i : NativeInt;
     pAii : PDouble;
     pAmin : PDouble;
     pC : PDouble;
@@ -884,10 +884,10 @@ end;
 
 
 // reduce parts of A to a bidiagonal form
-procedure BidiagBlkUpd(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt; nb : TASMNativeInt;
-                 D, E, TauQ, TauP : PConstDoubleArr; X : PDouble; const LineWidthX : TASMNativeInt;
-                 Y : PDouble; const LineWidthY : TASMNativeInt);
-var i : TASMNativeInt;
+procedure BidiagBlkUpd(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt; nb : NativeInt;
+                 D, E, TauQ, TauP : PConstDoubleArr; X : PDouble; const LineWidthX : NativeInt;
+                 Y : PDouble; const LineWidthY : NativeInt);
+var i : NativeInt;
     pAii00 : PDouble;                    // first index y, second x, first 1 -> +1 height, second 1 +1 width
     pAii01 : PDouble;
     pAii11 : PDouble;
@@ -1011,8 +1011,8 @@ end;
 // form: A = Q * B * P**T.  Q and P**T are defined as products of
 // elementary reflectors H(i) or G(i) respectively.
 
-procedure InitAndLeftQFromQR(A : PDouble; const LineWidthA : TASMNativeInt; width, height, k : TASMNativeInt; tau : PDouble;
-   work : PDouble; const svdData : TMtxSVDDecompData); //; const LineWidthWork : TASMNativeInt);
+procedure InitAndLeftQFromQR(A : PDouble; const LineWidthA : NativeInt; width, height, k : NativeInt; tau : PDouble;
+   work : PDouble; const svdData : TMtxSVDDecompData); //; const LineWidthWork : NativeInt);
 var pA : PDouble;
     i : Integer;
     j : Integer;
@@ -1077,12 +1077,12 @@ end;
 //   elementary reflectors, and the elements above the diagonal,
 //   with the array TAUP, represent the orthogonal matrix P as
 //   a product of elementary reflectors.
-procedure MatrixBidiagonalBlocked(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
+procedure MatrixBidiagonalBlocked(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
                  D, E, TauQ, TauP : PDouble; work : PDouble; const svdData : TMtxSVDDecompData);
-var minmn : TASMNativeInt;
+var minmn : NativeInt;
     nx : integer;
-    i, j : TASMNativeInt;
-    ldwrkx, ldwrky : TASMNativeInt;
+    i, j : NativeInt;
+    ldwrkx, ldwrky : NativeInt;
     pAinb, pAinbnb : PDouble;
     pAii : PDouble;
     pX, pY : PDouble;
@@ -1415,10 +1415,10 @@ begin
 end;
 
 
-procedure DswapCol(A : PDouble; const LineWidthA : TASMNativeInt; i1, i2, height : TASMNativeInt);
+procedure DswapCol(A : PDouble; const LineWidthA : NativeInt; i1, i2, height : NativeInt);
 var temp : double;
     pAi1, pAi2 : PDouble;
-    y: TASMNativeInt;
+    y: NativeInt;
 begin
      pAi1 := A;
      inc(pAi1, i1);
@@ -1436,10 +1436,10 @@ begin
      end;
 end;
 
-procedure DswapRow(A : PDouble; const LineWidthA : TASMNativeInt; i1, i2, width : TASMNativeInt);
+procedure DswapRow(A : PDouble; const LineWidthA : NativeInt; i1, i2, width : NativeInt);
 var temp : double;
     pAi1, pAi2 : PConstDoubleArr;
-    x : TASMNativeInt;
+    x : NativeInt;
 begin
      pAi1 := PConstDoubleArr(A);
      inc(PByte(pAi1), i1*LineWidthA);
@@ -1454,9 +1454,9 @@ begin
      end;
 end;
 
-procedure MatrixRotateFunc(u : PDouble; const LineWidthU : TASMNativeInt;
-                       vt : PDouble; const LineWidthVT : TASMNativeInt;
-                       m, nru, ncvt : TASMNativeInt; const cosl, sinl, cosr, sinr : double);
+procedure MatrixRotateFunc(u : PDouble; const LineWidthU : NativeInt;
+                       vt : PDouble; const LineWidthVT : NativeInt;
+                       m, nru, ncvt : NativeInt; const cosl, sinl, cosr, sinr : double);
 begin
      if ncvt > 0 then
         MatrixRotate(ncvt, GenPtr(vt, 0, m - 1, LineWidthVT), sizeof(double), GenPtr(vt, 0, m, LineWidthVT), sizeof(double), cosr, sinr);
@@ -1467,9 +1467,9 @@ begin
 
 end;
 
-procedure MatrixRotateUpdF(u : PDouble; const LineWidthU : TASMNativeInt;
-                          vt : PDouble; const LineWidthVT : TASMNativeInt;
-                          mm, nru, ncvt : TASMNativeInt;
+procedure MatrixRotateUpdF(u : PDouble; const LineWidthU : NativeInt;
+                          vt : PDouble; const LineWidthVT : NativeInt;
+                          mm, nru, ncvt : NativeInt;
                           w1, w2,
                           w3, w4 : PConstDoubleArr);
 begin
@@ -1483,9 +1483,9 @@ begin
 
 end;
 
-procedure MatrixRotateUpdB(u : PDouble; const LineWidthU : TASMNativeInt;
-                           vt : PDouble; const LineWidthVT : TASMNativeInt;
-                           mm, nru, ncvt : TASMNativeInt;
+procedure MatrixRotateUpdB(u : PDouble; const LineWidthU : NativeInt;
+                           vt : PDouble; const LineWidthVT : NativeInt;
+                           mm, nru, ncvt : NativeInt;
                            w1, w2,
                            w3, w4 : PConstDoubleArr);
 begin
@@ -1505,24 +1505,24 @@ end;
 // a real N-by-N (upper or lower) bidiagonal matrix B using the implicit
 // zero-shift QR algorithm.
 function SingularValuesUpperBiDiag(D : PConstDoubleArr; E : PConstDoubleArr;
-                     VT : PDouble; const LineWidthVT : TASMNativeInt; U : PDouble; const LineWidthU : TASMNativeInt;
-                     C : PDouble; const LineWidthC : TASMNativeInt;
-                     N, NCVT, NRU, NCC : TASMNativeInt; Work : PDouble;
+                     VT : PDouble; const LineWidthVT : NativeInt; U : PDouble; const LineWidthU : NativeInt;
+                     C : PDouble; const LineWidthC : NativeInt;
+                     N, NCVT, NRU, NCC : NativeInt; Work : PDouble;
                      const svdData : TMtxSVDDecompData) : TSVDResult;
 const maxitr : integer = 6;
-var nm1 : TASMNativeInt;
-    nm12 : TASMNativeInt;
-    nm13 : TASMNativeInt;
+var nm1 : NativeInt;
+    nm12 : NativeInt;
+    nm13 : NativeInt;
     smax : double;
     tol : Double;
-    i : TASMNativeInt;
+    i : NativeInt;
     thresh : double;
     sminoa : double;
-    maxIt : TASMNativeInt;
-    oldll : TASMNativeInt;
-    iter : TASMNativeInt;
-    oldm : TASMNativeInt;
-    m : TASMNativeInt;
+    maxIt : NativeInt;
+    oldll : NativeInt;
+    iter : NativeInt;
+    oldm : NativeInt;
+    m : NativeInt;
     mu : double;
     sminl : double;
     lll, ll: Integer;
@@ -1537,8 +1537,8 @@ var nm1 : TASMNativeInt;
     sn, oldsn : double;
     pwork : PConstDoubleArr;
     sigmn, sigmx, sinr, cosr, sinl, cosl : double;
-    isub : TASMNativeInt;
-    j : TASMNativeInt;
+    isub : NativeInt;
+    j : NativeInt;
 begin
      Result := srOk;
      pwork := PConstDoubleArr(work);
@@ -2071,10 +2071,10 @@ begin
 end;
 
 // single threaded work mem need:
-function SVDMemSize(const svdData : TMtxSVDDecompData; width, height : TASMNativeInt) : TASMNativeInt;
-var w2 : TASMNativeInt;
-    minmn : TASMNativeInt;
-    mnthr : TASMNativeInt;
+function SVDMemSize(const svdData : TMtxSVDDecompData; width, height : NativeInt) : NativeInt;
+var w2 : NativeInt;
+    minmn : NativeInt;
+    mnthr : NativeInt;
 begin
      minmn := Min(Width, Height);
 
@@ -2102,30 +2102,30 @@ end;
 // dgesvd from netlib
 // note: the routine uses quite a lot of function placeholders within the svdData structure.
 // this data structure is also used to perform the multithreaded version of SVD
-function InternalMatrixSVD( A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt;
-                            Height : TASMNativeInt;
-                            W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt;
+function InternalMatrixSVD( A : PDouble; const LineWidthA : NativeInt; width : NativeInt;
+                            Height : NativeInt;
+                            W : PConstDoubleArr; V : PDouble; const LineWidthV : NativeInt;
                             const svdData : TMtxSVDDecompData; forceNoQRDecomp : boolean) : TSVDResult;
 var work : PDouble;
     pMem : PByte;
     eps1, smallnum , bignum : double;
-    minmn : TASMNativeInt;
+    minmn : NativeInt;
     absMax : double;
-    mnthr : TASMNativeInt;
+    mnthr : NativeInt;
     pWorkITau : PDouble;
     pWorkTauQ, pWorkTaup, pWorkI, pWorkIE : PDouble;
     pWorkU : PDouble;
     pV, pA : PConstDoubleArr;
     pWorkIArr : PConstDoubleArr;
     isScaled : boolean;
-    x, y : TASMNativeInt;
+    x, y : NativeInt;
     pWorkIR : PDouble;
-    chunk : TASMNativeInt;
-    w2 : TASMNativeInt;
-    memNeed : TASMNativeInt;
+    chunk : NativeInt;
+    w2 : NativeInt;
+    memNeed : NativeInt;
     ACpy : PDouble;
     AMem : Pointer;
-    ACpyLineWidth : TASMNativeInt;
+    ACpyLineWidth : NativeInt;
 begin
      Result := srOk;
      aMem := nil;
@@ -2432,23 +2432,23 @@ begin
         FreeMem(pMem);
 end;
 
-function MatrixSVDInPlace2( A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt;
-                 W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt; 
-                 SVDBlockSize : TASMNativeInt = 32; progress : TLinEquProgress = nil) : TSVDResult;
+function MatrixSVDInPlace2( A : PDouble; const LineWidthA : NativeInt; width : NativeInt; Height : NativeInt;
+                 W : PConstDoubleArr; V : PDouble; const LineWidthV : NativeInt; 
+                 SVDBlockSize : NativeInt = 32; progress : TLinEquProgress = nil) : TSVDResult;
 begin
      Result := MatrixSVDInPlace2Ex( A, LineWidthA, width, height, W, V, LineWidthV, nil, 0, SVDBlockSize, progress);
 end;
 
 
-function MatrixSVDInPlace2Ex( A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt;
-                 W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt; 
-                 ACopy : PDouble; const LineWidthACopy : TASMNativeInt;
-                 SVDBlockSize : TASMNativeInt = 32; progress : TLinEquProgress = nil) : TSVDResult;
+function MatrixSVDInPlace2Ex( A : PDouble; const LineWidthA : NativeInt; width : NativeInt; Height : NativeInt;
+                 W : PConstDoubleArr; V : PDouble; const LineWidthV : NativeInt; 
+                 ACopy : PDouble; const LineWidthACopy : NativeInt;
+                 SVDBlockSize : NativeInt = 32; progress : TLinEquProgress = nil) : TSVDResult;
 var svdData : TMtxSVDDecompData;
-    minmn : TASMNativeInt;
+    minmn : NativeInt;
     vT : TDoubleDynArray;
     pA : PConstDoubleArr;
-    x, y : TASMNativeInt;
+    x, y : NativeInt;
     ptrMem : Pointer;
 begin
      if width > Height then
@@ -2530,10 +2530,10 @@ end;
 // ##### and parallel matrix rotation
 // ###################################################
 
-function SVDMemSizeThr(const svdData : TMtxSVDDecompData; width, height : TASMNativeInt) : TASMNativeInt;
-var w2 : TASMNativeInt;
-    minmn : TASMNativeInt;
-    mnthr : TASMNativeInt;
+function SVDMemSizeThr(const svdData : TMtxSVDDecompData; width, height : NativeInt) : NativeInt;
+var w2 : NativeInt;
+    minmn : NativeInt;
+    mnthr : NativeInt;
 begin
      minmn := Min(Width, Height);
 
@@ -2597,9 +2597,9 @@ begin
              sizeof(double), PMatrixRotateRec(obj)^.cosr, PMatrixRotateRec(obj)^.sinr);
 end;
 
-procedure ThrMatrixRotate(u : PDouble; const LineWidthU : TASMNativeInt;
-                       vt : PDouble; const LineWidthVT : TASMNativeInt;
-                       m, nru, ncvt : TASMNativeInt; const cosl, sinl, cosr, sinr : double);
+procedure ThrMatrixRotate(u : PDouble; const LineWidthU : NativeInt;
+                       vt : PDouble; const LineWidthVT : NativeInt;
+                       m, nru, ncvt : NativeInt; const cosl, sinl, cosr, sinr : double);
 var obj : TMatrixRotateRec;
     calls : IMtxAsyncCallGroup;
 begin
@@ -2614,17 +2614,17 @@ begin
 end;
 
 
-procedure ThrMatrixRotateUpdB(aU : PDouble; const aLineWidthU : TASMNativeInt;
-                              aVt : PDouble; const aLineWidthVT : TASMNativeInt;
-                              aNM, anru, ancvt : TASMNativeInt;
+procedure ThrMatrixRotateUpdB(aU : PDouble; const aLineWidthU : NativeInt;
+                              aVt : PDouble; const aLineWidthVT : NativeInt;
+                              aNM, anru, ancvt : NativeInt;
                               aw1, aw2,
                               aw3, aw4 : PConstDoubleArr);
 var obj : TMatrixRotateRec;
     objs : Array[0..cMaxNumCores - 1] of TMatrixRotateRec;
     numUsed : integer;
     calls : IMtxAsyncCallGroup;
-    counter: TASMNativeInt;
-    numNru : TASMNativeInt;
+    counter: NativeInt;
+    numNru : NativeInt;
 begin
      //numUsed := numCPUCores - 1;
      numUsed := numRealCores;
@@ -2663,17 +2663,17 @@ begin
      calls.SyncAll;
 end;
 
-procedure ThrMatrixRotateUpdF(aU : PDouble; const aLineWidthU : TASMNativeInt;
-                              aVt : PDouble; const aLineWidthVT : TASMNativeInt;
-                              aNM, anru, ancvt : TASMNativeInt;
+procedure ThrMatrixRotateUpdF(aU : PDouble; const aLineWidthU : NativeInt;
+                              aVt : PDouble; const aLineWidthVT : NativeInt;
+                              aNM, anru, ancvt : NativeInt;
                               aw1, aw2,
                               aw3, aw4 : PConstDoubleArr);
 var obj : TMatrixRotateRec;
     objs : Array[0..cMaxNumCores - 1] of TMatrixRotateRec;
     numUsed : integer;
     calls : IMtxAsyncCallGroup;
-    counter: TASMNativeInt;
-    numNru : TASMNativeInt;
+    counter: NativeInt;
+    numNru : NativeInt;
 begin
      //numUsed := numCPUCores - 1;
      numUsed := numRealCores;
@@ -2712,24 +2712,24 @@ begin
      calls.SyncAll;
 end;
 
-function ThrMatrixSVDInPlace( A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt;
-                 W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt; 
-                 SVDBlockSize : TASMNativeInt = 32;
+function ThrMatrixSVDInPlace( A : PDouble; const LineWidthA : NativeInt; width : NativeInt; Height : NativeInt;
+                 W : PConstDoubleArr; V : PDouble; const LineWidthV : NativeInt; 
+                 SVDBlockSize : NativeInt = 32;
                  progress : TLinEquProgress = nil) : TSVDResult;
 begin
      Result := ThrMatrixSVDInPlaceEx(A, LineWidthA, width, height, W, V, LineWidthV, nil, 0, SVDBlockSize, progress);
 end;
 
-function ThrMatrixSVDInPlaceEx( A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Height : TASMNativeInt;
-                 W : PConstDoubleArr; V : PDouble; const LineWidthV : TASMNativeInt; 
-                 ACopy : PDouble; const LineWidthACopy : TASMNativeInt;
-                 SVDBlockSize : TASMNativeInt = 32;
+function ThrMatrixSVDInPlaceEx( A : PDouble; const LineWidthA : NativeInt; width : NativeInt; Height : NativeInt;
+                 W : PConstDoubleArr; V : PDouble; const LineWidthV : NativeInt; 
+                 ACopy : PDouble; const LineWidthACopy : NativeInt;
+                 SVDBlockSize : NativeInt = 32;
                  progress : TLinEquProgress = nil) : TSVDResult;
 var svdData : TMtxSVDDecompData;
-    minmn : TASMNativeInt;
+    minmn : NativeInt;
     vT : TDoubleDynArray;
     pA : PConstDoubleArr;
-    x, y : TASMNativeInt;
+    x, y : NativeInt;
     ptrMem : Pointer;
 begin
      // ###########################################
@@ -2821,22 +2821,22 @@ end;
 // #### Pseudoinversion
 // ###########################################
 
-function MatrixPseudoinverse(dest : PDouble; const LineWidthDest : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
-  width, height : TASMNativeInt; progress : TLinEquProgress) : TSVDResult;
+function MatrixPseudoinverse(dest : PDouble; const LineWidthDest : NativeInt; X : PDouble; const LineWidthX : NativeInt;
+  width, height : NativeInt; progress : TLinEquProgress) : TSVDResult;
 var doTranspose : boolean;
     data : TDoubleDynArray;
     UTranspose : TDoubleDynArray;
     pData : PDouble;
-    lineWidthData : TASMNativeInt;
+    lineWidthData : NativeInt;
     S, V : TDoubleDynArray;
-    lineWidthV : TASMNativeInt;
+    lineWidthV : NativeInt;
     tolerance : double;
-    r : TASMNativeInt;
-    i : TASMNativeInt;
-    k, l : TASMNativeInt;
+    r : NativeInt;
+    i : NativeInt;
+    k, l : NativeInt;
     pUTranspose : PDouble;
     res : TDoubleDynArray;
-    destOffset : TASMNativeInt;
+    destOffset : NativeInt;
 begin
      // pseudo inversion of a matrix: pinv(x) = x'*(x*x')^-1
      // based on the matlab implementation:
@@ -2926,28 +2926,28 @@ begin
      end;
 end;
 
-function MatrixPseudoinverse2(dest : PDouble; const LineWidthDest : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
-  width, height : TASMNativeInt; progress : TLinEquProgress = nil) : TSVDResult;
+function MatrixPseudoinverse2(dest : PDouble; const LineWidthDest : NativeInt; X : PDouble; const LineWidthX : NativeInt;
+  width, height : NativeInt; progress : TLinEquProgress = nil) : TSVDResult;
 begin
      Result := MatrixPseudoinverse2Ex(dest, LineWidthDest, X, LineWidthX, width, height, nil, 0, progress);
 end;
 
-function MatrixPseudoinverse2Ex(dest : PDouble; const LineWidthDest : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
-  width, height : TASMNativeInt; XCopy : PDouble; const LineWidthXCopy : TASMNativeInt; progress : TLinEquProgress = nil) : TSVDResult;
+function MatrixPseudoinverse2Ex(dest : PDouble; const LineWidthDest : NativeInt; X : PDouble; const LineWidthX : NativeInt;
+  width, height : NativeInt; XCopy : PDouble; const LineWidthXCopy : NativeInt; progress : TLinEquProgress = nil) : TSVDResult;
 var doTranspose : boolean;
     data : TDoubleDynArray;
     UTranspose : TDoubleDynArray;
     pData : PDouble;
-    lineWidthData : TASMNativeInt;
+    lineWidthData : NativeInt;
     S, V : TDoubleDynArray;
-    lineWidthV : TASMNativeInt;
+    lineWidthV : NativeInt;
     tolerance : double;
-    r : TASMNativeInt;
-    i : TASMNativeInt;
-    k, l : TASMNativeInt;
+    r : NativeInt;
+    i : NativeInt;
+    k, l : NativeInt;
     pUTranspose : PDouble;
     res : TDoubleDynArray;
-    destOffset : TASMNativeInt;
+    destOffset : NativeInt;
 begin
      // pseudo inversion of a matrix: pinv(x) = x'*(x*x')^-1
      // based on the matlab implementation:

@@ -29,13 +29,13 @@ interface
 
 uses MatrixConst;
 
-procedure AVXApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
-procedure AVXApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
-procedure AVXApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
-procedure AVXApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXApplyPlaneRotSeqRVB(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXApplyPlaneRotSeqRVF(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXApplyPlaneRotSeqLVF(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXApplyPlaneRotSeqLVB(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
 
 
-procedure AVXMatrixRotate(N : TASMNativeInt; X : PDouble; const LineWidthDX : TASMNativeInt; Y : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
+procedure AVXMatrixRotate(N : NativeInt; X : PDouble; const LineWidthDX : NativeInt; Y : PDouble; LineWidthDY : NativeInt; const c, s : double);
 
 {$ENDIF}
 
@@ -46,8 +46,8 @@ implementation
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 // rcx = width, rdx = height, r8 : A, r9 = LineWidthA
-procedure AVXApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX, iRDI : TASMNativeInt;
+procedure AVXApplyPlaneRotSeqLVB(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
+var iRBX, iRDI : NativeInt;
     {$IFDEF UNIX}
     C, S : PConstDoubleArr;
     {$ENDIF}
@@ -224,8 +224,8 @@ asm
 end;
 
 
-procedure AVXApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX, iRDI : TASMNativeInt;
+procedure AVXApplyPlaneRotSeqLVF(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
+var iRBX, iRDI : NativeInt;
     {$IFDEF UNIX}
     C, S : PConstDoubleArr;
     {$ENDIF}
@@ -389,8 +389,8 @@ asm
      end;
 
 // rcx = width, rdx = height, r8 : A, r9 = LineWidthA
-procedure AVXApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX, iRDI : TASMNativeInt;
+procedure AVXApplyPlaneRotSeqRVB(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
+var iRBX, iRDI : NativeInt;
     {$IFDEF UNIX}
     C, S : PConstDoubleArr;
     {$ENDIF}
@@ -486,8 +486,8 @@ asm
    @@endproc:
 end;
 
-procedure AVXApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX, iRDI : TASMNativeInt;
+procedure AVXApplyPlaneRotSeqRVF(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}
+var iRBX, iRDI : NativeInt;
     {$IFDEF UNIX}
     C, S : PConstDoubleArr;
     {$ENDIF}
@@ -588,8 +588,8 @@ end;
 
 // its assumed that Linewidthdx and linewidthdy = sizeof(double)
 // rcx = N, RDX = X, R8 = Y,
-procedure AVXMatrixRotateAligned(N : TASMNativeInt; X : PDouble;
-  Y : PDouble; LineWidthDY : TASMNativeInt; {$ifdef UNIX}unixC{$ELSE}c{$endif}, {$ifdef UNIX}unixS{$ELSE}s{$endif} : PDouble); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixRotateAligned(N : NativeInt; X : PDouble;
+  Y : PDouble; LineWidthDY : NativeInt; {$ifdef UNIX}unixC{$ELSE}c{$endif}, {$ifdef UNIX}unixS{$ELSE}s{$endif} : PDouble); {$IFDEF FPC}assembler;{$ENDIF}
 {$IFDEF UNIX}
 var c : PDouble;
     s : PDouble;
@@ -698,10 +698,10 @@ asm
 end;
 
 // rcx = N, RDX = X, R8 = LineWidthDX, R9 = Y;
-procedure AVXMatrixRotateUnaligned(N : TASMNativeInt; X : PDouble; const LineWidthDX : TASMNativeInt;
-  Y : PDouble; {$ifdef UNIX}unixLineWidthDY{$ELSE}LineWidthDY{$endif} : TASMNativeInt; {$ifdef UNIX}unixc{$ELSE}c{$endif}, s : Pdouble);  {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixRotateUnaligned(N : NativeInt; X : PDouble; const LineWidthDX : NativeInt;
+  Y : PDouble; {$ifdef UNIX}unixLineWidthDY{$ELSE}LineWidthDY{$endif} : NativeInt; {$ifdef UNIX}unixc{$ELSE}c{$endif}, s : Pdouble);  {$IFDEF FPC}assembler;{$ENDIF}
 {$ifdef UNIX}
-var LineWidthDY : TASMNativeInt;
+var LineWidthDY : NativeInt;
     C : PDouble;
 {$endif}
 asm
@@ -819,7 +819,7 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXMatrixRotate(N : TASMNativeInt; X : PDouble; const LineWidthDX : TASMNativeInt; Y : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
+procedure AVXMatrixRotate(N : NativeInt; X : PDouble; const LineWidthDX : NativeInt; Y : PDouble; LineWidthDY : NativeInt; const c, s : double);
 begin
      if N <= 0 then
         exit;

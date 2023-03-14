@@ -27,11 +27,11 @@ interface
 
 uses MatrixConst;
 
-procedure AVXMatrixTransposeAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-procedure AVXMatrixTransposeUnaligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixTransposeAligned(dest : PDouble; const destLineWidth : NativeInt; mt : PDouble; const LineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixTransposeUnaligned(dest : PDouble; const destLineWidth : NativeInt; mt : PDouble; const LineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
 // Inplace Trasnposition of an N x N matrix
-procedure AVXMatrixTransposeInplace(mt : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixTransposeInplace(mt : PDouble; const LineWidth : NativeInt; N : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
 {$ENDIF}
 
@@ -41,12 +41,12 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-}  {$warnings off} {$ENDIF}
 
-procedure AVXMatrixTransposeAligned(dest : PDouble; const destLineWidth : TASMNativeInt;
-  mt : PDouble; const LineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-var iR12, iR13, iR14, iR15, iRSI, iRDI : TASMNativeInt;
+procedure AVXMatrixTransposeAligned(dest : PDouble; const destLineWidth : NativeInt;
+  mt : PDouble; const LineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+var iR12, iR13, iR14, iR15, iRSI, iRDI : NativeInt;
 {$ifdef UNIX}
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    width : NativeInt;
+    height : NativeInt;
 {$ENDIF}
     
 asm
@@ -209,11 +209,11 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXMatrixTransposeUnaligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-var iR12, iR13, iR14, iR15, iRSI, iRDI : TASMNativeInt;
+procedure AVXMatrixTransposeUnaligned(dest : PDouble; const destLineWidth : NativeInt; mt : PDouble; const LineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+var iR12, iR13, iR14, iR15, iRSI, iRDI : NativeInt;
 {$ifdef UNIX}
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    width : NativeInt;
+    height : NativeInt;
 {$ENDIF}
 asm
    {$IFDEF UNIX}
@@ -374,7 +374,7 @@ asm
 end;
 
 // simple Inplace Trasnposition of an N x N matrix
-procedure AVXMatrixTransposeInplace(mt : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixTransposeInplace(mt : PDouble; const LineWidth : NativeInt; N : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 // rcx: mt, rdx, LineWidth, r8: N
 asm
    {$IFDEF UNIX}

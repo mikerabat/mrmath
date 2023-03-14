@@ -53,6 +53,10 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 
 // ###################################################################
 changelog:
+Date: 14.03.2023
+* Got rid of the self invented integer types
+* Fixed 64 ARM problems
+* Fixed 64 rolling Median problems
 
 Date: 02.03.2023
 * Added a package mrMathPas that only uses pure pascal routines - all assembler stuff is either not

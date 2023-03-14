@@ -27,11 +27,11 @@ interface
 
 uses MatrixConst;
 
-function AVXMatrixMaxAligned(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-function AVXMatrixMaxUnAligned(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function AVXMatrixMaxAligned(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function AVXMatrixMaxUnAligned(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-function AVXMatrixMinAligned(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-function AVXMatrixMinUnAligned(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function AVXMatrixMinAligned(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function AVXMatrixMinUnAligned(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -46,7 +46,7 @@ implementation
 const cLocNegMaxDouble : double = -1.7e+308;
       cLocMaxDouble : double = 1.7e+308;
 
-function AVXMatrixMaxAligned(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function AVXMatrixMaxAligned(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 asm
    // prolog - simulate stack
    push edi;
@@ -135,7 +135,7 @@ asm
    pop edi;
 end;
 
-function AVXMatrixMaxUnAligned(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function AVXMatrixMaxUnAligned(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 asm
    // prolog - simulate stack
    push edi;
@@ -228,7 +228,7 @@ asm
    pop edi;
 end;
 
-function AVXMatrixMinAligned(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function AVXMatrixMinAligned(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 asm
    // prolog - simulate stack
    push edi;
@@ -317,7 +317,7 @@ asm
    pop edi;
 end;
 
-function AVXMatrixMinUnAligned(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function AVXMatrixMinUnAligned(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 asm
    // prolog - simulate stack
    push edi;

@@ -28,36 +28,36 @@ interface
 uses MatrixConst;
 
 // full matrix operations
-procedure AVXMatrixMultAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure AVXMatrixMultUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixMultAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixMultUnAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 
 // some special types of multiplications used e.g. in QR Decomposition
 // dest = mt1'*mt2; where mt2 is a lower triangular matrix and the operation is transposition
 // the function assumes a unit diagonal (does not touch the real middle elements)
 // width and height values are assumed to be the "original" (non transposed) ones
-procedure AVXMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMtxMultTria2T1(dest : PDouble; LineWidthDest : NativeInt; mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 // mt1 = mt1*mt2'; where mt2 is an upper triangular matrix
-procedure AVXMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 // W = C1*V1*T -> V1 is an upper triangular matrix with assumed unit diagonal entries. Operation on V1 transposition
-procedure AVXMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : NativeInt; mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 // mt1 = mt1*mt2; where mt2 is an upper triangular matrix
-procedure AVXMtxMultTria2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMtxMultTria2Store1(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 // calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be 1!
-procedure AVXMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 // mt1 = mt1*mt2; where mt2 is an upper triangular matrix - diagonal elements are unit
-procedure AVXMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 
 // performs a rank2 update in the form
@@ -65,8 +65,8 @@ procedure AVXMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; m
 // N...order of C (N x N matrix)
 // k... number of columns of A and B
 // the lower triangle of C is not referenced
-procedure AVXSymRank2UpdateUpperUnaligned( C : PDouble; LineWidthC : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
-  B : PDouble; LineWidthB : TASMNativeInt; N : TASMNativeInt; k : TASMNativeInt ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXSymRank2UpdateUpperUnaligned( C : PDouble; LineWidthC : NativeInt; A : PDouble; LineWidthA : NativeInt;
+  B : PDouble; LineWidthB : NativeInt; N : NativeInt; k : NativeInt ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 
 
@@ -78,9 +78,9 @@ implementation
 
 {$IFNDEF x64}
 
-procedure AVXMatrixMultAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var bytesWidth2, destOffset : TASMNativeInt;
-    iter : TASMNativeInt;
+procedure AVXMatrixMultAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
+var bytesWidth2, destOffset : NativeInt;
+    iter : NativeInt;
 // eax = dest; edx = destLineWidth; ecx = mtx
 asm
    // prolog - simulate stack
@@ -261,9 +261,9 @@ asm
    pop ebx;
 end;
 
-procedure AVXMatrixMultUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var bytesWidth2, destOffset : TASMNativeInt;
-    iter : TASMNativeInt;
+procedure AVXMatrixMultUnAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
+var bytesWidth2, destOffset : NativeInt;
+    iter : NativeInt;
 // eax = dest; edx = destLineWidth; ecx = mtx
 asm
    // prolog - simulate stack
@@ -451,11 +451,11 @@ end;
 
 // note the result is stored in mt1 again!
 // mt1 = mt1*mt2; where mt2 is an upper triangular matrix
-procedure AVXMtxMultTria2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
-var wm1 : TASMNativeInt;
-    iter : TASMNativeInt;
-    aLineWidth1 : TASMNativeInt;
+procedure AVXMtxMultTria2Store1(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
+var wm1 : NativeInt;
+    iter : NativeInt;
+    aLineWidth1 : NativeInt;
 // eax = mt1, edx = LineWidth1, ecx = mt2
 asm
    push ebx;
@@ -551,10 +551,10 @@ asm
    pop ebx;
 end;
 
-procedure AVXMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
-var iter : TASMNativeInt;
-    testExitLoopVal : TASMNativeInt;
+procedure AVXMtxMultTria2T1StoreT1(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
+var iter : NativeInt;
+    testExitLoopVal : NativeInt;
 asm
    // prolog: stack
    push ebx;
@@ -659,9 +659,9 @@ asm
    pop ebx;
 end;
 
-procedure AVXMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
-var iter, testExitLoopVal : TASMNativeInt;
+procedure AVXMtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : NativeInt; mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
+var iter, testExitLoopVal : NativeInt;
 asm
    // prolog: stack
    push ebx;
@@ -789,12 +789,12 @@ end;
 // dest = mt1'*mt2; where mt2 is a lower triangular matrix and the operation is transposition
 // the function assumes a unit diagonal (does not touch the real middle elements)
 // width and height values are assumed to be the "original" (non transposed) ones
-procedure AVXMtxMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt;
-  mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+procedure AVXMtxMultTria2T1(dest : PDouble; LineWidthDest : NativeInt; mt1 : PDouble; LineWidth1 : NativeInt;
+  mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
 var pMt2 : PDouble;
-    width2D2 : TASMNativeInt;
-    aLineWidthDest : TASMNativeInt;
+    width2D2 : NativeInt;
+    aLineWidthDest : NativeInt;
 asm
    // Prolog
    push ebx;
@@ -904,7 +904,7 @@ asm
            // write back result
 
            // pDest^ := tmp[0];
-           // PDouble(TASMNativeUInt(pDest) + sizeof(double))^ := tmp[1];
+           // PDouble(NativeUint(pDest) + sizeof(double))^ := tmp[1];
 
            {$IFDEF FPC}vmovupd [eax], xmm0;{$ELSE}db $C5,$F9,$11,$00;{$ENDIF} 
 
@@ -962,9 +962,9 @@ asm
 end;
 
 // calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be 1!
-procedure AVXMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
-var aLineWidth1 : TASMNativeInt;
+procedure AVXMtxMultLowTria2T2Store1(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
+var aLineWidth1 : NativeInt;
     aMt1 : PDouble;
 // eax = mt1, edx = LineWidth1, ecx = mt2
 asm
@@ -1082,9 +1082,9 @@ asm
    pop ebx;
 end;
 
-procedure AVXMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
-var iter : TASMNativeInt;
+procedure AVXMtxMultTria2Store1Unit(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
+var iter : NativeInt;
     aMT1 : PDouble;
 asm
    push ebx;
@@ -1184,8 +1184,8 @@ asm
    pop ebx;
 end;
 
-procedure AVXSymRank2UpdateUpperUnaligned( C : PDouble; LineWidthC : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
-  B : PDouble; LineWidthB : TASMNativeInt; N : TASMNativeInt; k : TASMNativeInt );
+procedure AVXSymRank2UpdateUpperUnaligned( C : PDouble; LineWidthC : NativeInt; A : PDouble; LineWidthA : NativeInt;
+  B : PDouble; LineWidthB : NativeInt; N : NativeInt; k : NativeInt );
 // eax = c; edx = LineWidthC; ecx : A;
 var i, j : integer;
     lC : Cardinal;

@@ -25,30 +25,30 @@ uses MatrixConst;
 
 // blocked matrix mult + strassen multiplication functions
 
-procedure GenericBlockMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble;
-  width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation = doNone; mem : PDouble = nil);
+procedure GenericBlockMatrixMultiplication(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble;
+  width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+  const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation = doNone; mem : PDouble = nil);
 
 // calculates dest = mt1'*mt2
-procedure GenericBlockMatrixMultiplicationT1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
+procedure GenericBlockMatrixMultiplicationT1(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+  const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
 // calculates dest = mt1*mt2'
-procedure GenericBlockMatrixMultiplicationT2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
+procedure GenericBlockMatrixMultiplicationT2(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+  const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
 
 
 // this routine first performs a transposition on the second matrix before the multiplication is executed. This results
 // normaly in quite a boost.
 
-procedure BlockMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation = doNone); overload;
-procedure BlockMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation = doNone; mem : PDouble = nil); overload;
+procedure BlockMatrixMultiplication(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; op : TMatrixMultDestOperation = doNone); overload;
+procedure BlockMatrixMultiplication(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation = doNone; mem : PDouble = nil); overload;
 
 // calculates dest = mt1'*mt2
-procedure BlockMatrixMultiplicationT1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
+procedure BlockMatrixMultiplicationT1(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+  const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
 // calculates dest = mt1*mt2'
-procedure BlockMatrixMultiplicationT2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
+procedure BlockMatrixMultiplicationT2(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+  const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
 
 
 
@@ -56,22 +56,22 @@ procedure BlockMatrixMultiplicationT2(dest : PDouble; const destLineWidth : TASM
 // The routine tries to tile the matrix into 256x256 blocks (which seems to be a good approximation
 // for a Core2 processor) which fits into the Level1 cache thus reduces
 // cache misses.
-procedure BlockMatrixMultiplicationDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation = doNone); overload;
-procedure BlockMatrixMultiplicationDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation = doNone); overload;
+procedure BlockMatrixMultiplicationDirect(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; op : TMatrixMultDestOperation = doNone); overload;
+procedure BlockMatrixMultiplicationDirect(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation = doNone); overload;
 
-procedure BlockMatrixVectorMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt); overload;
-procedure BlockMatrixVectorMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt; blockSize : TASMNativeInt); overload;
+procedure BlockMatrixVectorMultiplication(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; height2 : NativeInt; const LineWidth1 : NativeInt); overload;
+procedure BlockMatrixVectorMultiplication(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; height2 : NativeInt; const LineWidth1 : NativeInt; blockSize : NativeInt); overload;
 
 // ################################################################
 // #### Threaded versions
-function UseInnerBlockMult( w, h : TASMNativeInt) : boolean;
+function UseInnerBlockMult( w, h : NativeInt) : boolean;
 
 // calculates dest = mt1*mt2'
-procedure ThrBlockMatrixMultiplicationT2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
+procedure ThrBlockMatrixMultiplicationT2(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+  const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
 
-procedure ThrBlockMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation = doNone); overload;
-procedure ThrBlockMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation = doNone; mem : PDouble = nil); overload;
+procedure ThrBlockMatrixMultiplication(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; op : TMatrixMultDestOperation = doNone); overload;
+procedure ThrBlockMatrixMultiplication(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation = doNone; mem : PDouble = nil); overload;
 
 
 implementation
@@ -138,25 +138,25 @@ end;
 
 {$ENDIF}
 
-procedure BlockMatrixVectorMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt); overload;
+procedure BlockMatrixVectorMultiplication(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; height2 : NativeInt; const LineWidth1 : NativeInt); overload;
 begin
      BlockMatrixVectorMultiplication(dest, destLineWidth, mt1, mt2, width1, height1, height2, LineWidth1, BlockedVectorMatrixMultSize);
 end;
 
-procedure BlockMatrixVectorMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1 : TASMNativeInt; blockSize : TASMNativeInt); overload;
-var h : TASMNativeInt;
+procedure BlockMatrixVectorMultiplication(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; height2 : NativeInt; const LineWidth1 : NativeInt; blockSize : NativeInt); overload;
+var h : NativeInt;
     actBlk : PDouble;
     multBlk : PDouble;
     pA, pB : PDouble;
-    blkIdxY : TASMNativeInt;
-    idx : TASMNativeInt;
-    gamma : TASMNativeInt;
+    blkIdxY : NativeInt;
+    idx : NativeInt;
+    gamma : NativeInt;
     pActBlk : PDouble;
     pHelp : PDouble;
     w1FitCacheSize : boolean;
     h1FitCacheSize : boolean;
-    blkHeight : TASMNativeInt;
-    gammaWidth : TASMNativeInt;
+    blkHeight : NativeInt;
+    gammaWidth : NativeInt;
     ptrMem : Pointer;
 begin
      if (width1 = 0) or (height1 = 0) or (height2 = 0) then
@@ -169,8 +169,8 @@ begin
      h1FitCacheSize := (height1 mod blockSize) = 0;
      w1FitCacheSize := (width1 mod blockSize) = 0;
 
-     h := height1 div blockSize + TASMNativeInt(not h1FitCacheSize) - 1;
-     gamma := width1 div blockSize + TASMNativeInt(not w1FitCacheSize) - 1;
+     h := height1 div blockSize + NativeInt(not h1FitCacheSize) - 1;
+     gamma := width1 div blockSize + NativeInt(not w1FitCacheSize) - 1;
 
      actBlk := MtxMallocAlign(2*blockSize*sizeof(double), ptrMem );
      multBlk := actBlk;
@@ -227,31 +227,31 @@ begin
      FreeMem(ptrMem);
 end;
 
-procedure BlockMatrixMultiplicationDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation);
+procedure BlockMatrixMultiplicationDirect(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; op : TMatrixMultDestOperation);
 begin
      BlockMatrixMultiplicationDirect(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, BlockMatrixCacheSize, op);
 end;
 
-procedure BlockMatrixMultiplicationDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation);
-var w, h : TASMNativeInt;
-    blkIdxX : TASMNativeInt;
+procedure BlockMatrixMultiplicationDirect(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation);
+var w, h : NativeInt;
+    blkIdxX : NativeInt;
     actBlk : PDouble;
     multBlk : PDouble;
     pA, pB : PDouble;
-    blkIdxY : TASMNativeInt;
-    idx : TASMNativeInt;
-    gamma : TASMNativeInt;
+    blkIdxY : NativeInt;
+    idx : NativeInt;
+    gamma : NativeInt;
     pDest : PDouble;
     pMt2 : PDouble;
     w1FitCacheSize : boolean;
     w2FitCacheSize : boolean;
     h1FitCacheSize : boolean;
-    blkHeight : TASMNativeInt;
-    blkWidth : TASMNativeInt;
-    gammaWidth : TASMNativeInt;
-    sizeVal : TASMNativeInt;
+    blkHeight : NativeInt;
+    blkWidth : NativeInt;
+    gammaWidth : NativeInt;
+    sizeVal : NativeInt;
     m1, m2 : Pointer;
-    blockByteSize : TASMNativeInt;
+    blockByteSize : NativeInt;
 begin
      if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
         exit;
@@ -273,9 +273,9 @@ begin
      w2FitCacheSize := (width2 mod blockSize) = 0;
      w1FitCacheSize := (width1 mod blockSize) = 0;
 
-     h := height1 div blockSize + TASMNativeInt(not h1FitCacheSize) - 1;
-     w := width2 div blockSize + TASMNativeInt(not w2FitCacheSize) - 1;
-     gamma := width1 div blockSize + TASMNativeInt(not w1FitCacheSize) - 1;
+     h := height1 div blockSize + NativeInt(not h1FitCacheSize) - 1;
+     w := width2 div blockSize + NativeInt(not w2FitCacheSize) - 1;
+     gamma := width1 div blockSize + NativeInt(not w1FitCacheSize) - 1;
 
      blockByteSize := blockSize*blockSize*sizeof(double);
      actBlk := MtxMallocAlign(blockByteSize, m1);
@@ -341,30 +341,30 @@ begin
      FreeMem(m2);
 end;
 
-procedure BlockMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation);
+procedure BlockMatrixMultiplication(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; op : TMatrixMultDestOperation);
 begin
      BlockMatrixMultiplication(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, BlockMatrixCacheSize, op, nil);
 end;
 
-procedure BlockMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
-var w, h : TASMNativeInt;
-    blkIdxX : TASMNativeInt;
+procedure BlockMatrixMultiplication(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+  const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
+var w, h : NativeInt;
+    blkIdxX : NativeInt;
     actBlk : PDouble;
     multBlk : PDouble;
     transBlk, copyBlk : PDouble;
     pA, pB : PDouble;
-    blkIdxY : TASMNativeInt;
-    idx : TASMNativeInt;
-    gamma : TASMNativeInt;
+    blkIdxY : NativeInt;
+    idx : NativeInt;
+    gamma : NativeInt;
     pDest : PDouble;
     pMt2 : PDouble;
     w1FitCacheSize : boolean;
     w2FitCacheSize : boolean;
     h1FitCacheSize : boolean;
-    blkHeight : TASMNativeInt;
-    blkWidth : TASMNativeInt;
-    gammaWidth : TASMNativeInt;
+    blkHeight : NativeInt;
+    blkWidth : NativeInt;
+    gammaWidth : NativeInt;
     blockByteSize : Cardinal;
     blockLineSize : Cardinal;
     isAligned : boolean;
@@ -380,15 +380,15 @@ begin
      if (blockSize > width1) and (not assigned(mem)) then
         blockSize := Next2Pwr( width1, blockSize );
 
-     isAligned := (TASMNativeUInt(dest) and $00000001F) = 0;
+     isAligned := (NativeUint(dest) and $00000001F) = 0;
 
      h1FitCacheSize := (height1 mod blockSize) = 0;
      w2FitCacheSize := (width2 mod blockSize) = 0;
      w1FitCacheSize := (width1 mod blockSize) = 0;
 
-     h := height1 div blockSize + TASMNativeInt(not h1FitCacheSize) - 1;
-     w := width2 div blockSize + TASMNativeInt(not w2FitCacheSize) - 1;
-     gamma := width1 div blockSize + TASMNativeInt(not w1FitCacheSize) - 1;
+     h := height1 div blockSize + NativeInt(not h1FitCacheSize) - 1;
+     w := width2 div blockSize + NativeInt(not w2FitCacheSize) - 1;
+     gamma := width1 div blockSize + NativeInt(not w1FitCacheSize) - 1;
 
      blockByteSize := blockSize*blockSize*sizeof(double);
 
@@ -396,9 +396,9 @@ begin
      ptrMem := nil;
      if not Assigned(mem) then
         actBlk := MtxMallocAlign(BlockMultMemSize(blockSize), ptrMem );
-     multBlk := PDouble(TASMNativeUInt(actBlk) + blockByteSize);
-     transBlk := PDouble(TASMNativeUInt(actBlk) + 2*blockByteSize);
-     copyBlk := PDouble(TASMNativeUInt(actBlk) + 3*blockByteSize);
+     multBlk := PDouble(NativeUint(actBlk) + blockByteSize);
+     transBlk := PDouble(NativeUint(actBlk) + 2*blockByteSize);
+     copyBlk := PDouble(NativeUint(actBlk) + 3*blockByteSize);
 
      blockLineSize := blockSize*sizeof(double);
 
@@ -473,25 +473,25 @@ begin
 end;
 
 // calculates mt1'*mt2
-procedure BlockMatrixMultiplicationT1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
-var w, w1 : TASMNativeInt;
-    blkIdxX : TASMNativeInt;
+procedure BlockMatrixMultiplicationT1(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+  const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
+var w, w1 : NativeInt;
+    blkIdxX : NativeInt;
     actBlk : PDouble;
     multBlk : PDouble;
     transBlk1, transBlk2 : PDouble;
     pA, pB : PDouble;
-    blkIdxY : TASMNativeInt;
-    idx : TASMNativeInt;
-    gamma : TASMNativeInt;
+    blkIdxY : NativeInt;
+    idx : NativeInt;
+    gamma : NativeInt;
     pDest : PDouble;
     pMt2 : PDouble;
     w1FitCacheSize : boolean;
     w2FitCacheSize : boolean;
     h1FitCacheSize : boolean;
-    blkWidth1 : TASMNativeInt;
-    blkWidth : TASMNativeInt;
-    gammaHeight : TASMNativeInt;
+    blkWidth1 : NativeInt;
+    blkWidth : NativeInt;
+    gammaHeight : NativeInt;
     blockByteSize : Cardinal;
     blockLineSize : Cardinal;
     ptrMem : Pointer;
@@ -510,9 +510,9 @@ begin
      w2FitCacheSize := (width2 mod blockSize) = 0;
      w1FitCacheSize := (width1 mod blockSize) = 0;
 
-     w1 := width1 div blockSize + TASMNativeInt(not w1FitCacheSize) - 1;
-     w := width2 div blockSize + TASMNativeInt(not w2FitCacheSize) - 1;
-     gamma := height1 div blockSize + TASMNativeInt(not h1FitCacheSize) - 1;
+     w1 := width1 div blockSize + NativeInt(not w1FitCacheSize) - 1;
+     w := width2 div blockSize + NativeInt(not w2FitCacheSize) - 1;
+     gamma := height1 div blockSize + NativeInt(not h1FitCacheSize) - 1;
 
      blockByteSize := blockSize*blockSize*sizeof(double);
 
@@ -521,9 +521,9 @@ begin
      if not Assigned(mem) then
         actBlk := MtxMallocAlign(BlockMultMemSize(blockSize), ptrMem );
 
-     multBlk := PDouble(TASMNativeUInt(actBlk) + blockByteSize);
-     transBlk1 := PDouble(TASMNativeUInt(actBlk) + 2*blockByteSize);
-     transBlk2 := PDouble(TASMNativeUInt(actBlk) + 3*blockByteSize);
+     multBlk := PDouble(NativeUint(actBlk) + blockByteSize);
+     transBlk1 := PDouble(NativeUint(actBlk) + 2*blockByteSize);
+     transBlk2 := PDouble(NativeUint(actBlk) + 3*blockByteSize);
 
      blockLineSize := blockSize*sizeof(double);
 
@@ -592,25 +592,25 @@ begin
 end;
 
 // calculates mt1*mt2'
-procedure BlockMatrixMultiplicationT2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
-var h1, h : TASMNativeInt;
-    blkIdxX : TASMNativeInt;
+procedure BlockMatrixMultiplicationT2(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+  const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
+var h1, h : NativeInt;
+    blkIdxX : NativeInt;
     actBlk : PDouble;
     multBlk : PDouble;
     copyBlk : PDouble;
     pA, pB : PDouble;
-    blkIdxY : TASMNativeInt;
-    idx : TASMNativeInt;
-    gamma : TASMNativeInt;
+    blkIdxY : NativeInt;
+    idx : NativeInt;
+    gamma : NativeInt;
     pDest : PDouble;
     pMt2 : PDouble;
     w1FitCacheSize : boolean;
     h2FitCacheSize : boolean;
     h1FitCacheSize : boolean;
-    blkHeight : TASMNativeInt;
-    blkHeight1 : TASMNativeInt;
-    gammaWidth : TASMNativeInt;
+    blkHeight : NativeInt;
+    blkHeight1 : NativeInt;
+    gammaWidth : NativeInt;
     blockByteSize : Cardinal;
     blockLineSize : Cardinal;
     isAligned : boolean;
@@ -626,15 +626,15 @@ begin
      if (blockSize > width1) and (not Assigned(mem)) then
         blockSize := Next2Pwr( width1, blockSize );
      
-     isAligned := (TASMNativeUInt(dest) and $0000000F) = 0;
+     isAligned := (NativeUint(dest) and $0000000F) = 0;
 
      h1FitCacheSize := (height1 mod blockSize) = 0;
      h2FitCacheSize := (height2 mod blockSize) = 0;
      w1FitCacheSize := (width1 mod blockSize) = 0;
 
-     h := height1 div blockSize + TASMNativeInt(not h1FitCacheSize) - 1;
-     h1 := height2 div blockSize + TASMNativeInt(not h2FitCacheSize) - 1;
-     gamma := width1 div blockSize + TASMNativeInt(not w1FitCacheSize) - 1;
+     h := height1 div blockSize + NativeInt(not h1FitCacheSize) - 1;
+     h1 := height2 div blockSize + NativeInt(not h2FitCacheSize) - 1;
+     gamma := width1 div blockSize + NativeInt(not w1FitCacheSize) - 1;
 
      blockByteSize := blockSize*blockSize*sizeof(double);
 
@@ -642,8 +642,8 @@ begin
      ptrMem := nil;
      if not Assigned(mem) then
         actBlk := MtxMallocAlign(BlockMultMemSize(blockSize), ptrMem );
-     multBlk := PDouble(TASMNativeUInt(actBlk) + blockByteSize);
-     copyBlk := PDouble(TASMNativeUInt(actBlk) + 2*blockByteSize);
+     multBlk := PDouble(NativeUint(actBlk) + blockByteSize);
+     copyBlk := PDouble(NativeUint(actBlk) + 2*blockByteSize);
 
      blockLineSize := blockSize*sizeof(double);
 
@@ -720,26 +720,26 @@ end;
 // #### Generic blocked routines
 // ########################################################
 
-procedure GenericBlockMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble;
-  width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation = doNone; mem : PDouble = nil);
-var w, h : TASMNativeInt;
-    blkIdxX : TASMNativeInt;
+procedure GenericBlockMatrixMultiplication(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble;
+  width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+  const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation = doNone; mem : PDouble = nil);
+var w, h : NativeInt;
+    blkIdxX : NativeInt;
     actBlk : PDouble;
     multBlk : PDouble;
     pA, pB : PDouble;
-    blkIdxY : TASMNativeInt;
-    idx : TASMNativeInt;
-    gamma : TASMNativeInt;
+    blkIdxY : NativeInt;
+    idx : NativeInt;
+    gamma : NativeInt;
     pDest : PDouble;
     pMt2 : PDouble;
     w1FitCacheSize : boolean;
     w2FitCacheSize : boolean;
     h1FitCacheSize : boolean;
-    blkHeight : TASMNativeInt;
-    blkWidth : TASMNativeInt;
-    gammaWidth : TASMNativeInt;
-    sizeVal : TASMNativeInt;
+    blkHeight : NativeInt;
+    blkWidth : NativeInt;
+    gammaWidth : NativeInt;
+    sizeVal : NativeInt;
 begin
      if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
      	exit;
@@ -761,9 +761,9 @@ begin
      w2FitCacheSize := (width2 mod blockSize) = 0;
      w1FitCacheSize := (width1 mod blockSize) = 0;
 
-     h := height1 div blockSize + TASMNativeInt(not h1FitCacheSize) - 1;
-     w := width2 div blockSize + TASMNativeInt(not w2FitCacheSize) - 1;
-     gamma := width1 div blockSize + TASMNativeInt(not w1FitCacheSize) - 1;
+     h := height1 div blockSize + NativeInt(not h1FitCacheSize) - 1;
+     w := width2 div blockSize + NativeInt(not w2FitCacheSize) - 1;
+     gamma := width1 div blockSize + NativeInt(not w1FitCacheSize) - 1;
 
      if Assigned(mem)
      then
@@ -827,25 +827,25 @@ begin
 end;
 
 // calculates mt1'*mt2
-procedure GenericBlockMatrixMultiplicationT1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
-var w, w1 : TASMNativeInt;
-    blkIdxX : TASMNativeInt;
+procedure GenericBlockMatrixMultiplicationT1(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+  const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
+var w, w1 : NativeInt;
+    blkIdxX : NativeInt;
     actBlk : PDouble;
     multBlk : PDouble;
     transBlk1 : PDouble;
     pA, pB : PDouble;
-    blkIdxY : TASMNativeInt;
-    idx : TASMNativeInt;
-    gamma : TASMNativeInt;
+    blkIdxY : NativeInt;
+    idx : NativeInt;
+    gamma : NativeInt;
     pDest : PDouble;
     pMt2 : PDouble;
     w1FitCacheSize : boolean;
     w2FitCacheSize : boolean;
     h1FitCacheSize : boolean;
-    blkWidth1 : TASMNativeInt;
-    blkWidth : TASMNativeInt;
-    gammaHeight : TASMNativeInt;
+    blkWidth1 : NativeInt;
+    blkWidth : NativeInt;
+    gammaHeight : NativeInt;
     blockByteSize : Cardinal;
     blockLineSize : Cardinal;
 begin
@@ -860,17 +860,17 @@ begin
      w2FitCacheSize := (width2 mod blockSize) = 0;
      w1FitCacheSize := (width1 mod blockSize) = 0;
 
-     w1 := width1 div blockSize + TASMNativeInt(not w1FitCacheSize) - 1;
-     w := width2 div blockSize + TASMNativeInt(not w2FitCacheSize) - 1;
-     gamma := height1 div blockSize + TASMNativeInt(not h1FitCacheSize) - 1;
+     w1 := width1 div blockSize + NativeInt(not w1FitCacheSize) - 1;
+     w := width2 div blockSize + NativeInt(not w2FitCacheSize) - 1;
+     gamma := height1 div blockSize + NativeInt(not h1FitCacheSize) - 1;
 
      blockByteSize := blockSize*blockSize*sizeof(double);
 
      actBlk := mem;
      if not Assigned(mem) then
         GetMem(actBlk, BlockMultMemSize(blockSize));
-     multBlk := PDouble(TASMNativeUInt(actBlk) + blockByteSize);
-     transBlk1 := PDouble(TASMNativeUInt(actBlk) + 2*blockByteSize);
+     multBlk := PDouble(NativeUint(actBlk) + blockByteSize);
+     transBlk1 := PDouble(NativeUint(actBlk) + 2*blockByteSize);
 
      blockLineSize := blockSize*sizeof(double);
 
@@ -928,24 +928,24 @@ begin
 end;
 
 // calculates mt1*mt2'
-procedure GenericBlockMatrixMultiplicationT2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
-var h1, h : TASMNativeInt;
-    blkIdxX : TASMNativeInt;
+procedure GenericBlockMatrixMultiplicationT2(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+  const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
+var h1, h : NativeInt;
+    blkIdxX : NativeInt;
     actBlk : PDouble;
     multBlk : PDouble;
     pA, pB : PDouble;
-    blkIdxY : TASMNativeInt;
-    idx : TASMNativeInt;
-    gamma : TASMNativeInt;
+    blkIdxY : NativeInt;
+    idx : NativeInt;
+    gamma : NativeInt;
     pDest : PDouble;
     pMt2 : PDouble;
     w1FitCacheSize : boolean;
     h2FitCacheSize : boolean;
     h1FitCacheSize : boolean;
-    blkHeight : TASMNativeInt;
-    blkHeight1 : TASMNativeInt;
-    gammaWidth : TASMNativeInt;
+    blkHeight : NativeInt;
+    blkHeight1 : NativeInt;
+    gammaWidth : NativeInt;
     blockByteSize : Cardinal;
     blockLineSize : Cardinal;
 begin
@@ -960,16 +960,16 @@ begin
      h2FitCacheSize := (height2 mod blockSize) = 0;
      w1FitCacheSize := (width1 mod blockSize) = 0;
 
-     h := height1 div blockSize + TASMNativeInt(not h1FitCacheSize) - 1;
-     h1 := height2 div blockSize + TASMNativeInt(not h2FitCacheSize) - 1;
-     gamma := width1 div blockSize + TASMNativeInt(not w1FitCacheSize) - 1;
+     h := height1 div blockSize + NativeInt(not h1FitCacheSize) - 1;
+     h1 := height2 div blockSize + NativeInt(not h2FitCacheSize) - 1;
+     gamma := width1 div blockSize + NativeInt(not w1FitCacheSize) - 1;
 
      blockByteSize := blockSize*blockSize*sizeof(double);
 
      actBlk := mem;
      if not Assigned(mem) then
         GetMem(actBlk, BlockMultMemSize(blockSize));
-     multBlk := PDouble(TASMNativeUInt(actBlk) + blockByteSize);
+     multBlk := PDouble(NativeUint(actBlk) + blockByteSize);
 
      blockLineSize := blockSize*sizeof(double);
 
@@ -1076,15 +1076,15 @@ type
     copyBlk : PDouble;
     transBlk : PDouble;
     pDest : PDouble;
-    destLineWidth : TASMNativeInt;
+    destLineWidth : NativeInt;
 
     gammaWidth : integer;
     blkHeight : integer;
     blkHeight1 : integer;
     blkWidth : integer;
 
-    blockLineSize : TASMNativeInt;
-    LineWidth1, LineWidth2 : TASMNativeInt;
+    blockLineSize : NativeInt;
+    LineWidth1, LineWidth2 : NativeInt;
 
     isAligned : boolean;
     stage : integer;
@@ -1100,10 +1100,10 @@ type
     procedure Create(aActBlk : PDouble; aPa, aPb : PDouble;
                      aMultBlk, aCopyBlk : PDouble;
                      aGammaWidth : integer; aBlkHeight, aBlkHeight1 : integer;
-                     aBlockLineSize : TASMNativeInt;
-                     aLineWidth1, aLineWidth2 : TASMNativeInt;
+                     aBlockLineSize : NativeInt;
+                     aLineWidth1, aLineWidth2 : NativeInt;
                      aDest : PDouble;
-                     aDestLineWidth : TASMNativeInt;
+                     aDestLineWidth : NativeInt;
                      aIsAligned : boolean;
                      aOp : TMatrixMultDestOperation);
   end;
@@ -1115,10 +1115,10 @@ type
 procedure TAsyncMultBlkRec.Create(aActBlk : PDouble; aPa, aPb : PDouble;
                      aMultBlk, aCopyBlk : PDouble;
                      aGammaWidth : integer; aBlkHeight, aBlkHeight1 : integer;
-                     aBlockLineSize : TASMNativeInt;
-                     aLineWidth1, aLineWidth2 : TASMNativeInt;
+                     aBlockLineSize : NativeInt;
+                     aLineWidth1, aLineWidth2 : NativeInt;
                      aDest : PDouble;
-                     aDestLineWidth : TASMNativeInt;
+                     aDestLineWidth : NativeInt;
                      aIsAligned : boolean;
                      aOp : TMatrixMultDestOperation);
 begin
@@ -1227,8 +1227,8 @@ end;
 
 procedure TAsyncMultBlkRec.ApplyOpT;
 var thrDest : PDouble;
-    offset : TASMNativeInt;
-    thrblkHeight : TASMNativeInt;
+    offset : NativeInt;
+    thrblkHeight : NativeInt;
     thrActBlk : PDouble;
 begin
      thrblkHeight := Max(1, blkHeight div numThr);
@@ -1257,8 +1257,8 @@ end;
 
 procedure TAsyncMultBlkRec.ApplyOp;
 var thrDest : PDouble;
-    offset : TASMNativeInt;
-    thrblkHeight : TASMNativeInt;
+    offset : NativeInt;
+    thrblkHeight : NativeInt;
     thrActBlk : PDouble;
 begin
      thrblkHeight := Max(1, blkHeight div numThr);
@@ -1328,31 +1328,31 @@ begin
 end;
 
 // empirical:
-function UseInnerBlockMult( w, h : TASMNativeInt) : boolean;
+function UseInnerBlockMult( w, h : NativeInt) : boolean;
 begin
      // not always in hyperthreading cpu's
      Result := (numCPUCores = numRealCores) or ( (w < 1024) and (h < 1024) and (w > BlockedMatrixMultSize) and (h > BlockedMatrixMultSize) );
 end;
 
-procedure ThrBlockMatrixMultiplicationT2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
-var h1, h : TASMNativeInt;
-    blkIdxX : TASMNativeInt;
+procedure ThrBlockMatrixMultiplicationT2(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+  const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
+var h1, h : NativeInt;
+    blkIdxX : NativeInt;
     actBlk : PDouble;
     multBlk : PDouble;
     copyBlk : PDouble;
     pA, pB : PDouble;
-    blkIdxY : TASMNativeInt;
-    idx : TASMNativeInt;
-    gamma : TASMNativeInt;
+    blkIdxY : NativeInt;
+    idx : NativeInt;
+    gamma : NativeInt;
     pDest : PDouble;
     pMt2 : PDouble;
     w1FitCacheSize : boolean;
     h2FitCacheSize : boolean;
     h1FitCacheSize : boolean;
-    blkHeight : TASMNativeInt;
-    blkHeight1 : TASMNativeInt;
-    gammaWidth : TASMNativeInt;
+    blkHeight : NativeInt;
+    blkHeight1 : NativeInt;
+    gammaWidth : NativeInt;
     blockByteSize : Cardinal;
     blockLineSize : Cardinal;
     isAligned : boolean;
@@ -1375,15 +1375,15 @@ begin
      if (blockSize > width1) and (not Assigned(mem)) then
         blockSize := Next2Pwr( width1, blockSize );
      
-     isAligned := (TASMNativeUInt(dest) and $0000000F) = 0;
+     isAligned := (NativeUint(dest) and $0000000F) = 0;
 
      h1FitCacheSize := (height1 mod blockSize) = 0;
      h2FitCacheSize := (height2 mod blockSize) = 0;
      w1FitCacheSize := (width1 mod blockSize) = 0;
 
-     h := height1 div blockSize + TASMNativeInt(not h1FitCacheSize) - 1;
-     h1 := height2 div blockSize + TASMNativeInt(not h2FitCacheSize) - 1;
-     gamma := width1 div blockSize + TASMNativeInt(not w1FitCacheSize) - 1;
+     h := height1 div blockSize + NativeInt(not h1FitCacheSize) - 1;
+     h1 := height2 div blockSize + NativeInt(not h2FitCacheSize) - 1;
+     gamma := width1 div blockSize + NativeInt(not w1FitCacheSize) - 1;
 
      blockByteSize := blockSize*blockSize*sizeof(double);
 
@@ -1391,8 +1391,8 @@ begin
      ptrMem := nil;
      if not Assigned(mem) then
         actBlk := MtxMallocAlign(BlockMultMemSize(blockSize), ptrMem );
-     multBlk := PDouble(TASMNativeUInt(actBlk) + blockByteSize);
-     copyBlk := PDouble(TASMNativeUInt(actBlk) + 2*blockByteSize);
+     multBlk := PDouble(NativeUint(actBlk) + blockByteSize);
+     copyBlk := PDouble(NativeUint(actBlk) + 2*blockByteSize);
 
      blkHeight := blockSize;
      blockLineSize := blockSize*sizeof(double);
@@ -1505,30 +1505,30 @@ begin
         FreeMem(ptrMem);
 end;
 
-procedure ThrBlockMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation = doNone); overload;
+procedure ThrBlockMatrixMultiplication(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; op : TMatrixMultDestOperation = doNone); overload;
 begin
      ThrBlockMatrixMultiplication(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2,
                                   LineWidth1, LineWidth2, BlockMatrixCacheSize, op, nil );
 end;
 
-procedure ThrBlockMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation = doNone; mem : PDouble = nil); overload;
-var w, h : TASMNativeInt;
-    blkIdxX : TASMNativeInt;
+procedure ThrBlockMatrixMultiplication(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation = doNone; mem : PDouble = nil); overload;
+var w, h : NativeInt;
+    blkIdxX : NativeInt;
     actBlk : PDouble;
     multBlk : PDouble;
     transBlk, copyBlk : PDouble;
     pA, pB : PDouble;
-    blkIdxY : TASMNativeInt;
-    idx : TASMNativeInt;
-    gamma : TASMNativeInt;
+    blkIdxY : NativeInt;
+    idx : NativeInt;
+    gamma : NativeInt;
     pDest : PDouble;
     pMt2 : PDouble;
     w1FitCacheSize : boolean;
     w2FitCacheSize : boolean;
     h1FitCacheSize : boolean;
-    blkHeight : TASMNativeInt;
-    blkWidth : TASMNativeInt;
-    gammaWidth : TASMNativeInt;
+    blkHeight : NativeInt;
+    blkWidth : NativeInt;
+    gammaWidth : NativeInt;
     blockByteSize : Cardinal;
     blockLineSize : Cardinal;
     isAligned : boolean;
@@ -1551,15 +1551,15 @@ begin
      if (blockSize > width1) and (not Assigned(mem)) then
         blockSize := Next2Pwr( width1, blockSize );
      
-     isAligned := (TASMNativeUInt(dest) and $00000001F) = 0;
+     isAligned := (NativeUint(dest) and $00000001F) = 0;
 
      h1FitCacheSize := (height1 mod blockSize) = 0;
      w2FitCacheSize := (width2 mod blockSize) = 0;
      w1FitCacheSize := (width1 mod blockSize) = 0;
 
-     h := height1 div blockSize + TASMNativeInt(not h1FitCacheSize) - 1;
-     w := width2 div blockSize + TASMNativeInt(not w2FitCacheSize) - 1;
-     gamma := width1 div blockSize + TASMNativeInt(not w1FitCacheSize) - 1;
+     h := height1 div blockSize + NativeInt(not h1FitCacheSize) - 1;
+     w := width2 div blockSize + NativeInt(not w2FitCacheSize) - 1;
+     gamma := width1 div blockSize + NativeInt(not w1FitCacheSize) - 1;
 
      blockByteSize := blockSize*blockSize*sizeof(double);
 
@@ -1567,9 +1567,9 @@ begin
      ptrMem := nil;
      if not Assigned(mem) then
         actBlk := MtxMallocAlign(BlockMultMemSize(blockSize), ptrMem );
-     multBlk := PDouble(TASMNativeUInt(actBlk) + blockByteSize);
-     transBlk := PDouble(TASMNativeUInt(actBlk) + 2*blockByteSize);
-     copyBlk := PDouble(TASMNativeUInt(actBlk) + 3*blockByteSize);
+     multBlk := PDouble(NativeUint(actBlk) + blockByteSize);
+     transBlk := PDouble(NativeUint(actBlk) + 2*blockByteSize);
+     copyBlk := PDouble(NativeUint(actBlk) + 3*blockByteSize);
 
      blockLineSize := blockSize*sizeof(double);
 

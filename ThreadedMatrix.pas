@@ -669,7 +669,7 @@ function TThreadedMatrix.SVD(out U, V, W: TDoubleMatrix;
   onlyDiagElements: boolean): TSVDResult;
 var pW : PConstDoubleArr;
     wArr : PByte;
-    minWH : TASMNativeInt;
+    minWH : NativeInt;
     i : Integer;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'Dimension error');

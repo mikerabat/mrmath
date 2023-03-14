@@ -20,41 +20,41 @@ interface
 
 uses MatrixConst;
 
-procedure ThrMatrixMultDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-procedure ThrMatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation = doNone);
-procedure ThrMatrixMultEx(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble;
-                          width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-                          const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt;
+procedure ThrMatrixMultDirect(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
+procedure ThrMatrixMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; op : TMatrixMultDestOperation = doNone);
+procedure ThrMatrixMultEx(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble;
+                          width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+                          const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt;
                           op : TMatrixMultDestOperation; mem : PDouble); overload;
 
-procedure ThrMatrixMultT1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble;
-                          width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation = doNone);
-procedure ThrMatrixMultT1Ex(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble;
-  width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble);
+procedure ThrMatrixMultT1(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble;
+                          width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; op : TMatrixMultDestOperation = doNone);
+procedure ThrMatrixMultT1Ex(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble;
+  width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+  const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : PDouble);
 
-procedure ThrMatrixMultT2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation = doNone);
-procedure ThrMatrixMultT2Ex(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble;
-                            width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt;
-                            height2 : TASMNativeInt; const LineWidth1,
-                            LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt;
+procedure ThrMatrixMultT2(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; op : TMatrixMultDestOperation = doNone);
+procedure ThrMatrixMultT2Ex(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble;
+                            width1 : NativeInt; height1 : NativeInt; width2 : NativeInt;
+                            height2 : NativeInt; const LineWidth1,
+                            LineWidth2 : NativeInt; blockSize : NativeInt;
                             op : TMatrixMultDestOperation; mem : PDouble);
 
-procedure ThrMatrixVecMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, v : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidthMt, LineWidthV : TASMNativeInt; const Alpha, Beta : double);
-procedure ThrMatrixAddAndScale(Dest : PDouble; const LineWidth: TASMNativeInt; Width, Height : TASMNativeInt; const Offset, Scale : double);
-procedure ThrMatrixScaleAndAdd(Dest : PDouble; const LineWidth: TASMNativeInt; Width, Height : TASMNativeInt; const Offset, Scale : double);
+procedure ThrMatrixVecMult(dest : PDouble; const destLineWidth : NativeInt; mt1, v : PDouble; width : NativeInt; height : NativeInt; const LineWidthMt, LineWidthV : NativeInt; const Alpha, Beta : double);
+procedure ThrMatrixAddAndScale(Dest : PDouble; const LineWidth: NativeInt; Width, Height : NativeInt; const Offset, Scale : double);
+procedure ThrMatrixScaleAndAdd(Dest : PDouble; const LineWidth: NativeInt; Width, Height : NativeInt; const Offset, Scale : double);
 
-procedure ThrMatrixAdd(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-procedure ThrMatrixSub(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ThrMatrixAdd(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
+procedure ThrMatrixSub(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
 
-procedure ThrMatrixMedian(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
-procedure ThrMatrixRollMedianInPlace( dest : PDouble; destLineWidth : TASMNativeInt; width, height : TASMNativeInt; order : integer; rowWise : boolean);
-procedure ThrMatrixSort(dest : PDouble; destLineWidth : TASMNativeInt; width, height : integer; RowWise : boolean);
+procedure ThrMatrixMedian(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+procedure ThrMatrixRollMedianInPlace( dest : PDouble; destLineWidth : NativeInt; width, height : NativeInt; order : integer; rowWise : boolean);
+procedure ThrMatrixSort(dest : PDouble; destLineWidth : NativeInt; width, height : integer; RowWise : boolean);
 
-procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixFunc); overload;
-procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixObjFunc); overload;
-procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFunc); overload;
-procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefObjFunc); overload;
+procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixFunc); overload;
+procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixObjFunc); overload;
+procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixMtxRefFunc); overload;
+procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixMtxRefObjFunc); overload;
 
 {$IFDEF FPC}
    {.$DEFINE ANONMETHODS}
@@ -65,12 +65,12 @@ procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; wid
 {$ENDIF}
 
 {$IFDEF ANONMETHODS}
-procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixFuncRef); overload;
-procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFuncRef); overload;
+procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixFuncRef); overload;
+procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixMtxRefFuncRef); overload;
 {$ENDIF}
 
 // helper functions
-function NumCoresToUseForMult(width1, height1, width2, height2, blockSize : TASMNativeInt) : integer;
+function NumCoresToUseForMult(width1, height1, width2, height2, blockSize : NativeInt) : integer;
 
 implementation
 
@@ -78,80 +78,80 @@ uses  Math, MtxThreadPool, MatrixASMStubSwitch, BlockSizeSetup, BlockedMult,
       SysUtils, MtxTimer;
 
 type
-  TMatrixAddSubFunc = procedure(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+  TMatrixAddSubFunc = procedure(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
 
 type
   TAsyncMultRec = record //class(TObject)
-    thrIdx : TASMNativeInt;
+    thrIdx : NativeInt;
 
     op : TMatrixMultDestOperation;
     dest : PDouble;
-    destLineWidth : TASMNativeInt;
+    destLineWidth : NativeInt;
     mt1, mt2 : PDouble;
-    width1 : TASMNativeInt;
-    height1 : TASMNativeInt;
-    width2 : TASMNativeInt;
-    height2 : TASMNativeInt;
-    LineWidth1, LineWidth2 : TASMNativeInt;
+    width1 : NativeInt;
+    height1 : NativeInt;
+    width2 : NativeInt;
+    height2 : NativeInt;
+    LineWidth1, LineWidth2 : NativeInt;
     mem : PDouble;
     BlockSize : integer;
 
-    procedure Create(adest : PDouble; const adestLineWidth : TASMNativeInt; amt1, amt2 : PDouble; awidth1 : TASMNativeInt; aheight1 : TASMNativeInt;
-                       awidth2, aheight2 : TASMNativeInt; const aLineWidth1, aLineWidth2 : TASMNativeInt; aOp : TMatrixMultDestOperation);
+    procedure Create(adest : PDouble; const adestLineWidth : NativeInt; amt1, amt2 : PDouble; awidth1 : NativeInt; aheight1 : NativeInt;
+                       awidth2, aheight2 : NativeInt; const aLineWidth1, aLineWidth2 : NativeInt; aOp : TMatrixMultDestOperation);
   end;
   PAsyncMultRec = ^TAsyncMultRec;
 
 type
   TAsyncMatrixVectorMultRec = record
   public
-    thrIdx : TASMNativeInt;
+    thrIdx : NativeInt;
 
     dest : PDouble;
-    destLineWidth : TASMNativeInt;
+    destLineWidth : NativeInt;
     mt1, V : PDouble;
-    width : TASMNativeInt;
-    height : TASMNativeInt;
-    LineWidthMt : TASMNativeInt;
-    LineWidthV : TASMNativeInt;
+    width : NativeInt;
+    height : NativeInt;
+    LineWidthMt : NativeInt;
+    LineWidthV : NativeInt;
     Alpha, Beta : double;
 
-    procedure Create(adest : PDouble; const adestLineWidth : TASMNativeInt; amt1, aV : PDouble; awidth : TASMNativeInt; aheight : TASMNativeInt;
-                       const aLineWidthMT, aLineWidthV : TASMNativeInt; const aAlpha, aBeta : double);
+    procedure Create(adest : PDouble; const adestLineWidth : NativeInt; amt1, aV : PDouble; awidth : NativeInt; aheight : NativeInt;
+                       const aLineWidthMT, aLineWidthV : NativeInt; const aAlpha, aBeta : double);
   end;
   PAsyncMatrixVectorMultRec = ^TAsyncMatrixVectorMultRec;
 
 type
   TAsyncMatrixAddAndScaleRec = record
     dest : PDouble;
-    destLineWidth : TASMNativeInt;
-    Width, Height : TASMNativeInt;
+    destLineWidth : NativeInt;
+    Width, Height : NativeInt;
     Offset, Scale : double;
 
-    procedure Create(aDest : PDouble; const aDestLineWidth : TASMNativeInt; aWidth, aHeight : TASMNativeInt; const aOffset, aScale : double);
+    procedure Create(aDest : PDouble; const aDestLineWidth : NativeInt; aWidth, aHeight : NativeInt; const aOffset, aScale : double);
   end;
   PAsyncMatrixAddAndScaleRec = ^TAsyncMatrixAddAndScaleRec;
 
 type
   TAsyncMatrixAddSubRec = record
     dest : PDouble;
-    destLineWidth : TASMNativeInt;
+    destLineWidth : NativeInt;
     mt1, mt2 : PDouble;
-    width : TASMNativeInt;
-    height : TASMNativeInt;
-    LineWidth1, LineWidth2 : TASMNativeInt;
+    width : NativeInt;
+    height : NativeInt;
+    LineWidth1, LineWidth2 : NativeInt;
     func : TMatrixAddSubFunc;
 
-    procedure Create(aDest : PDouble; aDestLineWidth : TASMNativeInt; aMt1, aMt2 : PDouble; aWidth, aHeight : TASMNativeInt; aLineWidth1, aLineWidth2 : TASMNativeInt);
+    procedure Create(aDest : PDouble; aDestLineWidth : NativeInt; aMt1, aMt2 : PDouble; aWidth, aHeight : NativeInt; aLineWidth1, aLineWidth2 : NativeInt);
   end;
   PAsyncMatrixAddSubRec = ^TAsyncMatrixAddSubRec;
 type
   TAsyncMatrixMedianRec = record
     dest : PDouble;
-    destLineWidth : TASMNativeInt;
+    destLineWidth : NativeInt;
     Src : PDouble;
-    srcLineWidth : TASMNativeInt;
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    srcLineWidth : NativeInt;
+    width : NativeInt;
+    height : NativeInt;
     rowWise : boolean;
     hlpMem : PDouble;
   end;
@@ -159,9 +159,9 @@ type
 type
   TAsyncMatrixRollMedianRec = record
     dest : PDouble;
-    destLineWidth : TASMNativeInt;
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    destLineWidth : NativeInt;
+    width : NativeInt;
+    height : NativeInt;
     rowWise : boolean;
     order : integer;
   end;
@@ -170,9 +170,9 @@ type
 type
   TAsyncMatrixSortRec = record
     dest : PDouble;
-    destLineWidth : TASMNativeInt;
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    destLineWidth : NativeInt;
+    width : NativeInt;
+    height : NativeInt;
     rowWise : boolean;
     hlpMem : PDouble;
   end;
@@ -181,36 +181,36 @@ type
 type
   TAsyncMatrixFuncRec = record
     dest : PDouble;
-    destLineWidth : TASMNativeInt;
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    destLineWidth : NativeInt;
+    width : NativeInt;
+    height : NativeInt;
     func : TMatrixFunc;
   end;
   PAsyncMatrixFuncRec = ^TAsyncMatrixFuncRec;
 type
   TAsyncMatrixFuncObjRec = record
     dest : PDouble;
-    destLineWidth : TASMNativeInt;
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    destLineWidth : NativeInt;
+    width : NativeInt;
+    height : NativeInt;
     func : TMatrixObjFunc;
   end;
   PAsyncMatrixFuncObjRec = ^TAsyncMatrixFuncObjRec;
 type
   TAsyncMatrixFuncRefRec = record
     dest : PDouble;
-    destLineWidth : TASMNativeInt;
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    destLineWidth : NativeInt;
+    width : NativeInt;
+    height : NativeInt;
     func : TMatrixMtxRefFunc;
   end;
   PAsyncMatrixFuncRefRec = ^TAsyncMatrixFuncRefRec;
 type
   TAsyncMatrixFuncRefObjRec = record
     dest : PDouble;
-    destLineWidth : TASMNativeInt;
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    destLineWidth : NativeInt;
+    width : NativeInt;
+    height : NativeInt;
     func : TMatrixMtxRefObjFunc;
   end;
   PAsyncMatrixFuncRefObjRec = ^TAsyncMatrixFuncRefObjRec;
@@ -219,9 +219,9 @@ type
 type
   TAsyncMatrixFuncRefRecAnon = record
     dest : PDouble;
-    destLineWidth : TASMNativeInt;
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    destLineWidth : NativeInt;
+    width : NativeInt;
+    height : NativeInt;
     func : TMatrixMtxRefFuncRef;
   end;
   PAsyncMatrixFuncRefRecAnon = ^TAsyncMatrixFuncRefRecAnon;
@@ -229,9 +229,9 @@ type
 type
   TAsyncMatrixFuncRecAnon = record
     dest : PDouble;
-    destLineWidth : TASMNativeInt;
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    destLineWidth : NativeInt;
+    width : NativeInt;
+    height : NativeInt;
     func : TMatrixFuncRef;
   end;
   PAsyncMatrixFuncRecAnon = ^TAsyncMatrixFuncRecAnon;
@@ -425,7 +425,7 @@ begin
                PAsyncMatrixAddSubRec(obj)^.LineWidth2);
 end;
 
-function NumCoresToUseForMult(width1, height1, width2, height2, blockSize : TASMNativeInt) : integer;
+function NumCoresToUseForMult(width1, height1, width2, height2, blockSize : NativeInt) : integer;
 var numBlocks : integer;
 begin
      if (width1 <= blockSize) and (width2 <= blockSize) then
@@ -444,13 +444,13 @@ begin
      end;
 end;
 
-procedure ThrMatrixMultDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var i, j : TASMNativeInt;
-    thrHeight, thrWidth : TASMNativeInt;
-    cpud2 : TASMNativeInt;
+procedure ThrMatrixMultDirect(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
+var i, j : NativeInt;
+    thrHeight, thrWidth : NativeInt;
+    cpud2 : NativeInt;
     calls : IMtxAsyncCallGroup;
     widthFits, heightFits : boolean;
-    heightCores : TASMNativeInt;
+    heightCores : NativeInt;
     doBreak : boolean;
     numUsedCores : integer;
 
@@ -473,17 +473,17 @@ begin
           cpud2 := numUsedCores div heightCores;
 
           widthFits := (width2 mod cpud2) = 0;
-          thrWidth := (width2 div cpud2) + TASMNativeInt(not widthFits);
+          thrWidth := (width2 div cpud2) + NativeInt(not widthFits);
 
           heightFits := (height1 mod cpud2) = 0;
-          thrHeight := height1 div cpud2 + TASMNativeInt(not heightFits);
+          thrHeight := height1 div cpud2 + NativeInt(not heightFits);
           heightCores := cpud2;
      end
      else
      begin
           cpud2 := 1;
           heightFits := (height1 mod numUsedCores) = 0;
-          thrHeight := height1 div numUsedCores + TASMNativeInt(not heightFits);
+          thrHeight := height1 div numUsedCores + NativeInt(not heightFits);
           heightCores := numUsedCores;
      end;
 
@@ -546,14 +546,14 @@ begin
         calls.SyncAll;
 end;
 
-procedure ThrMatrixMultEx(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-                          const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble);
-var i, j : TASMNativeInt;
-    thrHeight, thrWidth : TASMNativeInt;
-    cpud2 : TASMNativeInt;
+procedure ThrMatrixMultEx(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+                          const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : PDouble);
+var i, j : NativeInt;
+    thrHeight, thrWidth : NativeInt;
+    cpud2 : NativeInt;
     calls : IMtxAsyncCallGroup;
     widthFits, heightFits : boolean;
-    heightCores : TASMNativeInt;
+    heightCores : NativeInt;
     usedCores : integer;
     objs : Array[0..cMaxNumCores - 1] of TAsyncMultRec;
     numUsed : integer;
@@ -584,17 +584,17 @@ begin
 
           widthFits := (width2 mod cpud2) = 0;
           // ensure that we can do aligned operations on matrices
-          thrWidth := (width2 div cpud2) + TASMNativeInt(not widthFits);
+          thrWidth := (width2 div cpud2) + NativeInt(not widthFits);
           thrWidth := thrWidth + thrWidth and $1;
 
           heightFits := (height1 mod heightCores) = 0;
-          thrHeight := height1 div heightCores + TASMNativeInt(not heightFits);
+          thrHeight := height1 div heightCores + NativeInt(not heightFits);
      end
      else
      begin
           cpud2 := 1;
           heightFits := (height1 mod usedCores) = 0;
-          thrHeight := height1 div usedCores + TASMNativeInt(not heightFits);
+          thrHeight := height1 div usedCores + NativeInt(not heightFits);
           thrHeight := thrHeight + thrHeight and $1;
           heightCores := usedCores;
      end;
@@ -659,27 +659,27 @@ begin
         calls.SyncAll;
 end;
 
-procedure ThrMatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt;
-  height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt;
+procedure ThrMatrixMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt;
+  height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt;
   op : TMatrixMultDestOperation);
 begin
      ThrMatrixMultEx(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, BlockMatrixCacheSize, op, nil);
 end;
 
-procedure ThrMatrixMultT1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation = doNone);
+procedure ThrMatrixMultT1(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; op : TMatrixMultDestOperation = doNone);
 begin
      ThrMatrixMultT1Ex(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, BlockMatrixCacheSize, op, nil);
 end;
 
-procedure ThrMatrixMultT1Ex(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble;
-  width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt;
-  const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble);
-var i, j : TASMNativeInt;
-    thrWidth : TASMNativeInt;
-    cpud2 : TASMNativeInt;
+procedure ThrMatrixMultT1Ex(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble;
+  width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+  const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : PDouble);
+var i, j : NativeInt;
+    thrWidth : NativeInt;
+    cpud2 : NativeInt;
     calls : IMtxAsyncCallGroup;
     widthFits, widthFits1 : boolean;
-    widthCores : TASMNativeInt;
+    widthCores : NativeInt;
     thrWidth1 : integer;
     usedCores : integer;
 
@@ -708,18 +708,18 @@ begin
 
           widthFits := (width2 mod cpud2) = 0;
           // ensure that we can do aligned operations on matrices
-          thrWidth := (width2 div cpud2) + TASMNativeInt(not widthFits);
+          thrWidth := (width2 div cpud2) + NativeInt(not widthFits);
           thrWidth := thrWidth + thrWidth and $1;
 
           widthFits1 := (width1 mod widthCores) = 0;
-          thrWidth1 := width1 div widthCores + TASMNativeInt(not widthFits1);
+          thrWidth1 := width1 div widthCores + NativeInt(not widthFits1);
           thrWidth1 := thrWidth1 + thrWidth1 and $1;
      end
      else
      begin
           cpud2 := 1;
           widthFits1 := (width1 mod usedCores) = 0;
-          thrWidth1 := width1 div usedCores + TASMNativeInt(not widthFits1);
+          thrWidth1 := width1 div usedCores + NativeInt(not widthFits1);
           thrWidth1 := thrWidth1 + thrWidth1 and $1;
           widthCores := usedCores;
      end;
@@ -785,20 +785,20 @@ begin
         calls.SyncAll;
 end;
 
-procedure ThrMatrixMultT2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; op : TMatrixMultDestOperation = doNone);
+procedure ThrMatrixMultT2(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; op : TMatrixMultDestOperation = doNone);
 begin
      ThrMatrixMultT2Ex(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, BlockMatrixCacheSize, op, nil);
 end;
 
 // calculates mt1*mt2'
-procedure ThrMatrixMultT2Ex(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1,
-  LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble);
-var i, j : TASMNativeInt;
-    thrHeight, thrHeight1 : TASMNativeInt;
-    cpud2 : TASMNativeInt;
+procedure ThrMatrixMultT2Ex(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1,
+  LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : PDouble);
+var i, j : NativeInt;
+    thrHeight, thrHeight1 : NativeInt;
+    cpud2 : NativeInt;
     calls : IMtxAsyncCallGroup;
     heightFits1, heightFits : boolean;
-    heightCores : TASMNativeInt;
+    heightCores : NativeInt;
     usedCores : integer;
 
     objs : Array[0..cMaxNumCores - 1] of TAsyncMultRec;
@@ -829,18 +829,18 @@ begin
 
           heightFits1 := (height2 mod cpud2) = 0;
           // ensure that we can do aligned operations on matrices
-          thrHeight1 := (height2 div cpud2) + TASMNativeInt(not heightFits1);
+          thrHeight1 := (height2 div cpud2) + NativeInt(not heightFits1);
           thrHeight1 := thrHeight1 + thrHeight1 and $1;
 
           heightFits := (height1 mod heightCores) = 0;
-          thrHeight := height1 div heightCores + TASMNativeInt(not heightFits);
+          thrHeight := height1 div heightCores + NativeInt(not heightFits);
           thrHeight := thrHeight + thrHeight and $1;
      end
      else
      begin
           cpud2 := 1;
           heightFits := (height1 mod usedCores) = 0;
-          thrHeight := height1 div usedCores + TASMNativeInt(not heightFits);
+          thrHeight := height1 div usedCores + NativeInt(not heightFits);
           thrHeight := thrHeight + thrHeight and $1;
           heightCores := usedCores;
      end;
@@ -902,10 +902,10 @@ begin
 end;
 
 
-procedure ThrMatrixVecMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, v : PDouble; width : TASMNativeInt; height : TASMNativeInt;
-  const LineWidthMt, LineWidthV : TASMNativeInt; const Alpha, Beta : double);
-var i : TASMNativeInt;
-    thrHeight : TASMNativeInt;
+procedure ThrMatrixVecMult(dest : PDouble; const destLineWidth : NativeInt; mt1, v : PDouble; width : NativeInt; height : NativeInt;
+  const LineWidthMt, LineWidthV : NativeInt; const Alpha, Beta : double);
+var i : NativeInt;
+    thrHeight : NativeInt;
     calls : IMtxAsyncCallGroup;
     heightFits : boolean;
     numTask : integer;
@@ -914,7 +914,7 @@ var i : TASMNativeInt;
     numUsed : integer;
 begin
      heightFits := (height mod numCPUCores) = 0;
-     thrHeight := Max(8, height div numCPUCores + TASMNativeInt(not heightFits) );
+     thrHeight := Max(8, height div numCPUCores + NativeInt(not heightFits) );
 
      // ###############################################
      // #### Prepare thread objects
@@ -955,11 +955,11 @@ begin
      calls.SyncAll;
 end;
 
-procedure ThrMatrixScaleAndAdd(Dest : PDouble; const LineWidth: TASMNativeInt; Width, Height : TASMNativeInt; const Offset, Scale : double);
-var i: TASMNativeInt;
+procedure ThrMatrixScaleAndAdd(Dest : PDouble; const LineWidth: NativeInt; Width, Height : NativeInt; const Offset, Scale : double);
+var i: NativeInt;
     calls : IMtxAsyncCallGroup;
     sizeFits : boolean;
-    thrSize : TASMNativeInt;
+    thrSize : NativeInt;
 
     objs : Array[0..cMaxNumCores - 1] of TAsyncMatrixAddAndScaleRec;
     numUsed : integer;
@@ -978,7 +978,7 @@ begin
      if width > height then
      begin
           sizeFits := (width mod numCoresForSimpleFuncs) = 0;
-          thrSize := width div numCoresForSimpleFuncs + TASMNativeInt(not sizeFits);
+          thrSize := width div numCoresForSimpleFuncs + NativeInt(not sizeFits);
 
           for i := 0 to numCoresForSimpleFuncs - 1 do
           begin
@@ -994,7 +994,7 @@ begin
      else
      begin
           sizeFits := (height mod numCoresForSimpleFuncs) = 0;
-          thrSize := height div numCoresForSimpleFuncs + TASMNativeInt(not sizeFits);
+          thrSize := height div numCoresForSimpleFuncs + NativeInt(not sizeFits);
 
           for i := 0 to numCoresForSimpleFuncs - 1 do
           begin
@@ -1023,10 +1023,10 @@ begin
      calls.SyncAll;
 end;
 
-procedure ThrMatrixAddAndScale(Dest : PDouble; const LineWidth: TASMNativeInt; Width, Height : TASMNativeInt; const Offset, Scale : double);
-var i: TASMNativeInt;
+procedure ThrMatrixAddAndScale(Dest : PDouble; const LineWidth: NativeInt; Width, Height : NativeInt; const Offset, Scale : double);
+var i: NativeInt;
     calls : IMtxAsyncCallGroup;
-    thrSize : TASMNativeInt;
+    thrSize : NativeInt;
     objs : Array[0..cMaxNumCores - 1] of TAsyncMatrixAddAndScaleRec;
     numUsed : integer;
 begin
@@ -1093,10 +1093,10 @@ begin
      calls.SyncAll;
 end;
 
-procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixFunc);
-var i: TASMNativeInt;
+procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixFunc);
+var i: NativeInt;
     calls : IMtxAsyncCallGroup;
-    thrSize : TASMNativeInt;
+    thrSize : NativeInt;
 
     objs : Array[0..cMaxNumCores] of TAsyncMatrixFuncRec;
     numUsed : integer;
@@ -1168,10 +1168,10 @@ begin
      calls.SyncAll;
 end;
 
-procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixObjFunc);
+procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixObjFunc);
 var i: integer;
     calls : IMtxAsyncCallGroup;
-    thrSize : TASMNativeInt;
+    thrSize : NativeInt;
     objs : Array[0..cMaxNumCores] of TAsyncMatrixFuncObjRec;
     numUsed : integer;
 begin
@@ -1242,10 +1242,10 @@ begin
      calls.SyncAll;
 end;
 
-procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFunc);
+procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixMtxRefFunc);
 var i: integer;
     calls : IMtxAsyncCallGroup;
-    thrSize : TASMNativeInt;
+    thrSize : NativeInt;
     objs : Array[0..cMaxNumCores] of TAsyncMatrixFuncRefRec;
     numUsed : integer;
 begin
@@ -1316,10 +1316,10 @@ begin
      calls.SyncAll;
 end;
 
-procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefObjFunc);
+procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixMtxRefObjFunc);
 var i: integer;
     calls : IMtxAsyncCallGroup;
-    thrSize : TASMNativeInt;
+    thrSize : NativeInt;
     objs : Array[0..cMaxNumCores] of TAsyncMatrixFuncRefObjRec;
     numUsed : integer;
 begin
@@ -1392,10 +1392,10 @@ end;
 
 {$IFDEF ANONMETHODS}
 
-procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixFuncRef);
+procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixFuncRef);
 var i: integer;
     calls : IMtxAsyncCallGroup;
-    thrSize : TASMNativeInt;
+    thrSize : NativeInt;
     objs : Array[0..cMaxNumCores] of TAsyncMatrixFuncRecAnon;
     numUsed : integer;
 begin
@@ -1466,10 +1466,10 @@ begin
      calls.SyncAll;
 end;
 
-procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFuncRef);
-var i: TASMNativeInt;
+procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixMtxRefFuncRef);
+var i: NativeInt;
     calls : IMtxAsyncCallGroup;
-    thrSize : TASMNativeInt;
+    thrSize : NativeInt;
     objs : Array[0..cMaxNumCores] of TAsyncMatrixFuncRefRecAnon;
     numUsed : integer;
 begin
@@ -1542,10 +1542,10 @@ end;
 
 {$ENDIF}
 
-procedure ThrMatrixAddSub(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; func : TMatrixAddSubFunc);
-var i: TASMNativeInt;
+procedure ThrMatrixAddSub(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt; func : TMatrixAddSubFunc);
+var i: NativeInt;
     calls : IMtxAsyncCallGroup;
-    thrSize : TASMNativeInt;
+    thrSize : NativeInt;
     objs : Array[0..cMaxNumCores] of TAsyncMatrixAddSubRec;
     numUsed : integer;
 begin
@@ -1621,20 +1621,20 @@ begin
      calls.SyncAll;
 end;
 
-procedure ThrMatrixSub(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ThrMatrixSub(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
 begin
      ThrMatrixAddSub(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2, {$IFDEF FPC}@{$ENDIF}MatrixSub);
 end;
 
-procedure ThrMatrixAdd(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ThrMatrixAdd(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
 begin
      ThrMatrixAddSub(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2, {$IFDEF FPC}@{$ENDIF}MatrixAdd);
 end;
 
-procedure ThrMatrixSort(dest : PDouble; destLineWidth : TASMNativeInt; width, height : integer; RowWise : boolean);
-var i: TASMNativeInt;
+procedure ThrMatrixSort(dest : PDouble; destLineWidth : NativeInt; width, height : integer; RowWise : boolean);
+var i: NativeInt;
     calls : IMtxAsyncCallGroup;
-    thrSize : TASMNativeInt;
+    thrSize : NativeInt;
     maxNumCores : integer;
     hlpMem : PDouble;
     mem : Pointer;
@@ -1721,12 +1721,12 @@ begin
         FreeMem(mem);
 end;
 
-procedure ThrMatrixMedian(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
-var i: TASMNativeInt;
+procedure ThrMatrixMedian(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+var i: NativeInt;
     objs : Array[0..cMaxNumCores] of TAsyncMatrixMedianRec;
     numUsed : integer;
     calls : IMtxAsyncCallGroup;
-    thrSize : TASMNativeInt;
+    thrSize : NativeInt;
     maxNumCores : integer;
     hlpMem : PDouble;
     mem : Pointer;
@@ -1817,12 +1817,12 @@ begin
      FreeMem(mem);
 end;
 
-procedure ThrMatrixRollMedianInPlace( dest : PDouble; destLineWidth : TASMNativeInt; width, height : TASMNativeInt; order : integer; rowWise : boolean);
-var i: TASMNativeInt;
+procedure ThrMatrixRollMedianInPlace( dest : PDouble; destLineWidth : NativeInt; width, height : NativeInt; order : integer; rowWise : boolean);
+var i: NativeInt;
     objs : Array[0..cMaxNumCores] of TAsyncMatrixRollMedianRec;
     numUsed : integer;
     calls : IMtxAsyncCallGroup;
-    thrSize : TASMNativeInt;
+    thrSize : NativeInt;
     maxNumCores : integer;
 begin
      // check if it is really necessary to thread the call:
@@ -1899,9 +1899,9 @@ end;
 
 { TAsyncMultRec }
 
-procedure TAsyncMultRec.Create(adest: PDouble; const adestLineWidth: TASMNativeInt;
-  amt1, amt2: PDouble; awidth1, aheight1, awidth2, aheight2: TASMNativeInt;
-  const aLineWidth1, aLineWidth2: TASMNativeInt; aOp : TMatrixMultDestOperation);
+procedure TAsyncMultRec.Create(adest: PDouble; const adestLineWidth: NativeInt;
+  amt1, amt2: PDouble; awidth1, aheight1, awidth2, aheight2: NativeInt;
+  const aLineWidth1, aLineWidth2: NativeInt; aOp : TMatrixMultDestOperation);
 begin
      dest := adest;
      destLineWidth := adestLineWidth;
@@ -1920,8 +1920,8 @@ end;
 
 { TAsyncMatrixVectorMultRec }
 
-procedure TAsyncMatrixVectorMultRec.Create(adest : PDouble; const adestLineWidth : TASMNativeInt; amt1, aV : PDouble; awidth : TASMNativeInt; aheight : TASMNativeInt;
-                       const aLineWidthMT, aLineWidthV : TASMNativeInt; const aAlpha, aBeta : double);
+procedure TAsyncMatrixVectorMultRec.Create(adest : PDouble; const adestLineWidth : NativeInt; amt1, aV : PDouble; awidth : NativeInt; aheight : NativeInt;
+                       const aLineWidthMT, aLineWidthV : NativeInt; const aAlpha, aBeta : double);
 begin
      dest := adest;
      destLineWidth := adestLineWidth;
@@ -1938,7 +1938,7 @@ end;
 { TAsyncMatrixAddAndSclaObj }
 
 procedure TAsyncMatrixAddAndScaleRec.Create(aDest: PDouble;
-  const aDestLineWidth: TASMNativeInt; aWidth, aHeight: TASMNativeInt; const aOffset,
+  const aDestLineWidth: NativeInt; aWidth, aHeight: NativeInt; const aOffset,
   aScale: double);
 begin
      dest := aDest;
@@ -1952,8 +1952,8 @@ end;
 { TAsyncMatrixAddSubRec }
 
 procedure TAsyncMatrixAddSubRec.Create(aDest: PDouble;
-  aDestLineWidth: TASMNativeInt; aMt1, aMt2: PDouble; aWidth, aHeight, aLineWidth1,
-  aLineWidth2: TASMNativeInt);
+  aDestLineWidth: NativeInt; aMt1, aMt2: PDouble; aWidth, aHeight, aLineWidth1,
+  aLineWidth2: NativeInt);
 begin
      dest := adest;
      destLineWidth := adestLineWidth;

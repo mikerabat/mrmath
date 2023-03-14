@@ -31,40 +31,40 @@ interface
 
 uses MatrixConst;
 
-procedure ASMMatrixAddAlignedEvenW(dest : PDouble; const destLinewidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, Linewidth2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMMatrixAddUnAlignedEvenW(dest : PDouble; const destLinewidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, Linewidth2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixAddAlignedEvenW(dest : PDouble; const destLinewidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, Linewidth2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixAddUnAlignedEvenW(dest : PDouble; const destLinewidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, Linewidth2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixAddAlignedOddW(dest : PDouble; const destLinewidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, Linewidth2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMMatrixAddUnAlignedOddW(dest : PDouble; const destLinewidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, Linewidth2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixAddAlignedOddW(dest : PDouble; const destLinewidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, Linewidth2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixAddUnAlignedOddW(dest : PDouble; const destLinewidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, Linewidth2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixSubAlignedEvenW(dest : PDouble; const destLinewidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, Linewidth2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMMatrixSubUnAlignedEvenW(dest : PDouble; const destLinewidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, Linewidth2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixSubAlignedEvenW(dest : PDouble; const destLinewidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, Linewidth2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixSubUnAlignedEvenW(dest : PDouble; const destLinewidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, Linewidth2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixSubAlignedOddW(dest : PDouble; const destLinewidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, Linewidth2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMMatrixSubUnAlignedOddW(dest : PDouble; const destLinewidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, Linewidth2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixSubAlignedOddW(dest : PDouble; const destLinewidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, Linewidth2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixSubUnAlignedOddW(dest : PDouble; const destLinewidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, Linewidth2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixSubT(A : PDouble; LineWidthA : NativeInt; B : PDouble; LineWidthB : NativeInt; width, height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixSubVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMMatrixSubVecAlignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMMatrixSubVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixSubVecAlignedVecRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixSubVecAlignedRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixSubVecAlignedCol(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixSubVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMMatrixSubVecUnalignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMMatrixSubVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixSubVecUnalignedVecRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixSubVecUnalignedRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixSubVecUnalignedCol(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixAddVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMMatrixAddVecAlignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMMatrixAddVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixAddVecAlignedVecRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixAddVecAlignedRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixAddVecAlignedCol(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixAddVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMMatrixAddVecUnalignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMMatrixAddVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixAddVecUnalignedVecRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixAddVecUnalignedRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixAddVecUnalignedCol(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMVecAddAlignedSeq( X : PDouble; y : PDouble; N : TASMNativeInt; alpha : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMVecAddUnAlignedSeq( X : PDouble; y : PDouble; N : TASMNativeInt; alpha : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMVecAddAlignedSeq( X : PDouble; y : PDouble; N : NativeInt; alpha : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMVecAddUnAlignedSeq( X : PDouble; y : PDouble; N : NativeInt; alpha : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMVecAddNonSeq( X : PDouble; y : PDouble; N : TASMNativeInt; incX, incY : TASMNativeInt; alpha : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMVecAddNonSeq( X : PDouble; y : PDouble; N : NativeInt; incX, incY : NativeInt; alpha : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 
 {$ENDIF}
@@ -75,7 +75,7 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
-procedure ASMMatrixAddAlignedEvenW(dest : PDouble; const destLinewidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, Linewidth2 : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixAddAlignedEvenW(dest : PDouble; const destLinewidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, Linewidth2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 // eax = dest; edx = destLineWidth; mt1 = ecx
 asm
    push esi;
@@ -177,7 +177,7 @@ asm
    pop esi;
 end;
 
-procedure ASMMatrixAddUnAlignedEvenW(dest : PDouble; const destLinewidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, Linewidth2 : TASMNativeInt);
+procedure ASMMatrixAddUnAlignedEvenW(dest : PDouble; const destLinewidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, Linewidth2 : NativeInt);
 asm
    push esi;
    push edi;
@@ -285,7 +285,7 @@ asm
    pop esi;
 end;
 
-procedure ASMMatrixAddAlignedOddW(dest : PDouble; const destLinewidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, Linewidth2 : TASMNativeInt);
+procedure ASMMatrixAddAlignedOddW(dest : PDouble; const destLinewidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, Linewidth2 : NativeInt);
 asm
    push esi;
    push edi;
@@ -393,7 +393,7 @@ asm
    pop esi;
 end;
 
-procedure ASMMatrixAddUnAlignedOddW(dest : PDouble; const destLinewidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, Linewidth2 : TASMNativeInt);
+procedure ASMMatrixAddUnAlignedOddW(dest : PDouble; const destLinewidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, Linewidth2 : NativeInt);
 asm
    push esi;
    push edi;
@@ -508,7 +508,7 @@ asm
    pop esi;
 end;
 
-procedure ASMMatrixSubAlignedEvenW(dest : PDouble; const destLinewidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, Linewidth2 : TASMNativeInt);
+procedure ASMMatrixSubAlignedEvenW(dest : PDouble; const destLinewidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, Linewidth2 : NativeInt);
 asm
    push esi;
    push edi;
@@ -609,7 +609,7 @@ asm
    pop esi;
 end;
 
-procedure ASMMatrixSubUnAlignedEvenW(dest : PDouble; const destLinewidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, Linewidth2 : TASMNativeInt);
+procedure ASMMatrixSubUnAlignedEvenW(dest : PDouble; const destLinewidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, Linewidth2 : NativeInt);
 asm
    push esi;
    push edi;
@@ -718,7 +718,7 @@ asm
    pop esi;
 end;
 
-procedure ASMMatrixSubAlignedOddW(dest : PDouble; const destLinewidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, Linewidth2 : TASMNativeInt);
+procedure ASMMatrixSubAlignedOddW(dest : PDouble; const destLinewidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, Linewidth2 : NativeInt);
 asm
    push esi;
    push edi;
@@ -826,7 +826,7 @@ asm
    pop esi;
 end;
 
-procedure ASMMatrixSubUnAlignedOddW(dest : PDouble; const destLinewidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, Linewidth2 : TASMNativeInt);
+procedure ASMMatrixSubUnAlignedOddW(dest : PDouble; const destLinewidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, Linewidth2 : NativeInt);
 asm
    push esi;
    push edi;
@@ -944,9 +944,9 @@ end;
 // #### Matrix substraction transposed
 // ##################################################
 
-procedure ASMMatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixSubT(A : PDouble; LineWidthA : NativeInt; B : PDouble; LineWidthB : NativeInt; width, height : NativeInt);
 // eax=A, edx = LineWidthA, ecx = B
-var iter : TASMNativeInt;
+var iter : NativeInt;
 asm
    push ebx;
    push edi;
@@ -991,7 +991,7 @@ end;
 // #### Matrix add, sub to vector operations
 // ########################################################
 
-procedure ASMMatrixSubVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure ASMMatrixSubVecAlignedVecRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 // eax = A, edx = LineWidthA, ecx = B
 asm
    push ebx;
@@ -1057,9 +1057,9 @@ asm
    pop ebx;
 end;
 
-procedure ASMMatrixSubVecAlignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure ASMMatrixSubVecAlignedRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 var vecIter : integer;
-    aLineWidth : TASMNativeInt;
+    aLineWidth : NativeInt;
 asm
    push ebx;
    push edi;
@@ -1107,7 +1107,7 @@ asm
    pop ebx;
 end;
 
-procedure ASMMatrixSubVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure ASMMatrixSubVecAlignedCol(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 // eax=A, edx=LinewidthA, ecx=B
 asm
    push ebx;
@@ -1175,7 +1175,7 @@ asm
    pop ebx;
 end;
 
-procedure ASMMatrixSubVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure ASMMatrixSubVecUnalignedVecRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 // eax=A, edx=LinewidthA, ecx=B
 asm
    push ebx;
@@ -1246,10 +1246,10 @@ asm
    pop ebx;
 end;
 
-procedure ASMMatrixSubVecUnalignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure ASMMatrixSubVecUnalignedRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 // eax=A, edx=LineWidthA, ecx=B
 var vecIter : integer;
-    aLineWidth : TASMNativeInt;
+    aLineWidth : NativeInt;
 asm
    push ebx;
    push edi;
@@ -1296,7 +1296,7 @@ asm
    pop ebx;
 end;
 
-procedure ASMMatrixSubVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure ASMMatrixSubVecUnalignedCol(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 asm
    push ebx;
    push esi;
@@ -1363,7 +1363,7 @@ asm
 end;
 
 
-procedure ASMMatrixAddVecAlignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure ASMMatrixAddVecAlignedVecRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 asm
    push ebx;
    push edi;
@@ -1428,9 +1428,9 @@ asm
    pop ebx;
 end;
 
-procedure ASMMatrixAddVecAlignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure ASMMatrixAddVecAlignedRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 var vecIter : integer;
-    aLineWidth : TASMNativeInt;
+    aLineWidth : NativeInt;
 asm
    push ebx;
    push edi;
@@ -1477,7 +1477,7 @@ asm
    pop ebx;
 end;
 
-procedure ASMMatrixAddVecAlignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure ASMMatrixAddVecAlignedCol(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 asm
    push ebx;
    push edi;
@@ -1543,7 +1543,7 @@ asm
    pop ebx;
 end;
 
-procedure ASMMatrixAddVecUnalignedVecRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure ASMMatrixAddVecUnalignedVecRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 asm
    push ebx;
    push edi;
@@ -1612,9 +1612,9 @@ asm
    pop ebx;
 end;
 
-procedure ASMMatrixAddVecUnalignedRow(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure ASMMatrixAddVecUnalignedRow(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 var vecIter : integer;
-    aLineWidth : TASMNativeInt;
+    aLineWidth : NativeInt;
 asm
    push ebx;
    push edi;
@@ -1662,7 +1662,7 @@ asm
    pop ebx;
 end;
 
-procedure ASMMatrixAddVecUnalignedCol(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt);
+procedure ASMMatrixAddVecUnalignedCol(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt);
 asm
    push ebx;
    push edi;
@@ -1730,7 +1730,7 @@ end;
 
 // perform y[i] = y[i] + alpha * x[i]
 // unrolled 4 times
-procedure ASMVecAddUnAlignedSeq( X : PDouble; y : PDouble; N : TASMNativeInt; alpha : double );
+procedure ASMVecAddUnAlignedSeq( X : PDouble; y : PDouble; N : NativeInt; alpha : double );
 // eax = X, edx = Y, ecx = N
 asm
    movddup xmm0, alpha;
@@ -1824,7 +1824,7 @@ asm
    @endLine:
 end;
 
-procedure ASMVecAddAlignedSeq( X : PDouble; y : PDouble; N : TASMNativeInt; alpha : double );
+procedure ASMVecAddAlignedSeq( X : PDouble; y : PDouble; N : NativeInt; alpha : double );
 // eax = X, edx = Y, ecx = N
 asm
    movddup xmm0, alpha;
@@ -1918,7 +1918,7 @@ asm
    @endLine:
 end;
 
-procedure ASMVecAddNonSeq( X : PDouble; y : PDouble; N : TASMNativeInt; incX, incY : TASMNativeInt; alpha : double );
+procedure ASMVecAddNonSeq( X : PDouble; y : PDouble; N : NativeInt; incX, incY : NativeInt; alpha : double );
 // x = eax; y = edx; N = ecx
 asm
    push edi;

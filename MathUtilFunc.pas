@@ -32,17 +32,17 @@ function pythag(const A, B : double) : double; {$IFNDEF FPC} {$IF CompilerVersio
 function sign(const a : double; const b : double) : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 procedure DoubleSwap(var a, b : Double); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 
-function lcm(a, b : TASMNativeInt) : TASMNativeInt;  // least common multiple
-function gcm(a, b : TASMNativeInt) : TASMNativeInt; // greatest common divisior
+function lcm(a, b : NativeInt) : NativeInt;  // least common multiple
+function gcm(a, b : NativeInt) : NativeInt; // greatest common divisior
 
-function Next2Pwr(num : TASMNativeInt; maxSize : TASMNativeInt) : TASMNativeInt;
+function Next2Pwr(num : NativeInt; maxSize : NativeInt) : NativeInt;
 
 function eps(const val : double) : double;
 function MinDblDiv : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 
 procedure WriteMtlMtx(const fileName : string; const mtx : TDoubleDynArray; width : integer; prec : integer = 8); overload;
-procedure WriteMtlMtx(const fileName : string; mtx : PDouble; LineWidthmtx : TASMNativeInt; width, height : integer; prec : integer = 8); overload;
-procedure WriteBinaryMtxColMajor( fn : String; A : PDouble; LineWidthA : TASMNativeInt; w, h  :integer );
+procedure WriteMtlMtx(const fileName : string; mtx : PDouble; LineWidthmtx : NativeInt; width, height : integer; prec : integer = 8); overload;
+procedure WriteBinaryMtxColMajor( fn : String; A : PDouble; LineWidthA : NativeInt; w, h  :integer );
 
 
 type
@@ -458,14 +458,14 @@ begin
         Result := small*(1 + eps(1));
 end;
 
-function lcm(a, b : TASMNativeInt) : TASMNativeInt;  // least common multiple
+function lcm(a, b : NativeInt) : NativeInt;  // least common multiple
 begin
      Result := (abs(a) div gcm(a, b)) * abs(b);
 end;
 
 // from https://en.wikipedia.org/wiki/Euclidean_algorithm
-function gcm(a, b : TASMNativeInt) : TASMNativeInt; // greatest common divisior
-var t : TASMNativeInt;
+function gcm(a, b : NativeInt) : NativeInt; // greatest common divisior
+var t : NativeInt;
 begin
      while b <> 0 do
      begin
@@ -477,7 +477,7 @@ begin
      Result := a;
 end;
 
-function Next2Pwr(num : TASMNativeInt; maxSize : TASMNativeInt) : TASMNativeInt;
+function Next2Pwr(num : NativeInt; maxSize : NativeInt) : NativeInt;
 begin
      Result := 1;
      while (Result < maxSize) and (Result < num) do
@@ -554,7 +554,7 @@ begin
      end;
 end;
 
-procedure WriteMtlMtx(const fileName : string; mtx : PDouble; LineWidthmtx : TASMNativeInt; width, height : integer; prec : integer = 8); overload;
+procedure WriteMtlMtx(const fileName : string; mtx : PDouble; LineWidthmtx : NativeInt; width, height : integer; prec : integer = 8); overload;
 var s : UTF8String;
     x, y : integer;
     pMTx : PConstDoubleArr;
@@ -586,7 +586,7 @@ end;
 
 
 // mostly used as output to directly test with various lapack packages
-procedure WriteBinaryMtxColMajor( fn : String; A : PDouble; LineWidthA : TASMNativeInt;
+procedure WriteBinaryMtxColMajor( fn : String; A : PDouble; LineWidthA : NativeInt;
   w, h  :integer );
 var x, y : integer;
     pA : PDouble;

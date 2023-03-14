@@ -30,7 +30,7 @@ uses MatrixConst;
 // it's also assumed that memory before A is accessible for at least bLen elements
 // -> these elements are used for the convulution calculation
 // -> needs an aligned B and blen mod 2 needs to be zero
-procedure FMAVecConvolveRevB(dest : PDouble; A, B : PDouble; aLen, bLen : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure FMAVecConvolveRevB(dest : PDouble; A, B : PDouble; aLen, bLen : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -40,7 +40,7 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
-procedure FMAVecConvolveRevB(dest : PDouble; A, B : PDouble; aLen, bLen : TASMNativeInt);
+procedure FMAVecConvolveRevB(dest : PDouble; A, B : PDouble; aLen, bLen : NativeInt);
 // eax = dest, edx = A, ecx = B
 asm
    push ebx;

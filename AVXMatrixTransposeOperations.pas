@@ -27,11 +27,11 @@ interface
 
 uses MatrixConst;
 
-procedure AVXMatrixTransposeAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure AVXMatrixTransposeUnaligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixTransposeAligned(dest : PDouble; const destLineWidth : NativeInt; mt : PDouble; const LineWidth : NativeInt; width : NativeInt; height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixTransposeUnaligned(dest : PDouble; const destLineWidth : NativeInt; mt : PDouble; const LineWidth : NativeInt; width : NativeInt; height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 // Inplace Trasnposition of an N x N matrix
-procedure AVXMatrixTransposeInplace(mt : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixTransposeInplace(mt : PDouble; const LineWidth : NativeInt; N : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -41,8 +41,8 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
-procedure AVXMatrixTransposeAligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-var iter : TASMNativeInt;
+procedure AVXMatrixTransposeAligned(dest : PDouble; const destLineWidth : NativeInt; mt : PDouble; const LineWidth : NativeInt; width : NativeInt; height : NativeInt);
+var iter : NativeInt;
 asm
    // prolog:
    push ebx;
@@ -184,8 +184,8 @@ asm
    pop ebx;
 end;
 
-procedure AVXMatrixTransposeUnaligned(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-var iter : TASMNativeInt;
+procedure AVXMatrixTransposeUnaligned(dest : PDouble; const destLineWidth : NativeInt; mt : PDouble; const LineWidth : NativeInt; width : NativeInt; height : NativeInt);
+var iter : NativeInt;
 asm
    // prolog:
    push ebx;
@@ -327,9 +327,9 @@ asm
 end;
 
 // simple Inplace Trasnposition of an N x N matrix
-procedure AVXMatrixTransposeInplace(mt : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt);
+procedure AVXMatrixTransposeInplace(mt : PDouble; const LineWidth : NativeInt; N : NativeInt);
 // eax = mt, edx = LineWidth, ecx = N
-var aN : TASMNativeInt;
+var aN : NativeInt;
 asm
    push ebx;
    push edi;

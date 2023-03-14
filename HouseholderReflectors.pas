@@ -22,13 +22,13 @@ interface
 
 uses MatrixConst, MatrixASMStubSwitch;
 
-function GenElemHousholderRefl(A : PDouble; LineWidthA : TASMNativeInt; Height : TASMNativeInt; var Alpha : double; Tau : PDouble) : boolean;
+function GenElemHousholderRefl(A : PDouble; LineWidthA : NativeInt; Height : NativeInt; var Alpha : double; Tau : PDouble) : boolean;
 
-procedure ApplyElemHousholderReflLeft(V : PDouble; LineWidthV : TASMNativeInt; C : PDouble; const LineWidthC : TASMNativeInt; width, height : TASMNativeInt;
+procedure ApplyElemHousholderReflLeft(V : PDouble; LineWidthV : NativeInt; C : PDouble; const LineWidthC : NativeInt; width, height : NativeInt;
   Tau : PDouble; Work : PDouble);
 
 // work needs to be at least w4 + h4 where w4 is the next number of width that is divisable by 4 without rest and same for h4
-procedure ApplyElemHousholderReflRight(V : PDouble; LineWidthV : TASMNativeInt; C : PDouble; const LineWidthC : TASMNativeInt; width, height : TASMNativeInt;
+procedure ApplyElemHousholderReflRight(V : PDouble; LineWidthV : NativeInt; C : PDouble; const LineWidthC : NativeInt; width, height : NativeInt;
   Tau : PDouble; Work : PDouble);
 
 
@@ -37,9 +37,9 @@ procedure ApplyElemHousholderReflRight(V : PDouble; LineWidthV : TASMNativeInt; 
 type
   TBlockReflrec = record
   //   work : PDouble;
-  //   LineWidthWork : TASMNativeInt;
+  //   LineWidthWork : NativeInt;
      T : PDouble;
-     LineWidthT : TASMNativeInt;
+     LineWidthT : NativeInt;
 
      BlkMultSize : integer;
      BlkMultMem : PDouble;
@@ -51,18 +51,18 @@ type
 
 // apply block reflector to a matrix
 // original DLARFB in Lapack - Left, Transpose, Forward, Columnwise
-procedure ApplyBlockReflectorLFC(A : PDouble; LineWidthA : TASMNativeInt; const reflData : TBlockReflrec;
-  width, height : TASMNativeInt; k : TASMNativeInt; Transposed : boolean);
+procedure ApplyBlockReflectorLFC(A : PDouble; LineWidthA : NativeInt; const reflData : TBlockReflrec;
+  width, height : NativeInt; k : NativeInt; Transposed : boolean);
 
 
 // block reflector right transposed forward rowwise
-procedure ApplyBlockReflectorRFR(A : PDouble; LineWidthA : TASMNativeInt; const reflData : TBlockReflrec; //const qrData : TRecMtxQRDecompData;
-  width, height : TASMNativeInt; widthT : TASMNativeInt; Transposed : boolean);
+procedure ApplyBlockReflectorRFR(A : PDouble; LineWidthA : NativeInt; const reflData : TBlockReflrec; //const qrData : TRecMtxQRDecompData;
+  width, height : NativeInt; widthT : NativeInt; Transposed : boolean);
 
 // block reflector left, No transpose, backward, columnwise
-procedure ApplyBlockReflectorLBC(V : PDouble; LineWidthV : TASMNativeInt;
-  C : PDouble; LineWidthC : TASMNativeInt; work : PDouble; LineWidthWork : TASMNativeInt;
-  width, height : TASMNativeInt; k : TASMNativeInt; Transposed : boolean; const reflData : TBlockReflrec);
+procedure ApplyBlockReflectorLBC(V : PDouble; LineWidthV : NativeInt;
+  C : PDouble; LineWidthC : NativeInt; work : PDouble; LineWidthWork : NativeInt;
+  width, height : NativeInt; k : NativeInt; Transposed : boolean; const reflData : TBlockReflrec);
 
 
 implementation
@@ -70,10 +70,10 @@ implementation
 uses MathUtilFunc;
 
 // "right" part of dlarf
-procedure ApplyElemHousholderReflRight(V : PDouble; LineWidthV : TASMNativeInt; C : PDouble; const LineWidthC : TASMNativeInt; width, height : TASMNativeInt;
+procedure ApplyElemHousholderReflRight(V : PDouble; LineWidthV : NativeInt; C : PDouble; const LineWidthC : NativeInt; width, height : NativeInt;
   Tau : PDouble; Work : PDouble);
 var pVWork : PDouble;
-    h4 : TASMNativeInt;
+    h4 : NativeInt;
 begin
      // work = A(1:m, 2:n)T*A(1:m, 1)
      if tau^ <> 0 then
@@ -103,7 +103,7 @@ end;
 
 // apply householder transformation to A (one column)
 // original DLARFG in Lapack
-function GenElemHousholderRefl(A : PDouble; LineWidthA : TASMNativeInt; Height : TASMNativeInt; var Alpha : double; Tau : PDouble) : boolean;
+function GenElemHousholderRefl(A : PDouble; LineWidthA : NativeInt; Height : NativeInt; var Alpha : double; Tau : PDouble) : boolean;
 var beta : double;
     xNorm : double;
     saveMin : double;
@@ -166,7 +166,7 @@ end;
 
 
 // original Dlarf in lapack
-procedure ApplyElemHousholderReflLeft(V : PDouble; LineWidthV : TASMNativeInt; C : PDouble; const LineWidthC : TASMNativeInt; width, height : TASMNativeInt;
+procedure ApplyElemHousholderReflLeft(V : PDouble; LineWidthV : NativeInt; C : PDouble; const LineWidthC : NativeInt; width, height : NativeInt;
   Tau : PDouble; Work : PDouble);
 begin
      // work = A(1:m, 2:n)T*A(1:m, 1)
@@ -185,14 +185,14 @@ end;
 
 // apply block reflector to a matrix
 // original DLARFB in Lapack - Left, Transpose, Forward, Columnwise
-procedure ApplyBlockReflectorLFC(A : PDouble; LineWidthA : TASMNativeInt; const reflData : TBlockReflrec;
-  width, height : TASMNativeInt; k : TASMNativeInt; Transposed : boolean);
+procedure ApplyBlockReflectorLFC(A : PDouble; LineWidthA : NativeInt; const reflData : TBlockReflrec;
+  width, height : NativeInt; k : NativeInt; Transposed : boolean);
 var pC1, pC2 : PDouble;
     pV1, pV2 : PDouble;
     T : PDouble;
-    LineWidthT : TASMNativeInt;
+    LineWidthT : NativeInt;
     mem : PDouble;
-    LineWidthMem : TASMNativeInt;
+    LineWidthMem : NativeInt;
     //s : string;
     //s1, s2 : string;
 begin
@@ -244,21 +244,21 @@ begin
 end;
 
 // dlarfb 'Right', 'Transpose', 'Forward', 'Rowwise'
-procedure ApplyBlockReflectorRFR(A : PDouble; LineWidthA : TASMNativeInt; const reflData : TBlockReflrec;
-  width, height : TASMNativeInt; widthT : TASMNativeInt; Transposed : boolean);
+procedure ApplyBlockReflectorRFR(A : PDouble; LineWidthA : NativeInt; const reflData : TBlockReflrec;
+  width, height : NativeInt; widthT : NativeInt; Transposed : boolean);
 var pC1, pC2 : PDouble;
     pV1, pV2 : PDouble;
     T : PDouble;
-    LineWidthT : TASMNativeInt;
-    LineWidthW : TASMNativeInt;
+    LineWidthT : NativeInt;
+    LineWidthW : NativeInt;
     W : PDouble;
-    heightC1, widthC1 : TASMNativeInt;
-    widthC2, heightC2 : TASMNativeInt;
+    heightC1, widthC1 : NativeInt;
+    widthC2, heightC2 : NativeInt;
 
-    widthV1, heightV1 : TASMNativeInt;
-    widthV2, heightV2 : TASMNativeInt;
+    widthV1, heightV1 : NativeInt;
+    widthV2, heightV2 : NativeInt;
 
-    widthW, heightW : TASMNativeInt;
+    widthW, heightW : NativeInt;
 begin
      // it is assumed that height contains the full height of the input matrix A
      // we subsect it in this routine
@@ -373,12 +373,12 @@ end;
 
 // used in symmetric eigenvalue problem:
 // dlarfb 'left', 'No transpose', 'backward', 'columnwise'
-procedure ApplyBlockReflectorLBC(V : PDouble; LineWidthV : TASMNativeInt;
-  C : PDouble; LineWidthC : TASMNativeInt; work : PDouble; LineWidthWork : TASMNativeInt;
-  width, height : TASMNativeInt; k : TASMNativeInt; Transposed : boolean; const reflData : TBlockReflrec);
+procedure ApplyBlockReflectorLBC(V : PDouble; LineWidthV : NativeInt;
+  C : PDouble; LineWidthC : NativeInt; work : PDouble; LineWidthWork : NativeInt;
+  width, height : NativeInt; k : NativeInt; Transposed : boolean; const reflData : TBlockReflrec);
 var pC1, pC2 : PDouble;
     pV1, pV2 : PDouble;
-    hk : TASMNativeInt;
+    hk : NativeInt;
 begin
      if (width <= 0) or (height <= 0) then
         exit;

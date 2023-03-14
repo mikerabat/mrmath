@@ -27,15 +27,15 @@ interface
 
 uses MatrixConst;
 
-function AVXMatrixElementwiseNorm2Aligned(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
-function AVXMatrixElementwiseNorm2UnAligned(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
+function AVXMatrixElementwiseNorm2Aligned(dest : PDouble; const LineWidth : NativeInt; Width, height : NativeInt) : double;
+function AVXMatrixElementwiseNorm2UnAligned(dest : PDouble; const LineWidth : NativeInt; Width, height : NativeInt) : double;
 
 
-procedure AVXMatrixNormalizeRowAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt ); {$IFDEF FPC}assembler;{$ENDIF}
-procedure AVXMatrixNormalizeRowUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt ); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixNormalizeRowAligned(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt ); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixNormalizeRowUnAligned(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt ); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure AVXMatrixNormalizeColumnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt ); {$IFDEF FPC}assembler;{$ENDIF}
-procedure AVXMatrixNormalizeColumnUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt ); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixNormalizeColumnAligned(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt ); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixNormalizeColumnUnAligned(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt ); {$IFDEF FPC}assembler;{$ENDIF}
 
 {$ENDIF}
 
@@ -45,7 +45,7 @@ implementation
 
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
-function AVXMatrixElementwiseNorm2Aligned(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
+function AVXMatrixElementwiseNorm2Aligned(dest : PDouble; const LineWidth : NativeInt; Width, height : NativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -143,7 +143,7 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-function AVXMatrixElementwiseNorm2UnAligned(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
+function AVXMatrixElementwiseNorm2UnAligned(dest : PDouble; const LineWidth : NativeInt; Width, height : NativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -241,11 +241,11 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXMatrixNormalizeRowAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt ); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixNormalizeRowAligned(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt ); {$IFDEF FPC}assembler;{$ENDIF}
 var tmp : double;
     {$ifdef UNIX}
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    width : NativeInt;
+    height : NativeInt;
     {$ENDIF}
 asm
    {$IFDEF UNIX}
@@ -415,11 +415,11 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXMatrixNormalizeRowUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixNormalizeRowUnAligned(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var tmp : double;
     {$ifdef UNIX}
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    width : NativeInt;
+    height : NativeInt;
     {$ENDIF}
 asm
    {$IFDEF UNIX}
@@ -589,11 +589,11 @@ asm
    {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXMatrixNormalizeColumnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX : TASMNativeInt;
+procedure AVXMatrixNormalizeColumnAligned(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+var iRBX : NativeInt;
     {$ifdef UNIX}
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    width : NativeInt;
+    height : NativeInt;
     {$ENDIF}
 asm
    {$IFDEF UNIX}
@@ -749,11 +749,11 @@ asm
 end;
 
 
-procedure AVXMatrixNormalizeColumnUnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-var iRBX : TASMNativeInt;
+procedure AVXMatrixNormalizeColumnUnAligned(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+var iRBX : NativeInt;
     {$ifdef UNIX}
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    width : NativeInt;
+    height : NativeInt;
     {$ENDIF}
 asm
    {$IFDEF UNIX}

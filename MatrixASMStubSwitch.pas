@@ -24,133 +24,133 @@ interface
 
 uses MatrixConst, Types;
 
-function MtxAlloc( NumBytes : TASMNativeInt ) : Pointer;
-function MtxAllocAlign( NumBytes : TASMNativeInt; var mem : Pointer ) : Pointer; overload;
-function MtxMallocAlign( NumBytes : TASMNativeInt; var mem : Pointer ) : Pointer; overload;
-function MtxMallocAlign( width, height : TASMNativeInt; var LineWidth : TASMNativeInt; var mem : Pointer ) : Pointer; overload;
-function MtxAllocAlign( width, height : TASMNativeInt; var LineWidth : TASMNativeInt; var Mem : Pointer) : Pointer; overload;
-procedure MtxMemInit(A : PDouble; NumBytes : TASMNativeInt; const Value : double);
+function MtxAlloc( NumBytes : NativeInt ) : Pointer;
+function MtxAllocAlign( NumBytes : NativeInt; var mem : Pointer ) : Pointer; overload;
+function MtxMallocAlign( NumBytes : NativeInt; var mem : Pointer ) : Pointer; overload;
+function MtxMallocAlign( width, height : NativeInt; var LineWidth : NativeInt; var mem : Pointer ) : Pointer; overload;
+function MtxAllocAlign( width, height : NativeInt; var LineWidth : NativeInt; var Mem : Pointer) : Pointer; overload;
+procedure MtxMemInit(A : PDouble; NumBytes : NativeInt; const Value : double);
 
-procedure MatrixCopy(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); overload;
-procedure MatrixCopy(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt); overload;
-function MatrixCopy(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt) : TDoubleDynArray; overload;
-function MatrixCopy(const Src : Array of double; width, height : TASMNativeInt) : TDoubleDynArray; overload;
-procedure MatrixInit(dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; const value : Double);
+procedure MatrixCopy(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt); overload;
+procedure MatrixCopy(var dest : Array of double; const Src : Array of double; width, height : NativeInt); overload;
+function MatrixCopy(Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt) : TDoubleDynArray; overload;
+function MatrixCopy(const Src : Array of double; width, height : NativeInt) : TDoubleDynArray; overload;
+procedure MatrixInit(dest : PDouble; const destLineWidth : NativeInt; Width, Height : NativeInt; const value : Double);
 
-procedure MatrixIndex(dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; colIdx, rowIdx : TIntegerDynArray);
+procedure MatrixIndex(dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; colIdx, rowIdx : TIntegerDynArray);
 
-procedure MatrixRowSwap(A, B : PDouble; width : TASMNativeInt);
-procedure MatrixColSwap(A, B : PDouble; const LineWidthAB : TASMNativeInt; Height : TASMNativeInt);
+procedure MatrixRowSwap(A, B : PDouble; width : NativeInt);
+procedure MatrixColSwap(A, B : PDouble; const LineWidthAB : NativeInt; Height : NativeInt);
 
-procedure MatrixAdd(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
-function MatrixAdd(const mt1, mt2 : array of double; width : TASMNativeInt) : TDoubleDynArray; overload;
-procedure MatrixAdd(var dest : Array of double; const mt1, mt2 : Array of double; width : TASMNativeInt); overload;
-function MatrixAdd(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
+procedure MatrixAdd(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
+function MatrixAdd(const mt1, mt2 : array of double; width : NativeInt) : TDoubleDynArray; overload;
+procedure MatrixAdd(var dest : Array of double; const mt1, mt2 : Array of double; width : NativeInt); overload;
+function MatrixAdd(mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt) : TDoubleDynArray; overload;
 
-procedure MatrixAddVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+procedure MatrixAddVec(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt; rowWise : Boolean);
 
-procedure MatrixSub(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
-function MatrixSub(const mt1, mt2 : array of double; width : TASMNativeInt) : TDoubleDynArray; overload;
-procedure MatrixSub(var dest : Array of double; const mt1, mt2 : Array of double; width : TASMNativeInt); overload;
-function MatrixSub(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
+procedure MatrixSub(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
+function MatrixSub(const mt1, mt2 : array of double; width : NativeInt) : TDoubleDynArray; overload;
+procedure MatrixSub(var dest : Array of double; const mt1, mt2 : Array of double; width : NativeInt); overload;
+function MatrixSub(mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt) : TDoubleDynArray; overload;
 
 // calculate A = A - B'
-procedure MatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
+procedure MatrixSubT(A : PDouble; LineWidthA : NativeInt; B : PDouble; LineWidthB : NativeInt; width, height : NativeInt);
 // calculate A = A - Repmat(B, 1, height) if rowwise, B is a vector
-procedure MatrixSubVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+procedure MatrixSubVec(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt; rowWise : Boolean);
 
 // performs mt1 * mt2
-function MatrixMult(mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
-procedure MatrixMult(var dest : Array of Double; mt1, mt2 : Array of double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt); overload;
-function MatrixMult(const mt1, mt2 : Array of Double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt) : TDoubleDynArray; overload;
-procedure MatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
+function MatrixMult(mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt) : TDoubleDynArray; overload;
+procedure MatrixMult(var dest : Array of Double; mt1, mt2 : Array of double; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt); overload;
+function MatrixMult(const mt1, mt2 : Array of Double; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt) : TDoubleDynArray; overload;
+procedure MatrixMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
 
-procedure MatrixMultEx(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble); overload;
+procedure MatrixMultEx(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : PDouble); overload;
 
 // performs mt1' * mt2
-function MatrixMultT1(mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
-procedure MatrixMultT1(var dest : Array of Double; mt1, mt2 : Array of double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt); overload;
-function MatrixMultT1(const mt1, mt2 : Array of Double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt) : TDoubleDynArray; overload;
-procedure MatrixMultT1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
+function MatrixMultT1(mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt) : TDoubleDynArray; overload;
+procedure MatrixMultT1(var dest : Array of Double; mt1, mt2 : Array of double; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt); overload;
+function MatrixMultT1(const mt1, mt2 : Array of Double; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt) : TDoubleDynArray; overload;
+procedure MatrixMultT1(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
 
-procedure MatrixMultT1Ex(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble); overload;
+procedure MatrixMultT1Ex(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : PDouble); overload;
 
 // performs mt1 * mt2'
-function MatrixMultT2(mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
-procedure MatrixMultT2(var dest : Array of Double; mt1, mt2 : Array of double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt); overload;
-function MatrixMultT2(const mt1, mt2 : Array of Double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt) : TDoubleDynArray; overload;
-procedure MatrixMultT2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
+function MatrixMultT2(mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt) : TDoubleDynArray; overload;
+procedure MatrixMultT2(var dest : Array of Double; mt1, mt2 : Array of double; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt); overload;
+function MatrixMultT2(const mt1, mt2 : Array of Double; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt) : TDoubleDynArray; overload;
+procedure MatrixMultT2(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
 
-procedure MatrixMultT2Ex(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble); overload;
+procedure MatrixMultT2Ex(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : PDouble); overload;
 
 // used in QR decomp and hess
 // dest = mt1'*mt2; where mt2 is a lower triangular matrix and the operation is transposition
-procedure MatrixMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+procedure MatrixMultTria2T1(dest : PDouble; LineWidthDest : NativeInt; mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
   // mt1 = mt1*mt2'; where mt2 is an upper triangular matrix
 // W = V1'*T -> V1 is an upper triangular matrix with assumed unit diagonal entries. Operation on V1 transposition
-procedure MtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+procedure MtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : NativeInt; mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
 
 // mt1 = mt1*mt2' where mt2 is an upper triangular matrix with non unit diagonal elements
-procedure MtxMultRightUpperTriaNoUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+procedure MtxMultRightUpperTriaNoUnitT2(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
 // mt1 = mt1*mt2; where mt2 is an upper triangular matrix with non unit diagonal elements
-procedure MtxMultRightUpperTriaNoUnit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+procedure MtxMultRightUpperTriaNoUnit(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
 // mt1 = mt1*mt2; where mt2 is an upper triangular matrix - diagonal elements are unit
-procedure MtxMultRightUpperTriaUnit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+procedure MtxMultRightUpperTriaUnit(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
 // mt1 = mt1*mt2' where mt2 is an upper triangular matrix with unit diagonal elements
-procedure MtxMultRightUpperTriaUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+procedure MtxMultRightUpperTriaUnitT2(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
 
 
 // calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are assumed to be 1!
-procedure MtxMultRightLowerTriaUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+procedure MtxMultRightLowerTriaUnitT2(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
 // calculates mt1 = mt1*mt2', mt2 = lower triangular matrix. diagonal elements are non unit!
-procedure MtxMultRightLowerTriaNoUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+procedure MtxMultRightLowerTriaNoUnitT2(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
 // performs mt1 = mt1*mt2 where mt2 is an lower triangular matrix with non unit elements in the diagonal
-procedure MtxMultRightLowerTriaNoUnit( mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+procedure MtxMultRightLowerTriaNoUnit( mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
 // performs mt1 = mt1*mt2 where mt2 is an lower triangular matrix with unit elements in the diagonal
-procedure MtxMultRightLowerTriaUnit( mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+procedure MtxMultRightLowerTriaUnit( mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
 
 
 // calculates  x = mt1'*x where x is a vector and mt1 an upper triangular (len x len) matrix with non unit elements in the diagonal
-procedure MtxMultUpTranspNoUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; IncX : TASMNativeInt; len : TASMNativeInt);
+procedure MtxMultUpTranspNoUnitVec( mt1 : PDouble; LineWidth1 : NativeInt; x : PDouble; IncX : NativeInt; len : NativeInt);
 // calculates x = mt1'*x where x is a vector and mt1 an lower triangular (len x len) matrix with unit elements in the diagonal
-procedure MtxMultLowTranspUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; IncX : TASMNativeInt; len : TASMNativeInt);
+procedure MtxMultLowTranspUnitVec( mt1 : PDouble; LineWidth1 : NativeInt; x : PDouble; IncX : NativeInt; len : NativeInt);
 // calculates x = mt1*x where x is a vector and mt1 is a lower triangular (len x len) matrix with unit elements in the diagonal
-procedure MtxMultLowNoTranspUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; IncX : TASMNativeInt; len : TASMNativeInt);
+procedure MtxMultLowNoTranspUnitVec( mt1 : PDouble; LineWidth1 : NativeInt; x : PDouble; IncX : NativeInt; len : NativeInt);
 // calculates x = mt1*x where x is a vector and mt1 is an upper triangular (len x len) matrix with non unit elements in the diagonal
-procedure MtxMultUpNoTranspNoUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; incX : TASMNativeInt; len : TASMNativeInt);
+procedure MtxMultUpNoTranspNoUnitVec( mt1 : PDouble; LineWidth1 : NativeInt; x : PDouble; incX : NativeInt; len : NativeInt);
 // calculates x = mt1*x where x is a vector and mt1 is a lower triangular (len x len) matrix with unit elements in the diagonal
-procedure MtxMultLowNoTranspNoUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; IncX : TASMNativeInt; len : TASMNativeInt);
+procedure MtxMultLowNoTranspNoUnitVec( mt1 : PDouble; LineWidth1 : NativeInt; x : PDouble; IncX : NativeInt; len : NativeInt);
 
 
 
 // performs dest = alpha*mt1*v + beta*dest
 // wheras dest is a vector, mt1 a width x height matrix and v again a vector
-procedure MatrixMtxVecMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure MatrixMtxVecMult(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double);
 // performs matrix vector multiplication in the form: dest := alpha*mt1'*v + beta*dest
-procedure MatrixMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure MatrixMtxVecMultT(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double);
 // performs matrix vector multiplication in the form: dest := alpha*mt1*v + beta*dest
 // where the matrix mt1 is a symmetric matrix and only the upper part is touched in the multiplication
-procedure MatrixMtxVecMultUpperSym(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; N : TASMNativeInt; alpha, beta : double);
+procedure MatrixMtxVecMultUpperSym(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; N : NativeInt; alpha, beta : double);
 // same as above but using the lower matrix part
-procedure MatrixMtxVecMultLowerSym(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; N : TASMNativeInt; alpha, beta : double);
+procedure MatrixMtxVecMultLowerSym(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; N : NativeInt; alpha, beta : double);
 
 // calculates the dot product of x and y: Result := sum_i=0_n-1 ( x[i]*y[i] )
-function MatrixVecDotMult(  x : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt ) : double;
+function MatrixVecDotMult(  x : PDouble; incX : NativeInt; y : PDouble; incY : NativeInt; N : NativeInt ) : double;
 // calculates y[i] = y[i] + alpha*x[i]
-procedure MatrixVecAdd( X : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt; const alpha : double );
+procedure MatrixVecAdd( X : PDouble; incX : NativeInt; y : PDouble; incY : NativeInt; N : NativeInt; const alpha : double );
 
-procedure MatrixRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+procedure MatrixRank1Update(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
+  const alpha : double; X, Y : PDouble; incX, incY : NativeInt);
 
 // performs C := beta*C - alpha*A*B**T - alpha*B*A**T
 // N...order of C (N x N matrix)
@@ -158,28 +158,28 @@ procedure MatrixRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width
 // the lower triangle of C is not referenced
 // this function uses as beta = 1, alpha = -1
 // dsyr2k in lapack upper no transpose with alpha = -1, beta = 1
-procedure MatrixUpperSymRank2Update( C : PDouble; LineWidthC : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
-  B : PDouble; LineWidthB : TASMNativeInt; N : TASMNativeInt; k : TASMNativeInt );
+procedure MatrixUpperSymRank2Update( C : PDouble; LineWidthC : NativeInt; A : PDouble; LineWidthA : NativeInt;
+  B : PDouble; LineWidthB : NativeInt; N : NativeInt; k : NativeInt );
 
 // ###########################################
 // #### Element by element operations
 // ###########################################
 
-procedure MatrixElemMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
-function MatrixElemMult(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
-procedure MatrixElemMult(var dest : Array of Double; const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt); overload;
-function MatrixElemMult(const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
+procedure MatrixElemMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
+function MatrixElemMult(mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt) : TDoubleDynArray; overload;
+procedure MatrixElemMult(var dest : Array of Double; const mt1, mt2 : Array of Double; width : NativeInt; height : NativeInt); overload;
+function MatrixElemMult(const mt1, mt2 : Array of Double; width : NativeInt; height : NativeInt) : TDoubleDynArray; overload;
 
-procedure MatrixElemDiv(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
-function MatrixElemDiv(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
-procedure MatrixElemDiv(var dest : Array of Double; const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt); overload;
-function MatrixElemDiv(const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
+procedure MatrixElemDiv(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
+function MatrixElemDiv(mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt) : TDoubleDynArray; overload;
+procedure MatrixElemDiv(var dest : Array of Double; const mt1, mt2 : Array of Double; width : NativeInt; height : NativeInt); overload;
+function MatrixElemDiv(const mt1, mt2 : Array of Double; width : NativeInt; height : NativeInt) : TDoubleDynArray; overload;
 
-procedure MatrixElemAdd( Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset : double );
-procedure MatrixAddAndScale(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
-procedure MatrixScaleAndAdd(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
-procedure MatrixAbs(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
-procedure MatrixSQRT(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
+procedure MatrixElemAdd( Dest : PDouble; const LineWidth, Width, Height : NativeInt; const Offset : double );
+procedure MatrixAddAndScale(Dest : PDouble; const LineWidth, Width, Height : NativeInt; const Offset, Scale : double);
+procedure MatrixScaleAndAdd(Dest : PDouble; const LineWidth, Width, Height : NativeInt; const Offset, Scale : double);
+procedure MatrixAbs(Dest : PDouble; const LineWidth, Width, Height : NativeInt);
+procedure MatrixSQRT(Dest : PDouble; const LineWidth, Width, Height : NativeInt);
 
 
 // ###########################################
@@ -187,82 +187,82 @@ procedure MatrixSQRT(Dest : PDouble; const LineWidth, Width, Height : TASMNative
 // ###########################################
 
 // GenericMtx transposition functions. Note the there is no inplace GenericMtx transpose - this will result in an unspecified end GenericMtx.
-function MatrixTranspose(mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
-procedure MatrixTranspose(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt); overload;
-function MatrixTranspose(const mt : Array of Double; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
-procedure MatrixTranspose(var dest : Array of Double; const mt : Array of Double; width : TASMNativeInt; height : TASMNativeInt); overload;
+function MatrixTranspose(mt : PDouble; const LineWidth : NativeInt; width : NativeInt; height : NativeInt) : TDoubleDynArray; overload;
+procedure MatrixTranspose(dest : PDouble; const destLineWidth : NativeInt; mt : PDouble; const LineWidth : NativeInt; width : NativeInt; height : NativeInt); overload;
+function MatrixTranspose(const mt : Array of Double; width : NativeInt; height : NativeInt) : TDoubleDynArray; overload;
+procedure MatrixTranspose(var dest : Array of Double; const mt : Array of Double; width : NativeInt; height : NativeInt); overload;
 
 // inplace transposition of an N x N matrix
-procedure MatrixTransposeInplace(mt : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt);
+procedure MatrixTransposeInplace(mt : PDouble; const LineWidth : NativeInt; N : NativeInt);
 
 // ###########################################
 // #### Max/sum mean variance
 // ###########################################
 
-function MatrixMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-function MatrixMin(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-function MatrixAbsMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-function MatrixAbsMin(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function MatrixMax(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
+function MatrixMin(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
+function MatrixAbsMax(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
+function MatrixAbsMin(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 
 // min/max of an square upper/lower matrix
-function MatrixMaxUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
-function MatrixMinUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
-function MatrixMaxLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
-function MatrixMinLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
-function MatrixAbsMaxUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
-function MatrixAbsMinUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
-function MatrixAbsMaxLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
-function MatrixAbsMinLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+function MatrixMaxUpper( mt : PDouble; N : NativeInt; const LineWidth : NativeInt ) : double;
+function MatrixMinUpper( mt : PDouble; N : NativeInt; const LineWidth : NativeInt ) : double;
+function MatrixMaxLower( mt : PDouble; N : NativeInt; const LineWidth : NativeInt ) : double;
+function MatrixMinLower( mt : PDouble; N : NativeInt; const LineWidth : NativeInt ) : double;
+function MatrixAbsMaxUpper( mt : PDouble; N : NativeInt; const LineWidth : NativeInt ) : double;
+function MatrixAbsMinUpper( mt : PDouble; N : NativeInt; const LineWidth : NativeInt ) : double;
+function MatrixAbsMaxLower( mt : PDouble; N : NativeInt; const LineWidth : NativeInt ) : double;
+function MatrixAbsMinLower( mt : PDouble; N : NativeInt; const LineWidth : NativeInt ) : double;
 
 
-function MatrixNormalize(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
-function MatrixNormalize(const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
-procedure MatrixNormalize(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean); overload;
-procedure MatrixNormalize(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean); overload;
+function MatrixNormalize(Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray; overload;
+function MatrixNormalize(const Src : Array of double; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray; overload;
+procedure MatrixNormalize(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean); overload;
+procedure MatrixNormalize(var dest : Array of double; const Src : Array of double; width, height : NativeInt; RowWise : boolean); overload;
 
-function MatrixMean(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
-function MatrixMean(const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
-procedure MatrixMean(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean); overload;
-procedure MatrixMean(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean); overload;
+function MatrixMean(Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray; overload;
+function MatrixMean(const Src : Array of double; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray; overload;
+procedure MatrixMean(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean); overload;
+procedure MatrixMean(var dest : Array of double; const Src : Array of double; width, height : NativeInt; RowWise : boolean); overload;
 
-function MatrixMedian(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
-function MatrixMedian(const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
-procedure MatrixMedian(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; hlpMem : PDouble); overload;
-procedure MatrixMedian(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean); overload;
+function MatrixMedian(Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray; overload;
+function MatrixMedian(const Src : Array of double; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray; overload;
+procedure MatrixMedian(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; hlpMem : PDouble); overload;
+procedure MatrixMedian(var dest : Array of double; const Src : Array of double; width, height : NativeInt; RowWise : boolean); overload;
 
-procedure MatrixRollMedian( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; order : integer; rowWise : boolean);
+procedure MatrixRollMedian( dest : PDouble; const destLineWidth : NativeInt; Width, Height : NativeInt; order : integer; rowWise : boolean);
 
-procedure MatrixSort(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; hlpMem : PDouble = nil);
+procedure MatrixSort(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; hlpMem : PDouble = nil);
 
-function MatrixVar(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean) : TDoubleDynArray; overload;
-function Matrixvar(const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean) : TDoubleDynArray; overload;
-procedure MatrixVar(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean); overload;
-procedure MatrixVar(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean); overload;
+function MatrixVar(Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; unbiased : boolean) : TDoubleDynArray; overload;
+function Matrixvar(const Src : Array of double; width, height : NativeInt; RowWise : boolean; unbiased : boolean) : TDoubleDynArray; overload;
+procedure MatrixVar(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; unbiased : boolean); overload;
+procedure MatrixVar(var dest : Array of double; const Src : Array of double; width, height : NativeInt; RowWise : boolean; unbiased : boolean); overload;
 
-procedure VecMeanVar( var dest : TMeanVarRec; vec : PDouble; width : TASMNativeInt; unbiased : boolean);  
-procedure MatrixMeanVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
-procedure MatrixNormalizeMeanVar(dest : PDouble; destLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure VecMeanVar( var dest : TMeanVarRec; vec : PDouble; width : NativeInt; unbiased : boolean);  
+procedure MatrixMeanVar(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; unbiased : boolean);
+procedure MatrixNormalizeMeanVar(dest : PDouble; destLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
 
-function MatrixSum(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
-function MatrixSum(const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
-procedure MatrixSum(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean); overload;
-procedure MatrixSum(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean); overload;
+function MatrixSum(Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray; overload;
+function MatrixSum(const Src : Array of double; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray; overload;
+procedure MatrixSum(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean); overload;
+procedure MatrixSum(var dest : Array of double; const Src : Array of double; width, height : NativeInt; RowWise : boolean); overload;
 
-procedure MatrixCumulativeSum(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
-procedure MatrixDiff(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure MatrixCumulativeSum(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+procedure MatrixDiff(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
 
 
 // element wise eukledian norm
-function MatrixElementwiseNorm2(Src : PDouble; const srcLineWidth : TASMNativeInt; Width, height : TASMNativeInt; doSqrt : boolean) : double;
+function MatrixElementwiseNorm2(Src : PDouble; const srcLineWidth : NativeInt; Width, height : NativeInt; doSqrt : boolean) : double;
 
 // ###########################################
 // #### Apply functions on elements in a matrix A(i, j) = f( A(i, j) )
 // ###########################################
 
-procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixFunc); overload;
-procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixObjFunc); overload;
-procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFunc); overload;
-procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefObjFunc); overload;
+procedure MatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixFunc); overload;
+procedure MatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixObjFunc); overload;
+procedure MatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixMtxRefFunc); overload;
+procedure MatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixMtxRefObjFunc); overload;
 
 {$IFDEF FPC}
    {:$DEFINE ANONMETHODS}
@@ -273,24 +273,24 @@ procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width,
 {$ENDIF}
 
 {$IFDEF ANONMETHODS}
-procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixFuncRef); overload;
-procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFuncRef); overload;
+procedure MatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixFuncRef); overload;
+procedure MatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixMtxRefFuncRef); overload;
 {$ENDIF}
 
 // matrix rotation stubs
-procedure ApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
-procedure ApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure ApplyPlaneRotSeqRVB(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr);
+procedure ApplyPlaneRotSeqRVF(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr);
 
-procedure ApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
-procedure ApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure ApplyPlaneRotSeqLVB(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr);
+procedure ApplyPlaneRotSeqLVF(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr);
 
-procedure MatrixRotate(N : TASMNativeInt; DX : PDouble; const LineWidthDX : TASMNativeInt; DY : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
+procedure MatrixRotate(N : NativeInt; DX : PDouble; const LineWidthDX : NativeInt; DY : PDouble; LineWidthDY : NativeInt; const c, s : double);
 
 // convolution
 // performs the convolution on a matrix rowwise!
 // A is either a vector or a matrix, B is always a vector (length is veclen)!
 // if memory is provided the memory needs to be at least as long as length(b) + 8 (for memory alignment and cpu alignment)
-procedure MatrixConvolve(dest : PDouble; const LineWidthDest : TASMNativeInt; A, B : PDouble; const LineWidthA : TASMNativeInt; width, height, veclen : TASMNativeInt; mem : Pointer = nil);
+procedure MatrixConvolve(dest : PDouble; const LineWidthDest : NativeInt; A, B : PDouble; const LineWidthA : NativeInt; width, height, veclen : NativeInt; mem : Pointer = nil);
 
 type
   TCPUInstrType = (itFPU, itSSE, itAVX, itFMA);
@@ -305,47 +305,47 @@ function GetCurCPUInstrType : TCPUInstrType;
 procedure InitMult(useStrassenMult : boolean);
 
 type
-  TMatrixMultFunc = procedure(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-  TMatrixBlockedMultfunc = procedure (dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble);
-  TMatrixMultTria2T1 = procedure (dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-                                  width1, height1, width2, height2 : TASMNativeInt);
-  TMatrixMultTriaStoreT1 = procedure (mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt; width1, height1, width2, height2 : TASMNativeInt);
-  TMatrixMultVecTriaStoreX = procedure( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; IncX : TASMNativeInt; len : TASMNativeInt);
-  TMatrixAddFunc = procedure(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
+  TMatrixMultFunc = procedure(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
+  TMatrixBlockedMultfunc = procedure (dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : PDouble);
+  TMatrixMultTria2T1 = procedure (dest : PDouble; LineWidthDest : NativeInt; mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+                                  width1, height1, width2, height2 : NativeInt);
+  TMatrixMultTriaStoreT1 = procedure (mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt; width1, height1, width2, height2 : NativeInt);
+  TMatrixMultVecTriaStoreX = procedure( mt1 : PDouble; LineWidth1 : NativeInt; x : PDouble; IncX : NativeInt; len : NativeInt);
+  TMatrixAddFunc = procedure(dest : PDouble; destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; LineWidth1, LineWidth2 : NativeInt);
   TMatrixSubFunc = TMatrixAddFunc;
-  TMatrixSubTFunc = procedure (A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
-  TMatrixSubVecFunc = procedure(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+  TMatrixSubTFunc = procedure (A : PDouble; LineWidthA : NativeInt; B : PDouble; LineWidthB : NativeInt; width, height : NativeInt);
+  TMatrixSubVecFunc = procedure(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt; rowWise : Boolean);
   TMatrixElemWiseFunc = TMatrixAddFunc;
-  TMatrixAddScaleFunc = procedure(dest : PDouble; LineWidth, width, height : TASMNativeInt; const dOffset, Scale : double);
-  TMatrixElemAddFunc = procedure(dest : PDouble; LineWidth, width, height : TASMNativeInt; const dOffset : double);
-  TMatrixSQRTFunc = procedure(dest : PDouble; LineWidth : TASMNativeInt; width, height : TASMNativeInt);
-  TMatrixAbsFunc = procedure(dest : PDouble; LineWidth : TASMNativeInt; width, height : TASMNativeInt);
-  TMatrixCopyFunc = procedure(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-  TMatrixInitFunc = procedure(dest : PDouble; destLIneWidth : TASMNativeInt; Width, Height : TASMNativeInt; const value : double );
-  TMatrixMinMaxFunc = function(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-  TMatrixMinMaxTriaFunc = function(mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-  TMatrixTransposeFunc = procedure(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-  TMatrixTransposeInplaceFunc = procedure(mt : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt);
-  TMatrixElemWiseNormFunc = function (dest : PDouble; LineWidth : TASMNativeInt; Width, height : TASMNativeInt; doSqrt : boolean) : double;
-  TMatrixNormalizeFunc = procedure(dest : PDouble; destLineWidth : TASMNativeInt; src : PDouble; srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; RowWise : Boolean);
-  TMatrixVarianceFunc = procedure(dest : PDouble; destLineWidth : TASMNativeInt; src : PDouble; srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; RowWise : Boolean; unbiased : boolean);
-  TMatrixRowSwapFunc = procedure (A, B : PDouble; width : TASMNativeInt);
-  TMatrixColSwapFunc = procedure(A, B : PDouble; const LineWidthAB : TASMNativeInt; Height : TASMNativeInt);
-  TMatrixMedianFunc = procedure (dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; tmp : PDouble = nil);
-  TMatrixSymRank2Func = procedure( C : PDouble; LineWidthC : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
-                                   B : PDouble; LineWidthB : TASMNativeInt; N : TASMNativeInt; k : TASMNativeInt );
-  TMatrixSortFunc = procedure (dest : PDouble; destLineWidth : TASMNativeInt; width, height : integer; RowWise : boolean; tmp : PDouble = nil);
-  TMatrixVecMultFunc = procedure (dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-  TMatrixVecMultSymFunc = procedure (dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; N : TASMNativeInt; alpha, beta : double);
-  TMatrixDotMultFunc = function( x : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt ) : double;
-  TMatrixVecAddFunc = procedure( X : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt; const alpha : double );
-  TMatrixRank1UpdateFunc = procedure (A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-                                      X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
+  TMatrixAddScaleFunc = procedure(dest : PDouble; LineWidth, width, height : NativeInt; const dOffset, Scale : double);
+  TMatrixElemAddFunc = procedure(dest : PDouble; LineWidth, width, height : NativeInt; const dOffset : double);
+  TMatrixSQRTFunc = procedure(dest : PDouble; LineWidth : NativeInt; width, height : NativeInt);
+  TMatrixAbsFunc = procedure(dest : PDouble; LineWidth : NativeInt; width, height : NativeInt);
+  TMatrixCopyFunc = procedure(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt);
+  TMatrixInitFunc = procedure(dest : PDouble; destLIneWidth : NativeInt; Width, Height : NativeInt; const value : double );
+  TMatrixMinMaxFunc = function(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
+  TMatrixMinMaxTriaFunc = function(mt : PDouble; N : NativeInt; const LineWidth : NativeInt) : double;
+  TMatrixTransposeFunc = procedure(dest : PDouble; const destLineWidth : NativeInt; mt : PDouble; const LineWidth : NativeInt; width : NativeInt; height : NativeInt);
+  TMatrixTransposeInplaceFunc = procedure(mt : PDouble; const LineWidth : NativeInt; N : NativeInt);
+  TMatrixElemWiseNormFunc = function (dest : PDouble; LineWidth : NativeInt; Width, height : NativeInt; doSqrt : boolean) : double;
+  TMatrixNormalizeFunc = procedure(dest : PDouble; destLineWidth : NativeInt; src : PDouble; srcLineWidth : NativeInt; Width, Height : NativeInt; RowWise : Boolean);
+  TMatrixVarianceFunc = procedure(dest : PDouble; destLineWidth : NativeInt; src : PDouble; srcLineWidth : NativeInt; Width, Height : NativeInt; RowWise : Boolean; unbiased : boolean);
+  TMatrixRowSwapFunc = procedure (A, B : PDouble; width : NativeInt);
+  TMatrixColSwapFunc = procedure(A, B : PDouble; const LineWidthAB : NativeInt; Height : NativeInt);
+  TMatrixMedianFunc = procedure (dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; tmp : PDouble = nil);
+  TMatrixSymRank2Func = procedure( C : PDouble; LineWidthC : NativeInt; A : PDouble; LineWidthA : NativeInt;
+                                   B : PDouble; LineWidthB : NativeInt; N : NativeInt; k : NativeInt );
+  TMatrixSortFunc = procedure (dest : PDouble; destLineWidth : NativeInt; width, height : integer; RowWise : boolean; tmp : PDouble = nil);
+  TMatrixVecMultFunc = procedure (dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double);
+  TMatrixVecMultSymFunc = procedure (dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; N : NativeInt; alpha, beta : double);
+  TMatrixDotMultFunc = function( x : PDouble; incX : NativeInt; y : PDouble; incY : NativeInt; N : NativeInt ) : double;
+  TMatrixVecAddFunc = procedure( X : PDouble; incX : NativeInt; y : PDouble; incY : NativeInt; N : NativeInt; const alpha : double );
+  TMatrixRank1UpdateFunc = procedure (A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
+                                      X, Y : PDouble; incX, incY : NativeInt; alpha : double);
 
-  TApplyPlaneRotSeqMatrix = procedure (width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
-  TMatrixRotate = procedure (N : TASMNativeInt; DX : PDouble; const LineWidthDX : TASMNativeInt; DY : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
-  TMemInitFunc = procedure(A : PDouble; NumBytes : TASMNativeInt; Value : double);
-  TVecConvolve = procedure (dest : PDouble; A, B : PDouble; aLen, bLen : TASMNativeInt);
+  TApplyPlaneRotSeqMatrix = procedure (width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr);
+  TMatrixRotate = procedure (N : NativeInt; DX : PDouble; const LineWidthDX : NativeInt; DY : PDouble; LineWidthDY : NativeInt; const c, s : double);
+  TMemInitFunc = procedure(A : PDouble; NumBytes : NativeInt; Value : double);
+  TVecConvolve = procedure (dest : PDouble; A, B : PDouble; aLen, bLen : NativeInt);
 
 
 implementation
@@ -471,7 +471,7 @@ var multFunc : TMatrixMultFunc;
 var curUsedCPUInstrSet : TCPUInstrType;
     curUsedStrassenMult : boolean;
 
-function MtxAlloc( NumBytes : TASMNativeInt ) : Pointer;
+function MtxAlloc( NumBytes : NativeInt ) : Pointer;
 begin
      assert(NumBytes and $7 = 0, 'Numbytes not multiple of 8');
 
@@ -488,7 +488,7 @@ begin
         MtxMemInit(Result, NumBytes, 0 );
 end;
 
-function MtxAllocAlign( NumBytes : TASMNativeInt; var mem : Pointer ) : Pointer;
+function MtxAllocAlign( NumBytes : NativeInt; var mem : Pointer ) : Pointer;
 begin
      Result := MtxMallocAlign( NumBytes, mem );
 
@@ -496,7 +496,7 @@ begin
         MtxMemInit(mem, NumBytes, 0 );
 end;
 
-function MtxMallocAlign( NumBytes : TASMNativeInt; var mem : Pointer ) : Pointer;
+function MtxMallocAlign( NumBytes : NativeInt; var mem : Pointer ) : Pointer;
 begin
      Result := nil;
      mem := nil;
@@ -513,8 +513,8 @@ begin
         Result := AlignPtr32( mem );
 end;
 
-function MtxMallocAlign( width, height : TASMNativeInt; var LineWidth : TASMNativeInt; var mem : Pointer ) : Pointer; overload;
-var numBytes : TASMNativeInt;
+function MtxMallocAlign( width, height : NativeInt; var LineWidth : NativeInt; var mem : Pointer ) : Pointer; overload;
+var numBytes : NativeInt;
 begin
      if width and $03 <> 0 then
         width := width + 4 - (width and $03);
@@ -528,8 +528,8 @@ begin
         Result := AlignPtr32( mem );
 end;
 
-function MtxAllocAlign( width, height : TASMNativeInt; var LineWidth : TASMNativeInt; var Mem : Pointer) : Pointer; overload;
-var numBytes : TASMNativeInt;
+function MtxAllocAlign( width, height : NativeInt; var LineWidth : NativeInt; var Mem : Pointer) : Pointer; overload;
+var numBytes : NativeInt;
 begin
      if width and $03 <> 0 then
         width := width + 4 - (width and $03);
@@ -546,14 +546,14 @@ begin
      end;
 end;
 
-procedure MtxMemInit( A : PDouble; NumBytes : TASMNativeInt; const value : double );
+procedure MtxMemInit( A : PDouble; NumBytes : NativeInt; const value : double );
 var ptr : PDouble;
 begin
      assert(numBytes mod 8 = 0, 'error only multiple of sizeof(double) allowed');
      // normally getMemory should return aligned bytes ->
      // but just in case:
      ptr := A;
-     while (NumBytes > 0) and ( (TASMNativeUInt(ptr) and $1F) <> 0 ) do
+     while (NumBytes > 0) and ( (NativeUint(ptr) and $1F) <> 0 ) do
      begin
           ptr^ := Value;
           inc(ptr);
@@ -564,19 +564,19 @@ begin
         memInitfunc(ptr, NumBytes, Value);
 end;
 
-procedure MatrixCopy(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure MatrixCopy(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt);
 begin
      assert((width > 0) and (height > 0) and (destLineWidth >= width*sizeof(double)) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
      copyFunc(dest, destLineWidth, Src, srcLineWidth, width, height);
 end;
 
-procedure MatrixCopy(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt);
+procedure MatrixCopy(var dest : Array of double; const Src : Array of double; width, height : NativeInt);
 begin
      assert((width > 0) and (height > 0) and (Length(dest) = Length(src)) and (length(src) = width*height), 'Dimension error');
      copyFunc(@dest[0], width*sizeof(double), @src[0], width*sizeof(double), width, height);
 end;
 
-function MatrixCopy(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt) : TDoubleDynArray;
+function MatrixCopy(Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt) : TDoubleDynArray;
 begin
      assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
      SetLength(Result, width*height);
@@ -584,26 +584,26 @@ begin
      copyFunc(@Result[0], width*sizeof(double), Src, srcLineWidth, width, height);
 end;
 
-function MatrixCopy(const Src : Array of double; width, height : TASMNativeInt) : TDoubleDynArray;
+function MatrixCopy(const Src : Array of double; width, height : NativeInt) : TDoubleDynArray;
 begin
      assert((width > 0) and (height > 0) and (length(src) = width*height), 'Dimension error');
      SetLength(Result, width*height);
      copyfunc(@Result[0],  width*sizeof(double), @Src[0], width*sizeof(double), width, height);
 end;
 
-procedure MatrixIndex(dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; colIdx, rowIdx : TIntegerDynArray);
+procedure MatrixIndex(dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; colIdx, rowIdx : TIntegerDynArray);
 begin
      GenericMtxIndex( dest, destLineWidth, src, srcLineWidth, colIdx, rowIdx );
 end;
 
-procedure MatrixInit(dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; const value : Double);
+procedure MatrixInit(dest : PDouble; const destLineWidth : NativeInt; Width, Height : NativeInt; const value : Double);
 begin
      assert((width > 0) and (height > 0) and (destLineWidth >= width*sizeof(double)), 'Dimension error');
 
      initfunc( dest, destLineWidth, width, height, Value);
 end;
 
-function MatrixAdd(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray;
+function MatrixAdd(mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt) : TDoubleDynArray;
 begin
      assert((width > 0) and (height > 0), 'Dimension error');
 
@@ -611,29 +611,29 @@ begin
      addFunc(@Result[0], sizeof(double)*Width, mt1, mt2, width, height, LineWidth1, LineWidth2);
 end;
 
-procedure MatrixAddVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+procedure MatrixAddVec(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt; rowWise : Boolean);
 begin
      addVecFunc(A, LineWidthA, B, incX, width, Height, rowWise);
 end;
 
-procedure MatrixRowSwap(A, B : PDouble; width : TASMNativeInt);
+procedure MatrixRowSwap(A, B : PDouble; width : NativeInt);
 begin
      assert((width > 0), 'Dimension error');
 
      rowSwapFunc(A, B, width);
 end;
 
-procedure MatrixColSwap(A, B : PDouble; const LineWidthAB : TASMNativeInt; Height : TASMNativeInt);
+procedure MatrixColSwap(A, B : PDouble; const LineWidthAB : NativeInt; Height : NativeInt);
 begin
      colswapFunc(A, B, LineWidthAB, Height);
 end;
 
-procedure MatrixAdd(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
+procedure MatrixAdd(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
 begin
      addFunc(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2);
 end;
 
-function MatrixAdd(const mt1, mt2 : array of double; width : TASMNativeInt) : TDoubleDynArray;
+function MatrixAdd(const mt1, mt2 : array of double; width : NativeInt) : TDoubleDynArray;
 begin
      assert((width > 0), 'Dimension Error');
      assert(High(mt1) >= width + 1, 'Dimension Error');
@@ -642,7 +642,7 @@ begin
      Result := MatrixAdd(@mt1[0], @mt2[0], width, (High(mt1) + 1) div width, width*sizeof(double), width*sizeof(double));
 end;
 
-procedure MatrixAdd(var dest : Array of double; const mt1, mt2 : Array of double; width : TASMNativeInt);
+procedure MatrixAdd(var dest : Array of double; const mt1, mt2 : Array of double; width : NativeInt);
 begin
      assert((width > 0), 'Dimension Error');
      assert(High(mt1) >= width + 1, 'Dimension Error');
@@ -652,7 +652,7 @@ begin
      addFunc(@dest[0], width*sizeof(double), @mt1[0], @mt2[0], width, (High(mt1) + 1) div width, width*sizeof(double), width*sizeof(double));
 end;
 
-function MatrixSub(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray;
+function MatrixSub(mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt) : TDoubleDynArray;
 begin
      assert((width > 0) and (height > 0), 'Dimension error');
 
@@ -660,22 +660,22 @@ begin
      SubFunc(@Result[0], sizeof(double)*Width, mt1, mt2, width, height, LineWidth1, LineWidth2);
 end;
 
-procedure MatrixSubT(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; LineWidthB : TASMNativeInt; width, height : TASMNativeInt);
+procedure MatrixSubT(A : PDouble; LineWidthA : NativeInt; B : PDouble; LineWidthB : NativeInt; width, height : NativeInt);
 begin
      subTFunc(A, LineWidthA, B, LineWidthB, width, height);
 end;
 
-procedure MatrixSubVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+procedure MatrixSubVec(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt; rowWise : Boolean);
 begin
      subVecFunc(A, LineWidthA, B, incX, width, height, RowWise);
 end;
 
-procedure MatrixSub(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
+procedure MatrixSub(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
 begin
      SubFunc(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2);
 end;
 
-function MatrixSub(const mt1, mt2 : array of double; width : TASMNativeInt) : TDoubleDynArray;
+function MatrixSub(const mt1, mt2 : array of double; width : NativeInt) : TDoubleDynArray;
 begin
      assert((width > 0), 'Dimension Error');
      assert(High(mt1) >= width + 1, 'Dimension Error');
@@ -684,7 +684,7 @@ begin
      Result := MatrixSub(@mt1[0], @mt2[0], width, (High(mt1) + 1) div width, width*sizeof(double), width*sizeof(double));
 end;
 
-procedure MatrixSub(var dest : Array of double; const mt1, mt2 : Array of double; width : TASMNativeInt);
+procedure MatrixSub(var dest : Array of double; const mt1, mt2 : Array of double; width : NativeInt);
 begin
      assert((width > 0), 'Dimension Error');
      assert(High(mt1) >= width + 1, 'Dimension Error');
@@ -694,14 +694,14 @@ begin
      subFunc(@dest[0], width*sizeof(double), @mt1[0], @mt2[0], width, (High(mt1) + 1) div width, width*sizeof(double), width*sizeof(double));
 end;
 
-function MatrixMult(mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray;
+function MatrixMult(mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt) : TDoubleDynArray;
 begin
      assert((width1 > 0) and (height1 > 0) and (width1 = height2), 'Dimension error');
      SetLength(Result, Height1*width2);
      MatrixMult(@Result[0], sizeof(double)*Width2, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2);
 end;
 
-procedure MatrixMult(var dest : Array of Double; mt1, mt2 : Array of double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt);
+procedure MatrixMult(var dest : Array of Double; mt1, mt2 : Array of double; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt);
 begin
      assert((width1 > 0) and (height1 > 0), 'Dimension Error');
      assert((width2 > 0) and (height2 > 0), 'Dimension Error');
@@ -710,7 +710,7 @@ begin
      MatrixMult(@dest[0], width2*sizeof(double), @mt1[0], @mt2[0], width1, height1, width2, height2, width1*sizeof(double), width2*sizeof(double));
 end;
 
-function MatrixMult(const mt1, mt2 : Array of Double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt) : TDoubleDynArray;
+function MatrixMult(const mt1, mt2 : Array of Double; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt) : TDoubleDynArray;
 begin
      assert((width1 > 0) and (height1 > 0), 'Dimension Error');
      assert((width2 > 0) and (height2 > 0), 'Dimension Error');
@@ -721,8 +721,8 @@ begin
      MatrixMult(@Result[0], width2*sizeof(double), @mt1[0], @mt2[0], width1, height1, width2, height2, width1*sizeof(double), width2*sizeof(double));
 end;
 
-procedure MatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
-var multBlockSize : TASMNativeInt;
+procedure MatrixMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
+var multBlockSize : NativeInt;
 begin
      multBlockSize := BlockedMatrixMultSize*BlockedMatrixMultSize;
      if ((width1 >= BlockedMatrixMultSize) and (height1 >= BlockedMatrixMultSize) and (height2 >= BlockedMatrixMultSize)) or
@@ -733,20 +733,20 @@ begin
          multFunc(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2);
 end;
 
-procedure MatrixMultEx(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble); overload;
+procedure MatrixMultEx(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : PDouble); overload;
 begin
      blockedMultFunc(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, blockSize, op, mem);
 end;
 
 // mt1' * mt2
-function MatrixMultT1(mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray;
+function MatrixMultT1(mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt) : TDoubleDynArray;
 begin
      assert((width1 > 0) and (height1 > 0) and (height1 = height2), 'Dimension error');
      SetLength(Result, width1*width2);
      MatrixMultT1(@Result[0], sizeof(double)*Width2, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2);
 end;
 
-procedure MatrixMultT1(var dest : Array of Double; mt1, mt2 : Array of double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt);
+procedure MatrixMultT1(var dest : Array of Double; mt1, mt2 : Array of double; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt);
 begin
      assert((width1 > 0) and (height1 > 0), 'Dimension Error');
      assert((width2 > 0) and (height2 > 0), 'Dimension Error');
@@ -756,7 +756,7 @@ begin
      MatrixMultT1(@dest[0], width2*sizeof(double), @mt1[0], @mt2[0], width1, height1, width2, height2, width1*sizeof(double), width2*sizeof(double));
 end;
 
-function MatrixMultT1(const mt1, mt2 : Array of Double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt) : TDoubleDynArray;
+function MatrixMultT1(const mt1, mt2 : Array of Double; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt) : TDoubleDynArray;
 begin
      assert((width1 > 0) and (height1 > 0), 'Dimension Error');
      assert((width2 > 0) and (height2 > 0), 'Dimension Error');
@@ -767,27 +767,27 @@ begin
      MatrixMultT1(@Result[0], width2*sizeof(double), @mt1[0], @mt2[0], width1, height1, width2, height2, width1*sizeof(double), width2*sizeof(double));
 end;
 
-procedure MatrixMultT1(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure MatrixMultT1(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
 begin
      assert((width1 > 0) and (height1 > 0), 'Dimension Error');
      assert((width2 > 0) and (height2 > 0), 'Dimension Error');
      blockedMultT1Func(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, BlockMatrixCacheSize, doNone, nil);
 end;
 
-procedure MatrixMultT1Ex(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble); overload;
+procedure MatrixMultT1Ex(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : PDouble); overload;
 begin
      blockedMultT1Func(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, blockSize, op, mem);
 end;
 
 // mt1 * mt2'
-function MatrixMultT2(mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray;
+function MatrixMultT2(mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt) : TDoubleDynArray;
 begin
      assert((width1 > 0) and (height1 > 0) and (height1 = height2), 'Dimension error');
      SetLength(Result, height1*height2);
      MatrixMultT2(@Result[0], sizeof(double)*height2, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2);
 end;
 
-procedure MatrixMultT2(var dest : Array of Double; mt1, mt2 : Array of double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt);
+procedure MatrixMultT2(var dest : Array of Double; mt1, mt2 : Array of double; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt);
 begin
      assert((width1 > 0) and (height1 > 0), 'Dimension Error');
      assert((width2 > 0) and (height2 > 0), 'Dimension Error');
@@ -797,7 +797,7 @@ begin
      MatrixMultT2(@dest[0], height2*sizeof(double), @mt1[0], @mt2[0], width1, height1, width2, height2, width1*sizeof(double), width2*sizeof(double));
 end;
 
-function MatrixMultT2(const mt1, mt2 : Array of Double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt) : TDoubleDynArray;
+function MatrixMultT2(const mt1, mt2 : Array of Double; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt) : TDoubleDynArray;
 begin
      assert((width1 > 0) and (height1 > 0), 'Dimension Error');
      assert((width2 > 0) and (height2 > 0), 'Dimension Error');
@@ -808,121 +808,121 @@ begin
      MatrixMultT2(@Result[0], height2*sizeof(double), @mt1[0], @mt2[0], width1, height1, width2, height2, width1*sizeof(double), width2*sizeof(double));
 end;
 
-procedure MatrixMultT2(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure MatrixMultT2(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
 begin
      assert((width1 > 0) and (height1 > 0), 'Dimension Error');
      assert((width2 > 0) and (height2 > 0), 'Dimension Error');
      multT2Func(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2);
 end;
 
-procedure MatrixMultT2Ex(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; blockSize : TASMNativeInt; op : TMatrixMultDestOperation; mem : PDouble); overload;
+procedure MatrixMultT2Ex(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : PDouble); overload;
 begin
      blockedMultT2Func(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, blockSize, op, mem);
 end;
 
-procedure MatrixMultTria2T1(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+procedure MatrixMultTria2T1(dest : PDouble; LineWidthDest : NativeInt; mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
 begin
      multTria2T1Func(dest, LineWidthDest, mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
 end;
 
-procedure MtxMultRightUpperTriaNoUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+procedure MtxMultRightUpperTriaNoUnitT2(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
 begin
      multRightUpperTriaNoUnitT2Func(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
 end;
 
-procedure MtxMultRightUpperTriaNoUnit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+procedure MtxMultRightUpperTriaNoUnit(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
 begin
      multRightUpperTriaNoUnitFunc(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
 end;
 
-procedure MtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : TASMNativeInt; mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+procedure MtxMultTria2TUpperUnit(dest : PDouble; LineWidthDest : NativeInt; mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
 begin
      multTria2TUpperUnitFunc(dest, LineWidthDest, mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
 end;
 
-procedure MtxMultRightLowerTriaUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+procedure MtxMultRightLowerTriaUnitT2(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
 begin
      multRightLowerTriaUnitT2Func(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
 end;
 
-procedure MtxMultRightUpperTriaUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+procedure MtxMultRightUpperTriaUnitT2(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
 begin
      multRightUpperTriaUnitT2Func(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
 end;
 
-procedure MtxMultRightLowerTriaNoUnitT2(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+procedure MtxMultRightLowerTriaNoUnitT2(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
 begin
      multRightLowerTriaNoUnitT2Func(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
 end;
 
-procedure MtxMultRightUpperTriaUnit(mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+procedure MtxMultRightUpperTriaUnit(mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
 begin
      multRightUpperTriaUnitFunc(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
 end;
 
-procedure MtxMultRightLowerTriaUnit( mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+procedure MtxMultRightLowerTriaUnit( mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
 begin
      multRightLowerTriaUnitFunc(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
 end;
 
-procedure MtxMultRightLowerTriaNoUnit( mt1 : PDouble; LineWidth1 : TASMNativeInt; mt2 : PDouble; LineWidth2 : TASMNativeInt;
-  width1, height1, width2, height2 : TASMNativeInt);
+procedure MtxMultRightLowerTriaNoUnit( mt1 : PDouble; LineWidth1 : NativeInt; mt2 : PDouble; LineWidth2 : NativeInt;
+  width1, height1, width2, height2 : NativeInt);
 begin
      multRightLowerTriaNoUnitFunc(mt1, LineWidth1, mt2, LineWidth2, width1, height1, width2, height2);
 end;
 
-procedure MtxMultUpTranspNoUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; IncX : TASMNativeInt; len : TASMNativeInt);
+procedure MtxMultUpTranspNoUnitVec( mt1 : PDouble; LineWidth1 : NativeInt; x : PDouble; IncX : NativeInt; len : NativeInt);
 begin
      multUpTranspNoUnitVecFunc(mt1, LineWidth1, x, incX, len);
 end;
 
-procedure MtxMultLowTranspUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; IncX : TASMNativeInt; len : TASMNativeInt);
+procedure MtxMultLowTranspUnitVec( mt1 : PDouble; LineWidth1 : NativeInt; x : PDouble; IncX : NativeInt; len : NativeInt);
 begin
      multLowTranspUnitVecFunc(mt1, LineWidth1, x, incX, len);
 end;
 
-procedure MtxMultLowNoTranspUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; IncX : TASMNativeInt; len : TASMNativeInt);
+procedure MtxMultLowNoTranspUnitVec( mt1 : PDouble; LineWidth1 : NativeInt; x : PDouble; IncX : NativeInt; len : NativeInt);
 begin
      multLowNoTranspUnitVecFunc(mt1, LineWidth1, x, incX, len);
 end;
 
-procedure MtxMultLowNoTranspNoUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; IncX : TASMNativeInt; len : TASMNativeInt);
+procedure MtxMultLowNoTranspNoUnitVec( mt1 : PDouble; LineWidth1 : NativeInt; x : PDouble; IncX : NativeInt; len : NativeInt);
 begin
      multLowNoTranspNoUnitVecFunc(mt1, LineWidth1, x, incX, len);
 end;
 
 
-procedure MtxMultUpNoTranspNoUnitVec( mt1 : PDouble; LineWidth1 : TASMNativeInt; x : PDouble; incX : TASMNativeInt; len : TASMNativeInt);
+procedure MtxMultUpNoTranspNoUnitVec( mt1 : PDouble; LineWidth1 : NativeInt; x : PDouble; incX : NativeInt; len : NativeInt);
 begin
      multUpNoTranspNoUnitVecFunc(mt1, LineWidth1, x, incX, len);
 end;
 
-procedure MatrixMtxVecMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure MatrixMtxVecMult(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double);
 begin
      MtxVecMultFunc(dest, destLineWidth, mt1, V, LineWidthMT, LineWidthV, width, height, alpha, beta);
 end;
 
-procedure MatrixMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure MatrixMtxVecMultT(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double);
 begin
      MtxVecMultTFunc(dest, destLineWidth, mt1, V, LineWidthMT, LineWidthV, width, height, alpha, beta);
 end;
 
-procedure MatrixMtxVecMultUpperSym(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; N : TASMNativeInt; alpha, beta : double);
+procedure MatrixMtxVecMultUpperSym(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; N : NativeInt; alpha, beta : double);
 begin
      if N > 0 then
         MtxVecMultUpperSymFunc(dest, destLineWidth, mt1, V, LineWidthMT, LineWidthV, N, alpha, beta);
 end;
 
-function MatrixVecDotMult(  x : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt ) : double;
+function MatrixVecDotMult(  x : PDouble; incX : NativeInt; y : PDouble; incY : NativeInt; N : NativeInt ) : double;
 begin
      if N > 0 then
      begin
@@ -938,19 +938,19 @@ begin
          Result := 0;
 end;
 
-procedure MatrixVecAdd( X : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt; const alpha : double );
+procedure MatrixVecAdd( X : PDouble; incX : NativeInt; y : PDouble; incY : NativeInt; N : NativeInt; const alpha : double );
 begin
      if N > 0 then
         MatrixVecAddFunc( X, incX, Y, incY, N, alpha );
 end;
 
-procedure MatrixMtxVecMultLowerSym(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; N : TASMNativeInt; alpha, beta : double);
+procedure MatrixMtxVecMultLowerSym(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; N : NativeInt; alpha, beta : double);
 begin
      MtxVecMultLowerSymFunc(dest, destLineWidth, mt1, V, LineWidthMT, LineWidthV, N, alpha, beta);
 end;
 
-procedure MatrixRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+procedure MatrixRank1Update(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
+  const alpha : double; X, Y : PDouble; incX, incY : NativeInt);
 begin
      if (width <= 0) or (height <= 0) then
         exit;
@@ -958,8 +958,8 @@ begin
      Rank1UpdateFunc(A, LineWidthA, width, height, x, y, incx, incy, alpha)
 end;
 
-procedure MatrixUpperSymRank2Update( C : PDouble; LineWidthC : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
-  B : PDouble; LineWidthB : TASMNativeInt; N : TASMNativeInt; k : TASMNativeInt );
+procedure MatrixUpperSymRank2Update( C : PDouble; LineWidthC : NativeInt; A : PDouble; LineWidthA : NativeInt;
+  B : PDouble; LineWidthB : NativeInt; N : NativeInt; k : NativeInt );
 begin
      if (N = 0) or (k = 0) then
         exit;
@@ -967,12 +967,12 @@ begin
      SymRank2UpdateFunc( C, LineWidthC, A, LineWidthA, B, LineWidthB, N, k );
 end;
 
-procedure MatrixElemMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
+procedure MatrixElemMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
 begin
      elemWiseFunc(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2);
 end;
 
-function MatrixElemMult(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
+function MatrixElemMult(mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt) : TDoubleDynArray; overload;
 begin
      assert((width > 0) and (height > 0), 'Dimension error');
 
@@ -980,7 +980,7 @@ begin
      elemWiseFunc(@Result[0], sizeof(double)*Width, mt1, mt2, width, height, LineWidth1, LineWidth2);
 end;
 
-procedure MatrixElemMult(var dest : Array of Double; const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt); overload;
+procedure MatrixElemMult(var dest : Array of Double; const mt1, mt2 : Array of Double; width : NativeInt; height : NativeInt); overload;
 begin
      assert((width > 0), 'Dimension Error');
      assert(High(mt1) >= width + 1, 'Dimension Error');
@@ -990,17 +990,17 @@ begin
      elemWiseFunc(@dest[0], width*sizeof(double), @mt1[0], @mt2[0], width, Height, width*sizeof(double), width*sizeof(double));
 end;
 
-function MatrixElemMult(const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
+function MatrixElemMult(const mt1, mt2 : Array of Double; width : NativeInt; height : NativeInt) : TDoubleDynArray; overload;
 begin
      Result := MatrixElemMult(@mt1[0], @mt2[0], width, height, width*sizeof(double), width*sizeof(double));
 end;
 
-procedure MatrixElemDiv(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
+procedure MatrixElemDiv(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
 begin
      elemWiseDivFunc(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2);
 end;
 
-function MatrixElemDiv(mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
+function MatrixElemDiv(mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt) : TDoubleDynArray; overload;
 begin
      assert((width > 0) and (height > 0), 'Dimension error');
 
@@ -1008,7 +1008,7 @@ begin
      elemWiseDivFunc(@Result[0], sizeof(double)*Width, mt1, mt2, width, height, LineWidth1, LineWidth2);
 end;
 
-procedure MatrixElemDiv(var dest : Array of Double; const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt); overload;
+procedure MatrixElemDiv(var dest : Array of Double; const mt1, mt2 : Array of Double; width : NativeInt; height : NativeInt); overload;
 begin
      assert((width > 0), 'Dimension Error');
      assert(High(mt1) >= width + 1, 'Dimension Error');
@@ -1018,44 +1018,44 @@ begin
      elemWiseDivFunc(@dest[0], width*sizeof(double), @mt1[0], @mt2[0], width, height, width*sizeof(double), width*sizeof(double));
 end;
 
-function MatrixElemDiv(const mt1, mt2 : Array of Double; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
+function MatrixElemDiv(const mt1, mt2 : Array of Double; width : NativeInt; height : NativeInt) : TDoubleDynArray; overload;
 begin
      Result := MatrixElemDiv(@mt1[0], @mt2[0], width, height, width*sizeof(double), width*sizeof(double));
 end;
 
 
 
-function MatrixTranspose(mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray; overload;
+function MatrixTranspose(mt : PDouble; const LineWidth : NativeInt; width : NativeInt; height : NativeInt) : TDoubleDynArray; overload;
 begin
      assert((width > 0) and (height > 0) and (LineWidth >= width*sizeof(double)), 'Dimension Error');
      SetLength(Result, height*width);
      transposeFunc(@Result[0], height*sizeof(double), mt, LineWidth, width, height);
 end;
 
-procedure MatrixTranspose(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+procedure MatrixTranspose(dest : PDouble; const destLineWidth : NativeInt; mt : PDouble; const LineWidth : NativeInt; width : NativeInt; height : NativeInt);
 begin
      assert((width > 0) and (height > 0) and (LineWidth >= width*sizeof(double)) and (destLineWidth >= height*sizeof(double)), 'Dimension Error');
      transposeFunc(dest, destLineWidth, mt, LineWidth, width, height);
 end;
 
-function MatrixTranspose(const mt : Array of Double; width : TASMNativeInt; height : TASMNativeInt) : TDoubleDynArray;
+function MatrixTranspose(const mt : Array of Double; width : NativeInt; height : NativeInt) : TDoubleDynArray;
 begin
      assert((width > 0) and (height > 0) and (Length(mt) = width*height), 'Dimension Error');
      Result := MatrixTranspose(@mt[0], width*sizeof(double), width, height);
 end;
 
-procedure MatrixTranspose(var dest : Array of Double; const mt : Array of Double; width : TASMNativeInt; height : TASMNativeInt);
+procedure MatrixTranspose(var dest : Array of Double; const mt : Array of Double; width : NativeInt; height : NativeInt);
 begin
      assert((width > 0) and (height > 0) and (Length(mt) = width*height) and (length(dest) = Length(mt)), 'Dimension Error');
      transposeFunc(@dest[0], height*sizeof(double), @mt[0], width, height, width*sizeof(double));
 end;
 
-procedure MatrixTransposeInplace(mt : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt);
+procedure MatrixTransposeInplace(mt : PDouble; const LineWidth : NativeInt; N : NativeInt);
 begin
      TransposeInplaceFunc(mt, LineWidth, N);
 end;
 
-function MatrixMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function MatrixMax(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 begin
      assert((width > 0) and (height > 0) and (LineWidth >= width*sizeof(double)), 'Dimension error');
 
@@ -1066,7 +1066,7 @@ begin
          Result := maxFunc(mt, width, height, LineWidth);
 end;
 
-function MatrixMin(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function MatrixMin(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 begin
      assert((width > 0) and (height > 0) and (LineWidth >= width*sizeof(double)), 'Dimension error');
 
@@ -1077,7 +1077,7 @@ begin
          Result := minFunc(mt, width, height, LineWidth);
 end;
 
-function MatrixAbsMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function MatrixAbsMax(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 begin
      assert((width > 0) and (height > 0) and (LineWidth >= width*sizeof(double)), 'Dimension error');
 
@@ -1088,7 +1088,7 @@ begin
          Result := absMinFunc(mt, width, height, LineWidth);
 end;
 
-function MatrixAbsMin(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function MatrixAbsMin(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 begin
      assert((width > 0) and (height > 0) and (LineWidth >= width*sizeof(double)), 'Dimension error');
 
@@ -1100,7 +1100,7 @@ begin
 end;
 
 
-function MatrixMaxUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+function MatrixMaxUpper( mt : PDouble; N : NativeInt; const LineWidth : NativeInt ) : double;
 begin
      assert((N > 0) and (LineWidth >= N*sizeof(double)), 'Dimension error');
 
@@ -1111,7 +1111,7 @@ begin
          Result := maxUpperFunc(mt, N, LineWidth );
 end;
 
-function MatrixMinUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+function MatrixMinUpper( mt : PDouble; N : NativeInt; const LineWidth : NativeInt ) : double;
 begin
      assert((N > 0) and (LineWidth >= N*sizeof(double)), 'Dimension error');
 
@@ -1122,7 +1122,7 @@ begin
          Result := minUpperFunc(mt, N, LineWidth );
 end;
 
-function MatrixMaxLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+function MatrixMaxLower( mt : PDouble; N : NativeInt; const LineWidth : NativeInt ) : double;
 begin
      assert((N > 0) and (LineWidth >= N*sizeof(double)), 'Dimension error');
 
@@ -1133,7 +1133,7 @@ begin
          Result := maxLowerFunc(mt, N, LineWidth );
 end;
 
-function MatrixMinLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+function MatrixMinLower( mt : PDouble; N : NativeInt; const LineWidth : NativeInt ) : double;
 begin
      assert((N > 0) and (LineWidth >= N*sizeof(double)), 'Dimension error');
 
@@ -1144,7 +1144,7 @@ begin
          Result := minLowerFunc(mt, N, LineWidth );
 end;
 
-function MatrixAbsMaxUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+function MatrixAbsMaxUpper( mt : PDouble; N : NativeInt; const LineWidth : NativeInt ) : double;
 begin
      assert((N > 0) and (LineWidth >= N*sizeof(double)), 'Dimension error');
 
@@ -1155,7 +1155,7 @@ begin
          Result := absMaxUpperFunc(mt, N, LineWidth );
 end;
 
-function MatrixAbsMinUpper( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+function MatrixAbsMinUpper( mt : PDouble; N : NativeInt; const LineWidth : NativeInt ) : double;
 begin
      assert((N > 0) and (LineWidth >= N*sizeof(double)), 'Dimension error');
 
@@ -1166,7 +1166,7 @@ begin
          Result := absMinUpperFunc(mt, N, LineWidth );
 end;
 
-function MatrixAbsMaxLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+function MatrixAbsMaxLower( mt : PDouble; N : NativeInt; const LineWidth : NativeInt ) : double;
 begin
      assert((N > 0) and (LineWidth >= N*sizeof(double)), 'Dimension error');
 
@@ -1177,7 +1177,7 @@ begin
          Result := absMaxLowerFunc(mt, N, LineWidth );
 end;
 
-function MatrixAbsMinLower( mt : PDouble; N : TASMNativeInt; const LineWidth : TASMNativeInt ) : double;
+function MatrixAbsMinLower( mt : PDouble; N : NativeInt; const LineWidth : NativeInt ) : double;
 begin
      assert((N > 0) and (LineWidth >= N*sizeof(double)), 'Dimension error');
 
@@ -1189,84 +1189,84 @@ begin
 end;
 
 
-function MatrixNormalize(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray;
+function MatrixNormalize(Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray;
 begin
      assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
      SetLength(Result, width*height);
      MatrixNormalize(@Result[0], width*sizeof(double), src, srcLineWidth, width, height, RowWise);
 end;
 
-function MatrixNormalize(const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray;
+function MatrixNormalize(const Src : Array of double; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray;
 begin
      assert((width > 0) and (height > 0) and (Length(src) >= width*height), 'Dimension error');
      Result := MatrixNormalize(@Src[0], width*sizeof(double), width, height, RowWise);
 end;
 
-procedure MatrixNormalize(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure MatrixNormalize(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
 begin
      assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and (destLineWidth >= width*sizeof(double)), 'Dimension error');
      matrixNormalizeFunc(dest, destLineWidth, Src, srcLineWidth, width, height, RowWise);
 end;
 
-procedure MatrixNormalize(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean);
+procedure MatrixNormalize(var dest : Array of double; const Src : Array of double; width, height : NativeInt; RowWise : boolean);
 begin
      assert((width > 0) and (height > 0) and (Length(dest) >= width*height) and (Length(src) >= width*height), 'Dimension error');
      MatrixNormalize(@dest[0], width*sizeof(double), @src[0], width*sizeof(double), width, height, RowWise);
 end;
 
-function MatrixMean(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
+function MatrixMean(Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray; overload;
 begin
      assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
      SetLength(Result, width*height);
      MatrixMean(@Result[0], width*sizeof(double), src, srcLineWidth, width, height, RowWise);
 end;
 
-function MatrixMean(const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
+function MatrixMean(const Src : Array of double; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray; overload;
 begin
      assert((width > 0) and (height > 0) and (Length(src) >= width*height), 'Dimension error');
      Result := MatrixMean(@Src[0], width*sizeof(double), width, height, RowWise);
 end;
 
-procedure MatrixMean(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean); overload;
+procedure MatrixMean(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean); overload;
 begin
      assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
      assert((RowWise and (destLineWidth >= sizeof(double))) or (not RowWise and (destLineWidth >= width*sizeof(double))), 'Dimension error');
      matrixMeanFunc(dest, destLineWidth, Src, srcLineWidth, width, height, RowWise);
 end;
 
-procedure MatrixMean(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean); overload;
+procedure MatrixMean(var dest : Array of double; const Src : Array of double; width, height : NativeInt; RowWise : boolean); overload;
 begin
      assert((width > 0) and (height > 0) and (Length(dest) >= width*height) and (Length(src) >= width*height), 'Dimension error');
      MatrixMean(@dest[0], width*sizeof(double), @src[0], width*sizeof(double), width, height, RowWise);
 end;
 
-function MatrixMedian(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
+function MatrixMedian(Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray; overload;
 begin
      assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
      SetLength(Result, width*height);
      MatrixMedian(@Result[0], width*sizeof(double), src, srcLineWidth, width, height, RowWise, nil);
 end;
 
-function MatrixMedian(const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
+function MatrixMedian(const Src : Array of double; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray; overload;
 begin
      assert((width > 0) and (height > 0) and (Length(src) >= width*height), 'Dimension error');
      Result := MatrixMedian(@Src[0], width*sizeof(double), width, height, RowWise);
 end;
 
-procedure MatrixMedian(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; hlpMem : PDouble); overload;
+procedure MatrixMedian(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; hlpMem : PDouble); overload;
 begin
      assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
      assert((RowWise and (destLineWidth >= sizeof(double))) or (not RowWise and (destLineWidth >= width*sizeof(double))), 'Dimension error');
      matrixMedianFunc(dest, destLineWidth, Src, srcLineWidth, width, height, RowWise, hlpMem);
 end;
 
-procedure MatrixMedian(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean); overload;
+procedure MatrixMedian(var dest : Array of double; const Src : Array of double; width, height : NativeInt; RowWise : boolean); overload;
 begin
      assert((width > 0) and (height > 0) and (Length(dest) >= width*height) and (Length(src) >= width*height), 'Dimension error');
      MatrixMedian(@dest[0], width*sizeof(double), @src[0], width*sizeof(double), width, height, RowWise, nil);
 end;
 
-procedure MatrixRollMedian( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; order : integer; rowWise : boolean);
+procedure MatrixRollMedian( dest : PDouble; const destLineWidth : NativeInt; Width, Height : NativeInt; order : integer; rowWise : boolean);
 var rollMed : TRollingMedian;
     i : Integer;
 begin
@@ -1297,7 +1297,7 @@ begin
      end;
 end;
 
-procedure MatrixSort(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; hlpMem : PDouble = nil);
+procedure MatrixSort(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; hlpMem : PDouble = nil);
 begin
      if (width <= 0) or (height <= 0) then
         exit;
@@ -1305,53 +1305,53 @@ begin
      matrixSortFunc(dest, destLineWidth, width, height, RowWise, hlpMem);
 end;
 
-function MatrixVar(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean) : TDoubleDynArray; overload;
+function MatrixVar(Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; unbiased : boolean) : TDoubleDynArray; overload;
 begin
      assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
      SetLength(Result, width*height);
      MatrixVar(@Result[0], width*sizeof(double), src, srcLineWidth, width, height, RowWise, unbiased);
 end;
 
-function MatrixVar(const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean) : TDoubleDynArray; overload;
+function MatrixVar(const Src : Array of double; width, height : NativeInt; RowWise : boolean; unbiased : boolean) : TDoubleDynArray; overload;
 begin
      assert((width > 0) and (height > 0) and (Length(src) >= width*height), 'Dimension error');
      Result := MatrixVar(@Src[0], width*sizeof(double), width, height, RowWise, unbiased);
 end;
 
-procedure MatrixVar(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean); overload;
+procedure MatrixVar(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; unbiased : boolean); overload;
 begin
      assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
      assert((RowWise and (destLineWidth >= sizeof(double))) or (not RowWise and (destLineWidth >= width*sizeof(double))), 'Dimension error');
      matrixVarFunc(dest, destLineWidth, Src, srcLineWidth, width, height, RowWise, unbiased);
 end;
 
-procedure MatrixVar(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean); overload;
+procedure MatrixVar(var dest : Array of double; const Src : Array of double; width, height : NativeInt; RowWise : boolean; unbiased : boolean); overload;
 begin
      assert((width > 0) and (height > 0) and (Length(dest) >= width*height) and (Length(src) >= width*height), 'Dimension error');
      MatrixVar(@dest[0], width*sizeof(double), @src[0], width*sizeof(double), width, height, RowWise, unbiased);
 end;
 
-function MatrixSum(Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
+function MatrixSum(Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray; overload;
 begin
      assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
      SetLength(Result, width*height);
      MatrixSum(@Result[0], width*sizeof(double), src, srcLineWidth, width, height, RowWise);
 end;
 
-procedure VecMeanVar( var dest : TMeanVarRec; vec : PDouble; width : TASMNativeInt; unbiased : boolean);  
+procedure VecMeanVar( var dest : TMeanVarRec; vec : PDouble; width : NativeInt; unbiased : boolean);  
 begin
      MatrixMeanVar( @dest, sizeof(dest), vec, width*sizeof(double), width, 1, True, unbiased);
 end;
 
-procedure MatrixMeanVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
+procedure MatrixMeanVar(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; unbiased : boolean);
 begin
      assert((RowWise and (destLineWidth >= 2*sizeof(double))) or (not RowWise and (destLineWidth >= width*sizeof(double))), 'Dimension error');
      matrixMeanVarFunc(dest, destLineWidth, Src, srcLineWidth, width, height, RowWise, unbiased);
 end;
 
-procedure MatrixNormalizeMeanVar(dest : PDouble; destLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure MatrixNormalizeMeanVar(dest : PDouble; destLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
 var meanVar : TDoubleDynArray;
-    x, y : TASMNativeInt;
+    x, y : NativeInt;
     invstdDev : double;
 const cMinVar = 1e-300;
 begin
@@ -1387,13 +1387,13 @@ begin
      end;
 end;
 
-function MatrixSum(const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean) : TDoubleDynArray; overload;
+function MatrixSum(const Src : Array of double; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray; overload;
 begin
      assert((width > 0) and (height > 0) and (Length(src) >= width*height), 'Dimension error');
      Result := MatrixSum(@Src[0], width*sizeof(double), width, height, RowWise);
 end;
 
-procedure MatrixSum(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean); overload;
+procedure MatrixSum(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean); overload;
 begin
      assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)) and
             ( ((not rowWise) and (destLineWidth >= width*sizeof(double))) or
@@ -1401,7 +1401,7 @@ begin
      matrixSumFunc(dest, destLineWidth, Src, srcLineWidth, width, height, RowWise);
 end;
 
-procedure MatrixSum(var dest : Array of double; const Src : Array of double; width, height : TASMNativeInt; RowWise : boolean); overload;
+procedure MatrixSum(var dest : Array of double; const Src : Array of double; width, height : NativeInt; RowWise : boolean); overload;
 begin
      assert((width > 0) and (height > 0) and
              ( ((not rowWise) and (Length(dest) >= width)) or
@@ -1410,21 +1410,21 @@ begin
      MatrixSum(@dest[0], width*sizeof(double), @src[0], width*sizeof(double), width, height, RowWise);
 end;
 
-procedure MatrixCumulativeSum(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure MatrixCumulativeSum(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
 begin
      assert( (width > 0) and (height > 0), 'Dimension error');
       
      matrixCumulativeSumFunc(dest, destLineWidth, Src, srcLineWidth, width, height, RowWise);
 end;
 
-procedure MatrixDiff(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean); 
+procedure MatrixDiff(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean); 
 begin
      assert( (Width > 0) and (height > 0), 'Dimension error');
 
      matrixDiffFunc(dest, destLineWidth, Src, srcLineWidth, width, height, RowWise);
 end;
 
-procedure MatrixElemAdd( Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset : double );
+procedure MatrixElemAdd( Dest : PDouble; const LineWidth, Width, Height : NativeInt; const Offset : double );
 begin
      assert((width > 0) and (height > 0), 'Dimension error');
      assert(LineWidth >= width*sizeof(double), 'Line width error');
@@ -1432,7 +1432,7 @@ begin
      elemAddFunc(dest, linewidth, width, height, Offset);
 end;
 
-procedure MatrixAddAndScale(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
+procedure MatrixAddAndScale(Dest : PDouble; const LineWidth, Width, Height : NativeInt; const Offset, Scale : double);
 begin
      assert((width > 0) and (height > 0), 'Dimension error');
      assert(LineWidth >= width*sizeof(double), 'Line width error');
@@ -1440,7 +1440,7 @@ begin
      addScaleFunc(dest, linewidth, width, height, Offset, Scale);
 end;
 
-procedure MatrixScaleAndAdd(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; const Offset, Scale : double);
+procedure MatrixScaleAndAdd(Dest : PDouble; const LineWidth, Width, Height : NativeInt; const Offset, Scale : double);
 begin
      assert((width > 0) and (height > 0), 'Dimension error');
      assert(LineWidth >= width*sizeof(double), 'Line width error');
@@ -1448,7 +1448,7 @@ begin
      scaleAddFunc(dest, linewidth, width, height, Offset, Scale);
 end;
 
-procedure MatrixSQRT(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
+procedure MatrixSQRT(Dest : PDouble; const LineWidth, Width, Height : NativeInt);
 begin
      assert((width > 0) and (height > 0), 'Dimension error');
      assert(LineWidth >= width*sizeof(double), 'Line width error');
@@ -1456,7 +1456,7 @@ begin
      sqrtFunc(Dest, LineWidth, Width, Height);
 end;
 
-procedure MatrixAbs(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
+procedure MatrixAbs(Dest : PDouble; const LineWidth, Width, Height : NativeInt);
 begin
      assert((width > 0) and (height > 0), 'Dimension error');
      assert(LineWidth >= width*sizeof(double), 'Line width error');
@@ -1465,7 +1465,7 @@ begin
 end;
 
 // element wise eukledian norm
-function MatrixElementwiseNorm2(Src : PDouble; const srcLineWidth : TASMNativeInt; Width, height : TASMNativeInt; doSqrt : boolean) : double;
+function MatrixElementwiseNorm2(Src : PDouble; const srcLineWidth : NativeInt; Width, height : NativeInt; doSqrt : boolean) : double;
 begin
      assert((width > 0) and (height > 0), 'Dimension error');
      assert(srcLineWidth >= width*sizeof(double), 'Line width error');
@@ -1473,8 +1473,8 @@ begin
 end;
 
 
-procedure MatrixConvolve(dest : PDouble; const LineWidthDest : TASMNativeInt; A, B : PDouble; const LineWidthA : TASMNativeInt; width, height, veclen : TASMNativeInt; mem : Pointer = nil);
-var y : TASMNativeInt;
+procedure MatrixConvolve(dest : PDouble; const LineWidthDest : NativeInt; A, B : PDouble; const LineWidthA : NativeInt; width, height, veclen : NativeInt; mem : Pointer = nil);
+var y : NativeInt;
     revB : PConstDoubleArr;
     aMem : Pointer;
     cpuAlign : integer;
@@ -1546,34 +1546,34 @@ begin
         FreeMem(aMem);
 end;
 
-procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixFunc);
+procedure MatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixFunc);
 begin
      GenericMtxFunc(dest, destLineWidth, width, height, func);
 end;
 
-procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixObjFunc);
+procedure MatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixObjFunc);
 begin
      GenericMtxFunc(dest, destLineWidth, width, height, func);
 end;
 
-procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFunc);
+procedure MatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixMtxRefFunc);
 begin
      GenericMtxFunc(dest, destLineWidth, width, height, func);
 end;
 
-procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefObjFunc);
+procedure MatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixMtxRefObjFunc);
 begin
      GenericMtxFunc(dest, destLineWidth, width, height, func);
 end;
 
 {$IFDEF ANONMETHODS}
 
-procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixFuncRef); overload;
+procedure MatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixFuncRef); overload;
 begin
      GenericMtxFunc(dest, destLineWidth, width, height, func);
 end;
 
-procedure MatrixFunc(dest : PDouble; const destLineWidth : TASMNativeInt; width, height : TASMNativeInt; func : TMatrixMtxRefFuncRef); overload;
+procedure MatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixMtxRefFuncRef); overload;
 begin
      GenericMtxFunc(dest, destLineWidth, width, height, func);
 end;
@@ -1590,26 +1590,26 @@ begin
      InitMathFunctions(curUsedCPUInstrSet, useStrassenMult);
 end;
 
-procedure ApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure ApplyPlaneRotSeqRVB(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr);
 begin
      PlaneRotSeqRVB(width, height, A, LineWidthA, C, S);
 end;
-procedure ApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure ApplyPlaneRotSeqRVF(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr);
 begin
      PlaneRotSeqRVF(width, height, A, LineWidthA, C, S);
 end;
 
-procedure ApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure ApplyPlaneRotSeqLVB(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr);
 begin
      PlaneRotSeqLVB(width, height, A, LineWidthA, C, S);
 end;
 
-procedure ApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure ApplyPlaneRotSeqLVF(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr);
 begin
      PlaneRotSeqLVF(width, height, A, LineWidthA, C, S);
 end;
 
-procedure MatrixRotate(N : TASMNativeInt; DX : PDouble; const LineWidthDX : TASMNativeInt; DY : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
+procedure MatrixRotate(N : NativeInt; DX : PDouble; const LineWidthDX : NativeInt; DY : PDouble; LineWidthDY : NativeInt; const c, s : double);
 begin
      matrixRot(N, DX, LineWidthDX, DY, LineWidthDY, c, s);
 end;

@@ -21,13 +21,13 @@ interface
 uses MatrixConst;
 
 // original dlasr from lapack
-procedure GenericApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
-procedure GenericApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure GenericApplyPlaneRotSeqRVB(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr);
+procedure GenericApplyPlaneRotSeqRVF(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr);
 
-procedure GenericApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
-procedure GenericApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure GenericApplyPlaneRotSeqLVB(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr);
+procedure GenericApplyPlaneRotSeqLVF(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr);
 
-procedure GenericMatrixRotate(N : TASMNativeInt; DX : PDouble; const LineWidthDX : TASMNativeInt; DY : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
+procedure GenericMatrixRotate(N : NativeInt; DX : PDouble; const LineWidthDX : NativeInt; DY : PDouble; LineWidthDY : NativeInt; const c, s : double);
 
 procedure GenPlaneRotation(F, G : double; var CS, SN, R : double);
 
@@ -114,9 +114,9 @@ begin
      end;
 end;
 
-procedure GenericApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure GenericApplyPlaneRotSeqLVF(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr);
 var cTemp, stemp, temp : double;
-    x, y : TASMNativeInt;
+    x, y : NativeInt;
     pcAy, pcAy1 : PConstDoubleArr;
 begin
      for y := 0 to height - 2 do
@@ -138,9 +138,9 @@ begin
      end;
 end;
 
-procedure GenericApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure GenericApplyPlaneRotSeqLVB(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr);
 var cTemp, stemp, temp : double;
-    x, y : TASMNativeInt;
+    x, y : NativeInt;
     pcAy, pcAy1 : PConstDoubleArr;
 begin
      for y := height - 2 downto 0 do
@@ -162,9 +162,9 @@ begin
      end;
 end;
 
-procedure GenericApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure GenericApplyPlaneRotSeqRVF(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr);
 var temp : double;
-    x, y : TASMNativeInt;
+    x, y : NativeInt;
     pAx : PConstDoubleArr;
 begin
      for y := 0 to Height - 1 do
@@ -180,9 +180,9 @@ begin
      end;
 end;
 
-procedure GenericApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure GenericApplyPlaneRotSeqRVB(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr);
 var temp : double;
-    x, y : TASMNativeInt;
+    x, y : NativeInt;
     pAx : PConstDoubleArr;
 begin
      for y := 0 to Height - 1 do
@@ -200,7 +200,7 @@ end;
 
 
 // apply a plane rotation. orig drot in lapack
-procedure GenericMatrixRotate(N : TASMNativeInt; DX : PDouble; const LineWidthDX : TASMNativeInt; DY : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
+procedure GenericMatrixRotate(N : NativeInt; DX : PDouble; const LineWidthDX : NativeInt; DY : PDouble; LineWidthDY : NativeInt; const c, s : double);
 var i: Integer;
     pX : PConstDoubleArr;
     pY : PConstDoubleArr;

@@ -70,7 +70,7 @@ type
     procedure Clear;
 
     function FilterVal(const samp : double) : double;
-    procedure FilterVals( buf : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt );
+    procedure FilterVals( buf : PDouble; const LineWidth : NativeInt; N : NativeInt );
 
     constructor Create(aOrder : SmallInt);
   end;
@@ -173,7 +173,7 @@ begin
      SetLength(fHeapArrBuf, fOrder);
 
      // pointer trick to avoid the constant addition with fOrderD2 (gains 5-10% speed)
-     fHeapArr := PMedianIntArr(Integer(@fHeapArrBuf[fOrderD2]) + Low(TMedianIntArr)*sizeof(fHeapArrBuf[0]) );
+     fHeapArr := PMedianIntArr(NativeUint(@fHeapArrBuf[fOrderD2]) + NativeUint( Low(TMedianIntArr)*sizeof(fHeapArrBuf[0]) ) );
 
      fSwingIn := fOrder + 1;
      fDelay := fOrder div 2;
@@ -181,7 +181,7 @@ begin
      Clear;
 end;
 
-procedure TRollingMedian.FilterVals( buf : PDouble; const LineWidth : TASMNativeInt; N : TASMNativeInt );
+procedure TRollingMedian.FilterVals( buf : PDouble; const LineWidth : NativeInt; N : NativeInt );
 var i: Integer;
 begin
      for i := 0 to N - 1 do

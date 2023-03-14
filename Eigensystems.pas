@@ -28,46 +28,46 @@ uses MatrixConst;
 // ############################################
 // #### functions for nonsymmetric matrices:
 // executes the functions below in order to get the result.
-function MatrixUnsymEigVecInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; WR : PDouble;
- const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt; Eivec : PDouble; const LineWidthEivec : TASMNativeInt) : TEigenvalueConvergence;
-function MatrixUnsymEigVec(const A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; WR : PDouble;
- const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt; Eivec : PDouble; const LineWidthEivec : TASMNativeInt) : TEigenvalueConvergence;
+function MatrixUnsymEigVecInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; WR : PDouble;
+ const LineWidthWR : NativeInt; WI : PDouble; const LineWidthWI : NativeInt; Eivec : PDouble; const LineWidthEivec : NativeInt) : TEigenvalueConvergence;
+function MatrixUnsymEigVec(const A : PDouble; const LineWidthA : NativeInt; width : NativeInt; WR : PDouble;
+ const LineWidthWR : NativeInt; WI : PDouble; const LineWidthWI : NativeInt; Eivec : PDouble; const LineWidthEivec : NativeInt) : TEigenvalueConvergence;
 
-function MatrixUnsymEigInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; WR : PDouble;
- const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt; balance : boolean) : TEigenvalueConvergence;
-function MatrixUnsymEig(const A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; WR : PDouble;
- const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt; balance : boolean) : TEigenvalueConvergence;
+function MatrixUnsymEigInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; WR : PDouble;
+ const LineWidthWR : NativeInt; WI : PDouble; const LineWidthWI : NativeInt; balance : boolean) : TEigenvalueConvergence;
+function MatrixUnsymEig(const A : PDouble; const LineWidthA : NativeInt; width : NativeInt; WR : PDouble;
+ const LineWidthWR : NativeInt; WI : PDouble; const LineWidthWI : NativeInt; balance : boolean) : TEigenvalueConvergence;
 
 // Given a Matrix A[0..width-1][0..Width-1], this routine replaces it by a balanced matrix
 // with identical eigenvalues. A symmetric matrix is already balanced and is unaffected by this procedure.
-procedure MatrixBalanceInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Scale : PDouble; const LineWidthScale : TASMNativeInt);
-procedure MatrixBalanceBackInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Scale : PDouble; const LineWidthScale : TASMNativeInt);
+procedure MatrixBalanceInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; Scale : PDouble; const LineWidthScale : NativeInt);
+procedure MatrixBalanceBackInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; Scale : PDouble; const LineWidthScale : NativeInt);
 // Reduction of Matrix A to hessenberg form by the elimination method. The real, nonsymmetric matrix
 // A is replaced by an upper Hessenberg matrix with identical eigenvalues. Recommended, but not
 // required, i sthat this routine be preceded by MatrixBalance. Non Hessenberg elements (which should be zero)
 // are filled with random values and not replaced by zero elements.
-procedure MatrixHessenbergPermInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; perm : PInteger; const LineWidthPerm : TASMNativeInt);
-procedure MatrixHessenbergPerm(dest : PDouble; const LineWidthDest : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; perm : PInteger; const LineWidthPerm : TASMNativeInt);
-procedure MatrixHessenbergInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt);
-procedure MatrixHessenberg(dest : PDouble; const LineWidthDest : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt);
+procedure MatrixHessenbergPermInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; perm : PInteger; const LineWidthPerm : NativeInt);
+procedure MatrixHessenbergPerm(dest : PDouble; const LineWidthDest : NativeInt; A : PDouble; const LineWidthA : NativeInt; width : NativeInt; perm : PInteger; const LineWidthPerm : NativeInt);
+procedure MatrixHessenbergInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt);
+procedure MatrixHessenberg(dest : PDouble; const LineWidthDest : NativeInt; A : PDouble; const LineWidthA : NativeInt; width : NativeInt);
 
 // copies the hessenberg matrix to dest using the permutation vector from the hessenberg transformation. Initializes the destination matrix for the eigenvector
 // finding routine for unsymmetric matrices
-procedure MatrixInitEivecHess(hess : PDouble; const LineWidthHess : TASMNativeInt; width : TASMNativeInt; dest : PDouble; const LineWidthDest : TASMNativeInt; perm : PInteger; const LineWidthPerm : TASMNativeInt);
+procedure MatrixInitEivecHess(hess : PDouble; const LineWidthHess : NativeInt; width : NativeInt; dest : PDouble; const LineWidthDest : NativeInt; perm : PInteger; const LineWidthPerm : NativeInt);
 
 // Finds all eigenvalues of an upper Hessenberg matrix A. On input a can be exactly as output from MatrixHessenberg, on output
 // A is destroyed. The real and imaginary parts of the eigenvalues are returned in wr[0..width-1] and wi[0..width-1], respectively
-function MatrixEigHessenbergInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; WR : PDouble;
- const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt) : TEigenvalueConvergence;
+function MatrixEigHessenbergInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; WR : PDouble;
+ const LineWidthWR : NativeInt; WI : PDouble; const LineWidthWI : NativeInt) : TEigenvalueConvergence;
 // the following function does not destroy A on output.
-function MatrixEigHessenberg(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; WR : PDouble;
- const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt) : TEigenvalueConvergence;
+function MatrixEigHessenberg(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; WR : PDouble;
+ const LineWidthWR : NativeInt; WI : PDouble; const LineWidthWI : NativeInt) : TEigenvalueConvergence;
 // finds all eigenvalues and eigenvectors in an upper hessenberg matrix A. On input A can be exactly as output from MatrixHessenbergPerm, on
 // output A is destroyed. For complex eigenvalues (n, n+1) only one eigenvector is stored whereas the real part is stored in vector n and
 // the imaginary part is stored in n+1. Note the function does not seem to correctly work with matrices with rank lower than width!
-function MatrixEigVecHessenbergInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; WR : PDouble;
- const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt; Eivec : PDouble; const LineWidthEivec : TASMNativeInt) : TEigenvalueConvergence;
-procedure MatrixNormEivecInPlace(Eivec : PDouble; const LineWidthEivec : TASMNativeInt; width : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt);
+function MatrixEigVecHessenbergInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; WR : PDouble;
+ const LineWidthWR : NativeInt; WI : PDouble; const LineWidthWI : NativeInt; Eivec : PDouble; const LineWidthEivec : NativeInt) : TEigenvalueConvergence;
+procedure MatrixNormEivecInPlace(Eivec : PDouble; const LineWidthEivec : NativeInt; width : NativeInt; WI : PDouble; const LineWidthWI : NativeInt);
 
 
 // ############################################
@@ -76,16 +76,16 @@ procedure MatrixNormEivecInPlace(Eivec : PDouble; const LineWidthEivec : TASMNat
 // Householder reduction of a real, symmetric matrix A[0..width-1][0..width-1]. On output
 // A is replaced by the orthogonal matrix Q effecting the transformation. D[0..width-1] returns
 // the diagonal elements of the tridiagonal matrix, and e[0..width - 1] of the off-diagonal elements with e[0] = 0.
-procedure MatrixTridiagonalHouseInPlace(A : PDouble; const LineWidthA : TASMNativeInt; const width : TASMNativeInt;
-  D : PDouble; const LineWidthD : TASMNativeInt; E : PDouble; const LineWidthE : TASMNativeInt);
-procedure MatrixTridiagonalHouse(dest : PDouble; const LineWidthDest : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; const width : TASMNativeInt;
-  D : PDouble; const LineWidthD : TASMNativeInt; E : PDouble; const LineWidthE : TASMNativeInt);
+procedure MatrixTridiagonalHouseInPlace(A : PDouble; const LineWidthA : NativeInt; const width : NativeInt;
+  D : PDouble; const LineWidthD : NativeInt; E : PDouble; const LineWidthE : NativeInt);
+procedure MatrixTridiagonalHouse(dest : PDouble; const LineWidthDest : NativeInt; A : PDouble; const LineWidthA : NativeInt; const width : NativeInt;
+  D : PDouble; const LineWidthD : NativeInt; E : PDouble; const LineWidthE : NativeInt);
 
-function MatrixTridiagonalQLImplicitInPlace(Z : PDouble; const LineWidthZ : TASMNativeInt; width : TASMNativeInt;
-  D : PDouble; const LineWidthD : TASMNativeInt; E : PDouble; const LineWidthE : TASMNativeInt) : TEigenvalueConvergence;
+function MatrixTridiagonalQLImplicitInPlace(Z : PDouble; const LineWidthZ : NativeInt; width : NativeInt;
+  D : PDouble; const LineWidthD : NativeInt; E : PDouble; const LineWidthE : NativeInt) : TEigenvalueConvergence;
 
-function MatrixEigTridiagonalMatrixInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; EigVals : PDouble; const LineWidthEigVals : TASMNativeInt) : TEigenvalueConvergence;
-function MatrixEigTridiagonalMatrix(Dest : PDouble; const LineWidthDest : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; EigVals : PDouble; const LineWidthEigVals : TASMNativeInt) : TEigenvalueConvergence;
+function MatrixEigTridiagonalMatrixInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; EigVals : PDouble; const LineWidthEigVals : NativeInt) : TEigenvalueConvergence;
+function MatrixEigTridiagonalMatrix(Dest : PDouble; const LineWidthDest : NativeInt; A : PDouble; const LineWidthA : NativeInt; width : NativeInt; EigVals : PDouble; const LineWidthEigVals : NativeInt) : TEigenvalueConvergence;
 
 // ###########################################
 // #### Reduction of a real general matrix A to upper Hessenberg form H by
@@ -98,15 +98,15 @@ function MatrixEigTridiagonalMatrix(Dest : PDouble; const LineWidthDest : TASMNa
 // elements below the first subdiagonal, with the array TAU,
 // represent the orthogonal matrix Q as a product of elementary
 // reflectors.
-function MatrixHessenberg2InPlace(A : PDouble; const LineWidthA : TASMNAtiveInt; width : TASMNativeInt; tau : PDouble; hessBlockSize : integer) : TEigenvalueConvergence;
-function ThrMtxHessenberg2InPlace(A : PDouble; const LineWidthA : TASMNAtiveInt; width : TASMNativeInt; tau : PDouble; hessBlockSize : integer) : TEigenvalueConvergence;
+function MatrixHessenberg2InPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; tau : PDouble; hessBlockSize : integer) : TEigenvalueConvergence;
+function ThrMtxHessenberg2InPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; tau : PDouble; hessBlockSize : integer) : TEigenvalueConvergence;
 
 // generate a real orthogonal matrix Q from the element reflectors (matrixhessenberg2inplace) to
 // satisfy Q' * A * Q = H (or Q * H * Q' = A)
 // the input matrix A is overwritten by the orhogonal matrix Q
-procedure MatrixQFromHessenbergDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt;
- tau : PDouble; BlockSize : TASMNativeInt; work : PDouble; progress : TLinEquProgress = nil); overload;
-procedure MatrixQFromHessenbergDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt;
+procedure MatrixQFromHessenbergDecomp(A : PDouble; const LineWidthA : NativeInt; width : NativeInt;
+ tau : PDouble; BlockSize : NativeInt; work : PDouble; progress : TLinEquProgress = nil); overload;
+procedure MatrixQFromHessenbergDecomp(A : PDouble; const LineWidthA : NativeInt; width : NativeInt;
  tau : PDouble; progress : TLinEquProgress = nil); overload;
 
 
@@ -115,14 +115,14 @@ procedure MatrixQFromHessenbergDecomp(A : PDouble; const LineWidthA : TASMNative
 // then tries to find the eigenvalues and optionaly eigenvectors
 // on entry A is an nxn matrix and W is an nx1 vector.
 // on exit W contains the eigenvalues and if wanted A the eigenvectors
-function MatrixEigUpperSymmetricMatrixInPlace2(A : PDouble; LineWidthA : TASMNativeInt; N : TASMNativeInt; W : PConstDoubleArr; EigValOnly : boolean; blockSize : integer; progress : TLinEquProgress = nil ) : TEigenvalueConvergence;
-function ThrMtxEigUpperSymmetricMatrixInPlace2(A : PDouble; LineWidthA : TASMNativeInt; N : TASMNativeInt; W : PConstDoubleArr; EigValOnly : boolean; blockSize : integer; progress : TLinEquProgress = nil ) : TEigenvalueConvergence;
+function MatrixEigUpperSymmetricMatrixInPlace2(A : PDouble; LineWidthA : NativeInt; N : NativeInt; W : PConstDoubleArr; EigValOnly : boolean; blockSize : integer; progress : TLinEquProgress = nil ) : TEigenvalueConvergence;
+function ThrMtxEigUpperSymmetricMatrixInPlace2(A : PDouble; LineWidthA : NativeInt; N : NativeInt; W : PConstDoubleArr; EigValOnly : boolean; blockSize : integer; progress : TLinEquProgress = nil ) : TEigenvalueConvergence;
 
-function UperSymEigMemorySize( N, blockSize : TASMNativeInt; EigValOnly : boolean; Threaded : Boolean; var blkMultSize : integer ) : TASMNativeInt;
+function UperSymEigMemorySize( N, blockSize : NativeInt; EigValOnly : boolean; Threaded : Boolean; var blkMultSize : integer ) : NativeInt;
 
-function InternalEigValFromSymMatrix( D, E : PConstDoubleArr; N : TASMNativeInt) : TEigenvalueConvergence;
+function InternalEigValFromSymMatrix( D, E : PConstDoubleArr; N : NativeInt) : TEigenvalueConvergence;
 function InternalEigValEigVecFromSymTridiagMatrix( D, E : PConstDoubleArr; Z : PDouble;
- LineWidthZ : TASMNativeInt; N : TASMNativeInt; Work : PConstDoubleArr ) : TEigenvalueConvergence; overload;
+ LineWidthZ : NativeInt; N : NativeInt; Work : PConstDoubleArr ) : TEigenvalueConvergence; overload;
 
 
 // on entry A is a symmetric matrix (upper part will be used)
@@ -132,8 +132,8 @@ function InternalEigValEigVecFromSymTridiagMatrix( D, E : PConstDoubleArr; Z : P
 // E and D conain the diagonal and off diagonal elements of the tridiagonal matrix T
 // Tau (may be nil) contain the scalar factors of the elementary reflectors
 // nb the blocksize used for block updates.
-function MatrixUpperSymToTridiagInPlace( A : PDouble; LineWidthA : TASMNativeInt; N : TASMNativeInt;
-  D, E, Tau : PConstDoubleArr; nb : TASMNativeInt ) : boolean;
+function MatrixUpperSymToTridiagInPlace( A : PDouble; LineWidthA : NativeInt; N : NativeInt;
+  D, E, Tau : PConstDoubleArr; nb : NativeInt ) : boolean;
 
 implementation
 
@@ -148,7 +148,7 @@ uses Math, MathUtilFunc, MatrixASMStubSwitch, HouseholderReflectors, types,
 // #### Eigenvalue calculation - NR (aka Eispack)
 // #########################################################################
 
-function MatrixEigTridiagonalMatrixInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; EigVals : PDouble; const LineWidthEigVals : TASMNativeInt) : TEigenvalueConvergence;
+function MatrixEigTridiagonalMatrixInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; EigVals : PDouble; const LineWidthEigVals : NativeInt) : TEigenvalueConvergence;
 var E : Array of double;
 begin
      SetLength(E, width);
@@ -156,7 +156,7 @@ begin
      Result := MatrixTridiagonalQLImplicitInPlace(A, LineWidthA, width, EigVals, LineWidthEigVals, @E[0], sizeof(double));
 end;
 
-function MatrixEigTridiagonalMatrix(Dest : PDouble; const LineWidthDest : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; EigVals : PDouble; const LineWidthEigVals : TASMNativeInt) : TEigenvalueConvergence;
+function MatrixEigTridiagonalMatrix(Dest : PDouble; const LineWidthDest : NativeInt; A : PDouble; const LineWidthA : NativeInt; width : NativeInt; EigVals : PDouble; const LineWidthEigVals : NativeInt) : TEigenvalueConvergence;
 var E : Array of double;
 begin
      SetLength(E, width);
@@ -164,10 +164,10 @@ begin
      Result := MatrixTridiagonalQLImplicitInPlace(dest, LineWidthDest, width, EigVals, LineWidthEigVals, @E[0], sizeof(double));
 end;
 
-procedure MatrixTridiagonalHouse(dest : PDouble; const LineWidthDest : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; const width : TASMNativeInt;
-  D : PDouble; const LineWidthD : TASMNativeInt; E : PDouble; const LineWidthE : TASMNativeInt);
+procedure MatrixTridiagonalHouse(dest : PDouble; const LineWidthDest : NativeInt; A : PDouble; const LineWidthA : NativeInt; const width : NativeInt;
+  D : PDouble; const LineWidthD : NativeInt; E : PDouble; const LineWidthE : NativeInt);
 var pDest : PDouble;
-    i : TASMNativeInt;
+    i : NativeInt;
 begin
      Assert(width > 0, 'Dimension Error');
      Assert(LineWidthA >= width*sizeof(double), 'Dimension error');
@@ -186,10 +186,10 @@ begin
      MatrixTridiagonalHouseInPlace(dest, LineWidthDest, width, D, LineWidthD, E, LineWidthE);
 end;
 
-procedure MatrixTridiagonalHouseInPlace(A : PDouble; const LineWidthA : TASMNativeInt; const width : TASMNativeInt;
-  D : PDouble; const LineWidthD : TASMNativeInt; E : PDouble; const LineWidthE : TASMNativeInt);
-var i, j : TASMNativeInt;
-    l, k : TASMNativeInt;
+procedure MatrixTridiagonalHouseInPlace(A : PDouble; const LineWidthA : NativeInt; const width : NativeInt;
+  D : PDouble; const LineWidthD : NativeInt; E : PDouble; const LineWidthE : NativeInt);
+var i, j : NativeInt;
+    l, k : NativeInt;
     scale, hh, h, g, f : double;
     pA, pAi, pAj, pAk : PDouble;
     pEi, pEj, pEk : PDouble;
@@ -404,9 +404,9 @@ begin
      end;
 end;
 
-function MatrixTridiagonalQLImplicitInPlace(Z : PDouble; const LineWidthZ : TASMNativeInt; width : TASMNativeInt;
-  D : PDouble; const LineWidthD : TASMNativeInt; E : PDouble; const LineWidthE : TASMNativeInt) : TEigenvalueConvergence;
-var m, l, iter, i, k : TASMNativeInt;
+function MatrixTridiagonalQLImplicitInPlace(Z : PDouble; const LineWidthZ : NativeInt; width : NativeInt;
+  D : PDouble; const LineWidthD : NativeInt; E : PDouble; const LineWidthE : NativeInt) : TEigenvalueConvergence;
+var m, l, iter, i, k : NativeInt;
     s, r, p, g, f, dd, c, b : double;
     pE, pEl, pEi : PDouble;
     pD, pDl : PDouble;
@@ -459,7 +459,7 @@ begin
                      if iter = cMaxTridiagIter then
                         exit;
 
-                     g := (PDouble(TASMNativeUInt(pDl) + TASMNativeUInt(LineWidthD))^ - pDl^)/(2*pEl^);
+                     g := (PDouble(NativeUint(pDl) + NativeUint(LineWidthD))^ - pDl^)/(2*pEl^);
                      r := pythag(g, 1);
                      pD := D;
                      inc(PByte(pD), m*LineWidthD);
@@ -536,8 +536,8 @@ begin
      Result := qlOk;
 end;
 
-procedure MatrixBalanceBackInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Scale : PDouble; const LineWidthScale : TASMNativeInt);
-var i : TASMNativeInt;
+procedure MatrixBalanceBackInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; Scale : PDouble; const LineWidthScale : NativeInt);
+var i : NativeInt;
 begin
      for i := 0 to width - 1 do
      begin
@@ -552,8 +552,8 @@ begin
      end;
 end;
 
-procedure MatrixBalanceInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; Scale : PDouble; const LineWidthScale : TASMNativeInt);
-var j, i : TASMNativeInt;
+procedure MatrixBalanceInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; Scale : PDouble; const LineWidthScale : NativeInt);
+var j, i : NativeInt;
     last : boolean;
     s, r, g, f, c, sqrdx : double;
     pAi : PConstDoubleArr;
@@ -627,7 +627,7 @@ begin
      end;
 end;
 
-procedure MatrixHessenbergPerm(dest : PDouble; const LineWidthDest : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; perm : PInteger; const LineWidthPerm : TASMNativeInt);
+procedure MatrixHessenbergPerm(dest : PDouble; const LineWidthDest : NativeInt; A : PDouble; const LineWidthA : NativeInt; width : NativeInt; perm : PInteger; const LineWidthPerm : NativeInt);
 begin
      assert(LineWidthA >= width*sizeof(double), 'Dimension Error');
      assert(LineWidthDest >= width*sizeof(double), 'Dimension Error');
@@ -636,8 +636,8 @@ begin
      MatrixHessenbergPermInPlace(dest, LineWidthDest, width, perm, LineWidthPerm);
 end;
 
-procedure MatrixHessenbergPermInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; perm : PInteger; const LineWidthPerm : TASMNativeInt);
-var m, j, i : TASMNativeInt;
+procedure MatrixHessenbergPermInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; perm : PInteger; const LineWidthPerm : NativeInt);
+var m, j, i : NativeInt;
     x, y : double;
     pAm, pAj, pAi : PDouble;
     pA : PDouble;
@@ -754,11 +754,11 @@ begin
      end;
 end;
 
-function MatrixEigHessenberg(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; WR : PDouble;
- const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt) : TEigenvalueConvergence;
+function MatrixEigHessenberg(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; WR : PDouble;
+ const LineWidthWR : NativeInt; WI : PDouble; const LineWidthWI : NativeInt) : TEigenvalueConvergence;
 var pDest : PDouble;
     dest : Array of double;
-    i : TASMNativeInt;
+    i : NativeInt;
 begin
      Assert(width > 0, 'Dimension Error');
      Assert(LineWidthA >= width*sizeof(double), 'Dimension error');
@@ -778,10 +778,10 @@ begin
      Result := MatrixEigHessenbergInPlace(@dest[0], width*sizeof(double), width, WR, LineWidthWR, WI, LineWidthWI);
 end;
 
-function MatrixEigHessenbergInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; WR : PDouble;
- const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt) : TEigenvalueConvergence;
-var nn, m, l, k : TASMNativeInt;
-    j, its, i, mmin : TASMNativeInt;
+function MatrixEigHessenbergInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; WR : PDouble;
+ const LineWidthWR : NativeInt; WI : PDouble; const LineWidthWI : NativeInt) : TEigenvalueConvergence;
+var nn, m, l, k : NativeInt;
+    j, its, i, mmin : NativeInt;
     x, y, z : double;
     u, v, w : double;
     r, s, t : double;
@@ -1115,12 +1115,12 @@ begin
      Result := qlOk;
 end;
 
-procedure MatrixInitEivecHess(hess : PDouble; const LineWidthHess : TASMNativeInt; width : TASMNativeInt; dest : PDouble; const LineWidthDest : TASMNativeInt; perm : PInteger; const LineWidthPerm : TASMNativeInt);
-var i, j, k : TASMNativeInt;
+procedure MatrixInitEivecHess(hess : PDouble; const LineWidthHess : NativeInt; width : NativeInt; dest : PDouble; const LineWidthDest : NativeInt; perm : PInteger; const LineWidthPerm : NativeInt);
+var i, j, k : NativeInt;
     pDest, pDesti, pDestj : PDouble;
     pPerm : PInteger;
     pHess : PDouble;
-    mp : TASMNativeInt;
+    mp : NativeInt;
 begin
      pPerm := Perm;
      inc(PByte(pPerm), (width - 2)*LineWidthPerm);
@@ -1218,8 +1218,8 @@ begin
          Result := ar * Sqrt(1 + ai / ar * ai / ar);
 end;
 
-procedure MatrixNormEivecInPlace(Eivec : PDouble; const LineWidthEivec : TASMNativeInt; width : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt);
-var i, j : TASMNativeInt;
+procedure MatrixNormEivecInPlace(Eivec : PDouble; const LineWidthEivec : NativeInt; width : NativeInt; WI : PDouble; const LineWidthWI : NativeInt);
+var i, j : NativeInt;
     pWi : PDouble;
     pEivec, pEiveci, pEivecj : PDouble;
     maxVal : double;
@@ -1306,10 +1306,10 @@ begin
      end;
 end;
 
-function MatrixEigVecHessenbergInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; WR : PDouble;
- const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt; Eivec : PDouble; const LineWidthEivec : TASMNativeInt) : TEigenvalueConvergence;
-var nn, m, l, k : TASMNativeInt;
-    j, its, i, mmin : TASMNativeInt;
+function MatrixEigVecHessenbergInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; WR : PDouble;
+ const LineWidthWR : NativeInt; WI : PDouble; const LineWidthWI : NativeInt; Eivec : PDouble; const LineWidthEivec : NativeInt) : TEigenvalueConvergence;
+var nn, m, l, k : NativeInt;
+    j, its, i, mmin : NativeInt;
     x, y, z : double;
     u, v, w : double;
     r, s, t : double;
@@ -1321,7 +1321,7 @@ var nn, m, l, k : TASMNativeInt;
     pWi, pWii : PDouble;
     vr : double;
     vi : double;
-    na : TASMNativeInt;
+    na : NativeInt;
 const cMaxEigHessenbergIter = 30;
       cEPS = 2.22e-16;
 begin
@@ -2038,22 +2038,22 @@ begin
      end;
 end;
 
-procedure MatrixHessenbergInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt);
+procedure MatrixHessenbergInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt);
 begin
      MatrixHessenbergPermInPlace(A, LineWidthA, width, nil, 0);
 end;
 
-procedure MatrixHessenberg(dest : PDouble; const LineWidthDest : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt);
+procedure MatrixHessenberg(dest : PDouble; const LineWidthDest : NativeInt; A : PDouble; const LineWidthA : NativeInt; width : NativeInt);
 begin
      MatrixHessenbergPerm(dest, LineWidthDest, A, LineWidthA, width, nil, 0);
 end;
 
-function MatrixUnsymEigVecInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; WR : PDouble;
- const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt; Eivec : PDouble; const LineWidthEivec : TASMNativeInt) : TEigenvalueConvergence;
+function MatrixUnsymEigVecInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; WR : PDouble;
+ const LineWidthWR : NativeInt; WI : PDouble; const LineWidthWI : NativeInt; Eivec : PDouble; const LineWidthEivec : NativeInt) : TEigenvalueConvergence;
 var perm : array of integer;
     scale : Array of double;
     pDest : PDouble;
-    i: TASMNativeInt;
+    i: NativeInt;
 begin
      setLength(perm, width);
      setLength(scale, width);
@@ -2079,11 +2079,11 @@ begin
         exit;
 end;
 
-function MatrixUnsymEigVec(const A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; WR : PDouble;
- const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt; Eivec : PDouble; const LineWidthEivec : TASMNativeInt) : TEigenvalueConvergence;
+function MatrixUnsymEigVec(const A : PDouble; const LineWidthA : NativeInt; width : NativeInt; WR : PDouble;
+ const LineWidthWR : NativeInt; WI : PDouble; const LineWidthWI : NativeInt; Eivec : PDouble; const LineWidthEivec : NativeInt) : TEigenvalueConvergence;
 var dest : Array of double;
     pA : Pdouble;
-    i : TASMNativeInt;
+    i : NativeInt;
 begin
      SetLength(dest, width*width);
      pA := A;
@@ -2097,8 +2097,8 @@ begin
      Result := MatrixUnsymEigVecInPlace(@dest[0], width*sizeof(double), width, WR, LineWidthWR, WI, LineWidthWI, Eivec, LineWidthEivec);
 end;
 
-function MatrixUnsymEigInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; WR : PDouble;
- const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt; balance : boolean) : TEigenvalueConvergence;
+function MatrixUnsymEigInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; WR : PDouble;
+ const LineWidthWR : NativeInt; WI : PDouble; const LineWidthWI : NativeInt; balance : boolean) : TEigenvalueConvergence;
 var scale : Array of double;
 begin
      setLength(scale, width);
@@ -2111,11 +2111,11 @@ begin
      Result := MatrixEigHessenbergInPlace(A, LineWidthA, width, Wr, LineWidthWR, Wi, LineWidthWI);
 end;
 
-function MatrixUnsymEig(const A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; WR : PDouble;
- const LineWidthWR : TASMNativeInt; WI : PDouble; const LineWidthWI : TASMNativeInt; balance : boolean) : TEigenvalueConvergence;
+function MatrixUnsymEig(const A : PDouble; const LineWidthA : NativeInt; width : NativeInt; WR : PDouble;
+ const LineWidthWR : NativeInt; WI : PDouble; const LineWidthWI : NativeInt; balance : boolean) : TEigenvalueConvergence;
 var dest : Array of double;
     pA : Pdouble;
-    i : TASMNativeInt;
+    i : NativeInt;
 begin
      SetLength(dest, width*width);
      pA := A;
@@ -2145,8 +2145,8 @@ type
     // helper pointers
     T : PDouble;       // point to work // (w x h) = (pnlsize + 1 x pnlsize)
     Y : PDouble;       // point to T + tlinewidth*(pnlSize)  (w x h) = (pnlsize x height) 
-    tLineWidth : TASMNativeInt;      // pnlsize*sizeof(double)  
-    yLineWidth : TASMNativeInt;      // pnlsize*sizeof(double)
+    tLineWidth : NativeInt;      // pnlsize*sizeof(double)  
+    yLineWidth : NativeInt;      // pnlsize*sizeof(double)
     blkMultMem : Pointer; // point to Y + N * NB * sizeof(Double)
     blkMultSize : integer;
   end;
@@ -2160,8 +2160,8 @@ begin
 end;
 
 // single threaded work mem need:
-function EigMemSize(const hessData : THessData; width : TASMNativeInt) : TASMNativeInt;
-var w4 : TASMNativeInt;
+function EigMemSize(const hessData : THessData; width : NativeInt) : NativeInt;
+var w4 : NativeInt;
 begin
      // for factors of 4.. (better aligned memory)
      w4 := width;
@@ -2175,8 +2175,8 @@ begin
 end;
 
 // unblocked hessenberg decomposition based on DGEHD2
-function InternalHessenbergUnblocked( A : PDouble; const LineWidthA : TASMNAtiveInt; iLo : TASMNativeInt; width : TASMNativeInt; tau : PDouble; const eigData : THessData ) : boolean;
-var i : TASMNativeInt;
+function InternalHessenbergUnblocked( A : PDouble; const LineWidthA : NativeInt; iLo : NativeInt; width : NativeInt; tau : PDouble; const eigData : THessData ) : boolean;
+var i : NativeInt;
     pA : PDouble;
     pTau : PDouble;
     aii : double;
@@ -2218,8 +2218,8 @@ end;
 //  reduction is performed by an orthogonal similarity transformation
 //  Q' * A * Q. The routine returns the matrices V and T which determine
 //  Q as a block reflector I - V*T*V', and also the matrix Y = A * V * T.
-//procedure dlahr2( A : PDouble; const LineWidthA : TASMNativeInt; T : PDouble; const LineWidthT : TASMNativeInt; Y : PDouble; const LineWidthY : TASMNativeInt; Tau : PDouble; N, K, NB : integer; const eigData : THessData);
-function InternalHessenbergBlocked( A : PDouble; const LineWidthA : TASMNativeInt; Tau : PDouble; N, K, NB : integer; const eigData : THessData) : boolean;
+//procedure dlahr2( A : PDouble; const LineWidthA : NativeInt; T : PDouble; const LineWidthT : NativeInt; Y : PDouble; const LineWidthY : NativeInt; Tau : PDouble; N, K, NB : integer; const eigData : THessData);
+function InternalHessenbergBlocked( A : PDouble; const LineWidthA : NativeInt; Tau : PDouble; N, K, NB : integer; const eigData : THessData) : boolean;
 var i: Integer;
     pA : PDouble;
     pV : PDouble;
@@ -2367,7 +2367,7 @@ end;
 
 
 // original DGEHRD
-function InternalMatrixHessenberg(A : PDouble; const LineWidthA : TASMNAtiveInt; width : TASMNativeInt; tau : PDouble; const eigData : THessData ) : boolean;
+function InternalMatrixHessenberg(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; tau : PDouble; const eigData : THessData ) : boolean;
 var i : integer;
     pA : PDouble;
     pTau : PDouble;
@@ -2459,15 +2459,15 @@ begin
      Result := InternalHessenbergUnblocked( A, LineWidthA, i, width, pTau, eigData) and Result;
 end;
 
-procedure MatrixQFromHessenbergDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt;
+procedure MatrixQFromHessenbergDecomp(A : PDouble; const LineWidthA : NativeInt; width : NativeInt;
  tau : PDouble; progress : TLinEquProgress = nil); overload;
 begin
      MatrixQFromHessenbergDecomp(A, LineWidthA, width, tau, QRBlockSize, nil, progress);
 end;
 
-procedure MatrixQFromHessenbergDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt;
- tau : PDouble; BlockSize : TASMNativeInt; work : PDouble; progress : TLinEquProgress = nil);
-var i, j : TASMNativeInt;
+procedure MatrixQFromHessenbergDecomp(A : PDouble; const LineWidthA : NativeInt; width : NativeInt;
+ tau : PDouble; BlockSize : NativeInt; work : PDouble; progress : TLinEquProgress = nil);
+var i, j : NativeInt;
     pAj : PConstDoubleArr;
 begin
      // shift the vectors which define the elementary reflectors one column to the right
@@ -2492,7 +2492,7 @@ begin
      MatrixQFromQRDecomp(GenPtr(A, 1, 1, LineWidthA), LineWidthA, width - 1, width - 1, tau, BlockSize, work, progress);
 end;
 
-function MatrixHessenberg2InPlace(A : PDouble; const LineWidthA : TASMNAtiveInt; width : TASMNativeInt; tau : PDouble; hessBlockSize : integer) : TEigenvalueConvergence;
+function MatrixHessenberg2InPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; tau : PDouble; hessBlockSize : integer) : TEigenvalueConvergence;
 var hessWork : THessData;
 begin
      FillChar(hessWork, sizeof(hessWork), 0 );
@@ -2524,7 +2524,7 @@ begin
      end;
 end;
 
-function ThrMtxHessenberg2InPlace(A : PDouble; const LineWidthA : TASMNAtiveInt; width : TASMNativeInt; tau : PDouble; hessBlockSize : integer) : TEigenvalueConvergence;
+function ThrMtxHessenberg2InPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; tau : PDouble; hessBlockSize : integer) : TEigenvalueConvergence;
 var hessWork : THessData;
 begin
      // around here is a good crossover point where multithreaded code starts to be faster
@@ -2569,11 +2569,11 @@ type
   TSymEigRec = record
     mem : Pointer;
     work : PDouble;
-    LineWidthWork : TASMNativeInt;
+    LineWidthWork : NativeInt;
     D : PConstDoubleArr;
     E : PConstDoubleArr;
     Z : PDouble;
-    LineWidthZ : TASMNativeInt;
+    LineWidthZ : NativeInt;
     Tau : PConstDoubleArr;
     iWork : PIntegerArray;
     reflData : TBlockReflrec;
@@ -2586,10 +2586,10 @@ type
 // DLATRD
 // reduces NB columns (eigWork.nb) of A - a real symmetric matrix - to a symmetric
 // tridiagonal form. The upper part of A is used
-function InternalSymmetricTridiagBlockReduction( A : PDouble; LineWidthA : TASMNativeInt;
-  N : TASMNativeInt; const eigWork : TSymEigRec) : boolean;
-var i : TASMNativeInt;
-    iw : TASMNativeInt;
+function InternalSymmetricTridiagBlockReduction( A : PDouble; LineWidthA : NativeInt;
+  N : NativeInt; const eigWork : TSymEigRec) : boolean;
+var i : NativeInt;
+    iw : NativeInt;
     pA0i1 : PDouble;
     pAii1 : PDouble;
     pAi0 : PDouble;
@@ -2709,9 +2709,9 @@ begin
 end;
 
 // dsytd2 in lapack upper triangle A
-function InternalSymmetricTridiagReduction( A : PDouble; LineWidthA : TASMNativeInt; N : TASMNativeInt;
+function InternalSymmetricTridiagReduction( A : PDouble; LineWidthA : NativeInt; N : NativeInt;
   const eigWork : TSymEigRec) : boolean;
-var i: TASMNativeInt;
+var i: NativeInt;
     pAii1 : PDouble;
     pA0i1 : PDouble;
     taui : double;
@@ -2777,7 +2777,7 @@ end;
 // E Contains the off diagonal elements and is of size N - 1
 //   -> E contains A(i, i + 1) as y, x coordinates aka the upper diagonal
 // tau (dimension N - 1) contains the elementary reflectors
-function InternalSymmetricToTridiagonal( A : PDouble; LineWidthA : TASMNativeInt; N : TASMNativeInt;
+function InternalSymmetricToTridiagonal( A : PDouble; LineWidthA : NativeInt; N : NativeInt;
   const eigWork : TSymEigRec) : boolean;
 var i : integer;
     j : Integer;
@@ -2832,10 +2832,10 @@ begin
 end;
 
 
-function MatrixUpperSymToTridiagInPlace( A : PDouble; LineWidthA : TASMNativeInt; N : TASMNativeInt;
-  D, E, Tau : PConstDoubleArr; nb : TASMNativeInt ) : boolean;
+function MatrixUpperSymToTridiagInPlace( A : PDouble; LineWidthA : NativeInt; N : NativeInt;
+  D, E, Tau : PConstDoubleArr; nb : NativeInt ) : boolean;
 var eigWork : TSymEigRec;
-    byteSize : TASMNativeInt;
+    byteSize : NativeInt;
 begin
      assert( (D <> nil) and (E <> nil), 'Error D and E need to be set');
      FillChar(eigWork, sizeof(eigWork), 0);
@@ -3021,7 +3021,7 @@ begin
      end;
 end;
 
-function MaxAbsTridiagMatrix( N : TASMNativeInt; D, E : PConstDoubleArr ) : double;
+function MaxAbsTridiagMatrix( N : NativeInt; D, E : PConstDoubleArr ) : double;
 begin
      Result := 0;
      if N > 0 then
@@ -3032,7 +3032,7 @@ end;
 
 // original dsterf
 //http://www.netlib.org/lapack/explore-html/d2/d24/group__aux_o_t_h_e_rcomputational_gaf0616552c11358ae8298d0ac18ac023c.html#gaf0616552c11358ae8298d0ac18ac023c
-function InternalEigValFromSymMatrix( D, E : PConstDoubleArr; N : TASMNativeInt) : TEigenvalueConvergence;
+function InternalEigValFromSymMatrix( D, E : PConstDoubleArr; N : NativeInt) : TEigenvalueConvergence;
 var eps1 : double;
     eps2 : double;
     smallNum : double;
@@ -3376,7 +3376,7 @@ end;
 // DSTEQR computes all eigenvalues and, optionally, eigenvectors of a
 // symmetric tridiagonal matrix using the implicit QL or QR method with option 'I'
 function InternalEigValEigVecFromSymTridiagMatrix( D, E : PConstDoubleArr; Z : PDouble;
- LineWidthZ : TASMNativeInt; N : TASMNativeInt; const eigWork : TSymEigRec ) : TEigenvalueConvergence; overload;
+ LineWidthZ : NativeInt; N : NativeInt; const eigWork : TSymEigRec ) : TEigenvalueConvergence; overload;
 const cMaxIter = 30;
 var eps1 : double;
     eps2 : double;
@@ -3797,7 +3797,7 @@ L160:
 end;
 
 function InternalEigValEigVecFromSymTridiagMatrix( D, E : PConstDoubleArr; Z : PDouble;
- LineWidthZ : TASMNativeInt; N : TASMNativeInt; Work : PConstDoubleArr ) : TEigenvalueConvergence; overload;
+ LineWidthZ : NativeInt; N : NativeInt; Work : PConstDoubleArr ) : TEigenvalueConvergence; overload;
 var eigWork : TSymEigRec;
 begin
      FillChar(eigWork, sizeof(eigWork), 0);
@@ -3813,12 +3813,12 @@ end;
 
 (*
 // dlaeda
-procedure InternalCreateZMerge( N, tlvls, curlvl, curpbm : TASMNativeInt;
+procedure InternalCreateZMerge( N, tlvls, curlvl, curpbm : NativeInt;
   prmptr, perm, givptr : PIntegerArray; givcol : PIntegerArray; givNum : PConstDoubleArr; Q : PConstDoubleArr; QPtr : PIntegerArray;
   Z : PConstDoubleArr; ZTemp : PDouble);
-var bsiz1, bsiz2, curr : TASMNativeInt;
-    i, k, mid : TASMNativeInt;
-    PSiz1, PSiz2, ptr, zptr1 : TASMNativeInt;
+var bsiz1, bsiz2, curr : NativeInt;
+    i, k, mid : NativeInt;
+    PSiz1, PSiz2, ptr, zptr1 : NativeInt;
 begin
      mid := n div 2 + 1;
      ptr := 1;
@@ -3865,16 +3865,16 @@ end;
 
 
 // dlaed7.f
-function InternalMergeEigSys(N, QSiz, tlvls, curlvl, curpbm : TASMNativeInt;
-  D : PConstDoubleArr; Q : PDouble; LineWidthQ : TASMNativeInt;
-  indxQ : PIntegerArray; rho : double; cutpnt : TASMNativeInt;
+function InternalMergeEigSys(N, QSiz, tlvls, curlvl, curpbm : NativeInt;
+  D : PConstDoubleArr; Q : PDouble; LineWidthQ : NativeInt;
+  indxQ : PIntegerArray; rho : double; cutpnt : NativeInt;
   QStore : PDouble; QPtr, PrmPtr, Perm, GivPtr : PIntegerArray; GivNum : PDouble;
   work : PDouble; iWork : PInteger ) : TEigenvalueConvergence;
-var coltyp, curr : TASMNativeInt;
-    i, N1, N2 : TASMNativeInt;
-    idlmda, indx, indxc : TASMNativeInt;
-    indxp, iq2, iss, iw, iz : TASMNativeInt;
-    k, ldq2, ptr : TASMNativeInt;
+var coltyp, curr : NativeInt;
+    i, N1, N2 : NativeInt;
+    idlmda, indx, indxc : NativeInt;
+    indxp, iq2, iss, iw, iz : NativeInt;
+    k, ldq2, ptr : NativeInt;
 begin
      ldq2 := qsiz;
 
@@ -3902,30 +3902,30 @@ end;
 
 // dlaed0.f
 function InternalSubEigValEigVecFromSymTridiagMatrix(
- D, E : PConstDoubleArr; Q : PDouble; LineWidthQ : TASMNativeInt;
- QStore : PDouble; LineWidthQStore : TASMNativeInt;
- N, QSiz : TASMNativeInt; const eigWork : TSymEigRec ) : TEigenvalueConvergence;
-var subpbs : TASMNativeInt;
-    tlvls : TASMNativeInt;
+ D, E : PConstDoubleArr; Q : PDouble; LineWidthQ : NativeInt;
+ QStore : PDouble; LineWidthQStore : NativeInt;
+ N, QSiz : NativeInt; const eigWork : TSymEigRec ) : TEigenvalueConvergence;
+var subpbs : NativeInt;
+    tlvls : NativeInt;
     iWork : PIntegerArray;
-    spm1 : TASMNativeInt;
-    i, j, k : TASMNativeInt;
-    submat, smm1 : TASMNativeInt;
+    spm1 : NativeInt;
+    i, j, k : NativeInt;
+    submat, smm1 : NativeInt;
     temp : double;
-    spm2 : TASMNativeInt;
-    indxq : TASMNativeInt;
-    curlvl : TASMNativeInt;
-    lgn : TASMNativeInt;
+    spm2 : NativeInt;
+    indxq : NativeInt;
+    curlvl : NativeInt;
+    lgn : NativeInt;
     iprmpt,
     iperm,
     iqptr,
     igivpt,
-    igivcl : TASMNativeInt;
+    igivcl : NativeInt;
     igivnm,
     iq,
-    iwrem : TASMNativeInt;
-    msd2, curprb : TASMNativeInt;
-    curr : TASMNativeInt;
+    iwrem : NativeInt;
+    msd2, curprb : NativeInt;
+    curr : NativeInt;
     matsiz : integer;
     pWork : PDouble;
 begin
@@ -4094,13 +4094,13 @@ end; *)
 // found if InternalSymEigValUpperhas been used to reduce this
 // matrix to tridiagonal form.
 // DSTEDC in netlib with option 'I'
-function InternalEigValEigVecFromSymTridiagMatrixDivedConquer( D, E : PConstDoubleArr; Z : PDouble; LineWidthZ : TASMNativeInt; N : TASMNativeInt;
+function InternalEigValEigVecFromSymTridiagMatrixDivedConquer( D, E : PConstDoubleArr; Z : PDouble; LineWidthZ : NativeInt; N : NativeInt;
   const eigWork : TSymEigRec ) : TEigenvalueConvergence;
-//var start, fin : TASMNativeInt;
+//var start, fin : NativeInt;
 //    pStoreZ : PDouble;
-//    LineWidthStoreZ : TASMNativeInt;
+//    LineWidthStoreZ : NativeInt;
 //    tiny : double;
-//    m : TASMNativeInt;
+//    m : NativeInt;
 //    pZ : PDouble;
 //    orgNorm : double;
 begin
@@ -4200,16 +4200,16 @@ end;
 
 
 // dlarft backward columnwise
-procedure CreateTMtxBC(n, k : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
+procedure CreateTMtxBC(n, k : NativeInt; A : PDouble; LineWidthA : NativeInt;
   Tau : PConstDoubleArr; reflData : TBlockReflrec);
-var i, j : TASMNativeInt;
+var i, j : NativeInt;
     pT : PDouble;
     pA1 : PDouble;
     pAij : PDouble;
-    prevLastA : TASMNativeInt;
-    lastA : TASMNativeInt;
-    k1 : TASMNativeInt;
-    nki : TASMNativeInt;
+    prevLastA : NativeInt;
+    lastA : NativeInt;
+    k1 : NativeInt;
+    nki : NativeInt;
     pcAij : PConstDoubleArr;
 begin
      assert(k <= n, 'Error k needs to be smaller than n');
@@ -4312,10 +4312,10 @@ begin
 end;
 
 // is actually dormQL
-procedure InternalEiVecFromQLeftUpperTranspose( A : PDouble; LineWidthA : TASMNativeInt; tau : PConstDoubleArr;
-                                       C : PDouble; LineWidthC : TASMNativeInt;
-                                       m, n : TASMNativeInt; const eigWork : TSymEigRec);
-var k : TASMNativeInt;
+procedure InternalEiVecFromQLeftUpperTranspose( A : PDouble; LineWidthA : NativeInt; tau : PConstDoubleArr;
+                                       C : PDouble; LineWidthC : NativeInt;
+                                       m, n : NativeInt; const eigWork : TSymEigRec);
+var k : NativeInt;
     pAii : PDouble;
     pAi0 : PDouble;
     aii : double;
@@ -4391,7 +4391,7 @@ end;
 // overwritten by either the Eigenvectors (if wanted) or through various intermediate
 // steps. the vector D of eigwork contains the Eigenvalues and needs to be of size N.
 // dsyevd in netlib
-function InternalSymEigValUpper(A : PDouble; LineWidthA : TASMNativeInt; N : TASMNativeInt; EigValOnly : boolean; const eigWork : TSymEigRec ) : TEigenvalueConvergence;
+function InternalSymEigValUpper(A : PDouble; LineWidthA : NativeInt; N : NativeInt; EigValOnly : boolean; const eigWork : TSymEigRec ) : TEigenvalueConvergence;
 var eps1 : double;
     smallNum : double;
     bigNum : double;
@@ -4485,10 +4485,10 @@ begin
         eigWork.progress( 100 );
 end;
 
-function MatrixEigUpperSymmetricMatrixInPlace2(A : PDouble; LineWidthA : TASMNativeInt; N : TASMNativeInt; W : PConstDoubleArr; EigValOnly : boolean; blockSize : integer; progress : TLinEquProgress = nil ) : TEigenvalueConvergence;
+function MatrixEigUpperSymmetricMatrixInPlace2(A : PDouble; LineWidthA : NativeInt; N : NativeInt; W : PConstDoubleArr; EigValOnly : boolean; blockSize : integer; progress : TLinEquProgress = nil ) : TEigenvalueConvergence;
 var eigWork : TSymEigRec;
-    iworkSize : TASMNativeInt;
-    workSize : TASMNativeInt;
+    iworkSize : NativeInt;
+    workSize : NativeInt;
 begin
      // ###########################################
      // #### Initialize memory
@@ -4557,18 +4557,18 @@ end;
 type
   TMatrixRotateRec = record
   public
-    Width : TASMNativeInt;
-    Height : TASMNativeInt;
+    Width : NativeInt;
+    Height : NativeInt;
     A : PDouble;
-    LineWidthA : TASMNativeInt;
+    LineWidthA : NativeInt;
     C : PConstDoubleArr;
     S : PConstDoubleArr;
 
-    procedure Create( aWidth, aHeight : TASMNativeInt; aA : PDouble; const aLineWidthA : TASMNativeInt; cC, cS : PConstDoubleArr);
+    procedure Create( aWidth, aHeight : NativeInt; aA : PDouble; const aLineWidthA : NativeInt; cC, cS : PConstDoubleArr);
   end;
   PMatrixRotateRec = ^TMatrixRotateRec;
 
-procedure TMatrixRotateRec.Create( aWidth, aHeight : TASMNativeInt; aA : PDouble; const aLineWidthA : TASMNativeInt; cC, cS : PConstDoubleArr);
+procedure TMatrixRotateRec.Create( aWidth, aHeight : NativeInt; aA : PDouble; const aLineWidthA : NativeInt; cC, cS : PConstDoubleArr);
 begin
      width := aWidth;
      Height := aHeight;
@@ -4596,13 +4596,13 @@ begin
      end;
 end;
 
-procedure ThrApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure ThrApplyPlaneRotSeqRVB(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr);
 var obj : TMatrixRotateRec;
     objs : Array[0..cMaxNumCores - 1] of TMatrixRotateRec;
     numUsed : integer;
     calls : IMtxAsyncCallGroup;
-    counter: TASMNativeInt;
-    h : TASMNativeInt;
+    counter: NativeInt;
+    h : NativeInt;
 begin
      //numUsed := numCPUCores - 1;
      numUsed := numRealCores;
@@ -4635,13 +4635,13 @@ begin
      calls.SyncAll;
 end;
 
-procedure ThrApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure ThrApplyPlaneRotSeqRVF(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr);
 var obj : TMatrixRotateRec;
     objs : Array[0..cMaxNumCores - 1] of TMatrixRotateRec;
     numUsed : integer;
     calls : IMtxAsyncCallGroup;
-    counter: TASMNativeInt;
-    h : TASMNativeInt;
+    counter: NativeInt;
+    h : NativeInt;
 begin
      //numUsed := numCPUCores - 1;
      numUsed := numRealCores;
@@ -4676,9 +4676,9 @@ end;
 
 
 // determine the memory needed for optimal working set sizes
-function UperSymEigMemorySize( N, blockSize : TASMNativeInt;
-  EigValOnly : boolean; Threaded : Boolean; var blkMultSize : integer ) : TASMNativeInt;
-var multMem : TASMNativeInt;
+function UperSymEigMemorySize( N, blockSize : NativeInt;
+  EigValOnly : boolean; Threaded : Boolean; var blkMultSize : integer ) : NativeInt;
+var multMem : NativeInt;
 begin
      blkMultSize := 0;
      if EigValOnly then
@@ -4699,10 +4699,10 @@ begin
      end;
 end;
 
-function ThrMtxEigUpperSymmetricMatrixInPlace2(A : PDouble; LineWidthA : TASMNativeInt; N : TASMNativeInt; W : PConstDoubleArr; EigValOnly : boolean; blockSize : integer; progress : TLinEquProgress = nil ) : TEigenvalueConvergence;
+function ThrMtxEigUpperSymmetricMatrixInPlace2(A : PDouble; LineWidthA : NativeInt; N : NativeInt; W : PConstDoubleArr; EigValOnly : boolean; blockSize : integer; progress : TLinEquProgress = nil ) : TEigenvalueConvergence;
 var eigWork : TSymEigRec;
-    iworkSize : TASMNativeInt;
-    workSize : TASMNativeInt;
+    iworkSize : NativeInt;
+    workSize : NativeInt;
 begin
      // ###########################################
      // #### For small matrices don't use the threaded version

@@ -22,61 +22,61 @@ interface
 
 uses MatrixConst;
 
-procedure AVXMatrixCopy(Dest : PDouble; destLineWidth : TASMNativeInt; src : PDouble; srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
-procedure AVXRowSwap(A, B : PDouble; width : TASMNativeInt);
-procedure AVXMatrixInit( dest : PDouble; destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; const value : double );
+procedure AVXMatrixCopy(Dest : PDouble; destLineWidth : NativeInt; src : PDouble; srcLineWidth : NativeInt; Width, Height : NativeInt);
+procedure AVXRowSwap(A, B : PDouble; width : NativeInt);
+procedure AVXMatrixInit( dest : PDouble; destLineWidth : NativeInt; Width, Height : NativeInt; const value : double );
 
 // note: The ASM routines always carry out 2x2 matrix multiplications thus there must be an additional zero line/column in the
 // input matrices if the width/height is uneven. The routine also performs better if the matrices are aligned to 16 byte boundaries!
-procedure AVXMatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
-procedure AVXMatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; mem : PDouble); overload;
-procedure AVXMatrixMultTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
-procedure AVXMatrixMultDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
+procedure AVXMatrixMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
+procedure AVXMatrixMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; mem : PDouble); overload;
+procedure AVXMatrixMultTransposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
+procedure AVXMatrixMultDirect(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
 
-procedure AVXMtxVecMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-procedure AVXMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure AVXMtxVecMult(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double);
+procedure AVXMtxVecMultT(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double);
 
-procedure AVXRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
-procedure AVXSymRank2UpdateUpper( C : PDouble; LineWidthC : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
-  B : PDouble; LineWidthB : TASMNativeInt; N : TASMNativeInt; k : TASMNativeInt );
+procedure AVXRank1Update(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
+  X, Y : PDouble; incX, incY : NativeInt; alpha : double);
+procedure AVXSymRank2UpdateUpper( C : PDouble; LineWidthC : NativeInt; A : PDouble; LineWidthA : NativeInt;
+  B : PDouble; LineWidthB : NativeInt; N : NativeInt; k : NativeInt );
 
 
-function AVXMatrixVecDotMult( x : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt ) : double;
+function AVXMatrixVecDotMult( x : PDouble; incX : NativeInt; y : PDouble; incY : NativeInt; N : NativeInt ) : double;
 
 
 // note: the matrix add routine tries to add two values at once and does not carry out any range checks thus the line widhts must
 // be multiple of 16.
-procedure AVXMatrixAdd(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
-procedure AVXMatrixAddVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+procedure AVXMatrixAdd(dest : PDouble; destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; LineWidth1, LineWidth2 : NativeInt);
+procedure AVXMatrixAddVec(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt; rowWise : Boolean);
 
-procedure AVXMatrixSub(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
-procedure AVXMatrixSubVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+procedure AVXMatrixSub(dest : PDouble; destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; LineWidth1, LineWidth2 : NativeInt);
+procedure AVXMatrixSubVec(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt; rowWise : Boolean);
 
-procedure AVXMatrixElemMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
-procedure AVXMatrixElemDiv(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
-procedure AVXMatrixAddAndScale(Dest : PDouble;  LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
-procedure AVXMatrixElemAdd(Dest : PDouble;  LineWidth, Width, Height : TASMNativeInt; const dOffset : double);
-procedure AVXMatrixScaleAndAdd(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
-procedure AVXMatrixSQRT(Dest : PDouble; LineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
-procedure AVXMatrixAbs(Dest : PDouble; LineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+procedure AVXMatrixElemMult(dest : PDouble; destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; LineWidth1, LineWidth2 : NativeInt);
+procedure AVXMatrixElemDiv(dest : PDouble; destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; LineWidth1, LineWidth2 : NativeInt);
+procedure AVXMatrixAddAndScale(Dest : PDouble;  LineWidth, Width, Height : NativeInt; const dOffset, Scale : double);
+procedure AVXMatrixElemAdd(Dest : PDouble;  LineWidth, Width, Height : NativeInt; const dOffset : double);
+procedure AVXMatrixScaleAndAdd(Dest : PDouble; LineWidth, Width, Height : NativeInt; const dOffset, Scale : double);
+procedure AVXMatrixSQRT(Dest : PDouble; LineWidth : NativeInt; Width, Height : NativeInt);
+procedure AVXMatrixAbs(Dest : PDouble; LineWidth : NativeInt; Width, Height : NativeInt);
 
-function AVXMatrixMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-function AVXMatrixMin(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function AVXMatrixMax(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
+function AVXMatrixMin(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 
-procedure AVXMatrixTranspose(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-function AVXMatrixElementwiseNorm2(dest : PDouble; LineWidth : TASMNativeInt; Width, height : TASMNativeInt; doSqrt : boolean) : double;
-procedure AVXMatrixNormalize(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
-procedure AVXMatrixMean(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
-procedure AVXMatrixVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
-procedure AVXMatrixMeanVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
-procedure AVXMatrixSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
-procedure AVXMatrixCumulativeSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
-procedure AVXMatrixDifferentiate(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure AVXMatrixTranspose(dest : PDouble; const destLineWidth : NativeInt; mt : PDouble; const LineWidth : NativeInt; width : NativeInt; height : NativeInt);
+function AVXMatrixElementwiseNorm2(dest : PDouble; LineWidth : NativeInt; Width, height : NativeInt; doSqrt : boolean) : double;
+procedure AVXMatrixNormalize(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+procedure AVXMatrixMean(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+procedure AVXMatrixVar(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; unbiased : boolean);
+procedure AVXMatrixMeanVar(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; unbiased : boolean);
+procedure AVXMatrixSum(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+procedure AVXMatrixCumulativeSum(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+procedure AVXMatrixDifferentiate(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
 
 
 // strassen algorithm for matrix multiplication
-procedure AVXStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure AVXStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
 
 implementation
 
@@ -107,7 +107,7 @@ uses Math,
      ASMMatrixOperations, SimpleMatrixOperations;
 
 
-procedure AVXMatrixAddAndScale(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure AVXMatrixAddAndScale(Dest : PDouble; LineWidth, Width, Height : NativeInt; const dOffset, Scale : double);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -120,7 +120,7 @@ begin
           LineWidth := LineWidth + 32 - LineWidth and $1F;
      end;
 
-     if (TASMNativeUInt(dest) and $0000001F = 0) and (LineWidth and $0000001F = 0) then
+     if (NativeUint(dest) and $0000001F = 0) and (LineWidth and $0000001F = 0) then
      begin
           if (width and 1) = 0
           then
@@ -138,7 +138,7 @@ begin
      end;
 end;
 
-procedure AVXMatrixElemAdd(Dest : PDouble;  LineWidth, Width, Height : TASMNativeInt; const dOffset : double);
+procedure AVXMatrixElemAdd(Dest : PDouble;  LineWidth, Width, Height : NativeInt; const dOffset : double);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -151,7 +151,7 @@ begin
           LineWidth := LineWidth + 32 - LineWidth and $1F;
      end;
 
-     if (TASMNativeUInt(dest) and $0000001F = 0) and (LineWidth and $0000001F = 0) then
+     if (NativeUint(dest) and $0000001F = 0) and (LineWidth and $0000001F = 0) then
      begin
           if (width and 1) = 0
           then
@@ -170,7 +170,7 @@ begin
 end;
 
 
-procedure AVXMatrixScaleAndAdd(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure AVXMatrixScaleAndAdd(Dest : PDouble; LineWidth, Width, Height : NativeInt; const dOffset, Scale : double);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -183,7 +183,7 @@ begin
           LineWidth := LineWidth + $20 - LineWidth and $1F;
      end;
 
-     if (TASMNativeUInt(dest) and $0000001F = 0) and (LineWidth and $0000001F = 0) then
+     if (NativeUint(dest) and $0000001F = 0) and (LineWidth and $0000001F = 0) then
      begin
           if (width and 1) = 0
           then
@@ -201,7 +201,7 @@ begin
      end;
 end;
 
-procedure AVXMatrixSQRT(Dest : PDouble; LineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+procedure AVXMatrixSQRT(Dest : PDouble; LineWidth : NativeInt; Width, Height : NativeInt);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -214,14 +214,14 @@ begin
           LineWidth := LineWidth + 32 - LineWidth and $1F;
      end;
 
-     if (TASMNativeUInt(dest) and $0000001F = 0) and (LineWidth and $0000001F = 0)
+     if (NativeUint(dest) and $0000001F = 0) and (LineWidth and $0000001F = 0)
      then
          AVXMatrixSQRTAligned(dest, LineWidth, width, height)
      else
          AVXMatrixSQRTUnAligned(dest, LineWidth, width, height);
 end;
 
-procedure AVXMatrixAbs(Dest : PDouble; LineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+procedure AVXMatrixAbs(Dest : PDouble; LineWidth : NativeInt; Width, Height : NativeInt);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -234,14 +234,14 @@ begin
           LineWidth := LineWidth + 32 - LineWidth and $1F;
      end;
 
-     if (TASMNativeUInt(dest) and $0000001F = 0) and (LineWidth and $0000001F = 0)
+     if (NativeUint(dest) and $0000001F = 0) and (LineWidth and $0000001F = 0)
      then
          AVXMatrixAbsAligned(dest, LineWidth, width, height)
      else
          AVXMatrixAbsUnAligned(dest, LineWidth, width, height);
 end;
 
-procedure AVXMatrixElemMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
+procedure AVXMatrixElemMult(dest : PDouble; destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; LineWidth1, LineWidth2 : NativeInt);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -256,7 +256,7 @@ begin
           destLineWidth := LineWidth1;
      end;
 
-     if (TASMNativeUInt(mt1) and $00000001F = 0) and (TASMNativeUInt(mt2) and $00000001F = 0) and (TASMNativeUInt(dest) and $00000001F = 0) and
+     if (NativeUint(mt1) and $00000001F = 0) and (NativeUint(mt2) and $00000001F = 0) and (NativeUint(dest) and $00000001F = 0) and
         (destLineWidth and $00000001F = 0) and (LineWidth1 and $00000001F = 0) and (LineWidth2 and $00000001F = 0)
      then
          AVXMatrixElemMultAligned(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2)
@@ -264,7 +264,7 @@ begin
          AVXMatrixElemMultUnAligned(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2);
 end;
 
-procedure AVXMatrixElemDiv(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
+procedure AVXMatrixElemDiv(dest : PDouble; destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; LineWidth1, LineWidth2 : NativeInt);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -279,7 +279,7 @@ begin
           destLineWidth := LineWidth1;
      end;
 
-     if (TASMNativeUInt(mt1) and $0000001F = 0) and (TASMNativeUInt(mt2) and $0000001F = 0) and (TASMNativeUInt(dest) and $0000001F = 0) and
+     if (NativeUint(mt1) and $0000001F = 0) and (NativeUint(mt2) and $0000001F = 0) and (NativeUint(dest) and $0000001F = 0) and
         (destLineWidth and $0000001F = 0) and (LineWidth1 and $0000001F = 0) and (LineWidth2 and $0000001F = 0)
      then
          AVXMatrixElemDivAligned(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2)
@@ -287,7 +287,7 @@ begin
          AVXMatrixElemDivUnAligned(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2);
 end;
 
-function AVXMatrixElementwiseNorm2(dest : PDouble; LineWidth : TASMNativeInt; Width, height : TASMNativeInt; doSqrt : boolean) : double;
+function AVXMatrixElementwiseNorm2(dest : PDouble; LineWidth : NativeInt; Width, height : NativeInt; doSqrt : boolean) : double;
 begin
      Result := 0;
 
@@ -302,7 +302,7 @@ begin
           LineWidth := width*sizeof(double) + (width and $03)*sizeof(double);
      end;
 
-     if (TASMNativeUInt(dest) and $0000001F = 0) and (LineWidth and $0000001F = 0)
+     if (NativeUint(dest) and $0000001F = 0) and (LineWidth and $0000001F = 0)
      then
          Result := AVXMatrixElementwiseNorm2Aligned(dest, LineWidth, width, height)
      else
@@ -313,12 +313,12 @@ begin
 end;
 
 
-procedure AVXMatrixAdd(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
+procedure AVXMatrixAdd(dest : PDouble; destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; LineWidth1, LineWidth2 : NativeInt);
 begin
      if (width = 0) or (height = 0) then
         exit;
 
-     if (TASMNativeUInt(mt1) and $0000001F = 0) and (TASMNativeUInt(mt2) and $0000001F = 0) and (TASMNativeUInt(dest) and $0000001F = 0) and
+     if (NativeUint(mt1) and $0000001F = 0) and (NativeUint(mt2) and $0000001F = 0) and (NativeUint(dest) and $0000001F = 0) and
         (destLineWidth and $0000001F = 0) and (LineWidth1 and $0000001F = 0) and (LineWidth2 and $0000001F = 0)
      then
          AVXMatrixAddAligned(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2)
@@ -326,12 +326,12 @@ begin
          AVXMatrixAddUnAligned(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2);
 end;
 
-procedure AVXMatrixSub(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
+procedure AVXMatrixSub(dest : PDouble; destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; LineWidth1, LineWidth2 : NativeInt);
 begin
      if (width = 0) or (height = 0) then
         exit;
 
-     if (TASMNativeUInt(mt1) and $0000001F = 0) and (TASMNativeUInt(mt2) and $0000001F = 0) and (TASMNativeUInt(dest) and $0000001F = 0) and
+     if (NativeUint(mt1) and $0000001F = 0) and (NativeUint(mt2) and $0000001F = 0) and (NativeUint(dest) and $0000001F = 0) and
         (destLineWidth and $0000001F = 0) and (LineWidth1 and $0000001F = 0) and (LineWidth2 and $0000001F = 0)
      then
          AVXMatrixSubAligned(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2)
@@ -339,12 +339,12 @@ begin
          AVXMatrixSubUnAligned(dest, destLineWidth, mt1, mt2, width, height, LineWidth1, LineWidth2);
 end;
 
-procedure AVXMatrixSubVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+procedure AVXMatrixSubVec(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt; rowWise : Boolean);
 begin
      if (width = 0) or (height = 0) then
         exit;
 
-     if (TASMNativeUInt(A) and $0000001F = 0) and (TASMNativeUInt(B) and $0000001F = 0) and
+     if (NativeUint(A) and $0000001F = 0) and (NativeUint(B) and $0000001F = 0) and
         (LineWidthA and $0000001F = 0)
      then
      begin
@@ -374,12 +374,12 @@ begin
      end;
 end;
 
-procedure AVXMatrixAddVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+procedure AVXMatrixAddVec(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt; rowWise : Boolean);
 begin
      if (width = 0) or (height = 0) then
         exit;
 
-     if (TASMNativeUInt(A) and $0000001F = 0) and (TASMNativeUInt(B) and $0000001F = 0) and
+     if (NativeUint(A) and $0000001F = 0) and (NativeUint(B) and $0000001F = 0) and
         (LineWidthA and $0000001F = 0)
      then
      begin
@@ -409,35 +409,35 @@ begin
      end;
 end;
 
-function AVXMatrixMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function AVXMatrixMax(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 begin
      Result := -MaxDouble;
      if (width = 0) or (height = 0) then
         exit;
      assert((width*sizeof(double) <= LineWidth), 'Dimension error');
 
-     if (TASMNativeUInt(mt) and $0000001F = 0) and (LineWidth and $0000001F = 0)
+     if (NativeUint(mt) and $0000001F = 0) and (LineWidth and $0000001F = 0)
      then
          Result := AVXMatrixMaxAligned(mt, width, height, LineWidth)
      else
          Result := AVXMatrixMaxUnAligned(mt, width, height, LineWidth);
 end;
 
-function AVXMatrixMin(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function AVXMatrixMin(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 begin
      Result := MaxDouble;
      if (width = 0) or (height = 0) then
         exit;
      assert((width*sizeof(double) <= LineWidth), 'Dimension error');
 
-     if (TASMNativeUInt(mt) and $0000001F = 0) and (LineWidth and $0000001F = 0)
+     if (NativeUint(mt) and $0000001F = 0) and (LineWidth and $0000001F = 0)
      then
          Result := AVXMatrixMinAligned(mt, width, height, LineWidth)
      else
          Result := AVXMatrixMinUnAligned(mt, width, height, LineWidth);
 end;
 
-procedure AVXMatrixTranspose(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+procedure AVXMatrixTranspose(dest : PDouble; const destLineWidth : NativeInt; mt : PDouble; const LineWidth : NativeInt; width : NativeInt; height : NativeInt);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -445,7 +445,7 @@ begin
 
      if (width > 1) and (height > 1) then
      begin
-          if (TASMNativeUInt(Dest) and $0000001F = 0) and (TASMNativeUInt(mt) and $0000001F = 0) and
+          if (NativeUint(Dest) and $0000001F = 0) and (NativeUint(mt) and $0000001F = 0) and
              (destLineWidth and $0000001F = 0) and (LineWidth and $0000001F = 0)
           then
               AVXMatrixTransposeAligned(dest, destLineWidth, mt, LineWidth, width, height)
@@ -456,7 +456,7 @@ begin
          GenericMtxTranspose(dest, destLineWidth, mt, LineWidth, width, height);
 end;
 
-procedure AVXMatrixSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure AVXMatrixSum(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -473,7 +473,7 @@ begin
           RowWise := True;
      end;
 
-     if (TASMNativeUInt(Dest) and $0000001F = 0) and (TASMNativeUInt(src) and $0000001F = 0) and
+     if (NativeUint(Dest) and $0000001F = 0) and (NativeUint(src) and $0000001F = 0) and
         (destLineWidth and $0000001F = 0) and (srcLineWidth and $0000001F = 0)
      then
      begin
@@ -493,7 +493,7 @@ begin
      end;
 end;
 
-procedure AVXMatrixCumulativeSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure AVXMatrixCumulativeSum(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -515,7 +515,7 @@ begin
          AVXMatrixCumulativeSumRow(dest, destLineWidth, Src, srcLineWidth, width, height)
      else
      begin
-          if (TASMNativeUInt(Dest) and $0000001F = 0) and (TASMNativeUInt(src) and $0000001F = 0) and
+          if (NativeUint(Dest) and $0000001F = 0) and (NativeUint(src) and $0000001F = 0) and
              (destLineWidth and $0000001F = 0) and (srcLineWidth and $0000001F = 0)
           then
               AVXMatrixCumulativeSumColumnAligned(dest, destLineWidth, Src, srcLineWidth, width, height)
@@ -524,7 +524,7 @@ begin
      end;
 end;
 
-procedure AVXMatrixDifferentiate(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure AVXMatrixDifferentiate(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -546,7 +546,7 @@ begin
          AVXMatrixDifferentiateRow(dest, destLineWidth, Src, srcLineWidth, width, height)
      else
      begin
-          if (TASMNativeUInt(Dest) and $0000001F = 0) and (TASMNativeUInt(src) and $0000001F = 0) and
+          if (NativeUint(Dest) and $0000001F = 0) and (NativeUint(src) and $0000001F = 0) and
              (destLineWidth and $0000001F = 0) and (srcLineWidth and $0000001F = 0)
           then
               AVXMatrixDifferentiateColumnAligned(dest, destLineWidth, Src, srcLineWidth, width, height)
@@ -555,7 +555,7 @@ begin
      end;
 end;
 
-procedure AVXMatrixMean(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure AVXMatrixMean(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -572,7 +572,7 @@ begin
           RowWise := True;
      end;
 
-     if (TASMNativeUInt(Dest) and $0000001F = 0) and (TASMNativeUInt(src) and $0000001F = 0) and
+     if (NativeUint(Dest) and $0000001F = 0) and (NativeUint(src) and $0000001F = 0) and
         (destLineWidth and $0000001F = 0) and (srcLineWidth and $0000001F = 0)
      then
      begin
@@ -592,7 +592,7 @@ begin
      end;
 end;
 
-procedure AVXMatrixVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
+procedure AVXMatrixVar(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; unbiased : boolean);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -609,7 +609,7 @@ begin
           RowWise := True;
      end;
 
-     if (TASMNativeUInt(Dest) and $0000001F = 0) and (TASMNativeUInt(src) and $0000001F = 0) and
+     if (NativeUint(Dest) and $0000001F = 0) and (NativeUint(src) and $0000001F = 0) and
         (destLineWidth and $0000001F = 0) and (srcLineWidth and $0000001F = 0)
      then
      begin
@@ -629,7 +629,7 @@ begin
      end;
 end;
 
-procedure AVXMatrixMeanVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
+procedure AVXMatrixMeanVar(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; unbiased : boolean);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -645,7 +645,7 @@ begin
           RowWise := True;
      end;
 
-     if (TASMNativeUInt(Dest) and $0000001F = 0) and (TASMNativeUInt(src) and $0000001F = 0) and
+     if (NativeUint(Dest) and $0000001F = 0) and (NativeUint(src) and $0000001F = 0) and
         (destLineWidth and $0000001F = 0) and (srcLineWidth and $0000001F = 0)
      then
      begin
@@ -665,7 +665,7 @@ begin
      end;
 end;
 
-procedure AVXMatrixNormalize(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure AVXMatrixNormalize(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -681,7 +681,7 @@ begin
           RowWise := True;
      end;
 
-     if (TASMNativeUInt(Dest) and $0000001F = 0) and (TASMNativeUInt(src) and $0000001F = 0) and
+     if (NativeUint(Dest) and $0000001F = 0) and (NativeUint(src) and $0000001F = 0) and
         (destLineWidth and $0000001F = 0) and (srcLineWidth and $0000001F = 0)
      then
      begin
@@ -701,7 +701,7 @@ begin
      end;
 end;
 
-procedure AVXMatrixCopy(Dest : PDouble; destLineWidth : TASMNativeInt; src : PDouble; srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+procedure AVXMatrixCopy(Dest : PDouble; destLineWidth : NativeInt; src : PDouble; srcLineWidth : NativeInt; Width, Height : NativeInt);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -719,7 +719,7 @@ begin
      if (width > 64) // and (width < maxcopy block
      then
          ASMCopyRepMov( dest, destLineWidth, src, srcLineWidth, width, height )
-     else *) if (TASMNativeUInt(Dest) and $0000001F = 0) and (TASMNativeUInt(src) and $0000001F = 0) and
+     else *) if (NativeUint(Dest) and $0000001F = 0) and (NativeUint(src) and $0000001F = 0) and
         (destLineWidth and $0000001F = 0) and (srcLineWidth and $0000001F = 0)
      then
          AVXMatrixCopyAligned(dest, destLineWidth, src, srcLineWidth, width, height)
@@ -727,7 +727,7 @@ begin
          AVXMatrixCopyUnAligned(dest, destLineWidth, src, srcLineWidth, width, height);
 end;
 
-procedure AVXMatrixInit( dest : PDouble; destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; const value : double );
+procedure AVXMatrixInit( dest : PDouble; destLineWidth : NativeInt; Width, Height : NativeInt; const value : double );
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -740,26 +740,26 @@ begin
           destLineWidth := (width + 4 - width and $03)*sizeof(double);
      end;
 
-     if (TASMNativeUInt(Dest) and $0000001F = 0) and (destLineWidth and $0000001F = 0)
+     if (NativeUint(Dest) and $0000001F = 0) and (destLineWidth and $0000001F = 0)
      then
          AVXMatrixInitAligned(dest, destLineWidth, width, height, value)
      else
          AVXMatrixInitUnAligned(dest, destLineWidth, width, height, value);
 end;
 
-procedure AVXRowSwap(A, B : PDouble; width : TASMNativeInt);
+procedure AVXRowSwap(A, B : PDouble; width : NativeInt);
 begin
      if (width = 0) then
         exit;
 
-     if (TASMNativeUInt(A) and $0000001F = 0) and (TASMNativeUInt(B) and $0000001F = 0)
+     if (NativeUint(A) and $0000001F = 0) and (NativeUint(B) and $0000001F = 0)
      then
          AVXRowSwapAligned(A, B, Width)
      else
          AVXRowSwapUnAligned(A, B, Width);
 end;
 
-procedure AVXMatrixMultTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
+procedure AVXMatrixMultTransposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
 begin
      if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
         exit;
@@ -779,7 +779,7 @@ begin
           // ########################################################################
           // ####  In this case mt2 is already transposed -> direct multiplication
           // check for alignment:
-          if ((TASMNativeUInt(dest) and $0000001F) = 0) and ((TASMNativeUInt(mt1) and $0000001F) = 0) and ((TASMNativeUInt(mt2) and $0000001F) = 0) and
+          if ((NativeUint(dest) and $0000001F) = 0) and ((NativeUint(mt1) and $0000001F) = 0) and ((NativeUint(mt2) and $0000001F) = 0) and
              ((destLineWidth and $0000001F) = 0) and ((LineWidth1 and $0000001F) = 0) and ((LineWidth2 and $0000001F) = 0) then
           begin
                if width1 and $0000000F = 0 then
@@ -798,10 +798,10 @@ begin
      end;
 end;
 
-procedure AVXMatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; mem : PDouble); overload;
+procedure AVXMatrixMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; mem : PDouble); overload;
 var mtx : PDouble;
-    mtxLineWidth : TASMNativeInt;
-    help : TASMNativeInt;
+    mtxLineWidth : NativeInt;
+    help : NativeInt;
     aMem : Pointer;
 begin
      if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
@@ -850,13 +850,13 @@ begin
      end;
 end;
 
-procedure AVXMatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
+procedure AVXMatrixMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
 begin
      AVXMatrixMult(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, nil);
 end;
 
-procedure InternalAVXStrassenMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt;
-  width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; mem : PDouble);
+procedure InternalAVXStrassenMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt;
+  width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; mem : PDouble);
 var a11, a12, a21, a22 : PDouble;
     b11, b12, b21, b22 : PDouble;
     s1, s2, s3, s4 : PDouble;
@@ -864,11 +864,11 @@ var a11, a12, a21, a22 : PDouble;
     P1, P2, P3, P4, P5, P6, P7 : PDouble;
     U1, U2, U3, U4, U5, U6, U7 : PDouble;
     c11, c12, c21, c22 : PDouble;
-    k, m, n : TASMNativeInt;
-    lineK : TASMNativeInt;
-    lineN : TASMNativeInt;
+    k, m, n : NativeInt;
+    lineK : NativeInt;
+    lineN : NativeInt;
     x, y : PDouble;
-    multLineW : TASMNativeInt;
+    multLineW : NativeInt;
 begin
      if (width1 <= cStrassenMinSize) or (height1 <= cStrassenMinSize) or (width2 <= cStrassenMinSize) then
      begin
@@ -1064,12 +1064,12 @@ begin
      end;
 end;
 
-procedure AVXStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure AVXStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
 var mem : PDouble;
     ptrMem : Pointer;
-    memSize : TASMNativeInt;
-    m, k, n : TASMNativeInt;
-    lev : TASMNativeInt;
+    memSize : NativeInt;
+    m, k, n : NativeInt;
+    lev : NativeInt;
 begin
      // check the cutoff criterion:
      if (width1 <= cStrassenMinSize) or (height1 <= cStrassenMinSize) or (height2 <= cStrassenMinSize)
@@ -1104,7 +1104,7 @@ begin
      end;
 end;
 
-procedure AVXMatrixMultDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure AVXMatrixMultDirect(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
 begin
      if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
         exit;
@@ -1126,7 +1126,7 @@ begin
      else
      begin
           // check for alignment:
-          if ((TASMNativeUInt(dest) and $0000001F) = 0) and ((TASMNativeUInt(mt1) and $0000001F) = 0) and ((TASMNativeUInt(mt2) and $0000001F) = 0) and
+          if ((NativeUint(dest) and $0000001F) = 0) and ((NativeUint(mt1) and $0000001F) = 0) and ((NativeUint(mt2) and $0000001F) = 0) and
              ((destLineWidth and $0000001F) = 0) and ((LineWidth1 and $0000001F) = 0) and ((LineWidth2 and $0000001F) = 0)
           then
               AVXMatrixMultAligned(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2)
@@ -1135,14 +1135,14 @@ begin
      end;
 end;
 
-procedure AVXMtxVecMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure AVXMtxVecMult(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double);
 begin
      if (width = 0) or (height = 0) then
         exit;
 
      if (LineWidthV = sizeof(double)) then
      begin
-          if ((TASMNativeUInt(mt1) and $0000001F) = 0) and ((TASMNativeUInt(v) and $0000001F) = 0) and (LineWidthMT and $1F = 0)
+          if ((NativeUint(mt1) and $0000001F) = 0) and ((NativeUint(v) and $0000001F) = 0) and (LineWidthMT and $1F = 0)
           then
               AVXMatrixVectMultAlignedVAligned(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta)
           else
@@ -1153,7 +1153,7 @@ begin
 end;
 
 // performs dest = beta*dest + mt1**T*v * alpha
-procedure AVXMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure AVXMtxVecMultT(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -1166,8 +1166,8 @@ begin
          AVXMatrixVectMultT(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta);
 end;
 
-procedure AVXRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
+procedure AVXRank1Update(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
+  X, Y : PDouble; incX, incY : NativeInt; alpha : double);
 begin
      if (width <= 0) or (height <= 0) then
         exit;
@@ -1175,15 +1175,15 @@ begin
      if incY <> sizeof(double) 
      then
          ASMRank1Update(A, LineWidthA, width, height, x, y, incx, incy, alpha)
-     else if ((TASMNativeUInt(A) and $0000001F) = 0) and ((TASMNativeUInt(Y) and $0000001F) = 0) and (LineWidthA and $1F = 0)
+     else if ((NativeUint(A) and $0000001F) = 0) and ((NativeUint(Y) and $0000001F) = 0) and (LineWidthA and $1F = 0)
      then
          AVXRank1UpdateSeqAligned(A, LineWidthA, width, height, x, y, incX, incY, alpha)
      else
          AVXRank1UpdateSeq(A, LineWidthA, width, height, x, y, incX, incY, alpha);
 end;
 
-procedure AVXSymRank2UpdateUpper( C : PDouble; LineWidthC : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
-  B : PDouble; LineWidthB : TASMNativeInt; N : TASMNativeInt; k : TASMNativeInt );
+procedure AVXSymRank2UpdateUpper( C : PDouble; LineWidthC : NativeInt; A : PDouble; LineWidthA : NativeInt;
+  B : PDouble; LineWidthB : NativeInt; N : NativeInt; k : NativeInt );
 begin
      if (N <= 0) or (k <= 0) then
         exit;
@@ -1191,11 +1191,11 @@ begin
      AVXSymRank2UpdateUpperUnaligned( C, LineWidthC, A, LineWidthA, B, LineWidthB, N, k);
 end;
 
-function AVXMatrixVecDotMult( x : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt ) : double;
+function AVXMatrixVecDotMult( x : PDouble; incX : NativeInt; y : PDouble; incY : NativeInt; N : NativeInt ) : double;
 begin
      if (incx = sizeof(double)) and (incy = sizeof(double)) then
      begin
-          if (TASMNativeUInt(X) and $0000001F = 0) and (TASMNativeUInt(Y) and $0000001F = 0)
+          if (NativeUint(X) and $0000001F = 0) and (NativeUint(Y) and $0000001F = 0)
           then
               Result := AVXMatrixVecDotMultAligned(X, Y, N)
           else

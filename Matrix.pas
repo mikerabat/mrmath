@@ -91,7 +91,7 @@ type
     procedure SetColumn(col : integer; Values : IMatrix; ValCols : integer = 0); overload;
 
     procedure SetValue(const initVal : double); overload;
-    procedure SetValue(const initVal : double; x, y, aWidth, aHeight : TASMNativeInt); overload;  // sets the value in a subsection of the matrix
+    procedure SetValue(const initVal : double; x, y, aWidth, aHeight : NativeInt); overload;  // sets the value in a subsection of the matrix
 
     function SubColMtx( colIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
     function SubRowMtx( rowIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
@@ -402,7 +402,7 @@ type
     procedure SetColumn(col : integer; Values : IMatrix; ValCols : integer = 0); overload;
 
     procedure SetValue(const initVal : double); overload;
-    procedure SetValue(const initVal : double; x, y, aWidth, aHeight : TASMNativeInt); overload;  // sets the value in a subsection of the matrix
+    procedure SetValue(const initVal : double; x, y, aWidth, aHeight : NativeInt); overload;  // sets the value in a subsection of the matrix
 
     function SubColMtx( colIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
     function SubRowMtx( rowIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
@@ -882,7 +882,7 @@ begin
 end;
 
 procedure TDoubleMatrix.AddVecInPlace(Value: TDoubleMatrix; rowWise: Boolean);
-var incX : TASMNativeInt;
+var incX : NativeInt;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
      if rowWise
@@ -2552,7 +2552,7 @@ begin
         MatrixInit( StartElement, LineWidth, width, height, initVal);
 end;
 
-procedure TDoubleMatrix.SetValue(const initVal : double; x, y, aWidth, aHeight : TASMNativeInt);
+procedure TDoubleMatrix.SetValue(const initVal : double; x, y, aWidth, aHeight : NativeInt);
 begin
      CheckAndRaiseError( Width >= x + aWidth, 'Dimension X Error');
      CheckAndRaiseError( Height >= y + aHeight, 'Dimension Y Error');
@@ -2574,7 +2574,7 @@ procedure TDoubleMatrix.Resize(aNewWidth, aNewHeight: Integer);
 var origSubWidth,
     origSubHeight : integer;
     origMemory : Pointer;
-    origLineWidth : TASMNativeInt;
+    origLineWidth : NativeInt;
     origStart : PDouble;
 begin
      CheckAndRaiseError( (aNewWidth > 0) and (aNewHeight > 0), 'Width and height need to be greater than 0');
@@ -2641,7 +2641,7 @@ begin
 end;
 
 procedure TDoubleMatrix.SubVecInPlace(Value: TDoubleMatrix; rowWise : Boolean);
-var incX : TASMNativeInt;
+var incX : NativeInt;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
      if rowWise
@@ -2875,7 +2875,7 @@ end;
 function TDoubleMatrix.SVD(out U, V, W: TDoubleMatrix; onlyDiagElements : boolean): TSVDResult;
 var pW : PConstDoubleArr;
     wArr : PByte;
-    minWH : TASMNativeInt;
+    minWH : NativeInt;
     i : Integer;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'Dimension error');

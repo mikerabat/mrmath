@@ -30,8 +30,8 @@ interface
 
 uses MatrixConst;
 
-procedure AVXMatrixAbsAligned(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure AVXMatrixAbsUnAligned(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixAbsAligned(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixAbsUnAligned(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -43,7 +43,7 @@ implementation
 
 const cLocSignBits4 : Array[0..3] of int64 = ($7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF);
 
-procedure AVXMatrixAbsAligned(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
+procedure AVXMatrixAbsAligned(Dest : PDouble; const LineWidth, Width, Height : NativeInt);
 // eax = dest; edx = LineWidth, ecx = Width
 asm
    push edi;
@@ -126,7 +126,7 @@ asm
    pop edi;
 end;
 
-procedure AVXMatrixAbsUnAligned(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
+procedure AVXMatrixAbsUnAligned(Dest : PDouble; const LineWidth, Width, Height : NativeInt);
 // eax = dest; edx = LineWidth, ecx = Width
 asm
    push edi;

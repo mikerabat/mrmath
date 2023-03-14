@@ -27,22 +27,22 @@ interface
 
 uses MatrixConst;
 
-function ASMMatrixElementwiseNorm2AlignedEvenW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-function ASMMatrixElementwiseNorm2UnAlignedEvenW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function ASMMatrixElementwiseNorm2AlignedEvenW(dest : PDouble; const LineWidth : NativeInt; Width, height : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function ASMMatrixElementwiseNorm2UnAlignedEvenW(dest : PDouble; const LineWidth : NativeInt; Width, height : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-function ASMMatrixElementwiseNorm2AlignedOddW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-function ASMMatrixElementwiseNorm2UnAlignedOddW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function ASMMatrixElementwiseNorm2AlignedOddW(dest : PDouble; const LineWidth : NativeInt; Width, height : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function ASMMatrixElementwiseNorm2UnAlignedOddW(dest : PDouble; const LineWidth : NativeInt; Width, height : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 
-procedure ASMMatrixNormalizeRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMMatrixNormalizeRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMMatrixNormalizeRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMMatrixNormalizeRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixNormalizeRowAlignedEvenW(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixNormalizeRowUnAlignedEvenW(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixNormalizeRowAlignedOddW(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixNormalizeRowUnAlignedOddW(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixNormalizeColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMMatrixNormalizeColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF} 
-procedure ASMMatrixNormalizeColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMMatrixNormalizeColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixNormalizeColumnAlignedEvenW(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixNormalizeColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF} 
+procedure ASMMatrixNormalizeColumnAlignedOddW(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixNormalizeColumnUnAlignedOddW(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -54,7 +54,7 @@ implementation
 
 const cLocOne : double = 1;
 
-function ASMMatrixElementwiseNorm2AlignedEvenW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
+function ASMMatrixElementwiseNorm2AlignedEvenW(dest : PDouble; const LineWidth : NativeInt; Width, height : NativeInt) : double;
 asm
    push ebx;
    push edi;
@@ -150,7 +150,7 @@ asm
    pop ebx;
 end;
 
-function ASMMatrixElementwiseNorm2UnAlignedEvenW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
+function ASMMatrixElementwiseNorm2UnAlignedEvenW(dest : PDouble; const LineWidth : NativeInt; Width, height : NativeInt) : double;
 asm
    push ebx;
    push edi;
@@ -246,7 +246,7 @@ asm
    pop ebx;
 end;
 
-function ASMMatrixElementwiseNorm2AlignedOddW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
+function ASMMatrixElementwiseNorm2AlignedOddW(dest : PDouble; const LineWidth : NativeInt; Width, height : NativeInt) : double;
 asm
    push ebx;
    push edi;
@@ -348,7 +348,7 @@ asm
    pop ebx;
 end;
 
-function ASMMatrixElementwiseNorm2UnAlignedOddW(dest : PDouble; const LineWidth : TASMNativeInt; Width, height : TASMNativeInt) : double;
+function ASMMatrixElementwiseNorm2UnAlignedOddW(dest : PDouble; const LineWidth : NativeInt; Width, height : NativeInt) : double;
 asm
    push ebx;
    push edi;
@@ -450,7 +450,7 @@ asm
    pop ebx;
 end;
 
-procedure ASMMatrixNormalizeRowAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixNormalizeRowAlignedEvenW(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt);
 asm
    push edi;
    push esi;
@@ -611,7 +611,7 @@ asm
    pop edi;
 end;
 
-procedure ASMMatrixNormalizeRowUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixNormalizeRowUnAlignedEvenW(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt);
 asm
    push edi;
    push esi;
@@ -770,7 +770,7 @@ asm
    pop edi;
 end;
 
-procedure ASMMatrixNormalizeRowAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixNormalizeRowAlignedOddW(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt);
 asm
    push edi;
    push esi;
@@ -940,7 +940,7 @@ asm
    pop edi;
 end;
 
-procedure ASMMatrixNormalizeRowUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
+procedure ASMMatrixNormalizeRowUnAlignedOddW(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt);
 asm
    push edi;
    push esi;
@@ -1110,8 +1110,8 @@ asm
    pop edi;
 end;
 
-procedure ASMMatrixNormalizeColumnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : TASMNativeInt;
+procedure ASMMatrixNormalizeColumnAlignedEvenW(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt);
+var iters : NativeInt;
 asm
    push ebx;
    push edi;
@@ -1174,8 +1174,8 @@ asm
    pop ebx;
 end;
 
-procedure ASMMatrixNormalizeColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : TASMNativeInt;
+procedure ASMMatrixNormalizeColumnUnAlignedEvenW(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt);
+var iters : NativeInt;
 asm
    push ebx;
    push edi;
@@ -1237,8 +1237,8 @@ asm
    pop ebx;
 end;
 
-procedure ASMMatrixNormalizeColumnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : TASMNativeInt;
+procedure ASMMatrixNormalizeColumnAlignedOddW(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt);
+var iters : NativeInt;
 asm
    push ebx;
    push edi;
@@ -1336,8 +1336,8 @@ asm
    pop ebx;
 end;
 
-procedure ASMMatrixNormalizeColumnUnAlignedOddW(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; width, height : TASMNativeInt);
-var iters : TASMNativeInt;
+procedure ASMMatrixNormalizeColumnUnAlignedOddW(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt);
+var iters : NativeInt;
 asm
    push ebx;
    push edi;
