@@ -21,12 +21,8 @@ unit AVXMatrixVectorMultOperations;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFNDEF x64}
 
 uses MatrixConst;
@@ -59,8 +55,6 @@ procedure AVXRank1UpdateSeqAligned(A : PDouble; const LineWidthA : NativeInt; wi
 implementation
 
 {$IFNDEF x64}
-
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 procedure AVXMatrixVectMult(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double);
 // note: eax = dest, edx = destLineWidth, ecx = mt1

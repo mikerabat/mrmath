@@ -21,12 +21,8 @@ unit ASMMatrixSqrtOperationsx64;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFDEF x64}
 
 uses MatrixConst;
@@ -42,8 +38,6 @@ procedure ASMMatrixSQRTUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Hei
 implementation
 
 {$IFDEF x64}
-
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 procedure ASMMatrixSQRTAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 asm

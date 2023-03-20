@@ -21,12 +21,8 @@ unit ASMMatrixAddSubOperations;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFNDEF x64}
 
 uses MatrixConst;
@@ -72,8 +68,6 @@ procedure ASMVecAddNonSeq( X : PDouble; y : PDouble; N : NativeInt; incX, incY :
 implementation
 
 {$IFNDEF x64}
-
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 procedure ASMMatrixAddAlignedEvenW(dest : PDouble; const destLinewidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, Linewidth2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 // eax = dest; edx = destLineWidth; mt1 = ecx

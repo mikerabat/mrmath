@@ -21,12 +21,8 @@ unit ASMMoveOperations;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFNDEF x64}
 
 uses MatrixConst;
@@ -55,8 +51,6 @@ procedure ASMMatrixInitUnAligned( dest : PDouble; const destLineWidth : NativeIn
 implementation
 
 {$IFNDEF x64}
-
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 // eax = dest, edx = destLineWidth, ecx = width
 procedure ASMMatrixInitAligned( dest : PDouble; const destLineWidth : NativeInt; Width, Height : NativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}

@@ -18,12 +18,8 @@ unit ASMMatrixRotations;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFNDEF x64}
 
 
@@ -41,8 +37,6 @@ procedure ASMMatrixRotate(N : NativeInt; X : PDouble; const LineWidthDX : Native
 implementation
 
 {$IFNDEF x64}
-
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 const cLocMinusOne : double = -1;
       cLocOne : double = 1;

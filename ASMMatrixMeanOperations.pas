@@ -17,12 +17,8 @@ unit ASMMatrixMeanOperations;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFNDEF x64}
 
 uses MatrixConst;
@@ -65,8 +61,6 @@ procedure ASMMatrixMeanVarColumnUnAlignedOddW(dest : PDouble; const destLineWidt
 implementation
 
 {$IFNDEF x64}
-
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 const cLocOne : double = 1;
       cLocOnes : Array[0..1] of double = (1, 1);

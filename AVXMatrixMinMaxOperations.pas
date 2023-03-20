@@ -17,12 +17,8 @@ unit AVXMatrixMinMaxOperations;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFNDEF x64}
 
 uses MatrixConst;
@@ -40,8 +36,6 @@ implementation
 {$IFNDEF x64}
 
 {$WARNINGS OFF}
-
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 const cLocNegMaxDouble : double = -1.7e+308;
       cLocMaxDouble : double = 1.7e+308;

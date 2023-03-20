@@ -16,13 +16,8 @@ unit AVXMatrixCumSumDiffOperations;
 
 interface
 
+{$I 'mrMath_CPU.inc'}
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
 {$IFNDEF x64}
 
 uses MatrixConst;
@@ -42,8 +37,6 @@ procedure AVXMatrixDifferentiateColumnAligned(dest : PDouble; const destLineWidt
 implementation
 
 {$IFNDEF x64}
-
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 // ##################################################
 // #### Cumulative sum

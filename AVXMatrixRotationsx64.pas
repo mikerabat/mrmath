@@ -18,12 +18,8 @@ unit AVXMatrixRotationsx64;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFDEF x64}
 
 
@@ -42,8 +38,6 @@ procedure AVXMatrixRotate(N : NativeInt; X : PDouble; const LineWidthDX : Native
 implementation
 
 {$IFDEF x64}
-
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 // rcx = width, rdx = height, r8 : A, r9 = LineWidthA
 procedure AVXApplyPlaneRotSeqLVB(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; {$ifdef UNIX}unixC{$ELSE}C{$endif}, {$ifdef UNIX}unixS{$ELSE}S{$endif} : PConstDoubleArr); {$IFDEF FPC}assembler;{$ENDIF}

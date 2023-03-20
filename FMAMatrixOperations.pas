@@ -20,6 +20,8 @@ unit FMAMatrixOperations;
 
 interface
 
+{$I 'mrMath_CPU.inc'}
+
 uses MatrixConst;
 
 // note: The ASM routines always carry out 2x2 matrix multiplications thus there must be an additional zero line/column in the
@@ -39,13 +41,6 @@ procedure FMARank1Update(A : PDouble; const LineWidthA : NativeInt; width, heigh
 procedure FMAStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
 
 implementation
-
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
 
 {$IFDEF FPC} {$S-} {$ENDIF}
 

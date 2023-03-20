@@ -18,12 +18,8 @@ interface
 
 uses RandomEng;
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFNDEF x64}
 
 procedure AVXChaChaDoubleQuarterRound( chachaMtx : PChaChaAVXMtx ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
@@ -34,8 +30,6 @@ procedure AVXRealingAndAddMtx( chaChaMtx : PChaChaAVXMtx; inpChaCha : PChaChaMtx
 implementation
 
 {$IFNDEF x64}
-
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 const cShuf16 : Array[0..31] of byte = (3, 0, 1, 2,
                                         7, 4, 5, 6,

@@ -33,6 +33,7 @@ implementation
 // ###########################################
 // #### Global constants for features:
 
+{$I 'mrMath_CPU.inc'}
 
 // base idea from https://stackoverflow.com/questions/6121792/how-to-check-if-a-cpu-supports-the-sse3-instruction-set
 // misc
@@ -78,30 +79,11 @@ var HW_MMX: boolean = False;
     AVX_OS_SUPPORT : boolean = False;     // 256bit AVX supported in context switch
     AVX512_OS_SUPPORT : boolean = False;  // 512bit AVX supported in context switch
 
+{$IFNDEF MRMATH_NOASM}
+
 // ##############################################################
 // #### feature detection code
 // ##############################################################
-
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
-
-{$IFDEF CPU86}
-{$DEFINE x86}
-{$ENDIF}
-{$IFDEF CPUX86}
-{$DEFINE x86}
-{$ENDIF}
-
-{$IF not defined(x86) and not defined(x64)}
-  {$DEFINE MRMATH_NOASM}
-{$ifend}
-
-
-{$IFNDEF MRMATH_NOASM}
 
 type
   TRegisters = record
@@ -110,8 +92,6 @@ type
     ECX,
     EDX: Cardinal;
   end;
-
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 {$IFDEF x64}
 function IsCPUID_Available : boolean;

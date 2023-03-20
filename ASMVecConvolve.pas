@@ -16,12 +16,8 @@ unit ASMVecConvolve;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFNDEF x64}
 
 uses MatrixConst;
@@ -37,8 +33,6 @@ procedure ASMVecConvolveRevB(dest : PDouble; A, B : PDouble; aLen, bLen : Native
 implementation
 
 {$IFNDEF x64}
-
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 procedure ASMVecConvolveRevB(dest : PDouble; A, B : PDouble; aLen, bLen : NativeInt);
 // eax = dest, edx = A, ecx = B

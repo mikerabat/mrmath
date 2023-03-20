@@ -21,12 +21,8 @@ unit ASMMatrixVectorMultOperationsx64;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFDEF x64}
 
 uses MatrixConst;
@@ -65,8 +61,6 @@ procedure ASMRank1UpdateNonSeq(A : PDouble; const LineWidthA : NativeInt; width,
 implementation
 
 {$IFDEF x64}
-
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 procedure ASMMatrixVectMult(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; {$ifdef UNIX}unixLineWidthMT{$ELSE}LineWidthMT{$endif}, {$ifdef UNIX}unixLineWidthV{$ELSE}LineWidthV{$endif} : NativeInt; width, height : NativeInt; alpha, beta : double); {$IFDEF FPC}assembler;{$ENDIF}
 // note: RCX = dest, RDX = destLineWidth, R8 = mt1, R9 = v

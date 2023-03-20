@@ -17,12 +17,8 @@ unit ASMMatrixMinMaxOperationsx64;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFDEF x64}
 
 uses MatrixConst;
@@ -57,8 +53,6 @@ function ASMMatrixAbsMinUnAlignedOddW(mt : PDouble; width, height : NativeInt; c
 implementation
 
 {$IFDEF x64}
-
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 const cLocNegMaxDoubles : Array[0..1] of double = (-1.7e+308, -1.7e+308);
       cLocMaxDoubles : Array[0..1] of double = (1.7e+308, 1.7e+308);

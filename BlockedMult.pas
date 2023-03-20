@@ -77,31 +77,14 @@ procedure ThrBlockMatrixMultiplication(dest : PDouble; const destLineWidth : Nat
 implementation
 
 uses Math, BlockSizeSetup, SimpleMatrixOperations, MatrixASMStubSwitch,
+     {$IFDEF MSWINDOWS}
+     Windows,
+     {$ENDIF}
      MtxThreadPool, ThreadedMatrixOperations, MathUtilFunc;
 
-
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
-
-{$IFDEF CPU86}
-{$DEFINE x86}
-{$ENDIF}
-{$IFDEF CPUX86}
-{$DEFINE x86}
-{$ENDIF}
-
-{$IF not defined(x86) and not defined(x64)}
-  {$DEFINE MRMATH_NOASM}
-{$ifend}
-
+{$I 'mrMath_CPU.inc'}
 
 {$IFNDEF MRMATH_NOASM}
-
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 procedure YieldProcessor; {$IFDEF FPC} assembler; {$ENDIF}
 asm
@@ -126,14 +109,17 @@ end;
 {$ELSE}
 
 // MRMATH_NOASM for FPC - need to be adjusted for non x86 cores
-procedure YieldProcessor; //{$IFDEF FPC} assembler; {$ENDIF}
+procedure YieldProcessor;
 begin
-     // todo
+     {$IFDEF MSWINDOWS}
+     SwitchToThread;
+     {$ENDIF}
+     // todo other platforms
 end;
 
 procedure MemoryBarrier;
 begin
-     // todo
+     // todo: MemoryBarrier is only availabel as macro in winnt.h not in windows.pas
 end;
 
 {$ENDIF}

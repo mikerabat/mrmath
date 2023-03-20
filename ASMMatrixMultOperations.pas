@@ -17,12 +17,8 @@ unit ASMMatrixMultOperations;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFNDEF x64}
 
 uses MatrixConst;
@@ -83,7 +79,7 @@ procedure ASMSymRank2UpdateUpperUnaligned( C : PDouble; LineWidthC : NativeInt; 
 implementation
 
 {$IFNDEF x64}
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
+
 procedure ASMMatrixMultAlignedEvenW1EvenW2(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
 var destOffset : NativeInt;
     iters : NativeInt;

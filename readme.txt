@@ -53,6 +53,11 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 
 // ###################################################################
 changelog:
+
+Date 17.03.2023
+* Switched to inc files
+* Automatic versioning of the mrMath package - added Libsuffix
+
 Date: 14.03.2023
 * Got rid of the self invented integer types
 * Fixed 64 ARM problems

@@ -23,12 +23,7 @@ interface
 
 uses SysUtils, Classes, Types, MatrixConst, BaseMathPersistence, RandomEng;
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
 
 {$IFDEF FPC}
    {.$DEFINE ANONMETHODS}

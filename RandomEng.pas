@@ -18,24 +18,7 @@ interface
 
 uses Types;
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
-
-{$IFDEF CPU86}
-{$DEFINE x86}
-{$ENDIF}
-{$IFDEF CPUX86}
-{$DEFINE x86}
-{$ENDIF}
-
-{$IF not defined(x86) and not defined(x64)}
-  {$DEFINE MRMATH_NOASM}
-{$ifend}
-
+{$I 'mrMath_CPU.inc'}
 
 // ###########################################
 // #### some simple random number generators
@@ -530,8 +513,6 @@ end;
 
 {$IFNDEF MRMATH_NOASM}
 
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
-
 // from http://stackoverflow.com/questions/28538370/using-intels-rdrand-opcode-in-delphi-6-7
 {$IFNDEF x64}
 function TryRdRand(out Value: LongWord): Boolean;
@@ -995,7 +976,6 @@ const cShuf8 : Array[0..15] of byte = (3, 0, 1, 2,
 
 {$IFNDEF MRMATH_NOASM}
 
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 procedure TRandomGenerator.SSEChaChaDoubleQuarterRound;
 {$IFDEF x64}
 var dXMM4, dXMM5 : TXMMArr;

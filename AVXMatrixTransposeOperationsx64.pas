@@ -17,12 +17,8 @@ unit AVXMatrixTransposeOperationsx64;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFDEF x64}
 
 uses MatrixConst;
@@ -38,8 +34,6 @@ procedure AVXMatrixTransposeInplace(mt : PDouble; const LineWidth : NativeInt; N
 implementation
 
 {$IFDEF x64}
-
-{$IFDEF FPC} {$ASMMODE intel} {$S-}  {$warnings off} {$ENDIF}
 
 procedure AVXMatrixTransposeAligned(dest : PDouble; const destLineWidth : NativeInt;
   mt : PDouble; const LineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}

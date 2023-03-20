@@ -22,17 +22,11 @@ unit AVXMatrixMultTransposedOperationsx64;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFDEF x64}
 
 uses MatrixConst;
-
-
 
 procedure AVXMatrixMultAlignedTransposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$endif}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$endif} : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 procedure AVXMatrixMultAlignedEvenW1EvenH2TransposedMod16(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$endif}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$endif} : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
@@ -44,8 +38,6 @@ procedure AVXMatrixMultUnAlignedTransposed(dest : PDouble; const destLineWidth :
 implementation
 
 {$IFDEF x64}
-
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$warnings off} {$ENDIF}
 
 procedure AVXMatrixMultAlignedEvenW1EvenH2TransposedMod16(dest : PDouble; const destLineWidth : NativeInt;
     mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$endif}, {$ifdef UNIX}unixHeight1{$ELSE}height1{$endif} : NativeInt; 

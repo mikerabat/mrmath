@@ -84,12 +84,7 @@ procedure ASMStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : 
 
 implementation
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
 
 {$IFDEF FPC} {$S-} {$ENDIF}
 

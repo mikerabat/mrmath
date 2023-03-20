@@ -17,12 +17,8 @@ unit ASMMatrixNormOperationsx64;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFDEF x64}
 
 uses MatrixConst;
@@ -49,8 +45,6 @@ procedure ASMMatrixNormalizeColumnUnAlignedOddW(dest : PDouble; const destLineWi
 implementation
 
 {$IFDEF x64}
-
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 const cLocOnes : Array[0..1] of double = (1, 1);
 

@@ -17,12 +17,8 @@ unit ASMMatrixScaleOperationsx64;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFDEF x64}
 
 uses MatrixConst;
@@ -50,8 +46,6 @@ procedure ASMMatrixElemAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, 
 implementation
 
 {$IFDEF x64}
-
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 procedure ASMMatrixAddScaleAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM6, dXMM7 : Array[0..1] of double;

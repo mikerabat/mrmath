@@ -18,24 +18,7 @@ interface
 
 uses SysUtils, Math, MatrixConst, Matrix, BaseMathPersistence, Types;
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
-
-{$IFDEF CPU86}
-{$DEFINE x86}
-{$ENDIF}
-{$IFDEF CPUX86}
-{$DEFINE x86}
-{$ENDIF}
-
-{$IF not defined(x86) and not defined(x64)}
-  {$DEFINE MRMATH_NOASM}
-{$ifend}
-
+{$I 'mrMath_CPU.inc'}
 
 // standard simple linear correlation method:
 type
@@ -800,8 +783,6 @@ begin
 end;
 
 {$IFNDEF MRMATH_NOASM}
-
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 
 {$IFDEF x64}
 // 64bit version

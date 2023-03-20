@@ -22,12 +22,8 @@ unit FMAMatrixMultTransposedOperationsx64;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFDEF x64}
 
 uses MatrixConst;
@@ -42,8 +38,6 @@ procedure FMAMatrixMultUnAlignedTransposed(dest : PDouble; const destLineWidth :
 implementation
 
 {$IFDEF x64}
-
-{$IFDEF FPC} {$ASMMODE intel}  {$warnings off} {$ENDIF}
 
 procedure FMAMatrixMultAlignedEvenW1EvenH2TransposedMod16(dest : PDouble; const destLineWidth : NativeInt;
     mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$endif} : NativeInt; {$ifdef UNIX}unixHeight1{$ELSE}height1{$endif}  : NativeInt;

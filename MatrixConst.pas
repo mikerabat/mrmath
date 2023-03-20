@@ -117,12 +117,7 @@ const cStrassenMinSize = 32;
       cCacheBlkSize = 16;
       cSymEigSmallSize = 25;
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
 
 type
   TMatrixMultDestOperation = (doNone, doAdd, doSub);
