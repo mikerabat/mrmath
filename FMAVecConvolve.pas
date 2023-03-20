@@ -20,8 +20,6 @@ interface
 
 {$IFNDEF x64}
 
-uses MatrixConst;
-
 // simple convolution: the input and output parameter are assumed to be vectors!
 // it's also assumed that memory before A is accessible for at least bLen elements
 // -> these elements are used for the convulution calculation

@@ -54,6 +54,11 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date 20.03.2023
+* Fixed a bug in creating a random matrix in the TThreadedMatrix.
+* Removed unnecessary unit references.
+* updated codetyphon packages.
+
 Date 17.03.2023
 * Switched to inc files
 * Automatic versioning of the mrMath package - added Libsuffix

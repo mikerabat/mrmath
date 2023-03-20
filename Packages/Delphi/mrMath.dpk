@@ -20,12 +20,12 @@ package mrMath;
 {$R *.res}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
 {$ALIGN 8}
-{$ASSERTIONS OFF}
+{$ASSERTIONS ON}
 {$BOOLEVAL OFF}
 {$DEBUGINFO OFF}
 {$EXTENDEDSYNTAX ON}
 {$IMPORTEDDATA ON}
-{$IOCHECKS OFF}
+{$IOCHECKS ON}
 {$LOCALSYMBOLS ON}
 {$LONGSTRINGS ON}
 {$OPENSTRINGS ON}
@@ -49,17 +49,9 @@ package mrMath;
 requires
   rtl;
 
-{$I 'mrMath_CPU.inc'}
-{$I 'mrMath_LibSuffix.inc'}
-
 contains
   MatrixConst in '..\..\MatrixConst.pas',
   SimpleMatrixOperations in '..\..\SimpleMatrixOperations.pas',
-
-// ###########################################
-// #### Assembler only routines
-
-{$IFNDEF MRMATH_NOASM}
   ASMMatrixAddSubOperations in '..\..\ASMMatrixAddSubOperations.pas',
   ASMMatrixAddSubOperationsx64 in '..\..\ASMMatrixAddSubOperationsx64.pas',
   ASMMatrixElementwiseMultOperations in '..\..\ASMMatrixElementwiseMultOperations.pas',
@@ -141,9 +133,6 @@ contains
   FMAVecConvolvex64 in '..\..\FMAVecConvolvex64.pas',
   AVXChaCha in '..\..\AVXChaCha.pas',
   AVXChaChax64 in '..\..\AVXChaChax64.pas',
-
-{$ENDIF}
-
   BlockSizeSetup in '..\..\BlockSizeSetup.pas',
   CPUFeatures in '..\..\CPUFeatures.pas',
   Eigensystems in '..\..\Eigensystems.pas',

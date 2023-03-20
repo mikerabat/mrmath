@@ -18,7 +18,7 @@ library mrMath;
 {$ALIGN 16}
 {$DESCRIPTION 'mrMath Matrix library'}
 
-{$I 'mrMath_CPU.inc'}
+{$I '..\..\mrMath_CPU.inc'}
 
 uses
   {$IFDEF LINUX} cthreads, {$ENDIF}

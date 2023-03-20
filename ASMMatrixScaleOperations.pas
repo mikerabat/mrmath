@@ -21,8 +21,6 @@ interface
 
 {$IFNDEF x64}
 
-uses MatrixConst;
-
 procedure ASMMatrixAddScaleAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; const dOffset, Scale : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 procedure ASMMatrixAddScaleUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; const dOffset, Scale : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 

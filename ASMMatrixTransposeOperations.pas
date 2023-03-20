@@ -21,8 +21,6 @@ interface
 
 {$IFNDEF x64}
 
-uses MatrixConst;
-
 procedure ASMMatrixTransposeAlignedEvenWEvenH(dest : PDouble; const destLineWidth : NativeInt; mt : PDouble; const LineWidth : NativeInt; width : NativeInt; height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 procedure ASMMatrixTransposeUnAlignedEvenWEvenH(dest : PDouble; const destLineWidth : NativeInt; mt : PDouble; const LineWidth : NativeInt; width : NativeInt; height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 

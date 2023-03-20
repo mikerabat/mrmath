@@ -197,7 +197,7 @@ var i : NativeInt;
     pAi : PDouble;
     sum : double;
     pAij : PDouble;
-    pAik, pAjk : PDouble;
+    pAik, pAjk : PConstDoubleArr;
     pAjj : PDouble;
 begin
      Result := crNoPositiveDefinite;
@@ -213,25 +213,17 @@ begin
           begin
                sum := pAij^;
 
-               pAik := pAi;
-               pAjk := A;
-               inc(PByte(pAjk), j*LineWidthA);
+               pAik := PConstDoubleArr(pAi);
+               pAjk := GenPtrArr(A, 0, j, LineWidthA);
                for k := 0 to j - 1 do
-               begin
-                    sum := sum - pAik^*pAjk^;
-                    inc(pAik);
-                    inc(pAjk);
-               end;
+                   sum := sum - pAik^[k]*pAjk^[k];
 
                if i > j
                then
                    pAij^ := sum/pAjj^
-               else if sum > 0 then
-               begin
-                    pAik := pAi;
-                    inc(pAik, i);
-                    pAik^ := sqrt(sum);
-               end
+               else if sum > 0
+               then
+                   PConstDoubleArr( pAi )^[i] := sqrt(sum)
                else
                    exit;   // not positive definite
 

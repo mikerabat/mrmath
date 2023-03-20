@@ -25,8 +25,6 @@ interface
 
 {$IFDEF x64}
 
-uses MatrixConst;
-
 procedure ASMCopyRepMov(Dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; Width, Height : NativeInt);
 procedure ASMMatrixCopyAlignedEvenW(Dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 procedure ASMMatrixCopyUnAlignedEvenW(Dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
@@ -533,7 +531,7 @@ asm
    movsd [rdx], xmm0;
 end;
 
-procedure ASMCopyRepMov(Dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; Width, Height : NativeInt);
+procedure ASMCopyRepMov(Dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; Width, Height : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 var aRSI : NativeInt;
     aRDI : NativeInt;
 {$ifdef UNIX}

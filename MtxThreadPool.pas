@@ -24,8 +24,6 @@ unit MtxThreadPool;
 
 interface
 
-uses MatrixConst;
-
 {$IFDEF FPC} {$IFDEF DARWIN}
   {$DEFINE MACOS}   // delphi defines macos, fpc darwin
 {$ENDIF}{$ENDIF}

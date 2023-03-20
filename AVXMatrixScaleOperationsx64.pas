@@ -21,8 +21,6 @@ interface
 
 {$IFDEF x64}
 
-uses MatrixConst;
-
 procedure AVXMatrixAddscaleAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
 procedure AVXMatrixAddscaleUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; {$ifdef UNIX}unixdOffset{$ELSE}dOffset{$endif}, {$ifdef UNIX}unixScale{$ELSE}Scale{$endif} : double); {$IFDEF FPC}assembler;{$ENDIF}
 

@@ -16,7 +16,7 @@ unit RollingMedMean;
 
 interface
 
-uses SysUtils, Types, MatrixConst;
+uses SysUtils, Types;
 
 // ###########################################
 // #### Rolling Mean/Median algorithms

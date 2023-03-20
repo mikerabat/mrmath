@@ -21,8 +21,6 @@ interface
 
 {$IFNDEF x64}
 
-uses MatrixConst;
-
 procedure AVXMatrixCopyAligned(Dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; Width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 procedure AVXMatrixCopyUnAligned(Dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; Width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 

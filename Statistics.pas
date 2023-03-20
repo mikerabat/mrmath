@@ -569,7 +569,7 @@ end;
 // see: https://en.wikipedia.org/wiki/Binomial_coefficient
 // or german: http://de.wikipedia.org/wiki/Binomialkoeffizient
 function binom(n, k : integer) : int64;
-var tmp : integer;
+var tmp : int64;
     i : integer;
 begin
      if k = 0 then

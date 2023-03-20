@@ -76,7 +76,7 @@ procedure ThrBlockMatrixMultiplication(dest : PDouble; const destLineWidth : Nat
 
 implementation
 
-uses Math, BlockSizeSetup, SimpleMatrixOperations, MatrixASMStubSwitch,
+uses BlockSizeSetup, SimpleMatrixOperations, MatrixASMStubSwitch, Math,
      {$IFDEF MSWINDOWS}
      Windows,
      {$ENDIF}

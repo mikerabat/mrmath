@@ -25,8 +25,6 @@ interface
 
 {$IFNDEF x64}
 
-uses MatrixConst;
-
 procedure AVXMatrixSQRTAligned(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 procedure AVXMatrixSQRTUnAligned(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 

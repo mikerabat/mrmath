@@ -1098,11 +1098,19 @@ begin
 end;
 
 constructor TDoubleMatrix.CreateRand(aWidth, aHeight: integer);
+var tmp : TDoubleMatrix;
 begin
      inherited Create;
 
-     SetWidthHeight(aWidth, aHeight);
-     ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}MtxRand);
+     // note: since the random function depends on internal states of the random engine
+     // we need to make sure this is NEVER called in threads -> internal states
+     // could be reused and the result is not what we expect from random numbers
+     // (first surfaced in threaded cholesky decomposition on my 32core machine)
+     tmp := TDoubleMatrix.Create( aWidth, aHeight );
+     tmp.ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}MtxRand);
+     TakeOver(tmp);
+
+     tmp.Free;
 end;
 
 constructor TDoubleMatrix.CreateVec( aLen : integer; const initVal : double = 0 );

@@ -26,8 +26,6 @@ interface
 
 {$IFDEF x64}
 
-uses MatrixConst;
-
 procedure FMAMatrixMultAlignedTransposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$endif} : NativeInt; {$ifdef UNIX}unixHeight1{$ELSE}height1{$endif}  : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 procedure FMAMatrixMultAlignedEvenW1EvenH2TransposedMod16(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$endif} : NativeInt; {$ifdef UNIX}unixHeight1{$ELSE}height1{$endif}  : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 procedure FMAMatrixMultAlignedEvenW1OddH2TransposedMod16(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; {$ifdef UNIX}unixWidth1{$ELSE}width1{$endif} : NativeInt; {$ifdef UNIX}unixHeight1{$ELSE}height1{$endif}  : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}

@@ -21,8 +21,6 @@ interface
 
 {$IFNDEF x64}
 
-uses MatrixConst;
-
 function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 function ASMMatrixMaxUnAlignedEvenW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 

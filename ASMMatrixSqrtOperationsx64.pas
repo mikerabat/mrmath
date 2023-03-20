@@ -25,8 +25,6 @@ interface
 
 {$IFDEF x64}
 
-uses MatrixConst;
-
 procedure ASMMatrixSQRTAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 procedure ASMMatrixSQRTUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 

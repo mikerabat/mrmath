@@ -974,8 +974,8 @@ var a, b, c : IMatrix;
 begin
      {$IFDEF FMX} Setup; {$ENDIF};
      a := TThreadedMatrix.CreateRand(2047, 2047);
-     b := a.Transpose;
-     a.MultInPlace(b);
+     // make positive finite
+     a.MultInPlaceT2(a);
 
      startTime := MtxGetTime;
      res := a.Cholesky(b);

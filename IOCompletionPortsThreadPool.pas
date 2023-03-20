@@ -26,7 +26,7 @@ unit IOCompletionPortsThreadPool;
 interface
 
 {$IFDEF MSWINDOWS}
-uses MtxThreadPool, MatrixConst, SysUtils;
+uses MtxThreadPool, SysUtils;
 
 
 

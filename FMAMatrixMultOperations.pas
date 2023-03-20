@@ -21,8 +21,6 @@ interface
 
 {$IFNDEF x64}
 
-uses MatrixConst;
-
 // full matrix operations
 procedure FMAMatrixMultAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 procedure FMAMatrixMultUnAligned(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1, height1, width2, height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}

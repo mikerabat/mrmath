@@ -25,8 +25,6 @@ interface
 
 {$IFNDEF x64}
 
-uses MatrixConst;
-
 procedure FMAMatrixVectMultT(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 // routines with special input layouts: LineWidthV needs to be sizeof(double)

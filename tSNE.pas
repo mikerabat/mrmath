@@ -87,7 +87,7 @@ type
 
 implementation
 
-uses SysUtils, MatrixConst, Math, Classes, MatrixASMStubSwitch,
+uses SysUtils, Math, Classes, MatrixASMStubSwitch,
      Dist;
 
 { TtSNE }
