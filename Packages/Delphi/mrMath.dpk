@@ -18,14 +18,13 @@
 package mrMath;
 
 {$R *.res}
-{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
 {$ALIGN 8}
-{$ASSERTIONS ON}
+{$ASSERTIONS OFF}
 {$BOOLEVAL OFF}
 {$DEBUGINFO OFF}
 {$EXTENDEDSYNTAX ON}
 {$IMPORTEDDATA ON}
-{$IOCHECKS ON}
+{$IOCHECKS OFF}
 {$LOCALSYMBOLS ON}
 {$LONGSTRINGS ON}
 {$OPENSTRINGS ON}
@@ -40,8 +39,6 @@ package mrMath;
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
-{$DEFINE DEBUG}
-{$ENDIF IMPLICITBUILDING}
 {$DESCRIPTION 'mrMath Matrix library'}
 {$RUNONLY}
 {$IMPLICITBUILD OFF}
@@ -49,9 +46,17 @@ package mrMath;
 requires
   rtl;
 
+{$I 'mrMath_CPU.inc'}
+{$I 'mrMath_LibSuffix.inc'}
+
 contains
   MatrixConst in '..\..\MatrixConst.pas',
   SimpleMatrixOperations in '..\..\SimpleMatrixOperations.pas',
+
+// ###########################################
+// #### Assembler only routines
+
+{$IFNDEF MRMATH_NOASM}
   ASMMatrixAddSubOperations in '..\..\ASMMatrixAddSubOperations.pas',
   ASMMatrixAddSubOperationsx64 in '..\..\ASMMatrixAddSubOperationsx64.pas',
   ASMMatrixElementwiseMultOperations in '..\..\ASMMatrixElementwiseMultOperations.pas',
@@ -133,6 +138,9 @@ contains
   FMAVecConvolvex64 in '..\..\FMAVecConvolvex64.pas',
   AVXChaCha in '..\..\AVXChaCha.pas',
   AVXChaChax64 in '..\..\AVXChaChax64.pas',
+
+{$ENDIF}
+
   BlockSizeSetup in '..\..\BlockSizeSetup.pas',
   CPUFeatures in '..\..\CPUFeatures.pas',
   Eigensystems in '..\..\Eigensystems.pas',
@@ -183,3 +191,4 @@ contains
   RollingMedMean in '..\..\RollingMedMean.pas';
 
 end.
+
