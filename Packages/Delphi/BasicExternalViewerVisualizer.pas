@@ -53,6 +53,11 @@ uses
   Windows, ActnList, ImgList, Menus, Classes, Graphics, Controls, Forms,
   IniFiles, ToolsAPI, DesignIntf, ExtCtrls, StdCtrls, ComCtrls;
 
+{$IF CompilerVersion < 23}
+type
+  TOTAAddress = LongWord;
+{$IFEND}
+
 type
   TAvailableState = (asAvailable, asProcRunning, asOutOfScope);
 
