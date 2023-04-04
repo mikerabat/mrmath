@@ -23,7 +23,7 @@ interface
 uses MatrixConst, MatrixASMStubSwitch;
 
 type
-  TQRDecompFunc = function (A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt; tau : PDouble; work : PDouble; pnlSize : NativeInt; progress : TLinEquProgress) : TQRResult;
+  TQRDecompFunc = procedure (A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt; tau : PDouble; work : PDouble; pnlSize : NativeInt; progress : TLinEquProgress);
   TQFromQRFunc = procedure (A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt; tau : PDouble; BlockSize : NativeInt; work : PDouble; progress : TLinEquProgress);
 
 
@@ -33,10 +33,10 @@ type
 // d. The orthogonal matrix Q is represented as a product of n-1 Householder matrices Q1...Qn-1, where
 // Qj = 1 - uj*(uj/cj). The ith component of uj is zero for i = 1..j-1 while the nonzero components are returned
 // in a[i][j] for i = j...n . False is returned if no singularity was detected
-function MatrixQRDecompInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; C : PDouble; const LineWidthC : NativeInt;
-  D : PDouble; const LineWidthD : NativeInt; progress : TLinEquProgress = nil) : TQRResult;
-function MatrixQRDecomp(dest : PDouble; const LineWidthDest : NativeInt; A : PDouble; const LineWidthA : NativeInt; width : NativeInt;
-  C : PDouble; const LineWidthC : NativeInt; D : PDouble; const LineWidthD : NativeInt; progress : TLinEquProgress = nil) : TQRResult;
+procedure MatrixQRDecompInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; C : PDouble; const LineWidthC : NativeInt;
+  D : PDouble; const LineWidthD : NativeInt; progress : TLinEquProgress = nil);
+procedure MatrixQRDecomp(dest : PDouble; const LineWidthDest : NativeInt; A : PDouble; const LineWidthA : NativeInt; width : NativeInt;
+  C : PDouble; const LineWidthC : NativeInt; D : PDouble; const LineWidthD : NativeInt; progress : TLinEquProgress = nil);
 // solves the System A*x = b. The input paramaters are the output parameters from the QR decomposition.
 // b is the matrix right hand side and will be overwritten by the result x.
 procedure MatrixQRSolveLinEq(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; C : PDouble; const LineWidthC : NativeInt;
@@ -55,8 +55,8 @@ procedure MatrixQRSolveLinEq(A : PDouble; const LineWidthA : NativeInt; width : 
 //   and tau in TAU(i).
 // note the matrix above starts with index 1 instead of 0.
 // the output is the same as the matlab economy size output on a QR decomposition e.g. dcmp = qr(A, 0);
-function MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt; tau : PDouble; work : PDouble; pnlSize : NativeInt; progress : TLinEquProgress = nil) : TQRResult; overload;
-function MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt; tau : PDouble; progress : TLinEquProgress = nil) : TQRResult; overload;
+procedure MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt; tau : PDouble; work : PDouble; pnlSize : NativeInt; progress : TLinEquProgress = nil); overload;
+procedure MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt; tau : PDouble; progress : TLinEquProgress = nil); overload;
 
 // according to the panel size and the global QRBlockmultsize we calculate here the needed memory (including some alignment buffer)
 function QRDecompMemSize( pnlSize, width, height : NativeInt) : NativeInt;
@@ -75,7 +75,7 @@ procedure MatrixLeftQFromQRDecomp(A : PDouble; const LineWidthA : NativeInt; wid
 // routines
 
 // Threaded version of the matrix qr decomposition -> makes use of threaded matrix multiplications
-function ThrMatrixQRDecomp(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt; tau : PDouble; work : PDouble; pnlSize : NativeInt; progress : TLinEquProgress = nil) : TQRResult;
+procedure ThrMatrixQRDecomp(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt; tau : PDouble; work : PDouble; pnlSize : NativeInt; progress : TLinEquProgress = nil);
 
 // Threaded version of the full Q creation -> makes use of threaded matrix multiplications
 procedure ThrMatrixQFromQRDecomp(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
@@ -99,11 +99,11 @@ procedure ThrMatrixLeftQFromQRDecomp(A : PDouble; const LineWidthA : NativeInt; 
 
 // if work is provided it needs to be at least (max( width*height, QRDecompMemSize) + 2*width)*sizeof(double) and for best performance
 // alligned to 16bytes
-function MatrixQRSolve(x : PDouble; const LineWidthX : NativeInt; A : PDouble; const LineWidthA : NativeInt; 
-                       y : PDouble; const LineWidthY : NativeInt; width, height : NativeInt; work : PDouble = nil) : TQRResult;
+procedure MatrixQRSolve(x : PDouble; const LineWidthX : NativeInt; A : PDouble; const LineWidthA : NativeInt;
+                       y : PDouble; const LineWidthY : NativeInt; width, height : NativeInt; work : PDouble = nil);
 
-function ThrMatrixQRSolve(x : PDouble; const LineWidthX : NativeInt; A : PDouble; const LineWidthA : NativeInt; 
-                       y : PDouble; const LineWidthY : NativeInt; width, height : NativeInt) : TQRResult;
+procedure ThrMatrixQRSolve(x : PDouble; const LineWidthX : NativeInt; A : PDouble; const LineWidthA : NativeInt;
+                       y : PDouble; const LineWidthY : NativeInt; width, height : NativeInt);
 
 
 implementation
@@ -147,8 +147,8 @@ begin
 end;
 
 
-function MatrixQRDecompInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; C : PDouble; const LineWidthC : NativeInt;
-  D : PDouble; const LineWidthD : NativeInt; progress : TLinEquProgress) : TQRResult;
+procedure MatrixQRDecompInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; C : PDouble; const LineWidthC : NativeInt;
+  D : PDouble; const LineWidthD : NativeInt; progress : TLinEquProgress);
 var i, j, k : NativeInt;
     scale, sigma, sum, tau : double;
     pA, pAj : PDouble;
@@ -159,7 +159,6 @@ begin
      assert(LineWidthA >= width*sizeof(double), 'Dimension error');
      assert(LineWidthC >= sizeof(double), 'Dimension error');
      assert(LineWidthD >= sizeof(double), 'Dimension error');
-     Result := qrOK;
 
      if Assigned(progress) then
         progress(0);
@@ -182,7 +181,6 @@ begin
 
           if scale = 0 then
           begin
-               Result := qrSingular;
                pC^ := 0;
                pD^ := 0;
           end
@@ -249,15 +247,13 @@ begin
      inc(pA, width - 1);
      inc(PByte(pA), (width - 1)*LineWidthA);
      pD^ := pA^;
-     if pD^ = 0 then
-        Result := qrSingular;
 
      if Assigned(Progress) then
         progress(100);
 end;
 
-function MatrixQRDecomp(dest : PDouble; const LineWidthDest : NativeInt; A : PDouble; const LineWidthA : NativeInt; width : NativeInt;
-  C : PDouble; const LineWidthC : NativeInt; D : PDouble; const LineWidthD : NativeInt; progress : TLinEquProgress) : TQRResult;
+procedure MatrixQRDecomp(dest : PDouble; const LineWidthDest : NativeInt; A : PDouble; const LineWidthA : NativeInt; width : NativeInt;
+  C : PDouble; const LineWidthC : NativeInt; D : PDouble; const LineWidthD : NativeInt; progress : TLinEquProgress);
 begin
      assert(LineWidthA >= width*sizeof(double), 'Dimension error');
      assert(LineWidthDest >= width*sizeof(double), 'Dimension error');
@@ -266,7 +262,7 @@ begin
 
      // copy A to dest
      MatrixCopy(dest, LineWidthDest, A, LineWidthA, width, width);
-     Result := MatrixQRDecompInPlace(dest, LineWidthDest, width, C, LineWidthC, D, LineWidthD, progress);
+     MatrixQRDecompInPlace(dest, LineWidthDest, width, C, LineWidthC, D, LineWidthD, progress);
 end;
 
 
@@ -374,17 +370,15 @@ end;
 // ##########################################################
 
 // implementation of lapack's DGEQR2
-function MtxQRUnblocked(A : PDouble; LineWidthA : NativeInt; width, height : NativeInt; Tau : PDouble; const qrData : TRecMtxQRDecompData) : boolean;
+procedure MtxQRUnblocked(A : PDouble; LineWidthA : NativeInt; width, height : NativeInt; Tau : PDouble; const qrData : TRecMtxQRDecompData);
 var k : NativeInt;
     i : NativeInt;
     pA : PDouble;
     pTau : PDouble;
     aii : double;
     pAlpha : PDouble;
-    lineRes : boolean;
     pC : PDouble;
 begin
-     Result := true;
      k := min(width, height);
 
      pTau := Tau;
@@ -394,8 +388,7 @@ begin
           pAlpha := GenPtr(A, i, i, LineWidthA);
           pA := GenPtr(A, i, min(i + 1, height - 1), LineWidthA);
 
-          lineRes := GenElemHousholderRefl(pA, LineWidthA, height - i, pAlpha^, pTau);
-          Result := Result and lineRes;
+          GenElemHousholderRefl(pA, LineWidthA, height - i, pAlpha^, pTau);
 
           // Apply H(i) to A(i:m,i+1:n) from the left
           if i < width - 1 then
@@ -478,12 +471,11 @@ begin
      end;
 end;
 
-function InternalMatrixQRDecompInPlace2(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt; tau : PDouble; qrData : TRecMtxQRDecompData) : boolean;
+procedure InternalMatrixQRDecompInPlace2(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt; tau : PDouble; qrData : TRecMtxQRDecompData);
 var k : NativeInt;
     idx : NativeInt;
     ib : NativeInt;
     pA : PDouble;
-    pnlRes : boolean;
 begin
      // ######################################################
      // #### original linpack DGEQRF routine
@@ -493,7 +485,6 @@ begin
      if (qrdata.pnlSize > 1) and (qrdata.pnlSize > k) then
         qrdata.pnlSize := max(2, k div 2);
 
-     Result := True;
      idx := 0;
      pA := A;
 
@@ -504,8 +495,7 @@ begin
           begin
                ib := min(width - idx, qrdata.pnlSize);
 
-               pnlRes := MtxQRUnblocked(pA, LineWidthA, ib, height - idx, Tau, qrData);
-               Result := Result and pnlRes;
+               MtxQRUnblocked(pA, LineWidthA, ib, height - idx, Tau, qrData);
 
                // calculate T matrix
                if idx + ib <= height then
@@ -526,8 +516,7 @@ begin
      end;
 
      // calculate the last panel
-     pnlRes := MtxQRUnblocked(pA, LineWidthA, width - idx, height - idx, Tau, qrData);
-     Result := Result and pnlRes;
+     MtxQRUnblocked(pA, LineWidthA, width - idx, height - idx, Tau, qrData);
 end;
 
 function QRDecompMemSize( pnlSize, width, height : NativeInt) : NativeInt;
@@ -535,14 +524,13 @@ begin
      Result := 64 + Max((width + height + 4)*sizeof(double), pnlSize*sizeof(double)*width + BlockMultMemSize(Min(Max(height, width), QRMultBlockSize)) );
 end;
 
-function MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt; tau : PDouble; progress : TLinEquProgress = nil) : TQRResult; overload;
+procedure MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt; tau : PDouble; progress : TLinEquProgress = nil); overload;
 begin
-     Result := MatrixQRDecompInPlace2(A, LineWidthA, width, height, tau, nil, QRBlockSize, Progress);
+     MatrixQRDecompInPlace2(A, LineWidthA, width, height, tau, nil, QRBlockSize, Progress);
 end;
 
-function MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt; tau : PDouble; work : PDouble; pnlSize : NativeInt; progress : TLinEquProgress = nil) : TQRResult; overload;
-var res : boolean;
-    qrData : TRecMtxQRDecompData;
+procedure MatrixQRDecompInPlace2(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt; tau : PDouble; work : PDouble; pnlSize : NativeInt; progress : TLinEquProgress = nil); overload;
+var qrData : TRecMtxQRDecompData;
 begin
      qrData.pWorkMem := nil;
      qrData.work := work;
@@ -569,16 +557,10 @@ begin
      // reflector data
      InitReflectorBlk(qrData);
      
-     res := InternalMatrixQRDecompInPlace2(A, LineWidthA, width, height, tau, qrData);
+     InternalMatrixQRDecompInPlace2(A, LineWidthA, width, height, tau, qrData);
 
      if work = nil then
         FreeMem(qrData.pWorkMem);
-
-     if res
-     then
-         Result := qrOK
-     else
-         Result := qrSingular;
 end;
 
 // generates an m by n real matrix Q with orthonormal columns,
@@ -1090,10 +1072,9 @@ end;
 // ##### Threaded version of matrix QR decomposition
 // ######################################################
 
-function ThrMatrixQRDecomp(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
-   tau : PDouble; work : PDouble; pnlSize : NativeInt; progress : TLinEquProgress = nil) : TQRResult;
-var res : boolean;
-    qrData : TRecMtxQRDecompData;
+procedure ThrMatrixQRDecomp(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
+   tau : PDouble; work : PDouble; pnlSize : NativeInt; progress : TLinEquProgress = nil);
+var qrData : TRecMtxQRDecompData;
     ptrMem : Pointer;
 begin
      qrData.pWorkMem := nil;
@@ -1112,24 +1093,18 @@ begin
 
      if work = nil then
         qrData.work := MtxAllocAlign(pnlSize*sizeof(double)*height + 64, qrData.pWorkMem );
-     
+
      qrData.BlkMultMem := MtxMallocAlign(numCPUCores*(4 + BlockMultMemSize(qrData.BlkMultSize)), ptrMem);
 
      // reference block reflector structure
      InitReflectorBlk(qrData);
-     
-     res := InternalMatrixQRDecompInPlace2(A, LineWidthA, width, height, tau, qrData);
+
+     InternalMatrixQRDecompInPlace2(A, LineWidthA, width, height, tau, qrData);
 
      if qrData.pWorkMem <> nil then
         FreeMem(qrData.pWorkMem);
 
      FreeMem(ptrMem);
-
-     if res
-     then
-         Result := qrOK
-     else
-         Result := qrSingular;
 end;
 
 procedure ThrMatrixQFromQRDecomp(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
@@ -1201,10 +1176,10 @@ begin
 end;
 
 
-function InternalMatrixQRSolve(x : PDouble; const LineWidthX : NativeInt; A : PDouble; const LineWidthA : NativeInt; 
-    y : PDouble; const LineWidthY : NativeInt; width, height : NativeInt; 
+procedure InternalMatrixQRSolve(x : PDouble; const LineWidthX : NativeInt; A : PDouble; const LineWidthA : NativeInt;
+    y : PDouble; const LineWidthY : NativeInt; width, height : NativeInt;
     QRDecompInPlaceFunc : TQRDecompFunc; QFromQRDecompFunc : TQFromQRFunc;
-    work : PDouble = nil) : TQRResult;
+    work : PDouble = nil);
 var mem : Pointer;
     tau : PDouble;
     Q : PDouble;
@@ -1252,15 +1227,7 @@ begin
 
      LineWidthQ := w2*sizeof(double);
 
-     Result := QRDecompInPlaceFunc(A, LineWidthA, width, height, tau, qrMem, QRBlockSize, nil);
-
-     if Result <> qrOK then
-     begin
-          if work = nil then
-             FreeMem(mem);
-          exit;
-     end;
-
+     QRDecompInPlaceFunc(A, LineWidthA, width, height, tau, qrMem, QRBlockSize, nil);
      MatrixCopy(Q, LineWidthQ, A, LineWidthA, width, height);
      QFromQRDecompFunc(Q, LineWidthQ, width, height, tau, QRBlockSize, qrMem, nil);
      
@@ -1298,34 +1265,34 @@ begin
 end;
 
 // solves A*x = y  A is width x height where height >= width; x and y are vectors
-function MatrixQRSolve(x : PDouble; const LineWidthX : NativeInt; A : PDouble; const LineWidthA : NativeInt; 
-                       y : PDouble; const LineWidthY : NativeInt; width, height : NativeInt; work : PDouble = nil) : TQRResult;
+procedure MatrixQRSolve(x : PDouble; const LineWidthX : NativeInt; A : PDouble; const LineWidthA : NativeInt;
+                       y : PDouble; const LineWidthY : NativeInt; width, height : NativeInt; work : PDouble = nil);
 begin
      assert( height >= width, 'Error function only defined for height >= width');
      
-     Result := InternalMatrixQRSolve(x, LineWidthX, A, LineWidthA, y, LineWidthY, width, height, 
-                                     {$IFDEF FPC}@{$ENDIF}MatrixQRDecompInPlace2, 
-                                     {$IFDEF FPC}@{$ENDIF}MatrixQFromQRDecomp, 
-                                     work);
+     InternalMatrixQRSolve(x, LineWidthX, A, LineWidthA, y, LineWidthY, width, height,
+                          {$IFDEF FPC}@{$ENDIF}MatrixQRDecompInPlace2,
+                          {$IFDEF FPC}@{$ENDIF}MatrixQFromQRDecomp,
+                          work);
 end;
 
-function ThrMatrixQRSolve(x : PDouble; const LineWidthX : NativeInt; A : PDouble; const LineWidthA : NativeInt; 
-                       y : PDouble; const LineWidthY : NativeInt; width, height : NativeInt) : TQRResult;
+procedure ThrMatrixQRSolve(x : PDouble; const LineWidthX : NativeInt; A : PDouble; const LineWidthA : NativeInt;
+  y : PDouble; const LineWidthY : NativeInt; width, height : NativeInt);
 begin
      assert( height >= width, 'Error function only defined for height >= width');
 
      // check if multithreading is a good choice (note this parameter is a crude one...)
      if (width > 8*QRBlockSize) 
      then
-         Result := InternalMatrixQRSolve(x, LineWidthX, A, LineWidthA, y, LineWidthY, width, height,
-                                        {$IFDEF FPC}@{$ENDIF}ThrMatrixQRDecomp, 
-                                        {$IFDEF FPC}@{$ENDIF}ThrMatrixQFromQRDecomp, 
-                                        nil)
+         InternalMatrixQRSolve(x, LineWidthX, A, LineWidthA, y, LineWidthY, width, height,
+                               {$IFDEF FPC}@{$ENDIF}ThrMatrixQRDecomp,
+                               {$IFDEF FPC}@{$ENDIF}ThrMatrixQFromQRDecomp,
+                               nil)
      else
-         Result := InternalMatrixQRSolve(x, LineWidthX, A, LineWidthA, y, LineWidthY, width, height,
-                                        {$IFDEF FPC}@{$ENDIF}MatrixQRDecompInPlace2, 
-                                        {$IFDEF FPC}@{$ENDIF}MatrixQFromQRDecomp, 
-                                        nil)
+         InternalMatrixQRSolve(x, LineWidthX, A, LineWidthA, y, LineWidthY, width, height,
+                               {$IFDEF FPC}@{$ENDIF}MatrixQRDecompInPlace2,
+                               {$IFDEF FPC}@{$ENDIF}MatrixQFromQRDecomp,
+                               nil)
 end;
 
 

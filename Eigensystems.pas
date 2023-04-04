@@ -98,8 +98,8 @@ function MatrixEigTridiagonalMatrix(Dest : PDouble; const LineWidthDest : Native
 // elements below the first subdiagonal, with the array TAU,
 // represent the orthogonal matrix Q as a product of elementary
 // reflectors.
-function MatrixHessenberg2InPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; tau : PDouble; hessBlockSize : integer) : TEigenvalueConvergence;
-function ThrMtxHessenberg2InPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; tau : PDouble; hessBlockSize : integer) : TEigenvalueConvergence;
+procedure MatrixHessenberg2InPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; tau : PDouble; hessBlockSize : integer);
+procedure ThrMtxHessenberg2InPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; tau : PDouble; hessBlockSize : integer);
 
 // generate a real orthogonal matrix Q from the element reflectors (matrixhessenberg2inplace) to
 // satisfy Q' * A * Q = H (or Q * H * Q' = A)
@@ -132,8 +132,8 @@ function InternalEigValEigVecFromSymTridiagMatrix( D, E : PConstDoubleArr; Z : P
 // E and D conain the diagonal and off diagonal elements of the tridiagonal matrix T
 // Tau (may be nil) contain the scalar factors of the elementary reflectors
 // nb the blocksize used for block updates.
-function MatrixUpperSymToTridiagInPlace( A : PDouble; LineWidthA : NativeInt; N : NativeInt;
-  D, E, Tau : PConstDoubleArr; nb : NativeInt ) : boolean;
+procedure MatrixUpperSymToTridiagInPlace( A : PDouble; LineWidthA : NativeInt; N : NativeInt;
+  D, E, Tau : PConstDoubleArr; nb : NativeInt );
 
 implementation
 
@@ -2175,16 +2175,14 @@ begin
 end;
 
 // unblocked hessenberg decomposition based on DGEHD2
-function InternalHessenbergUnblocked( A : PDouble; const LineWidthA : NativeInt; iLo : NativeInt; width : NativeInt; tau : PDouble; const eigData : THessData ) : boolean;
+procedure InternalHessenbergUnblocked( A : PDouble; const LineWidthA : NativeInt; iLo : NativeInt; width : NativeInt; tau : PDouble; const eigData : THessData );
 var i : NativeInt;
     pA : PDouble;
     pTau : PDouble;
     aii : double;
     pAlpha : PDouble;
-    lineRes : boolean;
     pC : PDouble;
 begin
-     Result := True;
      pTau := Tau;
      for i := iLo to width - 2 do
      begin
@@ -2192,9 +2190,7 @@ begin
           pAlpha := GenPtr(A, i, i + 1, LineWidthA);
           pA := GenPtr(A, i, min(i + 2, width - 1), LineWidthA);
 
-          lineRes := GenElemHousholderRefl(pA, LineWidthA, width - i - 1, pAlpha^, pTau);
-
-          Result := lineRes and Result;
+          GenElemHousholderRefl(pA, LineWidthA, width - i - 1, pAlpha^, pTau);
 
           // Apply H(i) to A(1:ihi,i+1:ihi) from the right
           aii := pAlpha^;
@@ -2219,7 +2215,7 @@ end;
 //  Q' * A * Q. The routine returns the matrices V and T which determine
 //  Q as a block reflector I - V*T*V', and also the matrix Y = A * V * T.
 //procedure dlahr2( A : PDouble; const LineWidthA : NativeInt; T : PDouble; const LineWidthT : NativeInt; Y : PDouble; const LineWidthY : NativeInt; Tau : PDouble; N, K, NB : integer; const eigData : THessData);
-function InternalHessenbergBlocked( A : PDouble; const LineWidthA : NativeInt; Tau : PDouble; N, K, NB : integer; const eigData : THessData) : boolean;
+procedure InternalHessenbergBlocked( A : PDouble; const LineWidthA : NativeInt; Tau : PDouble; N, K, NB : integer; const eigData : THessData);
 var i: Integer;
     pA : PDouble;
     pV : PDouble;
@@ -2237,8 +2233,6 @@ var i: Integer;
     //s : string;
 begin
      // quick return
-     Result := True;
-
      if n <= 1 then
         exit;
 
@@ -2308,7 +2302,7 @@ begin
           // #### Elementary reflector H(i) to annihilate A(k + i + 1:N, i)
           pAlpha := GenPtr( A, i, K + i + 1, LineWidthA );
           pA := GenPtr( A, i, Min( K + i + 2, N - 1), LineWidthA );
-          Result := GenElemHousholderRefl( pA, LineWidthA, nki, pAlpha^, tau ) and Result;
+          GenElemHousholderRefl( pA, LineWidthA, nki, pAlpha^, tau );
           ei := pAlpha^;
           pAlpha^ := 1;
 
@@ -2318,7 +2312,6 @@ begin
           pT := GenPtr( eigData.T, i, 0, eigData.tLineWidth );
 
           MatrixMtxVecMult( pY, eigData.yLineWidth, pA1, pAlpha, LineWidthA, LineWidthA, nki, N - k - 1, 1, 0 );
-
 
           if i > 0 then
           begin
@@ -2367,7 +2360,7 @@ end;
 
 
 // original DGEHRD
-function InternalMatrixHessenberg(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; tau : PDouble; const eigData : THessData ) : boolean;
+procedure InternalMatrixHessenberg(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; tau : PDouble; const eigData : THessData );
 var i : integer;
     pA : PDouble;
     pTau : PDouble;
@@ -2380,7 +2373,6 @@ var i : integer;
 begin
      MtxMemInit( tau, width*sizeof(double), 0 );
 
-     Result := True;
      // ###########################################
      // #### blocked code
      i := 0;
@@ -2393,7 +2385,7 @@ begin
           // which performs the reduction and also the matrix Y = A*V*T
           pA := GenPtr(A, i, 0, LineWidthA);
           //dlahr2( pA, LineWidthA, eigData.T, eigData.tLineWidth, eigData.Y, eigData.yLineWidth, pTau, width, i, ib, eigData );
-          Result := InternalHessenbergBlocked( pA, LineWidthA, pTau, width, i, ib, eigData ) and Result;
+          InternalHessenbergBlocked( pA, LineWidthA, pTau, width, i, ib, eigData );
 
          // s := WriteMtx(eigData.T, eigData.tLineWidth, ib, ib);
 //          s2 := WriteMtx(eigData.Y, eigData.yLineWidth, ib, width - ib);
@@ -2456,7 +2448,7 @@ begin
 
      // ###########################################
      // #### last non blocked part
-     Result := InternalHessenbergUnblocked( A, LineWidthA, i, width, pTau, eigData) and Result;
+     InternalHessenbergUnblocked( A, LineWidthA, i, width, pTau, eigData);
 end;
 
 procedure MatrixQFromHessenbergDecomp(A : PDouble; const LineWidthA : NativeInt; width : NativeInt;
@@ -2492,7 +2484,7 @@ begin
      MatrixQFromQRDecomp(GenPtr(A, 1, 1, LineWidthA), LineWidthA, width - 1, width - 1, tau, BlockSize, work, progress);
 end;
 
-function MatrixHessenberg2InPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; tau : PDouble; hessBlockSize : integer) : TEigenvalueConvergence;
+procedure MatrixHessenberg2InPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; tau : PDouble; hessBlockSize : integer);
 var hessWork : THessData;
 begin
      FillChar(hessWork, sizeof(hessWork), 0 );
@@ -2514,23 +2506,21 @@ begin
      hessWork.reflData.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}MatrixMultT2Ex;
      hessWork.reflData.MatrixMultEx := {$IFDEF FPC}@{$ENDIF}MatrixMultEx;
 
-     Result := qlOk;
      InitReflectorBlk(hessWork);
      try
-        if not InternalMatrixHessenberg( A, LineWidthA, width, tau, hessWork ) then
-           Result := qlMatrixError;
+        InternalMatrixHessenberg( A, LineWidthA, width, tau, hessWork );
      finally
             FreeMem(hessWork.mem);
      end;
 end;
 
-function ThrMtxHessenberg2InPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; tau : PDouble; hessBlockSize : integer) : TEigenvalueConvergence;
+procedure ThrMtxHessenberg2InPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; tau : PDouble; hessBlockSize : integer);
 var hessWork : THessData;
 begin
      // around here is a good crossover point where multithreaded code starts to be faster
      if width < 150 then
      begin
-          Result := MatrixHessenberg2InPlace(A, LineWidthA, width, tau, hessBlockSize);
+          MatrixHessenberg2InPlace(A, LineWidthA, width, tau, hessBlockSize);
           exit;
      end;
      FillChar(hessWork, sizeof(hessWork), 0 );
@@ -2551,11 +2541,9 @@ begin
      hessWork.reflData.MatrixMultT2 := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultT2Ex;
      hessWork.reflData.MatrixMultEx := {$IFDEF FPC}@{$ENDIF}ThrMatrixMultEx;
 
-     Result := qlOk;
      InitReflectorBlk(hessWork);
      try
-        if not InternalMatrixHessenberg( A, LineWidthA, width, tau, hessWork ) then
-           Result := qlMatrixError;
+        InternalMatrixHessenberg( A, LineWidthA, width, tau, hessWork );
      finally
             FreeMem(hessWork.mem);
      end;
@@ -2586,8 +2574,8 @@ type
 // DLATRD
 // reduces NB columns (eigWork.nb) of A - a real symmetric matrix - to a symmetric
 // tridiagonal form. The upper part of A is used
-function InternalSymmetricTridiagBlockReduction( A : PDouble; LineWidthA : NativeInt;
-  N : NativeInt; const eigWork : TSymEigRec) : boolean;
+procedure InternalSymmetricTridiagBlockReduction( A : PDouble; LineWidthA : NativeInt;
+  N : NativeInt; const eigWork : TSymEigRec);
 var i : NativeInt;
     iw : NativeInt;
     pA0i1 : PDouble;
@@ -2597,7 +2585,6 @@ var i : NativeInt;
     alpha : double;
     i1 : Integer;
 begin
-     Result := False;
      // Reduce last NB columns of upper triangle
      iw := eigWork.nb - 1;
      for i := N - 1 downto N - eigWork.nb do
@@ -2632,12 +2619,10 @@ begin
           pAii1 := GenPtr( A, i, i - 1, LineWidthA );
 
           // CALL dlarfg( i-1, a( i-1, i ), a( 1, i ), 1, tau( i-1 ) )
-          Result := GenElemHousholderRefl( pAi0, LineWidthA,
-                                           i,
-                                           pAii1^,
-                                           @eigWork.tau^[i - 1] );
-          if not Result then
-             exit;
+          GenElemHousholderRefl( pAi0, LineWidthA,
+                                 i,
+                                 pAii1^,
+                                 @eigWork.tau^[i - 1] );
           // e( i-1 ) = a( i-1, i )
           // a( i-1, i ) = one
           eigWork.E^[i - 1] := pAii1^;
@@ -2709,15 +2694,14 @@ begin
 end;
 
 // dsytd2 in lapack upper triangle A
-function InternalSymmetricTridiagReduction( A : PDouble; LineWidthA : NativeInt; N : NativeInt;
-  const eigWork : TSymEigRec) : boolean;
+procedure InternalSymmetricTridiagReduction( A : PDouble; LineWidthA : NativeInt; N : NativeInt;
+  const eigWork : TSymEigRec);
 var i: NativeInt;
     pAii1 : PDouble;
     pA0i1 : PDouble;
     taui : double;
     alpha : double;
 begin
-     Result := False;
      // unblocked version for tridiagonal reduction
      for i := n - 2 downto 0 do
      begin
@@ -2726,9 +2710,7 @@ begin
           pA0i1 := GenPtr(A, i + 1, 0, LineWidthA);
 
           // CALL dlarfg( i, a( i, i+1 ), a( 1, i+1 ), 1, taui )
-          Result := GenElemHousholderRefl( pA0i1, LineWidthA, i + 1, pAii1^, @taui );
-          if not Result then
-             exit;
+          GenElemHousholderRefl( pA0i1, LineWidthA, i + 1, pAii1^, @taui );
           eigWork.E^[i] := pAii1^;
 
           if taui <> 0 then
@@ -2777,8 +2759,8 @@ end;
 // E Contains the off diagonal elements and is of size N - 1
 //   -> E contains A(i, i + 1) as y, x coordinates aka the upper diagonal
 // tau (dimension N - 1) contains the elementary reflectors
-function InternalSymmetricToTridiagonal( A : PDouble; LineWidthA : NativeInt; N : NativeInt;
-  const eigWork : TSymEigRec) : boolean;
+procedure InternalSymmetricToTridiagonal( A : PDouble; LineWidthA : NativeInt; N : NativeInt;
+  const eigWork : TSymEigRec);
 var i : integer;
     j : Integer;
     pA : PDouble;
@@ -2795,9 +2777,7 @@ begin
           // Reduce columns i:i+nb-1 to tridiagonal form and form the
           // matrix W which is needed to update the unreduced part of
           // the matrix
-          Result := InternalSymmetricTridiagBlockReduction( A, LineWidthA, i + eigWork.nb, eigWork);
-          if not Result then
-             exit;
+          InternalSymmetricTridiagBlockReduction( A, LineWidthA, i + eigWork.nb, eigWork);
 
           // Update the unreduced submatrix A(1:i-1,1:i-1), using an
           // update of the form:  A := A - V*W**T - W*V**T
@@ -2825,15 +2805,15 @@ begin
      // ###########################################
      // #### Unblocked part
      inc(i, eigWork.nb);
-     Result := InternalSymmetricTridiagReduction(A, LineWidthA, i, eigWork );
+     InternalSymmetricTridiagReduction(A, LineWidthA, i, eigWork );
      if Assigned(eigWork.progress) then
         eigWork.progress( 50 );
      //dsytd2(A, LineWidthA, D, E, tau, i);
 end;
 
 
-function MatrixUpperSymToTridiagInPlace( A : PDouble; LineWidthA : NativeInt; N : NativeInt;
-  D, E, Tau : PConstDoubleArr; nb : NativeInt ) : boolean;
+procedure MatrixUpperSymToTridiagInPlace( A : PDouble; LineWidthA : NativeInt; N : NativeInt;
+  D, E, Tau : PConstDoubleArr; nb : NativeInt );
 var eigWork : TSymEigRec;
     byteSize : NativeInt;
 begin
@@ -2865,7 +2845,7 @@ begin
              eigWork.Tau := GenPtrArr( eigWork.work, 0, N, eigWork.LineWidthWork );
      end;
 
-     Result := InternalSymmetricToTridiagonal( A, LineWidthA, N, eigWork );
+     InternalSymmetricToTridiagonal( A, LineWidthA, N, eigWork );
 
      if byteSize > 0 then
         FreeMem(eigWork.mem);
@@ -4446,11 +4426,10 @@ begin
      if doScale then
         MatrixScaleAndAdd(A, LineWidthA, N, N, 0, sigma);
 
-     if not InternalSymmetricToTridiagonal(A, LineWidthA, N, eigWork ) then
-     begin
-          Result := qlMatrixError;
-          exit;
-     end;
+
+     // ###########################################
+     // #### Hard work...
+     InternalSymmetricToTridiagonal(A, LineWidthA, N, eigWork );
 
      // ###########################################
      // #### Eigenvectors and Eigenvalues

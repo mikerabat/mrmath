@@ -2225,20 +2225,7 @@ begin
                end;
 
                // Compute A=Q*R
-               if svdData.qrDecomp(A, LineWidthA, width, height, pWorkITau, nil, QRBlockSize, svdData.QRProgress) <> qrOK then
-               begin
-                    if svdData.pWorkMem = nil then
-                       FreeMem(pMem);
-
-                    // copy back A
-                    MatrixCopy(A, LineWidthA, ACpy, ACpyLineWidth, width, height);
-                    if AMem <> nil then
-                       FreeMem(AMem);
-
-                    // do the procedure again but now force the other path
-                    Result := InternalMatrixSVD(A, LineWidthA, width, height, W, V, LineWidthV, svdData, True);
-                    exit;
-               end;
+               svdData.qrDecomp(A, LineWidthA, width, height, pWorkITau, nil, QRBlockSize, svdData.QRProgress);
                if aMem <> nil then
                   FreeMem(AMem);
 

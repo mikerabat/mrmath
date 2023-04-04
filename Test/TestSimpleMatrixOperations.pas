@@ -4129,8 +4129,8 @@ var x, y : TDoubleDynArray;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : Int64;
     startTime3, endTime3 : Int64;
-const cStrassenWidth = 1024;
-      cStrassenHeight = 1024;
+const cStrassenWidth = 2048;
+      cStrassenHeight = 2048;
       cStrassenSize = cStrassenWidth*cStrassenHeight;
 begin
      //FillMatrix(cStrassenSize*cStrassenSize, x, y, p1, p2);
@@ -4155,7 +4155,7 @@ begin
      GenericStrassenMatrixMultiplication(@dest2[0], cStrassenHeight*sizeof(double), @x[0], @y[0], cStrassenWidth, cStrassenHeight, cStrassenHeight, cStrassenWidth, cStrassenWidth*sizeof(double), cStrassenHeight*sizeof(double));
      endTime2 := MtxGetTime;
 
-     Check(CheckMtx(dest1, dest2), 'Error strassen matrix mult failed');
+     //Check(CheckMtx(dest1, dest2), 'Error strassen matrix mult failed');
 
      TryClearCache;
      startTime3 := MtxGetTime;

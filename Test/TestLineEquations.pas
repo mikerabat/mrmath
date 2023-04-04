@@ -1094,7 +1094,7 @@ begin
 
      FillChar(x, sizeof(x), 0);
 
-     Check( MatrixQRSolve(@x[0], sizeof(double), @A[0], 2*sizeof(double), @y[0], sizeof(double), 2, 3) = qrOK, 'Error could not solve system');
+     MatrixQRSolve(@x[0], sizeof(double), @A[0], 2*sizeof(double), @y[0], sizeof(double), 2, 3);
 
      Status(WriteMtx(x, 2));     
 

@@ -22,7 +22,7 @@ interface
 
 uses MatrixConst, MatrixASMStubSwitch;
 
-function GenElemHousholderRefl(A : PDouble; LineWidthA : NativeInt; Height : NativeInt; var Alpha : double; Tau : PDouble) : boolean;
+procedure GenElemHousholderRefl(A : PDouble; LineWidthA : NativeInt; Height : NativeInt; var Alpha : double; Tau : PDouble);
 
 procedure ApplyElemHousholderReflLeft(V : PDouble; LineWidthV : NativeInt; C : PDouble; const LineWidthC : NativeInt; width, height : NativeInt;
   Tau : PDouble; Work : PDouble);
@@ -103,20 +103,18 @@ end;
 
 // apply householder transformation to A (one column)
 // original DLARFG in Lapack
-function GenElemHousholderRefl(A : PDouble; LineWidthA : NativeInt; Height : NativeInt; var Alpha : double; Tau : PDouble) : boolean;
+procedure GenElemHousholderRefl(A : PDouble; LineWidthA : NativeInt; Height : NativeInt; var Alpha : double; Tau : PDouble);
 var beta : double;
     xNorm : double;
     saveMin : double;
     rsafmn : double;
     cnt : integer;
 begin
-     Result := False;
      dec(height);
 
      if height <= 0 then
      begin
           Tau^ := 0;
-          Result := True;
           exit;
      end;
 
@@ -160,8 +158,6 @@ begin
      end;
 
      alpha := beta;
-
-     Result := True;
 end;
 
 

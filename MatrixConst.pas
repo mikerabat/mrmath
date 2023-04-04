@@ -27,7 +27,6 @@ type
   TLinEquResult = (leOk, leSingular);
   TSVDResult = (srOk, srNoConvergence);
   TCholeskyResult = (crOk, crNoPositiveDefinite);
-  TQRResult = (qrOK, qrSingular);
   TLinEquProgress = procedure(Progress : Integer) of Object;
   TLinEquProgressWOObj = procedure(Progress : Integer);
   TMtxProgress = procedure(Sender : TObject; progress : integer) of Object;
