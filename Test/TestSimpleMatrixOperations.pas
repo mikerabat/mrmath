@@ -126,6 +126,7 @@ type
     procedure TestConvolve;
     procedure TestConvolveBig;
     procedure TestDotProd;
+    procedure TestSQRT;
   end;
 
   {$IFDEF FMX} [TestFixture] {$ENDIF}
@@ -4120,6 +4121,35 @@ begin
           dest2 := nil;
      end;
 
+end;
+
+procedure TASMMatrixOperations.TestSQRT;
+var pX, pX1, pX2 : PDouble;
+    pMem, pMem1, pMem2 : PByte;
+    Linewidth : NativeInt;
+    idxFail : integer;
+    res1, res2 : boolean;
+begin
+     randseed := 129;
+     FillAlignedMtx(127, 48, pX, pMem, Linewidth);
+     randseed := 129;
+     FillAlignedMtx(127, 48, pX1, pMem1, Linewidth);
+     randseed := 129;
+     FillAlignedMtx(127, 48, pX2, pMem2, Linewidth);
+
+
+     GenericMtxSqrt( pX, LineWidth, 127, 48 );
+     ASMMatrixSQRT( pX1, LineWidth, 127, 48 );
+     AVXMatrixSQRT( pX2, LineWidth, 127, 48 );
+
+     res1 := CheckMtxIdx(pX, pX1, LineWidth, LineWidth, 127, 48, idxFail, 1e-6);
+     check(res1, 'ASM Matrix SQRT failed at idx ' + intToStr(idxFail));
+     res2 := CheckMtxIdx(pX, pX2, LineWidth, LineWidth, 127, 48, idxFail, 1e-6);
+     check(res2, 'AVX Matrix SQRT failed at idx ' + intToStr(idxFail));
+
+     FreeMem( pMem1 );
+     FreeMem( pMem2 );
+     FreeMem( pMem );
 end;
 
 procedure TASMMatrixOperations.TestStrassenMult;
