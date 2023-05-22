@@ -42,6 +42,12 @@
   {$DEFINE MRMATH_NOASM}
 {$ifend}
 
+{$DEFINE AVXSUP}  // assembler support for AVX/FMA built in
+{$IFNDEF FPC}
+{$IF CompilerVersion<35}
+{$UNDEF AVXSUP}
+{$IFEND}
+{$ENDIF}
 
 // ###########################################
 // #### Free Pascal specific

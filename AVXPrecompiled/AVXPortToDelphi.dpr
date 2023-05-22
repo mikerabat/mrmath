@@ -2,7 +2,7 @@ program AVXPortToDelphi;
 
 {$APPTYPE CONSOLE}
 
-uses Windows, SysUtils, Classes, StrUtils;
+uses Windows, SysUtils, Classes, StrUtils, Math;
 
 
 var inpPath : string;
@@ -10,6 +10,10 @@ var inpPath : string;
     sr : TSearchRec;
     verbose : boolean;
     s : string;
+    definestr : string;  // define that is inserted for the opcodes. Def is: {$IFDEF AVXSUP}
+    searchDefineStr : string;   // to exchange already placed ifdefs use this. Def is definestr
+    tabStopElse : integer;  // defines the number of spaces from left where the {$ELSE} string shall start
+                            // default = 55;
 
 function LineToDBStr( aLine : string ) : string;
 var s1, s2, s3, s4, s5, s6 : string;
@@ -47,6 +51,9 @@ begin
      s2 := ReplaceStr(s2, ' ', ',$');
      i1 := i1 + 2;
      s3 := Copy(aLine, i1, Length(aLine));
+
+     if (Pos('(rel)', aLine) > 0) or (Pos('(d)', aLine) > 0) then
+        raise Exception.Create('A reference to a relative or absolute address for an AVX/FMA instruction was found - this cannot be processed');
 
      // invert the hex codes instead of $00000080 we need $80000000
      SetLength(s6, Length(s3));
@@ -156,10 +163,10 @@ begin
                                    end;
 
 
-                                   idx := Pos('{$IFDEF FPC}', outLine);
+                                   idx := Pos(searchDefineStr, outLine);
                                    if idx > 0 then
                                    begin
-                                        outLine := Copy(outLine, idx + 12, Length(outLine));
+                                        outLine := Copy(outLine, idx + length(searchDefineStr), Length(outLine));
                                         pre := StringOfChar(' ', idx - 1);
                                    end
                                    else
@@ -168,7 +175,9 @@ begin
                                    if idx > 0 then
                                       outLine := Copy(outLine, 1, idx - 1);
 
-                                   outLine := pre + '{$IFDEF FPC}' + outLine + '{$ELSE}' + dbStr + '{$ENDIF}' + ' ' + cmt;
+                                   outLine := pre + definestr + outLine;
+                                   outline := outline + StringOfChar(' ', Max(0, tabStopElse - Length(outline) )) +
+                                              '{$ELSE}' + dbStr + '{$ENDIF}' + ' ' + cmt;
 
                                    if verbose then
                                       Writeln('Replace ', outLine);
@@ -190,13 +199,31 @@ begin
      slOut.SaveToFile(pasFile, TEncoding.ASCII);
 end;
 
+var i : integer;
 begin
   try
      inpPath := '.\oFiles\';
      pasPath := '..\';
      verbose := True;
+     definestr := '{$IFDEF AVXSUP}';
+     searchDefineStr := definestr;
+     tabStopElse := 70;
 
-     // todo: parse input
+     i := 1;
+     while i < ParamCount do
+     begin
+          if SameText( ParamStr(i), '-inpath') then
+             inpPath := ParamStr(i + 1);
+          if SameText( ParamStr(i), '-paspath') then
+             pasPath := ParamStr(i + 1);
+          if SameText( ParamStr(i), '-define') then
+             defineStr := '{$IFDEF ' + ParamStr(i + 1) + '}';
+          if SameText( ParamStr(i), '-searchdefine') then
+             searchDefineStr := '{$IFDEF ' + ParamStr(i + 1) + '}';
+
+          inc(i);
+     end;
+
 
      Writeln('Checking input dir: ' + inpPath);
      Writeln('Checking output dir: ' + paspath);
