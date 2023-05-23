@@ -33,6 +33,7 @@ implementation
 // ###########################################
 // #### Global constants for features:
 
+{$I 'mrMath_CPU.inc'}
 
 // base idea from https://stackoverflow.com/questions/6121792/how-to-check-if-a-cpu-supports-the-sse3-instruction-set
 // misc
@@ -78,6 +79,8 @@ var HW_MMX: boolean = False;
     AVX_OS_SUPPORT : boolean = False;     // 256bit AVX supported in context switch
     AVX512_OS_SUPPORT : boolean = False;  // 512bit AVX supported in context switch
 
+{$IFNDEF MRMATH_NOASM}
+
 // ##############################################################
 // #### feature detection code
 // ##############################################################
@@ -90,16 +93,7 @@ type
     EDX: Cardinal;
   end;
 
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
-
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
 {$IFDEF x64}
-
 function IsCPUID_Available : boolean;
 begin
      Result := true;
@@ -246,7 +240,20 @@ end;
 {$ENDIF}
 end;
 
+{$ELSE}
+
+// pas only:
+// todo: find a mechanism without assembler
+function GetCurrentProcessorNumber : LongWord; register;
+begin
+     REsult := 0;
+end;
+
+{$ENDIF}
+
+
 procedure InitFlags;
+{$IFNDEF MRMATH_NOASM}
 var nIds : LongWord;
     reg : TRegisters;
 begin
@@ -317,6 +324,11 @@ begin
              InitAVXOSSupportFlags;
      end;
 end;
+{$ELSE}
+begin
+
+end;
+{$ENDIF}
 
 function IsSSE3Present : boolean;
 begin

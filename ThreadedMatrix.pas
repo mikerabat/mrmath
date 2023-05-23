@@ -40,8 +40,8 @@ type
     class function ResultClass : TDoubleMatrixClass; override;
     class function ClassIdentifier : String; override;
 
-    function QR(out ecosizeR : TDoubleMatrix; out tau : TDoubleMatrix) : TQRResult; override;
-    function Hess(out h, tau: TDoubleMatrix): TEigenvalueConvergence; override;
+    procedure QR(out ecosizeR : TDoubleMatrix; out tau : TDoubleMatrix); override;
+    procedure Hess(out h, tau: TDoubleMatrix); override;
   public
     procedure MultInPlace(Value : TDoubleMatrix); override;
     function Mult(Value : TDoubleMatrix) : TDoubleMatrix; override;
@@ -78,6 +78,7 @@ type
     function Sub(Value : TDoubleMatrix) : TDoubleMatrix; override;
 
     function Median(RowWise : boolean) : TDoubleMatrix; override;
+    procedure RollMedianInPlace(RowWise : boolean; order : integer); override;
     procedure SortInPlace(RowWise : boolean); override;
 
     // threaded lin alg functions
@@ -88,7 +89,7 @@ type
     function SolveLinEQ(Value : TDoubleMatrix; numRefinements : integer = 0) : TDoubleMatrix; override;
     procedure SolveLinEQInPlace(Value : TDoubleMatrix; numRefinements : integer = 0); override;
     function Determinant: double; override;
-    function QRFull(out Q, R : TDoubleMatrix) : TQRResult; override;
+    procedure QRFull(out Q, R : TDoubleMatrix); override;
     function Cholesky(out Chol : TDoubleMatrix) : TCholeskyResult; overload; override;
     function SVD(out U, V, W : TDoubleMatrix; onlyDiagElements : boolean = False) : TSVDResult; override;
 
@@ -96,8 +97,8 @@ type
     function SymEig(out EigVals : TDoubleMatrix) : TEigenvalueConvergence; overload; override;
 
     // solves least sqaures A*x = b using the QR decomposition
-    function SolveLeastSquaresInPlace(out x : TDoubleMatrix; b : TDoubleMatrix) : TQRResult; overload; override;
-    function SolveLeastSquares(out x : TDoubleMatrix; b : TDoubleMatrix) : TQRResult; overload; override;
+    procedure SolveLeastSquaresInPlace(out x : TDoubleMatrix; b : TDoubleMatrix); overload; override;
+    procedure SolveLeastSquares(out x : TDoubleMatrix; b : TDoubleMatrix); overload; override;
     
     class procedure InitThreadPool;
     class procedure FinalizeThreadPool;
@@ -335,6 +336,14 @@ begin
      end;
 end;
 
+procedure TThreadedMatrix.RollMedianInPlace(RowWise: boolean; order: integer);
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+
+     ThrMatrixRollMedianInPlace(StartElement, LineWidth, width, height, order, rowWise);
+end;
+
+
 function TThreadedMatrix.Mult(Value: TDoubleMatrix): TDoubleMatrix;
 begin
      assert((Width > 0) and (Height > 0), 'No data assigned');
@@ -426,13 +435,13 @@ begin
      ThrMatrixMultT2(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, Width, Height, Value.Width, Value.Height, LineWidth, Value.LineWidth);
 end;
 
-function TThreadedMatrix.QR(out ecosizeR, tau: TDoubleMatrix): TQRResult;
+procedure TThreadedMatrix.QR(out ecosizeR, tau: TDoubleMatrix);
 begin
      ecosizeR := ResultClass.Create;
      tau := ResultClass.Create(width, 1);
      try
         ecosizeR.Assign(self);
-        Result := ThrMatrixQRDecomp(ecosizeR.StartElement, ecosizeR.LineWidth, width, height, tau.StartElement, nil, QRBlockSize, fLinEQProgress);
+        ThrMatrixQRDecomp(ecosizeR.StartElement, ecosizeR.LineWidth, width, height, tau.StartElement, nil, QRBlockSize, fLinEQProgress);
      except
            FreeAndNil(ecosizeR);
            FreeAndNil(tau);
@@ -441,14 +450,14 @@ begin
      end;
 end;
 
-function TThreadedMatrix.Hess(out h,
-  tau: TDoubleMatrix): TEigenvalueConvergence;
+procedure TThreadedMatrix.Hess(out h,
+  tau: TDoubleMatrix);
 begin
      h := ResultClass.Create;
      tau := ResultClass.Create(width, 1);
      try
         h.Assign(self);
-        Result := ThrMtxHessenberg2InPlace(h.StartElement, h.LineWidth, width, tau.StartElement, HessBlockSize);
+        ThrMtxHessenberg2InPlace(h.StartElement, h.LineWidth, width, tau.StartElement, HessBlockSize);
      except
            FreeAndNil(h);
            FreeAndNil(tau);
@@ -457,7 +466,7 @@ begin
      end;
 end;
 
-function TThreadedMatrix.QRFull(out Q, R: TDoubleMatrix): TQRResult;
+procedure TThreadedMatrix.QRFull(out Q, R: TDoubleMatrix);
 var tau : TDoubleMatrix;
     tmp : TDoubleMatrix;
     x, y : integer;
@@ -468,13 +477,7 @@ begin
 
      // ###########################################
      // #### First create a compact QR decomposition
-     Result := QR(R, Tau);
-
-     if Result <> qrOK then
-     begin
-          FreeAndNil(R);
-          exit;
-     end;
+     QR(R, Tau);
 
      // ###########################################
      // #### Calculation Q from the previous operation
@@ -545,8 +548,8 @@ begin
      end;
 end;
 
-function TThreadedMatrix.SolveLeastSquares(out x: TDoubleMatrix;
-  b: TDoubleMatrix): TQRResult;
+procedure TThreadedMatrix.SolveLeastSquares(out x: TDoubleMatrix;
+  b: TDoubleMatrix);
 var tmpA : TDoubleMatrix;
 begin
      CheckAndRaiseError( width <= Height, 'Height must be at least width');
@@ -555,26 +558,20 @@ begin
      try
         x := ResultClass.Create( 1, Width );
 
-        Result := ThrMatrixQRSolve( x.StartElement, x.LineWidth, tmpA.StartElement, tmpA.LineWidth, b.StartElement, b.LineWidth, width, height);
-
-        if Result <> qrOK then
-           FreeAndNil(x);
+        ThrMatrixQRSolve( x.StartElement, x.LineWidth, tmpA.StartElement, tmpA.LineWidth, b.StartElement, b.LineWidth, width, height);
      finally
             tmpA.Free;
      end;
 end;
 
-function TThreadedMatrix.SolveLeastSquaresInPlace(out x: TDoubleMatrix;
-  b: TDoubleMatrix): TQRResult;
+procedure TThreadedMatrix.SolveLeastSquaresInPlace(out x: TDoubleMatrix;
+  b: TDoubleMatrix);
 begin
      CheckAndRaiseError( width <= Height, 'Height must be at least width');
      
      x := ResultClass.Create( 1, Width );
 
-     Result := ThrMatrixQRSolve( x.StartElement, x.LineWidth, StartElement, LineWidth, b.StartElement, b.LineWidth, width, height );
-
-     if Result <> qrOK then
-        FreeAndNil(x);
+     ThrMatrixQRSolve( x.StartElement, x.LineWidth, StartElement, LineWidth, b.StartElement, b.LineWidth, width, height );
 end;
 
 function TThreadedMatrix.SolveLinEQ(Value: TDoubleMatrix;
@@ -660,7 +657,7 @@ function TThreadedMatrix.SVD(out U, V, W: TDoubleMatrix;
   onlyDiagElements: boolean): TSVDResult;
 var pW : PConstDoubleArr;
     wArr : PByte;
-    minWH : TASMNativeInt;
+    minWH : NativeInt;
     i : Integer;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'Dimension error');

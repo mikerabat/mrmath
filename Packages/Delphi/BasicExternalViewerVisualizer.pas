@@ -53,6 +53,11 @@ uses
   Windows, ActnList, ImgList, Menus, Classes, Graphics, Controls, Forms,
   IniFiles, ToolsAPI, DesignIntf, ExtCtrls, StdCtrls, ComCtrls;
 
+{$IF CompilerVersion < 23}
+type
+  TOTAAddress = LongWord;
+{$IFEND}
+
 type
   TAvailableState = (asAvailable, asProcRunning, asOutOfScope);
 
@@ -86,6 +91,7 @@ type
   protected
     function EvaluateStringValue(Context: TVisualizerDebugContext; Expression: string) : String;
     function EvaluateIntegerValue(Context: TVisualizerDebugContext; Expression: string) : Integer;
+    function EvaluateInt64Value(Context: TVisualizerDebugContext; Expression: string) : Int64;
     function EvaluateLongWordValue(Context: TVisualizerDebugContext; Expression: string) : LongWord;
     function ModifyLastStringValue( Context: TVisualizerDebugContext; Value : String ) : Boolean;
     function ModifyLastLongWordValue( Context: TVisualizerDebugContext; Value : LongWord ) : Boolean;
@@ -214,7 +220,8 @@ var
   EvalRes: TOTAEvaluateResult;
   ResultStr: array [0 .. 4095] of Char;
   CanModify: Boolean;
-  ResultAddr, ResultSize, ResultVal: LongWord;
+  ResultAddr : TOTAAddress;
+  ResultSize, ResultVal: LongWord;
 
 begin
   EvalRes := Context.CurThread.Evaluate( Expression, @ResultStr, Length(ResultStr), CanModify, eseAll, '', ResultAddr, ResultSize, ResultVal, '', 0);
@@ -254,7 +261,7 @@ begin
   end;
 end;
 
-function SLStrToIntDef(AValue: String; ADefaultValue: Integer): Integer;
+function SLStrToIntDef(AValue: String; ADefaultValue: integer): Integer;
 begin
   Result := ADefaultValue;
   if (Length(AValue) < 1) then
@@ -266,6 +273,18 @@ begin
   Result := StrToIntDef(AValue, ADefaultValue);
 end;
 
+function SLStrToInt64Def(AValue: String; ADefaultValue: Int64): int64;
+begin
+    Result := ADefaultValue;
+    if (Length(AValue) < 1) then
+       Exit;
+
+    if (AValue[1] = ':') then
+      AValue[1] := '$';
+
+    Result := StrToInt64Def(AValue, ADefaultValue);
+end;
+
 procedure TBasicVisualizerViewerFrame.EvaluateComplete(const ExprStr,
   ResultStr: string; CanModify: Boolean; ResultAddress, ResultSize: LongWord;
   ReturnCode: Integer);
@@ -274,6 +293,12 @@ begin
      FDeferredEvaluteResult := ResultStr;
      FDeferredEvaluteAddress := ResultAddress;
      FDeferredEvaluteError := ReturnCode <> 0;
+end;
+
+function TBasicVisualizerViewerFrame.EvaluateInt64Value(
+  Context: TVisualizerDebugContext; Expression: string): Int64;
+begin
+     Result := SLStrToInt64Def(EvaluateStringValue(Context, Expression), -1);
 end;
 
 function TBasicVisualizerViewerFrame.EvaluateIntegerValue
@@ -463,192 +488,6 @@ procedure TBasicVisualizerViewerFrame.Destroyed;
 begin
 
 end;
-
-//type
-//  PBitmap = ^TBitmap;
-
-(*
-procedure TBasicVisualizerViewerFrame.Evaluate(Expression: string);
-const
-  BitCounts: array [pf1Bit..pf32Bit] of Byte = (1,4,8,16,16,24,32);
-
-var
-  CurProcess: IOTAProcess;
-  CurThread: IOTAThread;
-  ResultStr: array[0..4095] of Char;
-  EvalRes: TOTAEvaluateResult;
-  DebugSvcs: IOTADebuggerServices;
-  CanModify: Boolean;
-  ResultAddr, ResultSize, ResultVal: LongWord;
-  ARemoteHandle : LongWord;
-  ARemoteMem1    : LongWord;
-  ARemoteMem2    : LongWord;
-  BI: TBitmapInfoHeader;
-  AScanSize : Integer;
-  I : Integer;
-  APixelFormat: TPixelFormat;
-  ASize       : TSize;
-//  DS            : TDIBSection;
-
-  function EvaluateStringValue( Expression: string): String;
-  begin
-    EvalRes := CurThread.Evaluate( Expression, @ResultStr, Length(ResultStr),
-          CanModify, eseAll, '', ResultAddr, ResultSize, ResultVal, '', 0);
-
-    case EvalRes of
-      erOK: Result := '';
-      erDeferred:
-        begin
-        FCompleted := False;
-        FDeferredResult := '';
-        FDeferredError := False;
-        FNotifierIndex := CurThread.AddNotifier(Self);
-        while not FCompleted do
-          DebugSvcs.ProcessDebugEvents;
-
-        CurThread.RemoveNotifier(FNotifierIndex);
-        FNotifierIndex := -1;
-        if not FDeferredError then
-          begin
-          if FDeferredResult <> '' then
-            Result := FDeferredResult
-
-          else
-            Result := ResultStr;
-
-          end;
-        end;
-
-      erBusy:
-        begin
-        DebugSvcs.ProcessDebugEvents;
-        Result := EvaluateStringValue(Expression);
-        end;
-
-    end;
-  end;
-
-  function EvaluateIntegerValue( Expression: string): Integer;
-  begin
-    Result := StrToIntDef( EvaluateStringValue( Expression ), -1 );
-  end;
-
-  function EvaluateLongWordValue( Expression: string): LongWord;
-  begin
-    Result := StrToIntDef( EvaluateStringValue( Expression ), 0 );
-  end;
-
-begin
-  if Supports(BorlandIDEServices, IOTADebuggerServices, DebugSvcs) then
-    CurProcess := DebugSvcs.CurrentProcess;
-
-  if CurProcess <> nil then
-    begin
-    CurThread := CurProcess.CurrentThread;
-    if CurThread <> nil then
-      begin
-      ASize.cx := EvaluateIntegerValue( Expression + '.Width' );
-      ASize.cy := EvaluateIntegerValue( Expression + '.Height' );
-      SizeLabel.Caption := IntToStr( ASize.cx ) + 'x' + IntToStr( ASize.cy );
-      FormatLabel.Caption := EvaluateStringValue( Expression + '.PixelFormat' );
-
-      APixelFormat := TPixelFormat( EnumIndexFromIdent( TypeInfo( TPixelFormat ), FormatLabel.Caption ));
-      if( ( APixelFormat = pfDevice ) or ( APixelFormat = pfCustom )) then
-        begin
-        PreviewImage.Visible := False;
-        MessageLabel.Visible := True;
-        MessageLabel.Font.Size := 20;
-        MessageLabel.Caption := sBitmapCantDisplay;
-        Exit;
-        end;
-
-      PreviewImage.AutoSize := True;
-      PreviewImage.Picture.Bitmap.Width := ASize.cx;
-      PreviewImage.Picture.Bitmap.Height := ASize.cy;
-
-      if( APixelFormat = pf15bit ) then
-        APixelFormat := pf16bit;
-
-      PreviewImage.Picture.Bitmap.PixelFormat := APixelFormat;
-
-      PreviewImage.Picture.Bitmap.AlphaFormat := TAlphaFormat( EnumIndexFromIdent( TypeInfo( TPixelFormat ), EvaluateStringValue( Expression + '.AlphaFormat' )));
-
-      ARemoteHandle := 0;
-      while( ARemoteHandle = 0 ) do
-        begin
-        ARemoteHandle := EvaluateLongWordValue( 'CreateCompatibleDC( 0 )' );
-        DebugSvcs.ProcessDebugEvents();
-        end;
-
-      if( ARemoteHandle <> 0 ) then
-        begin
-//          ARemoteMem := EvaluateLongWordValue( 'GetMemory(' + IntToStr( Image1.Picture.Bitmap.Width * Image1.Picture.Bitmap.Height ) + ')' );
-        BI.biSize := SizeOf(BI);
-        BI.biWidth := PreviewImage.Picture.Bitmap.Width;
-        BI.biHeight := PreviewImage.Picture.Bitmap.Height;
-        BI.biBitCount := BitCounts[ PreviewImage.Picture.Bitmap.PixelFormat ];
-
-        BI.biClrUsed := 0;
-        BI.biPlanes := 1;
-        AScanSize := BytesPerScanLine(BI.biWidth, BI.biBitCount, 32 );
-        BI.biSizeImage := AScanSize * Abs(BI.biHeight);
-
-
-        BI.biClrImportant := 0;
-
-        for I := 0 to 100 do
-          begin
-          ARemoteMem1 := EvaluateLongWordValue( 'GlobalAlloc( GMEM_FIXED, ' + IntToStr( SizeOf( TBitmapInfoHeader )) + ')' );
-          if( ARemoteMem1 <> 0 ) then
-            Break;
-
-          DebugSvcs.ProcessDebugEvents();
-          end;
-
-        if( ARemoteMem1 <> 0 ) then
-          begin
-          for I := 0 to 100 do
-            begin
-            ARemoteMem2 := EvaluateLongWordValue( 'GlobalAlloc( GMEM_FIXED, ' + IntToStr( AScanSize * PreviewImage.Picture.Bitmap.Height ) + ')' );
-            if( ARemoteMem2 <> 0 ) then
-              Break;
-
-            DebugSvcs.ProcessDebugEvents;
-            end;
-
-          if( ARemoteMem2 <> 0 ) then
-            begin
-            CurProcess.WriteProcessMemory( ARemoteMem1, SizeOf( BI ), BI );
-
-            EvaluateLongWordValue( 'GetDIBits(' + IntToStr( ARemoteHandle ) + ', ' + Expression + '.Handle, 0, ' + IntToStr( PreviewImage.Picture.Bitmap.Height ) + ', Pointer(' + IntToStr( ARemoteMem2 ) + ' ), PBitmapInfo( ' + IntToStr( ARemoteMem1 ) + ' )^, DIB_RGB_COLORS )' );
-            CurProcess.ReadProcessMemory( ARemoteMem2, AScanSize * PreviewImage.Picture.Bitmap.Height, PreviewImage.Picture.Bitmap.ScanLine[ PreviewImage.Picture.Bitmap.Height - 1 ]^ );
-            EvaluateLongWordValue( 'GlobalFree(' + IntToStr( ARemoteMem2 ) + ')' );
-            end;
-
-          EvaluateLongWordValue( 'GlobalFree(' + IntToStr( ARemoteMem1 ) + ')' );
-          end;
-
-        EvaluateLongWordValue( 'DeleteDC(' + IntToStr( ARemoteHandle ) + ')' );
-        end;
-
-{
-      if( EvaluateStringValue( Expression + '.HandleType' ) = 'bmDDB' ) then
-      else
-        begin
-        SourceAdress := EvaluateLongWordValue( Expression + '.ScanLine[ 0 ]' );
-        case( Image1.Picture.Bitmap.PixelFormat ) of
-          pf1bit :
-            CurProcess.ReadProcessMemory( SourceAdress, Image1.Picture.Bitmap.Height * Image1.Picture.Bitmap.Width div 8, Image1.Picture.Bitmap.ScanLine[ 0 ]^ );
-
-          end;
-        end;
-}
-
-      end;
-    end;
-
-end;
-*)
 
 procedure TBasicVisualizerViewerFrame.EvaluteComplete
   (const ExprStr, ResultStr: string; CanModify: Boolean;

@@ -462,8 +462,7 @@ begin
                inc(PByte(pV), fV.LineWidth);
           end;
 
-          if MatrixQRSolve(PDouble(pX), sizeof(double), fV.StartElement, fV.LineWidth, y.StartElement, y.LineWidth, fV.Width, fV.Height, pWork) <> qrOK then
-             raise Exception.Create('Error cannot create pseudoinverse of the Vandermonde matrix');
+          MatrixQRSolve(PDouble(pX), sizeof(double), fV.StartElement, fV.LineWidth, y.StartElement, y.LineWidth, fV.Width, fV.Height, pWork);
 
           // assign result
           for j := 0 to n do
@@ -526,8 +525,7 @@ begin
      
      fV.Assign(fStaticV);
 
-     if MatrixQRSolve(PDouble(pX), sizeof(double), fV.StartElement, fV.LineWidth, y.StartElement, y.LineWidth, fV.Width, fV.Height, pWork) <> qrOK then
-        raise Exception.Create('Error cannot create pseudoinverse of the Vandermonde matrix');
+     MatrixQRSolve(PDouble(pX), sizeof(double), fV.StartElement, fV.LineWidth, y.StartElement, y.LineWidth, fV.Width, fV.Height, pWork);
 
      // assign result
      for j := 0 to fOrder do

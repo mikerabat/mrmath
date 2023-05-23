@@ -27,7 +27,6 @@ type
   TLinEquResult = (leOk, leSingular);
   TSVDResult = (srOk, srNoConvergence);
   TCholeskyResult = (crOk, crNoPositiveDefinite);
-  TQRResult = (qrOK, qrSingular);
   TLinEquProgress = procedure(Progress : Integer) of Object;
   TLinEquProgressWOObj = procedure(Progress : Integer);
   TMtxProgress = procedure(Sender : TObject; progress : integer) of Object;
@@ -117,21 +116,7 @@ const cStrassenMinSize = 32;
       cCacheBlkSize = 16;
       cSymEigSmallSize = 25;
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF x64}
-type
-  TASMNativeInt = NativeInt;
-  TASMNativeUInt = NativeUInt;
-{$ELSE}
-type
-  TASMNativeInt = integer;
-  TASMNativeUInt = Cardinal;
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
 
 type
   TMatrixMultDestOperation = (doNone, doAdd, doSub);
@@ -139,8 +124,8 @@ type
 
 // ###########################################
 // #### Creates a pointer to the x, y element of the given matrix (row major)
-function GenPtr(const A : PDouble; incX, incY : TASMNativeInt; const LineWidthA : TASMNativeInt) : PDouble; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
-function GenPtrArr(const A : PDouble; incX, incY : TASMNativeInt; const LineWidthA : TASMNativeInt) : PConstDoubleArr; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+function GenPtr(const A : PDouble; incX, incY : NativeInt; const LineWidthA : NativeInt) : PDouble; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+function GenPtrArr(const A : PDouble; incX, incY : NativeInt; const LineWidthA : NativeInt) : PConstDoubleArr; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 
 // ###########################################
 // #### Sets the pointer to the next available 32bytes alligned address
@@ -160,14 +145,14 @@ begin
      Result.imag := aImag;
 end;
 
-function GenPtr(const A : PDouble; incX, incY : TASMNativeInt; const LineWidthA : TASMNativeInt) : PDouble; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+function GenPtr(const A : PDouble; incX, incY : NativeInt; const LineWidthA : NativeInt) : PDouble; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 begin
      Result := A;
      inc(Result, incX);
      inc(PByte(Result), incY*LineWidthA);
 end;
 
-function GenPtrArr(const A : PDouble; incX, incY : TASMNativeInt; const LineWidthA : TASMNativeInt) : PConstDoubleArr; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+function GenPtrArr(const A : PDouble; incX, incY : NativeInt; const LineWidthA : NativeInt) : PConstDoubleArr; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 begin
      Result := PConstDoubleArr(A);
      Result := @Result^[incX];
@@ -177,15 +162,15 @@ end;
 function AlignPtr32( A : Pointer ) : Pointer;
 begin
      Result := A;
-     if (TASMNativeUInt(A) and $1F) <> 0 then
-        Result := Pointer( TASMNativeUInt(Result) + $20 - TASMNativeUInt(Result) and $1F );
+     if (NativeUint(A) and $1F) <> 0 then
+        Result := Pointer( NativeUint(Result) + $20 - NativeUint(Result) and $1F );
 end;
 
 function AlignPtr64( A : Pointer ) : Pointer;
 begin
      Result := A;
-     if (TASMNativeUInt(A) and $3F) <> 0 then
-        Result := Pointer( TASMNativeUInt(Result) + $40 - TASMNativeUInt(Result) and $3F );
+     if (NativeUint(A) and $3F) <> 0 then
+        Result := Pointer( NativeUint(Result) + $40 - NativeUint(Result) and $3F );
 end;
 
 function ConvEQUProgress(value : TLinEquProgressWOObj) : TLinEquProgress;

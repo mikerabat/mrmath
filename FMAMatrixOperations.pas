@@ -20,32 +20,27 @@ unit FMAMatrixOperations;
 
 interface
 
+{$I 'mrMath_CPU.inc'}
+
 uses MatrixConst;
 
 // note: The ASM routines always carry out 2x2 matrix multiplications thus there must be an additional zero line/column in the
 // input matrices if the width/height is uneven. The routine also performs better if the matrices are aligned to 16 byte boundaries!
-procedure FMAMatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
-procedure FMAMatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; mem : PDouble); overload;
-procedure FMAMatrixMultTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
-procedure FMAMatrixMultDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
+procedure FMAMatrixMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
+procedure FMAMatrixMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; mem : PDouble); overload;
+procedure FMAMatrixMultTransposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
+procedure FMAMatrixMultDirect(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
 
-procedure FMAMtxVecMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-procedure FMAMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure FMAMtxVecMult(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double);
+procedure FMAMtxVecMultT(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double);
 
-procedure FMARank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+procedure FMARank1Update(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
+  const alpha : double; X, Y : PDouble; incX, incY : NativeInt);
 
 // strassen algorithm for matrix multiplication
-procedure FMAStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure FMAStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
 
 implementation
-
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
 
 {$IFDEF FPC} {$S-} {$ENDIF}
 
@@ -57,7 +52,7 @@ uses Math, MatrixASMStubSwitch, AVXMatrixOperations, ASMMatrixOperations,
      {$ENDIF}
      SimpleMatrixOperations;
 
-procedure FMAMatrixMultTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
+procedure FMAMatrixMultTransposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
 begin
      if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
         exit;
@@ -77,7 +72,7 @@ begin
           // ########################################################################
           // ####  In this case mt2 is already transposed -> direct multiplication
           // check for alignment:
-          if ((TASMNativeUInt(dest) and $0000001F) = 0) and ((TASMNativeUInt(mt1) and $0000001F) = 0) and ((TASMNativeUInt(mt2) and $0000001F) = 0) and
+          if ((NativeUint(dest) and $0000001F) = 0) and ((NativeUint(mt1) and $0000001F) = 0) and ((NativeUint(mt2) and $0000001F) = 0) and
              ((destLineWidth and $0000001F) = 0) and ((LineWidth1 and $0000001F) = 0) and ((LineWidth2 and $0000001F) = 0) then
           begin
                if width1 and $0000000F = 0 then
@@ -96,10 +91,10 @@ begin
      end;
 end;
 
-procedure FMAMatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; mem : PDouble); overload;
+procedure FMAMatrixMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; mem : PDouble); overload;
 var mtx : PDouble;
-    mtxLineWidth : TASMNativeInt;
-    help : TASMNativeInt;
+    mtxLineWidth : NativeInt;
+    help : NativeInt;
     aMem : Pointer;
 begin
      if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
@@ -147,13 +142,13 @@ begin
      end;
 end;
 
-procedure FMAMatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
+procedure FMAMatrixMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
 begin
      FMAMatrixMult(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, nil);
 end;
 
-procedure InternalFMAStrassenMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt;
-  width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; mem : PDouble);
+procedure InternalFMAStrassenMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt;
+  width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; mem : PDouble);
 var a11, a12, a21, a22 : PDouble;
     b11, b12, b21, b22 : PDouble;
     s1, s2, s3, s4 : PDouble;
@@ -161,11 +156,11 @@ var a11, a12, a21, a22 : PDouble;
     P1, P2, P3, P4, P5, P6, P7 : PDouble;
     U1, U2, U3, U4, U5, U6, U7 : PDouble;
     c11, c12, c21, c22 : PDouble;
-    k, m, n : TASMNativeInt;
-    lineK : TASMNativeInt;
-    lineN : TASMNativeInt;
+    k, m, n : NativeInt;
+    lineK : NativeInt;
+    lineN : NativeInt;
     x, y : PDouble;
-    multLineW : TASMNativeInt;
+    multLineW : NativeInt;
 begin
      if (width1 <= cStrassenMinSize) or (height1 <= cStrassenMinSize) or (width2 <= cStrassenMinSize) then
      begin
@@ -361,12 +356,12 @@ begin
      end;
 end;
 
-procedure FMAStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure FMAStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
 var mem : PDouble;
     ptrMem : Pointer;
-    memSize : TASMNativeInt;
-    m, k, n : TASMNativeInt;
-    lev : TASMNativeInt;
+    memSize : NativeInt;
+    m, k, n : NativeInt;
+    lev : NativeInt;
 begin
      // check the cutoff criterion:
      if (width1 <= cStrassenMinSize) or (height1 <= cStrassenMinSize) or (height2 <= cStrassenMinSize)
@@ -401,7 +396,7 @@ begin
      end;
 end;
 
-procedure FMAMatrixMultDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure FMAMatrixMultDirect(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
 begin
      if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
         exit;
@@ -423,7 +418,7 @@ begin
      else
      begin
           // check for alignment:
-          if ((TASMNativeUInt(dest) and $0000001F) = 0) and ((TASMNativeUInt(mt1) and $0000001F) = 0) and ((TASMNativeUInt(mt2) and $0000001F) = 0) and
+          if ((NativeUint(dest) and $0000001F) = 0) and ((NativeUint(mt1) and $0000001F) = 0) and ((NativeUint(mt2) and $0000001F) = 0) and
              ((destLineWidth and $0000001F) = 0) and ((LineWidth1 and $0000001F) = 0) and ((LineWidth2 and $0000001F) = 0)
           then
               FMAMatrixMultAligned(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2)
@@ -432,14 +427,14 @@ begin
      end;
 end;
 
-procedure FMAMtxVecMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure FMAMtxVecMult(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double);
 begin
      if (width = 0) or (height = 0) then
         exit;
 
      if (LineWidthV = sizeof(double)) then
      begin
-          if ((TASMNativeUInt(mt1) and $0000001F) = 0) and ((TASMNativeUInt(v) and $0000001F) = 0) and (LineWidthMT and $1F = 0)
+          if ((NativeUint(mt1) and $0000001F) = 0) and ((NativeUint(v) and $0000001F) = 0) and (LineWidthMT and $1F = 0)
           then
               FMAMatrixVectMultAlignedVAligned(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta)
           else
@@ -450,7 +445,7 @@ begin
 end;
 
 // performs dest = beta*dest + mt1**T*v * alpha
-procedure FMAMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure FMAMtxVecMultT(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -463,8 +458,8 @@ begin
          FMAMatrixVectMultT(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta);
 end;
 
-procedure FMARank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  const alpha : double; X, Y : PDouble; incX, incY : TASMNativeInt);
+procedure FMARank1Update(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
+  const alpha : double; X, Y : PDouble; incX, incY : NativeInt);
 begin
      if (width <= 0) or (height <= 0) then
         exit;
@@ -473,7 +468,7 @@ begin
      if incY <> sizeof(double) 
      then
          ASMRank1Update(A, LineWidthA, width, height, x, y, incx, incy, alpha)
-     else if ((TASMNativeUInt(A) and $0000001F) = 0) and ((TASMNativeUInt(Y) and $0000001F) = 0) and (LineWidthA and $1F = 0)
+     else if ((NativeUint(A) and $0000001F) = 0) and ((NativeUint(Y) and $0000001F) = 0) and (LineWidthA and $1F = 0)
      then
          FMARank1UpdateSeqAligned(A, LineWidthA, width, height, x, y, incX, incY, alpha)
      else

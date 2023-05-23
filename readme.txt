@@ -53,6 +53,37 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 
 // ###################################################################
 changelog:
+
+Date 20.03.2023
+* Fixed a bug in creating a random matrix in the TThreadedMatrix.
+* Removed unnecessary unit references.
+* updated codetyphon packages.
+
+Date 17.03.2023
+* Switched to inc files
+* Automatic versioning of the mrMath package - added Libsuffix
+
+Date: 14.03.2023
+* Got rid of the self invented integer types
+* Fixed 64 ARM problems
+* Fixed 64 rolling Median problems
+
+Date: 02.03.2023
+* Added a package mrMathPas that only uses pure pascal routines - all assembler stuff is either not
+  added or removed by a compiler switch.
+
+Date: 07.02.2023
+* Implemented a parameter to reproduce results in TSNE by setting the random algorithm and seed.
+* exchanged random from math unit by the internal random engine
+* Fixed memory corruption on sym tridiagonal eigenvalue calculation in some edge cases.
+
+Date 26.01.2023
+* Added a rolling mean/variance estimation based on Welfords (numerically more stable) algorithm.
+
+Date 24.01.2023
+* Added an rolling median algorithm for matrices. The algorithm performs O(n*log(k)) where k is the order. This can be
+  used e.g. for fast median filtering of signals.
+
 Date: 04.11.2022
 * fixed a problem in the win random number generator (worked only correct once)
 * some minor changes on the matrix copy operations

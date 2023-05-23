@@ -21,34 +21,28 @@ unit ASMMoveOperationsx64;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFDEF x64}
 
-uses MatrixConst;
+procedure ASMCopyRepMov(Dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt);
+procedure ASMMatrixCopyAlignedEvenW(Dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixCopyUnAlignedEvenW(Dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure ASMCopyRepMov(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
-procedure ASMMatrixCopyAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-procedure ASMMatrixCopyUnAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixCopyAlignedOddW(Dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixCopyUnAlignedOddW(Dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure ASMMatrixCopyAlignedOddW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-procedure ASMMatrixCopyUnAlignedOddW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMRowSwapAlignedEvenW(A, B : PDouble; width : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMRowSwapUnAlignedEvenW(A, B : PDouble; width : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure ASMRowSwapAlignedEvenW(A, B : PDouble; width : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-procedure ASMRowSwapUnAlignedEvenW(A, B : PDouble; width : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMRowSwapAlignedOddW(A, B : PDouble; width : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMRowSwapUnAlignedOddW(A, B : PDouble; width : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure ASMRowSwapAlignedOddW(A, B : PDouble; width : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-procedure ASMRowSwapUnAlignedOddW(A, B : PDouble; width : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-
-procedure ASMInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; Value : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMInitMemAligned(A : PDouble; NumBytes : NativeInt; Value : double); {$IFDEF FPC}assembler;{$ENDIF}
 
 // init matrix in a loop
-procedure ASMMatrixInitAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMMatrixInitUnAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixInitAligned( dest : PDouble; const destLineWidth : NativeInt; Width, Height : NativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixInitUnAligned( dest : PDouble; const destLineWidth : NativeInt; Width, Height : NativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -56,10 +50,8 @@ implementation
 
 {$IFDEF x64}
 
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
-
 // rcx = dest, rdx = destLineWidth;  r8 = width, r9 = height
-procedure ASMMatrixInitAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixInitAligned( dest : PDouble; const destLineWidth : NativeInt; Width, Height : NativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 asm
     {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -133,7 +125,7 @@ asm
 end;
 
 // rcx = dest, rdx = destLineWidth;  r8 = width, r9 = height
-procedure ASMMatrixInitUnAligned( dest : PDouble; const destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixInitUnAligned( dest : PDouble; const destLineWidth : NativeInt; Width, Height : NativeInt; Value : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -208,7 +200,7 @@ end;
 
 
 // rcx = A, rdx = NumBytes;
-procedure ASMInitMemAligned(A : PDouble; NumBytes : TASMNativeInt; Value : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMInitMemAligned(A : PDouble; NumBytes : NativeInt; Value : double); {$IFDEF FPC}assembler;{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -254,7 +246,7 @@ asm
    @@exitProc:
 end;
 
-procedure ASMRowSwapAlignedEvenW(A, B : PDouble; width : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMRowSwapAlignedEvenW(A, B : PDouble; width : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -324,7 +316,7 @@ asm
    @endfunc:
 end;
 
-procedure ASMRowSwapUnAlignedEvenW(A, B : PDouble; width : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMRowSwapUnAlignedEvenW(A, B : PDouble; width : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -390,7 +382,7 @@ asm
    @endfunc:
 end;
 
-procedure ASMRowSwapAlignedOddW(A, B : PDouble; width : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMRowSwapAlignedOddW(A, B : PDouble; width : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -465,7 +457,7 @@ asm
    movsd [rdx], xmm0;
 end;
 
-procedure ASMRowSwapUnAlignedOddW(A, B : PDouble; width : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMRowSwapUnAlignedOddW(A, B : PDouble; width : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -539,12 +531,12 @@ asm
    movsd [rdx], xmm0;
 end;
 
-procedure ASMCopyRepMov(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
-var aRSI : TASMNativeInt;
-    aRDI : TASMNativeInt;
+procedure ASMCopyRepMov(Dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+var aRSI : NativeInt;
+    aRDI : NativeInt;
 {$ifdef UNIX}
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    width : NativeInt;
+    height : NativeInt;
 {$ENDIF}
 asm
    // note: RCX = dest, RDX = destLineWidth, R8 = src, R9 = srcLineWidth
@@ -589,10 +581,10 @@ asm
    mov rdi, aRDI;
 end;
 
-procedure ASMMatrixCopyAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixCopyAlignedEvenW(Dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 {$ifdef UNIX}
-var width : TASMNativeInt;
-    height : TASMNativeInt;
+var width : NativeInt;
+    height : NativeInt;
 {$ENDIF}
 asm
    {$IFDEF UNIX}
@@ -680,10 +672,10 @@ asm
    jnz @@addforyloop;
 end;
 
-procedure ASMMatrixCopyUnAlignedEvenW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixCopyUnAlignedEvenW(Dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 {$ifdef UNIX}
-var width : TASMNativeInt;
-    height : TASMNativeInt;
+var width : NativeInt;
+    height : NativeInt;
 {$ENDIF}
 asm
    {$IFDEF UNIX}
@@ -767,10 +759,10 @@ asm
    jnz @@addforyloop;
 end;
 
-procedure ASMMatrixCopyAlignedOddW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixCopyAlignedOddW(Dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 {$ifdef UNIX}
-var width : TASMNativeInt;
-    height : TASMNativeInt;
+var width : NativeInt;
+    height : NativeInt;
 {$ENDIF}
 asm
    {$IFDEF UNIX}
@@ -863,10 +855,10 @@ asm
    jnz @@addforyloop;
 end;
 
-procedure ASMMatrixCopyUnAlignedOddW(Dest : PDouble; const destLineWidth : TASMNativeInt; src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixCopyUnAlignedOddW(Dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 {$ifdef UNIX}
-var width : TASMNativeInt;
-    height : TASMNativeInt;
+var width : NativeInt;
+    height : NativeInt;
 {$ENDIF}
 asm
    {$IFDEF UNIX}

@@ -21,18 +21,12 @@ unit AVXMatrixSqrtOperations;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFNDEF x64}
 
-uses MatrixConst;
-
-procedure AVXMatrixSQRTAligned(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure AVXMatrixSQRTUnAligned(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixSQRTAligned(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixSQRTUnAligned(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -40,9 +34,7 @@ implementation
 
 {$IFNDEF x64}
 
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
-
-procedure AVXMatrixSQRTAligned(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
+procedure AVXMatrixSQRTAligned(Dest : PDouble; const LineWidth, Width, Height : NativeInt);
 asm
    push edi;
    push esi;
@@ -67,17 +59,17 @@ asm
            // prefetchw [eax + edi];
 
            // elementwise sqrt
-           {$IFDEF FPC}vsqrtpd ymm0, [eax + edi - 128];{$ELSE}db $C5,$FD,$51,$44,$38,$80;{$ENDIF} 
-           {$IFDEF FPC}vmovapd [eax + edi - 128], ymm0;{$ELSE}db $C5,$FD,$29,$44,$38,$80;{$ENDIF} 
+           {$IFDEF AVXSUP}vsqrtpd ymm0, [eax + edi - 128];            {$ELSE}db $C5,$FD,$51,$44,$38,$80;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovapd [eax + edi - 128], ymm0;            {$ELSE}db $C5,$FD,$29,$44,$38,$80;{$ENDIF} 
 
-           {$IFDEF FPC}vsqrtpd ymm1, [eax + edi - 96];{$ELSE}db $C5,$FD,$51,$4C,$38,$A0;{$ENDIF} 
-           {$IFDEF FPC}vmovapd [eax + edi - 96], ymm1;{$ELSE}db $C5,$FD,$29,$4C,$38,$A0;{$ENDIF} 
+           {$IFDEF AVXSUP}vsqrtpd ymm1, [eax + edi - 96];             {$ELSE}db $C5,$FD,$51,$4C,$38,$A0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovapd [eax + edi - 96], ymm1;             {$ELSE}db $C5,$FD,$29,$4C,$38,$A0;{$ENDIF} 
 
-           {$IFDEF FPC}vsqrtpd ymm0, [eax + edi - 64];{$ELSE}db $C5,$FD,$51,$44,$38,$C0;{$ENDIF} 
-           {$IFDEF FPC}vmovapd [eax + edi - 64], ymm0;{$ELSE}db $C5,$FD,$29,$44,$38,$C0;{$ENDIF} 
+           {$IFDEF AVXSUP}vsqrtpd ymm0, [eax + edi - 64];             {$ELSE}db $C5,$FD,$51,$44,$38,$C0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovapd [eax + edi - 64], ymm0;             {$ELSE}db $C5,$FD,$29,$44,$38,$C0;{$ENDIF} 
 
-           {$IFDEF FPC}vsqrtpd ymm1, [eax + edi - 32];{$ELSE}db $C5,$FD,$51,$4C,$38,$E0;{$ENDIF} 
-           {$IFDEF FPC}vmovapd [eax + edi - 32], ymm1;{$ELSE}db $C5,$FD,$29,$4C,$38,$E0;{$ENDIF} 
+           {$IFDEF AVXSUP}vsqrtpd ymm1, [eax + edi - 32];             {$ELSE}db $C5,$FD,$51,$4C,$38,$E0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovapd [eax + edi - 32], ymm1;             {$ELSE}db $C5,$FD,$29,$4C,$38,$E0;{$ENDIF} 
 
        jmp @addforxloop
 
@@ -91,8 +83,8 @@ asm
            add edi, 16;
            jg @addforxloop2end;
 
-           {$IFDEF FPC}vsqrtpd xmm0, [eax + edi - 16];{$ELSE}db $C5,$F9,$51,$44,$38,$F0;{$ENDIF} 
-           {$IFDEF FPC}vmovapd [eax + edi - 16], xmm0;{$ELSE}db $C5,$F9,$29,$44,$38,$F0;{$ENDIF} 
+           {$IFDEF AVXSUP}vsqrtpd xmm0, [eax + edi - 16];             {$ELSE}db $C5,$F9,$51,$44,$38,$F0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovapd [eax + edi - 16], xmm0;             {$ELSE}db $C5,$F9,$29,$44,$38,$F0;{$ENDIF} 
        jmp @addforxloop2;
 
        @addforxloop2end:
@@ -101,9 +93,9 @@ asm
 
        jz @nextLine;
 
-       {$IFDEF FPC}vmovsd xmm0, [eax + edi];{$ELSE}db $C5,$FB,$10,$04,$38;{$ENDIF} 
-       {$IFDEF FPC}vsqrtsd xmm0, xmm0, xmm0;{$ELSE}db $C5,$FB,$51,$C0;{$ENDIF} 
-       {$IFDEF FPC}vmovsd [eax + edi], xmm0;{$ELSE}db $C5,$FB,$11,$04,$38;{$ENDIF} 
+       {$IFDEF AVXSUP}vmovsd xmm0, [eax + edi];                       {$ELSE}db $C5,$FB,$10,$04,$38;{$ENDIF} 
+       {$IFDEF AVXSUP}vsqrtsd xmm0, xmm0, xmm0;                       {$ELSE}db $C5,$FB,$51,$C0;{$ENDIF} 
+       {$IFDEF AVXSUP}vmovsd [eax + edi], xmm0;                       {$ELSE}db $C5,$FB,$11,$04,$38;{$ENDIF} 
 
        @nextLine:
 
@@ -114,12 +106,12 @@ asm
    dec esi;
    jnz @@addforyloop;
 
-   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
+   {$IFDEF AVXSUP}vzeroupper;                                         {$ELSE}db $C5,$F8,$77;{$ENDIF} 
    pop esi;
    pop edi;
 end;
 
-procedure AVXMatrixSQRTUnAligned(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt);
+procedure AVXMatrixSQRTUnAligned(Dest : PDouble; const LineWidth, Width, Height : NativeInt);
 asm
    push edi;
    push esi
@@ -144,21 +136,21 @@ asm
            // prefetchw [eax + edi];
 
            // elementwise sqrt
-           {$IFDEF FPC}vmovupd ymm2, [eax + edi - 128];{$ELSE}db $C5,$FD,$10,$54,$38,$80;{$ENDIF} 
-           {$IFDEF FPC}vsqrtpd ymm0, ymm2;{$ELSE}db $C5,$FD,$51,$C2;{$ENDIF} 
-           {$IFDEF FPC}vmovupd [eax + edi - 128], ymm0;{$ELSE}db $C5,$FD,$11,$44,$38,$80;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd ymm2, [eax + edi - 128];            {$ELSE}db $C5,$FD,$10,$54,$38,$80;{$ENDIF} 
+           {$IFDEF AVXSUP}vsqrtpd ymm0, ymm2;                         {$ELSE}db $C5,$FD,$51,$C2;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd [eax + edi - 128], ymm0;            {$ELSE}db $C5,$FD,$11,$44,$38,$80;{$ENDIF} 
 
-           {$IFDEF FPC}vmovupd ymm3, [eax + edi - 96];{$ELSE}db $C5,$FD,$10,$5C,$38,$A0;{$ENDIF} 
-           {$IFDEF FPC}vsqrtpd ymm1, ymm3;{$ELSE}db $C5,$FD,$51,$CB;{$ENDIF} 
-           {$IFDEF FPC}vmovupd [eax + edi - 96], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$38,$A0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd ymm3, [eax + edi - 96];             {$ELSE}db $C5,$FD,$10,$5C,$38,$A0;{$ENDIF} 
+           {$IFDEF AVXSUP}vsqrtpd ymm1, ymm3;                         {$ELSE}db $C5,$FD,$51,$CB;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd [eax + edi - 96], ymm1;             {$ELSE}db $C5,$FD,$11,$4C,$38,$A0;{$ENDIF} 
 
-           {$IFDEF FPC}vmovupd ymm2, [eax + edi - 64];{$ELSE}db $C5,$FD,$10,$54,$38,$C0;{$ENDIF} 
-           {$IFDEF FPC}vsqrtpd ymm0, ymm2;{$ELSE}db $C5,$FD,$51,$C2;{$ENDIF} 
-           {$IFDEF FPC}vmovupd [eax + edi - 64], ymm0;{$ELSE}db $C5,$FD,$11,$44,$38,$C0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd ymm2, [eax + edi - 64];             {$ELSE}db $C5,$FD,$10,$54,$38,$C0;{$ENDIF} 
+           {$IFDEF AVXSUP}vsqrtpd ymm0, ymm2;                         {$ELSE}db $C5,$FD,$51,$C2;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd [eax + edi - 64], ymm0;             {$ELSE}db $C5,$FD,$11,$44,$38,$C0;{$ENDIF} 
 
-           {$IFDEF FPC}vmovupd ymm3, [eax + edi - 32];{$ELSE}db $C5,$FD,$10,$5C,$38,$E0;{$ENDIF} 
-           {$IFDEF FPC}vsqrtpd ymm1, ymm3;{$ELSE}db $C5,$FD,$51,$CB;{$ENDIF} 
-           {$IFDEF FPC}vmovupd [eax + edi - 32], ymm1;{$ELSE}db $C5,$FD,$11,$4C,$38,$E0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd ymm3, [eax + edi - 32];             {$ELSE}db $C5,$FD,$10,$5C,$38,$E0;{$ENDIF} 
+           {$IFDEF AVXSUP}vsqrtpd ymm1, ymm3;                         {$ELSE}db $C5,$FD,$51,$CB;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd [eax + edi - 32], ymm1;             {$ELSE}db $C5,$FD,$11,$4C,$38,$E0;{$ENDIF} 
 
        jmp @addforxloop
 
@@ -172,9 +164,9 @@ asm
            add edi, 16;
            jg @addforxloop2end;
 
-           {$IFDEF FPC}vmovupd xmm1, [eax + edi - 16];{$ELSE}db $C5,$F9,$10,$4C,$38,$F0;{$ENDIF} 
-           {$IFDEF FPC}vsqrtpd xmm0, xmm1;{$ELSE}db $C5,$F9,$51,$C1;{$ENDIF} 
-           {$IFDEF FPC}vmovupd [eax + edi - 16], xmm0;{$ELSE}db $C5,$F9,$11,$44,$38,$F0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd xmm1, [eax + edi - 16];             {$ELSE}db $C5,$F9,$10,$4C,$38,$F0;{$ENDIF} 
+           {$IFDEF AVXSUP}vsqrtpd xmm0, xmm1;                         {$ELSE}db $C5,$F9,$51,$C1;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd [eax + edi - 16], xmm0;             {$ELSE}db $C5,$F9,$11,$44,$38,$F0;{$ENDIF} 
        jmp @addforxloop2;
 
        @addforxloop2end:
@@ -183,9 +175,9 @@ asm
 
        jz @nextLine;
 
-       {$IFDEF FPC}vmovsd xmm0, [eax + edi];{$ELSE}db $C5,$FB,$10,$04,$38;{$ENDIF} 
-       {$IFDEF FPC}vsqrtsd xmm0, xmm0, xmm0;{$ELSE}db $C5,$FB,$51,$C0;{$ENDIF} 
-       {$IFDEF FPC}vmovsd [eax + edi], xmm0;{$ELSE}db $C5,$FB,$11,$04,$38;{$ENDIF} 
+       {$IFDEF AVXSUP}vmovsd xmm0, [eax + edi];                       {$ELSE}db $C5,$FB,$10,$04,$38;{$ENDIF} 
+       {$IFDEF AVXSUP}vsqrtsd xmm0, xmm0, xmm0;                       {$ELSE}db $C5,$FB,$51,$C0;{$ENDIF} 
+       {$IFDEF AVXSUP}vmovsd [eax + edi], xmm0;                       {$ELSE}db $C5,$FB,$11,$04,$38;{$ENDIF} 
 
        @nextLine:
 
@@ -196,7 +188,7 @@ asm
    dec esi;
    jnz @@addforyloop;
 
-   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
+   {$IFDEF AVXSUP}vzeroupper;                                         {$ELSE}db $C5,$F8,$77;{$ENDIF} 
    pop esi;
    pop edi;
 end;

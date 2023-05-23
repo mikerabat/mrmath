@@ -21,21 +21,15 @@ unit ASMMatrixSqrtOperationsx64;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFDEF x64}
 
-uses MatrixConst;
+procedure ASMMatrixSQRTAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixSQRTUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure ASMMatrixSQRTAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-procedure ASMMatrixSQRTUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-
-procedure ASMMatrixSQRTAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-procedure ASMMatrixSQRTUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixSQRTAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixSQRTUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
 {$ENDIF}
 
@@ -43,9 +37,7 @@ implementation
 
 {$IFDEF x64}
 
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
-
-procedure ASMMatrixSQRTAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixSQRTAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -60,7 +52,7 @@ asm
 
    // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    //iters := -width*sizeof(double);
-   mov r10, width;
+   mov r10, r8;
    shl r10, 3;
    imul r10, -1;
 
@@ -68,7 +60,6 @@ asm
    sub rcx, r10;
 
    // for y := 0 to height - 1:
-   mov r11, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -125,12 +116,12 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
 
 end;
 
-procedure ASMMatrixSQRTUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixSQRTUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -145,7 +136,7 @@ asm
 
    // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    //iters := -width*sizeof(double);
-   mov r10, width;
+   mov r10, r8;
    shl r10, 3;
    imul r10, -1;
 
@@ -153,7 +144,6 @@ asm
    sub rcx, r10;
 
    // for y := 0 to height - 1:
-   mov r11, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -216,12 +206,12 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
 
 end;
 
-procedure ASMMatrixSQRTAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixSQRTAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -236,7 +226,7 @@ asm
 
    // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    //iters := -(width - 1)*sizeof(double);
-   mov r10, width;
+   mov r10, r8;
    dec r10;
    shl r10, 3;
    imul r10, -1;
@@ -245,7 +235,6 @@ asm
    sub rcx, r10;
 
    // for y := 0 to height - 1:
-   mov r11, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -307,12 +296,12 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
 
 end;
 
-procedure ASMMatrixSQRTUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixSQRTUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -327,7 +316,7 @@ asm
 
    // note: RCX = dest, RDX = destLineWidth, R8 = width, R9 = height
    //iters := -width*sizeof(double);
-   mov r10, width;
+   mov r10, r8;
    shl r10, 3;
    imul r10, -1;
 
@@ -335,7 +324,6 @@ asm
    sub rcx, r10;
 
    // for y := 0 to height - 1:
-   mov r11, Height;
    @@addforyloop:
        // for x := 0 to w - 1;
        // prepare for reverse loop
@@ -403,7 +391,7 @@ asm
        add rcx, rdx;
 
    // loop y end
-   dec r11;
+   dec r9;
    jnz @@addforyloop;
 end;
 

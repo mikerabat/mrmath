@@ -20,7 +20,8 @@ unit PCA;
 
 interface
 
-uses SysUtils, Classes, Matrix, Types, MatrixConst, BaseMathPersistence;
+uses SysUtils, Classes, Matrix, Types, MatrixConst, BaseMathPersistence,
+     RandomEng;
 
 {$MINENUMSIZE 2}
 type
@@ -141,6 +142,8 @@ type
     fSubEigVecsT : IMatrixDynArr;
     fSubMeanElem : IMatrixDynArr;
     fIsLearning : boolean;
+    fRand : TRandomGenerator;
+
     function GenerateSampleList(len : integer; idx : integer) : TIntegerDynArray;
     function SubEigVecT(idx : integer) : TDoubleMatrix;
     function ErrorFromSubSpace(idx : integer; Example : TDoubleMatrix) : TDoubleMatrix;
@@ -183,8 +186,8 @@ type
     // pca in behind
     function TemporalWeightPCA(Examples : TDoubleMatrix; CutEps : double; IsRelativeValue : boolean; const Weights : Array of Double) : boolean; override;
 
-    constructor Create(KeepFlags : TPCASaveDataSet); overload;
-    constructor Create(const PcaData : TFastRobustPCAData); overload;
+    constructor Create(KeepFlags : TPCASaveDataSet; randSeed : integer = 0); overload;
+    constructor Create(const PcaData : TFastRobustPCAData; randSeed : integer = 0); overload;
 
     destructor Destroy; override;
   end;
@@ -704,7 +707,7 @@ end;
 
 { TFastRobustPCA }
 
-constructor TFastRobustPCA.Create(KeepFlags: TPCASaveDataSet);
+constructor TFastRobustPCA.Create(KeepFlags: TPCASaveDataSet; randSeed : integer = 0);
 begin
      inherited Create(KeepFlags);
 
@@ -716,6 +719,9 @@ begin
      fProps.Stop := 20;                 // stop at 20*NumEigenVecs
      fProps.ReductionFactor := 0.75;    // Reduce the point set by this factor
      fProps.SubSpaceCutEPS := 1;      // per default use 90% of the energy in subspaces
+
+     fRand := TRandomGenerator.Create( raMersenneTwister );
+     fRand.Init(randSeed);
 end;
 
 procedure TFastRobustPCA.Clear;
@@ -730,7 +736,7 @@ begin
      end;
 end;
 
-constructor TFastRobustPCA.Create(const PCaData: TFastRobustPCAData);
+constructor TFastRobustPCA.Create(const PCaData: TFastRobustPCAData; randSeed : integer = 0);
 var i : Integer;
 begin
      inherited Create(PCAData.PCAData);
@@ -742,6 +748,9 @@ begin
      fSubEigVecs := PCaData.SubEigVecs;
      fSubEigVecsT := PCAData.SubEigVecsT;
      fSubMeanElem := PCAData.SubMeanElements;
+
+     fRand := TRandomGenerator.Create( raMersenneTwister );
+     fRand.Init(randSeed);
 end;
 
 class function TFastRobustPCA.ClassIdentifier: String;
@@ -915,7 +924,8 @@ end;
 destructor TFastRobustPCA.Destroy;
 begin
      Clear;
-     
+
+     fRand.Free;
      inherited;
 end;
 
@@ -985,8 +995,8 @@ begin
           resLen := Length(Result);
           for i := 0 to 2*Length(Result) - 1 do
           begin
-               rndIdx := random(resLen);
-               rndIdx2 := random(resLen);
+               rndIdx := fRand.RandInt(resLen);
+               rndIdx2 := fRand.RandInt(resLen);
 
                swap := Result[rndIdx];
                Result[rndIdx] := Result[rndIdx2];
@@ -1004,7 +1014,7 @@ begin
           i := 0;
           while i < Length(Result) do
           begin
-               rndIdx := Random(Len);
+               rndIdx := fRand.RandInt(Len);
 
                if not SetList[rndIdx] then
                begin

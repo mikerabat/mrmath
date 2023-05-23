@@ -77,7 +77,6 @@ uses
   ThreadedMatrixOperations in '..\ThreadedMatrixOperations.pas',
   BaseMathPersistence in '..\BaseMathPersistence.pas',
   BinaryReaderWriter in '..\BinaryReaderWriter.pas',
-  BufferedStream in '..\BufferedStream.pas',
   CCA in '..\CCA.pas',
   PCA in '..\PCA.pas',
   NonLinearFit in '..\NonLinearFit.pas',
@@ -178,7 +177,10 @@ uses
   TestSSA in 'TestSSA.pas',
   Roots in '..\Roots.pas',
   TestRootFinding in 'TestRootFinding.pas',
-  MtxUtilFunc in '..\MtxUtilFunc.pas';
+  MtxUtilFunc in '..\MtxUtilFunc.pas',
+  AVXChaCha in '..\AVXChaCha.pas',
+  AVXChaChax64 in '..\AVXChaChax64.pas',
+  RollingMedMean in '..\RollingMedMean.pas';
 
 {$R *.RES}
 

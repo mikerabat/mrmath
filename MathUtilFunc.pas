@@ -32,17 +32,17 @@ function pythag(const A, B : double) : double; {$IFNDEF FPC} {$IF CompilerVersio
 function sign(const a : double; const b : double) : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 procedure DoubleSwap(var a, b : Double); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 
-function lcm(a, b : TASMNativeInt) : TASMNativeInt;  // least common multiple
-function gcm(a, b : TASMNativeInt) : TASMNativeInt; // greatest common divisior
+function lcm(a, b : NativeInt) : NativeInt;  // least common multiple
+function gcm(a, b : NativeInt) : NativeInt; // greatest common divisior
 
-function Next2Pwr(num : TASMNativeInt; maxSize : TASMNativeInt) : TASMNativeInt;
+function Next2Pwr(num : NativeInt; maxSize : NativeInt) : NativeInt;
 
 function eps(const val : double) : double;
 function MinDblDiv : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 
 procedure WriteMtlMtx(const fileName : string; const mtx : TDoubleDynArray; width : integer; prec : integer = 8); overload;
-procedure WriteMtlMtx(const fileName : string; mtx : PDouble; LineWidthmtx : TASMNativeInt; width, height : integer; prec : integer = 8); overload;
-procedure WriteBinaryMtxColMajor( fn : String; A : PDouble; LineWidthA : TASMNativeInt; w, h  :integer );
+procedure WriteMtlMtx(const fileName : string; mtx : PDouble; LineWidthmtx : NativeInt; width, height : integer; prec : integer = 8); overload;
+procedure WriteBinaryMtxColMajor( fn : String; A : PDouble; LineWidthA : NativeInt; w, h  :integer );
 
 
 type
@@ -74,6 +74,25 @@ function Arr( const elements : Array of integer ) : TIntegerDynArray;
 // ###########################################
 // #### prime stuff
 function MillerRubinTest32( n : UInt32; a : UInt32 ) : boolean;
+
+// ###########################################
+// #### root finding
+// another dive into numerical recipies
+
+// root finding for a function y = f(x) using the modified Newton-Raphsons method
+// combined with a bisection step to make it more stabel.
+// The hybrid algorithm takes a bisection step whenever Newton-Raphos would take the solution out
+// of bounds, or whenever it is not reducing the size of the brackets rapidly enough.
+// if return value is true the x value is returned in "root". The maximum deviation from
+// the real value can be defined by "xAcc".
+
+// if not derrivative can be provided the root is found by Brents method
+type
+  TRootFuncWithDerrive = procedure( x : double; var y, dy : double);
+  TRootFunc = function( x : double ): double;
+
+function findRoot( func : TRootFunc; out root : double; x1, x2 : double; xAcc : double = 1e-8 ) : boolean; overload;
+function findRoot( func : TRootFuncWithDerrive; out root : double; x1, x2 : double; xAcc : double = 1e-8 ) : boolean; overload;
 
 implementation
 
@@ -439,14 +458,14 @@ begin
         Result := small*(1 + eps(1));
 end;
 
-function lcm(a, b : TASMNativeInt) : TASMNativeInt;  // least common multiple
+function lcm(a, b : NativeInt) : NativeInt;  // least common multiple
 begin
      Result := (abs(a) div gcm(a, b)) * abs(b);
 end;
 
 // from https://en.wikipedia.org/wiki/Euclidean_algorithm
-function gcm(a, b : TASMNativeInt) : TASMNativeInt; // greatest common divisior
-var t : TASMNativeInt;
+function gcm(a, b : NativeInt) : NativeInt; // greatest common divisior
+var t : NativeInt;
 begin
      while b <> 0 do
      begin
@@ -458,7 +477,7 @@ begin
      Result := a;
 end;
 
-function Next2Pwr(num : TASMNativeInt; maxSize : TASMNativeInt) : TASMNativeInt;
+function Next2Pwr(num : NativeInt; maxSize : NativeInt) : NativeInt;
 begin
      Result := 1;
      while (Result < maxSize) and (Result < num) do
@@ -535,7 +554,7 @@ begin
      end;
 end;
 
-procedure WriteMtlMtx(const fileName : string; mtx : PDouble; LineWidthmtx : TASMNativeInt; width, height : integer; prec : integer = 8); overload;
+procedure WriteMtlMtx(const fileName : string; mtx : PDouble; LineWidthmtx : NativeInt; width, height : integer; prec : integer = 8); overload;
 var s : UTF8String;
     x, y : integer;
     pMTx : PConstDoubleArr;
@@ -567,7 +586,7 @@ end;
 
 
 // mostly used as output to directly test with various lapack packages
-procedure WriteBinaryMtxColMajor( fn : String; A : PDouble; LineWidthA : TASMNativeInt;
+procedure WriteBinaryMtxColMajor( fn : String; A : PDouble; LineWidthA : NativeInt;
   w, h  :integer );
 var x, y : integer;
     pA : PDouble;
@@ -853,6 +872,225 @@ begin
 
      Result := False;
 end;
+
+// ###########################################
+// #### function root finding
+// ###########################################
+
+function findRootNewtonRaphson( func : TRootFuncWithDerrive; out root : double; x1, x2 : double; xAcc : double = 1e-8 ) : boolean;
+var j : integer;
+    df, dx, dxold, f, fh, fl : double;
+    temp, xh, xl, rts : double;
+const MAXITER = 100;
+begin
+     func(x1, fl, df);
+     func(x2, fh, df);
+
+     root := nan;
+
+     Result := False;
+     if ( (fh < 0) and (fl < 0) ) or ( (fh > 0) and (fl > 0) ) then
+        exit;
+
+     if fh = 0 then
+     begin
+          root := x2;
+          Result := True;
+          exit;
+     end;
+     if fl = 0 then
+     begin
+          root := x1;
+          Result := True;
+          exit;
+     end;
+
+     if fl < 0 then
+     begin
+          xl := x1;
+          xh := x2;
+     end
+     else
+     begin
+          xl := x2;
+          xh := x1;
+     end;
+
+
+     rts := 0.5*(x1 + x2);
+     dxold := abs(x2 - x1);
+     dx := dxold;
+     func( rts, f, df );
+
+     j := 0;
+     while j < MAXITER do
+     begin
+          // check progress:
+          // use bisect if out of range or not fast enough
+          if (((rts - xh)*df-f)*((rts-xl)*df-f) > 0) or
+             (abs(2*f) > abs(dxold*df))
+          then
+          begin
+               // bisect
+               dxold := dx;
+               dx := 0.5*(xh - xl);
+               rts := xl + dx;
+               if xl = rts then
+                  break;
+          end
+          else
+          begin
+               // Newton
+               dxold := dx;
+               dx := f/df;
+               temp := rts;
+               rts := rts - dx;
+               if temp = rts then
+                  break;
+          end;
+
+          if abs(dx) < xacc then
+             break;
+
+          func(rts, f, df);
+          if f < 0
+          then
+              xl := rts
+          else
+              xh := rts;
+
+          inc(j);
+     end;
+
+     Result := j < MAXITER;
+     if Result then
+        root := rts;
+end;
+
+
+function findRootBrent( func : TRootFunc; out root : double; x1, x2 : double; xAcc : double = 1e-8 ) : boolean;
+var iter : integer;
+    a, b, c, d, e, min1, min2 : double;
+    fa, fb, fc, p, q, r, s, tol1, xm : double;
+const MAXITER = 100;
+begin
+     a := x1;
+     b := x2;
+     c := x2;
+     fa := func(a);
+     fb := func(b);
+     d := (c - b)*0.5;
+     e := d;
+
+     Result := False;
+     root := NAN;
+     if ((fa > 0) and (fb > 0)) or ((fa < 0) and (fb < 0)) then
+        exit;
+
+     fc := fb;
+     iter := 0;
+     while iter < MAXITER do
+     begin
+          if ((fb > 0) and (fc > 0)) or ((fb < 0) and (fc < 0)) then
+          begin
+               c := a;
+               fc := fa;
+               d := b - a;
+               e := d;
+          end;
+
+          if abs(fc) < abs(fb) then
+          begin
+               a := b;
+               b := c;
+               c := a;
+               fa := fb;
+               fb := fc;
+               fc := fa;
+          end;
+
+          tol1 := 2*eps(1)*abs(b) + 0.5*xacc;
+          xm := 0.5*(c - b);
+
+          // ###########################################
+          // #### Stop criterion
+          if (abs(xm) <= tol1) or (fb = 0) then
+             break;
+
+
+          if (abs(e) >= tol1) and (abs(fa) > abs(fb)) then
+          begin
+               s := fb/fa;
+               if a = c then
+               begin
+                    p := 2*xm*s;
+                    q := -s;
+               end
+               else
+               begin
+                    q := fa/fc;
+                    r := fb/fc;
+                    p := s*(2*xm*q*(q -r) - (b - a)*(r - 1));
+                    q := (q - 1)*(r - 1)*(s - 1);
+               end;
+
+               if (p > 0) then
+                  q := -q;
+
+               p := abs(p);
+               min1 := 3*xm*q - abs(tol1*q);
+               min2 := abs(e*q);
+
+
+               if 2*p < Min( min1, min2 ) then
+               begin
+                    e := d;
+                    d := p/q;
+               end
+               else
+               begin
+                    d := xm;
+                    e := d;
+               end;
+          end
+          else
+          begin
+               d := xm;
+               e := d;
+          end;
+
+          a := b;
+          fa := fb;
+          if abs(d) > tol1
+          then
+              b := b + d
+          else
+              b := b + sign( tol1, xm );
+
+          // ###########################################
+          // #### next function call
+          fb := func(b);
+
+          inc(iter);
+     end;
+
+     Result := iter < MAXITER;
+     if Result then
+        root := b;
+end;
+
+
+function findRoot( func : TRootFuncWithDerrive; out root : double; x1, x2 : double; xAcc : double = 1e-8 ) : boolean;
+begin
+     Result := findRootNewtonRaphson( func, root, x1, x2, xAcc);
+end;
+
+function findRoot( func : TRootFunc; out root : double; x1, x2 : double; xAcc : double = 1e-8 ) : boolean;
+begin
+     Result := findRootBrent( func, root, x1, x2, xAcc);
+end;
+
+
 
 initialization
   cMinDblDivEps := MinDblDiv/eps(1);

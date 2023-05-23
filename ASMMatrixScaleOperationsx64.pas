@@ -17,33 +17,27 @@ unit ASMMatrixScaleOperationsx64;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFDEF x64}
 
-uses MatrixConst;
+procedure ASMMatrixAddScaleAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixAddScaleUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure ASMMatrixAddScaleAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
-procedure ASMMatrixAddScaleUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixAddScaleAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixAddScaleUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure ASMMatrixAddScaleAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
-procedure ASMMatrixAddScaleUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixScaleAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixScaleAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure ASMMatrixScaleAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
-procedure ASMMatrixScaleAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixScaleAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixScaleAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure ASMMatrixScaleAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
-procedure ASMMatrixScaleAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixElemAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixElemAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixElemAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMMatrixElemAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-
-procedure ASMMatrixElemAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMMatrixElemAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixElemAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixElemAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -51,9 +45,7 @@ implementation
 
 {$IFDEF x64}
 
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
-
-procedure ASMMatrixAddScaleAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixAddScaleAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM6, dXMM7 : Array[0..1] of double;
 asm
    movupd dXMM6, xmm6;
@@ -162,7 +154,7 @@ asm
    movupd xmm7, dXMM7;
 end;
 
-procedure ASMMatrixAddScaleUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixAddScaleUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM6, dXMM7 : Array[0..1] of double;
 asm
    movupd dXMM6, xmm6;
@@ -269,7 +261,7 @@ asm
 end;
 
 
-procedure ASMMatrixAddScaleAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixAddScaleAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM6, dXMM7 : Array[0..1] of double;
 asm
    movupd dXMM6, xmm6;
@@ -385,7 +377,7 @@ asm
    movupd xmm7, dXMM7;
 end;
 
-procedure ASMMatrixAddScaleUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixAddScaleUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM6, dXMM7 : Array[0..1] of double;
 asm
    movupd dXMM6, xmm6;
@@ -503,7 +495,7 @@ asm
 end;
 
 
-procedure ASMMatrixScaleAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixScaleAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM6, dXMM7 : Array[0..1] of double;
 asm
    movupd dXMM6, xmm6;
@@ -612,7 +604,7 @@ asm
    movupd xmm7, dXMM7;
 end;
 
-procedure ASMMatrixScaleAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixScaleAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM6, dXMM7 : Array[0..1] of double;
 asm
    movupd dXMM6, xmm6;
@@ -719,7 +711,7 @@ asm
 end;
 
 
-procedure ASMMatrixScaleAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixScaleAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM6, dXMM7 : Array[0..1] of double;
 asm
    movupd dXMM6, xmm6;
@@ -835,7 +827,7 @@ asm
    movupd xmm7, dXMM7;
 end;
 
-procedure ASMMatrixScaleAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixScaleAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset, Scale : double); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM6, dXMM7 : Array[0..1] of double;
 asm
    movupd dXMM6, xmm6;
@@ -952,7 +944,7 @@ end;
 // #### Elementwise add
 // ###########################################
 
-procedure ASMMatrixElemAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixElemAddAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset : double); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM6 : Array[0..1] of double;
 asm
    movupd dXMM6, xmm6;
@@ -1049,7 +1041,7 @@ asm
    movupd xmm6, dXMM6;
 end;
 
-procedure ASMMatrixElemAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixElemAddUnAlignedEvenW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset : double); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM6 : Array[0..1] of double;
 asm
    movupd dXMM6, xmm6;
@@ -1144,7 +1136,7 @@ asm
 end;
 
 
-procedure ASMMatrixElemAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixElemAddAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset : double); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM6 : Array[0..1] of double;
 asm
    movupd dXMM6, xmm6;
@@ -1247,7 +1239,7 @@ asm
    movupd xmm6, dXMM6;
 end;
 
-procedure ASMMatrixElemAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : TASMNativeInt; dOffset : double); {$IFDEF FPC}assembler;{$ENDIF}
+procedure ASMMatrixElemAddUnAlignedOddW(Dest : PDouble; const LineWidth, Width, Height : NativeInt; dOffset : double); {$IFDEF FPC}assembler;{$ENDIF}
 var dXMM6 : Array[0..1] of double;
 asm
    movupd dXMM6, xmm6;

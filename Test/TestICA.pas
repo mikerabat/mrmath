@@ -29,6 +29,7 @@ type
   published
     procedure TestSimpleICA;
     procedure TestICAImages;
+    procedure TestNew;
   end;
 
 implementation
@@ -67,6 +68,43 @@ begin
      end;
 
      Examples.Free;
+end;
+
+procedure TTestICA.TestNew;
+var data : TDoubleDynArray;
+    counter : integer;
+    examples : TDoubleMatrix;
+    ica : TMatrixICA;
+    props : TICAProps;
+begin
+     Check( true, 'nix');
+     exit;
+
+     setLength(data, 1000);
+     for counter := 0 to length ( data ) div 2 -1 do
+     begin
+          data [ counter ] := random/10 + sin ( 2*pi/30*counter ) - sin ( 2*pi/37*counter );
+          data [ counter + length ( data ) div 2] := random/10 + 0.9 * sin ( 2*pi/30*counter ) + 1.2 * sin ( 2*pi/37*counter );
+     end;
+     examples := TDoubleMatrix.Create ( data, 500, 2 );
+
+     MatrixToTxtFile( 'D:\ica.txt', examples );
+
+     ICA := TMatrixICA.Create;
+
+     examples.TransposeInPlace;
+
+     props := TMatrixICA.DefProps;
+     props.nonLin := iePow3;
+
+     props.myy := 0.1; // Form1.SpinBox2.Value / 1000;
+     props.NumIter := 500;
+     props.NumIC := 2;
+     props.stabilization := True;
+     ICA.ICA ( Examples, props );
+
+     MatrixToTxtFile('D:\ica_w.txt', ICA.W.GetObjRef);
+     ICA.Free;
 end;
 
 procedure TTestICA.TestSimpleICA;

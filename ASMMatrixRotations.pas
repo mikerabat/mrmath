@@ -18,23 +18,19 @@ unit ASMMatrixRotations;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFNDEF x64}
 
 
 uses MatrixConst;
 
-procedure ASMApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure ASMApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMApplyPlaneRotSeqRVB(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMApplyPlaneRotSeqRVF(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMApplyPlaneRotSeqLVF(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMApplyPlaneRotSeqLVB(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure ASMMatrixRotate(N : TASMNativeInt; X : PDouble; const LineWidthDX : TASMNativeInt; Y : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
+procedure ASMMatrixRotate(N : NativeInt; X : PDouble; const LineWidthDX : NativeInt; Y : PDouble; LineWidthDY : NativeInt; const c, s : double);
 
 {$ENDIF}
 
@@ -42,15 +38,13 @@ implementation
 
 {$IFNDEF x64}
 
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
-
 const cLocMinusOne : double = -1;
       cLocOne : double = 1;
       cLocMulM1Bits : Array[0..1] of Int64 = ($8000000000000000, $0);
 
-procedure ASMApplyPlaneRotSeqLVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
-var y2 : TASMNativeInt;
-    iter : TASMNativeInt;
+procedure ASMApplyPlaneRotSeqLVB(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr);
+var y2 : NativeInt;
+    iter : NativeInt;
 // eax = width, edx = height, ecx = A
 asm
    push ebx;
@@ -200,9 +194,9 @@ asm
 end;
 
 
-procedure ASMApplyPlaneRotSeqLVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
-var y2 : TASMNativeInt;
-    iter : TASMNativeInt;
+procedure ASMApplyPlaneRotSeqLVF(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr);
+var y2 : NativeInt;
+    iter : NativeInt;
 asm
    push ebx;
    push edi;
@@ -339,7 +333,7 @@ asm
    pop ebx;
 end;
 
-procedure ASMApplyPlaneRotSeqRVB(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure ASMApplyPlaneRotSeqRVB(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr);
 // eax = width, edx = height, ecx = A
 asm
    // if (height <= 0) or (width <= 1) then exit;
@@ -410,7 +404,7 @@ asm
    @@endProc:
 end;
 
-procedure ASMApplyPlaneRotSeqRVF(width, height : TASMNativeInt; A : PDouble; const LineWidthA : TASMNativeInt; C, S : PConstDoubleArr);
+procedure ASMApplyPlaneRotSeqRVF(width, height : NativeInt; A : PDouble; const LineWidthA : NativeInt; C, S : PConstDoubleArr);
 // eax = width, edx = height, ecx = A
 asm
    // if (height <= 0) or (width <= 1) then exit;
@@ -485,7 +479,7 @@ asm
 end;
 
 // its assumed that Linewidthdx and linewidthdy = sizeof(double)
-procedure ASMMatrixRotateAligned(N : TASMNativeInt; X : PDouble;
+procedure ASMMatrixRotateAligned(N : NativeInt; X : PDouble;
   Y : PDouble; c, s : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 // eax = N; edx = X; ecx = Y
 asm
@@ -573,8 +567,8 @@ asm
 end;
 
 
-procedure ASMMatrixRotateUnaligned(N : TASMNativeInt; X : PDouble; const LineWidthDX : TASMNativeInt;
-  Y : PDouble; LineWidthDY : TASMNativeInt; c, s : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMMatrixRotateUnaligned(N : NativeInt; X : PDouble; const LineWidthDX : NativeInt;
+  Y : PDouble; LineWidthDY : NativeInt; c, s : double); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 // eax = N, edx = X, ecx = LineWidthDX
 asm
    push ebx;
@@ -671,7 +665,7 @@ asm
    pop ebx;
 end;
 
-procedure ASMMatrixRotate(N : TASMNativeInt; X : PDouble; const LineWidthDX : TASMNativeInt; Y : PDouble; LineWidthDY : TASMNativeInt; const c, s : double);
+procedure ASMMatrixRotate(N : NativeInt; X : PDouble; const LineWidthDX : NativeInt; Y : PDouble; LineWidthDY : NativeInt; const c, s : double);
 begin
      if N <= 0 then
         exit;

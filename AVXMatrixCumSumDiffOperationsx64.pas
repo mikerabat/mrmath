@@ -16,26 +16,19 @@ unit AVXMatrixCumSumDiffOperationsx64;
 
 interface
 
+{$I 'mrMath_CPU.inc'}
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
 {$IFDEF x64}
 
-uses MatrixConst;
+procedure AVXMatrixCumulativeSumRow(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure AVXMatrixCumulativeSumRow(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixCumulativeSumColumnUnaligned(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixCumulativeSumColumnAligned(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure AVXMatrixCumulativeSumColumnUnaligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-procedure AVXMatrixCumulativeSumColumnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixDifferentiateRow(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
-procedure AVXMatrixDifferentiateRow(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-
-procedure AVXMatrixDifferentiateColumnUnaligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-procedure AVXMatrixDifferentiateColumnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixDifferentiateColumnUnaligned(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixDifferentiateColumnAligned(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 
 {$ENDIF}
 
@@ -43,17 +36,15 @@ implementation
 
 {$IFDEF x64}
 
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
-
 // ##################################################
 // #### Cumulative sum
 // ##################################################
 
-procedure AVXMatrixCumulativeSumRow(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-var iRSI : TASMNativeint;
+procedure AVXMatrixCumulativeSumRow(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+var iRSI : NativeInt;
     {$ifdef UNIX}
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    width : NativeInt;
+    height : NativeInt;
     {$ENDIF}
 // rcx: dest, rdx: destlinewidth; r8: src; r9 : srclinewidth
 asm
@@ -90,11 +81,11 @@ asm
    @@foryloop:
       mov rax, r10;
 
-      {$IFDEF FPC}vxorpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
+      {$IFDEF AVXSUP}vxorpd xmm0, xmm0, xmm0;                         {$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
       @@forxloop:
-         {$IFDEF FPC}vmovsd xmm1, [r8 + rax];{$ELSE}db $C4,$C1,$7B,$10,$0C,$00;{$ENDIF} 
-         {$IFDEF FPC}vaddsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$58,$C1;{$ENDIF} 
-         {$IFDEF FPC}vmovsd [rcx + rax], xmm0;{$ELSE}db $C5,$FB,$11,$04,$01;{$ENDIF} 
+         {$IFDEF AVXSUP}vmovsd xmm1, [r8 + rax];                      {$ELSE}db $C4,$C1,$7B,$10,$0C,$00;{$ENDIF} 
+         {$IFDEF AVXSUP}vaddsd xmm0, xmm0, xmm1;                      {$ELSE}db $C5,$FB,$58,$C1;{$ENDIF} 
+         {$IFDEF AVXSUP}vmovsd [rcx + rax], xmm0;                     {$ELSE}db $C5,$FB,$11,$04,$01;{$ENDIF} 
       add rax, 8;
       jnz @@forxloop;
 
@@ -106,14 +97,14 @@ asm
 
    // epilog - stack cleanup
    mov rsi, iRSI;
-   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
+   {$IFDEF AVXSUP}vzeroupper;                                         {$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXMatrixCumulativeSumColumnUnaligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-var iRDI, iRSI : TASMNativeint;
+procedure AVXMatrixCumulativeSumColumnUnaligned(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+var iRDI, iRSI : NativeInt;
     {$ifdef UNIX}
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    width : NativeInt;
+    height : NativeInt;
     {$ENDIF}
 // rcx: dest, rdx: destlinewidth; r8: src; r9 : srclinewidth
 asm
@@ -145,15 +136,15 @@ asm
 
    @@forxloop:
        mov rax, r11;
-       {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;{$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} 
+       {$IFDEF AVXSUP}vxorpd ymm0, ymm0, ymm0;                        {$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} 
        xor rdi, rdi;
        xor rsi, rsi;
 
        // 4 values at once
        @@foryloop:
-           {$IFDEF FPC}vmovupd ymm1, [r8 + rdi];{$ELSE}db $C4,$C1,$7D,$10,$0C,$38;{$ENDIF} 
-           {$IFDEF FPC}vaddpd ymm0, ymm0, ymm1;{$ELSE}db $C5,$FD,$58,$C1;{$ENDIF} 
-           {$IFDEF FPC}vmovupd [rcx + rsi], ymm0;{$ELSE}db $C5,$FD,$11,$04,$31;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd ymm1, [r8 + rdi];                   {$ELSE}db $C4,$C1,$7D,$10,$0C,$38;{$ENDIF} 
+           {$IFDEF AVXSUP}vaddpd ymm0, ymm0, ymm1;                    {$ELSE}db $C5,$FD,$58,$C1;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd [rcx + rsi], ymm0;                  {$ELSE}db $C5,$FD,$11,$04,$31;{$ENDIF} 
 
            add rdi, r9;
            add rsi, rdx;
@@ -171,15 +162,15 @@ asm
 
    @@forxloopshort:
        mov rax, r11;
-       {$IFDEF FPC}vxorpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
+       {$IFDEF AVXSUP}vxorpd xmm0, xmm0, xmm0;                        {$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
        xor rdi, rdi;
        xor rsi, rsi;
 
        // 4 values at once
        @@foryloopshort:
-           {$IFDEF FPC}vmovsd xmm1, [r8 + rdi];{$ELSE}db $C4,$C1,$7B,$10,$0C,$38;{$ENDIF} 
-           {$IFDEF FPC}vaddsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$58,$C1;{$ENDIF} 
-           {$IFDEF FPC}vmovsd [rcx + rsi], xmm0;{$ELSE}db $C5,$FB,$11,$04,$31;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovsd xmm1, [r8 + rdi];                    {$ELSE}db $C4,$C1,$7B,$10,$0C,$38;{$ENDIF} 
+           {$IFDEF AVXSUP}vaddsd xmm0, xmm0, xmm1;                    {$ELSE}db $C5,$FB,$58,$C1;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovsd [rcx + rsi], xmm0;                   {$ELSE}db $C5,$FB,$11,$04,$31;{$ENDIF} 
 
            add rdi, r9;
            add rsi, rdx;
@@ -196,14 +187,14 @@ asm
    // epilog - stack cleanup
    mov rdi, iRDI;
    mov rsi, iRSI;
-   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
+   {$IFDEF AVXSUP}vzeroupper;                                         {$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXMatrixCumulativeSumColumnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-var iRDI, iRSI : TASMNativeint;
+procedure AVXMatrixCumulativeSumColumnAligned(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+var iRDI, iRSI : NativeInt;
     {$ifdef UNIX}
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    width : NativeInt;
+    height : NativeInt;
     {$ENDIF}
 // rcx: dest, rdx: destlinewidth; r8: src; r9 : srclinewidth
 asm
@@ -235,15 +226,15 @@ asm
 
    @@forxloop:
        mov rax, r11;
-       {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;{$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} 
+       {$IFDEF AVXSUP}vxorpd ymm0, ymm0, ymm0;                        {$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} 
        xor rdi, rdi;
        xor rsi, rsi;
 
        // 4 values at once
        @@foryloop:
-           {$IFDEF FPC}vmovapd ymm1, [r8 + rdi];{$ELSE}db $C4,$C1,$7D,$28,$0C,$38;{$ENDIF} 
-           {$IFDEF FPC}vaddpd ymm0, ymm0, ymm1;{$ELSE}db $C5,$FD,$58,$C1;{$ENDIF} 
-           {$IFDEF FPC}vmovapd [rcx + rsi], ymm0;{$ELSE}db $C5,$FD,$29,$04,$31;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovapd ymm1, [r8 + rdi];                   {$ELSE}db $C4,$C1,$7D,$28,$0C,$38;{$ENDIF} 
+           {$IFDEF AVXSUP}vaddpd ymm0, ymm0, ymm1;                    {$ELSE}db $C5,$FD,$58,$C1;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovapd [rcx + rsi], ymm0;                  {$ELSE}db $C5,$FD,$29,$04,$31;{$ENDIF} 
 
            add rdi, r9;
            add rsi, rdx;
@@ -261,15 +252,15 @@ asm
 
    @@forxloopshort:
        mov rax, r11;
-       {$IFDEF FPC}vxorpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
+       {$IFDEF AVXSUP}vxorpd xmm0, xmm0, xmm0;                        {$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
        xor rdi, rdi;
        xor rsi, rsi;
 
        // 4 values at once
        @@foryloopshort:
-           {$IFDEF FPC}vmovsd xmm1, [r8 + rdi];{$ELSE}db $C4,$C1,$7B,$10,$0C,$38;{$ENDIF} 
-           {$IFDEF FPC}vaddsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$58,$C1;{$ENDIF} 
-           {$IFDEF FPC}vmovsd [rcx + rsi], xmm0;{$ELSE}db $C5,$FB,$11,$04,$31;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovsd xmm1, [r8 + rdi];                    {$ELSE}db $C4,$C1,$7B,$10,$0C,$38;{$ENDIF} 
+           {$IFDEF AVXSUP}vaddsd xmm0, xmm0, xmm1;                    {$ELSE}db $C5,$FB,$58,$C1;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovsd [rcx + rsi], xmm0;                   {$ELSE}db $C5,$FB,$11,$04,$31;{$ENDIF} 
 
            add rdi, r9;
            add rsi, rdx;
@@ -285,17 +276,17 @@ asm
    // epilog - stack cleanup
    mov rdi, iRDI;
    mov rsi, iRSI;
-   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
+   {$IFDEF AVXSUP}vzeroupper;                                         {$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
 // ###############################################
 // #### Differentiate
 // ###############################################
 
-procedure AVXMatrixDifferentiateRow(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+procedure AVXMatrixDifferentiateRow(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
 {$ifdef UNIX}
-var width : TASMNativeInt;
-    height : TASMNativeInt;
+var width : NativeInt;
+    height : NativeInt;
     {$ENDIF}
 // rcx: dest, rdx: destlinewidth; r8: src; r9 : srclinewidth
 asm
@@ -329,12 +320,12 @@ asm
    add r10, 8;
    @@foryloop:
        mov rax, r10;
-       {$IFDEF FPC}vmovsd xmm1, [r8 + rax - 8];{$ELSE}db $C4,$C1,$7B,$10,$4C,$00,$F8;{$ENDIF} 
+       {$IFDEF AVXSUP}vmovsd xmm1, [r8 + rax - 8];                    {$ELSE}db $C4,$C1,$7B,$10,$4C,$00,$F8;{$ENDIF} 
        @@forxloop:
-           {$IFDEF FPC}vmovsd xmm0, [r8 + rax];{$ELSE}db $C4,$C1,$7B,$10,$04,$00;{$ENDIF} 
-           {$IFDEF FPC}vsubsd xmm2, xmm0, xmm1;{$ELSE}db $C5,$FB,$5C,$D1;{$ENDIF} 
-           {$IFDEF FPC}vmovsd [rcx + rax - 8], xmm2;{$ELSE}db $C5,$FB,$11,$54,$01,$F8;{$ENDIF} 
-           {$IFDEF FPC}vmovapd xmm1, xmm0;{$ELSE}db $C5,$F9,$29,$C1;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovsd xmm0, [r8 + rax];                    {$ELSE}db $C4,$C1,$7B,$10,$04,$00;{$ENDIF} 
+           {$IFDEF AVXSUP}vsubsd xmm2, xmm0, xmm1;                    {$ELSE}db $C5,$FB,$5C,$D1;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovsd [rcx + rax - 8], xmm2;               {$ELSE}db $C5,$FB,$11,$54,$01,$F8;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovapd xmm1, xmm0;                         {$ELSE}db $C5,$F9,$29,$C1;{$ENDIF} 
        add rax, 8;
        jnz @@forxloop;
 
@@ -346,14 +337,14 @@ asm
    @@exitProc:
 
    // epilog - stack cleanup
-   {$IFDEF FPC}vzeroupper;{$ELSE}db $C5,$F8,$77;{$ENDIF} 
+   {$IFDEF AVXSUP}vzeroupper;                                         {$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXMatrixDifferentiateColumnUnaligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-var iRDI, iRSI : TASMNativeint;
+procedure AVXMatrixDifferentiateColumnUnaligned(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+var iRDI, iRSI : NativeInt;
     {$ifdef UNIX}
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    width : NativeInt;
+    height : NativeInt;
     {$ENDIF}
 // rcx: dest, rdx: destlinewidth; r8: src; r9 : srclinewidth
 asm
@@ -388,19 +379,19 @@ asm
 
    @@forxloop:
        mov rax, r11;
-       {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;{$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} 
+       {$IFDEF AVXSUP}vxorpd ymm0, ymm0, ymm0;                        {$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} 
        mov rdi, r9;
        xor rsi, rsi;
 
-       {$IFDEF FPC}vmovupd ymm0, [r8];{$ELSE}db $C4,$C1,$7D,$10,$00;{$ENDIF} 
+       {$IFDEF AVXSUP}vmovupd ymm0, [r8];                             {$ELSE}db $C4,$C1,$7D,$10,$00;{$ENDIF} 
 
        // 4 values at once
        @@foryloop:
-           {$IFDEF FPC}vmovupd ymm1, [r8 + rdi];{$ELSE}db $C4,$C1,$7D,$10,$0C,$38;{$ENDIF} 
-           {$IFDEF FPC}vsubpd ymm2, ymm1, ymm0;{$ELSE}db $C5,$F5,$5C,$D0;{$ENDIF} 
-           {$IFDEF FPC}vmovupd [rcx + rsi], ymm2;{$ELSE}db $C5,$FD,$11,$14,$31;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd ymm1, [r8 + rdi];                   {$ELSE}db $C4,$C1,$7D,$10,$0C,$38;{$ENDIF} 
+           {$IFDEF AVXSUP}vsubpd ymm2, ymm1, ymm0;                    {$ELSE}db $C5,$F5,$5C,$D0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd [rcx + rsi], ymm2;                  {$ELSE}db $C5,$FD,$11,$14,$31;{$ENDIF} 
 
-           {$IFDEF FPC}vmovapd ymm0, ymm1;{$ELSE}db $C5,$FD,$29,$C8;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovapd ymm0, ymm1;                         {$ELSE}db $C5,$FD,$29,$C8;{$ENDIF} 
 
            add rdi, r9;
            add rsi, rdx;
@@ -420,19 +411,19 @@ asm
    // #### last < 4 columns
    @@forxloopshort:
       mov rax, r11;
-      {$IFDEF FPC}vxorpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
+      {$IFDEF AVXSUP}vxorpd xmm0, xmm0, xmm0;                         {$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
       mov rdi, r9;
       xor rsi, rsi;
 
-      {$IFDEF FPC}vmovsd xmm0, [r8];{$ELSE}db $C4,$C1,$7B,$10,$00;{$ENDIF} 
+      {$IFDEF AVXSUP}vmovsd xmm0, [r8];                               {$ELSE}db $C4,$C1,$7B,$10,$00;{$ENDIF} 
 
       // one column value:
       @@foryloopshort:
-          {$IFDEF FPC}vmovsd xmm1, [r8 + rdi];{$ELSE}db $C4,$C1,$7B,$10,$0C,$38;{$ENDIF} 
-          {$IFDEF FPC}vsubsd xmm2, xmm1, xmm0;{$ELSE}db $C5,$F3,$5C,$D0;{$ENDIF} 
-          {$IFDEF FPC}vmovsd [rcx + rsi], xmm2;{$ELSE}db $C5,$FB,$11,$14,$31;{$ENDIF} 
+          {$IFDEF AVXSUP}vmovsd xmm1, [r8 + rdi];                     {$ELSE}db $C4,$C1,$7B,$10,$0C,$38;{$ENDIF} 
+          {$IFDEF AVXSUP}vsubsd xmm2, xmm1, xmm0;                     {$ELSE}db $C5,$F3,$5C,$D0;{$ENDIF} 
+          {$IFDEF AVXSUP}vmovsd [rcx + rsi], xmm2;                    {$ELSE}db $C5,$FB,$11,$14,$31;{$ENDIF} 
 
-          {$IFDEF FPC}vmovsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$11,$C8;{$ENDIF} 
+          {$IFDEF AVXSUP}vmovsd xmm0, xmm0, xmm1;                     {$ELSE}db $C5,$FB,$11,$C8;{$ENDIF} 
 
           add rdi, r9;
           add rsi, rdx;
@@ -452,11 +443,11 @@ asm
    mov rsi, iRSI;
 end;
 
-procedure AVXMatrixDifferentiateColumnAligned(dest : PDouble; const destLineWidth : TASMNativeInt; Src : PDouble; const srcLineWidth : TASMNativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : TASMNativeInt); {$IFDEF FPC}assembler;{$ENDIF}
-var iRDI, iRSI : TASMNativeint;
+procedure AVXMatrixDifferentiateColumnAligned(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; {$ifdef UNIX}unixWidth{$ELSE}width{$endif}, {$ifdef UNIX}unixHeight{$ELSE}height{$endif} : NativeInt); {$IFDEF FPC}assembler;{$ENDIF}
+var iRDI, iRSI : NativeInt;
     {$ifdef UNIX}
-    width : TASMNativeInt;
-    height : TASMNativeInt;
+    width : NativeInt;
+    height : NativeInt;
     {$ENDIF}
 // rcx: dest, rdx: destlinewidth; r8: src; r9 : srclinewidth
 asm
@@ -491,19 +482,19 @@ asm
 
    @@forxloop:
        mov rax, r11;
-       {$IFDEF FPC}vxorpd ymm0, ymm0, ymm0;{$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} 
+       {$IFDEF AVXSUP}vxorpd ymm0, ymm0, ymm0;                        {$ELSE}db $C5,$FD,$57,$C0;{$ENDIF} 
        mov rdi, r9;
        xor rsi, rsi;
 
-       {$IFDEF FPC}vmovupd ymm0, [r8];{$ELSE}db $C4,$C1,$7D,$10,$00;{$ENDIF} 
+       {$IFDEF AVXSUP}vmovupd ymm0, [r8];                             {$ELSE}db $C4,$C1,$7D,$10,$00;{$ENDIF} 
 
        // 4 values at once
        @@foryloop:
-           {$IFDEF FPC}vmovapd ymm1, [r8 + rdi];{$ELSE}db $C4,$C1,$7D,$28,$0C,$38;{$ENDIF} 
-           {$IFDEF FPC}vsubpd ymm2, ymm1, ymm0;{$ELSE}db $C5,$F5,$5C,$D0;{$ENDIF} 
-           {$IFDEF FPC}vmovapd [rcx + rsi], ymm2;{$ELSE}db $C5,$FD,$29,$14,$31;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovapd ymm1, [r8 + rdi];                   {$ELSE}db $C4,$C1,$7D,$28,$0C,$38;{$ENDIF} 
+           {$IFDEF AVXSUP}vsubpd ymm2, ymm1, ymm0;                    {$ELSE}db $C5,$F5,$5C,$D0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovapd [rcx + rsi], ymm2;                  {$ELSE}db $C5,$FD,$29,$14,$31;{$ENDIF} 
 
-           {$IFDEF FPC}vmovapd ymm0, ymm1;{$ELSE}db $C5,$FD,$29,$C8;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovapd ymm0, ymm1;                         {$ELSE}db $C5,$FD,$29,$C8;{$ENDIF} 
 
            add rdi, r9;
            add rsi, rdx;
@@ -523,19 +514,19 @@ asm
    // #### last < 4 columns
    @@forxloopshort:
       mov rax, r11;
-      {$IFDEF FPC}vxorpd xmm0, xmm0, xmm0;{$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
+      {$IFDEF AVXSUP}vxorpd xmm0, xmm0, xmm0;                         {$ELSE}db $C5,$F9,$57,$C0;{$ENDIF} 
       mov rdi, r9;
       xor rsi, rsi;
 
-      {$IFDEF FPC}vmovsd xmm0, [r8];{$ELSE}db $C4,$C1,$7B,$10,$00;{$ENDIF} 
+      {$IFDEF AVXSUP}vmovsd xmm0, [r8];                               {$ELSE}db $C4,$C1,$7B,$10,$00;{$ENDIF} 
 
       // one column value:
       @@foryloopshort:
-          {$IFDEF FPC}vmovsd xmm1, [r8 + rdi];{$ELSE}db $C4,$C1,$7B,$10,$0C,$38;{$ENDIF} 
-          {$IFDEF FPC}vsubsd xmm2, xmm1, xmm0;{$ELSE}db $C5,$F3,$5C,$D0;{$ENDIF} 
-          {$IFDEF FPC}vmovsd [rcx + rsi], xmm2;{$ELSE}db $C5,$FB,$11,$14,$31;{$ENDIF} 
+          {$IFDEF AVXSUP}vmovsd xmm1, [r8 + rdi];                     {$ELSE}db $C4,$C1,$7B,$10,$0C,$38;{$ENDIF} 
+          {$IFDEF AVXSUP}vsubsd xmm2, xmm1, xmm0;                     {$ELSE}db $C5,$F3,$5C,$D0;{$ENDIF} 
+          {$IFDEF AVXSUP}vmovsd [rcx + rsi], xmm2;                    {$ELSE}db $C5,$FB,$11,$14,$31;{$ENDIF} 
 
-          {$IFDEF FPC}vmovsd xmm0, xmm0, xmm1;{$ELSE}db $C5,$FB,$11,$C8;{$ENDIF} 
+          {$IFDEF AVXSUP}vmovsd xmm0, xmm0, xmm1;                     {$ELSE}db $C5,$FB,$11,$C8;{$ENDIF} 
 
           add rdi, r9;
           add rsi, rdx;

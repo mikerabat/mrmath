@@ -18,6 +18,8 @@ interface
 
 uses SysUtils, Math, MatrixConst, Matrix, BaseMathPersistence, Types;
 
+{$I 'mrMath_CPU.inc'}
+
 // standard simple linear correlation method:
 type
   ECorrelateException = class(EBaseMatrixException);
@@ -48,7 +50,7 @@ type
 //    FastDTW: Toward Accurate Dynamic Time Warping in Linear Time and Space
 type
   TDynamicTimeWarpDistMethod = (dtwSquared, dtwAbsolute, dtwSymKullbackLeibler);
-  TDynamicTimeWarepReduceFunc = procedure (X : PConstDoubleArr; inLen, inOffset : TASMNativeInt; out newLen, newOffset : TASMNativeInt) of object;
+  TDynamicTimeWarepReduceFunc = procedure (X : PConstDoubleArr; inLen, inOffset : NativeInt; out newLen, newOffset : NativeInt) of object;
 
   TDynamicTimeWarp = class(TCorrelation)
   private
@@ -88,8 +90,10 @@ type
 
     // fastdtw implementation based on the python package on: https://pypi.python.org/pypi/fastdtw
     // and: Stan Salvador, and Philip Chan. “FastDTW: Toward accurate dynamic time warping in linear time and space.”  Intelligent Data Analysis 11.5 (2007): 561-580.
-    procedure ReduceByHalfPas(X : PConstDoubleArr; inLen, inOffset : TASMNativeInt; out newLen, newOffset : TASMNativeInt);
-    procedure ReduceByHalfSSE(X : PConstDoubleArr; inLen, inOffset : TASMNativeInt; out newLen, newOffset : TASMNativeInt);
+    procedure ReduceByHalfPas(X : PConstDoubleArr; inLen, inOffset : NativeInt; out newLen, newOffset : NativeInt);
+    {$IFNDEF MRMATH_NOASM}
+    procedure ReduceByHalfSSE(X : PConstDoubleArr; inLen, inOffset : NativeInt; out newLen, newOffset : NativeInt);
+    {$ENDIF}
     function ExpandWindow(inXLen, inYLen : integer; radius : integer) : Integer;
 
     procedure InternalFastDTW(inXOffset, inXLen, inYOffset, inYLen : integer; radius : integer; var dist : double);
@@ -331,10 +335,12 @@ constructor TDynamicTimeWarp.Create(DistMethod : TDynamicTimeWarpDistMethod = dt
 begin
      fMethod := DistMethod;
 
+     {$IFNDEF MRMATH_NOASM}
      if UseSSE
      then
          fReduceByHalf := {$IFDEF FPC}@{$ENDIF}ReduceByHalfSSE
      else
+     {$ENDIF}
          fReduceByHalf := {$IFDEF FPC}@{$ENDIF}ReduceByHalfPas;
 
      inherited Create;
@@ -739,8 +745,8 @@ end;
 
 procedure TDynamicTimeWarp.InternalFastDTW(inXOffset, inXLen, inYOffset, inYLen : integer; radius : integer; var dist : double);
 var minTimeSize : Integer;
-    newXOffset, newXLen : TASMNativeInt;
-    newYOffset, newYLen : TASMNativeInt;
+    newXOffset, newXLen : NativeInt;
+    newYOffset, newYLen : NativeInt;
     windowCnt : integer;
 begin
      minTimeSize := radius + 2;
@@ -762,9 +768,9 @@ begin
      dist := InternalDTW(inXOffset, inXLen, inYOffset, inYLen, windowCnt);
 end;
 
-procedure TDynamicTimeWarp.ReduceByHalfPas(X : PConstDoubleArr; inLen, inOffset : TASMNativeInt; out newLen, newOffset : TASMNativeInt);
-var counter: TASMNativeInt;
-    idx : TASMNativeInt;
+procedure TDynamicTimeWarp.ReduceByHalfPas(X : PConstDoubleArr; inLen, inOffset : NativeInt; out newLen, newOffset : NativeInt);
+var counter: NativeInt;
+    idx : NativeInt;
 begin
      newOffset := inOffset + inLen;
      newLen := inLen div 2;
@@ -776,19 +782,12 @@ begin
      end;
 end;
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
-
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
+{$IFNDEF MRMATH_NOASM}
 
 {$IFDEF x64}
 // 64bit version
 procedure TDynamicTimeWarp.ReduceByHalfSSE(X : PConstDoubleArr; inLen,
-  inOffset: TASMNativeInt; out newLen, newOffset: TASMNativeInt);
+  inOffset: NativeInt; out newLen, newOffset: NativeInt);
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -866,7 +865,7 @@ end;
 
 // 32 bit version
 procedure TDynamicTimeWarp.ReduceByHalfSSE(X : PConstDoubleArr; inLen,
-  inOffset: TASMNativeInt; out newLen, newOffset: TASMNativeInt);
+  inOffset: NativeInt; out newLen, newOffset: NativeInt);
 {$IFDEF FPC}
 begin
 {$ENDIF}
@@ -938,6 +937,7 @@ end;
 end;
 {$ENDIF}
 
+{$ENDIF}
 {$ENDIF}
 
 function TDynamicTimeWarp.ExpandWindow(inXLen, inYLen, radius: integer): Integer;

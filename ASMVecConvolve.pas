@@ -16,21 +16,15 @@ unit ASMVecConvolve;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFNDEF x64}
+{$I 'mrMath_CPU.inc'}
 
-uses MatrixConst;
+{$IFNDEF x64}
 
 // simple convolution: the input and output parameter are assumed to be vectors!
 // it's also assumed that memory before A is accessible for at least bLen elements
 // -> these elements are used for the convulution calculation
 // -> needs an aligned B and blen mod 2 needs to be zero
-procedure ASMVecConvolveRevB(dest : PDouble; A, B : PDouble; aLen, bLen : TASMNativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMVecConvolveRevB(dest : PDouble; A, B : PDouble; aLen, bLen : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -38,9 +32,7 @@ implementation
 
 {$IFNDEF x64}
 
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
-
-procedure ASMVecConvolveRevB(dest : PDouble; A, B : PDouble; aLen, bLen : TASMNativeInt);
+procedure ASMVecConvolveRevB(dest : PDouble; A, B : PDouble; aLen, bLen : NativeInt);
 // eax = dest, edx = A, ecx = B
 asm
    push ebx;

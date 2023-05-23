@@ -23,73 +23,68 @@ interface
 
 uses MatrixConst, Types;
 
-procedure ASMMatrixCopy(Dest : PDouble; destLineWidth : TASMNativeInt; src : PDouble; srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
-procedure ASMRowSwap(A, B : PDouble; width : TASMNativeInt);
-procedure ASMMatrixInit( dest : PDouble; destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; const Value : double );
+procedure ASMMatrixCopy(Dest : PDouble; destLineWidth : NativeInt; src : PDouble; srcLineWidth : NativeInt; Width, Height : NativeInt);
+procedure ASMRowSwap(A, B : PDouble; width : NativeInt);
+procedure ASMMatrixInit( dest : PDouble; destLineWidth : NativeInt; Width, Height : NativeInt; const Value : double );
 
-function ASMMatrixMult(mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
-procedure ASMMatrixMult(var dest : Array of Double; mt1, mt2 : Array of double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt); overload;
-function ASMMatrixMult(const mt1, mt2 : Array of Double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt) : TDoubleDynArray; overload;
+function ASMMatrixMult(mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt) : TDoubleDynArray; overload;
+procedure ASMMatrixMult(var dest : Array of Double; mt1, mt2 : Array of double; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt); overload;
+function ASMMatrixMult(const mt1, mt2 : Array of Double; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt) : TDoubleDynArray; overload;
 // note: The asm routines always carry out 2x2 matrix multiplications thus there must be an additional zero line/column in the
 // input matrices if the width/height is uneven. The routine also performs better if the matrices are aligned to 16 byte boundaries!
-procedure ASMMatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
-procedure ASMMatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; mem : PDouble); overload;
-procedure ASMMatrixMultTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
-procedure ASMMatrixMultDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
+procedure ASMMatrixMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
+procedure ASMMatrixMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; mem : PDouble); overload;
+procedure ASMMatrixMultTransposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
+procedure ASMMatrixMultDirect(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
 
-procedure ASMMtxVecMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
-procedure ASMMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure ASMMtxVecMult(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double);
+procedure ASMMtxVecMultT(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double);
 
-procedure ASMRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
-procedure ASMSymRank2UpdateUpper( C : PDouble; LineWidthC : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
-  B : PDouble; LineWidthB : TASMNativeInt; N : TASMNativeInt; k : TASMNativeInt );
+procedure ASMRank1Update(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
+  X, Y : PDouble; incX, incY : NativeInt; alpha : double);
+procedure ASMSymRank2UpdateUpper( C : PDouble; LineWidthC : NativeInt; A : PDouble; LineWidthA : NativeInt;
+  B : PDouble; LineWidthB : NativeInt; N : NativeInt; k : NativeInt );
 
-function ASMMatrixVecDotMult( x : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt ) : double;
+function ASMMatrixVecDotMult( x : PDouble; incX : NativeInt; y : PDouble; incY : NativeInt; N : NativeInt ) : double;
 
 // note: the matrix add routine tries to add two values at once and does not carry out any range checks thus the line widhts must
 // be multiple of 16.
-procedure ASMMatrixAdd(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
-procedure ASMMatrixAddVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+procedure ASMMatrixAdd(dest : PDouble; destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; LineWidth1, LineWidth2 : NativeInt);
+procedure ASMMatrixAddVec(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt; rowWise : Boolean);
 
-procedure ASMMatrixSub(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
-procedure ASMMatrixSubVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+procedure ASMMatrixSub(dest : PDouble; destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; LineWidth1, LineWidth2 : NativeInt);
+procedure ASMMatrixSubVec(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt; rowWise : Boolean);
 
-procedure ASMMatrixElemMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
-procedure ASMMatrixElemDiv(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
-procedure ASMMatrixElemAdd(Dest : PDouble;  LineWidth, Width, Height : TASMNativeInt; const dOffset : double);
-procedure ASMMatrixAddAndScale(Dest : PDouble;  LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
-procedure ASMMatrixScaleAndAdd(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
-procedure ASMMatrixSQRT(Dest : PDouble; LineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
-procedure ASMMatrixAbs(Dest : PDouble; LineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+procedure ASMMatrixElemMult(dest : PDouble; destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; LineWidth1, LineWidth2 : NativeInt);
+procedure ASMMatrixElemDiv(dest : PDouble; destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; LineWidth1, LineWidth2 : NativeInt);
+procedure ASMMatrixElemAdd(Dest : PDouble;  LineWidth, Width, Height : NativeInt; const dOffset : double);
+procedure ASMMatrixAddAndScale(Dest : PDouble;  LineWidth, Width, Height : NativeInt; const dOffset, Scale : double);
+procedure ASMMatrixScaleAndAdd(Dest : PDouble; LineWidth, Width, Height : NativeInt; const dOffset, Scale : double);
+procedure ASMMatrixSQRT(Dest : PDouble; LineWidth : NativeInt; Width, Height : NativeInt);
+procedure ASMMatrixAbs(Dest : PDouble; LineWidth : NativeInt; Width, Height : NativeInt);
 
-function ASMMatrixMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-function ASMMatrixMin(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-function ASMMatrixAbsMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
-function ASMMatrixAbsMin(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixMax(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
+function ASMMatrixMin(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
+function ASMMatrixAbsMax(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
+function ASMMatrixAbsMin(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 
-procedure ASMMatrixTranspose(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
-function ASMMatrixElementwiseNorm2(dest : PDouble; LineWidth : TASMNativeInt; Width, height : TASMNativeInt; doSqrt : boolean) : double;
-procedure ASMMatrixNormalize(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
-procedure ASMMatrixMean(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
-procedure ASMMatrixVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
-procedure ASMMatrixMeanVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
-procedure ASMMatrixSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
-procedure ASMMatrixCumulativeSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
-procedure ASMMatrixDifferentiate(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure ASMMatrixTranspose(dest : PDouble; const destLineWidth : NativeInt; mt : PDouble; const LineWidth : NativeInt; width : NativeInt; height : NativeInt);
+function ASMMatrixElementwiseNorm2(dest : PDouble; LineWidth : NativeInt; Width, height : NativeInt; doSqrt : boolean) : double;
+procedure ASMMatrixNormalize(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+procedure ASMMatrixMean(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+procedure ASMMatrixVar(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; unbiased : boolean);
+procedure ASMMatrixMeanVar(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; unbiased : boolean);
+procedure ASMMatrixSum(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+procedure ASMMatrixCumulativeSum(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+procedure ASMMatrixDifferentiate(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
 
 
 // strassen algorithm for matrix multiplication
-procedure ASMStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
 
 implementation
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
 
 {$IFDEF FPC} {$S-} {$ENDIF}
 
@@ -112,7 +107,7 @@ uses Math, SimpleMatrixOperations,
      , MatrixASMStubSwitch;
 
 
-function ASMMatrixMult(mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt) : TDoubleDynArray; overload;
+function ASMMatrixMult(mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt) : TDoubleDynArray; overload;
 begin
      Result := nil;
      if (width1 = 0) or (height1 = 0) or (width2 = 0) or (height2 = 0) then
@@ -124,7 +119,7 @@ begin
      ASMMatrixMult(@Result[0], sizeof(double)*Width2, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2);
 end;
 
-procedure ASMMatrixMult(var dest : Array of Double; mt1, mt2 : Array of double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt); overload;
+procedure ASMMatrixMult(var dest : Array of Double; mt1, mt2 : Array of double; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt); overload;
 begin
      if (width1 = 0) or (height1 = 0) or (width2 = 0) or (height2 = 0) then
         exit;
@@ -136,7 +131,7 @@ begin
      ASMMatrixMult(@dest[0], width2*sizeof(double), @mt1[0], @mt2[0], width1, height1, width2, height2, width1*sizeof(double), width2*sizeof(double));
 end;
 
-function ASMMatrixMult(const mt1, mt2 : Array of Double; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt) : TDoubleDynArray; overload;
+function ASMMatrixMult(const mt1, mt2 : Array of Double; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt) : TDoubleDynArray; overload;
 begin
      Result := nil;
      if (width1 = 0) or (height1 = 0) or (width2 = 0) or (height2 = 0) then
@@ -148,7 +143,7 @@ begin
      Result := ASMMatrixMult(@mt1[0], @mt2[0], width1, height1, width2, height2, width1*sizeof(double), width2*sizeof(double));
 end;
 
-procedure ASMMatrixElemAdd(Dest : PDouble;  LineWidth, Width, Height : TASMNativeInt; const dOffset : double);
+procedure ASMMatrixElemAdd(Dest : PDouble;  LineWidth, Width, Height : NativeInt; const dOffset : double);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -160,7 +155,7 @@ begin
           LineWidth := width*sizeof(double) + (width and 1)*sizeof(double);
      end;
 
-     if (TASMNativeUInt(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
+     if (NativeUint(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
      begin
           if (width and 1) = 0
           then
@@ -179,7 +174,7 @@ begin
 end;
 
 
-procedure ASMMatrixAddAndScale(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure ASMMatrixAddAndScale(Dest : PDouble; LineWidth, Width, Height : NativeInt; const dOffset, Scale : double);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -191,7 +186,7 @@ begin
           LineWidth := width*sizeof(double) + (width and 1)*sizeof(double);
      end;
 
-     if (TASMNativeUInt(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
+     if (NativeUint(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
      begin
           if (width and 1) = 0
           then
@@ -209,7 +204,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixScaleAndAdd(Dest : PDouble; LineWidth, Width, Height : TASMNativeInt; const dOffset, Scale : double);
+procedure ASMMatrixScaleAndAdd(Dest : PDouble; LineWidth, Width, Height : NativeInt; const dOffset, Scale : double);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -221,7 +216,7 @@ begin
           LineWidth := width*sizeof(double) + (width and 1)*sizeof(double);
      end;
 
-     if (TASMNativeUInt(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
+     if (NativeUint(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
      begin
           if (width and 1) = 0
           then
@@ -239,7 +234,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixSQRT(Dest : PDouble; LineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+procedure ASMMatrixSQRT(Dest : PDouble; LineWidth : NativeInt; Width, Height : NativeInt);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -251,7 +246,7 @@ begin
           LineWidth := width*sizeof(double) + (width and 1)*sizeof(double);
      end;
 
-     if (TASMNativeUInt(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
+     if (NativeUint(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
      begin
           if (width and 1) = 0
           then
@@ -269,7 +264,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixAbs(Dest : PDouble; LineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+procedure ASMMatrixAbs(Dest : PDouble; LineWidth : NativeInt; Width, Height : NativeInt);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -281,7 +276,7 @@ begin
           LineWidth := width*sizeof(double) + (width and 1)*sizeof(double);
      end;
 
-     if (TASMNativeUInt(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
+     if (NativeUint(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
      begin
           if (width and 1) = 0
           then
@@ -299,7 +294,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixElemMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixElemMult(dest : PDouble; destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; LineWidth1, LineWidth2 : NativeInt);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -313,7 +308,7 @@ begin
           destLineWidth := LineWidth1;
      end;
 
-     if (TASMNativeUInt(mt1) and $0000000F = 0) and (TASMNativeUInt(mt2) and $0000000F = 0) and (TASMNativeUInt(dest) and $0000000F = 0) and
+     if (NativeUint(mt1) and $0000000F = 0) and (NativeUint(mt2) and $0000000F = 0) and (NativeUint(dest) and $0000000F = 0) and
         (destLineWidth and $0000000F = 0) and (LineWidth1 and $0000000F = 0) and (LineWidth2 and $0000000F = 0)
      then
      begin
@@ -333,7 +328,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixElemDiv(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixElemDiv(dest : PDouble; destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; LineWidth1, LineWidth2 : NativeInt);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -347,7 +342,7 @@ begin
           destLineWidth := LineWidth1;
      end;
 
-     if (TASMNativeUInt(mt1) and $0000000F = 0) and (TASMNativeUInt(mt2) and $0000000F = 0) and (TASMNativeUInt(dest) and $0000000F = 0) and
+     if (NativeUint(mt1) and $0000000F = 0) and (NativeUint(mt2) and $0000000F = 0) and (NativeUint(dest) and $0000000F = 0) and
         (destLineWidth and $0000000F = 0) and (LineWidth1 and $0000000F = 0) and (LineWidth2 and $0000000F = 0)
      then
      begin
@@ -367,7 +362,7 @@ begin
      end;
 end;
 
-function ASMMatrixElementwiseNorm2(dest : PDouble; LineWidth : TASMNativeInt; Width, height : TASMNativeInt; doSqrt : boolean) : double;
+function ASMMatrixElementwiseNorm2(dest : PDouble; LineWidth : NativeInt; Width, height : NativeInt; doSqrt : boolean) : double;
 begin
      Result := 0;
 
@@ -382,7 +377,7 @@ begin
           LineWidth := width*sizeof(double) + (width and 1)*sizeof(double);
      end;
 
-     if (TASMNativeUInt(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
+     if (NativeUint(dest) and $0000000F = 0) and (LineWidth and $0000000F = 0) then
      begin
           if (width and 1) = 0
           then
@@ -404,12 +399,12 @@ begin
 end;
 
 
-procedure ASMMatrixAdd(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixAdd(dest : PDouble; destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; LineWidth1, LineWidth2 : NativeInt);
 begin
      if (width = 0) or (height = 0) then
         exit;
 
-     if (TASMNativeUInt(mt1) and $0000000F = 0) and (TASMNativeUInt(mt2) and $0000000F = 0) and (TASMNativeUInt(dest) and $0000000F = 0) and
+     if (NativeUint(mt1) and $0000000F = 0) and (NativeUint(mt2) and $0000000F = 0) and (NativeUint(dest) and $0000000F = 0) and
         (destLineWidth and $0000000F = 0) and (LineWidth1 and $0000000F = 0) and (LineWidth2 and $0000000F = 0)
      then
      begin
@@ -429,12 +424,12 @@ begin
      end;
 end;
 
-procedure ASMMatrixSub(dest : PDouble; destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width : TASMNativeInt; height : TASMNativeInt; LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixSub(dest : PDouble; destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; LineWidth1, LineWidth2 : NativeInt);
 begin
      if (width = 0) or (height = 0) then
         exit;
 
-     if (TASMNativeUInt(mt1) and $0000000F = 0) and (TASMNativeUInt(mt2) and $0000000F = 0) and (TASMNativeUInt(dest) and $0000000F = 0) and
+     if (NativeUint(mt1) and $0000000F = 0) and (NativeUint(mt2) and $0000000F = 0) and (NativeUint(dest) and $0000000F = 0) and
         (destLineWidth and $0000000F = 0) and (LineWidth1 and $0000000F = 0) and (LineWidth2 and $0000000F = 0)
      then
      begin
@@ -454,12 +449,12 @@ begin
      end;
 end;
 
-procedure ASMMatrixSubVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+procedure ASMMatrixSubVec(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt; rowWise : Boolean);
 begin
      if (width = 0) or (height = 0) then
         exit;
 
-     if (TASMNativeUInt(A) and $0000000F = 0) and (TASMNativeUInt(B) and $0000000F = 0) and
+     if (NativeUint(A) and $0000000F = 0) and (NativeUint(B) and $0000000F = 0) and
         (LineWidthA and $0000000F = 0)
      then
      begin
@@ -489,12 +484,12 @@ begin
      end;
 end;
 
-procedure ASMMatrixAddVec(A : PDouble; LineWidthA : TASMNativeInt; B : PDouble; incX : TASMNativeInt; width, Height : TASMNativeInt; rowWise : Boolean);
+procedure ASMMatrixAddVec(A : PDouble; LineWidthA : NativeInt; B : PDouble; incX : NativeInt; width, Height : NativeInt; rowWise : Boolean);
 begin
      if (width = 0) or (height = 0) then
         exit;
 
-     if (TASMNativeUInt(A) and $0000000F = 0) and (TASMNativeUInt(B) and $0000000F = 0) and
+     if (NativeUint(A) and $0000000F = 0) and (NativeUint(B) and $0000000F = 0) and
         (LineWidthA and $0000000F = 0)
      then
      begin
@@ -524,14 +519,14 @@ begin
      end;
 end;
 
-procedure ASMVecAdd( X : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt; const alpha : double );
+procedure ASMVecAdd( X : PDouble; incX : NativeInt; y : PDouble; incY : NativeInt; N : NativeInt; const alpha : double );
 begin
      if N <= 0 then
         exit;
 
      if (incX = sizeof(double)) and (incY = sizeof(double)) then
      begin
-          if (TASMNativeUInt(X) and $0000000F = 0) and (TASMNativeUInt(Y) and $0000000F = 0)
+          if (NativeUint(X) and $0000000F = 0) and (NativeUint(Y) and $0000000F = 0)
           then
               ASMVecAddAlignedSeq( X, Y, N, alpha )
           else
@@ -543,14 +538,14 @@ end;
 
 
 
-function ASMMatrixMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixMax(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 begin
      Result := -MaxDouble;
      if (width = 0) or (height = 0) then
         exit;
      assert((width*sizeof(double) <= LineWidth), 'Dimension error');
 
-     if (TASMNativeUInt(mt) and $0000000F = 0) and (LineWidth and $0000000F = 0)
+     if (NativeUint(mt) and $0000000F = 0) and (LineWidth and $0000000F = 0)
      then
      begin
           if (width and 1) = 0
@@ -569,14 +564,14 @@ begin
      end;
 end;
 
-function ASMMatrixMin(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixMin(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 begin
      Result := MaxDouble;
      if (width = 0) or (height = 0) then
         exit;
      assert((width*sizeof(double) <= LineWidth), 'Dimension error');
 
-     if (TASMNativeUInt(mt) and $0000000F = 0) and (LineWidth and $0000000F = 0)
+     if (NativeUint(mt) and $0000000F = 0) and (LineWidth and $0000000F = 0)
      then
      begin
           if (width and 1) = 0
@@ -595,14 +590,14 @@ begin
      end;
 end;
 
-function ASMMatrixAbsMax(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixAbsMax(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 begin
      Result := -MaxDouble;
      if (width = 0) or (height = 0) then
         exit;
      assert((width*sizeof(double) <= LineWidth), 'Dimension error');
 
-     if (TASMNativeUInt(mt) and $0000000F = 0) and (LineWidth and $0000000F = 0)
+     if (NativeUint(mt) and $0000000F = 0) and (LineWidth and $0000000F = 0)
      then
      begin
           if (width and 1) = 0
@@ -621,14 +616,14 @@ begin
      end;
 end;
 
-function ASMMatrixAbsMin(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixAbsMin(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 begin
      Result := MaxDouble;
      if (width = 0) or (height = 0) then
         exit;
      assert((width*sizeof(double) <= LineWidth), 'Dimension error');
 
-     if (TASMNativeUInt(mt) and $0000000F = 0) and (LineWidth and $0000000F = 0)
+     if (NativeUint(mt) and $0000000F = 0) and (LineWidth and $0000000F = 0)
      then
      begin
           if (width and 1) = 0
@@ -647,7 +642,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixTranspose(dest : PDouble; const destLineWidth : TASMNativeInt; mt : PDouble; const LineWidth : TASMNativeInt; width : TASMNativeInt; height : TASMNativeInt);
+procedure ASMMatrixTranspose(dest : PDouble; const destLineWidth : NativeInt; mt : PDouble; const LineWidth : NativeInt; width : NativeInt; height : NativeInt);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -655,7 +650,7 @@ begin
 
      if (width > 1) and (height > 1) then
      begin
-          if (TASMNativeUInt(Dest) and $0000000F = 0) and (TASMNativeUInt(mt) and $0000000F = 0) and
+          if (NativeUint(Dest) and $0000000F = 0) and (NativeUint(mt) and $0000000F = 0) and
              (destLineWidth and $0000000F = 0) and (LineWidth and $0000000F = 0)
           then
           begin
@@ -700,7 +695,7 @@ begin
          GenericMtxTranspose(dest, destLineWidth, mt, LineWidth, width, height);
 end;
 
-procedure ASMMatrixSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure ASMMatrixSum(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -717,7 +712,7 @@ begin
           RowWise := True;
      end;
 
-     if (TASMNativeUInt(Dest) and $0000000F = 0) and (TASMNativeUInt(src) and $0000000F = 0) and
+     if (NativeUint(Dest) and $0000000F = 0) and (NativeUint(src) and $0000000F = 0) and
         (destLineWidth and $0000000F = 0) and (srcLineWidth and $0000000F = 0)
      then
      begin
@@ -759,7 +754,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixCumulativeSum(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure ASMMatrixCumulativeSum(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -781,7 +776,7 @@ begin
          ASMMatrixCumulativeSumRow(dest, destLineWidth, Src, srcLineWidth, width, height)
      else
      begin
-          if (TASMNativeUInt(Dest) and $0000000F = 0) and (TASMNativeUInt(src) and $0000000F = 0) and
+          if (NativeUint(Dest) and $0000000F = 0) and (NativeUint(src) and $0000000F = 0) and
              (destLineWidth and $0000000F = 0) and (srcLineWidth and $0000000F = 0)
           then
           begin
@@ -802,7 +797,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixDifferentiate(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure ASMMatrixDifferentiate(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -824,7 +819,7 @@ begin
          ASMMatrixDifferentiateRow(dest, destLineWidth, Src, srcLineWidth, width, height)
      else
      begin
-          if (TASMNativeUInt(Dest) and $0000000F = 0) and (TASMNativeUInt(src) and $0000000F = 0) and
+          if (NativeUint(Dest) and $0000000F = 0) and (NativeUint(src) and $0000000F = 0) and
              (destLineWidth and $0000000F = 0) and (srcLineWidth and $0000000F = 0)
           then
           begin
@@ -845,7 +840,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixMean(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure ASMMatrixMean(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -862,7 +857,7 @@ begin
           RowWise := True;
      end;
 
-     if (TASMNativeUInt(Dest) and $0000000F = 0) and (TASMNativeUInt(src) and $0000000F = 0) and
+     if (NativeUint(Dest) and $0000000F = 0) and (NativeUint(src) and $0000000F = 0) and
         (destLineWidth and $0000000F = 0) and (srcLineWidth and $0000000F = 0)
      then
      begin
@@ -904,7 +899,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
+procedure ASMMatrixVar(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; unbiased : boolean);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -921,7 +916,7 @@ begin
           RowWise := True;
      end;
 
-     if (TASMNativeUInt(Dest) and $0000000F = 0) and (TASMNativeUInt(src) and $0000000F = 0) and
+     if (NativeUint(Dest) and $0000000F = 0) and (NativeUint(src) and $0000000F = 0) and
         (destLineWidth and $0000000F = 0) and (srcLineWidth and $0000000F = 0)
      then
      begin
@@ -963,7 +958,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixMeanVar(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean; unbiased : boolean);
+procedure ASMMatrixMeanVar(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; unbiased : boolean);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -979,7 +974,7 @@ begin
           RowWise := True;
      end;
 
-     if (TASMNativeUInt(Dest) and $0000000F = 0) and (TASMNativeUInt(src) and $0000000F = 0) and
+     if (NativeUint(Dest) and $0000000F = 0) and (NativeUint(src) and $0000000F = 0) and
         (destLineWidth and $0000000F = 0) and (srcLineWidth and $0000000F = 0)
      then
      begin
@@ -1021,7 +1016,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixNormalize(dest : PDouble; destLineWidth : TASMNativeInt; Src : PDouble; srcLineWidth : TASMNativeInt; width, height : TASMNativeInt; RowWise : boolean);
+procedure ASMMatrixNormalize(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -1037,7 +1032,7 @@ begin
           RowWise := True;
      end;
 
-     if (TASMNativeUInt(Dest) and $0000000F = 0) and (TASMNativeUInt(src) and $0000000F = 0) and
+     if (NativeUint(Dest) and $0000000F = 0) and (NativeUint(src) and $0000000F = 0) and
         (destLineWidth and $0000000F = 0) and (srcLineWidth and $0000000F = 0)
      then
      begin
@@ -1079,7 +1074,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixCopy(Dest : PDouble; destLineWidth : TASMNativeInt; src : PDouble; srcLineWidth : TASMNativeInt; Width, Height : TASMNativeInt);
+procedure ASMMatrixCopy(Dest : PDouble; destLineWidth : NativeInt; src : PDouble; srcLineWidth : NativeInt; Width, Height : NativeInt);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -1097,7 +1092,7 @@ begin
      if (width > 64) // and (width < maxcopy block
      then
          ASMCopyRepMov( dest, destLineWidth, src, srcLineWidth, width, height )
-     else *)if (TASMNativeUInt(Dest) and $0000000F = 0) and (TASMNativeUInt(src) and $0000000F = 0) and
+     else *)if (NativeUint(Dest) and $0000000F = 0) and (NativeUint(src) and $0000000F = 0) and
          (destLineWidth and $0000000F = 0) and (srcLineWidth and $0000000F = 0)
      then
      begin
@@ -1117,7 +1112,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixInit( dest : PDouble; destLineWidth : TASMNativeInt; Width, Height : TASMNativeInt; const value : double );
+procedure ASMMatrixInit( dest : PDouble; destLineWidth : NativeInt; Width, Height : NativeInt; const value : double );
 begin
      if (width = 0) or (Height = 0) then
         exit;
@@ -1130,19 +1125,19 @@ begin
           destLineWidth := (width + 2 - width and $01)*sizeof(double);
      end;
 
-     if (TASMNativeUInt(dest) and $0000000F = 0) and (destLineWidth and $0000000F = 0)
+     if (NativeUint(dest) and $0000000F = 0) and (destLineWidth and $0000000F = 0)
      then
          ASMMatrixInitAligned(dest, destLineWidth, Width, Height, Value)
      else
          ASMMatrixInitUnAligned(dest, destLineWidth, Width, Height, Value)
 end;
 
-procedure ASMRowSwap(A, B : PDouble; width : TASMNativeInt);
+procedure ASMRowSwap(A, B : PDouble; width : NativeInt);
 begin
      if (width = 0) then
         exit;
 
-     if (TASMNativeUInt(A) and $0000000F = 0) and (TASMNativeUInt(B) and $0000000F = 0)
+     if (NativeUint(A) and $0000000F = 0) and (NativeUint(B) and $0000000F = 0)
      then
      begin
           if (width and 1) = 0
@@ -1161,7 +1156,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixMultTransposed(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
+procedure ASMMatrixMultTransposed(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
 begin
      if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
      	  exit;
@@ -1182,7 +1177,7 @@ begin
           // ####  In this case mt2 is already transposed -> direct multiplication
 
           // check for alignment:
-          if ((TASMNativeUInt(dest) and $0000000F) = 0) and ((TASMNativeUInt(mt1) and $0000000F) = 0) and ((TASMNativeUInt(mt2) and $0000000F) = 0) and
+          if ((NativeUint(dest) and $0000000F) = 0) and ((NativeUint(mt1) and $0000000F) = 0) and ((NativeUint(mt2) and $0000000F) = 0) and
              ((destLineWidth and $0000000F) = 0) and ((LineWidth1 and $0000000F) = 0) and ((LineWidth2 and $0000000F) = 0) then
           begin
                if (width1 and $00000001) = 0 then
@@ -1229,10 +1224,10 @@ begin
      end;
 end;
 
-procedure ASMMatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; mem : PDouble); overload;
+procedure ASMMatrixMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; mem : PDouble); overload;
 var mtx : PDouble;
-    mtxLineWidth : TASMNativeInt;
-    help : TASMNativeInt;  
+    mtxLineWidth : NativeInt;
+    help : NativeInt;  
     aMem : Pointer;
 begin
      if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
@@ -1272,7 +1267,7 @@ begin
           height2 := help;
 
           // check for alignment:
-          if ((TASMNativeUInt(dest) and $0000000F) = 0) and ((TASMNativeUInt(mt1) and $0000000F) = 0) and ((TASMNativeUInt(mtx) and $0000000F) = 0) and
+          if ((NativeUint(dest) and $0000000F) = 0) and ((NativeUint(mt1) and $0000000F) = 0) and ((NativeUint(mtx) and $0000000F) = 0) and
              ((destLineWidth and $0000000F) = 0) and ((LineWidth1 and $0000000F) = 0) and ((mtxLineWidth and $0000000F) = 0) then
           begin
                if (width1 and $00000001) = 0 then
@@ -1322,13 +1317,13 @@ begin
      end;
 end;
 
-procedure ASMMatrixMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt); overload;
+procedure ASMMatrixMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
 begin
      ASMMatrixMult(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, nil);
 end;
 
-procedure InternalASMStrassenMult(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt;
-  width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt; mem : PDouble);
+procedure InternalASMStrassenMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt;
+  width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; mem : PDouble);
 var a11, a12, a21, a22 : PDouble;
     b11, b12, b21, b22 : PDouble;
     s1, s2, s3, s4 : PDouble;
@@ -1336,11 +1331,11 @@ var a11, a12, a21, a22 : PDouble;
     P1, P2, P3, P4, P5, P6, P7 : PDouble;
     U1, U2, U3, U4, U5, U6, U7 : PDouble;
     c11, c12, c21, c22 : PDouble;
-    k, m, n : TASMNativeInt;
-    lineK : TASMNativeInt;
-    lineN : TASMNativeInt;
+    k, m, n : NativeInt;
+    lineK : NativeInt;
+    lineN : NativeInt;
     x, y : PDouble;
-    multLineW : TASMNativeInt;
+    multLineW : NativeInt;
 begin
      if (width1 <= cStrassenMinSize) or (height1 <= cStrassenMinSize) or (width2 <= cStrassenMinSize) then
      begin
@@ -1536,11 +1531,11 @@ begin
      end;
 end;
 
-procedure ASMStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMStrassenMatrixMultiplication(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
 var mem : PDouble;
-    memSize : TASMNativeInt;
-    m, k, n : TASMNativeInt;
-    lev : TASMNativeInt;
+    memSize : NativeInt;
+    m, k, n : NativeInt;
+    lev : NativeInt;
     work : PDouble;
 begin
      // check the cutoff criterion:
@@ -1577,7 +1572,7 @@ begin
      end;
 end;
 
-procedure ASMMatrixMultDirect(dest : PDouble; const destLineWidth : TASMNativeInt; mt1, mt2 : PDouble; width1 : TASMNativeInt; height1 : TASMNativeInt; width2 : TASMNativeInt; height2 : TASMNativeInt; const LineWidth1, LineWidth2 : TASMNativeInt);
+procedure ASMMatrixMultDirect(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
 begin
 					if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
      	  exit;
@@ -1599,7 +1594,7 @@ begin
      else
      begin
           // check for alignment:
-          if ((TASMNativeUInt(dest) and $0000000F) = 0) and ((TASMNativeUInt(mt1) and $0000000F) = 0) and ((TASMNativeUInt(mt2) and $0000000F) = 0) and
+          if ((NativeUint(dest) and $0000000F) = 0) and ((NativeUint(mt1) and $0000000F) = 0) and ((NativeUint(mt2) and $0000000F) = 0) and
              ((destLineWidth and $0000000F) = 0) and ((LineWidth1 and $0000000F) = 0) and ((LineWidth2 and $0000000F) = 0) then
           begin
                if (width1 and $00000001) = 0 then
@@ -1641,7 +1636,7 @@ begin
      end;
 end;
 
-procedure ASMMtxVecMult(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure ASMMtxVecMult(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -1650,7 +1645,7 @@ begin
      begin
           if (width and $01 = 0) then
           begin
-               if ((TASMNativeUInt(mt1) and $0000000F) = 0) and ((TASMNativeUInt(v) and $0000000F) = 0) and (LineWidthMT and $F = 0)
+               if ((NativeUint(mt1) and $0000000F) = 0) and ((NativeUint(v) and $0000000F) = 0) and (LineWidthMT and $F = 0)
                then
                    ASMMatrixVectMultEvenAlignedVAligned(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta)
                else
@@ -1664,7 +1659,7 @@ begin
 end;
 
 // performs dest = beta*dest + mt1**T*v * alpha
-procedure ASMMtxVecMultT(dest : PDouble; destLineWidth : TASMNativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : TASMNativeInt; width, height : TASMNativeInt; alpha, beta : double);
+procedure ASMMtxVecMultT(dest : PDouble; destLineWidth : NativeInt; mt1, v : PDouble; LineWidthMT, LineWidthV : NativeInt; width, height : NativeInt; alpha, beta : double);
 begin
      if (width = 0) or (height = 0) then
         exit;
@@ -1677,8 +1672,8 @@ begin
          ASMMatrixVectMultT(dest, destLineWidth, mt1, v, LineWidthMT, LineWidthV, width, height, alpha, beta);
 end;
 
-procedure ASMRank1Update(A : PDouble; const LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
-  X, Y : PDouble; incX, incY : TASMNativeInt; alpha : double);
+procedure ASMRank1Update(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
+  X, Y : PDouble; incX, incY : NativeInt; alpha : double);
 begin
      if (width <= 0) or (height <= 0) then
         exit;
@@ -1686,15 +1681,15 @@ begin
      if incY <> sizeof(double) 
      then
          ASMRank1UpdateNonSeq(A, LineWidthA, width, height, x, y, incx, incy, alpha)
-     else if ((TASMNativeUInt(A) and $0000000F) = 0) and ((TASMNativeUInt(Y) and $0000000F) = 0) and (LineWidthA and $F = 0)
+     else if ((NativeUint(A) and $0000000F) = 0) and ((NativeUint(Y) and $0000000F) = 0) and (LineWidthA and $F = 0)
      then
          ASMRank1UpdateSeqAligned(A, LineWidthA, width, height, x, y, incX, incY, alpha)
      else
          ASMRank1UpdateSeq(A, LineWidthA, width, height, x, y, incX, incY, alpha);
 end;
 
-procedure ASMSymRank2UpdateUpper( C : PDouble; LineWidthC : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt;
-  B : PDouble; LineWidthB : TASMNativeInt; N : TASMNativeInt; k : TASMNativeInt );
+procedure ASMSymRank2UpdateUpper( C : PDouble; LineWidthC : NativeInt; A : PDouble; LineWidthA : NativeInt;
+  B : PDouble; LineWidthB : NativeInt; N : NativeInt; k : NativeInt );
 begin
      if (N <= 0) or (k <= 0) then
         exit;
@@ -1702,11 +1697,11 @@ begin
      ASMSymRank2UpdateUpperUnaligned( C, LineWidthC, A, LineWidthA, B, LineWidthB, N, k );
 end;
 
-function ASMMatrixVecDotMult( x : PDouble; incX : TASMNativeInt; y : PDouble; incY : TASMNativeInt; N : TASMNativeInt ) : double;
+function ASMMatrixVecDotMult( x : PDouble; incX : NativeInt; y : PDouble; incY : NativeInt; N : NativeInt ) : double;
 begin
      if (incx = sizeof(double)) and (incy = sizeof(double)) then
      begin
-          if (TASMNativeUInt(X) and $0000000F = 0) and (TASMNativeUInt(Y) and $0000000F = 0)
+          if (NativeUint(X) and $0000000F = 0) and (NativeUint(Y) and $0000000F = 0)
           then
               Result := ASMMatrixVecDotMultAligned(X, Y, N)
           else

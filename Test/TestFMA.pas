@@ -79,7 +79,7 @@ uses {$IFDEF x64}
 procedure TestFMAMatrixOperations.TestFMAMultTransposed;
 var p1, p2, p3, p4 : PDouble;
     pMem1, pMem2, pMem3, pMem4 : PByte;
-    LineWidth1, LineWidth2, LineWidth3, LineWidth4 : TASMNativeInt;
+    LineWidth1, LineWidth2, LineWidth3, LineWidth4 : NativeInt;
     start1, stop1, start2, stop2 : int64;
     outIdx : Integer;
     mtxWidth : integer;
@@ -156,7 +156,7 @@ var dest1, dest : Array[0..2] of double;
     px, pv : PDouble;
     pd1, pd2 : PDouble;
     pm1, pm2, pm3, pm4 : PByte;
-    lineWidthX : TASMNativeInt;
+    lineWidthX : NativeInt;
     idx : integer;
 begin
      dest[0] := 1;
@@ -485,13 +485,13 @@ begin
 
      blk := AllocMem((2*cMtxDestSize + cMtxSize + 32)*sizeof(double) + 32);
      dest2a := blk;
-     inc(Pbyte(dest2a), 32 - TASMNativeUint(blk) and $1F);
+     inc(Pbyte(dest2a), 32 - NativeUint(blk) and $1F);
      dest3a := dest2a;
      inc(dest3a, cMtxDestSize);
-     inc(PByte(dest3a), 32 - TASMNativeUint(dest3a) and $1F);
+     inc(PByte(dest3a), 32 - NativeUint(dest3a) and $1F);
      za := dest3a;
      inc(za, cMtxDestSize);
-     inc(PByte(za), 32 - TASMNativeUint(dest3a) and $1F);
+     inc(PByte(za), 32 - NativeUint(dest3a) and $1F);
 
      startTime1 := MtxGetTime;
      GenericMtxMult(@dest1[0], cMtxLineWidth, @x[0], @y[0], cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2);
@@ -545,8 +545,8 @@ var aMt1, aMt2 : PDouble;
     aMem1, aMem2 : PByte;
     aDest1, aDest2 : PDouble;
     aMem3, aMem4 : PByte;
-    aMt1LineWidth, aMt2LineWidth : TASMNativeInt;
-    aDestLineWidth1, aDestLineWidth2 : TASMNativeInt;
+    aMt1LineWidth, aMt2LineWidth : NativeInt;
+    aDestLineWidth1, aDestLineWidth2 : NativeInt;
     start1, start2 : Int64;
     end1, end2 : int64;
     idx : integer;
@@ -604,8 +604,8 @@ var aMt1, aMt2 : PDouble;
     aMem1, aMem2 : PByte;
     aDest1, aDest2 : PDouble;
     aMem3, aMem4 : PByte;
-    aMt1LineWidth, aMt2LineWidth : TASMNativeInt;
-    aDestLineWidth1, aDestLineWidth2 : TASMNativeInt;
+    aMt1LineWidth, aMt2LineWidth : NativeInt;
+    aDestLineWidth1, aDestLineWidth2 : NativeInt;
     start1, start2 : Int64;
     end1, end2 : int64;
     idx : integer;
@@ -705,7 +705,7 @@ var i: Integer;
     pA, pB : PDouble;
     Dest, DestSSE : TDoubleDynArray;
     pMem1, pMem2 : PByte;
-    LineWidthA, LineWidthB : TASMNativeInt;
+    LineWidthA, LineWidthB : NativeInt;
     idx : integer;
 begin
      freq := mtxFreq;

@@ -21,37 +21,37 @@ interface
 uses MatrixConst;
 
 // interface functions (used in different parts - don't call them directly)
-procedure LUSwap(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; k1, k2 : TASMNativeInt; indx : PIntegerArray; var parity : TASMNativeInt);
-procedure LUBacksup(A : PDouble; width, height : TASMNativeInt; B : PDouble; const LineWidth : TASMNativeInt);
+procedure LUSwap(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; k1, k2 : NativeInt; indx : PIntegerArray; var parity : NativeInt);
+procedure LUBacksup(A : PDouble; width, height : NativeInt; B : PDouble; const LineWidth : NativeInt);
 
 // inplace LU decomposition of the matrix A. Diagonal elements of the lower triangular matrix are set to one
 // thus the diagonal elements of the resulting matrix A are composed from the upper diagonal elements only.
 // The index records the row permutation effected by the partial pivoting.
-function MatrixLUDecompInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; indx : PIntegerArray; progress : TLinEquProgress = nil) : TLinEquResult;
-function MatrixLUDecomp(A : PDouble; const LineWidthA : TASMNativeInt; LUDecomp : PDouble; const LineWidthLU : TASMNativeInt; width : TASMNativeInt; indx : PIntegerArray; progress : TLinEquProgress = nil) : TLinEquResult; overload;
-function MatrixLUDecomp(A : PDouble; const LineWidthA : TASMNativeInt; LUDecomp : PDouble; const LineWidthLU : TASMNativeInt; width : TASMNativeInt; progress : TLinEquProgress = nil) : TLinEquResult; overload;
-procedure MatrixLUBackSubst(LUDecomp : PDouble; const LineWidthLU : TASMNativeInt; width : TASMNativeInt; const  indx : PIntegerArray; B : PDouble; const LineWidthB : TASMNativeInt; progress : TLinEquProgress = nil);
+function MatrixLUDecompInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; indx : PIntegerArray; progress : TLinEquProgress = nil) : TLinEquResult;
+function MatrixLUDecomp(A : PDouble; const LineWidthA : NativeInt; LUDecomp : PDouble; const LineWidthLU : NativeInt; width : NativeInt; indx : PIntegerArray; progress : TLinEquProgress = nil) : TLinEquResult; overload;
+function MatrixLUDecomp(A : PDouble; const LineWidthA : NativeInt; LUDecomp : PDouble; const LineWidthLU : NativeInt; width : NativeInt; progress : TLinEquProgress = nil) : TLinEquResult; overload;
+procedure MatrixLUBackSubst(LUDecomp : PDouble; const LineWidthLU : NativeInt; width : NativeInt; const  indx : PIntegerArray; B : PDouble; const LineWidthB : NativeInt; progress : TLinEquProgress = nil);
 
 
 // inverse of a matrix by using the LU decomposition
-function MatrixInverseInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; progress : TLinEquProgress = nil) : TLinEquResult;
+function MatrixInverseInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; progress : TLinEquProgress = nil) : TLinEquResult;
 
 // Matrix determinant calculated from the LU decomposition. Returns zero in case of a singular matrix. Drawback is a double
 // memory usage since the LU decomposition must be stored in a temporary matrix.
-function MatrixDeterminant(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; progress : TLinEquProgress = nil) : double;
+function MatrixDeterminant(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; progress : TLinEquProgress = nil) : double;
 
 
 // Matrix Line Equation Solver routines which are based on LU decomposition.
 // note these functions use temporarily double the size of A memory.
 // The result is stored in X. B and X must have the same size, also B may have
 // more than one column.
-function MatrixLinEQSolve(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
-   Width2 : TASMNativeInt; const NumRefinments : TASMNativeInt = 0; progress : TLinEquProgress = nil) : TLinEquResult;
+function MatrixLinEQSolve(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; B : PDouble; const LineWidthB : NativeInt; X : PDouble; const LineWidthX : NativeInt;
+   Width2 : NativeInt; const NumRefinments : NativeInt = 0; progress : TLinEquProgress = nil) : TLinEquResult;
 
 // threaded function for linear equations
-function ThrMatrixLUDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width : integer; indx : PIntegerArray; progress : TLinEquProgress = nil) : TLinEquResult;
+function ThrMatrixLUDecomp(A : PDouble; const LineWidthA : NativeInt; width : integer; indx : PIntegerArray; progress : TLinEquProgress = nil) : TLinEquResult;
 // inverse of a matrix by using the LU decomposition
-function ThrMatrixInverse(A : PDouble; const LineWidthA : TASMNativeInt; width : integer; progress : TLinEquProgress = nil) : TLinEquResult;
+function ThrMatrixInverse(A : PDouble; const LineWidthA : NativeInt; width : integer; progress : TLinEquProgress = nil) : TLinEquResult;
 
 // ###########################################
 // #### Threaded versions
@@ -59,11 +59,11 @@ function ThrMatrixInverse(A : PDouble; const LineWidthA : TASMNativeInt; width :
 
 // Matrix determinant calculated from the LU decomposition. Returns zero in case of a singular matrix. Drawback is a double
 // memory usage since the LU decomposition must be stored in a temporary matrix.
-function ThrMatrixDeterminant(A : PDouble; const LineWidthA : TASMNativeInt; width : integer; progress : TLinEquProgress = nil) : double;
+function ThrMatrixDeterminant(A : PDouble; const LineWidthA : NativeInt; width : integer; progress : TLinEquProgress = nil) : double;
 
 // uses the threaded version of the LU decomposition and a threaded back substition.
-function ThrMatrixLinEQSolve(A : PDouble; const LineWidthA : TASMNativeInt; width : integer; B : PDouble; const LineWidthB : TASMNativeInt; X : PDouble;
- const LineWidthX : TASMNativeInt;  width2 : integer; const NumRefinments : integer = 0; progress : TLinEquProgress = nil) : TLinEquResult;
+function ThrMatrixLinEQSolve(A : PDouble; const LineWidthA : NativeInt; width : integer; B : PDouble; const LineWidthB : NativeInt; X : PDouble;
+ const LineWidthX : NativeInt;  width2 : integer; const NumRefinments : integer = 0; progress : TLinEquProgress = nil) : TLinEquResult;
 
 
 implementation
@@ -77,7 +77,7 @@ type
   TLinearEQProgress = class(TObject)
   public
     refProgress : TLinEquProgress;
-    numRefinenmentSteps : TASMNativeInt;
+    numRefinenmentSteps : NativeInt;
 
     procedure LUDecompSolveProgress(Progress : integer);
     procedure RefinementProgress(Progress : integer);
@@ -101,8 +101,8 @@ end;
 
 // LUSWAP performs a series of row interchanges on the matrix A.
 // One row interchange is initiated for each of rows K1 through K2 of A.
-procedure LUSwap(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; k1, k2 : TASMNativeInt; indx : PIntegerArray; var parity : TASMNativeInt);
-var i : TASMNativeInt;
+procedure LUSwap(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; k1, k2 : NativeInt; indx : PIntegerArray; var parity : NativeInt);
+var i : NativeInt;
     pA1, pA2 : PDouble;
 begin
      for i := k1 to k2 do
@@ -121,8 +121,8 @@ begin
      end;
 end;
 
-procedure LUBacksup(A : PDouble; width, height : TASMNativeInt; B : PDouble; const LineWidth : TASMNativeInt);
-var j, i, k : TASMNativeInt;
+procedure LUBacksup(A : PDouble; width, height : NativeInt; B : PDouble; const LineWidth : NativeInt);
+var j, i, k : NativeInt;
     pA, pAi : PDouble;
     pB : PDouble;
     pBj : PConstDoubleArr;
@@ -159,19 +159,19 @@ type
   TRecMtxLUDecompData = record
     progress : TLinEquProgress;
     numCols,
-    numCalc : TASMNativeInt;
+    numCalc : NativeInt;
     blkMultMem : Pdouble;
-    LineWidth : TASMNativeInt;
+    LineWidth : NativeInt;
   end;
 
-function InternalRecursiveMatrixLUDecompInPlace(A : PDouble;  width, height : TASMNativeInt;
- indx : PIntegerArray; var parity : TASMNativeInt; var data : TRecMtxLUDecompData) : TLinEquResult;
-var mn : TASMNativeInt;
+function InternalRecursiveMatrixLUDecompInPlace(A : PDouble;  width, height : NativeInt;
+ indx : PIntegerArray; var parity : NativeInt; var data : TRecMtxLUDecompData) : TLinEquResult;
+var mn : NativeInt;
     pA : PDouble;
-    idx : TASMNativeInt;
+    idx : NativeInt;
     maxVal : double;
-    nleft, nright : TASMNativeInt;
-    i : TASMNativeInt;
+    nleft, nright : NativeInt;
+    i : NativeInt;
     pB, a12, a21 : PDouble;
     absMaxVal : double;
 begin
@@ -266,8 +266,8 @@ begin
      end;
 end;
 
-function MatrixLUDecompInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; indx : PIntegerArray; progress : TLinEquProgress) : TLinEquResult;
-var parity : TASMNativeInt;
+function MatrixLUDecompInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; indx : PIntegerArray; progress : TLinEquProgress) : TLinEquResult;
+var parity : NativeInt;
     mem : Pointer;
     rc : TRecMtxLUDecompData;
 begin
@@ -282,7 +282,7 @@ begin
      FreeMem(mem);
 end;
 
-function MatrixLUDecomp(A : PDouble; const LineWidthA : TASMNativeInt; LUDecomp : PDouble; const LineWidthLU : TASMNativeInt; width : TASMNativeInt; indx : PIntegerArray; progress : TLinEquProgress) : TLinEquResult;
+function MatrixLUDecomp(A : PDouble; const LineWidthA : NativeInt; LUDecomp : PDouble; const LineWidthLU : NativeInt; width : NativeInt; indx : PIntegerArray; progress : TLinEquProgress) : TLinEquResult;
 begin
      Assert(width > 0, 'Dimension Error');
 
@@ -291,7 +291,7 @@ begin
      Result := MatrixLUDecompInPlace(LUDecomp, lineWidthLU, width, indx, progress);
 end;
 
-function MatrixLUDecomp(A : PDouble; const LineWidthA : TASMNativeInt; LUDecomp : PDouble; const LineWidthLU : TASMNativeInt; width : TASMNativeInt; progress : TLinEquProgress) : TLinEquResult;
+function MatrixLUDecomp(A : PDouble; const LineWidthA : NativeInt; LUDecomp : PDouble; const LineWidthLU : NativeInt; width : NativeInt; progress : TLinEquProgress) : TLinEquResult;
 var indx : array of integer;
 begin
      Assert(width > 0, 'Dimension Error');
@@ -300,12 +300,12 @@ begin
      Result := MatrixLUDecomp(A, LineWidthA, LUDecomp, LineWidthLU, width, @indx[0], progress);
 end;
 
-procedure MatrixLUBackSubst(LUDecomp : PDouble; const LineWidthLU : TASMNativeInt; width : TASMNativeInt; const  indx : PIntegerArray;
-  B : PDouble; const LineWidthB : TASMNativeInt; progress : TLinEquProgress);
-var i : TASMNativeInt;
-    ii : TASMNativeInt;
-    ip : TASMNativeInt;
-    j : TASMNativeInt;
+procedure MatrixLUBackSubst(LUDecomp : PDouble; const LineWidthLU : NativeInt; width : NativeInt; const  indx : PIntegerArray;
+  B : PDouble; const LineWidthB : NativeInt; progress : TLinEquProgress);
+var i : NativeInt;
+    ii : NativeInt;
+    ip : NativeInt;
+    j : NativeInt;
     sum : double;
     pB : PDouble;
     pB2 : PDouble;
@@ -373,14 +373,14 @@ begin
 end;
 
 
-function MatrixInverseInPlace(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; progress : TLinEquProgress) : TLinEquResult;
+function MatrixInverseInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; progress : TLinEquProgress) : TLinEquResult;
 var Y : PDouble;
     ptrMem : Pointer;
     indx : array of integer;
-    i, j : TASMNativeInt;
+    i, j : NativeInt;
     pVal : PDouble;
     col : TDoubleDynArray;
-    w : TASMNativeInt;
+    w : NativeInt;
 begin
      Assert(lineWidthA >= width*sizeof(double), 'Dimension Error');
      Assert(width > 0, 'Dimension error');
@@ -418,14 +418,14 @@ begin
      FreeMem(ptrMem);
 end;
 
-function MatrixDeterminant(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; progress : TLinEquProgress) : double;
+function MatrixDeterminant(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; progress : TLinEquProgress) : double;
 var LUDecomp : PDouble;
     indx : Array of Integer;
-    i : TASMNativeInt;
+    i : NativeInt;
     pVal : PDouble;
-    parity : TASMNativeInt;
+    parity : NativeInt;
     rc : TRecMtxLUDecompData;
-    w : TASMNativeInt;
+    w : NativeInt;
     ptrMem : Pointer;
     mem : Array[0..(8+4*cBlkMultSize*cBlkMultSize)] of double;
 begin
@@ -462,19 +462,19 @@ begin
      FreeMem(ptrMem);
 end;
 
-function MatrixLinEQSolve(A : PDouble; const LineWidthA : TASMNativeInt; width : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt; X : PDouble;
- const LineWidthX : TASMNativeInt;  Width2 : TASMNativeInt; const NumRefinments : TASMNativeInt; progress : TLinEquProgress) : TLinEquResult;
+function MatrixLinEQSolve(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; B : PDouble; const LineWidthB : NativeInt; X : PDouble;
+ const LineWidthX : NativeInt;  Width2 : NativeInt; const NumRefinments : NativeInt; progress : TLinEquProgress) : TLinEquResult;
 var indx : Array of Integer;
     LUDecomp : TDoubleDynArray;
     sdp : double;
     row : TDoubleDynArray;
     pB : PDouble;
-    i : TASMNativeInt;
+    i : NativeInt;
     pA : PDouble;
-    j, k : TASMNativeInt;
+    j, k : NativeInt;
     pX : PDouble;
     pVal : PDouble;
-    refinementCounter : TASMNativeInt;
+    refinementCounter : NativeInt;
     progObj : TLinearEQProgress;
     progRef : TLinEquProgress;
 begin
@@ -583,19 +583,19 @@ type
   TAsyncMatrixUSubst = record
   public
     A, B : PDouble;
-    lineWidth : TASMNativeInt;
-    width, height : TASMNativeInt;
+    lineWidth : NativeInt;
+    width, height : NativeInt;
 
-    procedure Create(aA : PDouble; awidth, aheight : TASMNativeInt; aB : PDouble; const aLineWidth : TASMNativeInt);
+    procedure Create(aA : PDouble; awidth, aheight : NativeInt; aB : PDouble; const aLineWidth : NativeInt);
   end;
   PAsyncMatrixUSubst = ^TAsyncMatrixUSubst;
 
 type
   TAsyncMatrixLUBacksup = record
     A, B : PDouble;
-    lineWidthA : TASMNativeInt;
-    lineWidthB : TASMNativeInt;
-    width, height : TASMNativeInt;
+    lineWidthA : NativeInt;
+    lineWidthB : NativeInt;
+    width, height : NativeInt;
     indx : PIntegerArray;
     offset : integer;
   end;
@@ -608,8 +608,8 @@ begin
                PAsyncMatrixUSubst(obj)^.lineWidth);
 end;
 
-procedure ThrMatrixUSubst(A : PDouble; width, height : integer; B : PDouble; const LineWidth : TASMNativeInt);
-var i: TASMNativeInt;
+procedure ThrMatrixUSubst(A : PDouble; width, height : integer; B : PDouble; const LineWidth : NativeInt);
+var i: NativeInt;
     calls : IMtxAsyncCallGroup;
     wSize : integer;
     thrSize : Integer;
@@ -656,15 +656,15 @@ begin
 end;
 
 function InternalThrMatrixLUDecomp(A : PDouble; width, height : integer;
- indx : PIntegerArray; var parity : TASMNativeInt; var data : TRecMtxLUDecompData) : TLinEquResult;
+ indx : PIntegerArray; var parity : NativeInt; var data : TRecMtxLUDecompData) : TLinEquResult;
 // this is basically a copy of the unthreaded LU decomposition but with threaded parts (LU Backsup and Multiplication)!
 const cMinThrMultSize = 64;
-var mn : TASMNativeInt;
+var mn : NativeInt;
     pA : PDouble;
-    idx : TASMNativeInt;
+    idx : NativeInt;
     maxVal : double;
-    nleft, nright : TASMNativeInt;
-    i : TASMNativeInt;
+    nleft, nright : NativeInt;
+    i : NativeInt;
     pB, a12, a21 : PDouble;
     absMaxVal : double;
 begin
@@ -769,8 +769,8 @@ begin
      end;
 end;
 
-function ThrMatrixLUDecomp(A : PDouble; const LineWidthA : TASMNativeInt; width : integer; indx : PIntegerArray; progress : TLinEquProgress = nil) : TLinEquResult;
-var parity : TASMNativeInt;
+function ThrMatrixLUDecomp(A : PDouble; const LineWidthA : NativeInt; width : integer; indx : PIntegerArray; progress : TLinEquProgress = nil) : TLinEquResult;
+var parity : NativeInt;
     rc : TRecMtxLUDecompData;
     mem : Pointer;
 begin
@@ -836,7 +836,7 @@ begin
      end;
 end;
 
-function ThrMatrixInverse(A : PDouble; const LineWidthA : TASMNativeInt; width : integer; progress : TLinEquProgress = nil) : TLinEquResult;
+function ThrMatrixInverse(A : PDouble; const LineWidthA : NativeInt; width : integer; progress : TLinEquProgress = nil) : TLinEquResult;
 var Y : PDouble;
     indx : array of integer;
     i : Integer;
@@ -847,7 +847,7 @@ var Y : PDouble;
     numUsed : integer;
     calls : IMtxAsyncCallGroup;
     ptrMem : Pointer;
-    YLineWidth : TASMNativeInt;
+    YLineWidth : NativeInt;
 begin
      Assert(lineWidthA >= width*sizeof(double), 'Dimension Error');
      Assert(width > 0, 'Dimension error');
@@ -914,18 +914,18 @@ begin
      FreeMem(ptrMem);
 end;
 
-function ThrMatrixDeterminant(A : PDouble; const LineWidthA : TASMNativeInt; width : integer; progress : TLinEquProgress = nil) : double;
+function ThrMatrixDeterminant(A : PDouble; const LineWidthA : NativeInt; width : integer; progress : TLinEquProgress = nil) : double;
 var LUDecomp : PDouble;
     indx : Array of Integer;
     i : integer;
     pVal : PDouble;
-    parity : TASMNativeInt;
+    parity : NativeInt;
     rc : TRecMtxLUDecompData;
     w : integer;
     mem : PDouble;
     ptrMem1 : Pointer;
     ptrMem : Pointer;
-    LULineWidth : TASMNativeInt;
+    LULineWidth : NativeInt;
 begin
      assert(width > 0, 'Dimension error');
      assert(LineWidthA >= width*sizeof(double), 'Dimension error');
@@ -967,8 +967,8 @@ begin
      FreeMem(ptrMem1);
 end;
 
-function ThrMatrixLinEQSolve(A : PDouble; const LineWidthA : TASMNativeInt; width : integer; B : PDouble; const LineWidthB : TASMNativeInt; X : PDouble;
- const LineWidthX : TASMNativeInt;  Width2 : integer; const NumRefinments : integer; progress : TLinEquProgress) : TLinEquResult;
+function ThrMatrixLinEQSolve(A : PDouble; const LineWidthA : NativeInt; width : integer; B : PDouble; const LineWidthB : NativeInt; X : PDouble;
+ const LineWidthX : NativeInt;  Width2 : integer; const NumRefinments : integer; progress : TLinEquProgress) : TLinEquResult;
 var indx : Array of Integer;
     LUDecomp : PDouble;
     sdp : double;
@@ -982,7 +982,7 @@ var indx : Array of Integer;
     refinementCounter : integer;
     progObj : TLinearEQProgress;
     progRef : TLinEquProgress;
-    w : TASMNativeInt;
+    w : NativeInt;
     thrSize : integer;
     wSize : integer;
     objs : Array[0..cMaxNumCores - 1] of TAsyncMatrixLUBacksup;
@@ -1114,8 +1114,8 @@ end;
 { TAsyncMatrixLUBacksupobj }
 
 procedure TAsyncMatrixUSubst.Create(aA: PDouble;
-  awidth, aheight: TASMNativeInt; aB: PDouble;
-  const aLineWidth: TASMNativeInt);
+  awidth, aheight: NativeInt; aB: PDouble;
+  const aLineWidth: NativeInt);
 begin
      A := aA;
      B := aB;

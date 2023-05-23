@@ -74,7 +74,7 @@ type
     fPrec : integer;
     fR1, fR2 : double;
     fAlwaysShowCmplMtx : boolean;
-    fMtxRmtAddr : LongWord;
+    fMtxRmtAddr : TOTAAddress;
     fMtxRmtLineWidth : integer;
 
     procedure OnSettingsChanged(Sender : TObject);
@@ -176,6 +176,7 @@ begin
         fprops.OX := EvaluateIntegerValue( Context, Expression + '.GetObjRef.fOffsetX');
         fprops.OY := EvaluateIntegerValue( Context, Expression + '.GetObjRef.fOffsetY');
 
+        // check width height -> in case the debugging takes place on a 64bit process this may fail and lead to width, height = -1
         if (fprops.Width > 0) and (fprops.Height > 0) then
         begin
              fMtxRmtAddr := EvaluateLongWordValue( Context, expression + '.GetObjRef.fData' );

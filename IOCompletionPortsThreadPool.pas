@@ -26,7 +26,7 @@ unit IOCompletionPortsThreadPool;
 interface
 
 {$IFDEF MSWINDOWS}
-uses MtxThreadPool, MatrixConst, SysUtils;
+uses MtxThreadPool, SysUtils;
 
 
 
@@ -125,8 +125,8 @@ begin
      fCallIdx := 0;
      fRefCnt := PInteger( @fRefCntBuf[0] );
 
-     if (TASMNativeUInt(fRefCnt) and $03) <> 0 then
-        fRefCnt := PInteger( TASMNativeUInt(fRefCnt) + $04 - TASMNativeUInt(fRefCnt) and $3 );
+     if (NativeUint(fRefCnt) and $03) <> 0 then
+        fRefCnt := PInteger( NativeUint(fRefCnt) + $04 - NativeUint(fRefCnt) and $3 );
 
      inherited Create;
 end;

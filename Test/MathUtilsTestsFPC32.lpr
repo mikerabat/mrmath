@@ -173,7 +173,8 @@ uses
   TestRootFinding in 'TestRootFinding.pas',
   MtxUtilFunc in '..\MtxUtilFunc.pas',
   AVXChaCha in '..\AVXChaCha.pas',
-  AVXChaChax64 in '..\AVXChaChax64.pas';
+  AVXChaChax64 in '..\AVXChaChax64.pas',
+  RollingMedMean in '..\RollingMedMean.pas';
 
 {$R *.res}
 

@@ -26,22 +26,22 @@ uses MatrixConst;
 // solves the matrix A*X = B where A*x1=b1, A*x2=b2, ... A*xm=bm
 // The function stores in A the inverse of A and B stores the result vectors
 // A must be a square matrix (width*width) and B must be m*width.
-function MatrixGaussJordanInPlace(A : PDouble; const LineWidthA : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt; width : TASMNativeInt;
-                                  m : TASMNativeInt; const epsilon : double = 1e-20; progress : TLinEquProgress = nil) : TLinEquResult;
+function MatrixGaussJordanInPlace(A : PDouble; const LineWidthA : NativeInt; B : PDouble; const LineWidthB : NativeInt; width : NativeInt;
+                                  m : NativeInt; const epsilon : double = 1e-20; progress : TLinEquProgress = nil) : TLinEquResult;
 
-function MatrixGaussJordan(A : PDouble; const LineWidthA : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt;
-                           invA : PDouble; const LineWidthInvA : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
-                           width : TASMNativeInt; m : TASMNativeInt; const epsilon : double = 1e-20; progress : TLinEquProgress = nil) : TLinEquResult;
+function MatrixGaussJordan(A : PDouble; const LineWidthA : NativeInt; B : PDouble; const LineWidthB : NativeInt;
+                           invA : PDouble; const LineWidthInvA : NativeInt; X : PDouble; const LineWidthX : NativeInt;
+                           width : NativeInt; m : NativeInt; const epsilon : double = 1e-20; progress : TLinEquProgress = nil) : TLinEquResult;
 
 implementation
 
 uses
   MathUtilFunc;
 
-function MatrixGaussJordan(A : PDouble; const LineWidthA : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt;
-                           invA : PDouble; const LineWidthInvA : TASMNativeInt; X : PDouble; const LineWidthX : TASMNativeInt;
-                           width : TASMNativeInt; m : TASMNativeInt; const epsilon : double; progress : TLinEquProgress) : TLinEquResult;
-var i: TASMNativeInt;
+function MatrixGaussJordan(A : PDouble; const LineWidthA : NativeInt; B : PDouble; const LineWidthB : NativeInt;
+                           invA : PDouble; const LineWidthInvA : NativeInt; X : PDouble; const LineWidthX : NativeInt;
+                           width : NativeInt; m : NativeInt; const epsilon : double; progress : TLinEquProgress) : TLinEquResult;
+var i: NativeInt;
     pInvA : PDouble;
     PX : PDouble;
 begin
@@ -65,9 +65,9 @@ begin
      Result := MatrixGaussJordaninPlace(invA, lineWidthInvA, X, LineWidthX, width, m, epsilon, progress);
 end;
 
-function MatrixGaussJordanInPlace(A : PDouble; const LineWidthA : TASMNativeInt; B : PDouble; const LineWidthB : TASMNativeInt;
-  width : TASMNativeInt; m : TASMNativeInt; const epsilon : double; progress : TLinEquProgress) : TLinEquResult;
-var i, icol, irow, j, k, l, ll : TASMNativeInt;
+function MatrixGaussJordanInPlace(A : PDouble; const LineWidthA : NativeInt; B : PDouble; const LineWidthB : NativeInt;
+  width : NativeInt; m : NativeInt; const epsilon : double; progress : TLinEquProgress) : TLinEquResult;
+var i, icol, irow, j, k, l, ll : NativeInt;
     big, dum, pivinv : double;
     indxc, indxr, ipiv : Array of integer;
     pVal1 : PDouble;
@@ -103,7 +103,7 @@ begin
                     begin
                          if ipiv[k] = 0 then
                          begin
-                              pVal1 := PDouble(TASMNativeUInt(A) + TASMNativeUInt(j*LineWidthA));
+                              pVal1 := PDouble(NativeUint(A) + NativeUint(j*LineWidthA));
                               inc(pVal1, k);
 
                               if abs(pVal1^) >= big then
@@ -129,8 +129,8 @@ begin
 
           if irow <> icol then
           begin
-               pVal1 := PDouble(TASMNativeUInt(A) + TASMNativeUInt(irow*LineWidthA));
-               pVal2 := PDouble(TASMNativeUInt(A) + TASMNativeUInt(icol*LineWidthA));
+               pVal1 := PDouble(NativeUint(A) + NativeUint(irow*LineWidthA));
+               pVal2 := PDouble(NativeUint(A) + NativeUint(icol*LineWidthA));
                for l := 0 to width - 1 do
                begin
 
@@ -139,8 +139,8 @@ begin
                     inc(pVal2);
                end;
 
-               pVal1 := PDouble(TASMNativeUInt(B) + TASMNativeUInt(irow*LineWidthB));
-               pVal2 := PDouble(TASMNativeUInt(B) + TASMNativeUInt(icol*LineWidthB));
+               pVal1 := PDouble(NativeUint(B) + NativeUint(irow*LineWidthB));
+               pVal2 := PDouble(NativeUint(B) + NativeUint(icol*LineWidthB));
                for l := 0 to m - 1 do
                begin
                     DoubleSwap(pVal1^, pVal2^);
@@ -153,7 +153,7 @@ begin
           indxr[i] := irow;
           indxc[i] := icol;
 
-          pVal1 := PDouble(TASMNativeUInt(A) + TASMNativeUInt(icol*LineWidthA));
+          pVal1 := PDouble(NativeUint(A) + NativeUint(icol*LineWidthA));
           inc(pVal1, icol);
 
           if abs(pVal1^) < epsilon then
@@ -165,14 +165,14 @@ begin
           pivinv := 1/pVal1^;
 
           pVal1^ := 1;
-          pVal1 := PDouble(TASMNativeUInt(A) + TASMNativeUInt(icol*LineWidthA));
+          pVal1 := PDouble(NativeUint(A) + NativeUint(icol*LineWidthA));
           for l := 0 to width - 1 do
           begin
                pVal1^ := pVal1^*pivinv;
                inc(pVal1);
           end;
 
-          pVal1 := PDouble(TASMNativeUInt(B) + TASMNativeUInt(icol*LineWidthB));
+          pVal1 := PDouble(NativeUint(B) + NativeUint(icol*LineWidthB));
           for l := 0 to m - 1 do
           begin
                pVal1^ := Pivinv*pVal1^;
@@ -183,13 +183,13 @@ begin
           begin
                if ll <> icol then
                begin
-                    pVal1 := PDouble(TASMNativeUInt(A) + TASMNativeUInt(ll*LineWidthA));
+                    pVal1 := PDouble(NativeUint(A) + NativeUint(ll*LineWidthA));
                     inc(pVal1, icol);
                     dum := pVal1^;
                     pVal1^ := 0;
 
-                    pVal1 := PDouble(TASMNativeUInt(A) + TASMNativeUInt(ll*LineWidthA));
-                    pVal2 := PDouble(TASMNativeUInt(A) + TASMNativeUInt(icol*LineWidthA));
+                    pVal1 := PDouble(NativeUint(A) + NativeUint(ll*LineWidthA));
+                    pVal2 := PDouble(NativeUint(A) + NativeUint(icol*LineWidthA));
                     for l := 0 to width - 1 do
                     begin
                          pVal1^ := pVal1^ - pVal2^*dum;
@@ -197,8 +197,8 @@ begin
                          inc(pVal2);
                     end;
 
-                    pVal1 := PDouble(TASMNativeUInt(B) + TASMNativeUInt(ll*LineWidthB));
-                    pVal2 := PDouble(TASMNativeUInt(B) + TASMNativeUInt(icol*LineWidthB));
+                    pVal1 := PDouble(NativeUint(B) + NativeUint(ll*LineWidthB));
+                    pVal2 := PDouble(NativeUint(B) + NativeUint(icol*LineWidthB));
                     for l := 0 to m - 1 do
                     begin
                          pVal1^ := pVal1^ - pVal2^*dum;
@@ -218,7 +218,7 @@ begin
           begin
                for k := 0 to width - 1 do
                begin
-                    pVal1 := PDouble(TASMNativeUInt(A) + TASMNativeUInt(k*LineWidthA));
+                    pVal1 := PDouble(NativeUint(A) + NativeUint(k*LineWidthA));
                     pVal2 := pVal1;
                     inc(pval1, indxr[l]);
                     inc(pval2, indxc[l]);

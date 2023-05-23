@@ -23,12 +23,7 @@ interface
 
 uses SysUtils, Classes, Types, MatrixConst, BaseMathPersistence, RandomEng;
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
 
 {$IFDEF FPC}
    {.$DEFINE ANONMETHODS}
@@ -91,7 +86,7 @@ type
     procedure SetColumn(col : integer; Values : IMatrix; ValCols : integer = 0); overload;
 
     procedure SetValue(const initVal : double); overload;
-    procedure SetValue(const initVal : double; x, y, aWidth, aHeight : TASMNativeInt); overload;  // sets the value in a subsection of the matrix
+    procedure SetValue(const initVal : double; x, y, aWidth, aHeight : NativeInt); overload;  // sets the value in a subsection of the matrix
 
     function SubColMtx( colIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
     function SubRowMtx( rowIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
@@ -188,6 +183,8 @@ type
 
     function Median(RowWise : boolean) : TDoubleMatrix;
     procedure MedianInPlace(RowWise : boolean);
+    function RollMedian(RowWise : boolean; order : integer) : TDoubleMatrix;
+    procedure RollMedianInPlace(RowWise : boolean; order : integer);
 
     procedure SortInPlace(RowWise : boolean);
     function Sort(RowWise : boolean) : TDoubleMatrix;
@@ -233,10 +230,10 @@ type
     procedure SolveLinEQInPlace(Value : IMatrix; numRefinements : integer = 0); overload;
 
     // solves least sqaures A*x = b using the QR decomposition
-    function SolveLeastSquaresInPlace(out x : TDoubleMatrix; b : TDoubleMatrix) : TQRResult; overload;
-    function SolveLeastSquaresInPlace(out x : IMatrix; b : IMatrix) : TQRResult; overload;
-    function SolveLeastSquares(out x : TDoubleMatrix; b : TDoubleMatrix) : TQRResult; overload;
-    function SolveLeastSquares(out x : IMatrix; b : IMatrix) : TQRResult; overload;
+    procedure SolveLeastSquaresInPlace(out x : TDoubleMatrix; b : TDoubleMatrix); overload;
+    procedure SolveLeastSquaresInPlace(out x : IMatrix; b : IMatrix); overload;
+    procedure SolveLeastSquares(out x : TDoubleMatrix; b : TDoubleMatrix); overload;
+    procedure SolveLeastSquares(out x : IMatrix; b : IMatrix); overload;
 
     // matrix inversion (based on LU decomposition)
     function InvertInPlace : TLinEquResult;
@@ -275,10 +272,10 @@ type
     // only internaly used -> use the other QR or QRFull methods instead
     //function QR(out R : TDoubleMatrix; out tau : TDoubleMatrix) : TQRResult; overload;
     //function QR(out R : IMatrix; out tau : IMatrix) : TQRResult; overload;
-    function QR(out R : TDoubleMatrix) : TQRResult; overload;
-    function QR(out R : IMatrix) : TQRResult; overload;
-    function QRFull(out Q, R : TDoubleMatrix) : TQRResult; overload;
-    function QRFull(out Q, R : IMatrix) : TQRResult; overload;
+    procedure QR(out R : TDoubleMatrix); overload;
+    procedure QR(out R : IMatrix); overload;
+    procedure QRFull(out Q, R : TDoubleMatrix); overload;
+    procedure QRFull(out Q, R : IMatrix); overload;
 
     // ###################################################
     // #### Matrix assignment operations
@@ -309,11 +306,6 @@ type
     type
       TLocConstDoubleArr = Array[0..MaxInt div sizeof(double) - 1] of double;
       PLocConstDoubleArr = ^TLocConstDoubleArr;
-      {$IFDEF x64}
-      TLocASMNativeInt = NativeInt;
-      {$ELSE}
-      TLocASMNativeInt = integer;
-      {$ENDIF}
   protected
     // used to determine which class type to use as a result
     // e.g. the threaded class does not override all standard functions but
@@ -343,7 +335,7 @@ type
   private
     fMemory : Pointer;
     fData : PLocConstDoubleArr;       // 16 byte aligned pointer:
-    fLineWidth : TLocASMNativeInt;
+    fLineWidth : NativeInt;
     fObj : TObject;                // arbitrary object
 
     procedure MtxRandWithEng(var value : double);
@@ -371,9 +363,9 @@ type
     function GetObjRef : TDoubleMatrix;
 
     // qr decomposition without clearing the lower triangular matrix and factors tau
-    function QR(out ecosizeR : TDoubleMatrix; out tau : TDoubleMatrix) : TQRResult; overload; virtual;
-    function QR(out ecosizeR : IMatrix; out tau : IMatrix) : TQRResult; overload;
-    function Hess( out h : TDoubleMatrix; out tau : TDoubleMatrix ) : TEigenvalueConvergence; overload; virtual;
+    procedure QR(out ecosizeR : TDoubleMatrix; out tau : TDoubleMatrix); overload; virtual;
+    procedure QR(out ecosizeR : IMatrix; out tau : IMatrix); overload;
+    procedure Hess( out h : TDoubleMatrix; out tau : TDoubleMatrix ); overload; virtual;
   public
     property Width : integer read GetSubWidth write SetWidth;
     property Height : integer read GetSubHeight write SetHeight;
@@ -405,7 +397,7 @@ type
     procedure SetColumn(col : integer; Values : IMatrix; ValCols : integer = 0); overload;
 
     procedure SetValue(const initVal : double); overload;
-    procedure SetValue(const initVal : double; x, y, aWidth, aHeight : TASMNativeInt); overload;  // sets the value in a subsection of the matrix
+    procedure SetValue(const initVal : double; x, y, aWidth, aHeight : NativeInt); overload;  // sets the value in a subsection of the matrix
 
     function SubColMtx( colIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
     function SubRowMtx( rowIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
@@ -497,6 +489,8 @@ type
 
     function Median(RowWise : boolean) : TDoubleMatrix; virtual;
     procedure MedianInPlace(RowWise : boolean);
+    function RollMedian(RowWise : boolean; order : integer) : TDoubleMatrix;
+    procedure RollMedianInPlace(RowWise : boolean; order : integer); virtual;
 
     procedure SortInPlace(RowWise : boolean); virtual;
     function Sort(RowWise : boolean) : TDoubleMatrix;
@@ -543,10 +537,10 @@ type
     procedure SolveLinEQInPlace(Value : IMatrix; numRefinements : integer = 0); overload;
 
     // solves least sqaures A*x = b using the QR decomposition
-    function SolveLeastSquaresInPlace(out x : TDoubleMatrix; b : TDoubleMatrix) : TQRResult; overload; virtual;
-    function SolveLeastSquaresInPlace(out x : IMatrix; b : IMatrix) : TQRResult; overload;
-    function SolveLeastSquares(out x : TDoubleMatrix; b : TDoubleMatrix) : TQRResult; overload; virtual;
-    function SolveLeastSquares(out x : IMatrix; b : IMatrix) : TQRResult; overload;
+    procedure SolveLeastSquaresInPlace(out x : TDoubleMatrix; b : TDoubleMatrix); overload; virtual;
+    procedure SolveLeastSquaresInPlace(out x : IMatrix; b : IMatrix); overload;
+    procedure SolveLeastSquares(out x : TDoubleMatrix; b : TDoubleMatrix) ; overload; virtual;
+    procedure SolveLeastSquares(out x : IMatrix; b : IMatrix); overload;
 
     // Matrix inversion (via LU decomposition)
     function InvertInPlace : TLinEquResult; virtual;
@@ -585,17 +579,17 @@ type
     function Cholesky(out Chol : IMatrix) : TCholeskyResult; overload;
 
     // cleared lower triangle qr decomposition -> R only
-    function QR(out R : TDoubleMatrix) : TQRResult; overload;
-    function QR(out R : IMatrix) : TQRResult; overload;
-    function QRFull(out Q, R : TDoubleMatrix) : TQRResult; overload; virtual;
-    function QRFull(out Q, R : IMatrix) : TQRResult; overload;
+    procedure QR(out R : TDoubleMatrix); overload;
+    procedure QR(out R : IMatrix); overload;
+    procedure QRFull(out Q, R : TDoubleMatrix); overload; virtual;
+    procedure QRFull(out Q, R : IMatrix); overload;
 
     // hessenberg decomposition. Lower part is zeroed out
-    function Hess( out h : TDoubleMAtrix ) : TEigenvalueConvergence; overload;
-    function Hess( out h : IMatrix ) : TEigenvalueConvergence; overload;
+    procedure Hess( out h : TDoubleMAtrix ); overload;
+    procedure Hess( out h : IMatrix ); overload;
     // for the full transformation: Q*H*Q' = A
-    function HessFull(out Q, h : TDoubleMatrix) : TEigenvalueConvergence; overload;
-    function HessFull(out Q, h : IMatrix) : TEigenvalueConvergence; overload;
+    procedure HessFull(out Q, h : TDoubleMatrix); overload;
+    procedure HessFull(out Q, h : IMatrix); overload;
     
     // ###################################################
     // #### Matrix assignment operations
@@ -664,12 +658,6 @@ implementation
 
 uses Math, MatrixASMStubSwitch, Eigensystems, LinAlgSVD, LinAlgQR, BlockSizeSetup, LinAlgCholesky,
      LinAlgLU, MathUtilFunc;
-
-
-{$IFNDEF CPUX64}
-type
-  NativeUInt = Cardinal;
-{$ENDIF}
 
 
 // ###########################################
@@ -889,7 +877,7 @@ begin
 end;
 
 procedure TDoubleMatrix.AddVecInPlace(Value: TDoubleMatrix; rowWise: Boolean);
-var incX : TASMNativeInt;
+var incX : NativeInt;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
      if rowWise
@@ -1110,11 +1098,19 @@ begin
 end;
 
 constructor TDoubleMatrix.CreateRand(aWidth, aHeight: integer);
+var tmp : TDoubleMatrix;
 begin
      inherited Create;
 
-     SetWidthHeight(aWidth, aHeight);
-     ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}MtxRand);
+     // note: since the random function depends on internal states of the random engine
+     // we need to make sure this is NEVER called in threads -> internal states
+     // could be reused and the result is not what we expect from random numbers
+     // (first surfaced in threaded cholesky decomposition on my 32core machine)
+     tmp := TDoubleMatrix.Create( aWidth, aHeight );
+     tmp.ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}MtxRand);
+     TakeOver(tmp);
+
+     tmp.Free;
 end;
 
 constructor TDoubleMatrix.CreateVec( aLen : integer; const initVal : double = 0 );
@@ -1289,7 +1285,7 @@ begin
      end;
 end;
 
-function TDoubleMatrix.SolveLeastSquares(out x : TDoubleMatrix; b : TDoubleMatrix): TQRResult;
+procedure TDoubleMatrix.SolveLeastSquares(out x : TDoubleMatrix; b : TDoubleMatrix);
 var tmpA : TDoubleMatrix;
 begin
      CheckAndRaiseError( width <= Height, 'Height must be at least width');
@@ -1298,42 +1294,35 @@ begin
      try
         x := ResultClass.Create( 1, Width );
 
-        Result := MatrixQRSolve( x.StartElement, x.LineWidth, tmpA.StartElement, tmpA.LineWidth, b.StartElement, b.LineWidth, width, height);
-
-        if Result <> qrOK then
-           FreeAndNil(x);
+        MatrixQRSolve( x.StartElement, x.LineWidth, tmpA.StartElement, tmpA.LineWidth, b.StartElement, b.LineWidth, width, height);
      finally
             tmpA.Free;
      end;
 end;
 
-function TDoubleMatrix.SolveLeastSquares(out x : IMatrix; b: IMatrix): TQRResult;
+procedure TDoubleMatrix.SolveLeastSquares(out x : IMatrix; b: IMatrix);
 var tmp : TDoubleMatrix;
 begin
-     Result := SolveLeastSquares(tmp, b.GetObjRef);
+     SolveLeastSquares(tmp, b.GetObjRef);
 
      x := tmp;
 end;
 
-function TDoubleMatrix.SolveLeastSquaresInPlace(out x: TDoubleMatrix;
-  b: TDoubleMatrix): TQRResult;
+procedure TDoubleMatrix.SolveLeastSquaresInPlace(out x: TDoubleMatrix;
+  b: TDoubleMatrix);
 begin
      CheckAndRaiseError( width <= Height, 'Height must be at least width');
      
      x := ResultClass.Create( 1, Width );
 
-     Result := MatrixQRSolve( x.StartElement, x.LineWidth, StartElement, LineWidth, b.StartElement, b.LineWidth, width, height);
-
-     if Result <> qrOK then
-        FreeAndNil(x);
+     MatrixQRSolve( x.StartElement, x.LineWidth, StartElement, LineWidth, b.StartElement, b.LineWidth, width, height);
 end;
 
-function TDoubleMatrix.SolveLeastSquaresInPlace(out x: IMatrix;
-  b: IMatrix): TQRResult;
+procedure TDoubleMatrix.SolveLeastSquaresInPlace(out x: IMatrix;
+  b: IMatrix);
 var tmp : TDoubleMatrix;
 begin
-     Result := SolveLeastSquaresInPlace(tmp, b.GetObjRef);
-
+     SolveLeastSquaresInPlace(tmp, b.GetObjRef);
      x := tmp;
 end;
 
@@ -1847,6 +1836,19 @@ begin
      end;
 end;
 
+function TDoubleMatrix.RollMedian(RowWise: boolean;
+  order: integer): TDoubleMatrix;
+begin
+     Result := Clone;
+     Result.RollMedianInPlace(RowWise, order);
+end;
+
+procedure TDoubleMatrix.RollMedianInPlace(RowWise: boolean; order: integer);
+begin
+     CheckAndRaiseError( (Width > 0) and (Height > 0), 'No data assigned');
+     MatrixRollMedian(StartElement, LineWidth, Width, Height, order, RowWise);
+end;
+
 function TDoubleMatrix.Sort(RowWise: boolean): TDoubleMatrix;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
@@ -2090,40 +2092,38 @@ begin
      end;
 end;
 
-function TDoubleMatrix.QR(out R: IMatrix): TQRResult;
+procedure TDoubleMatrix.QR(out R: IMatrix);
 var outR : TDoubleMatrix;
 begin
-     Result := QR(outR);
+     QR(outR);
      R := outR;
 end;
 
 
-function TDoubleMatrix.QR(out R: TDoubleMatrix): TQRResult;
+procedure TDoubleMatrix.QR(out R: TDoubleMatrix);
 var tmp : TDoubleMatrix;
     i, j : integer;
 begin
-     Result := QR(R, tmp);
+     QR(R, tmp);
      tmp.Free;
-     if Result = qrOK then
-     begin
-          R.Resize( Width, Math.Min(Width, Height) );
-          // clear lower triangular matrix of R
-          for i := 1 to R.Height - 1 do
-               for j := 0 to i - 1 do
-                   R[j, i] := 0;
-     end;
+
+     R.Resize( Width, Math.Min(Width, Height) );
+     // clear lower triangular matrix of R
+     for i := 1 to R.Height - 1 do
+          for j := 0 to i - 1 do
+              R[j, i] := 0;
 end;
 
-function TDoubleMatrix.QR(out ecosizeR: IMatrix; out tau : IMatrix): TQRResult;
+procedure TDoubleMatrix.QR(out ecosizeR: IMatrix; out tau : IMatrix);
 var outR : TDoubleMatrix;
     outTau : TDoubleMatrix;
 begin
-     Result := QR(outR, outTau);
+     QR(outR, outTau);
      ecosizeR := outR;
      tau := outTau;
 end;
 
-function TDoubleMatrix.QRFull(out Q, R: TDoubleMatrix): TQRResult;
+procedure TDoubleMatrix.QRFull(out Q, R: TDoubleMatrix);
 var tau : TDoubleMatrix;
     tmp : TDoubleMatrix;
     x, y : integer;
@@ -2135,14 +2135,7 @@ begin
 
      // ###########################################
      // #### First create a compact QR decomposition
-     Result := QR(R, Tau);
-
-     if Result <> qrOK then
-     begin
-          FreeAndNil(R);
-          FreeAndNil(tau);
-          exit;
-     end;
+     QR(R, Tau);
 
      // ###########################################
      // #### Calculation Q from the previous operation
@@ -2186,22 +2179,22 @@ begin
      end;
 end;
 
-function TDoubleMatrix.QRFull(out Q, R: IMatrix): TQRResult;
+procedure TDoubleMatrix.QRFull(out Q, R: IMatrix);
 var outR, outQ : TDoubleMatrix;
 begin
-     Result := QRFull(outQ, outR);
+     QRFull(outQ, outR);
      Q := outQ;
      R := outR;
 end;
 
-function TDoubleMatrix.QR(out ecosizeR: TDoubleMatrix; out tau : TDoubleMatrix): TQRResult;
+procedure TDoubleMatrix.QR(out ecosizeR: TDoubleMatrix; out tau : TDoubleMatrix);
 begin
      // note: the QR decomposition here does not update the resulting matrix size -> it is further used in the Q decomposition and that memory
      // is needed there. So in any subsequent call one needs to adjust the size self. Also the lower triangular data is not destroyed and set to 0!
      ecosizeR := Clone;
      tau := ResultClass.Create(width, 1);
      try
-        Result := MatrixQRDecompInPlace2(ecosizeR.StartElement, ecosizeR.LineWidth, width, height, tau.StartElement, fLinEQProgress);
+        MatrixQRDecompInPlace2(ecosizeR.StartElement, ecosizeR.LineWidth, width, height, tau.StartElement, fLinEQProgress);
      except
            FreeAndNil(ecosizeR);
            FreeAndNil(tau);
@@ -2214,14 +2207,15 @@ end;
 // #### Hessenberg decomponsition
 // ###########################################
 
-function TDoubleMatrix.Hess( out h : TDoubleMatrix ) : TEigenvalueConvergence; 
+procedure TDoubleMatrix.Hess( out h : TDoubleMatrix );
 var tau : TDoubleMatrix;
     x, y : integer;
     pData : PConstDoubleArr;
 begin
      CheckAndRaiseError( Width = Height, 'Hessenberg decomposition only allowed on square matrices');
      
-     Result := Hess( h, tau );
+     Hess( h, tau );
+
      tau.Free;
      // clear h so we only have an upper (+1) triangle matrix
      // zero out the parts occupied by Q
@@ -2234,14 +2228,14 @@ begin
      end;
 end;
 
-function TDoubleMatrix.Hess( out h : IMatrix ) : TEigenvalueConvergence;
+procedure TDoubleMatrix.Hess( out h : IMatrix );
 var tmp, tau : TDoubleMatrix;
     x, y : integer;
     pData : PConstDoubleArr;
 begin
      CheckAndRaiseError( Width = Height, 'Hessenberg decomposition only allowed on square matrices');
      
-     Result := Hess( tmp, tau );
+     Hess( tmp, tau );
      tau.Free;
      h := tmp;
 
@@ -2257,7 +2251,7 @@ begin
 end;
 
 // for the full transformation: Q*H*Q' = A
-function TDoubleMatrix.HessFull(out Q, h : TDoubleMatrix) : TEigenvalueConvergence; 
+procedure TDoubleMatrix.HessFull(out Q, h : TDoubleMatrix);
 var tau : TDoubleMatrix;
     x, y : integer;
     pdata : PConstDoubleArr;
@@ -2270,14 +2264,7 @@ begin
 
      // ###########################################
      // #### First create a compact QR decomposition
-     Result := Hess(h, Tau);
-
-     if Result <> qlOk then
-     begin
-          FreeAndNil(h);
-          FreeAndNil(tau);
-          exit;
-     end;
+     Hess(h, Tau);
 
      // ###########################################
      // #### Calculation Q from the previous operation
@@ -2299,12 +2286,12 @@ begin
      end;
 end;
 
-function TDoubleMatrix.Hess(out h, tau: TDoubleMatrix): TEigenvalueConvergence;
+procedure TDoubleMatrix.Hess(out h, tau: TDoubleMatrix);
 begin
      tau := ResultClass.Create( width, 1 );
      h := Clone;
      try
-        Result := MatrixHessenberg2InPlace( h.StartElement, h.LineWidth, Width, tau.StartElement, HessBlockSize );
+        MatrixHessenberg2InPlace( h.StartElement, h.LineWidth, Width, tau.StartElement, HessBlockSize );
      except
            FreeAndNil(tau);
            FreeAndNil(h);
@@ -2313,10 +2300,10 @@ begin
      end;
 end;
 
-function TDoubleMatrix.HessFull(out Q, h : IMatrix) : TEigenvalueConvergence; 
+procedure TDoubleMatrix.HessFull(out Q, h : IMatrix);
 var temp1, temp2 : TDoubleMatrix;
 begin
-     Result := HessFull(temp1, temp2);
+     HessFull(temp1, temp2);
      Q := temp1;
      h := temp2;
 end;
@@ -2546,7 +2533,7 @@ begin
         MatrixInit( StartElement, LineWidth, width, height, initVal);
 end;
 
-procedure TDoubleMatrix.SetValue(const initVal : double; x, y, aWidth, aHeight : TASMNativeInt);
+procedure TDoubleMatrix.SetValue(const initVal : double; x, y, aWidth, aHeight : NativeInt);
 begin
      CheckAndRaiseError( Width >= x + aWidth, 'Dimension X Error');
      CheckAndRaiseError( Height >= y + aHeight, 'Dimension Y Error');
@@ -2568,7 +2555,7 @@ procedure TDoubleMatrix.Resize(aNewWidth, aNewHeight: Integer);
 var origSubWidth,
     origSubHeight : integer;
     origMemory : Pointer;
-    origLineWidth : TASMNativeInt;
+    origLineWidth : NativeInt;
     origStart : PDouble;
 begin
      CheckAndRaiseError( (aNewWidth > 0) and (aNewHeight > 0), 'Width and height need to be greater than 0');
@@ -2635,7 +2622,7 @@ begin
 end;
 
 procedure TDoubleMatrix.SubVecInPlace(Value: TDoubleMatrix; rowWise : Boolean);
-var incX : TASMNativeInt;
+var incX : NativeInt;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
      if rowWise
@@ -2869,7 +2856,7 @@ end;
 function TDoubleMatrix.SVD(out U, V, W: TDoubleMatrix; onlyDiagElements : boolean): TSVDResult;
 var pW : PConstDoubleArr;
     wArr : PByte;
-    minWH : TASMNativeInt;
+    minWH : NativeInt;
     i : Integer;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'Dimension error');

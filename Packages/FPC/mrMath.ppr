@@ -18,10 +18,17 @@ library mrMath;
 {$ALIGN 16}
 {$DESCRIPTION 'mrMath Matrix library'}
 
+{$I '..\..\mrMath_CPU.inc'}
+
 uses
   {$IFDEF LINUX} cthreads, {$ENDIF}
   MatrixConst in '..\..\MatrixConst.pas',
   SimpleMatrixOperations in '..\..\SimpleMatrixOperations.pas',
+
+// ###########################################
+// #### Assembler only routines
+
+{$IFNDEF MRMATH_NOASM}
   ASMMatrixAddSubOperations in '..\..\ASMMatrixAddSubOperations.pas',
   ASMMatrixAddSubOperationsx64 in '..\..\ASMMatrixAddSubOperationsx64.pas',
   ASMMatrixElementwiseMultOperations in '..\..\ASMMatrixElementwiseMultOperations.pas',
@@ -53,36 +60,8 @@ uses
   ASMMatrixRotationsx64 in '..\..\ASMMatrixRotationsx64.pas',
   ASMMatrixCumSumDiffOperations in '..\..\ASMMatrixCumSumDiffOperations.pas',
   ASMMatrixCumSumDiffOperationsx64 in '..\..\ASMMatrixCumSumDiffOperationsx64.pas',
-  BlockSizeSetup in '..\..\BlockSizeSetup.pas',
-  CPUFeatures in '..\..\CPUFeatures.pas',
-  Eigensystems in '..\..\Eigensystems.pas',
-  MathUtilFunc in '..\..\MathUtilFunc.pas',
-  Matrix in '..\..\Matrix.pas',
-  MtxThreadPool in '..\..\MtxThreadPool.pas',
-  ThreadedMatrix in '..\..\ThreadedMatrix.pas',
-  ThreadedMatrixOperations in '..\..\ThreadedMatrixOperations.pas',
-  BaseMathPersistence in '..\..\BaseMathPersistence.pas',
-  BinaryReaderWriter in '..\..\BinaryReaderWriter.pas',
-  JSONReaderWriter in '..\..\JSONReaderWriter.pas',
-  PCA in '..\..\PCA.pas',
-  NonLinearFit in '..\..\NonLinearFit.pas',
-  IncrementalPCA in '..\..\IncrementalPCA.pas',
-  MtxTimer in '..\..\MtxTimer.pas',
   ASMMatrixAbsOperations in '..\..\ASMMatrixAbsOperations.pas',
   ASMMatrixAbsOperationsx64 in '..\..\ASMMatrixAbsOperationsx64.pas',
-  CCA in '..\..\CCA.pas',
-  NNMF in '..\..\NNMF.pas',
-  ICA in '..\..\ICA.pas',
-  RandomEng in '..\..\RandomEng.pas',
-  LinAlgCholesky in '..\..\LinAlgCholesky.pas',
-  LinAlgLU in '..\..\LinAlgLU.pas',
-  LinAlgQR in '..\..\LinAlgQR.pas',
-  LinAlgSVD in '..\..\LinAlgSVD.pas',
-  HouseholderReflectors in '..\..\HouseholderReflectors.pas',
-  MatrixRotations in '..\..\MatrixRotations.pas',
-  LinearAlgebraicEquations in '..\..\LinearAlgebraicEquations.pas',
-  PLS in '..\..\PLS.pas',
-  Corr in '..\..\Corr.pas',
   AVXMatrixAbsOperations in '..\..\AVXMatrixAbsOperations.pas',
   AVXMatrixAbsOperationsx64 in '..\..\AVXMatrixAbsOperationsx64.pas',
   AVXMatrixAddSubOperations in '..\..\AVXMatrixAddSubOperations.pas',
@@ -116,9 +95,6 @@ uses
   AVXMatrixVectorMultOperationsx64 in '..\..\AVXMatrixVectorMultOperationsx64.pas',
   AVXMoveOperations in '..\..\AVXMoveOperations.pas',
   AVXMoveOperationsx64 in '..\..\AVXMoveOperationsx64.pas',
-  BlockedMult in '..\..\BlockedMult.pas',
-  EM in '..\..\EM.pas',
-  RBSplines in '..\..\RBSplines.pas',
   FMAMatrixMultOperations in '..\..\FMAMatrixMultOperations.pas',
   FMAMatrixMultOperationsx64 in '..\..\FMAMatrixMultOperationsx64.pas',
   FMAMatrixMultTransposedOperations in '..\..\FMAMatrixMultTransposedOperations.pas',
@@ -126,13 +102,49 @@ uses
   FMAMatrixOperations in '..\..\FMAMatrixOperations.pas',
   FMAMatrixVectorMultOperations in '..\..\FMAMatrixVectorMultOperations.pas',
   FMAMatrixVectorMultOperationsx64 in '..\..\FMAMatrixVectorMultOperationsx64.pas',
-  Dist in '..\..\Dist.pas',
   ASMVecConvolve in '..\..\ASMVecConvolve.pas',
   ASMVecConvolvex64 in '..\..\ASMVecConvolvex64.pas',
   AVXVecConvolve in '..\..\AVXVecConvolve.pas',
   AVXVecConvolvex64 in '..\..\AVXVecConvolvex64.pas',
   FMAVecConvolve in '..\..\FMAVecConvolve.pas',
   FMAVecConvolvex64 in '..\..\FMAVecConvolvex64.pas',
+  AVXChaCha in '..\..\AVXChaCha.pas',
+  AVXChaChax64 in '..\..\AVXChaChax64.pas',
+
+{$ENDIF}
+
+  BlockSizeSetup in '..\..\BlockSizeSetup.pas',
+  CPUFeatures in '..\..\CPUFeatures.pas',
+  Eigensystems in '..\..\Eigensystems.pas',
+  MathUtilFunc in '..\..\MathUtilFunc.pas',
+  Matrix in '..\..\Matrix.pas',
+  MtxThreadPool in '..\..\MtxThreadPool.pas',
+  ThreadedMatrix in '..\..\ThreadedMatrix.pas',
+  ThreadedMatrixOperations in '..\..\ThreadedMatrixOperations.pas',
+  BaseMathPersistence in '..\..\BaseMathPersistence.pas',
+  BinaryReaderWriter in '..\..\BinaryReaderWriter.pas',
+  JSONReaderWriter in '..\..\JSONReaderWriter.pas',
+  PCA in '..\..\PCA.pas',
+  NonLinearFit in '..\..\NonLinearFit.pas',
+  IncrementalPCA in '..\..\IncrementalPCA.pas',
+  MtxTimer in '..\..\MtxTimer.pas',
+  CCA in '..\..\CCA.pas',
+  NNMF in '..\..\NNMF.pas',
+  ICA in '..\..\ICA.pas',
+  RandomEng in '..\..\RandomEng.pas',
+  LinAlgCholesky in '..\..\LinAlgCholesky.pas',
+  LinAlgLU in '..\..\LinAlgLU.pas',
+  LinAlgQR in '..\..\LinAlgQR.pas',
+  LinAlgSVD in '..\..\LinAlgSVD.pas',
+  HouseholderReflectors in '..\..\HouseholderReflectors.pas',
+  MatrixRotations in '..\..\MatrixRotations.pas',
+  LinearAlgebraicEquations in '..\..\LinearAlgebraicEquations.pas',
+  PLS in '..\..\PLS.pas',
+  Corr in '..\..\Corr.pas',
+  BlockedMult in '..\..\BlockedMult.pas',
+  EM in '..\..\EM.pas',
+  RBSplines in '..\..\RBSplines.pas',
+  Dist in '..\..\Dist.pas',
   MatrixASMStubSwitch in '..\..\MatrixASMStubSwitch.pas',
   GCDDispatch in '..\..\GCDDispatch.pas',
   linuxthrpool in '..\..\linuxthrpool.pas',
@@ -148,8 +160,7 @@ uses
   Roots in '..\..\Roots.pas',
   SSA in '..\..\SSA.pas',
   MtxUtilFunc in '..\..\MtxUtilFunc.pas',
-  AVXChaCha in '..\..\AVXChaCha.pas',
-  AVXChaChax64 in '..\..\AVXChaChax64.pas';
+  RollingMedMean in '..\..\RollingMedMean.pas';
 
 begin
 end.

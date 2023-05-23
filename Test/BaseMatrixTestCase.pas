@@ -48,22 +48,22 @@ type
    {$ENDIF}
 
    function CheckMtxVal( const mtx : Array of double; value : double) : boolean; overload;
-   function CheckMtxVal( data : PDouble; lineWidth: TASMNativeInt; width, height : integer; value : double) : boolean; overload;
+   function CheckMtxVal( data : PDouble; lineWidth: NativeInt; width, height : integer; value : double) : boolean; overload;
    procedure FillMatrix(mtxSize : integer; out x, y : TDoubleDynArray; out p1, p2 : PDouble);
    procedure AllocAlignedMtx(mtxSize : integer; out pX : PDouble; out pMem : PByte); overload;
-   procedure AllocAlignedMtx(mtxWidth, mtxHeight : integer; out pX : PDouble; out pMem : PByte; out LineWidthAligned : TASMNativeInt); overload;
+   procedure AllocAlignedMtx(mtxWidth, mtxHeight : integer; out pX : PDouble; out pMem : PByte; out LineWidthAligned : NativeInt); overload;
    procedure FillAlignedMtx(mtxSize : integer; out pX : PDouble; out pMem : PByte); overload;
-   procedure FillAlignedMtx(mtxWidth, mtxHeight : integer; out pX : PDouble; out pMem : PByte; out LineWidthAligned : TASMNativeInt); overload;
-   procedure FillUnalignedMtx(mtxWidth, mtxHeight : integer; out pX : PDouble; out pMem : PByte; out LineWidthAligned : TASMNativeInt);
+   procedure FillAlignedMtx(mtxWidth, mtxHeight : integer; out pX : PDouble; out pMem : PByte; out LineWidthAligned : NativeInt); overload;
+   procedure FillUnalignedMtx(mtxWidth, mtxHeight : integer; out pX : PDouble; out pMem : PByte; out LineWidthAligned : NativeInt);
    procedure WriteMatlabData(const fileName : string; const data : Array of double; width : integer);
    procedure TryClearCache;
    function WriteMtx(const data : Array of Double; width : integer; prec : integer = 3) : string; overload;
-   function WriteMtx(data : PDouble; LineWidth : TASMNativeInt; width : integer; height : integer; prec : integer = 3) : string; overload;
+   function WriteMtx(data : PDouble; LineWidth : NativeInt; width : integer; height : integer; prec : integer = 3) : string; overload;
    function WriteMtx(mtx : TDoubleMatrix; prec : integer = 3) : string; overload;
    function CheckMtx(const data1 : Array of Double; const data2 : Array of double; w : integer = -1; h : integer = -1; const epsilon : double = 1e-4) : boolean;
    function CheckMtxIdx(const data1 : Array of Double; const data2 : Array of double; out idx : integer; w : integer = -1; h : integer = -1; const epsilon : double = 1e-4) : boolean; overload;
    function CheckMtxIdx(data1, data2 : PDouble; const mtxSize : integer; out idx : integer; const epsilon : double = 1e-4) : boolean; overload;
-   function CheckMtxIdx(data1, data2 : PDouble; LineWidth1, LineWidth2 : TASMNativeInt; mtxWidth, mtxHeight : integer; out idx : integer; const epsilon : double = 1e-4) : boolean; overload;
+   function CheckMtxIdx(data1, data2 : PDouble; LineWidth1, LineWidth2 : NativeInt; mtxWidth, mtxHeight : integer; out idx : integer; const epsilon : double = 1e-4) : boolean; overload;
    function WriteMtxDyn(const data : TDoubleDynArray; width : integer; prec : integer = 3) : string; overload;
    function LoadBin( fn : String ) : TDoubleDynArray;
  end;
@@ -186,7 +186,7 @@ begin
 end;
 
 function TBaseMatrixTestCase.CheckMtxIdx(data1, data2: PDouble; LineWidth1,
-  LineWidth2: TASMNativeInt; mtxWidth, mtxHeight : integer; out idx: integer;
+  LineWidth2: NativeInt; mtxWidth, mtxHeight : integer; out idx: integer;
   const epsilon: double): boolean;
 var p1, p2 : PConstDoubleArr;
     x, y : integer;
@@ -305,7 +305,7 @@ begin
 end;
 
 procedure TBaseMatrixTestCase.AllocAlignedMtx(mtxWidth, mtxHeight: integer; out
-  pX: PDouble; out pMem: PByte; out LineWidthAligned: TASMNativeInt);
+  pX: PDouble; out pMem: PByte; out LineWidthAligned: NativeInt);
 var widthAligned : integer;
 begin
      widthAligned := mtxWidth;
@@ -322,7 +322,7 @@ end;
 procedure TBaseMatrixTestCase.FillAlignedMtx(mtxSize: integer; out pX: PDouble;
   out pMem: PByte);
 var ptr : PConstDoubleArr;
-    counter : TASMNativeInt;
+    counter : NativeInt;
 begin
      pMem := GetMemory(mtxSize*sizeof(double) + $20);
 
@@ -335,9 +335,9 @@ begin
 end;
 
 procedure TBaseMatrixTestCase.FillAlignedMtx(mtxWidth, mtxHeight : integer; out pX: PDouble;
-  out pMem: PByte; out LineWidthAligned: TASMNativeInt);
+  out pMem: PByte; out LineWidthAligned: NativeInt);
 var ptr : PConstDoubleArr;
-    y, counter : TASMNativeInt;
+    y, counter : NativeInt;
     widthAligned : integer;
 begin
      widthAligned := mtxWidth;
@@ -361,9 +361,9 @@ begin
 end;
 
 procedure TBaseMatrixTestCase.FillUnalignedMtx(mtxWidth, mtxHeight: integer;
-  out pX: PDouble; out pMem: PByte; out LineWidthAligned: TASMNativeInt);
+  out pX: PDouble; out pMem: PByte; out LineWidthAligned: NativeInt);
 var ptr : PConstDoubleArr;
-    y, counter : TASMNativeInt;
+    y, counter : NativeInt;
     widthUnAligned : integer;
 begin
      widthUnAligned := mtxWidth + 1;
@@ -372,8 +372,8 @@ begin
      LineWidthAligned := sizeof(double)*widthUnAligned;
 
      // allign to 32 bytes
-     pX := PDouble( TASMNativeUInt(pMem));
-     if TASMNativeUInt(px) and $1F = 0 then
+     pX := PDouble( NativeUint(pMem));
+     if NativeUint(px) and $1F = 0 then
         inc(px);
      ptr := PConstDoubleArr(pX);
 
@@ -414,7 +414,7 @@ begin
      end;
 end;
 
-function TBaseMatrixTestCase.WriteMtx(data : PDouble; LineWidth : TASMNativeInt; width : integer; height : integer; prec : integer = 3) : string; 
+function TBaseMatrixTestCase.WriteMtx(data : PDouble; LineWidth : NativeInt; width : integer; height : integer; prec : integer = 3) : string; 
 var x, y : integer;
     pData : PConstDoubleArr;
 begin
@@ -696,7 +696,7 @@ begin
          Result := IncludeTrailingPathDelimiter( ExtractFilePath(ParamStr(0)) );
 end;
 
-function TBaseMatrixTestCase.CheckMtxVal(data: PDouble; lineWidth: TASMNativeInt;
+function TBaseMatrixTestCase.CheckMtxVal(data: PDouble; lineWidth: NativeInt;
   width, height: integer; value: double): boolean;
 var x, y: Integer;
     pMtx : PConstDoubleArr;

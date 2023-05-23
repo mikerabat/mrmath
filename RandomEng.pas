@@ -18,6 +18,8 @@ interface
 
 uses Types;
 
+{$I 'mrMath_CPU.inc'}
+
 // ###########################################
 // #### some simple random number generators
 // ###########################################
@@ -93,7 +95,9 @@ type
     fInpChaChaMTX : PChaChaMtx;
     fOutChaChaMtx : PChaChaMtx;
 
+    {$IFNDEF MRMATH_NOASM}
     fOutChaChaMtxAVX : PChaChaAVXMtx;
+    {$ENDIF}
 
     fChaChaIdx : integer;
     fChaChaMode : TChaChaMode;
@@ -106,11 +110,13 @@ type
     procedure ChaChaQuarterRound( var a, b, c, d : LongWord );
     procedure PasChaChaDoubleQuarterRound;   // one column and row round
 
+    {$IFNDEF MRMATH_NOASM}
     function SSERandChaChaDblWord : Longword;
     procedure SSEChaChaDoubleQuarterRound;
 
     function AVXRandChaChaDblWord : Longword;
     procedure AVXInitChaChaByVec(k : TChaChaK; iv : TChaChaIV);
+    {$ENDIF}
 
     function RandChaChaInt(const ARange: LongInt) : LongInt;
     function RandChaChaDbl : double;
@@ -180,15 +186,10 @@ type
   
 implementation
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
-
 uses SysUtils, CPUFeatures, Math, Classes, MatrixConst,
+     {$IFNDEF MRMATH_NOASM}
      {$IFDEF x64}AVXChaChax64, {$ELSE}AVXChaCha,{$ENDIF}
+     {$ENDIF}
      MtxTimer{$IFDEF MSWINDOWS}, winRandomGen {$ENDIF} {$IFNDEF MSWINDOWS}, MacOsRandomGen {$ENDIF};
 
 const two2neg32: double = ((1.0/$10000) / $10000);  // 2^-32
@@ -366,6 +367,7 @@ end;
 
 procedure TRandomGenerator.SetCpuInstrSet(aCpuSet: TChaChaCPUInstrType);
 begin
+     {$IFNDEF MRMATH_NOASM}
      if (aCpuSet = itAVX2) then
      begin
           fChaChaDblWord := {$IFDEF FPC}@{$ENDIF}AVXRandChaChaDblWord;
@@ -377,6 +379,7 @@ begin
           fChaChaInitVec := {$IFDEF FPC}@{$ENDIF}InitChaChaByVec;
      end
      else
+     {$ENDIF}
      begin
           fChaChaDblWord := {$IFDEF FPC}@{$ENDIF}PasRandChaChaDblWord;
           fChaChaInitVec := {$IFDEF FPC}@{$ENDIF}InitChaChaByVec;
@@ -508,7 +511,7 @@ begin
      Result := RDRandInt(MaxInt)*two2neg32;
 end;
 
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
+{$IFNDEF MRMATH_NOASM}
 
 // from http://stackoverflow.com/questions/28538370/using-intels-rdrand-opcode-in-delphi-6-7
 {$IFNDEF x64}
@@ -557,9 +560,11 @@ end;
 end;
 {$ENDIF}
 
+{$ENDIF}
 
 
 function TRandomGenerator.RDRandInt(const aRange : LongInt) : LongInt;
+{$IFNDEF MRMATH_NOASM}
 var cnt : integer;
     y : LongWord;
 begin
@@ -580,8 +585,14 @@ begin
 
      Result := LongInt(y and $7FFFFFFF) mod aRange;
 end;
+{$ELSE}
+begin
+     raise Exception.Create('Not implemented without hardware support');
+end;
+{$ENDIF}
 
 function TRandomGenerator.RDRandLW(const aRange: LongWord): LongWord;
+{$IFNDEF MRMATH_NOASM}
 var cnt : integer;
     y : LongWord;
 begin
@@ -602,6 +613,11 @@ begin
 
      Result := y mod aRange;
 end;
+{$ELSE}
+begin
+     raise Exception.Create('Not implemented without hardware support');
+end;
+{$ENDIF}
 
 // ###########################################
 // #### Mersenne Twister
@@ -789,12 +805,11 @@ end;
 // some bases are from
 // https://github.com/vnmakarov/mum-hash/blob/master/src/chacha-prng.h
 
-{$IFDEF x64}
+{$IF defined(x64) or defined(MRMATH_NOASM)}
 function rol(value: LongWord; Bits: Byte): LongWord;
 begin
      Result := (value shl Bits) or (value shr (32 - bits));
 end;
-
 {$ELSE}
 function rol(value: LongWord; Bits: Byte): LongWord;
 {$IFDEF FPC}
@@ -807,7 +822,7 @@ end;
 {$IFDEF FPC}
 end;
 {$ENDIF}
-{$ENDIF}
+{$IFEND}
 
 procedure TRandomGenerator.InitChaCha(const k: TChaChaK; const iv: TChaChaIV);
 begin
@@ -959,7 +974,7 @@ const cShuf8 : Array[0..15] of byte = (3, 0, 1, 2,
                                        11, 8, 9, 10,
                                        15, 12, 13, 14 );
 
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
+{$IFNDEF MRMATH_NOASM}
 
 procedure TRandomGenerator.SSEChaChaDoubleQuarterRound;
 {$IFDEF x64}
@@ -1183,6 +1198,7 @@ begin
      Result := fOutChaChaMtx^[fChaChaIdx];
      inc(fChaChaIdx);
 end;
+{$ENDIF}
 
 function TRandomGenerator.PasRandChaChaDblWord: Longword;
 var i : integer;

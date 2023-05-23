@@ -50,7 +50,7 @@ function binom(n, k : integer) : int64;
 function binomf(n, k : integer) : double; // based on gamma function
 
 
-procedure Covariance(dest : PDouble; DestLineWidth : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt; width, height : TASMNativeInt;
+procedure Covariance(dest : PDouble; DestLineWidth : NativeInt; A : PDouble; LineWidthA : NativeInt; width, height : NativeInt;
   Unbiased : boolean = True); // writes covariance matrix of A in dest
 
 // student t tests see Numerical recipies Chapter 14
@@ -569,7 +569,7 @@ end;
 // see: https://en.wikipedia.org/wiki/Binomial_coefficient
 // or german: http://de.wikipedia.org/wiki/Binomialkoeffizient
 function binom(n, k : integer) : int64;
-var tmp : integer;
+var tmp : int64;
     i : integer;
 begin
      if k = 0 then
@@ -596,10 +596,10 @@ begin
 end;
 
 // covariance: ac = A - mean(A); Result := 1/ac.height * ac'*ac;  -> the unbiased version uses 1/(ac.height - 1)
-procedure Covariance(dest : PDouble; DestLineWidth : TASMNativeInt; A : PDouble; LineWidthA : TASMNativeInt; width, height : TASMNativeInt; 
+procedure Covariance(dest : PDouble; DestLineWidth : NativeInt; A : PDouble; LineWidthA : NativeInt; width, height : NativeInt; 
   Unbiased : boolean = True); // writes covariance matrix of A in dest
 var aMean, tmp, ac : PDouble;
-    aMeanLineWidth, acLineWidth, tmpLineWidth : TASMNativeInt;
+    aMeanLineWidth, acLineWidth, tmpLineWidth : NativeInt;
     aMeanMem, acMem, tmpMem : Pointer;
     m : Integer;
 begin

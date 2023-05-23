@@ -17,40 +17,34 @@ unit ASMMatrixMinMaxOperations;
 
 interface
 
-{$IFDEF CPUX64}
-{$DEFINE x64}
-{$ENDIF}
-{$IFDEF cpux86_64}
-{$DEFINE x64}
-{$ENDIF}
+{$I 'mrMath_CPU.inc'}
+
 {$IFNDEF x64}
 
-uses MatrixConst;
+function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function ASMMatrixMaxUnAlignedEvenW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-function ASMMatrixMaxUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function ASMMatrixMaxAlignedOddW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function ASMMatrixMaxUnAlignedOddW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-function ASMMatrixMaxAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-function ASMMatrixMaxUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function ASMMatrixMinAlignedEvenW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function ASMMatrixMinUnAlignedEvenW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-function ASMMatrixMinAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-function ASMMatrixMinUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-
-function ASMMatrixMinAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-function ASMMatrixMinUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function ASMMatrixMinAlignedOddW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function ASMMatrixMinUnAlignedOddW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 // same as above but added Abs operation before taking max/min
-function ASMMatrixAbsMaxAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-function ASMMatrixAbsMaxUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function ASMMatrixAbsMaxAlignedEvenW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function ASMMatrixAbsMaxUnAlignedEvenW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-function ASMMatrixAbsMaxAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-function ASMMatrixAbsMaxUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function ASMMatrixAbsMaxAlignedOddW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function ASMMatrixAbsMaxUnAlignedOddW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-function ASMMatrixAbsMinAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-function ASMMatrixAbsMinUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function ASMMatrixAbsMinAlignedEvenW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function ASMMatrixAbsMinUnAlignedEvenW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-function ASMMatrixAbsMinAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-function ASMMatrixAbsMinUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function ASMMatrixAbsMinAlignedOddW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+function ASMMatrixAbsMinUnAlignedOddW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 
 {$ENDIF}
@@ -59,13 +53,11 @@ implementation
 
 {$IFNDEF x64}
 
-{$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
-
 const cLocNegMaxDouble : double = -1.7e+308;
       cLocMaxDouble : double = 1.7e+308;
       cLocAbsMask : Int64 = ($7FFFFFFFFFFFFFFF);
 
-function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 asm
    push edi;
         
@@ -130,7 +122,7 @@ asm
    pop edi;
 end;
 
-function ASMMatrixMaxUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixMaxUnAlignedEvenW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 asm
    push edi;
         
@@ -201,7 +193,7 @@ asm
    pop edi;
 end;
 
-function ASMMatrixMaxAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixMaxAlignedOddW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 asm
    push edi;
         
@@ -271,7 +263,7 @@ asm
    pop edi;
 end;
 
-function ASMMatrixMaxUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixMaxUnAlignedOddW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 asm
    push edi;
         
@@ -347,7 +339,7 @@ asm
    pop edi;
 end;
 
-function ASMMatrixMinAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixMinAlignedEvenW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 asm
    push edi;
         
@@ -412,7 +404,7 @@ asm
    pop edi;
 end;
 
-function ASMMatrixMinUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixMinUnAlignedEvenW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 asm
    push edi;
         
@@ -483,7 +475,7 @@ asm
    pop edi;
 end;
 
-function ASMMatrixMinAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixMinAlignedOddW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 asm
    push edi;
         
@@ -552,7 +544,7 @@ asm
    pop edi;
 end;
 
-function ASMMatrixMinUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixMinUnAlignedOddW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 asm
    push edi;
         
@@ -632,7 +624,7 @@ end;
 // #### abs max/min operations
 // ###########################################
 
-function ASMMatrixAbsMaxAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixAbsMaxAlignedEvenW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 asm
    push edi;
 
@@ -716,7 +708,7 @@ asm
    pop edi;
 end;
 
-function ASMMatrixAbsMaxUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixAbsMaxUnAlignedEvenW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 asm
    push edi;
 
@@ -800,7 +792,7 @@ asm
    pop edi;
 end;
 
-function ASMMatrixAbsMaxAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixAbsMaxAlignedOddW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 asm
    push edi;
 
@@ -890,7 +882,7 @@ asm
    pop edi;
 end;
 
-function ASMMatrixAbsMaxUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixAbsMaxUnAlignedOddW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 asm
    push edi;
 
@@ -977,7 +969,7 @@ asm
    pop edi;
 end;
 
-function ASMMatrixAbsMinAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixAbsMinAlignedEvenW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 asm
    push edi;
 
@@ -1061,7 +1053,7 @@ asm
    pop edi;
 end;
 
-function ASMMatrixAbsMinUnAlignedEvenW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixAbsMinUnAlignedEvenW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 asm
    push edi;
 
@@ -1145,7 +1137,7 @@ asm
    pop edi;
 end;
 
-function ASMMatrixAbsMinAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixAbsMinAlignedOddW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 asm
    push edi;
 
@@ -1236,7 +1228,7 @@ asm
 end;
 
 
-function ASMMatrixAbsMinUnAlignedOddW(mt : PDouble; width, height : TASMNativeInt; const LineWidth : TASMNativeInt) : double;
+function ASMMatrixAbsMinUnAlignedOddW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 asm
    push edi;
 

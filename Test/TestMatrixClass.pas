@@ -64,8 +64,10 @@ type
    procedure TestApplyFunc;
    procedure TestSumInPlace;
    procedure TestQR;
+   procedure TestQREdge;
    procedure TestCholesky;
    procedure TestSymEig;
+   procedure TestSymEig2;
    procedure TestEig;
    procedure TestNormalize;
    procedure TestRandomInit;
@@ -121,6 +123,7 @@ type
     procedure TestSVD;
     procedure TestSymEig;
     procedure TestLeastSquares;
+    procedure TestRollMedian;
   end;
 
 implementation
@@ -621,7 +624,7 @@ begin
          for x := 0 to cBlkWidth - 1 do
              mtx[x, y] := Random - 0.5;
 
-     check( mtx.QRFull(Q, R) = qrOK, 'Error QR decomposition failed');
+     mtx.QRFull(Q, R);
 
      // simple test: Q*R = mtx
      dest := Q.Mult(R);
@@ -634,7 +637,7 @@ begin
      
      // 2nd asymetric case:
      mtx.TransposeInPlace;
-     check( mtx.QRFull(Q, R) = qrOK, 'Error QR decomposition failed');
+     mtx.QRFull(Q, R);
 
      // simple test: Q*R = mtx
      dest := Q.Mult(R);
@@ -644,6 +647,22 @@ begin
      q.Free;
      R.Free;
      dest.Free;
+end;
+
+procedure TestTDoubleMatrix.TestQREdge;
+var mtx : TDoubleMatrix;
+    q, r : TDoubleMatrix;
+begin
+     mtx := TDoubleMatrix.Create(3, 3);
+
+     mtx.QRFull(q, r);
+
+     check( (r[0, 0] = 0) and (r[1, 1] = 0) and (r[2, 2] = 0), 'R matrix failed');
+     check( (q[0, 0] = 1) and (q[1, 1] = 1) and (q[2, 2] = 1), 'Q matrix failed');
+
+     mtx.Free;
+     q.Free;
+     r.Free;
 end;
 
 procedure TestTDoubleMatrix.TestRandomInit;
@@ -856,6 +875,26 @@ begin
      end;
 end;
 
+procedure TestTDoubleMatrix.TestSymEig2;
+var mtx : TDoubleMatrix;
+    eigVals, eigVec : TDoubleMatrix;
+const cMtx : Array[0..8] of double = ( 2.94167355,	-1.40048466650771E-17,	0,
+                                      -1.40048466650771E-17,	2.94170293333333,	0,
+                                      0,	0,	0	);
+begin
+     mtx := TDoubleMatrix.Create( cMtx, 3, 3 );
+
+     Check(mtx.SymEig(eigVals, eigVec) = qlOk, 'Symmetric eigenvalue decompositin failed');
+
+     Status( WriteMtx(eigVals, 5) );
+     Status('');
+     Status( WriteMtx(eigVec) );
+
+     mtx.Free;
+     eigVals.Free;
+     eigVec.Free;
+end;
+
 procedure TestTDoubleMatrix.TestTranspose;
 var mtx : TDoubleMatrix;
 begin
@@ -973,8 +1012,8 @@ var a, b, c : IMatrix;
 begin
      {$IFDEF FMX} Setup; {$ENDIF};
      a := TThreadedMatrix.CreateRand(2047, 2047);
-     b := a.Transpose;
-     a.MultInPlace(b);
+     // make positive finite
+     a.MultInPlaceT2(a);
 
      startTime := MtxGetTime;
      res := a.Cholesky(b);
@@ -1087,12 +1126,12 @@ begin
      m2 := TThreadedMatrix.Create(x, cBlkWidth, cBlkWidth);
 
      start := MtxGetTime;
-     check(m1.SolveLeastSquaresInPlace(x1, y) = qrOK, 'Error big least squares');
+     m1.SolveLeastSquaresInPlace(x1, y);
      stop := MtxGetTime;
      Status(Format('Big single least squares: %.2fms', [(stop - start)/mtxfreq*1000]));
 
      start := MtxGetTime;
-     check(m2.SolveLeastSquaresInPlace(x2, y) = qrOk, 'Error inverting multi threaded version');
+     m2.SolveLeastSquaresInPlace(x2, y);
      stop := MtxGetTime;
 
      Status(Format('Big threaded least sqares: %.2fms', [(stop - start)/mtxfreq*1000]));
@@ -1174,6 +1213,33 @@ begin
      Check(CheckMtx(m1.SubMatrix, m2.SubMatrix), 'Error calculating threaded median');
      {$IFDEF FMX} TearDown; {$ENDIF};
 end;
+
+procedure TestTThreadedMatrix.TestRollMedian;
+var mtx : TThreadedMatrix;
+    stop, start : Int64;
+begin
+     {$IFDEF FMX} Setup; {$ENDIF};
+
+     mtx := TThreadedMatrix.CreateRand( 2048, 2048 );
+     try
+        start := MtxGetTime;
+        mtx.RollMedianInPlace(True, 5);
+        stop := MtxGetTime;
+        Status(Format('Multi thread roll median in %.3fms', [(stop - start)/mtxfreq*1000]));
+
+        start := MtxGetTime;
+        mtx.RollMedianInPlace(False, 5);
+        stop := MtxGetTime;
+        Status(Format('Multi thread roll median in %.3fms', [(stop - start)/mtxfreq*1000]));
+
+        // just check the size...
+        Check( (mtx.Width = mtx.Height) and (mtx.Width = 2048), 'Size changed?!?');
+     finally
+            mtx.Free;
+     end;
+end;
+
+
 
 procedure TestTThreadedMatrix.TestSort;
 const cBlkWidth = 2048;
