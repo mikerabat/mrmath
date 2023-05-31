@@ -221,6 +221,8 @@ begin
              defineStr := '{$IFDEF ' + ParamStr(i + 1) + '}';
           if SameText( ParamStr(i), '-searchdefine') then
              searchDefineStr := '{$IFDEF ' + ParamStr(i + 1) + '}';
+          if SameText( ParamStr(i), '-tabstop') then
+             tabStopElse := StrToInt(ParamStr(i + 1));
 
           inc(i);
      end;
