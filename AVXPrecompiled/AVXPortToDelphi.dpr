@@ -173,7 +173,7 @@ begin
                                        outLine := Copy(outLine, preIdx, Length(outLine));
                                    idx := Pos('{$ELSE}', UpperCase(outLine));
                                    if idx > 0 then
-                                      outLine := Copy(outLine, 1, idx - 1);
+                                      outLine := TrimRight( Copy(outLine, 1, idx - 1) );
 
                                    outLine := pre + definestr + outLine;
                                    outline := outline + StringOfChar(' ', Max(0, tabStopElse - Length(outline) )) +
@@ -195,7 +195,8 @@ begin
           end;
      end;
 
-     // to debug
+     // ###########################################
+     // #### Write back result
      slOut.SaveToFile(pasFile, TEncoding.ASCII);
 end;
 
@@ -220,6 +221,8 @@ begin
              defineStr := '{$IFDEF ' + ParamStr(i + 1) + '}';
           if SameText( ParamStr(i), '-searchdefine') then
              searchDefineStr := '{$IFDEF ' + ParamStr(i + 1) + '}';
+          if SameText( ParamStr(i), '-tabstop') then
+             tabStopElse := StrToInt(ParamStr(i + 1));
 
           inc(i);
      end;
