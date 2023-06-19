@@ -967,7 +967,7 @@ end;
 procedure MatrixElemMult(var dest : Array of Double; const mt1, mt2 : Array of Double; width : NativeInt; height : NativeInt); overload;
 begin
      assert((width > 0), 'Dimension Error');
-     assert(High(mt1) >= width + 1, 'Dimension Error');
+     assert(Length(mt1) >= width, 'Dimension Error');
      assert(High(mt2) = High(mt1), 'Dimension Error');
      assert(High(dest) = High(mt1), 'Dimension Error');
 

@@ -62,6 +62,9 @@ procedure QuickSort2( var A, B : TDoubleDynArray );
 function KthLargest(var vals : TDoubleDynArray; elemNum : Cardinal) : double; overload;
 function KthLargest(valsArr : PDouble; numElem : integer; elemNum : Cardinal) : double; overload;
 
+// gauss window
+// creates a gasus window with a maximum at N div 2 using the formula w = exp( -(a*x)^2/2)
+procedure GaussWin( dest : PDouble; N : integer; A : double );
 
 // exponential integrals (En(x) = int_1_oo e^(-xt)/t^n dt ... x > 0, n = 0, 1, ....
 function expInt( n : integer; x : double ) : double;
@@ -1088,6 +1091,23 @@ end;
 function findRoot( func : TRootFunc; out root : double; x1, x2 : double; xAcc : double = 1e-8 ) : boolean;
 begin
      Result := findRootBrent( func, root, x1, x2, xAcc);
+end;
+
+
+procedure GaussWin( dest : PDouble; N : integer; A : double );
+var i : integer;
+    m : double;
+    mInc : double;
+begin
+     m := -(N-1)/N;
+     mInc := -2*m/N;
+
+     for i := 0 to N - 1 do
+     begin
+          dest^ := exp( -0.5*sqr(a*m));
+          m := m + mInc;
+          inc(dest);
+     end;
 end;
 
 
