@@ -27,10 +27,10 @@ type
   TCorrelation = class(TMatrixClass)
   protected
     function InternalCorrelateArr( w1, w2 : PDouble; len : integer) : Double;
-    function InternalCorrelate(w1, w2 : IMatrix) : double;
+    function InternalCorrelate(w1, w2: IMatrix; const VarianceRatioThreshold: double = 0): double;
     function InternalWeightedCorrelate( w1, w2 : IMatrix; weights : IMatrix ) : double;
   public
-    function Correlate(x, y : IMatrix) : double; overload; // correlation coefficient between t, r (must have the same length)
+    function Correlate(x, y : IMatrix; const VarianceRatioThreshold: double = 0) : double; overload; // correlation coefficient between t, r (must have the same length)
     function Correlate(x, y : IMatrix; var prob, z : double) : double; overload; // pearson correlation with Fishers's z and probobality 
 
     function CorrelateWeighted(x, y, w : IMatrix) : double; overload; // weighted correlation
@@ -172,7 +172,7 @@ end;
 
 
 // note: afterwards w1 and w2 are mean normalized and w2 width and height is changed!
-function TCorrelation.Correlate(x, y: IMatrix): double;
+function TCorrelation.Correlate(x, y: IMatrix; const VarianceRatioThreshold: double = 0): double;
 var w1, w2 : IMatrix;
 begin
      w1 := x;
@@ -184,7 +184,7 @@ begin
 
      assert(w1.Width = w2.Width, 'Dimension error');
      
-     Result := InternalCorrelate(w1, w2);
+     Result := InternalCorrelate(w1, w2, VarianceRatioThreshold);
 end;
 
 class function TCorrelation.Covariance(x, y: IMatrix; Unbiased : boolean = True): IMatrix;
@@ -236,7 +236,7 @@ begin
      Result := ac;
 end;
 
-function TCorrelation.InternalCorrelate(w1, w2: IMatrix): double;
+function TCorrelation.InternalCorrelate(w1, w2: IMatrix; const VarianceRatioThreshold: double = 0): double;
 var meanVar1 : TMeanVarRec;
     meanVar2 : TMeanVarRec;
 begin
@@ -246,8 +246,14 @@ begin
      MatrixMeanVar( @meanVar1, 2*sizeof(double), w1.StartElement, w1.LineWidth, w1.Width, 1, True, True);
      MatrixMeanVar( @meanVar2, 2*sizeof(double), w2.StartElement, w2.LineWidth, w2.Width, 1, True, True);
 
+     // Optional: If signal has a MUCH smaller (eg: factor 3) variance
+     //   than the reference signal -> don't scale it up
+     if (VarianceRatioThreshold <> 0) and (meanVar2.aVar*VarianceRatioThreshold < meanVar1.aVar) then
+        meanVar2.aVar := meanVar1.aVar;
+
+     // For norming the variance may not be zero
      if SameValue(meanVar1.aVar, 0, cDefEpsilon) or SameValue(meanVar2.aVar, 0, cDefEpsilon) then
-        raise ECorrelateException.Create('Correlation Error: variance is zero');
+        raise ECorrelateException.Create('Correlation Error: variance of an input vector is zero');
      
      w1.AddInPlace( -meanVar1.aMean );     
      w2.AddInPlace( -meanVar2.aMean );

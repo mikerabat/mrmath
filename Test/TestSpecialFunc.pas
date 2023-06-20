@@ -42,6 +42,7 @@ type
     procedure TestGammaP;
     procedure TestMatrixExp;
     procedure TestMillerRubin32;
+    procedure TestGaussWin;
   end;
 
 implementation
@@ -265,6 +266,16 @@ begin
      
      for i := 0 to mat.Height - 1 do
          Check( SameValue( mat[2, i], ref.Vec[i], 1e-5), 'Incomplete Gamma failed to check on the reference');
+end;
+
+procedure TTestSpecialFuncs.TestGaussWin;
+var a : IMatrix;
+begin
+     // just call the function and see if there is no error
+     a := TDoubleMatrix.Create( 64, 1 );
+     GaussWin(a.StartElement, a.Width, 3);
+
+     //WriteMatlabData('d:\gausswin.txt', a.SubMatrix, a.Width);
 end;
 
 procedure TTestSpecialFuncs.TestIncompleteBeta;
