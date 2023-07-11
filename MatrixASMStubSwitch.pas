@@ -35,7 +35,8 @@ procedure MatrixCopy(dest : PDouble; const destLineWidth : NativeInt; Src : PDou
 procedure MatrixCopy(var dest : Array of double; const Src : Array of double; width, height : NativeInt); overload;
 function MatrixCopy(Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt) : TDoubleDynArray; overload;
 function MatrixCopy(const Src : Array of double; width, height : NativeInt) : TDoubleDynArray; overload;
-procedure MatrixInit(dest : PDouble; const destLineWidth : NativeInt; Width, Height : NativeInt; const value : Double);
+procedure MatrixInit(dest : PDouble; const destLineWidth : NativeInt; Width, Height : NativeInt; const value : Double); overload;
+procedure MatrixInit(var dest : Array of double; const Value : double); overload;
 
 procedure MatrixIndex(dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; colIdx, rowIdx : TIntegerDynArray);
 
@@ -241,7 +242,8 @@ procedure MatrixVar(var dest : Array of double; const Src : Array of double; wid
 
 procedure VecMeanVar( var dest : TMeanVarRec; vec : PDouble; width : NativeInt; unbiased : boolean);  
 procedure MatrixMeanVar(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; unbiased : boolean);
-procedure MatrixNormalizeMeanVar(dest : PDouble; destLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+procedure MatrixNormalizeMeanVar(dest : PDouble; destLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean); overload;
+procedure MatrixNormalizeMeanVar(var aVec : Array of double); overload;
 
 function MatrixSum(Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray; overload;
 function MatrixSum(const Src : Array of double; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray; overload;
@@ -578,6 +580,12 @@ end;
 procedure MatrixIndex(dest : PDouble; const destLineWidth : NativeInt; src : PDouble; const srcLineWidth : NativeInt; colIdx, rowIdx : TIntegerDynArray);
 begin
      GenericMtxIndex( dest, destLineWidth, src, srcLineWidth, colIdx, rowIdx );
+end;
+
+procedure MatrixInit(var dest : Array of double; const Value : double);
+begin
+     if Length(Dest) > 0 then
+        MatrixInit(@dest[0], Length(dest)*sizeof(double), Length(dest), 1, value);
 end;
 
 procedure MatrixInit(dest : PDouble; const destLineWidth : NativeInt; Width, Height : NativeInt; const value : Double);
@@ -1331,6 +1339,12 @@ procedure MatrixMeanVar(dest : PDouble; destLineWidth : NativeInt; Src : PDouble
 begin
      assert((RowWise and (destLineWidth >= 2*sizeof(double))) or (not RowWise and (destLineWidth >= width*sizeof(double))), 'Dimension error');
      matrixMeanVarFunc(dest, destLineWidth, Src, srcLineWidth, width, height, RowWise, unbiased);
+end;
+
+procedure MatrixNormalizeMeanVar(var aVec : Array of double);
+begin
+     if Length(aVec) <> 0 then
+        MatrixNormalizeMeanVar(@aVec[0], Length(aVec)*sizeof(double), Length(aVec), 1, True);
 end;
 
 procedure MatrixNormalizeMeanVar(dest : PDouble; destLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
