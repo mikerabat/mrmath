@@ -53,7 +53,7 @@ type
 
     function DefInitPCA : TMatrixPCA;
 
-    procedure UpdateGains(var Value : double; const data : PDouble; LineWidth : integer; x, y : integer);
+    //procedure UpdateGains(var Value : double; const data : PDouble; LineWidth : integer; x, y : integer);
     procedure HBetaExp( var value : double );
     procedure EntropyFuncQ( var Value : double; const data : PDouble; LineWidth : integer; x, y : integer );
 
@@ -87,7 +87,7 @@ type
 
 implementation
 
-uses SysUtils, Math, Classes, MatrixASMStubSwitch,
+uses SysUtils, Math, Classes, MatrixASMStubSwitch, MatrixConst,
      Dist;
 
 { TtSNE }
@@ -413,6 +413,11 @@ var n : integer;                        // number of instances
     L, Q : IMatrix;
     cost : double;
     doCancel : boolean;
+    pGains : PConstDoubleArr;
+    pYGrads : PConstDoubleArr;
+    pYIncs : PConstDoubleArr;
+    x, y : Integer;
+
 const final_momentum : double = 0.8;    // value to which momentum is changed
       mom_switch_iter : integer = 250;  // iteration at which momentum is changed
       stop_lying_iter : integer = 100;   // iteration at which lying about P-values is stopped
@@ -451,6 +456,7 @@ begin
 
      fyincs := MatrixClass.Create(yData.Width, yData.Height );
      gains := MatrixClass.Create(yData.Width, yData.Height, 1);
+     //gains := TDoubleMatrix.Create(yData.Width, yData.Height, 1);
 
      // #################################################
      // #### now iterate
@@ -493,7 +499,32 @@ begin
           fy_grads.MultInPlace(ydata);
 
           // Update the solution
-          gains.ElementwiseFuncInPlace( {$ifdef FPC}@{$ENDIF}UpdateGains );
+          // -> the current lib does not work well with a multithread version of the gains update
+          // -> do it here manually
+
+          // previously it was:
+          // gains.ElementwiseFuncInPlace( {$ifdef FPC}@{$ENDIF}UpdateGains );
+          pGains := PConstDoubleArr( gains.StartElement );
+          pYGrads := PConstDoubleArr( fy_grads.StartElement );
+          pYIncs := PConstDoubleArr( fyincs.StartElement );
+
+          for y := 0 to gains.Height - 1 do
+          begin
+               for x := 0 to gains.Width - 1 do
+               begin
+                    if sign( pYGrads^[x] ) = sign( pYIncs^[x] )
+                    then
+                        pGains^[x] := cPhi*pGains^[x]
+                    else
+                        pGains^[x] := pGains^[x] + cK;
+
+                    pGains^[x] := Math.Max(pGains^[x], fminGain)
+               end;
+
+               inc(PByte(pGains), gains.LineWidth);
+               inc(PByte(pYGrads), fy_grads.LineWidth);
+               inc(PByte(pYIncs), fyincs.LineWidth);
+          end;
 
           fyincs.ScaleInPlace(momentum);
           tmp := gains.ElementWiseMult(fy_grads);
@@ -533,17 +564,17 @@ begin
      Result := yData;
 end;
 
-procedure TtSNE.UpdateGains(var Value: double; const data: PDouble; LineWidth,
-  x, y: integer);
-begin
-     if sign( fy_grads[x, y] ) = sign( fyincs[x, y] )
-     then
-         value := cPhi*value
-     else
-         value := value + cK;
-
-     value := Math.Max(value, fminGain)
-end;
+//procedure TtSNE.UpdateGains(var Value: double; const data: PDouble; LineWidth,
+//  x, y: integer);
+//begin
+//     if sign( fy_grads[x, y] ) = sign( fyincs[x, y] )
+//     then
+//         value := cPhi*value
+//     else
+//         value := value + cK;
+//
+//     value := Math.Max(value, fminGain)
+//end;
 
 procedure TtSNE.EntropyFuncQ(var Value: double; const data: PDouble; LineWidth,
   x, y: integer);
