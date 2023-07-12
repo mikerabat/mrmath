@@ -54,6 +54,10 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date 11.07.2023
+* Fixed a bad cast in the multithreading scheme
+* Updated TSNE algorithm so it is suited for the multithreaded matrix class.
+
 Date 20.03.2023
 * Fixed a bug in creating a random matrix in the TThreadedMatrix.
 * Removed unnecessary unit references.
