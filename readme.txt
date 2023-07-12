@@ -21,14 +21,10 @@ all the matrix functions in a class.
 Alternatively one can use the ThreadedMatrix.pas file which adds multithreaded
 functionality to the base class.
 
-Also check out
-https://github.com/mikerabat/mrmath
-for a deeper description.
-
 Platforms:
 
 This library was built mainly for the windows platform and is 
-compatible with Delphi2007 and later versions. 
+compatible with Delphi2010 and later versions. 
 
 The main problem for older Delphi version is that the compiler doesn't 
 recognize some of the assembler instructions - the generic Delphi code
