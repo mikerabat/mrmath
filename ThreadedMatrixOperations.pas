@@ -1457,9 +1457,9 @@ begin
      calls := MtxInitTaskGroup;
 
      for i := 0 to numUsed - 2 do
-         calls.AddTaskRec(@MatrixFuncObjFunc, @objs[i]);
+         calls.AddTaskRec(@MatrixFuncRefObjFunc, @objs[i]);
 
-     MatrixFuncObjFunc(@objs[numUsed  - 1]);
+     MatrixFuncRefObjFunc(@objs[numUsed  - 1]);
 
      calls.SyncAll;
 end;
