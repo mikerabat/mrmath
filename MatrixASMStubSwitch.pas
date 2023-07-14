@@ -266,6 +266,11 @@ procedure MatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, hei
 procedure MatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixMtxRefFunc); overload;
 procedure MatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixMtxRefObjFunc); overload;
 
+procedure SubMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; startx, starty, width, height : NativeInt; func : TMatrixFunc); overload;
+procedure SubMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; startx, starty, width, height : NativeInt; func : TMatrixObjFunc); overload;
+procedure SubMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; startx, starty, width, height : NativeInt; func : TMatrixMtxRefFunc); overload;
+procedure SubMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; startx, starty, width, height : NativeInt; func : TMatrixMtxRefObjFunc); overload;
+
 {$IFDEF FPC}
    {:$DEFINE ANONMETHODS}
 {$ELSE}
@@ -277,6 +282,10 @@ procedure MatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, hei
 {$IFDEF ANONMETHODS}
 procedure MatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixFuncRef); overload;
 procedure MatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixMtxRefFuncRef); overload;
+
+procedure SubMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; startx, starty, width, height : NativeInt; func : TMatrixFuncRef); overload;
+procedure SubMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; startx, starty, width, height : NativeInt; func : TMatrixMtxRefFuncRef); overload;
+
 {$ENDIF}
 
 // matrix rotation stubs
@@ -1564,6 +1573,27 @@ begin
      GenericMtxFunc(dest, destLineWidth, width, height, func);
 end;
 
+procedure SubMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; startx, starty, width, height : NativeInt; func : TMatrixFunc); overload;
+begin
+     GenericSubMtxFunc(dest, destLineWidth, startX, starty, width, height, func);
+end;
+
+procedure SubMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; startx, starty, width, height : NativeInt; func : TMatrixObjFunc); overload;
+begin
+     GenericSubMtxFunc(dest, destLineWidth, startX, starty, width, height, func);
+end;
+
+procedure SubMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; startx, starty, width, height : NativeInt; func : TMatrixMtxRefFunc); overload;
+begin
+     GenericSubMtxFunc(dest, destLineWidth, startX, starty, width, height, func);
+end;
+
+procedure SubMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; startx, starty, width, height : NativeInt; func : TMatrixMtxRefObjFunc); overload;
+begin
+     GenericSubMtxFunc(dest, destLineWidth, startX, starty, width, height, func);
+end;
+
+
 {$IFDEF ANONMETHODS}
 
 procedure MatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixFuncRef); overload;
@@ -1574,6 +1604,16 @@ end;
 procedure MatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixMtxRefFuncRef); overload;
 begin
      GenericMtxFunc(dest, destLineWidth, width, height, func);
+end;
+
+procedure SubMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; startx, starty, width, height : NativeInt; func : TMatrixFuncRef); overload;
+begin
+     GenericSubMtxFunc(dest, destLineWidth, startx, starty, width, height, func);
+end;
+
+procedure SubMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; startx, starty, width, height : NativeInt; func : TMatrixMtxRefFuncRef); overload;
+begin
+     GenericSubMtxFunc(dest, destLineWidth, startx, starty, width, height, func);
 end;
 
 {$ENDIF}

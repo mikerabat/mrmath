@@ -50,6 +50,12 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date 14.07.2023
+* Fixed multithreaded element wise application of a function
+  -> the x, y coordinates were from the submatrix not the overall matrix
+* skip blockwise mult if blocksize is bigger than the input
+* speedup of tsne
+
 Date 11.07.2023
 * Fixed a bad cast in the multithreading scheme
 * Updated TSNE algorithm so it is suited for the multithreaded matrix class.

@@ -87,6 +87,7 @@ type
 
     procedure SetValue(const initVal : double); overload;
     procedure SetValue(const initVal : double; x, y, aWidth, aHeight : NativeInt); overload;  // sets the value in a subsection of the matrix
+    procedure InitRandom(method : TRandomAlgorithm; seed : LongInt);         // sets the matrix to random values between 0 - 1
 
     function SubColMtx( colIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
     function SubRowMtx( rowIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
@@ -398,6 +399,7 @@ type
 
     procedure SetValue(const initVal : double); overload;
     procedure SetValue(const initVal : double; x, y, aWidth, aHeight : NativeInt); overload;  // sets the value in a subsection of the matrix
+    procedure InitRandom(method : TRandomAlgorithm; seed : LongInt);
 
     function SubColMtx( colIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
     function SubRowMtx( rowIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
@@ -611,6 +613,7 @@ type
 
     function Clone : TDoubleMatrix;
 
+    constructor Create(aWidth, aHeight : integer; NoLineWidthGap : boolean); overload;
     constructor Create; overload;
     constructor CreateVec( aLen : integer; const initVal : double = 0 );
     constructor Create(aWidth, aHeight : integer; const initVal : double = 0); overload;
@@ -1013,11 +1016,7 @@ begin
 
      SetWidthHeight(aWidth, aHeight);
 
-     fObj := TRandomGenerator.Create;
-     TRandomGenerator(fObj).RandMethod := method;
-     TRandomGenerator(fObj).Init(seed);
-     ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}MtxRandWithEng);
-     FreeAndNil(fObj);
+     InitRandom(method, seed);
 end;
 
 constructor TDoubleMatrix.CreateLinSpace(aVecLen: integer; const StartVal,
@@ -1063,7 +1062,21 @@ begin
      MatrixCopy(StartElement, LineWidth, @Mtx[0], W*sizeof(double), W, H);
 end;
 
-constructor TDoubleMatrix.CreateCpy(aWidth, aHeight : integer; data : PDouble; aLineWidth : integer); 
+constructor TDoubleMatrix.Create(aWidth, aHeight: integer;
+  NoLineWidthGap: boolean);
+begin
+     CheckAndRaiseError((aWidth > 0) and (aHeight > 0), 'Dimension error');
+
+     inherited Create;
+
+     SetWidthHeight(aWidth, aHeight);
+
+     // just shorten the linewidth -> so we get continous element access
+     if NoLineWidthGap then
+        fLineWidth := aWidth*SizeOf(double);
+end;
+
+constructor TDoubleMatrix.CreateCpy(aWidth, aHeight : integer; data : PDouble; aLineWidth : integer);
 begin
      CheckAndRaiseError((aWidth*aHeight >= 0) and (aLineWidth >= aWidth*sizeof(double)), 'Dimension error');
      
@@ -2580,6 +2593,15 @@ begin
      FreeMem(origMemory);
 end;
 
+
+procedure TDoubleMatrix.InitRandom(method : TRandomAlgorithm; seed : LongInt);
+begin
+     fObj := TRandomGenerator.Create;
+     TRandomGenerator(fObj).RandMethod := method;
+     TRandomGenerator(fObj).Init(seed);
+     MatrixFunc(StartElement, LineWidth, fSubWidth, fSubHeight, {$IFDEF FPC}@{$ENDIF}MtxRandWithEng);
+     FreeAndNil(fObj);
+end;
 
 procedure TDoubleMatrix.InternalSetWidthHeight(const aWidth, aHeight: integer; AssignMem : boolean);
 begin

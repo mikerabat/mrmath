@@ -609,6 +609,13 @@ begin
 
      assert(blockSize > 1, 'Error blocksize must be at least 2');
 
+     // try to take a shortcut where blocked matrix mult is hindering performance
+     if (op = doNone) and (width1 <= blockSize) then
+     begin
+          MatrixMultT2( dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2 );
+          exit;
+     end;
+
      if (blockSize > width1) and (not Assigned(mem)) then
         blockSize := Next2Pwr( width1, blockSize );
      

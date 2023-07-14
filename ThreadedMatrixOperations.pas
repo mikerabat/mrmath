@@ -182,6 +182,8 @@ type
   TAsyncMatrixFuncRec = record
     dest : PDouble;
     destLineWidth : NativeInt;
+    StartX : NativeInt;
+    StartY : NativeInt;
     width : NativeInt;
     height : NativeInt;
     func : TMatrixFunc;
@@ -191,6 +193,8 @@ type
   TAsyncMatrixFuncObjRec = record
     dest : PDouble;
     destLineWidth : NativeInt;
+    StartX : NativeInt;
+    StartY : NativeInt;
     width : NativeInt;
     height : NativeInt;
     func : TMatrixObjFunc;
@@ -200,6 +204,8 @@ type
   TAsyncMatrixFuncRefRec = record
     dest : PDouble;
     destLineWidth : NativeInt;
+    StartX : NativeInt;
+    StartY : NativeInt;
     width : NativeInt;
     height : NativeInt;
     func : TMatrixMtxRefFunc;
@@ -209,6 +215,8 @@ type
   TAsyncMatrixFuncRefObjRec = record
     dest : PDouble;
     destLineWidth : NativeInt;
+    StartX : NativeInt;
+    StartY : NativeInt;
     width : NativeInt;
     height : NativeInt;
     func : TMatrixMtxRefObjFunc;
@@ -220,6 +228,8 @@ type
   TAsyncMatrixFuncRefRecAnon = record
     dest : PDouble;
     destLineWidth : NativeInt;
+    StartX : NativeInt;
+    StartY : NativeInt;
     width : NativeInt;
     height : NativeInt;
     func : TMatrixMtxRefFuncRef;
@@ -230,6 +240,8 @@ type
   TAsyncMatrixFuncRecAnon = record
     dest : PDouble;
     destLineWidth : NativeInt;
+    StartX : NativeInt;
+    StartY : NativeInt;
     width : NativeInt;
     height : NativeInt;
     func : TMatrixFuncRef;
@@ -240,39 +252,74 @@ type
 
 procedure MatrixFuncFunc(obj : Pointer);
 begin
-     MatrixFunc(PAsyncMatrixFuncRec(obj)^.dest,
-                PAsyncMatrixFuncRec(obj)^.destLineWidth,
-                PAsyncMatrixFuncRec(obj)^.width,
-                PAsyncMatrixFuncRec(obj)^.height,
-                PAsyncMatrixFuncRec(obj)^.func);
+     SubMatrixFunc(PAsyncMatrixFuncRec(obj)^.dest,
+                   PAsyncMatrixFuncRec(obj)^.destLineWidth,
+                   PAsyncMatrixFuncRec(obj)^.StartX,
+                   PAsyncMatrixFuncRec(obj)^.StartY,
+                   PAsyncMatrixFuncRec(obj)^.width,
+                   PAsyncMatrixFuncRec(obj)^.height,
+                   PAsyncMatrixFuncRec(obj)^.func);
 end;
 
 procedure MatrixFuncObjFunc(obj : Pointer);
 begin
-     MatrixFunc(PAsyncMatrixFuncObjRec(obj)^.dest,
-                PAsyncMatrixFuncObjRec(obj)^.destLineWidth,
-                PAsyncMatrixFuncObjRec(obj)^.width,
-                PAsyncMatrixFuncObjRec(obj)^.height,
-                PAsyncMatrixFuncObjRec(obj)^.func);
+     SubMatrixFunc(PAsyncMatrixFuncObjRec(obj)^.dest,
+                   PAsyncMatrixFuncObjRec(obj)^.destLineWidth,
+                   PAsyncMatrixFuncObjRec(obj)^.StartX,
+                   PAsyncMatrixFuncObjRec(obj)^.StartY,
+                   PAsyncMatrixFuncObjRec(obj)^.width,
+                   PAsyncMatrixFuncObjRec(obj)^.height,
+                   PAsyncMatrixFuncObjRec(obj)^.func);
 end;
 
 procedure MatrixFuncRefFunc(obj : Pointer);
 begin
-     MatrixFunc(PAsyncMatrixFuncRefRec(obj)^.dest,
-                PAsyncMatrixFuncRefRec(obj)^.destLineWidth,
-                PAsyncMatrixFuncRefRec(obj)^.width,
-                PAsyncMatrixFuncRefRec(obj)^.height,
-                PAsyncMatrixFuncRefRec(obj)^.func);
+     SubMatrixFunc(PAsyncMatrixFuncRefRec(obj)^.dest,
+                   PAsyncMatrixFuncRefRec(obj)^.destLineWidth,
+                   PAsyncMatrixFuncRefRec(obj)^.StartX,
+                   PAsyncMatrixFuncRefRec(obj)^.StartY,
+                   PAsyncMatrixFuncRefRec(obj)^.width,
+                   PAsyncMatrixFuncRefRec(obj)^.height,
+                   PAsyncMatrixFuncRefRec(obj)^.func);
 end;
 
 procedure MatrixFuncRefObjFunc(obj : Pointer);
 begin
-     MatrixFunc(PAsyncMatrixFuncRefObjRec(obj)^.dest,
+     SubMatrixFunc(PAsyncMatrixFuncRefObjRec(obj)^.dest,
                 PAsyncMatrixFuncRefObjRec(obj)^.destLineWidth,
+                PAsyncMatrixFuncRefObjRec(obj)^.StartX,
+                PAsyncMatrixFuncRefObjRec(obj)^.StartY,
                 PAsyncMatrixFuncRefObjRec(obj)^.width,
                 PAsyncMatrixFuncRefObjRec(obj)^.height,
                 PAsyncMatrixFuncRefObjRec(obj)^.func);
 end;
+
+{$IFDEF ANONMETHODS}
+
+procedure MatrixFuncObjFuncAnon(obj : Pointer);
+begin
+     SubMatrixFunc(PAsyncMatrixFuncRefRecAnon(obj)^.dest,
+                   PAsyncMatrixFuncRefRecAnon(obj)^.destLineWidth,
+                   PAsyncMatrixFuncRefRecAnon(obj)^.StartX,
+                   PAsyncMatrixFuncRefRecAnon(obj)^.StartY,
+                   PAsyncMatrixFuncRefRecAnon(obj)^.width,
+                   PAsyncMatrixFuncRefRecAnon(obj)^.height,
+                   PAsyncMatrixFuncRefRecAnon(obj)^.func);
+end;
+
+procedure MatrixFuncRefFuncAnon(obj : Pointer);
+begin
+     SubMatrixFunc(PAsyncMatrixFuncRecAnon(obj)^.dest,
+                   PAsyncMatrixFuncRecAnon(obj)^.destLineWidth,
+                   PAsyncMatrixFuncRecAnon(obj)^.StartX,
+                   PAsyncMatrixFuncRecAnon(obj)^.StartY,
+                   PAsyncMatrixFuncRecAnon(obj)^.width,
+                   PAsyncMatrixFuncRecAnon(obj)^.height,
+                   PAsyncMatrixFuncRecAnon(obj)^.func);
+end;
+
+
+{$ENDIF}
 
 procedure MatrixMultFunc(obj : Pointer);
 begin
@@ -1097,7 +1144,7 @@ procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, 
 var i: NativeInt;
     calls : IMtxAsyncCallGroup;
     thrSize : NativeInt;
-
+    startX, startY : NativeInt;
     objs : Array[0..cMaxNumCores] of TAsyncMatrixFuncRec;
     numUsed : integer;
 begin
@@ -1109,6 +1156,8 @@ begin
      end;
 
      numUsed := 0;
+     startX := 0;
+     startY := 0;
      if width > height then
      begin
           thrSize := Max(64, width div numCPUCores);
@@ -1117,11 +1166,13 @@ begin
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
+               objs[numUsed].StartX := startX;
+               objs[numUsed].StartY := startY;
                objs[numUsed].width := Min(thrSize, width);
                objs[numUsed].height := height;
                objs[numUsed].func := func;
 
-               inc(dest, thrSize);
+               inc(startX, thrSize);
                dec(width, thrSize);
                inc(numUsed);
           end;
@@ -1140,11 +1191,13 @@ begin
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
+               objs[numUsed].StartX := startX;
+               objs[numUsed].StartY := startY;
                objs[numUsed].width := width;
                objs[numUsed].height := Min(thrSize, height);
                objs[numUsed].func := func;
 
-               inc(PByte(dest), thrSize*destLineWidth);
+               inc(startY, thrSize);
                inc(numUsed);
                dec(height, thrSize);
           end;
@@ -1172,6 +1225,7 @@ procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, 
 var i: integer;
     calls : IMtxAsyncCallGroup;
     thrSize : NativeInt;
+    startX, startY : NativeInt;
     objs : Array[0..cMaxNumCores] of TAsyncMatrixFuncObjRec;
     numUsed : integer;
 begin
@@ -1183,6 +1237,8 @@ begin
      end;
 
      numUsed := 0;
+     startX := 0;
+     startY := 0;
      if width > height then
      begin
           thrSize := Max(64, width div numCPUCores);
@@ -1191,11 +1247,13 @@ begin
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
+               objs[numUsed].StartX := startX;
+               objs[numUsed].StartY := startY;
                objs[numUsed].width := Min(thrSize, width);
                objs[numUsed].height := height;
                objs[numUsed].func := func;
 
-               inc(dest, thrSize);
+               inc(startX, thrSize);
                dec(width, thrSize);
                inc(numUsed);
           end;
@@ -1214,11 +1272,13 @@ begin
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
+               objs[numUsed].StartX := startX;
+               objs[numUsed].StartY := startY;
                objs[numUsed].width := width;
                objs[numUsed].height := Min(thrSize, height);
                objs[numUsed].func := func;
 
-               inc(PByte(dest), thrSize*destLineWidth);
+               inc(startY, thrSize);
                inc(numUsed);
                dec(height, thrSize);
           end;
@@ -1246,6 +1306,7 @@ procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, 
 var i: integer;
     calls : IMtxAsyncCallGroup;
     thrSize : NativeInt;
+    startX, startY : NativeInt;
     objs : Array[0..cMaxNumCores] of TAsyncMatrixFuncRefRec;
     numUsed : integer;
 begin
@@ -1257,6 +1318,8 @@ begin
      end;
 
      numUsed := 0;
+     startX := 0;
+     startY := 0;
      if width > height then
      begin
           thrSize := Max(64, width div numCPUCores);
@@ -1265,11 +1328,13 @@ begin
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
+               objs[numUsed].StartX := startX;
+               objs[numUsed].StartY := startY;
                objs[numUsed].width := Min(thrSize, width);
                objs[numUsed].height := height;
                objs[numUsed].func := func;
 
-               inc(dest, thrSize);
+               inc(startX, thrSize);
                dec(width, thrSize);
                inc(numUsed);
           end;
@@ -1288,11 +1353,13 @@ begin
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
+               objs[numUsed].StartX := startX;
+               objs[numUsed].StartY := startY;
                objs[numUsed].width := width;
                objs[numUsed].height := Min(thrSize, height);
                objs[numUsed].func := func;
 
-               inc(PByte(dest), thrSize*destLineWidth);
+               inc(startY, thrSize);
                inc(numUsed);
                dec(height, thrSize);
           end;
@@ -1320,6 +1387,7 @@ procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, 
 var i: integer;
     calls : IMtxAsyncCallGroup;
     thrSize : NativeInt;
+    startX, startY : NativeInt;
     objs : Array[0..cMaxNumCores] of TAsyncMatrixFuncRefObjRec;
     numUsed : integer;
 begin
@@ -1331,6 +1399,8 @@ begin
      end;
 
      numUsed := 0;
+     startX := 0;
+     startY := 0;
      if width > height then
      begin
           thrSize := Max(64, width div numCPUCores);
@@ -1339,11 +1409,13 @@ begin
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
+               objs[numUsed].StartX := startX;
+               objs[numUsed].StartY := startY;
                objs[numUsed].width := Min(thrSize, width);
                objs[numUsed].height := height;
                objs[numUsed].func := func;
 
-               inc(dest, thrSize);
+               inc(startX, thrSize);
                dec(width, thrSize);
                inc(numUsed);
           end;
@@ -1362,11 +1434,13 @@ begin
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
+               objs[numUsed].StartX := startX;
+               objs[numUsed].StartY := startY;
                objs[numUsed].width := width;
                objs[numUsed].height := Min(thrSize, height);
                objs[numUsed].func := func;
 
-               inc(PByte(dest), thrSize*destLineWidth);
+               inc(startY, thrSize);
                inc(numUsed);
                dec(height, thrSize);
           end;
@@ -1392,10 +1466,11 @@ end;
 
 {$IFDEF ANONMETHODS}
 
-procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixFuncRef);
+procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixFuncRef); overload;
 var i: integer;
     calls : IMtxAsyncCallGroup;
     thrSize : NativeInt;
+    startX, startY : NativeInt;
     objs : Array[0..cMaxNumCores] of TAsyncMatrixFuncRecAnon;
     numUsed : integer;
 begin
@@ -1407,6 +1482,8 @@ begin
      end;
 
      numUsed := 0;
+     startX := 0;
+     StartY := 0;
      if width > height then
      begin
           thrSize := Max(64, width div numCPUCores);
@@ -1415,11 +1492,13 @@ begin
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
+               objs[numUsed].StartX := startX;
+               objs[numUsed].StartY := startY;
                objs[numUsed].width := Min(thrSize, width);
                objs[numUsed].height := height;
                objs[numUsed].func := func;
 
-               inc(dest, thrSize);
+               inc(startx, thrSize);
                dec(width, thrSize);
                inc(numUsed);
           end;
@@ -1438,11 +1517,13 @@ begin
           begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
+               objs[numUsed].StartX := startX;
+               objs[numUsed].StartY := startY;
                objs[numUsed].width := width;
                objs[numUsed].height := Min(thrSize, height);
                objs[numUsed].func := func;
 
-               inc(PByte(dest), thrSize*destLineWidth);
+               inc(startY, thrSize);
                inc(numUsed);
                dec(height, thrSize);
           end;
@@ -1459,17 +1540,18 @@ begin
      calls := MtxInitTaskGroup;
 
      for i := 0 to numUsed - 2 do
-         calls.AddTaskRec(@MatrixFuncObjFunc, @objs[i]);
+         calls.AddTaskRec(@MatrixFuncObjFuncAnon, @objs[i]);
 
-     MatrixFuncObjFunc(@objs[numUsed  - 1]);
+     MatrixFuncObjFuncAnon(@objs[numUsed  - 1]);
 
      calls.SyncAll;
 end;
 
-procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixMtxRefFuncRef);
+procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixMtxRefFuncRef); overload;
 var i: NativeInt;
     calls : IMtxAsyncCallGroup;
     thrSize : NativeInt;
+    startX, startY : NativeInt;
     objs : Array[0..cMaxNumCores] of TAsyncMatrixFuncRefRecAnon;
     numUsed : integer;
 begin
@@ -1481,6 +1563,8 @@ begin
      end;
 
      numUsed := 0;
+     startX := 0;
+     startY := 0;
      if width > height then
      begin
           thrSize := Max(64, width div numCPUCores);
@@ -1490,10 +1574,12 @@ begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
                objs[numUsed].width := Min(thrSize, width);
+               objs[numUsed].StartX := startX;
+               objs[numUsed].StartY := startY;
                objs[numUsed].height := height;
                objs[numUsed].func := func;
 
-               inc(dest, thrSize);
+               inc(startX, thrSize);
                dec(width, thrSize);
                inc(numUsed);
           end;
@@ -1513,10 +1599,12 @@ begin
                objs[numUsed].dest := dest;
                objs[numUsed].destLineWidth := destLineWidth;
                objs[numUsed].width := width;
+               objs[numUsed].StartX := startX;
+               objs[numUsed].StartY := startY;
                objs[numUsed].height := Min(thrSize, height);
                objs[numUsed].func := func;
 
-               inc(PByte(dest), thrSize*destLineWidth);
+               inc(startY, thrSize);
                inc(numUsed);
                dec(height, thrSize);
           end;
@@ -1533,9 +1621,9 @@ begin
      calls := MtxInitTaskGroup;
 
      for i := 0 to numUsed - 2 do
-         calls.AddTaskRec(@MatrixFuncObjFunc, @objs[i]);
+         calls.AddTaskRec(@MatrixFuncObjFuncAnon, @objs[i]);
 
-     MatrixFuncObjFunc(@objs[numUsed  - 1]);
+     MatrixFuncObjFuncAnon(@objs[numUsed  - 1]);
 
      calls.SyncAll;
 end;

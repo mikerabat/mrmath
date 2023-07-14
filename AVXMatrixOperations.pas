@@ -761,9 +761,9 @@ begin
      assert((width1 = width2), 'Dimension error');
      assert((destLineWidth - height2*sizeof(double) >= 0) and (LineWidth1 >= width1*sizeof(double)) and (LineWidth2 >= width2*sizeof(double)), 'Line widths do not match');
 
-     if (width1 < 3) and (width2 < 3)
+     if (width1 = 2)
      then
-         GenericMtxMultTransp(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2)
+         ASMMatrixMultTransposed(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2)
      else if (width1 < 2) or (width2 < 2) then
      begin
           // matrix/vector multiplication

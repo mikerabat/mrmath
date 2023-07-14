@@ -65,6 +65,8 @@ type
     function tsne_p( P : IMatrix; numDims : integer ) : IMatrix;
     function InternalTSNE(xs: TDoubleMatrix; numDims: integer): TDoubleMatrix;
     function PairDist(Xs: TDoubleMatrix): IMatrix;
+
+    function InitRand( w, h : Integer ) : IMatrix;
   public
     property OnProgress : TTSNEProgress read fProgress write fProgress;
     property OnInitPCA : TTSNEPCAInit read fInitPCA write fInitPCA;
@@ -147,6 +149,12 @@ begin
      xs := ApplyPCA(xs);
 
      Result := InternalTSNE( xs.GetObjRef, numDims );
+end;
+
+function TtSNE.InitRand(w, h: Integer): IMatrix;
+begin
+     Result := MatrixClass.Create(w, h, True); // prepare for better block mult
+     Result.InitRandom(fRandAlgorithm, fSeed);
 end;
 
 function TtSNE.InternalTSNE( xs : TDoubleMatrix; numDims : integer) : TDoubleMatrix;
@@ -451,12 +459,11 @@ begin
      constEntr := PT[0,0];
      P.ScaleInPlace(4);  // lie about the p-vals to find better local minima
 
-     yData := MatrixClass.CreateRand( numDims, n, fRandAlgorithm, fSeed );
+     yData := InitRand(numdims, n);
      yData.ScaleInPlace(0.0001);
 
      fyincs := MatrixClass.Create(yData.Width, yData.Height );
      gains := MatrixClass.Create(yData.Width, yData.Height, 1);
-     //gains := TDoubleMatrix.Create(yData.Width, yData.Height, 1);
 
      // #################################################
      // #### now iterate
