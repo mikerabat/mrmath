@@ -138,6 +138,7 @@ procedure GenericMtxNormalize(var dest : Array of double; const Src : Array of d
 procedure GenericMtxMean(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
 procedure GenericMtxVar(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; unbiased : boolean);
 procedure GenericMtxSum(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+function GenericMtxSumSum(Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt) : double;
 
 // Calculate the mean and variance at the same time -> dest is at least a 2xheight matrix
 procedure GenericMtxMeanVar(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; unbiased : boolean);
@@ -760,6 +761,26 @@ begin
                inc(pVal1, sizeof(double));
                inc(dest);
           end;
+     end;
+end;
+
+function GenericMtxSumSum(Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt) : double;
+var x, y : NativeInt;
+    pVal2 : PConstDoubleArr;
+    lineVal : double;
+begin
+     assert((Width >= 0) and (Height >= 0), 'No data assigned');
+     Result := 0;
+     for y := 0 to Height - 1 do
+     begin
+          pVal2 := PConstDoubleArr(src);
+          lineVal := 0;
+          for x := 0 to Width - 1 do
+              lineVal := lineVal + pVal2^[x];
+
+          Result := Result + lineVal;
+
+          inc(PByte(src), srcLineWidth);
      end;
 end;
 

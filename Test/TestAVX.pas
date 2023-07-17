@@ -55,6 +55,7 @@ type
     procedure TestNormalize;
     procedure TestSQRT;
     procedure TestAVXSum;
+    procedure TestAVXSumSum;
     procedure TestAVXCumulativeSumColumn;
     procedure TestAVXDifferentiate;
     procedure TestTranspose;
@@ -970,6 +971,69 @@ begin
                     FreeMem(pm1);
                     FreeMem(pm2);
                     FreeMem(pm3);
+               end;
+          end;
+
+          s := 'Aligned';
+     end;
+end;
+
+procedure TestAVXMatrixOperations.TestAVXSumSum;
+const cMtxWidth : Array[0..11] of integer = (1, 3, 7, 8, 9, 10, 23, 43, 128, 1024, 2048, 2573);
+      cMtxHeight : Array[0..11] of integer = (1, 3, 7, 8, 9, 10, 23, 43, 128, 1024, 2048, 2573);
+var pX : PDouble;
+    pm1 : PByte;
+    LineWidthX : NativeInt;
+    startTime1, endTime1 : Int64;
+    startTime2, endTime2 : int64;
+    startTime3, endTime3 : int64;
+    startTime4, endTime4 : int64;
+    i, j : Integer;
+    mtxWidth, mtxHeight : integer;
+    doAligned : integer;
+    s : string;
+    sum1, sum2 : double;
+begin
+     s := 'Unaligned';
+     for doAligned := 0 to 1 do
+     begin
+          for i := 0 to Length(cMtxHeight) - 1 do
+          begin
+               for j := 0 to Length(cMtxWidth) -1  do
+               begin
+                    mtxWidth := cMtxWidth[j];
+                    mtxHeight := cMtxHeight[i];
+                    if doAligned = 0
+                    then
+                        FillUnAlignedMtx( mtxWidth, mtxHeight, pX, pm1, LineWidthX)
+                    else
+                        FillAlignedMtx( mtxWidth, mtxHeight, pX, pm1, LineWidthX);
+
+                    startTime1 := MtxGetTime;
+                    sum1 := GenericMtxSumSum(px, LineWidthX, mtxWidth, mtxHeight );
+                    endTime1 := MtxGetTime;
+
+                    startTime2 := MtxGetTime;
+                    sum2 := AVXMatrixSumSum(px, LineWidthX, mtxWidth, mtxHeight );
+                    endTime2 := MtxGetTime;
+
+                    Check(SameValue(sum1, sum2, 1e-5), 'AVX: Failed to calculate the overall sum');
+
+                    startTime3 := MtxGetTime;
+                    sum1 := GenericMtxSumSum(px, LineWidthX, mtxWidth, mtxHeight );
+                    endTime3 := MtxGetTime;
+
+                    startTime4 := MtxGetTime;
+                    sum2 := AVXMatrixSumSum(px, LineWidthX, mtxWidth, mtxHeight );
+                    endTime4 := MtxGetTime;
+
+                    Check(SameValue(sum1, sum2, 1e-5), 'AVX2: Failed to calculate the overall sum');
+
+                    Status( Format('%s Big sum: %d, %d took %.3fms, %.3fms, %.3fms, %.3fms', [s, mtxWidth, mtxHeight,
+                            (endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+                            (endTime3 - startTime3)/mtxFreq*1000, (endTime4 - startTime4)/mtxFreq*1000]));
+
+                    FreeMem(pm1);
                end;
           end;
 

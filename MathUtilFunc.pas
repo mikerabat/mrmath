@@ -64,7 +64,8 @@ function KthLargest(valsArr : PDouble; numElem : integer; elemNum : Cardinal) : 
 
 // gauss window
 // creates a gasus window with a maximum at N div 2 using the formula w = exp( -(a*x)^2/2)
-procedure GaussWin( dest : PDouble; N : integer; A : double );
+procedure GaussWin( dest : PDouble; N : integer; A : double ); overload;
+function GaussWin( N : integer; A : double ) : TDoubleDynArray; overload;
 
 // exponential integrals (En(x) = int_1_oo e^(-xt)/t^n dt ... x > 0, n = 0, 1, ....
 function expInt( n : integer; x : double ) : double;
@@ -1093,6 +1094,12 @@ begin
      Result := findRootBrent( func, root, x1, x2, xAcc);
 end;
 
+function GaussWin( N : integer; A : double ) : TDoubleDynArray;
+begin
+     assert(N > 0, 'Bad vector len');
+     SetLength(Result, N);
+     GaussWin( @Result[0], N, A );
+end;
 
 procedure GaussWin( dest : PDouble; N : integer; A : double );
 var i : integer;

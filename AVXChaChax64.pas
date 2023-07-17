@@ -170,8 +170,8 @@ asm
    mov rcx, rdi;
    mov rdx, rsi;
    {$ENDIF}
-   {$IFDEF AVXSUP}vmovupd dXMM4, xmm4;                                {$ELSE}db $C5,$F9,$11,$65,$D0;{$ENDIF} 
-   {$IFDEF AVXSUP}vmovupd dXMM5, xmm5;                                {$ELSE}db $C5,$F9,$11,$6D,$B0;{$ENDIF} 
+   {$IFDEF AVXSUP}vmovupd dXMM4, xmm4;                                {$ELSE}db $C5,$F9,$11,$65,$E0;{$ENDIF} 
+   {$IFDEF AVXSUP}vmovupd dXMM5, xmm5;                                {$ELSE}db $C5,$F9,$11,$6D,$D0;{$ENDIF} 
 
    // store second matrix
    {$IFDEF AVXSUP}vmovdqa xmm0, [rcx + 16];                           {$ELSE}db $C5,$F9,$6F,$41,$10;{$ENDIF} 
@@ -206,8 +206,8 @@ asm
    {$IFDEF AVXSUP}vmovdqa [rcx + 112], xmm3;                          {$ELSE}db $C5,$F9,$7F,$59,$70;{$ENDIF} 
 
    // cleanup registers
-   {$IFDEF AVXSUP}vmovupd xmm4, dXMM4;                                {$ELSE}db $C5,$F9,$10,$65,$D0;{$ENDIF} 
-   {$IFDEF AVXSUP}vmovupd xmm5, dXMM5;                                {$ELSE}db $C5,$F9,$10,$6D,$B0;{$ENDIF} 
+   {$IFDEF AVXSUP}vmovupd xmm4, dXMM4;                                {$ELSE}db $C5,$F9,$10,$65,$E0;{$ENDIF} 
+   {$IFDEF AVXSUP}vmovupd xmm5, dXMM5;                                {$ELSE}db $C5,$F9,$10,$6D,$D0;{$ENDIF} 
 
    {$IFDEF AVXSUP}vzeroupper;                                         {$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;

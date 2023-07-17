@@ -400,8 +400,12 @@ begin
 end;
 
 procedure MaxFunc(var value : double);
+var cmpVal : double;
+const cSmallDbl = 2.2250738585072013830902327173324e-308;
 begin
-     value := Math.Max(value, 2.2250738585072013830902327173324e-308);
+	 // branch free max with a very small error of 1e-308
+     cmpVal := Integer(value >= cSmallDbl);
+     value :=  cmpVal*value + cSmallDbl;
 end;
 
 function TtSNE.tsne_p(P: IMatrix; numDims : integer): IMatrix;
@@ -425,6 +429,7 @@ var n : integer;                        // number of instances
     pYGrads : PConstDoubleArr;
     pYIncs : PConstDoubleArr;
     x, y : Integer;
+    aSum : double;
 
 const final_momentum : double = 0.8;    // value to which momentum is changed
       mom_switch_iter : integer = 250;  // iteration at which momentum is changed
@@ -455,7 +460,6 @@ begin
      PT := P.AsVector(True);
      PT.ElementwiseFuncInPlace( {$IFDEF FPC}@{$ENDIF}EntropyFunc );
      PT.SumInPlace(True, True);
-
      constEntr := PT[0,0];
      P.ScaleInPlace(4);  // lie about the p-vals to find better local minima
 
@@ -487,10 +491,8 @@ begin
           for i := 0 to num.Width - 1 do
               num[i, i] := 0;
 
-          tmp := num.AsVector(False);
-          tmp.SumInPlace(True, False);
-
-          Q := num.Scale( 1/tmp[0, 0] );
+          aSum := num.Sum;
+          Q := num.Scale( 1/aSum );
           Q.ElementwiseFuncInPlace({$ifdef FPC}@{$ENDIF}MaxFunc ); // really??
 
           // Compute the gradients (faster implementation)

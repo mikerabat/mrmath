@@ -249,6 +249,7 @@ function MatrixSum(Src : PDouble; const srcLineWidth : NativeInt; width, height 
 function MatrixSum(const Src : Array of double; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray; overload;
 procedure MatrixSum(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean); overload;
 procedure MatrixSum(var dest : Array of double; const Src : Array of double; width, height : NativeInt; RowWise : boolean); overload;
+function MatrixSum(src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt ) : double; overload;
 
 procedure MatrixCumulativeSum(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
 procedure MatrixDiff(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
@@ -339,6 +340,7 @@ type
   TMatrixTransposeInplaceFunc = procedure(mt : PDouble; const LineWidth : NativeInt; N : NativeInt);
   TMatrixElemWiseNormFunc = function (dest : PDouble; LineWidth : NativeInt; Width, height : NativeInt; doSqrt : boolean) : double;
   TMatrixNormalizeFunc = procedure(dest : PDouble; destLineWidth : NativeInt; src : PDouble; srcLineWidth : NativeInt; Width, Height : NativeInt; RowWise : Boolean);
+  TMatrixSumSumFunc = function (src : PDouble; srcLineWidth : NativeInt; Width, Height : NativeInt): double;
   TMatrixVarianceFunc = procedure(dest : PDouble; destLineWidth : NativeInt; src : PDouble; srcLineWidth : NativeInt; Width, Height : NativeInt; RowWise : Boolean; unbiased : boolean);
   TMatrixRowSwapFunc = procedure (A, B : PDouble; width : NativeInt);
   TMatrixColSwapFunc = procedure(A, B : PDouble; const LineWidthAB : NativeInt; Height : NativeInt);
@@ -447,6 +449,7 @@ var multFunc : TMatrixMultFunc;
     matrixSortFunc : TMatrixSortFunc;
     matrixVarFunc : TMatrixVarianceFunc;
     matrixSumFunc : TMatrixNormalizeFunc;
+    matrixSumSumFunc : TMatrixSumSumFunc;
     matrixMeanVarFunc : TMatrixVarianceFunc;
     matrixCumulativeSumFunc : TMatrixNormalizeFunc;
     matrixDiffFunc : TMatrixNormalizeFunc;
@@ -1417,6 +1420,11 @@ begin
      MatrixSum(@dest[0], width*sizeof(double), @src[0], width*sizeof(double), width, height, RowWise);
 end;
 
+function MatrixSum(src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt ) : double;
+begin
+     Result := matrixSumSumFunc(src, srcLineWidth, width, height);
+end;
+
 procedure MatrixCumulativeSum(dest : PDouble; const destLineWidth : NativeInt; Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
 begin
      assert( (width > 0) and (height > 0), 'Dimension error');
@@ -1700,6 +1708,7 @@ begin
      matrixMedianFunc := GenericMtxMedian;
      matrixSortFunc := GenericMtxSort;
      colSwapFunc := GenericColSwap;
+     matrixSumSumFunc := GenericMtxSumSum;
 
      {$IFDEF MRMATH_NOASM}
      TDynamicTimeWarp.UseSSE := False;
@@ -1766,6 +1775,7 @@ begin
           elemAddFunc := AVXMatrixElemAdd;
           MatrixVecDotMultFunc := AVXMatrixVecDotMult;
           SymRank2UpdateFunc := AVXSymRank2UpdateUpper;
+          matrixSumSumFunc := AVXMatrixSumSum;
 
 
           // ##############################################

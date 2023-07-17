@@ -90,7 +90,7 @@ asm
            {$IFDEF AVXSUP}vmovapd ymm0, [ecx + esi - 128];            {$ELSE}db $C5,$FD,$28,$44,$31,$80;{$ENDIF} 
            {$IFDEF AVXSUP}vaddpd ymm0, ymm0, [edi + esi - 128];       {$ELSE}db $C5,$FD,$58,$44,$37,$80;{$ENDIF} 
 
-           {$IFDEF AVXSUP}vmovapd ymm1, [ecx + esi - 96];             {$ELSE}db $C5,$FD,$28,$4C,$31,$A0;{$ENDIF}
+           {$IFDEF AVXSUP}vmovapd ymm1, [ecx + esi - 96];             {$ELSE}db $C5,$FD,$28,$4C,$31,$A0;{$ENDIF} 
            {$IFDEF AVXSUP}vaddpd ymm1, ymm1, [edi + esi - 96];        {$ELSE}db $C5,$F5,$58,$4C,$37,$A0;{$ENDIF} 
 
            {$IFDEF AVXSUP}vmovapd ymm2, [ecx + esi - 64];             {$ELSE}db $C5,$FD,$28,$54,$31,$C0;{$ENDIF} 

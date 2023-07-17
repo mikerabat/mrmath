@@ -105,6 +105,7 @@ type
     // #### Simple matrix utility functions
     function Max : double;
     function Min : double;
+    function Sum : double; overload;
 
     function Abs : TDoubleMatrix;
     procedure AbsInPlace;
@@ -192,7 +193,7 @@ type
 
     function Diff(RowWise : boolean) : TDoubleMatrix;
     procedure DiffInPlace(RowWise : boolean);
-    function Sum(RowWise : boolean) : TDoubleMatrix;
+    function Sum(RowWise : boolean) : TDoubleMatrix; overload;
     procedure SumInPlace(RowWise : boolean); overload;
     procedure SumInPlace(RowWide : boolean; keepMemory : boolean); overload;
     function CumulativeSum(RowWise : boolean) : TDoubleMatrix;
@@ -416,6 +417,7 @@ type
     // #### Simple matrix utility functions
     function Max : double;
     function Min : double;
+    function Sum : double; overload;
 
     function Abs : TDoubleMatrix;
     procedure AbsInPlace;
@@ -499,7 +501,7 @@ type
 
     function Diff(RowWise : boolean) : TDoubleMatrix;
     procedure DiffInPlace(RowWise : boolean);
-    function Sum(RowWise : boolean) : TDoubleMatrix;
+    function Sum(RowWise : boolean) : TDoubleMatrix; overload;
     procedure SumInPlace(RowWise : boolean); overload;
     procedure SumInPlace(RowWise : boolean; keepMemory : boolean); overload;
     function CumulativeSum(RowWise : boolean) : TDoubleMatrix;
@@ -2826,6 +2828,13 @@ begin
 
           MatrixSum(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise);
      end;
+end;
+
+function TDoubleMatrix.Sum: double;
+begin
+     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
+
+     Result := MatrixSum(StartElement, LineWidth, width, height);
 end;
 
 procedure TDoubleMatrix.SumInPlace(RowWise, keepMemory: boolean);
