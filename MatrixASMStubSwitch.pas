@@ -726,11 +726,8 @@ begin
 end;
 
 procedure MatrixMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
-var multBlockSize : NativeInt;
 begin
-     multBlockSize := BlockedMatrixMultSize*BlockedMatrixMultSize;
-     if ((width1 >= BlockedMatrixMultSize) and (height1 >= BlockedMatrixMultSize) and (height2 >= BlockedMatrixMultSize)) or
-        (width1*height1 >= multBlockSize) or (width2*Height2 >= multBlockSize)
+     if ((width1 >= BlockedMatrixMultSize) and (height1 >= BlockedMatrixMultSize) and (height2 >= BlockedMatrixMultSize)) and (width2 >= BlockedMatrixMultSize)
      then
          blockedMultFunc(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, BlockMatrixCacheSize, doNone, nil)
      else

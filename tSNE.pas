@@ -53,7 +53,7 @@ type
 
     function DefInitPCA : TMatrixPCA;
 
-    //procedure UpdateGains(var Value : double; const data : PDouble; LineWidth : integer; x, y : integer);
+    procedure UpdateGains(var Value : double; const data : PDouble; LineWidth : integer; x, y : integer);
     procedure HBetaExp( var value : double );
     procedure EntropyFuncQ( var Value : double; const data : PDouble; LineWidth : integer; x, y : integer );
 
@@ -403,7 +403,7 @@ procedure MaxFunc(var value : double);
 var cmpVal : double;
 const cSmallDbl = 2.2250738585072013830902327173324e-308;
 begin
-	 // branch free max with a very small error of 1e-308
+	    // branchless max with a very small error of 1e-308
      cmpVal := Integer(value >= cSmallDbl);
      value :=  cmpVal*value + cSmallDbl;
 end;
@@ -425,11 +425,8 @@ var n : integer;                        // number of instances
     L, Q : IMatrix;
     cost : double;
     doCancel : boolean;
-    pGains : PConstDoubleArr;
-    pYGrads : PConstDoubleArr;
-    pYIncs : PConstDoubleArr;
-    x, y : Integer;
     aSum : double;
+    aMean : IMatrix;
 
 const final_momentum : double = 0.8;    // value to which momentum is changed
       mom_switch_iter : integer = 250;  // iteration at which momentum is changed
@@ -469,12 +466,23 @@ begin
      fyincs := MatrixClass.Create(yData.Width, yData.Height );
      gains := MatrixClass.Create(yData.Width, yData.Height, 1);
 
+     L := MatrixClass.Create(n, n);
+     Q := MatrixClass.Create(n, n);
+
+     fy_grads := MatrixClass.Create(n, 1);
+     sum_ydata := MatrixClass.Create(yData.Width, yData.Height);
+
+     aMean := MatrixClass.Create(numDims, 1);
+
      // #################################################
      // #### now iterate
      for iter := 1 to fNumIter do
      begin
           // Compute joint probability that point i and j are neighbors
-          sum_ydata := ydata.ElementWiseMult(yData);
+          sum_ydata.SetWidthHeight(yData.Width, yData.Height);
+          sum_ydata.Assign(yData);
+          sum_ydata.ElementWiseMultInPlace(sum_ydata);
+          //sum_ydata := ydata.ElementWiseMult(yData);
           sum_ydata.SumInPlace(True, True);
 
           // num = 1 ./ (1 + bsxfun(@plus, sum_ydata, bsxfun(@plus, sum_ydata', -2 * (ydata * ydata')))); % Student-t distribution
@@ -484,7 +492,11 @@ begin
           tmp.AddVecInPlace(sum_ydata, False);
           tmp.AddInPlace( 1 );
 
-          num := MatrixClass.Create( tmp.Width, tmp.Height, 1);
+          if num = nil
+          then
+              num := MatrixClass.Create( tmp.Width, tmp.Height, 1)
+          else
+              num.SetValue(1);
           num.ElementWiseDivInPlace(tmp);
 
           // set diagonal to zero
@@ -492,12 +504,13 @@ begin
               num[i, i] := 0;
 
           aSum := num.Sum;
-          Q := num.Scale( 1/aSum );
+          Q.Assign( num );
+          Q.ScaleInPlace( 1/aSum );
           Q.ElementwiseFuncInPlace({$ifdef FPC}@{$ENDIF}MaxFunc ); // really??
 
           // Compute the gradients (faster implementation)
-          L := P.Sub(Q);
-
+          L.Assign(P);
+          L.SubInPlace(Q);
           L.ElementWiseMultInPlace(num);
 
           fy_grads := L.Sum(False);
@@ -512,28 +525,7 @@ begin
           // -> do it here manually
 
           // previously it was:
-          // gains.ElementwiseFuncInPlace( {$ifdef FPC}@{$ENDIF}UpdateGains );
-          pGains := PConstDoubleArr( gains.StartElement );
-          pYGrads := PConstDoubleArr( fy_grads.StartElement );
-          pYIncs := PConstDoubleArr( fyincs.StartElement );
-
-          for y := 0 to gains.Height - 1 do
-          begin
-               for x := 0 to gains.Width - 1 do
-               begin
-                    if sign( pYGrads^[x] ) = sign( pYIncs^[x] )
-                    then
-                        pGains^[x] := cPhi*pGains^[x]
-                    else
-                        pGains^[x] := pGains^[x] + cK;
-
-                    pGains^[x] := Math.Max(pGains^[x], fminGain)
-               end;
-
-               inc(PByte(pGains), gains.LineWidth);
-               inc(PByte(pYGrads), fy_grads.LineWidth);
-               inc(PByte(pYIncs), fyincs.LineWidth);
-          end;
+          gains.ElementwiseFuncInPlace( {$ifdef FPC}@{$ENDIF}UpdateGains );
 
           fyincs.ScaleInPlace(momentum);
           tmp := gains.ElementWiseMult(fy_grads);
@@ -542,10 +534,11 @@ begin
 
           yData.AddInplace(fyincs);
 
-          tmp := ydata.Mean( False );
-          yData.SubVecInPlace( tmp, True );
+          MatrixMean(aMean.StartElement, aMean.LineWidth, yData.StartElement,
+                     yData.LineWidth, yData.Width, yData.Height, False);
+          yData.SubVecInPlace( aMean, True );
 
-          //Update the momentum if necessary
+          // Update the momentum if necessary
           if iter = mom_switch_iter then
              momentum := final_momentum;
 
@@ -573,17 +566,26 @@ begin
      Result := yData;
 end;
 
-//procedure TtSNE.UpdateGains(var Value: double; const data: PDouble; LineWidth,
-//  x, y: integer);
-//begin
-//     if sign( fy_grads[x, y] ) = sign( fyincs[x, y] )
+procedure TtSNE.UpdateGains(var Value: double; const data: PDouble; LineWidth,
+  x, y: integer);
+var cmp1, cmp2 : double;
+begin
+     // branchless version
+     cmp1 := Integer(sign( fy_grads[x, y] ) = sign( fyincs[x, y] ));
+     cmp2 := Integer(cmp1 = 0);
+     value := cmp1*cPhi*value + cmp2*(value + cK);
+     cmp2 := Integer(value > fMinGain);
+     cmp1 := Integer(cmp2 = 0);
+     value := cmp2*value + cmp1*fMinGain;
+
+     //if sign( fy_grads[x, y] ) = sign( fyincs[x, y] )
 //     then
 //         value := cPhi*value
 //     else
 //         value := value + cK;
 //
 //     value := Math.Max(value, fminGain)
-//end;
+end;
 
 procedure TtSNE.EntropyFuncQ(var Value: double; const data: PDouble; LineWidth,
   x, y: integer);
