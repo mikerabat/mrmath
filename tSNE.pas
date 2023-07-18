@@ -90,7 +90,7 @@ type
 implementation
 
 uses SysUtils, Math, Classes, MatrixASMStubSwitch, MatrixConst,
-     Dist;
+     Dist, BlockSizeSetup;
 
 { TtSNE }
 
@@ -401,11 +401,10 @@ end;
 
 procedure MaxFunc(var value : double);
 var cmpVal : double;
-const cSmallDbl = 2.2250738585072013830902327173324e-308;
 begin
 	    // branchless max with a very small error of 1e-308
-     cmpVal := Integer(value >= cSmallDbl);
-     value :=  cmpVal*value + cSmallDbl;
+     cmpVal := Integer(value >= cMinDouble);
+     value :=  cmpVal*value + cMinDouble;
 end;
 
 function TtSNE.tsne_p(P: IMatrix; numDims : integer): IMatrix;
@@ -427,6 +426,7 @@ var n : integer;                        // number of instances
     doCancel : boolean;
     aSum : double;
     aMean : IMatrix;
+    yMul : IMatrix;
 
 const final_momentum : double = 0.8;    // value to which momentum is changed
       mom_switch_iter : integer = 250;  // iteration at which momentum is changed
@@ -473,6 +473,10 @@ begin
      sum_ydata := MatrixClass.Create(yData.Width, yData.Height);
 
      aMean := MatrixClass.Create(numDims, 1);
+     yMul := MatrixClass.Create(n, n);
+     num :=  MatrixClass.Create( yMul.Width, yMul.Height, 0);
+
+     tmp := MatrixClass.Create(numDims, n);
 
      // #################################################
      // #### now iterate
@@ -486,18 +490,16 @@ begin
           sum_ydata.SumInPlace(True, True);
 
           // num = 1 ./ (1 + bsxfun(@plus, sum_ydata, bsxfun(@plus, sum_ydata', -2 * (ydata * ydata')))); % Student-t distribution
-          tmp := yData.MultT2(yData);
-          tmp.ScaleInPlace(-2);
-          tmp.AddVecInPlace(sum_ydata, True);
-          tmp.AddVecInPlace(sum_ydata, False);
-          tmp.AddInPlace( 1 );
+          // yMul := yData.MultT2(yData);
+          MatrixMultT2Ex(yMul.StartElement, yMul.LineWidth, yData.StartElement, yData.StartElement, yData.Width, yData.Height,
+                         yData.Width, yData.Height, yData.LineWidth, yData.LineWidth, BlockMatrixCacheSize, doNone, nil);
+          yMul.ScaleInPlace(-2);
+          yMul.AddVecInPlace(sum_ydata, True);
+          yMul.AddVecInPlace(sum_ydata, False);
+          yMul.AddInPlace( 1 );
 
-          if num = nil
-          then
-              num := MatrixClass.Create( tmp.Width, tmp.Height, 1)
-          else
-              num.SetValue(1);
-          num.ElementWiseDivInPlace(tmp);
+          num.SetValue(1);
+          num.ElementWiseDivInPlace(yMul);
 
           // set diagonal to zero
           for i := 0 to num.Width - 1 do
@@ -506,7 +508,7 @@ begin
           aSum := num.Sum;
           Q.Assign( num );
           Q.ScaleInPlace( 1/aSum );
-          Q.ElementwiseFuncInPlace({$ifdef FPC}@{$ENDIF}MaxFunc ); // really??
+          Q.ElementwiseFuncInPlace({$ifdef FPC}@{$ENDIF}MaxFunc );
 
           // Compute the gradients (faster implementation)
           L.Assign(P);
@@ -528,7 +530,8 @@ begin
           gains.ElementwiseFuncInPlace( {$ifdef FPC}@{$ENDIF}UpdateGains );
 
           fyincs.ScaleInPlace(momentum);
-          tmp := gains.ElementWiseMult(fy_grads);
+          tmp.Assign(gains);
+          tmp.ElementWiseMultInPlace(fy_grads);
           tmp.ScaleInPlace(epsilon);
           fyincs.SubInPlace(tmp);
 
@@ -590,7 +593,7 @@ end;
 procedure TtSNE.EntropyFuncQ(var Value: double; const data: PDouble; LineWidth,
   x, y: integer);
 begin
-     value := Value*ln(fQ[x, y])
+     value := Value*ln(fQ[x, y]);
 end;
 
 function TtSNE.DefInitPCA : TMatrixPCA;
