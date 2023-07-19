@@ -452,7 +452,7 @@ asm
    sub rcx, r8;
 
    lea rax, minVal;
-   {$IFDEF AVXSUP}vbroadcastsd ymm0, [rax];                           {$ELSE}db $C4,$E2,$7D,$19,$1F;{$ENDIF}
+   {$IFDEF AVXSUP}vbroadcastsd ymm0, [rax];                           {$ELSE}db $C4,$E2,$7D,$19,$00;{$ENDIF} 
 
    // for y := 0 to height - 1:
    @@addforyloop:
@@ -467,21 +467,21 @@ asm
            //prefetchw [rcx + rax];
 
            // Abs:
-           {$IFDEF AVXSUP}vmovupd ymm1, [rcx + rax - 128];            {$ELSE}db $C5,$FD,$10,$4C,$38,$80;{$ENDIF}
-           vminpd ymm1, ymm1, ymm0;
-           {$IFDEF AVXSUP}vmovupd [rcx + rax - 128], ymm1;            {$ELSE}db $C5,$FD,$11,$4C,$38,$80;{$ENDIF}
+           {$IFDEF AVXSUP}vmovupd ymm1, [rcx + rax - 128];            {$ELSE}db $C5,$FD,$10,$4C,$01,$80;{$ENDIF} 
+           {$IFDEF AVXSUP}vminpd ymm1, ymm1, ymm0;                    {$ELSE}db $C5,$F5,$5D,$C8;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd [rcx + rax - 128], ymm1;            {$ELSE}db $C5,$FD,$11,$4C,$01,$80;{$ENDIF} 
 
-           {$IFDEF AVXSUP}vmovupd ymm2, [rcx + rax - 96];             {$ELSE}db $C5,$FD,$10,$54,$38,$A0;{$ENDIF}
-           vminpd ymm2, ymm2, ymm0;
-           {$IFDEF AVXSUP}vmovupd [rcx + rax - 96], ymm2;             {$ELSE}db $C5,$FD,$11,$54,$38,$A0;{$ENDIF}
+           {$IFDEF AVXSUP}vmovupd ymm2, [rcx + rax - 96];             {$ELSE}db $C5,$FD,$10,$54,$01,$A0;{$ENDIF} 
+           {$IFDEF AVXSUP}vminpd ymm2, ymm2, ymm0;                    {$ELSE}db $C5,$ED,$5D,$D0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd [rcx + rax - 96], ymm2;             {$ELSE}db $C5,$FD,$11,$54,$01,$A0;{$ENDIF} 
 
-           {$IFDEF AVXSUP}vmovupd ymm3, [rcx + rax - 64];             {$ELSE}db $C5,$FD,$10,$5C,$38,$C0;{$ENDIF}
-           vminpd ymm3, ymm3, ymm0;
-           {$IFDEF AVXSUP}vmovupd [rcx + rax - 64], ymm3;             {$ELSE}db $C5,$FD,$11,$5C,$38,$C0;{$ENDIF}
+           {$IFDEF AVXSUP}vmovupd ymm3, [rcx + rax - 64];             {$ELSE}db $C5,$FD,$10,$5C,$01,$C0;{$ENDIF} 
+           {$IFDEF AVXSUP}vminpd ymm3, ymm3, ymm0;                    {$ELSE}db $C5,$E5,$5D,$D8;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd [rcx + rax - 64], ymm3;             {$ELSE}db $C5,$FD,$11,$5C,$01,$C0;{$ENDIF} 
 
-           {$IFDEF AVXSUP}vmovupd ymm4, [rcx + rax - 32];             {$ELSE}db $C5,$FD,$10,$64,$38,$E0;{$ENDIF}
-           vminpd ymm4, ymm4, ymm0;
-           {$IFDEF AVXSUP}vmovupd [rcx + rax - 32], ymm4;             {$ELSE}db $C5,$FD,$11,$64,$38,$E0;{$ENDIF}
+           {$IFDEF AVXSUP}vmovupd ymm4, [rcx + rax - 32];             {$ELSE}db $C5,$FD,$10,$64,$01,$E0;{$ENDIF} 
+           {$IFDEF AVXSUP}vminpd ymm4, ymm4, ymm0;                    {$ELSE}db $C5,$DD,$5D,$E0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd [rcx + rax - 32], ymm4;             {$ELSE}db $C5,$FD,$11,$64,$01,$E0;{$ENDIF} 
        jmp @addforxloop
 
        @loopEnd:
@@ -494,9 +494,9 @@ asm
            add rax, 16;
            jg @loopEnd2;
 
-           {$IFDEF AVXSUP}vmovupd xmm1, [rcx + rax - 16];             {$ELSE}db $C5,$F9,$10,$4C,$38,$F0;{$ENDIF}
-           vminpd xmm1, xmm1, xmm0;
-           {$IFDEF AVXSUP}vmovupd [rcx + rax - 16], xmm1;             {$ELSE}db $C5,$F9,$11,$4C,$38,$F0;{$ENDIF}
+           {$IFDEF AVXSUP}vmovupd xmm1, [rcx + rax - 16];             {$ELSE}db $C5,$F9,$10,$4C,$01,$F0;{$ENDIF} 
+           {$IFDEF AVXSUP}vminpd xmm1, xmm1, xmm0;                    {$ELSE}db $C5,$F1,$5D,$C8;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd [rcx + rax - 16], xmm1;             {$ELSE}db $C5,$F9,$11,$4C,$01,$F0;{$ENDIF} 
        jmp @addforxloop2;
 
        @loopEnd2:
@@ -504,9 +504,9 @@ asm
        sub rax, 16;
        jz @nextLine;
 
-       {$IFDEF AVXSUP}vmovsd xmm1, [rcx + rax];                       {$ELSE}db $C5,$FB,$10,$0C,$38;{$ENDIF}
-       vminsd xmm1, xmm1, xmm0;
-       {$IFDEF AVXSUP}vmovsd [rcx + rax], xmm1;                       {$ELSE}db $C5,$FB,$11,$0C,$38;{$ENDIF}
+       {$IFDEF AVXSUP}vmovsd xmm1, [rcx + rax];                       {$ELSE}db $C5,$FB,$10,$0C,$01;{$ENDIF} 
+       {$IFDEF AVXSUP}vminsd xmm1, xmm1, xmm0;                        {$ELSE}db $C5,$F3,$5D,$C8;{$ENDIF} 
+       {$IFDEF AVXSUP}vmovsd [rcx + rax], xmm1;                       {$ELSE}db $C5,$FB,$11,$0C,$01;{$ENDIF} 
 
        @nextLine:
 
@@ -517,7 +517,7 @@ asm
    dec r9;
    jnz @@addforyloop;
 
-   {$IFDEF AVXSUP}vzeroupper;                                         {$ELSE}db $C5,$F8,$77;{$ENDIF}
+   {$IFDEF AVXSUP}vzeroupper;                                         {$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
 
@@ -541,7 +541,7 @@ asm
    sub rcx, r8;
 
    lea rax, minVal;
-   {$IFDEF AVXSUP}vbroadcastsd ymm0, [rax];                           {$ELSE}db $C4,$E2,$7D,$19,$1F;{$ENDIF}
+   {$IFDEF AVXSUP}vbroadcastsd ymm0, [rax];                           {$ELSE}db $C4,$E2,$7D,$19,$00;{$ENDIF} 
 
    // for y := 0 to height - 1:
    @@addforyloop:
@@ -556,21 +556,21 @@ asm
            //prefetchw [rcx + rax];
 
            // Abs:
-           {$IFDEF AVXSUP}vmovupd ymm1, [rcx + rax - 128];            {$ELSE}db $C5,$FD,$10,$4C,$38,$80;{$ENDIF}
-           vmaxpd ymm1, ymm1, ymm0;
-           {$IFDEF AVXSUP}vmovupd [rcx + rax - 128], ymm1;            {$ELSE}db $C5,$FD,$11,$4C,$38,$80;{$ENDIF}
+           {$IFDEF AVXSUP}vmovupd ymm1, [rcx + rax - 128];            {$ELSE}db $C5,$FD,$10,$4C,$01,$80;{$ENDIF} 
+           {$IFDEF AVXSUP}vmaxpd ymm1, ymm1, ymm0;                    {$ELSE}db $C5,$F5,$5F,$C8;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd [rcx + rax - 128], ymm1;            {$ELSE}db $C5,$FD,$11,$4C,$01,$80;{$ENDIF} 
 
-           {$IFDEF AVXSUP}vmovupd ymm2, [rcx + rax - 96];             {$ELSE}db $C5,$FD,$10,$54,$38,$A0;{$ENDIF}
-           vmaxpd ymm2, ymm2, ymm0;
-           {$IFDEF AVXSUP}vmovupd [rcx + rax - 96], ymm2;             {$ELSE}db $C5,$FD,$11,$54,$38,$A0;{$ENDIF}
+           {$IFDEF AVXSUP}vmovupd ymm2, [rcx + rax - 96];             {$ELSE}db $C5,$FD,$10,$54,$01,$A0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmaxpd ymm2, ymm2, ymm0;                    {$ELSE}db $C5,$ED,$5F,$D0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd [rcx + rax - 96], ymm2;             {$ELSE}db $C5,$FD,$11,$54,$01,$A0;{$ENDIF} 
 
-           {$IFDEF AVXSUP}vmovupd ymm3, [rcx + rax - 64];             {$ELSE}db $C5,$FD,$10,$5C,$38,$C0;{$ENDIF}
-           vmaxpd ymm3, ymm3, ymm0;
-           {$IFDEF AVXSUP}vmovupd [rcx + rax - 64], ymm3;             {$ELSE}db $C5,$FD,$11,$5C,$38,$C0;{$ENDIF}
+           {$IFDEF AVXSUP}vmovupd ymm3, [rcx + rax - 64];             {$ELSE}db $C5,$FD,$10,$5C,$01,$C0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmaxpd ymm3, ymm3, ymm0;                    {$ELSE}db $C5,$E5,$5F,$D8;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd [rcx + rax - 64], ymm3;             {$ELSE}db $C5,$FD,$11,$5C,$01,$C0;{$ENDIF} 
 
-           {$IFDEF AVXSUP}vmovupd ymm4, [rcx + rax - 32];             {$ELSE}db $C5,$FD,$10,$64,$38,$E0;{$ENDIF}
-           vmaxpd ymm4, ymm4, ymm0;
-           {$IFDEF AVXSUP}vmovupd [rcx + rax - 32], ymm4;             {$ELSE}db $C5,$FD,$11,$64,$38,$E0;{$ENDIF}
+           {$IFDEF AVXSUP}vmovupd ymm4, [rcx + rax - 32];             {$ELSE}db $C5,$FD,$10,$64,$01,$E0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmaxpd ymm4, ymm4, ymm0;                    {$ELSE}db $C5,$DD,$5F,$E0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd [rcx + rax - 32], ymm4;             {$ELSE}db $C5,$FD,$11,$64,$01,$E0;{$ENDIF} 
        jmp @addforxloop
 
        @loopEnd:
@@ -583,9 +583,9 @@ asm
            add rax, 16;
            jg @loopEnd2;
 
-           {$IFDEF AVXSUP}vmovupd xmm1, [rcx + rax - 16];             {$ELSE}db $C5,$F9,$10,$4C,$38,$F0;{$ENDIF}
-           vmaxpd xmm1, xmm1, xmm0;
-           {$IFDEF AVXSUP}vmovupd [rcx + rax - 16], xmm1;             {$ELSE}db $C5,$F9,$11,$4C,$38,$F0;{$ENDIF}
+           {$IFDEF AVXSUP}vmovupd xmm1, [rcx + rax - 16];             {$ELSE}db $C5,$F9,$10,$4C,$01,$F0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmaxpd xmm1, xmm1, xmm0;                    {$ELSE}db $C5,$F1,$5F,$C8;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovupd [rcx + rax - 16], xmm1;             {$ELSE}db $C5,$F9,$11,$4C,$01,$F0;{$ENDIF} 
        jmp @addforxloop2;
 
        @loopEnd2:
@@ -593,9 +593,9 @@ asm
        sub rax, 16;
        jz @nextLine;
 
-       {$IFDEF AVXSUP}vmovsd xmm1, [rcx + rax];                       {$ELSE}db $C5,$FB,$10,$0C,$38;{$ENDIF}
-       vmaxsd xmm1, xmm1, xmm0;
-       {$IFDEF AVXSUP}vmovsd [rcx + rax], xmm1;                       {$ELSE}db $C5,$FB,$11,$0C,$38;{$ENDIF}
+       {$IFDEF AVXSUP}vmovsd xmm1, [rcx + rax];                       {$ELSE}db $C5,$FB,$10,$0C,$01;{$ENDIF} 
+       {$IFDEF AVXSUP}vmaxsd xmm1, xmm1, xmm0;                        {$ELSE}db $C5,$F3,$5F,$C8;{$ENDIF} 
+       {$IFDEF AVXSUP}vmovsd [rcx + rax], xmm1;                       {$ELSE}db $C5,$FB,$11,$0C,$01;{$ENDIF} 
 
        @nextLine:
 
@@ -606,7 +606,7 @@ asm
    dec r9;
    jnz @@addforyloop;
 
-   {$IFDEF AVXSUP}vzeroupper;                                         {$ELSE}db $C5,$F8,$77;{$ENDIF}
+   {$IFDEF AVXSUP}vzeroupper;                                         {$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
 
@@ -630,7 +630,7 @@ asm
    sub rcx, r8;
 
    lea rax, minVal;
-   {$IFDEF AVXSUP}vbroadcastsd ymm0, [rax];                           {$ELSE}db $C4,$E2,$7D,$19,$1F;{$ENDIF}
+   {$IFDEF AVXSUP}vbroadcastsd ymm0, [rax];                           {$ELSE}db $C4,$E2,$7D,$19,$00;{$ENDIF} 
 
    // for y := 0 to height - 1:
    @@addforyloop:
@@ -645,17 +645,17 @@ asm
            //prefetchw [rcx + rax];
 
            // Abs:
-           vminpd ymm1, ymm0, [rcx + rax - 128];
-           vmovapd [rcx + rax - 128], ymm1;
+           {$IFDEF AVXSUP}vminpd ymm1, ymm0, [rcx + rax - 128];       {$ELSE}db $C5,$FD,$5D,$4C,$01,$80;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovapd [rcx + rax - 128], ymm1;            {$ELSE}db $C5,$FD,$29,$4C,$01,$80;{$ENDIF} 
 
-           vminpd ymm2, ymm0, [rcx + rax - 96];
-           vmovapd [rcx + rax - 96], ymm2;
+           {$IFDEF AVXSUP}vminpd ymm2, ymm0, [rcx + rax - 96];        {$ELSE}db $C5,$FD,$5D,$54,$01,$A0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovapd [rcx + rax - 96], ymm2;             {$ELSE}db $C5,$FD,$29,$54,$01,$A0;{$ENDIF} 
 
-           vminpd ymm3, ymm0, [rcx + rax - 64];
-           vmovapd [rcx + rax - 64], ymm3;
+           {$IFDEF AVXSUP}vminpd ymm3, ymm0, [rcx + rax - 64];        {$ELSE}db $C5,$FD,$5D,$5C,$01,$C0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovapd [rcx + rax - 64], ymm3;             {$ELSE}db $C5,$FD,$29,$5C,$01,$C0;{$ENDIF} 
 
-           vminpd ymm4, ymm0, [rcx + rax - 32];
-           vmovapd [rcx + rax - 32], ymm4;
+           {$IFDEF AVXSUP}vminpd ymm4, ymm0, [rcx + rax - 32];        {$ELSE}db $C5,$FD,$5D,$64,$01,$E0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovapd [rcx + rax - 32], ymm4;             {$ELSE}db $C5,$FD,$29,$64,$01,$E0;{$ENDIF} 
        jmp @addforxloop
 
        @loopEnd:
@@ -668,8 +668,8 @@ asm
            add rax, 16;
            jg @loopEnd2;
 
-           vminpd xmm1, xmm0, [rcx + rax - 16];
-           vmovapd [rcx + rax - 16], xmm1;
+           {$IFDEF AVXSUP}vminpd xmm1, xmm0, [rcx + rax - 16];        {$ELSE}db $C5,$F9,$5D,$4C,$01,$F0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovapd [rcx + rax - 16], xmm1;             {$ELSE}db $C5,$F9,$29,$4C,$01,$F0;{$ENDIF} 
        jmp @addforxloop2;
 
        @loopEnd2:
@@ -677,9 +677,9 @@ asm
        sub rax, 16;
        jz @nextLine;
 
-       vmovsd xmm1, [rcx + rax];
-       vminsd xmm1, xmm1, xmm0;
-       vmovsd [rcx + rax], xmm1;
+       {$IFDEF AVXSUP}vmovsd xmm1, [rcx + rax];                       {$ELSE}db $C5,$FB,$10,$0C,$01;{$ENDIF} 
+       {$IFDEF AVXSUP}vminsd xmm1, xmm1, xmm0;                        {$ELSE}db $C5,$F3,$5D,$C8;{$ENDIF} 
+       {$IFDEF AVXSUP}vmovsd [rcx + rax], xmm1;                       {$ELSE}db $C5,$FB,$11,$0C,$01;{$ENDIF} 
 
        @nextLine:
 
@@ -690,7 +690,7 @@ asm
    dec r9;
    jnz @@addforyloop;
 
-   {$IFDEF AVXSUP}vzeroupper;                                         {$ELSE}db $C5,$F8,$77;{$ENDIF}
+   {$IFDEF AVXSUP}vzeroupper;                                         {$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
 procedure AVXMatrixMaxValAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
@@ -712,7 +712,7 @@ asm
    sub rcx, r8;
 
    lea rax, minVal;
-   {$IFDEF AVXSUP}vbroadcastsd ymm0, [rax];                           {$ELSE}db $C4,$E2,$7D,$19,$1F;{$ENDIF}
+   {$IFDEF AVXSUP}vbroadcastsd ymm0, [rax];                           {$ELSE}db $C4,$E2,$7D,$19,$00;{$ENDIF} 
 
    // for y := 0 to height - 1:
    @@addforyloop:
@@ -727,17 +727,17 @@ asm
            //prefetchw [rcx + rax];
 
            // Abs:
-           vmaxpd ymm1, ymm0, [rcx + rax - 128];
-           vmovapd [rcx + rax - 128], ymm1;
+           {$IFDEF AVXSUP}vmaxpd ymm1, ymm0, [rcx + rax - 128];       {$ELSE}db $C5,$FD,$5F,$4C,$01,$80;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovapd [rcx + rax - 128], ymm1;            {$ELSE}db $C5,$FD,$29,$4C,$01,$80;{$ENDIF} 
 
-           vmaxpd ymm2, ymm0, [rcx + rax - 96];
-           vmovapd [rcx + rax - 96], ymm2;
+           {$IFDEF AVXSUP}vmaxpd ymm2, ymm0, [rcx + rax - 96];        {$ELSE}db $C5,$FD,$5F,$54,$01,$A0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovapd [rcx + rax - 96], ymm2;             {$ELSE}db $C5,$FD,$29,$54,$01,$A0;{$ENDIF} 
 
-           vmaxpd ymm3, ymm0, [rcx + rax - 64];
-           vmovapd [rcx + rax - 64], ymm3;
+           {$IFDEF AVXSUP}vmaxpd ymm3, ymm0, [rcx + rax - 64];        {$ELSE}db $C5,$FD,$5F,$5C,$01,$C0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovapd [rcx + rax - 64], ymm3;             {$ELSE}db $C5,$FD,$29,$5C,$01,$C0;{$ENDIF} 
 
-           vmaxpd ymm4, ymm0, [rcx + rax - 32];
-           vmovapd [rcx + rax - 32], ymm4;
+           {$IFDEF AVXSUP}vmaxpd ymm4, ymm0, [rcx + rax - 32];        {$ELSE}db $C5,$FD,$5F,$64,$01,$E0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovapd [rcx + rax - 32], ymm4;             {$ELSE}db $C5,$FD,$29,$64,$01,$E0;{$ENDIF} 
        jmp @addforxloop
 
        @loopEnd:
@@ -750,8 +750,8 @@ asm
            add rax, 16;
            jg @loopEnd2;
 
-           vmaxpd xmm1, xmm0, [rcx + rax - 16];
-           vmovapd [rcx + rax - 16], xmm1;
+           {$IFDEF AVXSUP}vmaxpd xmm1, xmm0, [rcx + rax - 16];        {$ELSE}db $C5,$F9,$5F,$4C,$01,$F0;{$ENDIF} 
+           {$IFDEF AVXSUP}vmovapd [rcx + rax - 16], xmm1;             {$ELSE}db $C5,$F9,$29,$4C,$01,$F0;{$ENDIF} 
        jmp @addforxloop2;
 
        @loopEnd2:
@@ -759,9 +759,9 @@ asm
        sub rax, 16;
        jz @nextLine;
 
-       vmovsd xmm1, [rcx + rax];
-       vmaxsd xmm1, xmm1, xmm0;
-       vmovsd [rcx + rax], xmm1;
+       {$IFDEF AVXSUP}vmovsd xmm1, [rcx + rax];                       {$ELSE}db $C5,$FB,$10,$0C,$01;{$ENDIF} 
+       {$IFDEF AVXSUP}vmaxsd xmm1, xmm1, xmm0;                        {$ELSE}db $C5,$F3,$5F,$C8;{$ENDIF} 
+       {$IFDEF AVXSUP}vmovsd [rcx + rax], xmm1;                       {$ELSE}db $C5,$FB,$11,$0C,$01;{$ENDIF} 
 
        @nextLine:
 
@@ -772,7 +772,7 @@ asm
    dec r9;
    jnz @@addforyloop;
 
-   {$IFDEF AVXSUP}vzeroupper;                                         {$ELSE}db $C5,$F8,$77;{$ENDIF}
+   {$IFDEF AVXSUP}vzeroupper;                                         {$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
 {$ENDIF}
