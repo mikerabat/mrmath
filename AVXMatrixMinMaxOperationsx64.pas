@@ -30,12 +30,11 @@ function AVXMatrixMinAligned(mt : PDouble; width, height : NativeInt; const Line
 function AVXMatrixMinUnAligned(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
 
 // in matrix max/min
-procedure AVXMatrixMinValUnAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure AVXMatrixMaxValUnAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixMinValUnAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; {$IFDEF UNIX}unixMinVal : double {$ELSE} minVal : double {$ENDIF} ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixMaxValUnAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; {$IFDEF UNIX}unixMaxVal : double {$ELSE} maxVal : double {$ENDIF} ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
-procedure AVXMatrixMinValAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-procedure AVXMatrixMaxValAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-
+procedure AVXMatrixMinValAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; {$IFDEF UNIX}unixMinVal : double {$ELSE} minVal : double {$ENDIF} ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixMaxValAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; {$IFDEF UNIX}unixMaxVal : double {$ELSE} maxVal : double {$ENDIF} ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -432,8 +431,11 @@ asm
    {$IFDEF AVXSUP}vzeroupper;                                         {$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXMatrixMinValUnAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-// rcx = dest; rdx = LineWidth, r8 = Width, r9 = height
+procedure AVXMatrixMinValUnAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt;{$IFDEF UNIX}unixMinVal : double {$ELSE} minVal : double {$ENDIF}); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+// rcx = dest; rdx = LineWidth, r8 = Width, r9 = height; xmm0 = unixMinVal
+{$IFDEF UNIX}
+var minVal : double;
+{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -444,6 +446,7 @@ asm
    mov r9, rcx;
    mov rcx, rdi;
    mov rdx, rsi;
+   movsd minVal, xmm0;
    {$ENDIF}
 
    imul r8, -8;
@@ -521,8 +524,11 @@ asm
 end;
 
 
-procedure AVXMatrixMaxValUnAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
-// rcx = dest; rdx = LineWidth, r8 = Width, r9 = height
+procedure AVXMatrixMaxValUnAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; {$IFDEF UNIX}unixMaxVal : double {$ELSE} maxVal : double {$ENDIF} ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+// rcx = dest; rdx = LineWidth, r8 = Width, r9 = height, unix: xmm0 = unixmaxval
+{$IFDEF UNIX}
+var maxVal : double;
+{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -533,6 +539,7 @@ asm
    mov r9, rcx;
    mov rcx, rdi;
    mov rdx, rsi;
+   movsd maxVal, xmm0;
    {$ENDIF}
 
    imul r8, -8;
@@ -540,7 +547,7 @@ asm
    // helper registers for the dest pointer
    sub rcx, r8;
 
-   lea rax, minVal;
+   lea rax, maxVal;
    {$IFDEF AVXSUP}vbroadcastsd ymm0, [rax];                           {$ELSE}db $C4,$E2,$7D,$19,$00;{$ENDIF} 
 
    // for y := 0 to height - 1:
@@ -610,8 +617,11 @@ asm
 end;
 
 
-procedure AVXMatrixMinValAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixMinValAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; {$IFDEF UNIX}unixMinVal : double {$ELSE} minVal : double {$ENDIF} ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 // rcx = dest; rdx = LineWidth, r8 = Width, r9 = height
+{$IFDEF UNIX}
+var minVal : double;
+{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -622,6 +632,7 @@ asm
    mov r9, rcx;
    mov rcx, rdi;
    mov rdx, rsi;
+   movsd minVal, xmm0;
    {$ENDIF}
 
    imul r8, -8;
@@ -693,8 +704,11 @@ asm
    {$IFDEF AVXSUP}vzeroupper;                                         {$ELSE}db $C5,$F8,$77;{$ENDIF} 
 end;
 
-procedure AVXMatrixMaxValAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixMaxValAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; {$IFDEF UNIX}unixMaxVal : double {$ELSE} maxVal : double {$ENDIF} ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 // rcx = dest; rdx = LineWidth, r8 = Width, r9 = height
+{$IFDEF UNIX}
+var maxVal : double;
+{$ENDIF}
 asm
    {$IFDEF UNIX}
    // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
@@ -705,13 +719,15 @@ asm
    mov r9, rcx;
    mov rcx, rdi;
    mov rdx, rsi;
+   movsd maxVal, xmm0;
    {$ENDIF}
+
    imul r8, -8;
 
    // helper registers for the dest pointer
    sub rcx, r8;
 
-   lea rax, minVal;
+   lea rax, maxVal;
    {$IFDEF AVXSUP}vbroadcastsd ymm0, [rax];                           {$ELSE}db $C4,$E2,$7D,$19,$00;{$ENDIF} 
 
    // for y := 0 to height - 1:

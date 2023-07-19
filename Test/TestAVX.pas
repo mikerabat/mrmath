@@ -510,23 +510,31 @@ var pX, pX1 : PDouble;
     mtxWidth, mtxHeight : integer;
     mtxMax : double;
     align : integer;
-    rseed : integer;
+    rseed : LongWord;
     idx : integer;
   procedure FillMtx;
   begin
        if align = 0 then
        begin
+            RandSeed := 0;
+            random;
             rSeed := RandSeed;
             FillUnalignedMtx( mtxWidth, mtxHeight, pX, pm1, LineWidthX);
 
+            RandSeed := 0;
+            random;
             RandSeed := rSeed;
             FillUnalignedMtx( mtxWidth, mtxHeight, pX1, pm2, LineWidthX1);
        end
        else
        begin
+            RandSeed := 0;
+            random;
             rSeed := RandSeed;
             FillAlignedMtx( mtxWidth, mtxHeight, pX, pm1, LineWidthX);
 
+            RandSeed := 0;
+            random;
             RandSeed := rSeed;
             FillAlignedMtx( mtxWidth, mtxHeight, pX1, pm2, LineWidthX1);
        end;
