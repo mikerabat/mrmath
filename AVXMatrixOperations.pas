@@ -61,8 +61,10 @@ procedure AVXMatrixScaleAndAdd(Dest : PDouble; LineWidth, Width, Height : Native
 procedure AVXMatrixSQRT(Dest : PDouble; LineWidth : NativeInt; Width, Height : NativeInt);
 procedure AVXMatrixAbs(Dest : PDouble; LineWidth : NativeInt; Width, Height : NativeInt);
 
-function AVXMatrixMax(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
-function AVXMatrixMin(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
+function AVXMatrixMax(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; overload;
+function AVXMatrixMin(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; overload;
+procedure AVXMatrixMin(dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double); overload;
+procedure AVXMatrixMax(dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; maxVal : double); overload;
 function AVXMatrixSumSum(src : PDouble; srcLineWidth : NativeInt; Width, Height : NativeInt): double;
 
 procedure AVXMatrixTranspose(dest : PDouble; const destLineWidth : NativeInt; mt : PDouble; const LineWidth : NativeInt; width : NativeInt; height : NativeInt);
@@ -431,6 +433,32 @@ begin
          Result := AVXMatrixMinAligned(mt, width, height, LineWidth)
      else
          Result := AVXMatrixMinUnAligned(mt, width, height, LineWidth);
+end;
+
+procedure AVXMatrixMin(dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double);
+begin
+     if (width = 0) or (height = 0) then
+        exit;
+     assert((width*sizeof(double) <= LineWidth), 'Dimension error');
+
+     if (NativeUint(dest) and $0000001F = 0) and (LineWidth and $0000001F = 0)
+     then
+         AVXMatrixMinValAligned(dest, lineWidth, width, height, minVal)
+     else
+         AVXMatrixMinValUnAligned(dest, LineWidth, width, height, minVal);
+end;
+
+procedure AVXMatrixMax(dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; maxVal : double);
+begin
+     if (width = 0) or (height = 0) then
+        exit;
+     assert((width*sizeof(double) <= LineWidth), 'Dimension error');
+
+     if (NativeUint(dest) and $0000001F = 0) and (LineWidth and $0000001F = 0)
+     then
+         AVXMatrixMaxValAligned(dest, lineWidth, width, height, maxVal)
+     else
+         AVXMatrixMaxValUnAligned(dest, LineWidth, width, height, maxVal);
 end;
 
 function AVXMatrixSumSum(src : PDouble; srcLineWidth : NativeInt; Width, Height : NativeInt): double;

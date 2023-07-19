@@ -48,6 +48,7 @@ type
     procedure TestAVXAbs;
     procedure TestAddAndScale;
     procedure TestAVXMinMax;
+    procedure TestAVXMinMaxMtx;
     procedure TestAVXMean;
     procedure TestAVXVar;
     procedure TestAVXMeanVar;
@@ -490,6 +491,93 @@ begin
                   (endTime3 - startTime3)/mtxFreq*1000, (endTime4 - startTime4)/mtxFreq*1000]));
 
                FreeMem(pm1);
+          end;
+     end;
+end;
+
+procedure TestAVXMatrixOperations.TestAVXMinMaxMtx;
+const cMtxWidth : Array[0..11] of integer = (1, 3, 7, 8, 9, 10, 23, 43, 128, 1024, 2048, 2573);
+      cMtxHeight : Array[0..11] of integer = (1, 3, 7, 8, 9, 10, 23, 43, 128, 1024, 2048, 2573);
+var pX, pX1 : PDouble;
+    pm1, pm2 : PByte;
+    LineWidthX : NativeInt;
+    LineWidthX1 : NativeInt;
+    startTime1, endTime1 : Int64;
+    startTime2, endTime2 : int64;
+    startTime3, endTime3 : int64;
+    startTime4, endTime4 : int64;
+    i, j : Integer;
+    mtxWidth, mtxHeight : integer;
+    mtxMax : double;
+    align : integer;
+    rseed : integer;
+    idx : integer;
+  procedure FillMtx;
+  begin
+       if align = 0 then
+       begin
+            rSeed := RandSeed;
+            FillUnalignedMtx( mtxWidth, mtxHeight, pX, pm1, LineWidthX);
+
+            RandSeed := rSeed;
+            FillUnalignedMtx( mtxWidth, mtxHeight, pX1, pm2, LineWidthX1);
+       end
+       else
+       begin
+            rSeed := RandSeed;
+            FillAlignedMtx( mtxWidth, mtxHeight, pX, pm1, LineWidthX);
+
+            RandSeed := rSeed;
+            FillAlignedMtx( mtxWidth, mtxHeight, pX1, pm2, LineWidthX1);
+       end;
+  end;
+begin
+     for align := 0 to 1 do
+     begin
+          for i := 0 to Length(cMtxHeight) - 1 do
+          begin
+               for j := 0 to Length(cMtxWidth) -1  do
+               begin
+                    mtxWidth := cMtxWidth[j];
+                    mtxHeight := cMtxHeight[i];
+
+                    FillMtx;
+
+                    mtxMax := Random;
+
+                    startTime1 := MtxGetTime;
+                    GenericMtxMaxVal(px, LineWidthX, mtxWidth, mtxHeight, mtxMax );
+                    endTime1 := MtxGetTime;
+
+                    startTime2 := MtxGetTime;
+                    AVXMatrixMax(px1, LineWidthX1, mtxWidth, mtxHeight, mtxMax);
+                    endTime2 := MtxGetTime;
+
+                    Check( CheckMtxIdx(px, px1, LineWidthX, LineWidthX1, mtxWidth, mtxHeight, idx, 0), Format('AVX Matrix max failed on %d, %d', [mtxWidth, mtxHeight]));
+
+                    FreeMem(pm1);
+                    FreeMem(pm2);
+
+                    FillMtx;
+                    mtxMax := Random;
+
+                    startTime3 := MtxGetTime;
+                    GenericMtxMinVal(px, LineWidthX, mtxWidth, mtxHeight, mtxMax );
+                    endTime3 := MtxGetTime;
+
+                    startTime4 := MtxGetTime;
+                    AVXMatrixMin(px1, LineWidthX1, mtxWidth, mtxHeight, mtxMax);
+                    endTime4 := MtxGetTime;
+
+                    Check( CheckMtxIdx(px, px1, LineWidthX, LineWidthX1, mtxWidth, mtxHeight, idx, 0), Format('AVX Matrix max failed on %d, %d', [mtxWidth, mtxHeight]));
+
+                    Status( Format('Big Min/Max: %d, %d took %.3fms, %.3fms, %.3fms, %.3fms', [mtxWidth, mtxHeight,
+                       (endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
+                       (endTime3 - startTime3)/mtxFreq*1000, (endTime4 - startTime4)/mtxFreq*1000]));
+
+                    FreeMem(pm1);
+                    FreeMem(pm2);
+               end;
           end;
      end;
 end;

@@ -200,10 +200,15 @@ procedure MatrixTransposeInplace(mt : PDouble; const LineWidth : NativeInt; N : 
 // #### Max/sum mean variance
 // ###########################################
 
-function MatrixMax(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
-function MatrixMin(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
+function MatrixMax(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; overload;
+function MatrixMin(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; overload;
 function MatrixAbsMax(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 function MatrixAbsMin(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
+
+// applies dest^ := max(dest^, maxVal) over all elements
+procedure MatrixMax(dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; maxVal : double); overload;
+procedure MatrixMin(dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double); overload;
+
 
 // min/max of an square upper/lower matrix
 function MatrixMaxUpper( mt : PDouble; N : NativeInt; const LineWidth : NativeInt ) : double;
@@ -335,6 +340,7 @@ type
   TMatrixCopyFunc = procedure(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt);
   TMatrixInitFunc = procedure(dest : PDouble; destLIneWidth : NativeInt; Width, Height : NativeInt; const value : double );
   TMatrixMinMaxFunc = function(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
+  TMatrixMinMaxMtxFunc = procedure(dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; maxVal : double);
   TMatrixMinMaxTriaFunc = function(mt : PDouble; N : NativeInt; const LineWidth : NativeInt) : double;
   TMatrixTransposeFunc = procedure(dest : PDouble; const destLineWidth : NativeInt; mt : PDouble; const LineWidth : NativeInt; width : NativeInt; height : NativeInt);
   TMatrixTransposeInplaceFunc = procedure(mt : PDouble; const LineWidth : NativeInt; N : NativeInt);
@@ -432,6 +438,8 @@ var multFunc : TMatrixMultFunc;
     minFunc : TMatrixMinMaxFunc;
     absMinFunc : TMatrixMinMaxFunc;
     absMaxFunc : TMatrixMinMaxFunc;
+    maxMtxFunc : TMatrixMinMaxMtxFunc;
+    minMtxFunc : TMatrixMinMaxMtxFunc;
     minLowerFunc : TMatrixMinMaxTriaFunc;
     maxLowerFunc : TMatrixMinMaxTriaFunc;
     minUpperFunc : TMatrixMinMaxTriaFunc;
@@ -1189,6 +1197,17 @@ begin
          Result := absMinLowerFunc(mt, N, LineWidth );
 end;
 
+procedure MatrixMax(dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; maxVal : double); overload;
+begin
+     assert((width >= 0) and (height >= 0) and (LineWidth >= width*sizeof(double)), 'Dimension error');
+     maxMtxFunc(dest, LineWidth, width, height, maxVal);
+end;
+
+procedure MatrixMin(dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double); overload;
+begin
+     assert((width >= 0) and (height >= 0) and (LineWidth >= width*sizeof(double)), 'Dimension error');
+     minMtxFunc(dest, LineWidth, width, height, minVal);
+end;
 
 function MatrixNormalize(Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray;
 begin
@@ -1706,6 +1725,8 @@ begin
      matrixSortFunc := GenericMtxSort;
      colSwapFunc := GenericColSwap;
      matrixSumSumFunc := GenericMtxSumSum;
+     maxMtxFunc := GenericMtxMaxVal;
+     minMtxFunc := GenericMtxMinVal;
 
      {$IFDEF MRMATH_NOASM}
      TDynamicTimeWarp.UseSSE := False;
@@ -1773,7 +1794,9 @@ begin
           MatrixVecDotMultFunc := AVXMatrixVecDotMult;
           SymRank2UpdateFunc := AVXSymRank2UpdateUpper;
           matrixSumSumFunc := AVXMatrixSumSum;
-
+          maxMtxFunc := AVXMatrixMax;
+          minMtxFunc := AVXMatrixMin;
+          initfunc := AVXMatrixInit;
 
           // ##############################################
           // #### override if fma is requested

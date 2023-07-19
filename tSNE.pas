@@ -427,6 +427,9 @@ var n : integer;                        // number of instances
     aSum : double;
     aMean : IMatrix;
     yMul : IMatrix;
+    tmp2 : IMatrix;
+    line1, line2 : PConstDoubleArr;
+    y : integer;
 
 const final_momentum : double = 0.8;    // value to which momentum is changed
       mom_switch_iter : integer = 250;  // iteration at which momentum is changed
@@ -452,7 +455,7 @@ begin
      PT.SumInPlace(False, True);
      scaleFact := PT[0, 0];
      P.ScaleInPlace(1/scaleFact);
-     P.ElementwiseFuncInPlace({$ifdef FPC}@{$ENDIF}MaxFunc);
+     MatrixMax(P.StartElement, P.LineWidth, P.Width, P.Height, cMinDouble);
 
      PT := P.AsVector(True);
      PT.ElementwiseFuncInPlace( {$IFDEF FPC}@{$ENDIF}EntropyFunc );
@@ -468,8 +471,8 @@ begin
 
      L := MatrixClass.Create(n, n);
      Q := MatrixClass.Create(n, n);
+     fy_grads := MatrixClass.Create(numDims, n);
 
-     fy_grads := MatrixClass.Create(n, 1);
      sum_ydata := MatrixClass.Create(yData.Width, yData.Height);
 
      aMean := MatrixClass.Create(numDims, 1);
@@ -477,6 +480,7 @@ begin
      num :=  MatrixClass.Create( yMul.Width, yMul.Height, 0);
 
      tmp := MatrixClass.Create(numDims, n);
+     tmp2 := MatrixClass.Create(n, n);
 
      // #################################################
      // #### now iterate
@@ -508,25 +512,38 @@ begin
           aSum := num.Sum;
           Q.Assign( num );
           Q.ScaleInPlace( 1/aSum );
-          Q.ElementwiseFuncInPlace({$ifdef FPC}@{$ENDIF}MaxFunc );
+          //Q.ElementwiseFuncInPlace({$ifdef FPC}@{$ENDIF}MaxFunc );
+          MatrixMax(Q.StartElement, Q.LineWidth, Q.Width, Q.Height, cMinDouble);
 
           // Compute the gradients (faster implementation)
           L.Assign(P);
           L.SubInPlace(Q);
           L.ElementWiseMultInPlace(num);
 
-          fy_grads := L.Sum(False);
-          fy_grads.DiagInPlace(True);
-          fy_grads.SubInPlace(L);
+          // fy_grads := L.Sum(False);
+          tmp2.SetValue(0);
+          MatrixSum(tmp2.StartElement, tmp2.LineWidth, L.StartElement, L.LineWidth, L.Width, L.Height, False);
 
-          fy_grads.ScaleInPlace(4);
-          fy_grads.MultInPlace(ydata);
+          // create diagonal from the given matrix
+          line1 := PConstDoubleArr(tmp2.StartElement);
+          line2 := line1;
+          inc(PByte(line2), tmp2.LineWidth);
+
+          for y := 1 to fy_grads.Height - 1 do
+          begin
+               line2^[y] := line1^[y];
+               line1^[y] := 0;
+               inc(PByte(line2), tmp2.LineWidth);
+          end;
+
+          //fy_grads.DiagInPlace(True);
+          tmp2.SubInPlace(L);
+          tmp2.ScaleInPlace(4);
+          MatrixMult(fy_grads.StartElement, fy_grads.LineWidth, tmp2.StartElement, ydata.StartElement, tmp2.Width, tmp2.Height,
+                     yData.Width, yData.Height, tmp2.LineWidth, ydata.LineWidth);
+          //fy_grads := tmp2.Mult(ydata);
 
           // Update the solution
-          // -> the current lib does not work well with a multithread version of the gains update
-          // -> do it here manually
-
-          // previously it was:
           gains.ElementwiseFuncInPlace( {$ifdef FPC}@{$ENDIF}UpdateGains );
 
           fyincs.ScaleInPlace(momentum);

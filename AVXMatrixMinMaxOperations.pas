@@ -27,6 +27,13 @@ function AVXMatrixMaxUnAligned(mt : PDouble; width, height : NativeInt; const Li
 function AVXMatrixMinAligned(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 function AVXMatrixMinUnAligned(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
+// in matrix max/min
+procedure AVXMatrixMinValUnAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixMaxValUnAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+
+procedure AVXMatrixMinValAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure AVXMatrixMaxValAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+
 {$ENDIF}
 
 implementation
@@ -396,10 +403,338 @@ asm
    {$IFDEF AVXSUP}vminsd xmm0, xmm0, xmm1;                            {$ELSE}db $C5,$FB,$5D,$C1;{$ENDIF} 
 
    // epilog - cleanup stack
-   {$IFDEF AVXSUP}vzeroupper;                                         {$ELSE}db $C5,$F8,$77;{$ENDIF} 
+   {$IFDEF AVXSUP}vzeroupper;                                         {$ELSE}db $C5,$F8,$77;{$ENDIF}
    movsd Result, xmm0;
 
    pop esi;
+   pop edi;
+end;
+
+procedure AVXMatrixMinValUnAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+// eax = dest; edx = LineWidth, ecx = Width
+asm
+   push edi;
+   push ebx;
+
+   imul ecx, -8;
+
+   // helper registers for the dest pointer
+   sub eax, ecx;
+
+   lea edi, minVal;
+   {$IFDEF AVXSUP}vbroadcastsd ymm0, [edi];                           {$ELSE}db $C4,$E2,$7D,$19,$1F;{$ENDIF}
+
+   // for y := 0 to height - 1:
+   mov ebx, Height;
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, ecx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
+
+           // prefetch data...
+           //prefetchw [eax + rax];
+
+           // Abs:
+           {$IFDEF AVXSUP}vmovupd ymm1, [eax + edi - 128];            {$ELSE}db $C5,$FD,$10,$4C,$38,$80;{$ENDIF}
+           vminpd ymm1, ymm1, ymm0;
+           {$IFDEF AVXSUP}vmovupd [eax + edi - 128], ymm1;            {$ELSE}db $C5,$FD,$11,$4C,$38,$80;{$ENDIF}
+
+           {$IFDEF AVXSUP}vmovupd ymm2, [eax + edi - 96];             {$ELSE}db $C5,$FD,$10,$54,$38,$A0;{$ENDIF}
+           vminpd ymm2, ymm2, ymm0;
+           {$IFDEF AVXSUP}vmovupd [eax + edi - 96], ymm2;             {$ELSE}db $C5,$FD,$11,$54,$38,$A0;{$ENDIF}
+
+           {$IFDEF AVXSUP}vmovupd ymm3, [eax + edi - 64];             {$ELSE}db $C5,$FD,$10,$5C,$38,$C0;{$ENDIF}
+           vminpd ymm3, ymm3, ymm0;
+           {$IFDEF AVXSUP}vmovupd [eax + edi - 64], ymm3;             {$ELSE}db $C5,$FD,$11,$5C,$38,$C0;{$ENDIF}
+
+           {$IFDEF AVXSUP}vmovupd ymm4, [eax + edi - 32];             {$ELSE}db $C5,$FD,$10,$64,$38,$E0;{$ENDIF}
+           vminpd ymm4, ymm4, ymm0;
+           {$IFDEF AVXSUP}vmovupd [eax + edi - 32], ymm4;             {$ELSE}db $C5,$FD,$11,$64,$38,$E0;{$ENDIF}
+       jmp @addforxloop
+
+       @loopEnd:
+
+       sub edi, 128;
+
+       jz @nextLine;
+
+       @addforxloop2:
+           add edi, 16;
+           jg @loopEnd2;
+
+           {$IFDEF AVXSUP}vmovupd xmm1, [eax + edi - 16];             {$ELSE}db $C5,$F9,$10,$4C,$38,$F0;{$ENDIF}
+           vminpd xmm1, xmm1, xmm0;
+           {$IFDEF AVXSUP}vmovupd [eax + edi - 16], xmm1;             {$ELSE}db $C5,$F9,$11,$4C,$38,$F0;{$ENDIF}
+       jmp @addforxloop2;
+
+       @loopEnd2:
+
+       sub edi, 16;
+       jz @nextLine;
+
+       {$IFDEF AVXSUP}vmovsd xmm1, [eax + edi];                       {$ELSE}db $C5,$FB,$10,$0C,$38;{$ENDIF}
+       vminsd xmm1, xmm1, xmm0;
+       {$IFDEF AVXSUP}vmovsd [eax + edi], xmm1;                       {$ELSE}db $C5,$FB,$11,$0C,$38;{$ENDIF}
+
+       @nextLine:
+
+       // next line:
+       add eax, edx;
+
+   // loop y end
+   dec ebx;
+   jnz @@addforyloop;
+
+   {$IFDEF AVXSUP}vzeroupper;                                         {$ELSE}db $C5,$F8,$77;{$ENDIF}
+
+   pop ebx;
+   pop edi;
+end;
+
+
+procedure AVXMatrixMaxValUnAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+// eax = dest; edx = LineWidth, ecx = Width
+asm
+   push edi;
+   push ebx;
+
+   imul ecx, -8;
+
+   // helper registers for the dest pointer
+   sub eax, ecx;
+
+   lea edi, minVal;
+   {$IFDEF AVXSUP}vbroadcastsd ymm0, [edi];                           {$ELSE}db $C4,$E2,$7D,$19,$1F;{$ENDIF}
+
+   // for y := 0 to height - 1:
+   mov ebx, Height;
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, ecx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
+
+           // prefetch data...
+           //prefetchw [eax + rax];
+
+           // Abs:
+           {$IFDEF AVXSUP}vmovupd ymm1, [eax + edi - 128];            {$ELSE}db $C5,$FD,$10,$4C,$38,$80;{$ENDIF}
+           vmaxpd ymm1, ymm1, ymm0;
+           {$IFDEF AVXSUP}vmovupd [eax + edi - 128], ymm1;            {$ELSE}db $C5,$FD,$11,$4C,$38,$80;{$ENDIF}
+
+           {$IFDEF AVXSUP}vmovupd ymm2, [eax + edi - 96];             {$ELSE}db $C5,$FD,$10,$54,$38,$A0;{$ENDIF}
+           vmaxpd ymm2, ymm2, ymm0;
+           {$IFDEF AVXSUP}vmovupd [eax + edi - 96], ymm2;             {$ELSE}db $C5,$FD,$11,$54,$38,$A0;{$ENDIF}
+
+           {$IFDEF AVXSUP}vmovupd ymm3, [eax + edi - 64];             {$ELSE}db $C5,$FD,$10,$5C,$38,$C0;{$ENDIF}
+           vmaxpd ymm3, ymm3, ymm0;
+           {$IFDEF AVXSUP}vmovupd [eax + edi - 64], ymm3;             {$ELSE}db $C5,$FD,$11,$5C,$38,$C0;{$ENDIF}
+
+           {$IFDEF AVXSUP}vmovupd ymm4, [eax + edi - 32];             {$ELSE}db $C5,$FD,$10,$64,$38,$E0;{$ENDIF}
+           vmaxpd ymm4, ymm4, ymm0;
+           {$IFDEF AVXSUP}vmovupd [eax + edi - 32], ymm4;             {$ELSE}db $C5,$FD,$11,$64,$38,$E0;{$ENDIF}
+       jmp @addforxloop
+
+       @loopEnd:
+
+       sub edi, 128;
+
+       jz @nextLine;
+
+       @addforxloop2:
+           add edi, 16;
+           jg @loopEnd2;
+
+           {$IFDEF AVXSUP}vmovupd xmm1, [eax + edi - 16];             {$ELSE}db $C5,$F9,$10,$4C,$38,$F0;{$ENDIF}
+           vmaxpd xmm1, xmm1, xmm0;
+           {$IFDEF AVXSUP}vmovupd [eax + edi - 16], xmm1;             {$ELSE}db $C5,$F9,$11,$4C,$38,$F0;{$ENDIF}
+       jmp @addforxloop2;
+
+       @loopEnd2:
+
+       sub edi, 16;
+       jz @nextLine;
+
+       {$IFDEF AVXSUP}vmovsd xmm1, [eax + edi];                       {$ELSE}db $C5,$FB,$10,$0C,$38;{$ENDIF}
+       vmaxsd xmm1, xmm1, xmm0;
+       {$IFDEF AVXSUP}vmovsd [eax + edi], xmm1;                       {$ELSE}db $C5,$FB,$11,$0C,$38;{$ENDIF}
+
+       @nextLine:
+
+       // next line:
+       add eax, edx;
+
+   // loop y end
+   dec ebx;
+   jnz @@addforyloop;
+
+   {$IFDEF AVXSUP}vzeroupper;                                         {$ELSE}db $C5,$F8,$77;{$ENDIF}
+
+   pop ebx;
+   pop edi;
+end;
+
+
+procedure AVXMatrixMinValAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+// eax = dest; edx = LineWidth, ecx = Width
+asm
+   push edi;
+   push ebx;
+
+   imul ecx, -8;
+
+   // helper registers for the dest pointer
+   sub eax, ecx;
+
+   lea edi, minVal;
+   {$IFDEF AVXSUP}vbroadcastsd ymm0, [edi];                           {$ELSE}db $C4,$E2,$7D,$19,$1F;{$ENDIF}
+
+   // for y := 0 to height - 1:
+   mov ebx, Height;
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, ecx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
+
+           // prefetch data...
+           //prefetchw [eax + rax];
+
+           // Abs:
+           vminpd ymm1, ymm0, [eax + edi - 128];
+           vmovapd [eax + edi - 128], ymm1;
+
+           vminpd ymm2, ymm0, [eax + edi - 96];
+           vmovapd [eax + edi - 96], ymm2;
+
+           vminpd ymm3, ymm0, [eax + edi - 64];
+           vmovapd [eax + edi - 64], ymm3;
+
+           vminpd ymm4, ymm0, [eax + edi - 32];
+           vmovapd [eax + edi - 32], ymm4;
+       jmp @addforxloop
+
+       @loopEnd:
+
+       sub edi, 128;
+
+       jz @nextLine;
+
+       @addforxloop2:
+           add edi, 16;
+           jg @loopEnd2;
+
+           vminpd xmm1, xmm0, [eax + edi - 16];
+           vmovapd [eax + edi - 16], xmm1;
+       jmp @addforxloop2;
+
+       @loopEnd2:
+
+       sub edi, 16;
+       jz @nextLine;
+
+       vmovsd xmm1, [eax + edi];
+       vminsd xmm1, xmm1, xmm0;
+       vmovsd [eax + edi], xmm1;
+
+       @nextLine:
+
+       // next line:
+       add eax, edx;
+
+   // loop y end
+   dec ebx;
+   jnz @@addforyloop;
+
+   {$IFDEF AVXSUP}vzeroupper;                                         {$ELSE}db $C5,$F8,$77;{$ENDIF}
+
+   pop ebx;
+   pop edi;
+end;
+
+procedure AVXMatrixMaxValAligned( dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+// eax = dest; edx = LineWidth, ecx = Width
+asm
+   push edi;
+   push ebx;
+
+   imul ecx, -8;
+
+   // helper registers for the dest pointer
+   sub eax, ecx;
+
+   lea edi, minVal;
+   {$IFDEF AVXSUP}vbroadcastsd ymm0, [edi];                           {$ELSE}db $C4,$E2,$7D,$19,$1F;{$ENDIF}
+
+   // for y := 0 to height - 1:
+   mov ebx, Height;
+   @@addforyloop:
+       // for x := 0 to w - 1;
+       // prepare for reverse loop
+       mov edi, ecx;
+       @addforxloop:
+           add edi, 128;
+           jg @loopEnd;
+
+           // prefetch data...
+           //prefetchw [eax + rax];
+
+           // Abs:
+           vmaxpd ymm1, ymm0, [eax + edi - 128];
+           vmovapd [eax + edi - 128], ymm1;
+
+           vmaxpd ymm2, ymm0, [eax + edi - 96];
+           vmovapd [eax + edi - 96], ymm2;
+
+           vmaxpd ymm3, ymm0, [eax + edi - 64];
+           vmovapd [eax + edi - 64], ymm3;
+
+           vmaxpd ymm4, ymm0, [eax + edi - 32];
+           vmovapd [eax + edi - 32], ymm4;
+       jmp @addforxloop
+
+       @loopEnd:
+
+       sub edi, 128;
+
+       jz @nextLine;
+
+       @addforxloop2:
+           add edi, 16;
+           jg @loopEnd2;
+
+           vmaxpd xmm1, xmm0, [eax + edi - 16];
+           vmovapd [eax + edi - 16], xmm1;
+       jmp @addforxloop2;
+
+       @loopEnd2:
+
+       sub edi, 16;
+       jz @nextLine;
+
+       vmovsd xmm1, [eax + edi];
+       vmaxsd xmm1, xmm1, xmm0;
+       vmovsd [eax + edi], xmm1;
+
+       @nextLine:
+
+       // next line:
+       add eax, edx;
+
+   // loop y end
+   dec ebx;
+   jnz @@addforyloop;
+
+   {$IFDEF AVXSUP}vzeroupper;                                         {$ELSE}db $C5,$F8,$77;{$ENDIF}
+
+   pop ebx;
    pop edi;
 end;
 

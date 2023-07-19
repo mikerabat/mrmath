@@ -119,6 +119,10 @@ function GenericMtxMin(mt : PDouble; width, height : NativeInt; const LineWidth 
 function GenericMtxAbsMax(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 function GenericMtxAbsMin(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 
+// applies dest^ := max(dest^, maxVal) over all elements
+procedure GenericMtxMaxVal(dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; maxVal : double);
+procedure GenericMtxMinVal(dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double);
+
 // matrix max and min of an upper or lower diagonal matrix
 function GenericMtxMaxUpper( mt : PDouble; N : NativeInt; const LineWidth : NativeInt ) : double;
 function GenericMtxMinUpper( mt : PDouble; N : NativeInt; const LineWidth : NativeInt ) : double;
@@ -1259,6 +1263,41 @@ begin
           inc(PByte(pMt), LineWidth);
      end;
 end;
+
+procedure GenericMtxMaxVal(dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; maxVal : double);
+var x, y : NativeInt;
+    pLine : PConstDoubleArr;
+begin
+     assert((width > 0) and (height > 0) and (width*sizeof(double) <= LineWidth), 'Dimension error');
+
+     pLine := PConstDoubleArr(dest);
+     for y := 0 to height - 1 do
+     begin
+          for x := 0 to width - 1 do
+              if pLine^[x] < maxVal then
+                 pLine^[x] := maxVal;
+
+          inc(PByte(pLine), LineWidth);
+     end;
+end;
+
+procedure GenericMtxMinVal(dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double);
+var x, y : NativeInt;
+    pLine : PConstDoubleArr;
+begin
+     assert((width > 0) and (height > 0) and (width*sizeof(double) <= LineWidth), 'Dimension error');
+
+     pLine := PConstDoubleArr(dest);
+     for y := 0 to height - 1 do
+     begin
+          for x := 0 to width - 1 do
+              if pLine^[x] > minVal then
+                 pLine^[x] := minVal;
+
+          inc(PByte(pLine), LineWidth);
+     end;
+end;
+
 
 procedure GenericMtxAdd(dest : PDouble; destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; LineWidth1, LineWidth2 : NativeInt);
 var x, y : NativeInt;
@@ -3523,3 +3562,4 @@ end;
 
 
 end.
+
