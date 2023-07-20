@@ -90,7 +90,8 @@ type
 implementation
 
 uses SysUtils, Math, Classes, MatrixASMStubSwitch, MatrixConst,
-     Dist, BlockSizeSetup;
+     Dist, BlockSizeSetup, MtxThreadPool, ThreadedMatrix,
+     ThreadedMatrixOperations;
 
 { TtSNE }
 
@@ -430,6 +431,8 @@ var n : integer;                        // number of instances
     tmp2 : IMatrix;
     line1, line2 : PConstDoubleArr;
     y : integer;
+    origNumCPUCores : integer;
+    threaded : boolean;
 
 const final_momentum : double = 0.8;    // value to which momentum is changed
       mom_switch_iter : integer = 250;  // iteration at which momentum is changed
@@ -482,25 +485,36 @@ begin
      tmp := MatrixClass.Create(numDims, n);
      tmp2 := MatrixClass.Create(n, n);
 
+     threaded := MatrixClass = TThreadedMatrix;
+
      // #################################################
      // #### now iterate
+     origNumCPUCores := NumCPUCores;
+     numCPUCores := Min(numcpuCores, numDims);
+
      for iter := 1 to fNumIter do
      begin
           // Compute joint probability that point i and j are neighbors
           sum_ydata.SetWidthHeight(yData.Width, yData.Height);
-          sum_ydata.Assign(yData);
-          sum_ydata.ElementWiseMultInPlace(sum_ydata);
+          // sum_ydata.Assign(yData);
+          // sum_ydata.ElementWiseMultInPlace(sum_ydata);
+          MatrixElemMult(sum_ydata.StartElement, sum_ydata.LineWidth, ydata.StartElement, ydata.StartElement, ydata.Width, ydata.Height, ydata.LineWidth, ydata.LineWidth);
+
           //sum_ydata := ydata.ElementWiseMult(yData);
           sum_ydata.SumInPlace(True, True);
 
           // num = 1 ./ (1 + bsxfun(@plus, sum_ydata, bsxfun(@plus, sum_ydata', -2 * (ydata * ydata')))); % Student-t distribution
           // yMul := yData.MultT2(yData);
-          MatrixMultT2Ex(yMul.StartElement, yMul.LineWidth, yData.StartElement, yData.StartElement, yData.Width, yData.Height,
+          if threaded
+          then
+              ThrMatrixMultT2Ex(yMul.StartElement, yMul.LineWidth, yData.StartElement, yData.StartElement, yData.Width, yData.Height,
+                         yData.Width, yData.Height, yData.LineWidth, yData.LineWidth, BlockMatrixCacheSize, doNone, nil)
+          else
+              MatrixMultT2Ex(yMul.StartElement, yMul.LineWidth, yData.StartElement, yData.StartElement, yData.Width, yData.Height,
                          yData.Width, yData.Height, yData.LineWidth, yData.LineWidth, BlockMatrixCacheSize, doNone, nil);
-          yMul.ScaleInPlace(-2);
+          yMul.ScaleAndAddInPlace(1, -2);
           yMul.AddVecInPlace(sum_ydata, True);
           yMul.AddVecInPlace(sum_ydata, False);
-          yMul.AddInPlace( 1 );
 
           num.SetValue(1);
           num.ElementWiseDivInPlace(yMul);
@@ -516,8 +530,9 @@ begin
           MatrixMax(Q.StartElement, Q.LineWidth, Q.Width, Q.Height, cMinDouble);
 
           // Compute the gradients (faster implementation)
-          L.Assign(P);
-          L.SubInPlace(Q);
+          MatrixSub( L.StartElement, L.LineWidth, P.StartElement, Q.StartElement, P.Width, P.Height, P.LineWidth, Q.LineWidth);
+          //L.Assign(P);
+          //L.SubInPlace(Q);
           L.ElementWiseMultInPlace(num);
 
           // fy_grads := L.Sum(False);
@@ -539,19 +554,26 @@ begin
           //fy_grads.DiagInPlace(True);
           tmp2.SubInPlace(L);
           tmp2.ScaleInPlace(4);
-          MatrixMult(fy_grads.StartElement, fy_grads.LineWidth, tmp2.StartElement, ydata.StartElement, tmp2.Width, tmp2.Height,
-                     yData.Width, yData.Height, tmp2.LineWidth, ydata.LineWidth);
+
+          if threaded
+          then
+              ThrMatrixMult(fy_grads.StartElement, fy_grads.LineWidth, tmp2.StartElement, ydata.StartElement, tmp2.Width, tmp2.Height,
+                            yData.Width, yData.Height, tmp2.LineWidth, ydata.LineWidth)
+          else
+              MatrixMult(fy_grads.StartElement, fy_grads.LineWidth, tmp2.StartElement, ydata.StartElement, tmp2.Width, tmp2.Height,
+                         yData.Width, yData.Height, tmp2.LineWidth, ydata.LineWidth);
           //fy_grads := tmp2.Mult(ydata);
 
           // Update the solution
           gains.ElementwiseFuncInPlace( {$ifdef FPC}@{$ENDIF}UpdateGains );
 
           fyincs.ScaleInPlace(momentum);
-          tmp.Assign(gains);
-          tmp.ElementWiseMultInPlace(fy_grads);
+
+          //tmp.Assign(gains);
+          //tmp.ElementWiseMultInPlace(fy_grads);
+          MatrixElemMult(tmp.StartElement, tmp.LineWidth, gains.StartElement, fy_grads.StartElement, gains.Width, gains.Height, gains.LineWidth, fy_grads.LineWidth);
           tmp.ScaleInPlace(epsilon);
           fyincs.SubInPlace(tmp);
-
           yData.AddInplace(fyincs);
 
           MatrixMean(aMean.StartElement, aMean.LineWidth, yData.StartElement,
@@ -582,6 +604,7 @@ begin
                   break;
           end;
      end;
+     numCPUCores := origNumCPUCores;
 
      Result := yData;
 end;
