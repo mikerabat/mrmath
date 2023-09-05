@@ -307,9 +307,6 @@ begin
      for i := 0 to y.Height - 1 do
          y.Vec[i] := sin(i*12*pi/180);
 
-     WriteMatlabData('D:\img.txt', x.SubMatrix, x.Width);
-     WriteMatlabData('D:\yres.txt', y.SubMatrix, y.Width);
-
      with TMatrixPLS.Create do
      try
         yFit := TDoubleMatrix.Create;
