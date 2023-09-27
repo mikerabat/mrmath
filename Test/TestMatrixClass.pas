@@ -75,6 +75,7 @@ type
    procedure TestAppend;
    procedure TestSelect;
    procedure TestDiag;
+   procedure TestHess;
   end;
 
 type
@@ -436,6 +437,37 @@ begin
         eigVals.Free;
      finally
             mtx.Free;
+     end;
+end;
+
+procedure TestTDoubleMatrix.TestHess;
+const cA : Array[0..24] of double = (3, 1, 1, 2, -2, -1, 5, -1, 8, 0, 1, -1, 1, 4, 3, 2.2, 1, 0, -1, -1, 6, -6, -2, -2, 4);
+      cHess : Array[0..24] of double = (3.00000,  -1.16115,   0.01819,   0.46244,  -2.90474,
+                                        6.54523,   3.23436,   1.99892,   2.70807,   6.29351,
+                                        0,   -5.19787,  -2.68521,   0.34935,   4.62237,
+                                        0,   0,  -1.96271,   2.80563,   3.66568,
+                                        0,   0,   0,   2.41975,   5.64523 );
+      cQ : Array[0..24] of double = ( 1.00000,   0.00000,   0.00000,   0.00000,   0.00000,
+                                      0.00000,  -0.15278,  -0.43603,  -0.78587,  -0.41103,
+                                      0.00000,   0.15278,  -0.75146,   0.55545,  -0.32161,
+                                      0.00000,   0.33612,   0.47957,   0.08991,  -0.80557,
+                                      0.00000,   0.91670,  -0.12327,  -0.25652,   0.28047 );
+var a, h1, h2, q : TDoubleMatrix;
+begin
+     a := TDoubleMatrix.Create(cA, 5, 5);
+     try
+        a.Hess( h1 );
+        a.HessFull(q, h2);
+
+        Check( CheckMtx(h1.SubMatrix, h2.SubMatrix), 'Full and single hess decomp is not the same');
+
+        Check( CheckMtx( cHess, h1.SubMatrix ), 'Failed to calculate hess decomp');
+        Check( CheckMtx( cQ, q.SubMatrix ), 'Failed to calculate hess decomp');
+     finally
+            a.Free;
+            q.Free;
+            h1.Free;
+            h2.Free;
      end;
 end;
 
