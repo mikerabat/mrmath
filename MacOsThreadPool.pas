@@ -173,7 +173,7 @@ end;
 destructor TMacMtxAsyncCall.Destroy;
 begin
      fData.Free;
-     
+
      inherited;
 end;
 
@@ -219,13 +219,13 @@ end;
 
 function CreateThreadPoolObj : IMtxThreadPool;
 begin
-     Result := TSimpleMAcOSThreadPool.Create;
+     Result := TSimpleMacOSThreadPool.Create;
 end;
 
 {$IFDEF FPC}
 
 initialization
-  numCPUCores := GetSystemThreadCount;
+  numCPUCores := Max(1, GetSystemThreadCount);
   if numCpuCores > cMaxNumCores then
      numCpuCores := cMaxNumCores;
   numRealCores := numCPUCores;
@@ -241,7 +241,7 @@ var cpuInfo : NSProcessInfo;
 initialization
   cpuInfo := TNSProcessInfo.Create;
 
-  numCPUCores := cpuInfo.processorCount;
+  numCPUCores := Max(1, cpuInfo.processorCount);
   if numCpuCores > cMaxNumCores then
      numCpuCores := cMaxNumCores;
   numRealCores := numCPUCores;
