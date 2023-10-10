@@ -198,6 +198,7 @@ procedure TestAVXMatrixOperations.TestAVXInit;
         cMtxHeight = 500;
         cMtxSize = cMtxWidth*cMtxHeight;
         cMtxLinewidth = cMtxWidth*sizeof(double);
+        cMtxP1LineWidth = (cMtxWidth + 4)*sizeof(double);
   begin
        FillChar(mtx, sizeof(mtx), 0);
        AVXMatrixInit( @mtx[0], 4*sizeof(double), 1, 1, 2);
@@ -216,7 +217,7 @@ procedure TestAVXMatrixOperations.TestAVXInit;
        CheckMtxVal(@mtx[0], 4*sizeof(double), 4, 3, 2.5);
 
        SetLength(x, cMtxSize);
-       GetMem(mem, (cMTXSize + 4)*sizeof(double));
+       GetMem(mem, ( ((cMtxWidth + 4)*cMtxHeight) + 4)*sizeof(double));
 
        xa := AlignPtr32(mem);
 
@@ -261,10 +262,10 @@ procedure TestAVXMatrixOperations.TestAVXInit;
 
 
        startTime3 := MtxGetTime;
-       AVXMatrixInit( xa, (cMtxWidth + 2)*sizeof(double), cMtxWidth + 1, cMtxHeight, 2.4 );
+       AVXMatrixInit( xa, cMtxP1LineWidth, cMtxWidth + 1, cMtxHeight, 2.4 );
        endTime3 := MtxGetTime;
 
-       Check(CheckMtxVal( xa, (cmtxwidth + 2)*sizeof(double), cMtxWidth + 1, cMtxHeight, 2.4), 'Failed aligned init');
+       Check(CheckMtxVal( xa, cMtxP1LineWidth, cMtxWidth + 1, cMtxHeight, 2.4), 'Failed aligned init');
        Status(Format('%.2f, %.2f, %.2f', [(endTime1 - startTime1)/mtxFreq*1000, (endTime2 - startTime2)/mtxFreq*1000,
                           (endTime3 - startTime3)/mtxFreq*1000]));
 

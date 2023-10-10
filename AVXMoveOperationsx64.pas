@@ -107,7 +107,7 @@ asm
        jz @nextLine;
 
        // last element
-       {$IFDEF AVXSUP}vmovsd [rcx + rax], xmm0;                       {$ELSE}db $C5,$FB,$11,$04,$01;{$ENDIF} 
+       {$IFDEF AVXSUP}vmovsd [rcx + rax], xmm1;                       {$ELSE}db $C5,$FB,$11,$0C,$01;{$ENDIF}
 
        @nextLine:
 
