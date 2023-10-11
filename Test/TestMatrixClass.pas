@@ -237,8 +237,9 @@ end;
 procedure TestTDoubleMatrix.TestConstructors;
 var mtx : IMatrix;
     data : PDouble;
-    i : integer;
+    i, j : integer;
     dynData : TDoubleDynArray;
+    cpuSet : TCPUInstrType;
 begin
      mtx := TDoubleMatrix.Create;
      Check(mtx.width = 1, 'Error');
@@ -264,6 +265,19 @@ begin
 
      Check(mtx.width = 3, 'Error');
      Check(mtx[2, 2] = 8, 'Error');
+
+     for cpuSet in [itFPU, itSSE, itAVX, itFMA] do
+     begin
+          InitMathFunctions(cpuSet, False);
+          mtx := TDoubleMatrix.Create(1, 9, 1.5);
+
+          for i := 0 to mtx.Height - 1 do
+              for j := 0 to mtx.Width - 1 do
+              begin
+                   Status(IntToStr(j) + ', ' + IntToStr(i) + ': ' + FloatToStr(mtx[j, i]));
+                   Check(mtx[j, i] = 1.5, 'Initialization failed');
+              end;
+     end;
 end;
 
 procedure TestTDoubleMatrix.TestCovariance;
