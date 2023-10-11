@@ -2875,7 +2875,7 @@ begin
 
      ASMMatrixInit( xa, 16*SizeOf(double), 16, 16, 0.9);
      for i := 0 to 16*16 - 1 do
-         check(PConstDoubleArr(xa)^[i] = 0.9, 'Init Failed' );
+         check(SameValue(PConstDoubleArr(xa)^[i], 0.9), 'Init Failed' );
 
      startTime3 := MtxGetTime;
      ASMMatrixInit( xa, cMtxWidth*sizeof(double), cMtxWidth, cMtxHeight, 2.4 );
