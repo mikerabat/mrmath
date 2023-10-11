@@ -1864,7 +1864,7 @@ begin
           end1 := MtxGetTime;
 
           start2 := MtxGetTime;
-          ThrMatrixMultT2Ex(aDest2, aDestLineWidth2, aMt1, aMt2, cMtxWidth[i], cMtxHeight[i], cMtxWidth[i], cMtxHeight[i],
+          ThrMatrixMultT2Ex2(aDest2, aDestLineWidth2, aMt1, aMt2, cMtxWidth[i], cMtxHeight[i], cMtxWidth[i], cMtxHeight[i],
                             aMt1LineWidth, aMt2LineWidth, BlockMatrixCacheSize, doNone, nil);
           end2 := MtxGetTime;
 
@@ -1921,7 +1921,7 @@ begin
           end1 := MtxGetTime;
 
           start2 := MtxGetTime;
-          ThrMatrixMultEx(aDest2, aDestLineWidth2, aMt1, aMt2, cMtxWidth[i], cMtxHeight[i], cMtxHeight[i], cMtxWidth[i],
+          ThrMatrixMultEx2(aDest2, aDestLineWidth2, aMt1, aMt2, cMtxWidth[i], cMtxHeight[i], cMtxHeight[i], cMtxWidth[i],
                             aMt1LineWidth, aMt2LineWidth, BlockMatrixCacheSize, doNone, nil);
           end2 := MtxGetTime;
 
@@ -2086,6 +2086,7 @@ const cMtxWidth = 1000;
       cMtxLinewidth = (cMtxWidth)*sizeof(double);
 begin
      {$IFDEF FMX} Setup; {$ENDIF}
+     InitMtxThreadPool;
      randomize;
      FillMatrix(cMtxSize, x, y, xa, ya);
      SetLength(dest1, cMtxSize);
@@ -2147,6 +2148,7 @@ const //cMtxWidth = 10*cCacheMtxSize;
       cMtxLineWidth2 = cMtxHeight*8;
 begin
      {$IFDEF FMX} Setup; {$ENDIF}
+     InitMtxThreadPool;
      randomize;
      FillMatrix(cMtxSize, x, y, xa, ya);
      SetLength(dest1, cMtxHeight*cMtxHeight);
@@ -2159,7 +2161,7 @@ begin
      endTime1 := MtxGetTime;
 
      startTime2 := MtxGetTime;
-     ThrMatrixMult(dest1a, cMtxLineWidth2, xa, ya, cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2);
+     ThrMatrixMultEx2(dest1a, cMtxLineWidth2, xa, ya, cMtxWidth, cMtxheight, cMtxHeight, cMtxWidth, cMtxLinewidth, cMtxLinewidth2, BlockedMatrixMultSize, doNone, nil);
      endTime2 := MtxGetTime;
 
      startTime3 := MtxGetTime;

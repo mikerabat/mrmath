@@ -1150,7 +1150,7 @@ begin
           exit;
      end;
 
-     if offset + thrHeight > blkHeight then
+     if (thrIdx = numThr - 1) or (offset + thrHeight > blkHeight) then
         thrHeight := blkHeight - offset;
 
      thrCopyBlk := GenPtr(copyBlk, 0, offset, blockLineSize);
@@ -1195,7 +1195,7 @@ begin
           exit;
      end;
 
-     if offset + thrHeight > blkHeight then
+     if (thrIdx = numThr - 1) or (offset + thrHeight > blkHeight) then
         thrHeight := blkHeight - offset;
 
      thrCopyBlk := GenPtr(copyBlk, 0, offset, blockLineSize);
@@ -1233,8 +1233,7 @@ begin
           exit;
      end;
 
-
-     if offset + thrblkHeight > blkHeight then
+     if (thrIdx = numThr - 1) or (offset + thrblkHeight > blkHeight) then
         thrblkHeight := blkHeight - offset;
 
      thrDest := GenPtr(pDest, 0, offset, destLineWidth);
@@ -1264,7 +1263,7 @@ begin
           exit;
      end;
 
-     if offset + thrblkHeight > blkHeight then
+     if (thrIdx = numThr - 1) or (offset + thrblkHeight > blkHeight) then
         thrblkHeight := blkHeight - offset;
 
      thrDest := GenPtr(pDest, 0, offset, destLineWidth);
@@ -1713,7 +1712,7 @@ begin
           exit;
      end;
 
-     if thrIdx = numThr - 1 then
+     if (thrIdx = numThr - 1) or  (offset + thrWidth > blkWidth) then
         thrWidth := blkWidth - offset;
 
      thrTransBlk := GenPtr(transBlk, 0, offset, blockLineSize);

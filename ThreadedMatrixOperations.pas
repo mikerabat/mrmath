@@ -26,6 +26,10 @@ procedure ThrMatrixMultEx(dest : PDouble; const destLineWidth : NativeInt; mt1, 
                           width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
                           const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt;
                           op : TMatrixMultDestOperation; mem : PDouble); overload;
+procedure ThrMatrixMultEx2(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble;
+                          width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+                          const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt;
+                          op : TMatrixMultDestOperation; mem : PDouble);
 
 procedure ThrMatrixMultT1(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble;
                           width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; op : TMatrixMultDestOperation = doNone);
@@ -35,6 +39,12 @@ procedure ThrMatrixMultT1Ex(dest : PDouble; const destLineWidth : NativeInt; mt1
 
 procedure ThrMatrixMultT2(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt; op : TMatrixMultDestOperation = doNone);
 procedure ThrMatrixMultT2Ex(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble;
+                            width1 : NativeInt; height1 : NativeInt; width2 : NativeInt;
+                            height2 : NativeInt; const LineWidth1,
+                            LineWidth2 : NativeInt; blockSize : NativeInt;
+                            op : TMatrixMultDestOperation; mem : PDouble);
+
+procedure ThrMatrixMultT2Ex2(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble;
                             width1 : NativeInt; height1 : NativeInt; width2 : NativeInt;
                             height2 : NativeInt; const LineWidth1,
                             LineWidth2 : NativeInt; blockSize : NativeInt;
@@ -593,7 +603,7 @@ begin
         calls.SyncAll;
 end;
 
-procedure ThrMatrixMultEx(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+procedure ThrMatrixMultEx2(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
                           const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : PDouble);
 var i, j : NativeInt;
     thrHeight, thrWidth : NativeInt;
@@ -605,11 +615,6 @@ var i, j : NativeInt;
     objs : Array[0..cMaxNumCores - 1] of TAsyncMultRec;
     numUsed : integer;
 begin
-     if UseInnerBlockMult(width1, height1) then
-     begin
-          ThrBlockMatrixMultiplication(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, blockSize, op, mem);
-          exit;
-     end;
      // #############################################
      // #### determine a good number of cores
      // -> do not use to many for smaller matrices
@@ -694,7 +699,7 @@ begin
      // #### Execute threads
      if numUsed > 1 then
         calls := MtxInitTaskGroup;
-     
+
      // start threads
      for i := 0 to numUsed - 2 do
          calls.AddTaskRec(@MatrixMultFunc, @objs[i]);
@@ -704,6 +709,17 @@ begin
 
      if numUsed > 1 then
         calls.SyncAll;
+end;
+
+procedure ThrMatrixMultEx(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+                          const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : PDouble);
+begin
+     // this function
+     if UseInnerBlockMult(width1, height1)
+     then
+         ThrBlockMatrixMultiplication(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, blockSize, op, mem)
+     else
+         ThrMatrixMultEx2(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, blockSize, op, mem);
 end;
 
 procedure ThrMatrixMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt;
@@ -837,8 +853,8 @@ begin
      ThrMatrixMultT2Ex(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, BlockMatrixCacheSize, op, nil);
 end;
 
-// calculates mt1*mt2'
-procedure ThrMatrixMultT2Ex(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1,
+// calculates mt1*mt2' - does not check if inner block mult is better...
+procedure ThrMatrixMultT2Ex2(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1,
   LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : PDouble);
 var i, j : NativeInt;
     thrHeight, thrHeight1 : NativeInt;
@@ -847,16 +863,9 @@ var i, j : NativeInt;
     heightFits1, heightFits : boolean;
     heightCores : NativeInt;
     usedCores : integer;
-
     objs : Array[0..cMaxNumCores - 1] of TAsyncMultRec;
     numUsed : integer;
 begin
-     if UseInnerBlockMult(width1, height1) then
-     begin
-          ThrBlockMatrixMultiplicationT2(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, blockSize, op, mem);
-          exit;
-     end;
-
      usedCores := NumCoresToUseForMult(width1, height1, height2, width2, blockSize);
 
      if usedCores = 1 then
@@ -946,6 +955,16 @@ begin
      MatrixMultT2Func(@objs[numUsed - 1]);
 
      calls.SyncAll;
+end;
+
+procedure ThrMatrixMultT2Ex(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1,
+  LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : PDouble);
+begin
+     if UseInnerBlockMult(width1, height1)
+     then
+         ThrBlockMatrixMultiplicationT2(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, blockSize, op, mem)
+     else
+         ThrMatrixMultT2Ex2(dest, destLineWidth, mt1, mt2, width1, height1, width2, height2, LineWidth1, LineWidth2, blockSize, op, mem);
 end;
 
 
