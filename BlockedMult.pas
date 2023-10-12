@@ -1324,7 +1324,7 @@ end;
 function UseInnerBlockMult( w, h : NativeInt) : boolean;
 begin
      // not always in hyperthreading cpu's
-     Result := (numCPUCores = numRealCores) or ( (w < 1024) and (h < 1024) and (w > BlockedMatrixMultSize) and (h > BlockedMatrixMultSize) );
+     Result := ( (w < 1024) and (h < 1024) and (w > BlockedMatrixMultSize) and (h > BlockedMatrixMultSize) );
 end;
 
 procedure ThrBlockMatrixMultiplicationT2(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
