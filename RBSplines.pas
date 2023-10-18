@@ -533,10 +533,7 @@ begin
           Result := aInv.Mult(y);          
      end
      else
-     begin
-          if A.SolveLeastSquares(Result, y) <> qrOK then
-             raise ESplineException.Create('Error: no spline system convergence achieved');
-     end;
+         A.SolveLeastSquares(Result, y);
 
      Result.TransposeInPlace;
 end;
