@@ -30,7 +30,7 @@ interface
 {$IFDEF MACOS}
 
 uses
-  MtxThreadPool, GCDDispatch,
+  MtxThreadPool, GCDDispatch, Math,
   {$IFDEF FPC}
   sysutils, classes 
   {$ELSE}
