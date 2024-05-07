@@ -27,10 +27,10 @@ type
   TCorrelation = class(TMatrixClass)
   protected
     function InternalCorrelateArr( w1, w2 : PDouble; len : integer) : Double;
-    function InternalCorrelate(w1, w2: IMatrix; const VarianceRatioThreshold: double = 0): double;
+    function InternalCorrelate(w1, w2: IMatrix; const VarianceRatioThreshold: double = 0; canRaiseException : boolean = True): double;
     function InternalWeightedCorrelate( w1, w2 : IMatrix; weights : IMatrix ) : double;
   public
-    function Correlate(x, y : IMatrix; const VarianceRatioThreshold: double = 0) : double; overload; // correlation coefficient between t, r (must have the same length)
+    function Correlate(x, y : IMatrix; const VarianceRatioThreshold: double = 0; canRaiseException : boolean = True) : double; overload; // correlation coefficient between t, r (must have the same length)
     function Correlate(x, y : IMatrix; var prob, z : double) : double; overload; // pearson correlation with Fishers's z and probobality 
 
     function CorrelateWeighted(x, y, w : IMatrix) : double; overload; // weighted correlation
@@ -172,7 +172,7 @@ end;
 
 
 // note: afterwards w1 and w2 are mean normalized and w2 width and height is changed!
-function TCorrelation.Correlate(x, y: IMatrix; const VarianceRatioThreshold: double = 0): double;
+function TCorrelation.Correlate(x, y: IMatrix; const VarianceRatioThreshold: double = 0; canRaiseException : boolean = True): double;
 var w1, w2 : IMatrix;
 begin
      w1 := x;
@@ -184,7 +184,7 @@ begin
 
      assert(w1.Width = w2.Width, 'Dimension error');
      
-     Result := InternalCorrelate(w1, w2, VarianceRatioThreshold);
+     Result := InternalCorrelate(w1, w2, VarianceRatioThreshold, canRaiseException);
 end;
 
 class function TCorrelation.Covariance(x, y: IMatrix; Unbiased : boolean = True): IMatrix;
@@ -236,7 +236,7 @@ begin
      Result := ac;
 end;
 
-function TCorrelation.InternalCorrelate(w1, w2: IMatrix; const VarianceRatioThreshold: double = 0): double;
+function TCorrelation.InternalCorrelate(w1, w2: IMatrix; const VarianceRatioThreshold: double = 0; canRaiseException : boolean = true): double;
 var meanVar1 : TMeanVarRec;
     meanVar2 : TMeanVarRec;
 begin
@@ -253,8 +253,18 @@ begin
 
      // For norming the variance may not be zero
      if SameValue(meanVar1.aVar, 0, cDefEpsilon) or SameValue(meanVar2.aVar, 0, cDefEpsilon) then
-        raise ECorrelateException.Create('Correlation Error: variance of an input vector is zero');
-     
+     begin
+          if canRaiseException
+          then
+              raise ECorrelateException.Create('Correlation Error: variance of an input vector is zero')
+          else
+          begin
+               Result := 0;
+               exit;
+          end;
+
+     end;
+
      w1.AddInPlace( -meanVar1.aMean );     
      w2.AddInPlace( -meanVar2.aMean );
 
