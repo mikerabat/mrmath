@@ -286,7 +286,8 @@ contains
   Roots in '..\..\Roots.pas',
   SSA in '..\..\SSA.pas',
   MtxUtilFunc in '..\..\MtxUtilFunc.pas',
-  RollingMedMean in '..\..\RollingMedMean.pas';
+  RollingMedMean in '..\..\RollingMedMean.pas',
+  Wavelets in '..\..\Wavelets.pas';
 
 end.
 

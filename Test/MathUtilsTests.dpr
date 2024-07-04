@@ -180,7 +180,9 @@ uses
   MtxUtilFunc in '..\MtxUtilFunc.pas',
   AVXChaCha in '..\AVXChaCha.pas',
   AVXChaChax64 in '..\AVXChaChax64.pas',
-  RollingMedMean in '..\RollingMedMean.pas';
+  RollingMedMean in '..\RollingMedMean.pas',
+  Wavelets in '..\Wavelets.pas',
+  TestWavelets in 'TestWavelets.pas';
 
 {$R *.RES}
 

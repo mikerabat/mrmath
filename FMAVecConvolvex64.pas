@@ -93,12 +93,25 @@ asm
       jz @@innerLoopEnd;
 
       @@innerLoop:
-         {$IFDEF AVXSUP}vmovupd ymm1, [rdx + rax];                    {$ELSE}db $C5,$FD,$10,$0C,$02;{$ENDIF} 
-         {$IFDEF AVXSUP}vmovapd ymm2, [r8 + rax];                     {$ELSE}db $C4,$C1,$7D,$28,$14,$00;{$ENDIF} 
+         add rax, 32;
+         jg @@innerLoop2Start;
+
+         {$IFDEF AVXSUP}vmovupd ymm1, [rdx + rax - 32];               {$ELSE}db $C5,$FD,$10,$4C,$02,$E0;{$ENDIF} 
+         {$IFDEF AVXSUP}vmovapd ymm2, [r8 + rax - 32];                {$ELSE}db $C4,$C1,$7D,$28,$54,$00,$E0;{$ENDIF} 
 
          {$IFDEF AVXSUP}vfmadd231pd ymm0, ymm1, ymm2;                 {$ELSE}db $C4,$E2,$F5,$B8,$C2;{$ENDIF} 
-         add rax, 32;
-      jnz @@innerLoop;
+      jmp @@innerLoop;
+
+      // last two elements
+      @@innerLoop2Start:
+      sub rax, 32;
+      jz @@innerLoopEnd;
+
+      {$IFDEF AVXSUP}vmovupd xmm3, [rdx];                             {$ELSE}db $C5,$F9,$10,$1A;{$ENDIF} 
+      {$IFDEF AVXSUP}vmovapd xmm4, [r8];                              {$ELSE}db $C4,$C1,$79,$28,$20;{$ENDIF} 
+      {$IFDEF AVXSUP}vmulpd xmm3, xmm3, xmm4;                         {$ELSE}db $C5,$E1,$59,$DC;{$ENDIF} 
+      {$IFDEF AVXSUP}vaddpd xmm0, xmm0, xmm3;                         {$ELSE}db $C5,$F9,$58,$C3;{$ENDIF} 
+
 
       @@innerLoopEnd:
 

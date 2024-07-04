@@ -18,7 +18,7 @@ library mrMath;
 {$ALIGN 16}
 {$DESCRIPTION 'mrMath Matrix library'}
 
-{$I 'mrMath_CPU.inc'}
+{$I '..\..\mrMath_CPU.inc'}
 
 uses
   {$IFDEF LINUX} cthreads, {$ENDIF}
@@ -160,7 +160,8 @@ uses
   Roots in '..\..\Roots.pas',
   SSA in '..\..\SSA.pas',
   MtxUtilFunc in '..\..\MtxUtilFunc.pas',
-  RollingMedMean in '..\..\RollingMedMean.pas';
+  RollingMedMean in '..\..\RollingMedMean.pas',
+  Wavelets in '..\..\Wavelets.pas';
 
 begin
 end.

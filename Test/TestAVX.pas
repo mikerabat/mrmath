@@ -216,6 +216,7 @@ procedure TestAVXMatrixOperations.TestAVXInit;
        AVXMatrixInit( @mtx[0], 4*sizeof(double), 4, 3, 2.5);
        CheckMtxVal(@mtx[0], 4*sizeof(double), 4, 3, 2.5);
 
+
        SetLength(x, cMtxSize);
        GetMem(mem, ( ((cMtxWidth + 4)*cMtxHeight) + 4)*sizeof(double));
 
@@ -233,7 +234,6 @@ procedure TestAVXMatrixOperations.TestAVXInit;
 
        Check(CheckMtxVal( x, 2.2), 'Failed to init');
 
-
        startTime3 := MtxGetTime;
        AVXMatrixInit( xa, cMtxWidth*sizeof(double), cMtxWidth, cMtxHeight, 2.4 );
        endTime3 := MtxGetTime;
@@ -245,7 +245,7 @@ procedure TestAVXMatrixOperations.TestAVXInit;
        FreeMem(mem);
 
        SetLength(x, cMtxSize + cMtxHeight);
-       GetMem(mem, (cMTxSize + 2*cMtxHeight + 4)*sizeof(double));
+       GetMem(mem, (cMTxSize + 4*cMtxHeight)*sizeof(double));
        xa := AlignPtr32(mem);
 
        startTime1 := MtxGetTime;
@@ -2565,7 +2565,7 @@ var i: Integer;
     s1, e1, s2, e2 : Int64;
     freq : Int64;
     pA, pB : PDouble;
-    Dest, DestSSE : TDoubleDynArray;
+    Dest, DestAVX : TDoubleDynArray;
     pMem1, pMem2 : PByte;
     LineWidthA, LineWidthB : NativeInt;
     idx : integer;
@@ -2578,7 +2578,7 @@ begin
           for j := 0 to Length(cASize) - 1 do
           begin
                SetLength(Dest, cASize[j]);
-               SetLength(DestSSE, cASize[j]);
+               SetLength(DestAVX, cASize[j]);
                FillAlignedMtx(cASize[j], 1, pA, pMem2, LineWidthA);
 
                InitMathFunctions(itFPU, False);
@@ -2588,12 +2588,12 @@ begin
 
                InitMathFunctions(itAVX, False);
                s2 := MtxGetTime;
-               MatrixConvolve(@destSSE[0], cASize[j]*sizeof(double), pA, pB, LineWidthA, cASize[j], 1, cBSize[i]);
+               MatrixConvolve(@DestAVX[0], cASize[j]*sizeof(double), pA, pB, LineWidthA, cASize[j], 1, cBSize[i]);
                e2 := MtxGetTime;
 
                Status( Format('Conv (%d x %d) took: %.3f ms, %.3fms', [cBSize[i], cASize[j], (e1 - s1)/freq*1000, (e2 - s2)/freq*1000] ));
 
-               if not CheckMtxIdx(dest, DestSSE, idx) then
+               if not CheckMtxIdx(dest, DestAVX, idx) then
                   check(false, 'error in asm convolution @' + IntToStr(idx));
 
                FreeMem(pMem2);

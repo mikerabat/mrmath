@@ -309,6 +309,15 @@ procedure MatrixRotate(N : NativeInt; DX : PDouble; const LineWidthDX : NativeIn
 // if memory is provided the memory needs to be at least as long as length(b) + 8 (for memory alignment and cpu alignment)
 procedure MatrixConvolve(dest : PDouble; const LineWidthDest : NativeInt; A, B : PDouble; const LineWidthA : NativeInt; width, height, veclen : NativeInt; mem : Pointer = nil);
 
+// assumes a vector - B (kernel) is reversed! A starts at A[blen]!!
+// does the convolution like:
+//  for i := 0 to aLen
+//      sum := 0;
+//      for j := 0 to blen - 1
+//          sum := sum + a[j - blen]*b[j];   // -> thus let A start at a[blen]
+//      dest[i] := sum
+procedure VecConvolveRevB( dest : PDouble; A, B : PDouble; aLen, bLen : NativeInt );
+
 type
   TCPUInstrType = (itFPU, itSSE, itAVX, itFMA);
 
@@ -1575,6 +1584,11 @@ begin
 
      if Assigned(aMem) then
         FreeMem(aMem);
+end;
+
+procedure VecConvolveRevB( dest : PDouble; A, B : PDouble; aLen, bLen : NativeInt );
+begin
+     vecConvolve( dest, A, B, aLen, bLen );
 end;
 
 procedure MatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, height : NativeInt; func : TMatrixFunc);

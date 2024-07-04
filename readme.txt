@@ -50,6 +50,11 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date 04.07.2024
+* Added Wavelets (discrete and continuous)
+* Fixed problems in the convolution functions
+* Fixed a problem on memory allocaiton in the AVXInit test function
+
 Date 14.07.2023
 * Fixed multithreaded element wise application of a function
   -> the x, y coordinates were from the submatrix not the overall matrix
@@ -471,7 +476,7 @@ Date: Donnerstag 6.2.2014
 The prefetch instructions raised an external exception in Pentium 4 processors. I removed (commented them out) 
 them since the performance gain was marginal anyway.
 
-Date: Donnerstag 09. Jänner 2014 17:06
+Date: Donnerstag 09. J nner 2014 17:06
 Fix: The implementation of the SVD in the matrix class didn't work for the case width > height.
 
 Date: Samstag, 19. Oktober 2013	11:45:37
@@ -539,7 +544,7 @@ Added row exchange ASM function.
 Fixed a base functionality problem in the scale operations.
 Extended persistence functionality.
 
-Date: Freitag, 09. März 2012 13:54:07
+Date: Freitag, 09. M rz 2012 13:54:07
 Added the nonlinear fitting class to the project
 
 Date: Mittwoch, 29. Februar 2012 09:16:00

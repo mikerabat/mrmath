@@ -22,9 +22,14 @@ interface
 
 // simple convolution: the input and output parameter are assumed to be vectors!
 // it's also assumed that memory before A is accessible for at least bLen elements
-// -> these elements are used for the convulution calculation
+// -> these elements are used for the convolution calculation
 // -> needs an aligned B and blen mod 2 needs to be zero
 procedure ASMVecConvolveRevB(dest : PDouble; A, B : PDouble; aLen, bLen : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+
+// not yet ready...
+// does the same as above but input values are skipped dA elements
+// A - bLen*dA must be accessible
+// procedure ASMVecConvolveRevBEx(dest : PDouble; A, B : PDouble; aLen, bLen : NativeInt; dA : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -101,6 +106,70 @@ asm
       movsd [eax], xmm0;
 
       // next element
+      add eax, 8;
+      add edx, 8;
+   dec aLen;
+   jnz @@forxloop;
+
+   // ########################################
+   // #### epilog
+   pop edi;
+   pop esi;
+   pop ebx;
+end;
+
+procedure ASMVecConvolveRevBEx(dest : PDouble; A, B : PDouble; aLen, bLen : NativeInt; dA : NativeInt); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+var pA : PDouble;
+// eax = dest, edx = A, ecx = B
+asm
+   push ebx;
+   push esi;
+   push edi;
+
+   mov esi, bLen;
+   imul esi, -8;
+
+   sub ecx, esi;
+
+   mov ebx, dA;
+   dec bLen;
+   imul ebx, bLen;
+   shl ebx, 3;
+
+   sub edx, ebx;
+   //add edx, 8;
+   mov pA, edx;
+
+   mov ebx, dA;
+   shl ebx, 3;
+
+   // convolution with stride
+   @@forxloop:
+      mov edi, esi;
+      mov edx, pA;
+
+      xorpd xmm0, xmm0;
+
+      @@innerLoop:
+
+         movsd xmm1, [edx];                // first element to lower part
+         movhpd xmm1, [edx + ebx];         // next element to higher part
+
+         movapd xmm2, [ecx + edi];         // load reversed kernel elements
+
+         mulpd xmm1, xmm2;
+         addpd xmm0, xmm1;
+         add edi, 16;
+         lea edx, [edx + 2*ebx];
+      jnz @@innerLoop;
+
+      @@innerLoopEnd:
+
+      haddpd xmm0, xmm0;
+      movsd [eax], xmm0;
+
+      // next element
+      add pA, 8;
       add eax, 8;
       add edx, 8;
    dec aLen;

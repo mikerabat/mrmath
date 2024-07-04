@@ -12,7 +12,7 @@
         <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)\"/>
       </SearchPaths>
     </CompilerOptions>
-    <Files Count="129">
+    <Files Count="130">
       <Item1>
         <Filename Value="..\..\ASMMatrixAbsOperations.pas"/>
         <UnitName Value="ASMMatrixAbsOperations"/>
@@ -529,6 +529,10 @@
         <Filename Value="..\..\MtxUtilFunc.pas"/>
         <UnitName Value="MtxUtilFunc"/>
       </Item129>
+	  <Item130>
+        <Filename Value="..\..\Wavelets.pas"/>
+        <UnitName Value="Wavelets"/>
+      </Item130>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>
