@@ -127,6 +127,8 @@ type
     procedure TestConvolveBig;
     procedure TestDotProd;
     procedure TestSQRT;
+    procedure TestVecDistABS;
+    procedure TestVecDistSQR;
   end;
 
   {$IFDEF FMX} [TestFixture] {$ENDIF}
@@ -151,11 +153,12 @@ uses ASMMatrixOperations, AVXMatrixOperations, ThreadedMatrixOperations, MtxThre
      ASMMatrixMultOperationsx64, ASMMatrixVectorMultOperationsx64, ASMMatrixMultTransposedOperationsx64,
      ASMMatrixTransposeOperationsx64, ASMMatrixNormOperationsx64, ASMMatrixCumSumDiffOperationsx64,
      ASMMatrixMeanOperationsx64, ASMMatrixSumOperationsx64, ASMMatrixAddSubOperationsx64, ASMMoveOperationsx64,
+     ASMVecDistx64,
      {$ELSE}
      ASMMatrixAddSubOperations,
      ASMMatrixMultOperations, ASMMatrixVectorMultOperations, ASMMatrixMultTransposedOperations,
      ASMMatrixTransposeOperations, ASMMatrixNormOperations, ASMMatrixCumSumDiffOperations,
-     ASMMatrixMeanOperations, ASMMatrixSumOperations, ASMMoveOperations,
+     ASMMatrixMeanOperations, ASMMatrixSumOperations, ASMMoveOperations, ASMVecDist,
      {$ENDIF}
      MatrixConst, MathUtilFunc, Statistics, MatrixASMStubSwitch;
 
@@ -4163,6 +4166,58 @@ begin
      FreeMem( pMem1 );
      FreeMem( pMem2 );
      FreeMem( pMem );
+end;
+
+procedure TASMMatrixOperations.TestVecDistABS;
+var x, y : Array[0..15] of double;
+    dist : Array[0..16*16-1] of double;
+    dist1: Array[0..16*16-1] of double;
+    xLen, yLen : integer;
+begin
+     for xLen := 0 to Length(x) - 1 do
+         x[xLen] := Length(x) - 1 - xLen;
+     for yLen := 0 to Length(y) - 1 do
+         y[yLen] := yLen + 1;
+
+     for xLen := 1 to Length(x) do
+     begin
+          for yLen := 1 to Length(y) do
+          begin
+               Fillchar(dist, sizeof(dist), 0);
+               FillChar(dist1, sizeof(dist1), 0);
+
+               GenericMtxDistanceAbs( @dist[0], 16*sizeof(double), @x[0], @y[0], xLen, yLen);
+               ASMMtxDistanceAbs(@dist1[0], 16*sizeof(double), @x[0], @y[0], xLen, yLen);
+
+               Check( CheckMtx( dist, dist1 ), 'Distance matrix failed @' + IntTostr(xlen) + ', ' + IntToStr(yLen));
+          end;
+     end;
+end;
+
+procedure TASMMatrixOperations.TestVecDistSQR;
+var x, y : Array[0..15] of double;
+    dist : Array[0..16*16-1] of double;
+    dist1: Array[0..16*16-1] of double;
+    xLen, yLen : integer;
+begin
+     for xLen := 0 to Length(x) - 1 do
+         x[xLen] := Length(x) - 1 - xLen;
+     for yLen := 0 to Length(y) - 1 do
+         y[yLen] := yLen + 1;
+
+     for xLen := 1 to Length(x) do
+     begin
+          for yLen := 1 to Length(y) do
+          begin
+               Fillchar(dist, sizeof(dist), 0);
+               FillChar(dist1, sizeof(dist1), 0);
+
+               GenericMtxDistanceSqr( @dist[0], 16*sizeof(double), @x[0], @y[0], xLen, yLen);
+               ASMMtxDistanceSqr(@dist1[0], 16*sizeof(double), @x[0], @y[0], xLen, yLen);
+
+               Check( CheckMtx( dist, dist1 ), 'Distance matrix failed @' + IntTostr(xlen) + ', ' + IntToStr(yLen));
+          end;
+     end;
 end;
 
 procedure TASMMatrixOperations.TestStrassenMult;

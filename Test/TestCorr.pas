@@ -32,6 +32,7 @@ type
     procedure TestWeightedCorrelation;
     procedure TestCovariance;
     procedure TestDynamicTimeWarp;
+    procedure TestDynamicTimeWarp2;
     procedure TestDTWChirp;
     procedure TestFastDTW1;
     procedure TestFastDTW2;
@@ -40,7 +41,7 @@ type
 
 implementation
 
-uses Corr, Math, BaseMathPersistence, CPUFeatures;
+uses Corr, Math, BaseMathPersistence, CPUFeatures, MatrixASMStubSwitch;
 
 { TestCorrelation }
 
@@ -189,6 +190,42 @@ begin
      Check( SameValue(cr, cInvDWTCorr, 1e-3), 'Inverted scale DTW correlation failed');
      
      dtw.Free;
+end;
+
+procedure TestCorrelation.TestDynamicTimeWarp2;
+const cX : Array[0..12] of double = (1, 1, 1.1, 1.1, 2, 3, 4, 5, 2, 2, 2, 2, 2);
+      cY : Array[0..4] of double = (2, 3, 4, 5, 2);
+var aX, aY : TDoubleDynArray;
+    dist1, dist2 : double;
+begin
+     SetLength(ax, Length(cX));
+     SetLength(aY, Length(cY));
+     Move( cX[0], aX[0], sizeof(double)*Length(aX));
+     Move( cY[0], aY[0], sizeof(double)*Length(aY));
+
+     InitMathFunctions(itSSE, False);
+     with TDynamicTimeWarp.Create(dtwAbsolute) do
+     try
+        // use both vectors:
+        DTW( ax, ax, dist1, 2);
+        Check( SameValue( dist1, 0), 'Distance to same vector failed');
+
+        EvaluateFullDistanceMtx := True;
+
+        DTW( ax, ay, dist1, 2);
+        DTW( ay, ax, dist2, 2);
+
+        check( SameValue(dist1, dist2), 'DTW with different vector lengths failed');
+
+        EvaluateFullDistanceMtx := False;
+
+        DTW( ay, ax, dist1, 1);
+        DTW( ax, ay, dist2, 2);
+
+        check( SameValue(dist1, dist2), 'DTW short distance with different vector lengths failed');
+     finally
+            Free;
+     end;
 end;
 
 procedure TestCorrelation.TestFastDTW1;

@@ -150,6 +150,8 @@ function MatrixVecDotMult(  x : PDouble; incX : NativeInt; y : PDouble; incY : N
 // calculates y[i] = y[i] + alpha*x[i]
 procedure MatrixVecAdd( X : PDouble; incX : NativeInt; y : PDouble; incY : NativeInt; N : NativeInt; const alpha : double );
 
+// "outer product": input are two vectors X, Y, the output is X*Y' resulting in a matrix with dimenions width and height.
+// aka X has size "height", Y has size "width"
 procedure MatrixRank1Update(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
   const alpha : double; X, Y : PDouble; incX, incY : NativeInt);
 
@@ -161,6 +163,19 @@ procedure MatrixRank1Update(A : PDouble; const LineWidthA : NativeInt; width, he
 // dsyr2k in lapack upper no transpose with alpha = -1, beta = 1
 procedure MatrixUpperSymRank2Update( C : PDouble; LineWidthC : NativeInt; A : PDouble; LineWidthA : NativeInt;
   B : PDouble; LineWidthB : NativeInt; N : NativeInt; k : NativeInt );
+
+
+// ###########################################
+// #### distance functions: input are 2 vectors (x, y) output is a matrix (ylen x xlen (as width, height))
+// ###########################################
+
+// squared distance matrix from two vectors :
+// dist[i, j] := sqr( X[i] - Y[j] )
+procedure MtxDistanceSqr( dist : PDouble; LineWidthDist : NativeInt; X, Y : PDouble; xLen, yLen : NativeInt);
+
+// dist[i, j] := Abs( X[i] - Y[j] )
+procedure MtxDistanceAbs( dist : PDouble; LineWidthDist : NativeInt; X, Y : PDouble; xLen, yLen : NativeInt);
+
 
 // ###########################################
 // #### Element by element operations
@@ -181,7 +196,6 @@ procedure MatrixAddAndScale(Dest : PDouble; const LineWidth, Width, Height : Nat
 procedure MatrixScaleAndAdd(Dest : PDouble; const LineWidth, Width, Height : NativeInt; const Offset, Scale : double);
 procedure MatrixAbs(Dest : PDouble; const LineWidth, Width, Height : NativeInt);
 procedure MatrixSQRT(Dest : PDouble; const LineWidth, Width, Height : NativeInt);
-
 
 // ###########################################
 // #### Matrix transposition
@@ -374,6 +388,7 @@ type
   TMatrixRotate = procedure (N : NativeInt; DX : PDouble; const LineWidthDX : NativeInt; DY : PDouble; LineWidthDY : NativeInt; const c, s : double);
   TMemInitFunc = procedure(A : PDouble; NumBytes : NativeInt; Value : double);
   TVecConvolve = procedure (dest : PDouble; A, B : PDouble; aLen, bLen : NativeInt);
+  TMatrixDistVecFunc = procedure(dist : PDouble; LineWidthDist : NativeInt; X, Y : PDouble; xLen, yLen : NativeInt);
 
 
 implementation
@@ -391,13 +406,14 @@ uses {$IFNDEF MRMATH_NOASM}
      AVXMatrixOperations, AVXMatrixMultOperations, AVXMatrixRotations,
      AVXMatrixAddSubOperations, AVXMoveOperations, AVXMatrixTransposeOperations,
      FMAMatrixOperations, FMAMatrixMultOperations, FMAVecConvolve,
+     ASMVecDist,
      {$ELSE}
      AVXMatrixOperations, ASMMatrixMultOperationsx64, AVXMatrixMultOperationsx64,
      AVXMatrixAddSubOperationsx64, AVXMoveOperationsx64,
      ASMMatrixRotationsx64, ASMMoveOperationsx64, ASMMatrixAddSubOperationsx64,
      AVXMatrixRotationsx64, AVXMatrixTransposeOperationsx64,
      ASMMatrixTransposeOperationsx64, FMAMatrixOperations, FMAMatrixMultOperationsx64,
-     ASMVecConvolvex64, AVXVecConvolvex64, FMAVecConvolvex64,
+     ASMVecConvolvex64, AVXVecConvolvex64, FMAVecConvolvex64, ASMVecDistx64,
      {$ENDIF}
      {$ENDIF}
      BlockedMult, BlockSizeSetup, SimpleMatrixOperations, CPUFeatures, MatrixRotations, Corr,
@@ -481,6 +497,8 @@ var multFunc : TMatrixMultFunc;
     PlaneRotSeqLVF : TApplyPlaneRotSeqMatrix;
     memInitFunc : TMemInitFunc;
     vecConvolve : TVecConvolve;
+    mtxSqrDist : TMatrixDistVecFunc;
+    mtxAbsDist : TMatrixDistVecFunc;
 
  // current initialization
 var curUsedCPUInstrSet : TCPUInstrType;
@@ -983,6 +1001,22 @@ begin
         exit;
 
      SymRank2UpdateFunc( C, LineWidthC, A, LineWidthA, B, LineWidthB, N, k );
+end;
+
+procedure MtxDistanceSqr( dist : PDouble; LineWidthDist : NativeInt; X, Y : PDouble; xLen, yLen : NativeInt );
+begin
+     if (xLen <= 0) or (yLen <= 0) then
+        exit;
+
+     mtxSqrDist( dist, LineWidthDist, X, Y, xLen, yLen );
+end;
+
+procedure MtxDistanceAbs( dist : PDouble; LineWidthDist : NativeInt; X, Y : PDouble; xLen, yLen : NativeInt);
+begin
+     if (xLen <= 0) or (yLen <= 0) then
+        exit;
+
+     mtxAbsDist( dist, LineWidthDist, X, Y, xLen, yLen );
 end;
 
 procedure MatrixElemMult(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; const LineWidth1, LineWidth2 : NativeInt); overload;
@@ -1741,6 +1775,8 @@ begin
      matrixSumSumFunc := GenericMtxSumSum;
      maxMtxFunc := GenericMtxMaxVal;
      minMtxFunc := GenericMtxMinVal;
+     mtxSqrDist := GenericMtxDistanceSqr;
+     mtxAbsDist := GenericMtxDistanceAbs;
 
      {$IFDEF MRMATH_NOASM}
      TDynamicTimeWarp.UseSSE := False;
@@ -1811,6 +1847,8 @@ begin
           maxMtxFunc := AVXMatrixMax;
           minMtxFunc := AVXMatrixMin;
           initfunc := AVXMatrixInit;
+          mtxSqrDist := ASMMtxDistanceSqr;
+          mtxAbsDist := ASMMtxDistanceAbs;
 
           // ##############################################
           // #### override if fma is requested
@@ -1893,6 +1931,8 @@ begin
           vecConvolve := ASMVecConvolveRevB;
           MatrixVecDotMultFunc := ASMMatrixVecDotMult;
           SymRank2UpdateFunc := ASMSymRank2UpdateUpper;
+          mtxSqrDist := ASMMtxDistanceSqr;
+          mtxAbsDist := ASMMtxDistanceAbs;
 
           TDynamicTimeWarp.UseSSE := True;
      end

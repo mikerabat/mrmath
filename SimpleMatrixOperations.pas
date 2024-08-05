@@ -275,6 +275,8 @@ procedure GenericSymRank2UpdateUpper( C : PDouble; LineWidthC : NativeInt; A : P
 procedure GenericRank1Update(A : PDouble; const LineWidthA : NativeInt; width, height : NativeInt;
   X, Y : PDouble; incX, incY : NativeInt; alpha : double);
 
+procedure GenericMtxDistanceSqr(dist : PDouble; LineWidthDist : NativeInt; X, Y : PDouble; xLen, yLen : NativeInt);
+procedure GenericMtxDistanceAbs(dist : PDouble; LineWidthDist : NativeInt; X, Y : PDouble; xLen, yLen : NativeInt);
 
 procedure GenericInitMemAligned(A : PDouble; NumBytes : NativeInt; Value : double);
 
@@ -3533,6 +3535,38 @@ begin
 
                inc(PByte(pX), incX);
           end;
+     end;
+end;
+
+procedure GenericMtxDistanceSqr(dist : PDouble; LineWidthDist : NativeInt; X, Y : PDouble; xLen, yLen : NativeInt);
+var pDist : PConstDoubleArr;
+    i, j : NativeInt;
+begin
+     pDist := PConstDoubleArr( dist );
+     dec(xLen);
+     dec(yLen);
+
+     for i := 0 to xLen do
+     begin
+          for j := 0 to yLen do
+              pDist[j] := sqr( PConstDoubleArr(X)^[i] - PConstDoubleArr(Y)^[j] );
+          inc(PByte(pDist), LineWidthDist);
+     end;
+end;
+
+procedure GenericMtxDistanceAbs(dist : PDouble; LineWidthDist : NativeInt; X, Y : PDouble; xLen, yLen : NativeInt);
+var pDist : PConstDoubleArr;
+    i, j : NativeInt;
+begin
+     pDist := PConstDoubleArr( dist );
+     dec(xLen);
+     dec(yLen);
+
+     for i := 0 to xLen do
+     begin
+          for j := 0 to yLen do
+              pDist[j] := abs( PConstDoubleArr(X)^[i] - PConstDoubleArr(Y)^[j] );
+          inc(PByte(pDist), LineWidthDist);
      end;
 end;
 

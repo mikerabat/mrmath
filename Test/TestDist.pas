@@ -42,7 +42,7 @@ type
 implementation
 
 uses BinaryReaderWriter, BaseMathPersistence, Dist, MatrixASMStubSwitch, 
-  RandomEng, Corr;
+     RandomEng, Corr, ASMVecDist, SimpleMatrixOperations;
 
 { TestDistance }
 

@@ -31,7 +31,8 @@ type
     function InternalWeightedCorrelate( w1, w2 : IMatrix; weights : IMatrix ) : double;
   public
     function Correlate(x, y : IMatrix; const VarianceRatioThreshold: double = 0; canRaiseException : boolean = True) : double; overload; // correlation coefficient between t, r (must have the same length)
-    function Correlate(x, y : IMatrix; var prob, z : double) : double; overload; // pearson correlation with Fishers's z and probobality 
+    function Correlate(x, y : IMatrix; var prob, z : double) : double; overload; // pearson correlation with Fishers's z and probobality
+    function Correlate(x, y : PDouble; len : integer) : double; overload;        // pearson correlation but with pointers
 
     function CorrelateWeighted(x, y, w : IMatrix) : double; overload; // weighted correlation
     function CorrelateWeighted(x, y, w : IMatrix; var prob, z : double) : double; overload; // weighted correlation
@@ -65,6 +66,8 @@ type
       end;
   private
     fd : TDoubleDynArray;
+    fSearchBoundaryLeft : TIntegerDynArray;
+    fSearchBoundaryRight : TIntegerDynArray;
     fAccDist : TDoubleDynArray;
     fW1, fW2 : IMatrix;
     fW1Arr, fW2Arr : TDoubleDynArray;
@@ -87,6 +90,7 @@ type
     fMaxWinLen : integer;
 
     fReduceByHalf : TDynamicTimeWarepReduceFunc;
+    fEvalFullMtx: boolean;
 
     // fastdtw implementation based on the python package on: https://pypi.python.org/pypi/fastdtw
     // and: Stan Salvador, and Philip Chan. “FastDTW: Toward accurate dynamic time warping in linear time and space.”  Intelligent Data Analysis 11.5 (2007): 561-580.
@@ -112,8 +116,10 @@ type
 
     property W1Arr : TDoubleDynArray read fW1Arr;
     property W2Arr : TDoubleDynArray read fW2Arr;
-    
-    
+
+    // if set to false the distance calculation only calculates a strip instead of the full matrix (default is True)
+    property EvaluateFullDistanceMtx : boolean read fEvalFullMtx write fEvalFullMtx;
+
     property Path[index : integer] : TCoordRec read GetPathByIndex;
     property PathLen : integer read fNumPath;
 
@@ -350,6 +356,7 @@ end;
 constructor TDynamicTimeWarp.Create(DistMethod : TDynamicTimeWarpDistMethod = dtwSquared);
 begin
      fMethod := DistMethod;
+     fEvalFullMtx := True;
 
      {$IFNDEF MRMATH_NOASM}
      if UseSSE
@@ -1037,12 +1044,20 @@ var n, m : integer;
     counter: Integer;
     w, h : integer;
     startIdx, endIdx : integer;
+    actX, actY : integer;
+    incX : integer;
+    err : integer;
+    d, adO, dNO : integer;
+    num : integer;
+    dx, dy : integer;
+    boundRight : integer;
+    boundLeft : integer;
 begin
      fMaxSearchWin := MaxSearchWin;
      
      // ###########################################
      // #### Prepare memory
-     if not Assigned(fd) or (Length(fd) <> Length(t)*Length(r)) then
+     if not Assigned(fd) or (Length(fd) <> Length(t)*Length(r)) or (Length(fSearchBoundaryLeft) <> Length(r)) then
      begin
           SetLength(fd, Length(t)*Length(r));
           SetLength(fAccDist, Length(t)*Length(r));
@@ -1050,6 +1065,8 @@ begin
           SetLength(fPath, Length(fWindow));
           SetLength(fW1Arr, Length(fWindow));
           SetLength(fW2Arr, Length(fWindow));
+          SetLength(fSearchBoundaryLeft, Length(r));
+          SetLength(fSearchBoundaryRight, Length(r));
      end;
      fNumW := 0;
 
@@ -1057,54 +1074,131 @@ begin
         fMaxSearchWin := Max(Length(t), Length(r));
      w := Length(t);
      h := Length(r);
-     
+
+     dx := w - 1;
+     dy := h - 1;
 
      // ###########################################
      // #### prepare distance matrix
      counter := 0;
-     for m := 0 to h - 1 do // fd.Height - 1 do
-     begin
-          for n := 0 to w - 1 do // fd.Width - 1 do
+     case fMethod of
+       dtwSquared: MtxDistanceSqr( @fd[0], w*sizeof(double), @r[0], @t[0], h, w);
+       dtwAbsolute: MtxDistanceAbs(@fd[0], w*sizeof(double), @r[0], @t[0], h, w);
+     else
+         // dtwSymKullbackLeibler
+          for m := 0 to h - 1 do // fd.Height - 1 do
           begin
-               //if (fMaxSearchWin <= 0) or ( abs(n - m) <= fMaxSearchWin) then
+               for n := 0 to w - 1 do // fd.Width - 1 do
                begin
-                    case fMethod of
-                      dtwSquared: fd[counter] := sqr( t[n] - r[m] );
-                      dtwAbsolute: fd[counter] := abs( t[n] - r[m] );
-                      dtwSymKullbackLeibler: fd[counter] := (t[n] - r[m])*(ln(t[n]) - ln(r[m]));
-                    end;
+                    fd[counter] := (t[n] - r[m])*(ln(t[n]) - ln(r[m]));
+                    inc(counter);
                end;
-               inc(counter);
           end;
      end;
 
      for n := 0 to Length(fAccDist) - 1 do
          fAccDist[n] := 0;
 
-     //fAccDist.SetValue(0);
      fAccDist[0] := fd[0];
      //fAccDist[0, 0] := fd[0, 0];
 
      for n := 1 to w - 1 do // fd.Width - 1 do
          fAccDist[n] := fd[n] + fAccDist[n - 1];
-         //fAccDist[n, 0] := fd[n, 0] + fAccDist[n - 1, 0];
 
      for m := 1 to h - 1 do // fd.Height - 1 do
          //fAccDist[0, m] := fd[0, m] + fAccDist[0, m - 1];
          fAccDist[m*w] := fd[m*w] + fAccDist[(m - 1)*w];
 
-     for n := 1 to h - 1 do // fd.Height - 1 do
+     // search win?
+     if not fEvalFullMtx and (Min(w, h) > fMaxSearchWin) then
      begin
-          startIdx := Max(1, n - fMaxSearchWin);
-          endIdx := Min(n + fMaxSearchWin,  w - 1);
-          if startIdx > 1 then
-             fAccDist[startIdx + n*w - 1] := MaxDouble;
-          if endIdx < w - 1 then
-             fAccDist[endIdx + 1 + n*w] := MaxDouble;
-          for m := Max(1, n - fMaxSearchWin) to Min(n + fMaxSearchWin,  w - 1) do 
-          //for m := 1 to w - 1 do 
-              fAccDist[m + n*w] := fD[m + n*w] + min( fAccDist[ m + (n - 1)*w ], min( fAccDist[(m - 1) + (n - 1)*w], fAccDist[ (m - 1) + n*w] ));
-              //fAccDist[m, n] := fD[m, n] + min( fAccDist[ m, n - 1 ], min( fAccDist[m - 1, n - 1], fAccDist[ m - 1, n] ));
+          if w > h then
+          begin
+               d := 2*dy - dx;
+               adO := 2*dy;
+               dNO := 2*(dy - dx);
+               err := d;
+               for m := 0 to fMaxSearchWin do
+                   fSearchBoundaryLeft[m] := 1;
+
+               for m := Length(fSearchBoundaryRight) - 1 - fMaxSearchWin to Length(fSearchBoundaryRight) - 1 do
+                   fSearchBoundaryRight[m] := w - 1;
+
+               actX := 0;
+               fAccDist[(fMaxSearchWin + 1)*w] := MaxDouble;
+               // find the shortest path using a line algorithm from topleft to bottom right
+               // the search can be conducted over that line +- the max search windows (in y axis)
+               n := 0;
+               while actX < dx do
+               begin
+                    inc(actX);
+                    if err <= 0
+                    then
+                        inc(err, adO)
+                    else
+                    begin
+                         if n > fMaxSearchWin then
+                            fSearchBoundaryRight[n - fMaxSearchWin] := actX - 1;
+                         inc( n );
+                         inc(err, dNO);
+                    end;
+
+                    if n > fMaxSearchWin then
+                       fAccDist[actX + (n - fMaxSearchWin - 1)*w] := MaxDouble;
+                    if n < h - fMaxSearchWin - 1 then
+                    begin
+                         fAccDist[actX + (n + fMaxSearchWin + 1)*w] := MaxDouble;
+                         fSearchBoundaryLeft[n + fMaxSearchWin + 1] := actX + 1;
+                    end;
+               end;
+          end
+          else
+          begin
+               // same as above but treat "transposed" (y is the fast direction)
+               d := 2*dx - dy;
+               adO := 2*dx;
+               dNO := 2*(dx - dy);
+               err := d;
+
+               actY := 0;
+               fAccDist[fMaxSearchWin + 1] := MaxDouble;
+               fSearchBoundaryLeft[0] := 0;
+               fSearchBoundaryRight[0] := fMaxSearchWin;
+               m := 0;
+               while actY < dy do
+               begin
+                    inc(actY);
+
+                    if err <= 0
+                    then
+                        inc(err, ado)
+                    else
+                    begin
+                         inc(m);
+                         inc(err, dNO);
+                    end;
+
+                    if m < w - fMaxSearchWin - 1 then
+                       fAccDist[m + fMaxSearchWin + 1 + actY*w] := MaxDouble;
+                    if m > fMaxSearchWin then
+                       fAccDist[m - fMaxSearchWin - 1 + actY*w] := MaxDouble;
+                    fSearchBoundaryLeft[actY] := Max( 1, m - fMaxSearchWin );
+                    fSearchBoundaryRight[actY] := Min( w - 1, m + fMaxSearchWin );
+               end;
+          end;
+
+
+          // ###########################################
+          // #### Now do the bounded search
+          for n := 1 to h - 1 do
+              for m := fSearchBoundaryLeft[n] to fSearchBoundaryRight[n] do
+                  fAccDist[m + n*w] := fD[m + n*w] + min( fAccDist[ m + (n - 1)*w ], min( fAccDist[(m - 1) + (n - 1)*w], fAccDist[ (m - 1) + n*w] ));
+     end
+     else
+     begin
+          for n := 1 to h - 1 do
+              for m := 1 to w - 1 do
+                  fAccDist[m + n*w] := fD[m + n*w] + min( fAccDist[ m + (n - 1)*w ], min( fAccDist[(m - 1) + (n - 1)*w], fAccDist[ (m - 1) + n*w] ));
      end;
 
      //dist := fAccDist[fd.Width - 1, fd.Height - 1];
@@ -1186,6 +1280,11 @@ begin
      // ###########################################
      // #### Calculate correlation
      Result := InternalCorrelateArr(@fw1Arr[0], @fw2Arr[0], fNumW);
+end;
+
+function TCorrelation.Correlate(x, y: PDouble; len: integer): double;
+begin
+     Result := InternalCorrelateArr(x, y, len);
 end;
 
 class function TCorrelation.CorrelateSpearman(x, y: IMatrix; var zd, probd, rs,

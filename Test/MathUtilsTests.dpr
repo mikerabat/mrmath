@@ -63,6 +63,8 @@ uses
   ASMMatrixCumSumDiffOperationsx64 in '..\ASMMatrixCumSumDiffOperationsx64.pas',
   ASMVecConvolve in '..\ASMVecConvolve.pas',
   ASMVecConvolvex64 in '..\ASMVecConvolvex64.pas',
+  ASMVecDist in '..\ASMVecDist.pas',
+  ASMVecDistx64 in '..\ASMVecDistx64.pas',
   BlockSizeSetup in '..\BlockSizeSetup.pas',
   BlockedMult in '..\BlockedMult.pas',
   CPUFeatures in '..\CPUFeatures.pas',
