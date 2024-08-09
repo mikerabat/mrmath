@@ -1043,15 +1043,10 @@ function TDynamicTimeWarp.DTW(t, r: TDoubleDynArray; var dist: double;
 var n, m : integer;
     counter: Integer;
     w, h : integer;
-    startIdx, endIdx : integer;
     actX, actY : integer;
-    incX : integer;
     err : integer;
     d, adO, dNO : integer;
-    num : integer;
     dx, dy : integer;
-    boundRight : integer;
-    boundLeft : integer;
 begin
      fMaxSearchWin := MaxSearchWin;
      
