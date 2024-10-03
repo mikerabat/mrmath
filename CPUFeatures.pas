@@ -202,9 +202,9 @@ asm
    cmp eax, $E6; //1110 0011 = zmm_ymm_xmm = (7 << 5) | (1 << 2) | (1 << 1);
    jne @@not_supported;
    {$IFDEF x64}
-   mov [rip + AVX512_OS_SUPPORT], 1;
+   mov Byte [rip + AVX512_OS_SUPPORT], 1;
    {$ELSE}
-   mov AVX512_OS_SUPPORT, 1;
+   mov byte AVX512_OS_SUPPORT, 1;
    {$ENDIF}
    @@not_supported:
 
@@ -212,9 +212,9 @@ asm
    cmp eax, $6; //1110 0011 = check for AVX os support (256bit) in a context switch
    jne @@endProc;
    {$IFDEF x64}
-   mov [rip + AVX_OS_SUPPORT], 1;
+   mov Byte [rip + AVX_OS_SUPPORT], 1;
    {$ELSE}
-   mov AVX_OS_SUPPORT, 1;
+   mov byte AVX_OS_SUPPORT, 1;
    {$ENDIF}
 
    @@endProc:
