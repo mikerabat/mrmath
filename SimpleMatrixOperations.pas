@@ -3549,7 +3549,7 @@ begin
      for i := 0 to xLen do
      begin
           for j := 0 to yLen do
-              pDist[j] := sqr( PConstDoubleArr(X)^[i] - PConstDoubleArr(Y)^[j] );
+              pDist^[j] := sqr( PConstDoubleArr(X)^[i] - PConstDoubleArr(Y)^[j] );
           inc(PByte(pDist), LineWidthDist);
      end;
 end;
@@ -3565,7 +3565,7 @@ begin
      for i := 0 to xLen do
      begin
           for j := 0 to yLen do
-              pDist[j] := abs( PConstDoubleArr(X)^[i] - PConstDoubleArr(Y)^[j] );
+              pDist^[j] := abs( PConstDoubleArr(X)^[i] - PConstDoubleArr(Y)^[j] );
           inc(PByte(pDist), LineWidthDist);
      end;
 end;

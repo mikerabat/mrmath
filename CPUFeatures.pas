@@ -204,7 +204,7 @@ asm
    {$IFDEF x64}
    mov Byte [rip + AVX512_OS_SUPPORT], 1;
    {$ELSE}
-   mov byte AVX512_OS_SUPPORT, 1;
+   mov AVX512_OS_SUPPORT, 1;
    {$ENDIF}
    @@not_supported:
 
@@ -214,7 +214,7 @@ asm
    {$IFDEF x64}
    mov Byte [rip + AVX_OS_SUPPORT], 1;
    {$ELSE}
-   mov byte AVX_OS_SUPPORT, 1;
+   mov AVX_OS_SUPPORT, 1;
    {$ENDIF}
 
    @@endProc:

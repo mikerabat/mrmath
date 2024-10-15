@@ -290,7 +290,7 @@ begin
 
      MatrixAddAndScale( w1, len*sizeof(double), len, 1, -meanVar1.aMean, 1 );
      MatrixAddAndScale( w2, len*sizeof(double), len, 1, -meanVar2.aMean, 1 );
-     
+
      // dot product:
      MatrixMult( @Result, sizeof(double), w1, w2, len, 1, 1, len, len*sizeof(double), sizeof(double));
      Result := Result/sqrt(meanVar1.aVar*meanVar2.aVar)/(len - 1);
@@ -323,6 +323,8 @@ begin
 
      if sumweights > cDefEpsilon then
      begin
+          wMean1 := 0;
+          wMean2 := 0;
           MatrixMtxVecMult( @wMean1, sizeof(double), w1.StartElement, ww.StartElement, w1.LineWidth, sizeof(double), w1.Width, 1, 1, 0 );
           MatrixMtxVecMult( @wMean2, sizeof(double), w2.StartElement, ww.StartElement, w2.LineWidth, sizeof(double), w2.Width, 1, 1, 0 );
           
@@ -330,10 +332,13 @@ begin
           weightedW2 := w2.ScaleAndAdd(-wMean2, 1);
 
           t := weightedW1.ElementWiseMult(weightedw2);
+          Result := 0;
           MatrixMtxVecMult( @Result, sizeof(double), t.StartElement, ww.StartElement, t.LineWidth, sizeof(double), t.Width, 1, 1, 0);
 
           weightedw1.ElementWiseMultInPlace(weightedw1);
           weightedw2.ElementWiseMultInPlace(weightedw2);
+          sxx := 0;
+          syy := 0;
           MatrixMtxVecMult( @sxx, sizeof(double), weightedW1.StartElement, ww.StartElement, weightedW1.LineWidth, sizeof(double), weightedW1.Width, 1, 1, 0);
           MatrixMtxVecMult( @syy, sizeof(double), weightedW2.StartElement, ww.StartElement, weightedW2.LineWidth, sizeof(double), weightedW2.Width, 1, 1, 0);
 
@@ -1271,7 +1276,7 @@ begin
      // ###########################################
      // #### Create time warping vectors -> stored in fw1, fw2
      DTW(t, r, dist, MaxSearchWin);
-     
+
      // ###########################################
      // #### Calculate correlation
      Result := InternalCorrelateArr(@fw1Arr[0], @fw2Arr[0], fNumW);

@@ -3350,7 +3350,6 @@ end;
 procedure WriteBinary(const fn : string; mtx : IMatrix);
 var vec : IMatrix;
 begin
-     exit;
      vec := mtx.AsVector(True);
      with TFileStream.Create(fn, fmOpenWrite or fmCreate) do
      try
