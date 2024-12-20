@@ -223,6 +223,9 @@ function MatrixAbsMin(mt : PDouble; width, height : NativeInt; const LineWidth :
 procedure MatrixMax(dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; maxVal : double); overload;
 procedure MatrixMin(dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double); overload;
 
+// applies dest[i] := min(dest[i], mt[i])
+procedure VecMin(dest : PDouble; mt : PDouble; n : integer );
+procedure VecMax(dest : PDouble; mt : PDouble; n : integer );
 
 // min/max of an square upper/lower matrix
 function MatrixMaxUpper( mt : PDouble; N : NativeInt; const LineWidth : NativeInt ) : double;
@@ -364,6 +367,7 @@ type
   TMatrixInitFunc = procedure(dest : PDouble; destLIneWidth : NativeInt; Width, Height : NativeInt; const value : double );
   TMatrixMinMaxFunc = function(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
   TMatrixMinMaxMtxFunc = procedure(dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; maxVal : double);
+  TVectorMinFunc = procedure( dest : PDouble; mt : PDouble; N : NativeInt );
   TMatrixMinMaxTriaFunc = function(mt : PDouble; N : NativeInt; const LineWidth : NativeInt) : double;
   TMatrixTransposeFunc = procedure(dest : PDouble; const destLineWidth : NativeInt; mt : PDouble; const LineWidth : NativeInt; width : NativeInt; height : NativeInt);
   TMatrixTransposeInplaceFunc = procedure(mt : PDouble; const LineWidth : NativeInt; N : NativeInt);
@@ -465,6 +469,8 @@ var multFunc : TMatrixMultFunc;
     absMaxFunc : TMatrixMinMaxFunc;
     maxMtxFunc : TMatrixMinMaxMtxFunc;
     minMtxFunc : TMatrixMinMaxMtxFunc;
+    vecMinFunc : TVectorMinFunc;
+    vecMaxFunc : TVectorMinFunc;
     minLowerFunc : TMatrixMinMaxTriaFunc;
     maxLowerFunc : TMatrixMinMaxTriaFunc;
     minUpperFunc : TMatrixMinMaxTriaFunc;
@@ -684,7 +690,7 @@ end;
 procedure MatrixAdd(var dest : Array of double; const mt1, mt2 : Array of double; width : NativeInt);
 begin
      assert((width > 0), 'Dimension Error');
-     assert(High(mt1) >= width + 1, 'Dimension Error');
+     assert(High(mt1) >= width - 1, 'Dimension Error');
      assert(High(mt2) = High(mt1), 'Dimension Error');
      assert(High(dest) = High(mt1), 'Dimension Error');
 
@@ -1135,9 +1141,9 @@ begin
 
      if Width = 1
      then
-         Result := GenericMtxAbsMin(mt, width, height, LineWidth)
+         Result := GenericMtxAbsMax(mt, width, height, LineWidth)
      else
-         Result := absMinFunc(mt, width, height, LineWidth);
+         Result := absMaxFunc(mt, width, height, LineWidth);
 end;
 
 function MatrixAbsMin(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
@@ -1146,9 +1152,9 @@ begin
 
      if Width = 1
      then
-         Result := GenericMtxMax(mt, width, height, LineWidth)
+         Result := GenericMtxMin(mt, width, height, LineWidth)
      else
-         Result := absMaxFunc(mt, width, height, LineWidth);
+         Result := absMinFunc(mt, width, height, LineWidth);
 end;
 
 
@@ -1252,6 +1258,18 @@ begin
      minMtxFunc(dest, LineWidth, width, height, minVal);
 end;
 
+procedure VecMin(dest : PDouble; mt : PDouble; n : integer );
+begin
+     assert(n > 0, 'n <= 0 not allowed');
+     vecMinFunc(dest, mt, n);
+end;
+
+procedure VecMax(dest : PDouble; mt : PDouble; n : integer );
+begin
+     assert(n > 0, 'n <= 0 not allowed');
+     vecMaxFunc(dest, mt, n);
+end;
+
 function MatrixNormalize(Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray;
 begin
      assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
@@ -1280,8 +1298,17 @@ end;
 function MatrixMean(Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray; overload;
 begin
      assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
-     SetLength(Result, width*height);
-     MatrixMean(@Result[0], width*sizeof(double), src, srcLineWidth, width, height, RowWise);
+     if RowWise then
+     begin
+          SetLength(Result, height);
+          MatrixMean(@Result[0], sizeof(double), src, srcLineWidth, width, height, RowWise);
+     end
+     else
+     begin
+          SetLength(Result, width);
+          MatrixMean(@Result[0], width*sizeof(double), src, srcLineWidth, width, height, RowWise);
+     end;
+
 end;
 
 function MatrixMean(const Src : Array of double; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray; overload;
@@ -1299,8 +1326,14 @@ end;
 
 procedure MatrixMean(var dest : Array of double; const Src : Array of double; width, height : NativeInt; RowWise : boolean); overload;
 begin
-     assert((width > 0) and (height > 0) and (Length(dest) >= width*height) and (Length(src) >= width*height), 'Dimension error');
-     MatrixMean(@dest[0], width*sizeof(double), @src[0], width*sizeof(double), width, height, RowWise);
+     assert((width > 0) and (height > 0) and (Length(src) >= width*height), 'Dimension error');
+     assert((RowWise and (Length(dest) >= height)) or (not RowWise and (Length(dest) >= width)), 'Dimension error');
+
+     if RowWise
+     then
+         MatrixMean(@dest[0], sizeof(double), @src[0], width*sizeof(double), width, height, RowWise)
+     else
+         MatrixMean(@dest[0], width*sizeof(double), @src[0], width*sizeof(double), width, height, RowWise);
 end;
 
 function MatrixMedian(Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray; overload;
@@ -1325,8 +1358,14 @@ end;
 
 procedure MatrixMedian(var dest : Array of double; const Src : Array of double; width, height : NativeInt; RowWise : boolean); overload;
 begin
-     assert((width > 0) and (height > 0) and (Length(dest) >= width*height) and (Length(src) >= width*height), 'Dimension error');
-     MatrixMedian(@dest[0], width*sizeof(double), @src[0], width*sizeof(double), width, height, RowWise, nil);
+     assert((width > 0) and (height > 0) and (Length(src) >= width*height), 'Dimension error');
+     assert((RowWise and (Length(dest) >= height)) or (not RowWise and (Length(dest) >= width)), 'Dimension error');
+
+     if RowWise
+     then
+         MatrixMedian(@dest[0], sizeof(double), @src[0], width*sizeof(double), width, height, RowWise, nil)
+     else
+         MatrixMedian(@dest[0], width*sizeof(double), @src[0], width*sizeof(double), width, height, RowWise, nil);
 end;
 
 procedure MatrixRollMedian( dest : PDouble; const destLineWidth : NativeInt; Width, Height : NativeInt; order : integer; rowWise : boolean);
@@ -1390,15 +1429,28 @@ end;
 
 procedure MatrixVar(var dest : Array of double; const Src : Array of double; width, height : NativeInt; RowWise : boolean; unbiased : boolean); overload;
 begin
-     assert((width > 0) and (height > 0) and (Length(dest) >= width*height) and (Length(src) >= width*height), 'Dimension error');
-     MatrixVar(@dest[0], width*sizeof(double), @src[0], width*sizeof(double), width, height, RowWise, unbiased);
+     assert((width > 0) and (height > 0) and (Length(src) >= width*height), 'Dimension error');
+
+     if RowWise
+     then
+         MatrixVar(@dest[0], sizeof(double), @src[0], width*sizeof(double), width, height, RowWise, unbiased)
+     else
+         MatrixVar(@dest[0], width*sizeof(double), @src[0], width*sizeof(double), width, height, RowWise, unbiased);
 end;
 
 function MatrixSum(Src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean) : TDoubleDynArray; overload;
 begin
      assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
-     SetLength(Result, width*height);
-     MatrixSum(@Result[0], width*sizeof(double), src, srcLineWidth, width, height, RowWise);
+     if RowWise then
+     begin
+          SetLength(Result, height);
+          MatrixSum(@Result[0], sizeof(double), src, srcLineWidth, width, height, RowWise);
+     end
+     else
+     begin
+          SetLength(Result, width);
+          MatrixSum(@Result[0], width*sizeof(double), src, srcLineWidth, width, height, RowWise);
+     end;
 end;
 
 procedure VecMeanVar( var dest : TMeanVarRec; vec : PDouble; width : NativeInt; unbiased : boolean);  
@@ -1476,7 +1528,12 @@ begin
              ( ((not rowWise) and (Length(dest) >= width)) or
                ((rowWise) and (Length(dest) >= height) )) and
                 (Length(src) >= width*height), 'Dimension error');
-     MatrixSum(@dest[0], width*sizeof(double), @src[0], width*sizeof(double), width, height, RowWise);
+
+     if RowWise
+     then
+         MatrixSum(@dest[0], sizeof(double), @src[0], width*sizeof(double), width, height, RowWise)
+     else
+         MatrixSum(@dest[0], width*sizeof(double), @src[0], width*sizeof(double), width, height, RowWise);
 end;
 
 function MatrixSum(src : PDouble; const srcLineWidth : NativeInt; width, height : NativeInt ) : double;
@@ -1777,6 +1834,8 @@ begin
      minMtxFunc := GenericMtxMinVal;
      mtxSqrDist := GenericMtxDistanceSqr;
      mtxAbsDist := GenericMtxDistanceAbs;
+     vecMinFunc := GenericVecMin;
+     vecMaxFunc := GenericVecMax;
 
      {$IFDEF MRMATH_NOASM}
      TDynamicTimeWarp.UseSSE := False;
@@ -1849,6 +1908,8 @@ begin
           initfunc := AVXMatrixInit;
           mtxSqrDist := ASMMtxDistanceSqr;
           mtxAbsDist := ASMMtxDistanceAbs;
+          vecMinFunc := ASMVecMin;
+          vecMaxFunc := ASMVecMax;
 
           // ##############################################
           // #### override if fma is requested
@@ -1933,6 +1994,8 @@ begin
           SymRank2UpdateFunc := ASMSymRank2UpdateUpper;
           mtxSqrDist := ASMMtxDistanceSqr;
           mtxAbsDist := ASMMtxDistanceAbs;
+          vecMinFunc := ASMVecMin;
+          vecMaxFunc := ASMVecMax;
 
           TDynamicTimeWarp.UseSSE := True;
      end

@@ -46,6 +46,11 @@ function ASMMatrixAbsMinUnAlignedEvenW(mt : PDouble; width, height : NativeInt; 
 function ASMMatrixAbsMinAlignedOddW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 function ASMMatrixAbsMinUnAlignedOddW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
+procedure ASMVecMinAligned( dest : PDouble; mt : PDouble; N : NativeInt ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMVecMinUnAligned( dest : PDouble; mt : PDOuble; N : NativeInt ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+
+procedure ASMVecMaxAligned( dest : PDouble; mt : PDOuble; N : NativeInt ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+procedure ASMVecMaxUnAligned( dest : PDouble; mt : PDOuble; N : NativeInt ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
 
 {$ENDIF}
 
@@ -56,6 +61,267 @@ implementation
 const cLocNegMaxDouble : double = -1.7e+308;
       cLocMaxDouble : double = 1.7e+308;
       cLocAbsMask : Int64 = ($7FFFFFFFFFFFFFFF);
+
+procedure ASMVecMinAligned( dest : PDouble; mt : PDouble; N : NativeInt ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+asm
+   imul ecx, -8;
+   sub eax, ecx;
+   sub edx, ecx;
+
+   // unrolled loop
+   @Loop1:
+      add ecx, 64;
+      jg @LoopEnd1;
+
+      movapd xmm0, [eax + ecx - 64];
+      movapd xmm1, [edx + ecx - 64];
+
+      minpd xmm0, xmm1;
+      movapd [eax + ecx - 64], xmm0;
+
+      movapd xmm2, [eax + ecx - 48];
+      movapd xmm3, [edx + ecx - 48];
+
+      minpd xmm2, xmm3;
+      movapd [eax + ecx - 48], xmm2;
+
+      movapd xmm0, [eax + ecx - 32];
+      movapd xmm1, [edx + ecx - 32];
+
+      minpd xmm0, xmm1;
+      movapd [eax + ecx - 32], xmm0;
+
+      movapd xmm2, [eax + ecx - 16];
+      movapd xmm3, [edx + ecx - 16];
+
+      minpd xmm2, xmm3;
+      movapd [eax + ecx - 16], xmm2;
+   jmp @Loop1;
+
+   @LoopEnd1:
+   sub ecx, 64;
+   jz @retProc;
+
+   @Loop2:
+      add ecx, 16;
+      jg @LoopEnd2;
+
+      movapd xmm0, [eax + ecx - 16];
+      movapd xmm1, [edx + ecx - 16];
+
+      minpd xmm0, xmm1;
+      movapd [eax + ecx - 16], xmm0;
+   jmp @Loop2;
+
+   @LoopEnd2:
+
+   sub ecx, 16;
+   jz @retProc;
+
+   // handle uneven last element...
+   movsd xmm0, [eax - 8];
+   movsd xmm1, [edx - 8];
+   minsd xmm0, xmm1;
+   movsd [eax - 8], xmm0;
+
+   @retProc:
+end;
+
+procedure ASMVecMinUnaligned( dest : PDouble; mt : PDouble; N : NativeInt );
+asm
+   imul ecx, -8;
+   sub eax, ecx;
+   sub edx, ecx;
+
+   // unrolled loop
+   @Loop1:
+      add ecx, 64;
+      jg @LoopEnd1;
+
+      movupd xmm0, [eax + ecx - 64];
+      movupd xmm1, [edx + ecx - 64];
+
+      minpd xmm0, xmm1;
+      movupd [eax + ecx - 64], xmm0;
+
+      movupd xmm2, [eax + ecx - 48];
+      movupd xmm3, [edx + ecx - 48];
+
+      minpd xmm2, xmm3;
+      movupd [eax + ecx - 48], xmm2;
+
+      movupd xmm0, [eax + ecx - 32];
+      movupd xmm1, [edx + ecx - 32];
+
+      minpd xmm0, xmm1;
+      movupd [eax + ecx - 32], xmm0;
+
+      movupd xmm2, [eax + ecx - 16];
+      movupd xmm3, [edx + ecx - 16];
+
+      minpd xmm2, xmm3;
+      movupd [eax + ecx - 16], xmm2;
+   jmp @Loop1;
+   @LoopEnd1:
+
+   sub ecx, 64;
+   jz @retProc;
+
+   @Loop2:
+      add ecx, 16;
+      jg @LoopEnd2;
+
+      movupd xmm0, [eax + ecx - 16];
+      movupd xmm1, [edx + ecx - 16];
+
+      minpd xmm0, xmm1;
+      movupd [eax + ecx - 16], xmm0;
+   jmp @Loop2;
+
+   @LoopEnd2:
+
+   sub ecx, 16;
+   jz @retProc;
+
+   // handle uneven element...
+   movsd xmm0, [eax - 8];
+   movsd xmm1, [edx - 8];
+   minsd xmm0, xmm1;
+   movsd [eax - 8], xmm0;
+
+   @retProc:
+end;
+
+procedure ASMVecMaxAligned( dest : PDouble; mt : PDOuble; N : NativeInt ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+asm
+   imul ecx, -8;
+   sub eax, ecx;
+   sub edx, ecx;
+
+   // unrolled loop
+   @Loop1:
+      add ecx, 64;
+      jg @LoopEnd1;
+
+      movapd xmm0, [eax + ecx - 64];
+      movapd xmm1, [edx + ecx - 64];
+
+      maxpd xmm0, xmm1;
+      movapd [eax + ecx - 64], xmm0;
+
+      movapd xmm2, [eax + ecx - 48];
+      movapd xmm3, [edx + ecx - 48];
+
+      maxpd xmm2, xmm3;
+      movapd [eax + ecx - 48], xmm2;
+
+      movapd xmm0, [eax + ecx - 32];
+      movapd xmm1, [edx + ecx - 32];
+
+      maxpd xmm0, xmm1;
+      movapd [eax + ecx - 32], xmm0;
+
+      movapd xmm2, [eax + ecx - 16];
+      movapd xmm3, [edx + ecx - 16];
+
+      maxpd xmm2, xmm3;
+      movapd [eax + ecx - 16], xmm2;
+   jmp @Loop1;
+
+   @LoopEnd1:
+   sub ecx, 64;
+   jz @retProc;
+
+   @Loop2:
+      add ecx, 16;
+      jg @LoopEnd2;
+
+      movapd xmm0, [eax + ecx - 16];
+      movapd xmm1, [edx + ecx - 16];
+
+      maxpd xmm0, xmm1;
+      movapd [eax + ecx - 16], xmm0;
+   jmp @Loop2;
+
+   @LoopEnd2:
+
+   sub ecx, 16;
+   jz @retProc;
+
+   // handle uneven last element...
+   movsd xmm0, [eax - 8];
+   movsd xmm1, [edx - 8];
+   maxsd xmm0, xmm1;
+   movsd [eax - 8], xmm0;
+
+   @retProc:
+end;
+
+procedure ASMVecMaxUnaligned( dest : PDouble; mt : PDouble; N : NativeInt );
+asm
+   imul ecx, -8;
+   sub eax, ecx;
+   sub edx, ecx;
+
+   // unrolled loop
+   @Loop1:
+      add ecx, 64;
+      jg @LoopEnd1;
+
+      movupd xmm0, [eax + ecx - 64];
+      movupd xmm1, [edx + ecx - 64];
+
+      maxpd xmm0, xmm1;
+      movupd [eax + ecx - 64], xmm0;
+
+      movupd xmm2, [eax + ecx - 48];
+      movupd xmm3, [edx + ecx - 48];
+
+      maxpd xmm2, xmm3;
+      movupd [eax + ecx - 48], xmm2;
+
+      movupd xmm0, [eax + ecx - 32];
+      movupd xmm1, [edx + ecx - 32];
+
+      maxpd xmm0, xmm1;
+      movupd [eax + ecx - 32], xmm0;
+
+      movupd xmm2, [eax + ecx - 16];
+      movupd xmm3, [edx + ecx - 16];
+
+      maxpd xmm2, xmm3;
+      movupd [eax + ecx - 16], xmm2;
+   jmp @Loop1;
+   @LoopEnd1:
+
+   sub ecx, 64;
+   jz @retProc;
+
+   @Loop2:
+      add ecx, 16;
+      jg @LoopEnd2;
+
+      movupd xmm0, [eax + ecx - 16];
+      movupd xmm1, [edx + ecx - 16];
+
+      maxpd xmm0, xmm1;
+      movupd [eax + ecx - 16], xmm0;
+   jmp @Loop2;
+
+   @LoopEnd2:
+
+   sub ecx, 16;
+   jz @retProc;
+
+   // handle uneven element...
+   movsd xmm0, [eax - 8];
+   movsd xmm1, [edx - 8];
+   maxsd xmm0, xmm1;
+   movsd [eax - 8], xmm0;
+
+   @retProc:
+end;
+
 
 function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 asm

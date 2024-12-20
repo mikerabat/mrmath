@@ -381,7 +381,7 @@ asm
 
        // build result
        {$IFDEF AVXSUP}vdivpd ymm1, ymm1, ymm2;                        {$ELSE}db $C5,$F5,$5E,$CA;{$ENDIF} 
-       {$IFDEF AVXSUP}vmovapd [eax], ymm1;                            {$ELSE}db $C5,$FD,$29,$08;{$ENDIF} 
+       {$IFDEF AVXSUP}vmovupd [eax], ymm1;                            {$ELSE}db $C5,$FD,$11,$08;{$ENDIF} 
 
        // next columns:
        add eax, 32;
@@ -412,7 +412,7 @@ asm
 
    // build result
    {$IFDEF AVXSUP}vdivpd xmm1, xmm1, xmm2;                            {$ELSE}db $C5,$F1,$5E,$CA;{$ENDIF} 
-   {$IFDEF AVXSUP}vmovapd [eax], xmm1;                                {$ELSE}db $C5,$F9,$29,$08;{$ENDIF} 
+   {$IFDEF AVXSUP}vmovupd [eax], xmm1;                                {$ELSE}db $C5,$F9,$11,$08;{$ENDIF} 
 
    // next columns:
    add eax, 16;

@@ -54,3 +54,4 @@
 {$IFNDEF MRMATH_NOASM}
 {$IFDEF FPC} {$ASMMODE intel} {$S-} {$ENDIF}
 {$ENDIF}
+

@@ -419,7 +419,7 @@ asm
        push ecx;         // ecx = first matrix element
        mov ebx, v;       // ebx = first vector element
 
-       mov edx, width;      // r10 = width - 4
+       mov edx, width;      // edx = width - 4
        cmp edx, 0;
        jl @@shortloopend;
 
@@ -461,6 +461,7 @@ asm
        {$IFDEF AVXSUP}vmovsd xmm5, [eax];                             {$ELSE}db $C5,$FB,$10,$28;{$ENDIF} 
        {$IFDEF AVXSUP}vhaddpd xmm0, xmm0, xmm5;                       {$ELSE}db $C5,$F9,$7C,$C5;{$ENDIF} 
        {$IFDEF AVXSUP}vmulpd xmm0, xmm0, xmm6;                        {$ELSE}db $C5,$F9,$59,$C6;{$ENDIF} 
+
        {$IFDEF AVXSUP}vhaddpd xmm0, xmm0, xmm0;                       {$ELSE}db $C5,$F9,$7C,$C0;{$ENDIF} 
        {$IFDEF AVXSUP}vmovsd [eax], xmm0;                             {$ELSE}db $C5,$FB,$11,$00;{$ENDIF} 
 

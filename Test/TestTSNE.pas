@@ -28,6 +28,7 @@ type
  TTestTSNE = class(TBaseImgTestCase)
  published
    procedure TestGauss;
+   procedure TestGaussBarnesHut;
  end;
 
 
@@ -65,11 +66,47 @@ begin
 
      //MatrixToTxtFile('D:\tsne.txt', x.GetObjRef);
      //WriteBinary('D:\tsne_bin.dat', x);
-     xmap := TtSNE.SymTSNE(X.GetObjRef, 2, 2, 6);
+     xmap := TtSNE.SymTSNE(X.GetObjRef, 2, 2, 6, 0);
 
      check((xmap.Width = 2) and (xmap.Height = x.Height), 'Dimension error in tsne');
      //MatrixToTxtFile('D:\tsne_xmap.txt', xmap.GetObjRef);
 end;
+
+procedure TTestTSNE.TestGaussBarnesHut;
+var x : IMatrix;
+    i, j : Integer;
+    rnd : TRandomGenerator;
+    xmap : IMatrix;
+begin
+     // just pure pascal code
+     InitMathFunctions(itFPU, false);
+     rnd := TRandomGenerator.Create( raMersenneTwister );
+     rnd.Init( 573 ); // ensure always the same start
+
+     x := TDoubleMatrix.Create( 2, 30 );
+
+     for i := 0 to x.Height div 2 - 1 do
+     begin
+          for j := 0 to x.Width - 1 do
+              x[j, i] := 0.5 + 0.2*rnd.RandGauss;
+     end;
+
+     for i := x.Height div 2 to x.Height - 1 do
+     begin
+          for j := 0 to x.Width - 1 do
+              x[j, i] := -0.5 + 0.2*rnd.RandGauss;
+     end;
+
+     rnd.Free;
+
+     //MatrixToTxtFile('D:\tsne.txt', x.GetObjRef);
+     //WriteBinary('D:\tsne_bin.dat', x);
+     xmap := TtSNE.SymTSNE(X.GetObjRef, 2, 2, 6, 0.5);
+
+     check((xmap.Width = 2) and (xmap.Height = x.Height), 'Dimension error in tsne');
+     //MatrixToTxtFile('D:\tsne_xmap.txt', xmap.GetObjRef);
+end;
+
 
 initialization
 {$IFNDEF FMX}

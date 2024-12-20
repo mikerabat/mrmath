@@ -442,7 +442,7 @@ asm
 
        // build result
        {$IFDEF AVXSUP}vdivpd ymm1, ymm1, ymm2;                        {$ELSE}db $C5,$F5,$5E,$CA;{$ENDIF} 
-       {$IFDEF AVXSUP}vmovapd [rcx], ymm1;                            {$ELSE}db $C5,$FD,$29,$09;{$ENDIF} 
+       {$IFDEF AVXSUP}vmovupd [rcx], ymm1;                            {$ELSE}db $C5,$FD,$29,$09;{$ENDIF}
 
        // next columns:
        add rcx, 32;

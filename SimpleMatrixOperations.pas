@@ -123,6 +123,10 @@ function GenericMtxAbsMin(mt : PDouble; width, height : NativeInt; const LineWid
 procedure GenericMtxMaxVal(dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; maxVal : double);
 procedure GenericMtxMinVal(dest : PDouble; const LineWidth : NativeInt; width, height : NativeInt; minVal : double);
 
+// applies dest[i] := min(dest[i], mt[i])
+procedure GenericVecMin( dest : PDouble; mt : PDouble; n : NativeInt );
+procedure GenericVecMax( dest : PDouble; mt : PDouble; n : NativeInt );
+
 // matrix max and min of an upper or lower diagonal matrix
 function GenericMtxMaxUpper( mt : PDouble; N : NativeInt; const LineWidth : NativeInt ) : double;
 function GenericMtxMinUpper( mt : PDouble; N : NativeInt; const LineWidth : NativeInt ) : double;
@@ -1300,6 +1304,19 @@ begin
      end;
 end;
 
+procedure GenericVecMin( dest : PDouble; mt : PDouble; n : NativeInt );
+var i : integer;
+begin
+     for i := 0 to n - 1 do
+         PConstDoubleArr(dest)^[i] := Min(PConstDoubleArr(dest)^[i], PConstDoubleArr(mt)^[i]);
+end;
+
+procedure GenericVecMax( dest : PDouble; mt : PDouble; n : NativeInt );
+var i : integer;
+begin
+     for i := 0 to n - 1 do
+         PConstDoubleArr(dest)^[i] := Max(PConstDoubleArr(dest)^[i], PConstDoubleArr(mt)^[i]);
+end;
 
 procedure GenericMtxAdd(dest : PDouble; destLineWidth : NativeInt; mt1, mt2 : PDouble; width : NativeInt; height : NativeInt; LineWidth1, LineWidth2 : NativeInt);
 var x, y : NativeInt;

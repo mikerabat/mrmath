@@ -119,6 +119,7 @@ var x : TDoubleDynArray;
     dtw : TDynamicTimeWarp;
     xv, yV : IMatrix;
     dist : double;
+    useSSE : boolean;
 begin
      SetLength(x, 1000);
      SetLength(y, 400);
@@ -131,19 +132,26 @@ begin
      xv := TDoubleMatrix.Create(x, Length(x), 1);
      yv := TDoubleMatrix.Create(y, Length(y), 1);
 
-     dtw := TDynamicTimeWarp.Create;
-     try
-        dtw.DTW(xv, yv, dist);
+     for useSSE in [True, False] do
+     begin
+          TDynamicTimeWarp.UseSSE := useSSE;
 
-        //WriteMatlabData('D:\chirp1.txt', dtw.W1.SubMatrix, res.Width);
-        //WriteMatlabData('D:\chirp2.txt', dtw.W2.SubMatrix, dtw.W2.Width);
+          dtw := TDynamicTimeWarp.Create;
+          try
+             dtw.DTW(xv, yv, dist);
 
-        Status(Format('Distance: %.4f', [dist]));
+             //WriteMatlabData('D:\chirp1.txt', dtw.W1.SubMatrix, res.Width);
+             //WriteMatlabData('D:\chirp2.txt', dtw.W2.SubMatrix, dtw.W2.Width);
 
-        Check( SameValue(dist, 0.7869, 1e-3), 'Distance calculation wrong in Chirp test');
-     finally
-            dtw.Free;
+             Status(Format('Distance: %.4f', [dist]));
+
+             Check( SameValue(dist, 0.7869, 1e-3), 'Distance calculation wrong in Chirp test');
+          finally
+                 dtw.Free;
+          end;
      end;
+
+     TDynamicTimeWarp.UseSSE := True;
 end;
 
 procedure TestCorrelation.TestDynamicTimeWarp;

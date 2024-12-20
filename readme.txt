@@ -50,6 +50,19 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+Date 20.12.2024
+* Barnes Hut Tree implementation of TSNE
+* Heap structure class
+* Pointer based Kth largest
+
+Date 21.10.2024
+* DTW revisited: introduced some ASM functions to speedup up to a factor 4.
+* Fixed a problem in correlation - the input variables were not initialized
+  and could result in NAN.
+* Introduced a few new ASM functions for min/max operations (SSE only)
+* Minor updates to CPU intruction set check - the AVX512 flag was not correctly
+  updated in x64
+
 Date 04.07.2024
 * Added Wavelets (discrete and continuous)
 * Fixed problems in the convolution functions

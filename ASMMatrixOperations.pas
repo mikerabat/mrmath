@@ -68,6 +68,10 @@ function ASMMatrixMin(mt : PDouble; width, height : NativeInt; const LineWidth :
 function ASMMatrixAbsMax(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 function ASMMatrixAbsMin(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 
+// applies the min max operator: dest[i] := min( dest[i], mt[i] ); - same for max...
+procedure ASMVecMin( dest : PDouble; mt : PDOuble; N : NativeInt );
+procedure ASMVecMax( dest : PDouble; mt : PDOuble; N : NativeInt );
+
 procedure ASMMatrixTranspose(dest : PDouble; const destLineWidth : NativeInt; mt : PDouble; const LineWidth : NativeInt; width : NativeInt; height : NativeInt);
 function ASMMatrixElementwiseNorm2(dest : PDouble; LineWidth : NativeInt; Width, height : NativeInt; doSqrt : boolean) : double;
 procedure ASMMatrixNormalize(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
@@ -536,7 +540,23 @@ begin
          ASMVecAddNonSeq(X, Y, N, incX, incY, alpha);
 end;
 
+procedure ASMVecMin( dest : PDouble; mt : PDOuble; N : NativeInt );
+begin
+     if (NativeUint(dest) and $0000000F = 0) and (NativeUint(mt) and $0000000F = 0)
+     then
+         ASMVecMinAligned(dest, mt, N)
+     else
+         ASMVecMinUnAligned(dest, mt, N);
+end;
 
+procedure ASMVecMax( dest : PDouble; mt : PDOuble; N : NativeInt );
+begin
+     if (NativeUint(dest) and $0000000F = 0) and (NativeUint(mt) and $0000000F = 0)
+     then
+         ASMVecMaxAligned(dest, mt, N)
+     else
+         ASMVecMaxUnAligned(dest, mt, N);
+end;
 
 function ASMMatrixMax(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double;
 begin

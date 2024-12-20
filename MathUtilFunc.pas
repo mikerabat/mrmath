@@ -21,7 +21,7 @@ unit MathUtilFunc;
 
 interface
 
-uses Types, MatrixConst, SysUtils;
+uses Types, MatrixConst, SysUtils, Classes;
 
 {$WRITEABLECONST ON}
 
@@ -31,6 +31,7 @@ const cMinDblDivEps : double = 0;     // filled in initialization
 function pythag(const A, B : double) : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function sign(const a : double; const b : double) : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 procedure DoubleSwap(var a, b : Double); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+procedure DblPtrSwap( var a, b : PDouble);  {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 
 function lcm(a, b : NativeInt) : NativeInt;  // least common multiple
 function gcm(a, b : NativeInt) : NativeInt; // greatest common divisior
@@ -43,6 +44,7 @@ function MinDblDiv : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline;
 procedure WriteMtlMtx(const fileName : string; const mtx : TDoubleDynArray; width : integer; prec : integer = 8); overload;
 procedure WriteMtlMtx(const fileName : string; mtx : PDouble; LineWidthmtx : NativeInt; width, height : integer; prec : integer = 8); overload;
 procedure WriteBinaryMtxColMajor( fn : String; A : PDouble; LineWidthA : NativeInt; w, h  :integer );
+procedure WriteBinaryMtxRowMajor( fn : String; A : PDouble; LineWidthA : NativeInt; w, h  :integer );
 
 
 type
@@ -61,6 +63,7 @@ procedure QuickSort2( var A, B : TDoubleDynArray );
 // for median - note: the content (sort order) of the array is destroyed!
 function KthLargest(var vals : TDoubleDynArray; elemNum : Cardinal) : double; overload;
 function KthLargest(valsArr : PDouble; numElem : integer; elemNum : Cardinal) : double; overload;
+function KthLargestP(vals : PPConstDoubleArr; numElem : integer; elemNum : Cardinal) : double; overload;
 
 // gauss window
 // creates a gasus window with a maximum at N div 2 using the formula w = exp( -(a*x)^2/2)
@@ -98,9 +101,34 @@ type
 function findRoot( func : TRootFunc; out root : double; x1, x2 : double; xAcc : double = 1e-8 ) : boolean; overload;
 function findRoot( func : TRootFuncWithDerrive; out root : double; x1, x2 : double; xAcc : double = 1e-8 ) : boolean; overload;
 
+// ###########################################
+// #### heap structure - same as a priority queue in c++
+type
+  TPtrHeap = class(TObject)
+  private
+    fList : Array of Pointer;
+    fCount : integer;
+    fCmpFunc : TListSortCompare;
+
+    function GetCapacity: integer;
+    procedure SetCapacity(const Value: integer);
+
+    procedure heapifyInsert( idx : integer );
+    procedure heapifyDelete( idx : integer );
+  public
+    property Capacity : integer read GetCapacity write SetCapacity;
+    property Count : integer read fCount;
+
+    procedure Add( item : Pointer );
+    function Pop : Pointer;  // returns the root element and removes it from the list
+    function Top : Pointer;  // returns the root (but does not remove it)
+
+    constructor Create( cmp : TListSortCompare );
+  end;
+
 implementation
 
-uses Math, Classes;
+uses Math;
 
 // ##########################################
 // #### utility function implementation
@@ -117,6 +145,14 @@ end;
 
 procedure DoubleSwap(var a, b : Double); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 var temp : double;
+begin
+     temp := a;
+     a := b;
+     b := temp;
+end;
+
+procedure DblPtrSwap( var a, b : PDouble);
+var temp : PDouble;
 begin
      temp := a;
      a := b;
@@ -614,6 +650,23 @@ begin
      end;
 end;
 
+procedure WriteBinaryMtxRowMajor( fn : String; A : PDouble; LineWidthA : NativeInt; w, h  :integer );
+var y : integer;
+begin
+     with TFileStream.Create(fn, fmCreate or fmOpenWrite ) do
+     try
+        WriteBuffer( w, SizeOf(w));
+        WriteBuffer( h, sizeof(h));
+
+        for y := 0 to h - 1 do
+        begin
+             WriteBuffer( A^, sizeof(double)*w );
+             inc(PByte(A), LineWidthA);
+        end;
+     finally
+            Free;
+     end;
+end;
 
 function KthLargest(var vals : TDoubleDynArray; elemNum : Cardinal) : double;
 begin
@@ -623,10 +676,10 @@ end;
 function KthLargest(valsArr : PDouble; numElem : integer; elemNum : Cardinal) : double; overload;
 var i, ir, j, l, mid : Cardinal;
     a : double;
-    vals : PConstDoubleArr;    
+    vals : PConstDoubleArr;
 begin
      vals := PConstDoubleArr(valsArr);
-     
+
      Result := 0;
      l := 0;
      if numElem = 0 then
@@ -668,6 +721,63 @@ begin
                   break;
 
                DoubleSwap(vals^[i], vals^[j]);
+          end;
+          vals^[l + 1] := vals^[j];
+          vals^[j] := a;
+          if j >= elemNum then
+             ir := j - 1;
+          if j <= elemNum then
+             l := i;
+     end;
+end;
+
+// same as above but one can use a record here (elemsize). The record has to have a double element at
+// the start of it's definition.
+function KthLargestP(vals : PPConstDoubleArr; numElem : integer; elemNum : Cardinal) : double; overload;
+var i, ir, j, l, mid : Cardinal;
+    a : Pdouble;
+begin
+     Result := 0;
+     l := 0;
+     if numElem = 0 then
+        exit;
+     ir := numElem - 1;
+
+     while True do
+     begin
+          if ir <= l + 1 then
+          begin
+               if (ir = l + 1) and (vals^[ir]^ < vals^[l]^) then
+                  DblPtrSwap(vals^[l], vals^[ir]);
+               Result := vals^[elemNum]^;
+               exit;
+          end;
+
+          mid := (l + ir) div 2;
+          DblPtrSwap(vals^[mid], vals^[l + 1]);
+          if vals^[l]^ > vals^[ir]^ then
+             DblPtrSwap(vals^[l], vals^[ir]);
+          if vals^[l + 1]^ > vals^[ir]^ then
+             DblPtrSwap(vals^[l + 1], vals^[ir]);
+          if vals^[l]^ > vals^[l + 1]^ then
+             DblPtrSwap(vals^[l], vals^[l + 1]);
+
+          i := l + 1;
+          j := ir;
+          a := vals^[l + 1];
+          while True do
+          begin
+               repeat
+                     inc(i);
+               until vals^[i]^ >= a^;
+               repeat
+                     dec(j);
+               until vals^[j]^ <= a^;
+
+               if j < i then
+                  break;
+
+               DblPtrSwap(vals^[i], vals^[j]);
           end;
           vals^[l + 1] := vals^[j];
           vals^[j] := a;
@@ -1117,7 +1227,104 @@ begin
      end;
 end;
 
+{ TPtrHeap }
 
+procedure TPtrHeap.Add(item: Pointer);
+begin
+     if fCount >= Length(fList) then
+        SetCapacity( Min( 2*Length(fList), Length(fList) + 2048) );
+
+     fList[fCount] := item;
+     inc(fCount);
+
+     heapifyInsert(fCount - 1);
+end;
+
+constructor TPtrHeap.Create(cmp: TListSortCompare);
+begin
+     fCmpFunc := cmp;
+     SetCapacity(16);
+
+     inherited Create;
+end;
+
+function TPtrHeap.GetCapacity: integer;
+begin
+     Result := Length(fList);
+end;
+
+procedure TPtrHeap.heapifyDelete(idx: integer);
+var l, r, largest : integer;
+    tmp : Pointer;
+begin
+     largest := idx;
+
+     l := 2*idx + 1;
+     r := l + 1;
+
+     if (l < fCount) and (fCmpFunc( fList[l], fList[largest] ) > 0) then
+        largest := l;
+
+     if (r < fCount) and (fCmpFunc( fList[r], fList[largest] ) > 0) then
+        largest := r;
+
+     if largest <> idx then
+     begin
+          tmp := fList[largest];
+          fList[largest] := fList[idx];
+          fList[idx] := tmp;
+
+          heapifyDelete(largest);
+     end;
+end;
+
+procedure TPtrHeap.heapifyInsert(idx: integer);
+var parent : integer;
+    tmp : pointer;
+begin
+     if idx = 0 then
+        exit;
+
+     parent := (idx - 1) shr 1;
+
+     // if current node > than it's parent
+     // swap both of them and call heapify again
+     if fCmpFunc( fList[idx], fList[parent] ) > 0 then
+     begin
+          tmp := fList[parent];
+          fList[parent] := fList[idx];
+          fList[idx] := tmp;
+
+          heapifyInsert(parent);
+     end;
+end;
+
+function TPtrHeap.Pop: Pointer;
+begin
+     if fCount = 0 then
+        exit(nil);
+
+     Result := fList[0];
+     fList[0] := fList[fCount - 1];
+     dec(fCount);
+
+     heapifyDelete( 0 );
+end;
+
+procedure TPtrHeap.SetCapacity(const Value: integer);
+begin
+     assert(value >= fCount, 'Failed to set capacity');
+
+     SetLength( fList, value );
+end;
+
+function TPtrHeap.Top: Pointer;
+begin
+     if fCount = 0 then
+        exit(nil);
+
+     Result := fList[0];
+end;
 
 initialization
   cMinDblDivEps := MinDblDiv/eps(1);

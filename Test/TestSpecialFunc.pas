@@ -43,11 +43,14 @@ type
     procedure TestMatrixExp;
     procedure TestMillerRubin32;
     procedure TestGaussWin;
+    procedure TestHeap;
+    procedure TestKThLargest;
   end;
 
 implementation
 
-uses MathUtilFunc, Types, Statistics, MtxTimer, MtxUtilFunc, Matrix, Math;
+uses MathUtilFunc, Types, Statistics, MtxTimer, MtxUtilFunc, Matrix, Math,
+  RandomEng;
 
 { TTestEM }
 
@@ -278,6 +281,55 @@ begin
      //WriteMatlabData('d:\gausswin.txt', a.SubMatrix, a.Width);
 end;
 
+// min heap
+function IntCmp( item1, item2 : Pointer ) : integer;
+begin
+     Result := CompareValue(PInteger(item2)^, PInteger(item1)^ );
+end;
+
+procedure TTestSpecialFuncs.TestHeap;
+var sortData : TIntegerDynarray;
+    i : Integer;
+    rnd : TRandomGenerator;
+    heap : TPtrHeap;
+    idxArr : TIntegerDynArray;
+    j: Integer;
+    pData : PInteger;
+const cTestSize : Array[0..11] of integer = (1, 2, 3, 4, 5, 8, 19, 136, 765, 800, 2024, 3093);
+begin
+     SetLength(sortData, cTestSize[ High(cTestSize) ] );
+     for i := 0 to cTestSize[High(cTestSize)] - 1 do
+         sortData[i] := i + 1;
+
+     rnd := TRandomGenerator.Create(raChaCha);
+     try
+        rnd.Init(4087);
+
+        for i := 0 to High(cTestSize) - 1 do
+        begin
+             heap := TPtrHeap.Create( {$IFDEF FPC}@{$endif}intCmp );
+             try
+                idxArr := rnd.RandIndexArr(0, cTestSize[i] - 1);
+
+                // create heap structure
+                for j := 0 to cTestSize[i] - 1 do
+                    heap.Add( @sortData[ idxArr[j] ]);
+
+                // output sorted heap
+                for j := 0 to cTestSize[i] - 1 do
+                begin
+                     pData := heap.Pop;
+                     Check( pData^ = sortData[j], 'Heap failed @' + IntToStr(j) + ' size ' + IntToStr(cTestSize[i]) );
+                end;
+             finally
+                    heap.Free;
+             end;
+        end;
+     finally
+            rnd.Free;
+     end;
+end;
+
 procedure TTestSpecialFuncs.TestIncompleteBeta;
 const cA : Array[0..7] of double = (0.01, 0.1, 0.9, 1, 1.5, 3, 6, 7.2);
       cX : Array[0..3] of double = (0.01, 0.2, 0.7, 0.95);
@@ -308,6 +360,96 @@ begin
      // #### check agains reference
      for ia := 0 to imRef.Height - 1 do
          check( SameValue( imRef.Vec[ia], imx[3, ia], 1e-6), 'Error in incomplete beta function evaluation');
+end;
+
+type
+  TDblPtrRec = record
+    dist : double;
+    idx : integer;
+  end;
+  PDblPtrRec = ^TDblPtrRec;
+
+procedure TTestSpecialFuncs.TestKThLargest;
+var i : integer;
+    dists : Array[0..12] of double;
+    rDists : Array[0..12] of TDblPtrRec;
+    prDists : Array[0..12] of PDblPtrRec;
+    k : double;
+begin
+     for i := 0 to Length(dists) - 1 do
+         dists[i] := Length(dists) - i - 1;
+
+     k := KthLargest(@dists[0], Length(dists), Length(dists) div 2);
+     Check( k = Length(dists) div 2, 'Wrong kthLargest');
+
+     for i := 0 to Length(dists) div 2 do
+         check( dists[i] <= k, 'Sorting is wrong for kthLargest');
+
+     for i := Length(dists) div 2 to Length(dists) - 1 do
+         Check( dists[i] >= k, 'Sorting is wrong for kthLargest');
+
+     // ###########################################
+     // #### Same test for pointer to structures
+     for i := 0 to Length(rDists) - 1 do
+     begin
+          rDists[i].dist := Length(rDists) - 1 - i;
+          rDists[i].idx := i;
+          prDists[i] := @rDists[i];
+     end;
+
+     k := KthLargestP(@prDists[0], Length(rDists), Length(dists) div 2);
+     Check( k = Length(dists) div 2, 'Wrong kthLargest');
+
+     for i := 0 to Length(dists) div 2 do
+         check( rdists[ prDists[i]^.idx ].dist <= k, 'Sorting is wrong for kthLargest');
+
+     for i := Length(dists) div 2 to Length(dists) - 1 do
+         Check( rdists[prDists[i]^.idx].dist >= k, 'Sorting is wrong for kthLargest');
+
+
+     // ###########################################
+     // #### now with random data...
+     with TRandomGenerator.Create(raSystem) do
+     try
+        Init(2442);
+        for i := 0 to Length(dists) - 1 do
+            dists[i] := Random;
+     finally
+            Free;
+     end;
+
+     k := KthLargest(@dists[0], Length(dists), Length(dists) div 2);
+
+     for i := 0 to Length(dists) div 2 do
+         check( dists[i] <= k, 'Sorting is wrong for kthLargest');
+
+     for i := Length(dists) div 2 to Length(dists) - 1 do
+         Check( dists[i] >= k, 'Sorting is wrong for kthLargest');
+
+     // ###########################################
+     // #### Same test for pointer to structures
+     with TRandomGenerator.Create(raSystem) do
+     try
+        Init(2442);
+
+        for i := 0 to Length(rDists) - 1 do
+        begin
+             rDists[i].dist := random;
+             rDists[i].idx := i;
+             prDists[i] := @rDists[i];
+        end;
+     finally
+            Free;
+     end;
+
+     k := KthLargestP(@prDists[0], Length(rDists), Length(dists) div 2);
+
+     for i := 0 to Length(dists) div 2 do
+         check( rdists[ prDists[i]^.idx ].dist <= k, 'Sorting is wrong for kthLargest');
+
+     for i := Length(dists) div 2 to Length(dists) - 1 do
+         Check( rdists[prDists[i]^.idx].dist >= k, 'Sorting is wrong for kthLargest');
+
 end;
 
 (*procedure Log2Ex( value : double; var F, E : double );

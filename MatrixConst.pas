@@ -53,6 +53,9 @@ type
    PComplex = ^TComplex;
    TComplexDynArray = Array of TComplex;
 
+   TConstPDoubleArr = Array[0..MaxInt div sizeof(double)] of PDouble;
+   PPConstDoubleArr = ^TConstPDoubleArr;
+
 const cDefEpsilon : double = 1e-20;
       cMinusOne : double = -1;
       cOne : double = 1;

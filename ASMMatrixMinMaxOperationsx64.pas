@@ -46,6 +46,12 @@ function ASMMatrixAbsMinUnAlignedEvenW(mt : PDouble; width, height : NativeInt; 
 function ASMMatrixAbsMinAlignedOddW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
 function ASMMatrixAbsMinUnAlignedOddW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
 
+procedure ASMVecMinAligned( dest : PDouble; mt : PDOuble; N : NativeInt ); {$IFDEF FPC} assembler; {$ENDIF}
+procedure ASMVecMinUnAligned( dest : PDouble; mt : PDOuble; N : NativeInt ); {$IFDEF FPC} assembler; {$ENDIF}
+
+procedure ASMVecMaxAligned( dest : PDouble; mt : PDOuble; N : NativeInt ); {$IFDEF FPC} assembler; {$ENDIF}
+procedure ASMVecMaxUnAligned( dest : PDouble; mt : PDOuble; N : NativeInt ); {$IFDEF FPC} assembler; {$ENDIF}
+
 {$ENDIF}
 
 implementation
@@ -55,6 +61,307 @@ implementation
 const cLocNegMaxDoubles : Array[0..1] of double = (-1.7e+308, -1.7e+308);
       cLocMaxDoubles : Array[0..1] of double = (1.7e+308, 1.7e+308);
       cLocAbsMask : Array[0..1] of Int64 = ($7FFFFFFFFFFFFFFF, $7FFFFFFFFFFFFFFF);
+
+procedure ASMVecMinAligned( dest : PDouble; mt : PDouble; N : NativeInt ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
+   imul r8, -8;
+   sub rcx, r8;
+   sub rdx, r8;
+
+   // unrolled loop
+   @Loop1:
+      add r8, 64;
+      jg @LoopEnd1;
+
+      movapd xmm0, [rcx + r8 - 64];
+      movapd xmm1, [rdx + r8 - 64];
+
+      minpd xmm0, xmm1;
+      movapd [rcx + r8 - 64], xmm0;
+
+      movapd xmm2, [rcx + r8 - 48];
+      movapd xmm3, [rdx + r8 - 48];
+
+      minpd xmm2, xmm3;
+      movapd [rcx + r8 - 48], xmm2;
+
+      movapd xmm0, [rcx + r8 - 32];
+      movapd xmm1, [rdx + r8 - 32];
+
+      minpd xmm0, xmm1;
+      movapd [rcx + r8 - 32], xmm0;
+
+      movapd xmm2, [rcx + r8 - 16];
+      movapd xmm3, [rdx + r8 - 16];
+
+      minpd xmm2, xmm3;
+      movapd [rcx + r8 - 16], xmm2;
+   jmp @Loop1;
+
+   @LoopEnd1:
+   sub r8, 64;
+   jz @retProc;
+
+   @Loop2:
+      add r8, 16;
+      jg @LoopEnd2;
+
+      movapd xmm0, [rcx + r8 - 16];
+      movapd xmm1, [rdx + r8 - 16];
+
+      minpd xmm0, xmm1;
+      movapd [rcx + r8 - 16], xmm0;
+   jmp @Loop2;
+
+   @LoopEnd2:
+
+   sub r8, 16;
+   jz @retProc;
+
+   // handle uneven last element...
+   movsd xmm0, [rcx - 8];
+   movsd xmm1, [rdx - 8];
+   minsd xmm0, xmm1;
+   movsd [rcx - 8], xmm0;
+
+   @retProc:
+end;
+
+procedure ASMVecMinUnaligned( dest : PDouble; mt : PDouble; N : NativeInt );
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
+   imul r8, -8;
+   sub rcx, r8;
+   sub rdx, r8;
+
+   // unrolled loop
+   @Loop1:
+      add r8, 64;
+      jg @LoopEnd1;
+
+      movupd xmm0, [rcx + r8 - 64];
+      movupd xmm1, [rdx + r8 - 64];
+
+      minpd xmm0, xmm1;
+      movupd [rcx + r8 - 64], xmm0;
+
+      movupd xmm2, [rcx + r8 - 48];
+      movupd xmm3, [rdx + r8 - 48];
+
+      minpd xmm2, xmm3;
+      movupd [rcx + r8 - 48], xmm2;
+
+      movupd xmm0, [rcx + r8 - 32];
+      movupd xmm1, [rdx + r8 - 32];
+
+      minpd xmm0, xmm1;
+      movupd [rcx + r8 - 32], xmm0;
+
+      movupd xmm2, [rcx + r8 - 16];
+      movupd xmm3, [rdx + r8 - 16];
+
+      minpd xmm2, xmm3;
+      movupd [rcx + r8 - 16], xmm2;
+   jmp @Loop1;
+   @LoopEnd1:
+
+   sub r8, 64;
+   jz @retProc;
+
+   @Loop2:
+      add r8, 16;
+      jg @LoopEnd2;
+
+      movupd xmm0, [rcx + r8 - 16];
+      movupd xmm1, [rdx + r8 - 16];
+
+      minpd xmm0, xmm1;
+      movupd [rcx + r8 - 16], xmm0;
+   jmp @Loop2;
+
+   @LoopEnd2:
+
+   sub r8, 16;
+   jz @retProc;
+
+   // handle uneven element...
+   movsd xmm0, [rcx - 8];
+   movsd xmm1, [rdx - 8];
+   minsd xmm0, xmm1;
+   movsd [rcx - 8], xmm0;
+
+   @retProc:
+end;
+
+procedure ASMVecMaxAligned( dest : PDouble; mt : PDOuble; N : NativeInt ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
+   imul r8, -8;
+   sub rcx, r8;
+   sub rdx, r8;
+
+   // unrolled loop
+   @Loop1:
+      add r8, 64;
+      jg @LoopEnd1;
+
+      movapd xmm0, [rcx + r8 - 64];
+      movapd xmm1, [rdx + r8 - 64];
+
+      maxpd xmm0, xmm1;
+      movapd [rcx + r8 - 64], xmm0;
+
+      movapd xmm2, [rcx + r8 - 48];
+      movapd xmm3, [rdx + r8 - 48];
+
+      maxpd xmm2, xmm3;
+      movapd [rcx + r8 - 48], xmm2;
+
+      movapd xmm0, [rcx + r8 - 32];
+      movapd xmm1, [rdx + r8 - 32];
+
+      maxpd xmm0, xmm1;
+      movapd [rcx + r8 - 32], xmm0;
+
+      movapd xmm2, [rcx + r8 - 16];
+      movapd xmm3, [rdx + r8 - 16];
+
+      maxpd xmm2, xmm3;
+      movapd [rcx + r8 - 16], xmm2;
+   jmp @Loop1;
+
+   @LoopEnd1:
+   sub r8, 64;
+   jz @retProc;
+
+   @Loop2:
+      add r8, 16;
+      jg @LoopEnd2;
+
+      movapd xmm0, [rcx + r8 - 16];
+      movapd xmm1, [rdx + r8 - 16];
+
+      maxpd xmm0, xmm1;
+      movapd [rcx + r8 - 16], xmm0;
+   jmp @Loop2;
+
+   @LoopEnd2:
+
+   sub r8, 16;
+   jz @retProc;
+
+   // handle uneven last element...
+   movsd xmm0, [rcx - 8];
+   movsd xmm1, [rdx - 8];
+   maxsd xmm0, xmm1;
+   movsd [rcx - 8], xmm0;
+
+   @retProc:
+end;
+
+procedure ASMVecMaxUnaligned( dest : PDouble; mt : PDouble; N : NativeInt );
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
+   imul r8, -8;
+   sub rcx, r8;
+   sub rdx, r8;
+
+   // unrolled loop
+   @Loop1:
+      add r8, 64;
+      jg @LoopEnd1;
+
+      movupd xmm0, [rcx + r8 - 64];
+      movupd xmm1, [rdx + r8 - 64];
+
+      maxpd xmm0, xmm1;
+      movupd [rcx + r8 - 64], xmm0;
+
+      movupd xmm2, [rcx + r8 - 48];
+      movupd xmm3, [rdx + r8 - 48];
+
+      maxpd xmm2, xmm3;
+      movupd [rcx + r8 - 48], xmm2;
+
+      movupd xmm0, [rcx + r8 - 32];
+      movupd xmm1, [rdx + r8 - 32];
+
+      maxpd xmm0, xmm1;
+      movupd [rcx + r8 - 32], xmm0;
+
+      movupd xmm2, [rcx + r8 - 16];
+      movupd xmm3, [rdx + r8 - 16];
+
+      maxpd xmm2, xmm3;
+      movupd [rcx + r8 - 16], xmm2;
+   jmp @Loop1;
+   @LoopEnd1:
+
+   sub r8, 64;
+   jz @retProc;
+
+   @Loop2:
+      add r8, 16;
+      jg @LoopEnd2;
+
+      movupd xmm0, [rcx + r8 - 16];
+      movupd xmm1, [rdx + r8 - 16];
+
+      maxpd xmm0, xmm1;
+      movupd [rcx + r8 - 16], xmm0;
+   jmp @Loop2;
+
+   @LoopEnd2:
+
+   sub r8, 16;
+   jz @retProc;
+
+   // handle uneven element...
+   movsd xmm0, [rcx - 8];
+   movsd xmm1, [rdx - 8];
+   maxsd xmm0, xmm1;
+   movsd [rcx - 8], xmm0;
+
+   @retProc:
+end;
+
 
 function ASMMatrixMaxAlignedEvenW(mt : PDouble; width, height : NativeInt; const LineWidth : NativeInt) : double; {$IFDEF FPC}assembler;{$ENDIF}
 asm

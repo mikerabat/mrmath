@@ -275,7 +275,7 @@ end;
 
 implementation
 
-uses MathUtilFunc, Math, CPUFeatures, MatrixASMStubSwitch, ASMVecConvolve;
+uses MathUtilFunc, Math, CPUFeatures, MatrixASMStubSwitch;
 
 // ###########################################
 // #### Construction/Destruction
@@ -296,8 +296,8 @@ begin
      end
      else
      begin
-          fDyadicConvolution := CoreconvDyadicPas;
-          fConvolution := CoreConvPas;
+          fDyadicConvolution := {$IFDEF FPC}@{$ENDIF}CoreconvDyadicPas;
+          fConvolution := {$IFDEF FPC}@{$ENDIF}CoreConvPas;
      end;
 
      FillChar(fwfilt, sizeof(fwfilt), 0);
@@ -385,7 +385,7 @@ procedure ReverseVec( src, dest : PConstDoubleArr; len : integer);
 var counter: Integer;
 begin
      for counter := 0 to Len - 1 do
-         dest^[len - counter - 1] := src[counter];
+         dest^[len - counter - 1] := src^[counter];
 end;
 begin
      sqrt2 := sqrt(2);
@@ -396,10 +396,10 @@ begin
 
                          for i := 0 to 5 do
                          begin
-                              fwfilt.Lo_D[i] := BIOR2_2_Lo_D[i]*sqrt2;
-                              fwfilt.Hi_D[i] := BIOR2_2_Hi_D[i]*sqrt2;
-                              fwfilt.Lo_R[i] := BIOR2_2_Lo_R[i]*sqrt2;
-                              fwfilt.Hi_R[i] := BIOR2_2_Hi_R[i]*sqrt2;
+                              fwfilt.Lo_D^[i] := BIOR2_2_Lo_D[i]*sqrt2;
+                              fwfilt.Hi_D^[i] := BIOR2_2_Hi_D[i]*sqrt2;
+                              fwfilt.Lo_R^[i] := BIOR2_2_Lo_R[i]*sqrt2;
+                              fwfilt.Hi_R^[i] := BIOR2_2_Hi_R[i]*sqrt2;
 
                               ReverseVec(fwfilt.Lo_D, fwfilt.Lo_D_Rev, 6);
                               ReverseVec(fwfilt.Hi_D, fwfilt.Hi_D_Rev, 6);
@@ -414,10 +414,10 @@ begin
 
                          for i := 0 to 3 do
                          begin
-                              fwfilt.Lo_D[i] := BIOR3_1_Lo_D[i]*sqrt2;
-                              fwfilt.Hi_D[i] := BIOR3_1_Hi_D[i]*sqrt2;
-                              fwfilt.Lo_R[i] := BIOR3_1_Lo_R[i]*sqrt2;
-                              fwfilt.Hi_R[i] := BIOR3_1_Hi_R[i]*sqrt2;
+                              fwfilt.Lo_D^[i] := BIOR3_1_Lo_D[i]*sqrt2;
+                              fwfilt.Hi_D^[i] := BIOR3_1_Hi_D[i]*sqrt2;
+                              fwfilt.Lo_R^[i] := BIOR3_1_Lo_R[i]*sqrt2;
+                              fwfilt.Hi_R^[i] := BIOR3_1_Hi_R[i]*sqrt2;
 
                               ReverseVec(fwfilt.Lo_D, fwfilt.Lo_D_Rev, 4);
                               ReverseVec(fwfilt.Hi_D, fwfilt.Hi_D_Rev, 4);
@@ -432,10 +432,10 @@ begin
 
                          for i := 0 to 5 do
                          begin
-                              fwfilt.Lo_D[i] := BIOR1_3_Lo_D[i]*sqrt2;
-                              fwfilt.Hi_D[i] := BIOR1_3_Hi_D[i]*sqrt2;
-                              fwfilt.Lo_R[i] := BIOR1_3_Lo_R[i]*sqrt2;
-                              fwfilt.Hi_R[i] := BIOR1_3_Hi_R[i]*sqrt2;
+                              fwfilt.Lo_D^[i] := BIOR1_3_Lo_D[i]*sqrt2;
+                              fwfilt.Hi_D^[i] := BIOR1_3_Hi_D[i]*sqrt2;
+                              fwfilt.Lo_R^[i] := BIOR1_3_Lo_R[i]*sqrt2;
+                              fwfilt.Hi_R^[i] := BIOR1_3_Hi_R[i]*sqrt2;
 
                               ReverseVec(fwfilt.Lo_D, fwfilt.Lo_D_Rev, 6);
                               ReverseVec(fwfilt.Hi_D, fwfilt.Hi_D_Rev, 6);
@@ -450,10 +450,10 @@ begin
 
                          for i := 0 to 19 do
                          begin
-                              fwfilt.Lo_D[i] := BIOR3_9_Lo_D[i];
-                              fwfilt.Hi_D[i] := BIOR3_9_Hi_D[i];
-                              fwfilt.Lo_R[i] := BIOR3_9_Lo_R[i];
-                              fwfilt.Hi_R[i] := BIOR3_9_Hi_R[i];
+                              fwfilt.Lo_D^[i] := BIOR3_9_Lo_D[i];
+                              fwfilt.Hi_D^[i] := BIOR3_9_Hi_D[i];
+                              fwfilt.Lo_R^[i] := BIOR3_9_Lo_R[i];
+                              fwfilt.Hi_R^[i] := BIOR3_9_Hi_R[i];
 
                               ReverseVec(fwfilt.Lo_D, fwfilt.Lo_D_Rev, 20);
                               ReverseVec(fwfilt.Hi_D, fwfilt.Hi_D_Rev, 20);
@@ -468,10 +468,10 @@ begin
 
                            for i := 0 to 3 do
                            begin
-                                fwfilt.Lo_D[i] := DB2_Lo_D[i];
-                                fwfilt.Hi_D[i] := DB2_Hi_D[i];
-                                fwfilt.Lo_R[i] := DB2_Lo_R[i];
-                                fwfilt.Hi_R[i] := DB2_Hi_R[i];
+                                fwfilt.Lo_D^[i] := DB2_Lo_D[i];
+                                fwfilt.Hi_D^[i] := DB2_Hi_D[i];
+                                fwfilt.Lo_R^[i] := DB2_Lo_R[i];
+                                fwfilt.Hi_R^[i] := DB2_Hi_R[i];
 
                                 ReverseVec(fwfilt.Lo_D, fwfilt.Lo_D_Rev, 4);
                                 ReverseVec(fwfilt.Hi_D, fwfilt.Hi_D_Rev, 4);
@@ -495,10 +495,10 @@ begin
          
          for i := 0 to 5 do
          begin
-              fwfilt.Lo_D[i] := BIOR2_2_Lo_D[i]*sqrt2;
-              fwfilt.Hi_D[i] := BIOR2_2_Hi_D[i]*sqrt2;
-              fwfilt.Lo_R[i] := BIOR2_2_Lo_R[i]*sqrt2;
-              fwfilt.Hi_R[i] := BIOR2_2_Hi_R[i]*sqrt2;
+              fwfilt.Lo_D^[i] := BIOR2_2_Lo_D[i]*sqrt2;
+              fwfilt.Hi_D^[i] := BIOR2_2_Hi_D[i]*sqrt2;
+              fwfilt.Lo_R^[i] := BIOR2_2_Lo_R[i]*sqrt2;
+              fwfilt.Hi_R^[i] := BIOR2_2_Hi_R[i]*sqrt2;
 
               ReverseVec(fwfilt.Lo_D, fwfilt.Lo_D_Rev, 6);
               ReverseVec(fwfilt.Hi_D, fwfilt.Hi_D_Rev, 6);
@@ -680,10 +680,10 @@ begin
           dec(ov);
 
           for i := 0 to ov - 1 do
-              Result[k] := Result[k] + inpv[ov - 1 - i]*filt[i];
+              Result[k] := Result[k] + inpv[ov - 1 - i]*filt^[i];
 
           for i := 0 to (order - ov) - 1 do
-              Result[k] := Result[k] + inpv[ni - 1 - i]*filt[i + ov];
+              Result[k] := Result[k] + inpv[ni - 1 - i]*filt^[i + ov];
      end;
 
      // calculate right 'border'
@@ -694,10 +694,10 @@ begin
           inc(ov);
 
           for i := 0 to ov - 1 do
-              Result[k] := Result[k] + inpv[ov - i - 1]*filt[i];
+              Result[k] := Result[k] + inpv[ov - i - 1]*filt^[i];
 
           for i := 0 to (order - ov) - 1 do
-              Result[k] := Result[k] + inpv[ni - 1 - i]*filt[i + ov];
+              Result[k] := Result[k] + inpv[ni - 1 - i]*filt^[i + ov];
      end;
 end;
 
@@ -717,7 +717,7 @@ begin
      begin
           pRes^[indexw] := 0.0;
           for i := 0 to order - 1 do
-              pRes^[indexw] := pRes^[indexw] + inpv[index - i]*filt[i];
+              pRes^[indexw] := pRes^[indexw] + inpv[index - i]*filt^[i];
 
           Inc(index);
           Inc(indexw);
@@ -760,7 +760,7 @@ begin
           index := ov - 1;
           for i := 0 to orderBase - 1 do
           begin
-               result[k] := result[k] + inpv[index]*filt[i];
+               result[k] := result[k] + inpv[index]*filt^[i];
                dec(index, dy);
 
                if index < 0 then
@@ -778,7 +778,7 @@ begin
           index := ov - 1;
           for i := 0 to orderBase - 1 do
           begin
-               result[k] := result[k] + inpv[index]*filt[i];
+               result[k] := result[k] + inpv[index]*filt^[i];
                dec(index, dy);
                
                if index < 0 then
@@ -812,7 +812,7 @@ begin
           pRes^[indexw] := 0.0;
 
           for i := 0 to orderBase - 1 do
-              pRes^[indexw] := pRes^[indexw] + inpv[index + i*dy] * filtReverse[i];
+              pRes^[indexw] := pRes^[indexw] + inpv[index + i*dy] * filtReverse^[i];
 
           Inc(index);
           Inc(indexw);
@@ -1140,10 +1140,10 @@ begin
      scale := power(2/pi, 0.25);
 
      case waveletType  of
-       wtGaus1: fDerriveFunc := Gaus1Derrive;
-       wtGaus2: fDerriveFunc := Gaus2Derrive;
-       wtGaus3: fDerriveFunc := Gaus3Derrive;
-       wtGaus4: fDerriveFunc := Gaus4Derrive;
+       wtGaus1: fDerriveFunc := {$IFDEF FPC}@{$ENDIF}Gaus1Derrive;
+       wtGaus2: fDerriveFunc := {$IFDEF FPC}@{$ENDIF}Gaus2Derrive;
+       wtGaus3: fDerriveFunc := {$IFDEF FPC}@{$ENDIF}Gaus3Derrive;
+       wtGaus4: fDerriveFunc := {$IFDEF FPC}@{$ENDIF}Gaus4Derrive;
      else
        raise Exception.Create('Error unknow wavelet function');
      end;
@@ -1498,9 +1498,9 @@ begin
           lCoef := order - 1;
           for i := 0 to lCoef div 2 do
           begin
-               help := coef[i];
-               coef[i] := coef[lCoef - i];
-               coef[lCoef - i] := help;
+               help := coef^[i];
+               coef^[i] := coef^[lCoef - i];
+               coef^[lCoef - i] := help;
           end;
 
           scale := -sqrt((levels[counter] + 1));

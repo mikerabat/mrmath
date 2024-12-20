@@ -32,7 +32,7 @@
         <PackageName Value="adLCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="155">
+    <Units Count="157">
       <Unit0>
         <Filename Value="MathUtilsLinux.ppr"/>
         <IsPartOfProject Value="True"/>
@@ -651,9 +651,16 @@
       </Unit153>
       <Unit154>
         <Filename Value="../RollingMedMean.pas"/>
-        <FRMtype Value="0"/>
         <IsPartOfProject Value="True"/>
       </Unit154>
+      <Unit155>
+        <Filename Value="../Wavelets.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit155>
+      <Unit156>
+        <Filename Value="TestWavelets.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit156>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

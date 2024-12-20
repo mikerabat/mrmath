@@ -69,6 +69,7 @@ type
     fSearchBoundaryLeft : TIntegerDynArray;
     fSearchBoundaryRight : TIntegerDynArray;
     fAccDist : TDoubleDynArray;
+    fMinLastRow : TDoubleDynArray;
     fW1, fW2 : IMatrix;
     fW1Arr, fW2Arr : TDoubleDynArray;
     fNumW : integer;
@@ -159,6 +160,9 @@ uses MatrixASMStubSwitch, MathUtilFunc, Statistics;
 
 const cLocDivBy2 : Array[0..1] of double = (0.5, 0.5);
       cTiny : double = 1e-20;
+
+// disable Range check and overflow checks (speed up is necessary)
+{$R-}{$Q-}
 
 // ###########################################
 // #### Correlation (base implementation)
@@ -271,11 +275,10 @@ begin
 
      end;
 
-     w1.AddInPlace( -meanVar1.aMean );     
+     w1.AddInPlace( -meanVar1.aMean );
      w2.AddInPlace( -meanVar2.aMean );
 
-     // dot product:
-     MatrixMult( @Result, sizeof(double), w1.StartElement, w2.StartElement, w1.Width, w1.Height, w2.Height, w2.Width, w1.LineWidth, sizeof(double) );
+     Result := MatrixVecDotMult( w1.StartElement, sizeof(double), w2.StartElement, sizeof(double), w1.Width);
      Result := Result/sqrt(meanVar1.aVar*meanVar2.aVar)/(w1.Width - 1);
 end;
 
@@ -292,7 +295,7 @@ begin
      MatrixAddAndScale( w2, len*sizeof(double), len, 1, -meanVar2.aMean, 1 );
 
      // dot product:
-     MatrixMult( @Result, sizeof(double), w1, w2, len, 1, 1, len, len*sizeof(double), sizeof(double));
+     Result := MatrixVecDotMult( w1, sizeof(double), w2, sizeof(double), len );
      Result := Result/sqrt(meanVar1.aVar*meanVar2.aVar)/(len - 1);
 end;
 
@@ -1043,6 +1046,78 @@ begin
      end;
 end;
 
+{$IFNDEF MRMATH_NOASM}
+
+{$IFNDEF x64}
+procedure DTWLoopASM( acc, d, lastRow : PDouble; m : integer ); {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+// implement the loop
+// fAccDist[m + n*w] := fD[m + n*w] + min( fAccDist[ (m - 1) + n*w], min( fAccDist[(m - 1) + (n - 1)*w], fAccDist[ m + (n - 1)*w ] ));
+// eax: acc, edx : d, ecx, lastRow, m
+// lastRow has the values of the min operation of the previous row...
+asm
+   push edi;
+   mov edi, m;
+   imul edi, -8;
+   sub eax, edi;
+   sub edx, edi;
+   sub ecx, edi;
+
+   @loop:
+      movsd xmm0, [ecx + edi];        //min operation
+      movsd xmm1, [eax + edi - 8];
+      minsd xmm0, xmm1;
+      movsd xmm1, [edx + edi];
+      addsd xmm0, xmm1;
+
+      movsd [eax + edi], xmm0;
+
+   add edi, 8;
+   jnz @loop;
+
+   pop edi;
+end;
+
+{$ELSE}
+
+procedure DTWLoopASM( acc, d, lastRow : PDouble; m : integer ); {$IFDEF FPC} assembler; {$ENDIF}
+// implement the loop
+// fAccDist[m + n*w] := fD[m + n*w] + min( fAccDist[ (m - 1) + n*w], min( fAccDist[(m - 1) + (n - 1)*w], fAccDist[ m + (n - 1)*w ] ));
+// rcx: acc, rdx : d, r8: lastRow, m : r9
+// lastRow has the values of the min operation of the previous row...
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+{$ENDIF}
+
+   imul r9, -8;
+   sub rcx, r9;
+   sub rdx, r9;
+   sub r8, r9;
+
+   @loop:
+      movsd xmm0, [r8 + r9];        //min operation
+      movsd xmm1, [rcx + r9 - 8];
+      minsd xmm0, xmm1;
+      movsd xmm1, [rdx + r9];
+      addsd xmm0, xmm1;
+
+      movsd [rcx + r9], xmm0;
+
+   add r9, 8;
+   jnz @loop;
+end;
+
+{$ENDIF}
+
+{$ENDIF}
+
 function TDynamicTimeWarp.DTW(t, r: TDoubleDynArray; var dist: double;
   MaxSearchWin: integer): TDoubleDynArray;
 var n, m : integer;
@@ -1052,6 +1127,7 @@ var n, m : integer;
     err : integer;
     d, adO, dNO : integer;
     dx, dy : integer;
+    tmp : double;
 begin
      fMaxSearchWin := MaxSearchWin;
      
@@ -1067,6 +1143,7 @@ begin
           SetLength(fW2Arr, Length(fWindow));
           SetLength(fSearchBoundaryLeft, Length(r));
           SetLength(fSearchBoundaryRight, Length(r));
+          SetLength(fMinLastRow, Max(Length(t), Length(r)));
      end;
      fNumW := 0;
 
@@ -1096,9 +1173,7 @@ begin
           end;
      end;
 
-     for n := 0 to Length(fAccDist) - 1 do
-         fAccDist[n] := 0;
-
+     MatrixInit( fAccDist, 0 );
      fAccDist[0] := fd[0];
      //fAccDist[0, 0] := fd[0, 0];
 
@@ -1190,15 +1265,62 @@ begin
 
           // ###########################################
           // #### Now do the bounded search
-          for n := 1 to h - 1 do
-              for m := fSearchBoundaryLeft[n] to fSearchBoundaryRight[n] do
-                  fAccDist[m + n*w] := fD[m + n*w] + min( fAccDist[ m + (n - 1)*w ], min( fAccDist[(m - 1) + (n - 1)*w], fAccDist[ (m - 1) + n*w] ));
+          {$IFNDEF MRMATH_NOASM}
+          if UseSSE then
+          begin
+               for n := 1 to h - 1 do
+               begin
+                    m := fSearchBoundaryRight[n] - fSearchBoundaryLeft[n] + 1;
+                    Move( fAccDist[ (fSearchBoundaryLeft[n] - 1) + (n - 1)*w ],
+                          fMinLastRow[0],
+                          sizeof(double)*(m + 1));
+
+                    // implement min operation on the previous row
+                    VecMin( @fMinLastRow[0], @fMinLastRow[1], m );
+                    // add and min operation on the current row
+                    DTWLoopASM( @fAccDist[ fSearchBoundaryLeft[n] + n*w ], @fD[ fSearchBoundaryLeft[n] + n*w],
+                             @fMinLastRow[0], m );
+               end
+          end
+          else
+          {$ENDIF}
+          begin
+               for n := 1 to h - 1 do
+               begin
+                    for m := fSearchBoundaryLeft[n] to fSearchBoundaryRight[n] do
+                    begin
+                         fAccDist[m + n*w] := fD[m + n*w] + min( fAccDist[ (m - 1) + n*w], min( fAccDist[(m - 1) + (n - 1)*w], fAccDist[ m + (n - 1)*w ] ));
+                    end;
+               end;
+          end;
      end
      else
      begin
-          for n := 1 to h - 1 do
-              for m := 1 to w - 1 do
-                  fAccDist[m + n*w] := fD[m + n*w] + min( fAccDist[ m + (n - 1)*w ], min( fAccDist[(m - 1) + (n - 1)*w], fAccDist[ (m - 1) + n*w] ));
+          {$IFNDEF MRMATH_NOASM}
+          if UseSSE then
+          begin
+               m := w - 1;
+               for n := 1 to h - 1 do
+               begin
+                    Move( fAccDist[ 0 + (n - 1)*w ],
+                          fMinLastRow[0],
+                          sizeof(double)*(m + 1));
+
+                    // implement min operation on the previous row
+                    VecMin( @fMinLastRow[0], @fMinLastRow[1], m );
+                    // add and min operation on the current row
+                    DTWLoopASM( @fAccDist[ 1 + n*w ], @fD[ 1 + n*w],
+                             @fMinLastRow[0], m );
+               end
+          end
+          else
+          {$ENDIF}
+          begin
+               for n := 1 to h - 1 do
+                   for m := 1 to w - 1 do
+                       fAccDist[m + n*w] := fD[m + n*w] + min( fAccDist[ m + (n - 1)*w ], min( fAccDist[(m - 1) + (n - 1)*w], fAccDist[ (m - 1) + n*w] ));
+
+          end;
      end;
 
      //dist := fAccDist[fd.Width - 1, fd.Height - 1];
@@ -1216,18 +1338,20 @@ begin
           if n - 1 <= 0 
           then
               dec(m)
-          else if m - 1 <= 0 
+          else if m - 1 <= 0
           then
               dec(n)
           else
           begin
                //if fAccDist[m - 1, n - 1] < Min(fAccDist[m, n - 1], fAccDist[m - 1, n]) then
-               if fAccDist[(m - 1) + (n - 1)*w] < Min(fAccDist[m + (n - 1)*w], fAccDist[(m - 1) + n*w]) then
+//               if fAccDist[(m - 1) + (n - 1)*w] < Min(fAccDist[m + (n - 1)*w], fAccDist[(m - 1) + n*w]) then
+               tmp := fAccDist[(m - 1) + (n - 1)*w];
+               if (tmp < fAccDist[m + (n - 1)*w]) and (tmp < fAccDist[(m - 1) + n*w]) then
                begin
                     dec(n);
                     dec(m);
                end
-               else 
+               else
                begin
                     if fAccDist[m + (n - 1)*w] < fAccDist[(m - 1) + n*w] then
                     begin
