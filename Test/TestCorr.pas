@@ -335,58 +335,70 @@ var x : TDoubleDynArray;
     dtw : TDynamicTimeWarp;
     xv, yV : IMatrix;
     dist : double;
+  i: Integer;
 begin
-     SetLength(x, 1000);
-     SetLength(y, 400);
-     for counter := 0 to Length(x) - 1 do
-         x[counter] := cos(2*pi*sqr( (3*(counter + 1)/1000) ));
-     for counter := 0 to Length(y) - 1 do
-         y[counter] := cos(2*pi*9*(counter + 1)/400);
+     for i := 0 to 3 do
+     begin
+          case i of
+            0: InitMathFunctions(itFPU, False);
+            1:  InitMathFunctions(itSSE, False);
+            2:  InitMathFunctions(itAVX, False);
+          else
+             InitMathFunctions(itFMA, False);
+          end;
+
+        SetLength(x, 1000);
+        SetLength(y, 400);
+        for counter := 0 to Length(x) - 1 do
+            x[counter] := cos(2*pi*sqr( (3*(counter + 1)/1000) ));
+        for counter := 0 to Length(y) - 1 do
+            y[counter] := cos(2*pi*9*(counter + 1)/400);
 
 
-     xv := TDoubleMatrix.Create(x, Length(x), 1);
-     yv := TDoubleMatrix.Create(y, Length(y), 1);
+        xv := TDoubleMatrix.Create(x, Length(x), 1);
+        yv := TDoubleMatrix.Create(y, Length(y), 1);
 
-     dtw.UseSSE := False;
-     dtw := TDynamicTimeWarp.Create(dtwAbsolute);
-     try
-        dtw.FastDTW(xv, yv, dist, 3);   // minimum radius for this setup to achieve perfect match
-
-        //WriteMatlabData('D:\chirp1.txt', dtw.w1..SubMatrix, res.Width);
-        //WriteMatlabData('D:\chirp2.txt', dtw.W2.SubMatrix, dtw.W2.Width);
-
-        Status(Format('Distance: %.4f', [dist]));
-
-        Status('Max Win len: ' + IntToStr(dtw.MaxWinLen));
-        Status('Max Path len: ' + IntToStr(dtw.MaxPathLen));
-
-        // valuse from python script:
-        Check( SameValue(dist, 21.58345, 1e-3), 'Distance calculation wrong in Chirp test');
-
-        dtw.Free;
-        dtw.UseSSE := True;
+        dtw.UseSSE := False;
         dtw := TDynamicTimeWarp.Create(dtwAbsolute);
+        try
+           dtw.FastDTW(xv, yv, dist, 3);   // minimum radius for this setup to achieve perfect match
 
-        dtw.FastDTW(xv, yv, dist, 3);   // minimum radius for this setup to achieve perfect match
+           //WriteMatlabData('D:\chirp1.txt', dtw.w1..SubMatrix, res.Width);
+           //WriteMatlabData('D:\chirp2.txt', dtw.W2.SubMatrix, dtw.W2.Width);
 
-        //WriteMatlabData('D:\chirp1.txt', dtw.w1..SubMatrix, res.Width);
-        //WriteMatlabData('D:\chirp2.txt', dtw.W2.SubMatrix, dtw.W2.Width);
+           Status(Format('Distance: %.4f', [dist]));
 
-        Status(Format('Distance: %.4f', [dist]));
+           Status('Max Win len: ' + IntToStr(dtw.MaxWinLen));
+           Status('Max Path len: ' + IntToStr(dtw.MaxPathLen));
 
-        Status('Max Win len: ' + IntToStr(dtw.MaxWinLen));
-        Status('Max Path len: ' + IntToStr(dtw.MaxPathLen));
+           // valuse from python script:
+           Check( SameValue(dist, 21.58345, 1e-3), 'Distance calculation wrong in Chirp test');
 
-        // valuse from python script:
-        Check( SameValue(dist, 21.58345, 1e-3), 'Distance calculation wrong in Chirp test');
-     finally
-            dtw.Free;
+           dtw.Free;
+           dtw.UseSSE := True;
+           dtw := TDynamicTimeWarp.Create(dtwAbsolute);
+
+           dtw.FastDTW(xv, yv, dist, 3);   // minimum radius for this setup to achieve perfect match
+
+           //WriteMatlabData('D:\chirp1.txt', dtw.w1..SubMatrix, res.Width);
+           //WriteMatlabData('D:\chirp2.txt', dtw.W2.SubMatrix, dtw.W2.Width);
+
+           Status(Format('Distance: %.4f', [dist]));
+
+           Status('Max Win len: ' + IntToStr(dtw.MaxWinLen));
+           Status('Max Path len: ' + IntToStr(dtw.MaxPathLen));
+
+           // valuse from python script:
+           Check( SameValue(dist, 21.58345, 1e-3), 'Distance calculation wrong in Chirp test');
+        finally
+               dtw.Free;
+        end;
      end;
 end;
 
 procedure TestCorrelation.TestWeightedCorrelation;
 const cw1 : Array[0..4] of double = (1, 2, 3, 4, 5);
-      cwref : Array[0..3] of Array[0..4] of double = ( 
+      cwref : Array[0..3] of Array[0..4] of double = (
                             (2, 1, 2, 1, 2), (-1, -2, -3, -4, -5),
                             (2, 4, 6, 8, 10),
                             (1, 2, 3, 3, 3) );

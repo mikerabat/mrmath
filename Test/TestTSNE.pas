@@ -29,6 +29,7 @@ type
  published
    procedure TestGauss;
    procedure TestGaussBarnesHut;
+   procedure TestASM;
  end;
 
 
@@ -36,6 +37,52 @@ implementation
 
 uses tSNE, RandomEng, MatrixASMStubSwitch;
 { TTestTSNE }
+
+procedure TTestTSNE.TestASM;
+var x : IMatrix;
+    i, j : Integer;
+    rnd : TRandomGenerator;
+    xmap, xmap2 : IMatrix;
+    ndim : integer;
+begin
+     rnd := TRandomGenerator.Create( raMersenneTwister );
+     rnd.Init( 573 ); // ensure always the same start
+
+     try
+        for ndim := 2 to 5 do
+        begin
+             // just pure pascal code
+             x := TDoubleMatrix.Create( nDim, 30 );
+
+             for i := 0 to x.Height div 2 - 1 do
+             begin
+                  for j := 0 to x.Width - 1 do
+                      x[j, i] := 0.5 + 0.2*rnd.RandGauss;
+             end;
+
+             for i := x.Height div 2 to x.Height - 1 do
+             begin
+                  for j := 0 to x.Width - 1 do
+                      x[j, i] := -0.5 + 0.2*rnd.RandGauss;
+             end;
+
+             InitMathFunctions(itFPU, false);
+             xmap := TtSNE.SymTSNE(X.GetObjRef, ndim, ndim, 5, 0.3, 1000, dfOrig, 221, raSystem);
+
+             InitMathFunctions(itSSE, false);
+             xmap2 := TtSNE.SymTSNE(X.GetObjRef, ndim, ndim, 5, 0.3, 1000, dfOrig, 221, raSystem);
+
+
+             // only for 2 dim the accuracy is good enough that we get the same results regardless the instruction set used
+             if ndim = 2 then
+                Check( CheckMtx( xmap.SubMatrix, xmap2.SubMatrix ), 'ASM Version for TSNE differs');
+        end;
+
+     finally
+            rnd.Free;
+     end;
+end;
+
 
 procedure TTestTSNE.TestGauss;
 var x : IMatrix;

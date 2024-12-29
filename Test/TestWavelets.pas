@@ -43,7 +43,7 @@ type
 
 implementation
 
-uses Wavelets, Math, MatrixConst, MatrixASMStubSwitch;
+uses Wavelets, MatrixConst, MatrixASMStubSwitch;
 
 { TWaveletTests }
 
@@ -53,8 +53,7 @@ var sinData : TDoubleDynArray;
     wfl : TWavelet;
     c : TDynArrayofDoubleArray;
     levels : TIntegerDynArray;
-const cMaxLevel : integer = 8;
-      cLen : integer = 1024;
+const cLen : integer = 1024;
 begin
      SetLength(sinData, cLen);
      for i := 0 to cLen - 1 do

@@ -21,6 +21,8 @@ interface
 
 uses Matrix, Types, RandomEng, PCA, MatrixConst;
 
+{$I 'mrMath_CPU.inc'}
+
 // ###################################################################
 // this unit is based on the matlab implementation on
 // https://lvdmaaten.github.io/tsne/
@@ -117,7 +119,7 @@ implementation
 
 uses MathUtilFunc, SysUtils, Math, Classes, MatrixASMStubSwitch,
      Dist, BlockSizeSetup, MtxThreadPool, ThreadedMatrix,
-     ThreadedMatrixOperations;
+     ThreadedMatrixOperations, SimpleMatrixOperations;
 
 // ###########################################
 // #### Helper Classes for Burnes Hut trees
@@ -233,6 +235,7 @@ type
   // ###########################################
   // #### segment-page clustering tree
   // parallel part consists only of one entry...
+  TSPTreeNonEdgeFunc = function( data : PDouble; center : PDouble; buff : PDouble; N : integer ) : double; {$IFNDEF FPC} register; {$ENDIF}
   TSPTree = class;
   TSPTree = class(TObject)
   private
@@ -264,9 +267,13 @@ type
     // data provided for children
     fChildren : Array of TSPTree;
     fNumChildren : integer;
+    fTheta2 : double;
+    fBoundaryMaxWidth2 : double;
 
     fChildrenBorders : TDoubleDynArray;
     fChildrenWidths : TDoubleDynArray;
+
+    fNonEdgeForcesFunc : TSPTreeNonEdgeFunc;
 
     procedure Fill( N : integer );
     procedure ClearChildren;
@@ -275,7 +282,8 @@ type
   public
     procedure ComputeEdgeForces( rows, cols : TIntegerDynArray; p : TDoubleDynArray; posF : TDoubleDynArray);
     // Compute non-edge forces using Barnes-Hut algorithm
-    procedure ComputeNonEdgeForces(idx : Nativeint; Theta : double; negF : PConstDoubleArr; var sum_Q : double);
+    procedure ComputeNonEdgeForces(idx : Nativeint; negF : PConstDoubleArr; var sum_Q : double);
+    procedure InitComputeForces( theta : double );
 
     function Insert( idx : integer ) : boolean;
 
@@ -618,68 +626,456 @@ begin
          FreeAndNil(fChildren[i]);
 end;
 
+{$Region 'SPTree assembler optimized parts'}
+
+const cLocOne : double = 1;
+
+{$IFNDEF MRMATH_NOASM}
+
+{$IFDEF x64}
+
+procedure ASMComputeEdgeForceD2(data, p, posf: PDouble; rows : PInteger; {$IFDEF UNIX} unixCols: PInteger; unixN : integer {$ELSE} cols : PInteger; N : integer {$ENDIF} ); assembler;
+// rcx: data, rdx: p; r8 : posf; r9 : rows
+var dXMM5 : TXMMArr;
+    dXMM6 : TXMMArr;
+    aRdi : NativeInt;
+    aRSI : NativeInt;
+    aRBX : NativeInt;
+    aR10, aR11, aR12  : NativeInt;
+    {$IFDEF UNIX}
+    cols : PInteger;
+    N : integer;
+{$ENDIF}
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+
+   mov cols, r8;
+   mov N, r9;
+
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
+
+   mov aRdi, rdi;
+   mov arsi, rsi;
+   mov arbx, rbx;
+   mov aR10, r10;
+   mov aR11, r11;
+   mov aR12, r12;
+
+   movupd dXMM5, xmm5;
+   movupd dXMM6, xmm6;
+
+   mov rax, rcx;     // rax will point to fData[idx1] - now fdata[0]
+
+   mov r10, cols;
+   movsd xmm6, [rip + cLocOne];
+
+   // rsi = rows[n];
+   mov esi, [r9];  // rows[0]
+
+   // for n := 0 to N - 1 do
+   @NLoop:
+      movupd xmm4, [rax];    // load fData[idx1 + dd]
+      add rax, 16;
+
+      movupd xmm5, [r8]; // posf[idx1]
+
+      // rsi already points to rows[n]
+      add r9, 4;
+      mov r12d, [r9];
+
+      // for i := rows[n] to rows[n+1] - 1 do
+      @rowsLoop:
+
+          // idx2 := cols[i]*fD;
+          mov ebx, [r10 + rsi*4];      // we have 32bit integers here -> ebx
+          shl ebx, 1;
+
+          // buff := fData[idx1 + dd] - fData[idx2 + dd];
+          movapd xmm0, xmm4;
+          movupd xmm1, [rcx + rbx*8];
+          subpd xmm0, xmm1;
+
+          // D := D + sqr(fBuff[dd]);
+          movapd xmm1, xmm0;
+          mulpd xmm1, xmm1;
+
+          haddpd xmm1, xmm1;
+
+          addsd xmm1, xmm6; // add one
+
+          // D := p[i]/D;
+          movsd xmm2, [rdx + rsi*8];
+          divsd xmm2, xmm1;
+
+          movddup xmm3, xmm2;
+
+          // for dd := 0 to fD - 1 do
+          //    posF[idx1 + dd] := posF[idx1 + dd] + D*fBuff[dd];
+          mulpd xmm0, xmm3;
+          addpd xmm5, xmm0;
+      inc esi;
+      cmp esi, r12d;
+      jne @rowsLoop;
+
+   movupd [r8], xmm5;
+   add r8, 16;
+   dec N;
+   jnz @NLoop;
+
+
+   movupd xmm5, dXMM5;
+   movupd xmm6, dXMM6;
+
+   mov Rdi, ardi;
+   mov rsi, arsi;
+   mov rbx, arbx;
+   mov R10, ar10;
+   mov R11, ar11;
+   mov R12, ar12;
+end;
+
+
+function ASMNonEdgeForce( data : PDouble; center : PDouble; buff : PDouble; N : integer ) : double; assembler;
+// rcx: data, rdx: center; r8 : buff; r9 : N
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
+   xorpd xmm0, xmm0;
+   xor rax, rax;
+
+   sub r9, 2;
+   jl @lastElem;
+
+   @loop:
+      // data - center of mass
+      movupd xmm1, [rcx + rax];
+      movupd xmm2, [rdx + rax];
+
+      subpd xmm1, xmm2;
+
+      // fbuff
+      movupd [r8 + rax], xmm1;
+
+      // d = d + sqr(buff)
+      mulpd xmm1, xmm1;
+
+      addpd xmm0, xmm1;
+      add rax, 16;
+
+   sub r9, 2;
+   jge @loop;
+
+   @lastElem:
+
+   // r9 = 2 -> we are already at the end
+   add r9, 2;
+   jz @end;
+
+   movsd xmm1, [rcx + rax];
+   movsd xmm2, [rdx + rax];
+
+   subsd xmm1, xmm2;
+   movsd [r8 + rax], xmm1;
+
+   mulsd xmm1, xmm1;
+
+   addsd xmm0, xmm1;
+
+   @end:
+
+   // build result D -> returned in xmm0
+   haddpd xmm0, xmm0;
+end;
+
+function ASMNonEdgeForceD2( data : PDouble; center : PDouble; buff : PDouble; N : integer ) : double; assembler;
+// rcx: data, rdx: center; r8 : buff; r9 : N
+asm
+   {$IFDEF UNIX}
+   // Linux uses a diffrent ABI -> copy over the registers so they meet with winABI
+   // (note that the 5th and 6th parameter are are on the stack)
+   // The parameters are passed in the following order:
+   // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
+   mov r8, rdx;
+   mov r9, rcx;
+   mov rcx, rdi;
+   mov rdx, rsi;
+   {$ENDIF}
+
+   // data - center of mass
+   movupd xmm0, [rcx];
+   movupd xmm2, [rdx];
+
+   subpd xmm0, xmm2;
+
+   // fbuff
+   movupd [r8], xmm0;
+
+   // d = d + sqr(buff)
+   mulpd xmm0, xmm0;
+   // build result D -> returned in xmm0
+   haddpd xmm0, xmm0;
+end;
+
+
+{$ELSE}
+
+function ASMNonEdgeForce( data : PDouble; center : PDouble; buff : PDouble; N : integer ) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+// eax: data, edx: center; ecx : buff;
+asm
+   push ebx;
+
+   xorpd xmm0, xmm0;
+   xor ebx, ebx;
+
+   sub N, 2;
+   jl @lastElem;
+
+   @loop:
+      // data - center of mass
+      movupd xmm1, [eax + ebx];
+      movupd xmm2, [edx + ebx];
+
+      // fbuff := data - center
+      subpd xmm1, xmm2;
+
+      // fbuff
+      movupd [ecx + ebx], xmm1;
+
+      // d = d + sqr(buff)
+      mulpd xmm1, xmm1;
+
+      addpd xmm0, xmm1;
+      add ebx, 16;
+
+   sub N, 2;
+   jge @loop;
+
+   @lastElem:
+
+   // r9 = 2 -> we are already at the end
+   add N, 2;
+   jz @end;
+
+   movsd xmm1, [eax + ebx];
+   movsd xmm2, [edx + ebx];
+
+   subsd xmm1, xmm2;
+   movsd [ecx + ebx], xmm1;
+
+   mulsd xmm1, xmm1;
+
+   addsd xmm0, xmm1;
+
+   @end:
+
+   // build result D -> returned in xmm0
+   haddpd xmm0, xmm0;
+   movsd Result, xmm0;
+   pop ebx;
+end;
+
+// special handling for a very common dimensionality: 2
+function ASMNonEdgeForceD2( data : PDouble; center : PDouble; buff : PDouble; N : integer ) : double; {$IFDEF FPC} assembler; {$ELSE} register; {$ENDIF}
+// eax: data, edx: center; ecx : buff;
+asm
+   // data - center of mass
+   movupd xmm1, [eax];
+   movupd xmm2, [edx];
+
+   // fbuff := data - center
+   subpd xmm1, xmm2;
+
+   // fbuff
+   movupd [ecx], xmm1;
+
+   // d = d + sqr(buff)
+   mulpd xmm1, xmm1;
+
+   // build result D -> returned in xmm0
+   haddpd xmm1, xmm1;
+   movsd Result, xmm1;
+end;
+
+procedure ASMComputeEdgeForceD2(data, p, posf: PDouble; rows, cols : PInteger; N : integer ); register;
+// eax : data, edx : p, ecx: posf
+var pData : PDouble;
+asm
+   push edi;
+   push esi;
+   push ebx;
+
+   mov pData, eax;
+
+   // ebx = rows[n];
+   mov ebx, rows;
+   mov esi, [ebx];
+
+   // for n := 0 to N - 1 do
+   @NLoop:
+      mov ebx, pData;
+      movupd xmm4, [ebx];    // load fData[idx1 + dd]
+      add pData, 16;
+
+      movupd xmm5, [ecx]; // posf[idx1]
+
+      // esi already points to rows[n]
+      add rows, 4;
+
+      // for i := rows[n] to rows[n+1] - 1 do
+
+      @rowsLoop:
+
+          // idx2 := cols[i]*fD;
+          mov ebx, cols;
+          mov ebx, [ebx + esi*4];
+          shl ebx, 1;
+
+          // buff := fData[idx1 + dd] - fData[idx2 + dd];
+          movapd xmm0, xmm4;
+          movupd xmm1, [eax + ebx*8];
+          subpd xmm0, xmm1;
+
+          // D := D + sqr(fBuff[dd]);
+          movapd xmm1, xmm0;
+          mulpd xmm1, xmm1;
+
+          haddpd xmm1, xmm1;
+          addsd xmm1, cLocOne; // add one
+
+
+          // D := p[i]/D;
+          movsd xmm2, [edx + esi*8];
+          divsd xmm2, xmm1;
+
+          movddup xmm3, xmm2;
+
+          // for dd := 0 to fD - 1 do
+          //    posF[idx1 + dd] := posF[idx1 + dd] + D*fBuff[dd];
+          mulpd xmm0, xmm3;
+          addpd xmm5, xmm0;
+      inc esi;
+      mov ebx, rows;
+      cmp esi, [ebx];
+      jne @rowsLoop;
+
+   movupd [ecx], xmm5;
+   add ecx, 16;
+   dec N;
+   jnz @NLoop;
+
+   pop ebx;
+   pop esi;
+   pop edi;
+end;
+
+{$ENDIF}
+{$ENDIF}
+
+// ###########################################
+// #### Pascal code
+{$IFDEF x64}
+function NonEdgeForce( data : PDouble; center : PDouble; buff : PDouble; N : integer ) : double;
+{$else}
+function NonEdgeForce( data : PDouble; center : PDouble; buff : PDouble; N : integer ) : double; {$IFNDEF FPC} register; {$ENDIF}
+{$ENDIF}
+var i : integer;
+begin
+     for i := 0 to N - 1 do
+         PConstDoubleArr(buff)^[i] := PConstDoubleArr(data)^[i] - PConstDoubleArr(center)^[i];
+     Result := 0;
+
+     for i := 0 to N - 1 do
+         Result := Result + sqr(PConstDoubleArr(buff)^[i]);
+end;
+
+{$ENDREGION}
+
 procedure TSPTree.ComputeEdgeForces(rows, cols: TIntegerDynArray;
   p, posF: TDoubleDynArray);
 var idx1, idx2 : integer;
     D : double;
     n, i : integer;
     dd : integer;
+    aPosF : TDoubleDynArray;
 begin
-     idx1 := 0;
-
-     for n := 0 to fN - 1 do
+     aPosf := Copy(posf, 0, Length(posf));
+     if {$IFDEF MRMATH_NOASM} True or {$ENDIF} (fD <> 2) then
      begin
-          for i := rows[n] to rows[n + 1] - 1 do
+          idx1 := 0;
+
+          for n := 0 to fN - 1 do
           begin
-               D := 1;
+               for i := rows[n] to rows[n + 1] - 1 do
+               begin
+                    D := 1;
 
-               idx2 := cols[i]*fD;
-               for dd := 0 to fD - 1 do
-                   fBuff[dd] := fData[idx1 + dd] - fData[idx2 + dd];
-               for dd := 0 to fD - 1 do
-                   D := D + sqr(fBuff[dd]);
+                    idx2 := cols[i]*fD;
 
-               D := p[i]/D;
+                    for dd := 0 to fD - 1 do
+                        fBuff[dd] := fData[idx1 + dd] - fData[idx2 + dd];
+                    for dd := 0 to fD - 1 do
+                        D := D + sqr(fBuff[dd]);
 
-               // sum positive force
-               for dd := 0 to fD - 1 do
-                   posF[idx1 + dd] := posF[idx1 + dd] + D*fBuff[dd];
+                    D := p[i]/D;
+
+                    // sum positive force
+                    for dd := 0 to fD - 1 do
+                        posF[idx1 + dd] := posF[idx1 + dd] + D*fBuff[dd];
+               end;
+
+               inc(idx1, fD);
           end;
-
-          inc(idx1, fD);
-     end;
+     end {$IFDEF MRMATH_NOASM};{$ENDIF}
+     {$IFNDEF MRMATH_NOASM}
+     else  // dimension 2 fits in a xmm register -> use that :)
+         ASMComputeEdgeForceD2(PDouble(fData), @p[0], @aposf[0], @rows[0], @cols[0], fN);
+     {$ENDIF}
 end;
 
-procedure TSPTree.ComputeNonEdgeForces(idx: NativeInt; Theta: double;
+
+procedure TSPTree.ComputeNonEdgeForces(idx: NativeInt;
   negF: PConstDoubleArr; var sum_Q: double);
 var D : double;
-    ind : integer;
-    maxWidth : double;
     i : integer;
     mult : double;
-    lineW : NativeInt;
 begin
      if (fCumSize = 0) or (fIsLeaf and (fSize = 1) and (fIndex[0] = idx)) then
         exit;
 
      // compute distance between point and center of mass
-     //D := 0;
-     ind := idx*fD;
+     D := fNonEdgeForcesFunc(@fData[idx*fD], @fCenterOfMass[0], @fBuff[0], fD);
 
-     lineW := fD*sizeof(double);
-     MatrixSub(@fBuff[0], lineW, @fData[ind], @fCenterOfMass[0], fD, 1, LineW, LineW );
-     //for i := 0 to fD - 1 do
-//         fBuff[i] := fData[ind + i] - fCenterOfMass[i];
-
-     D := MatrixElementwiseNorm2( @fBuff[0], lineW, fD, 1, False );
-     //for i := 0 to fD - 1 do
-//         D := D + sqr(fBuff[i]);
+//          ind := fD*idx;
+//          for i := 0 to fD - 1 do
+//              fBuff[i] := fData[ind + i] - fCenterOfMass[i];
+//
+//          D := 0;
+//          for i := 0 to fD - 1 do
+//              D := D + sqr(fBuff[i]);
 
      // check if we can use this node as a "summary"
-     maxWidth := fBoundary.Maxwidth;
 
 //     if fIsLeaf or (maxWidth/sqrt(D) < theta) then
-     if fIsLeaf or (sqr(maxWidth) < D*sqr(theta)) then
+     //if fIsLeaf or (sqr(fBoundary.Maxwidth) < D*sqr(theta)) then
+     if fIsLeaf or (fBoundaryMaxWidth2 < D*fTheta2)  then
      begin
           // compute and add t-SNE force between pont and current node
           D := 1/(1 + D);
@@ -694,7 +1090,7 @@ begin
      begin
           // recursively apply Barnes-Hut to children
           for i := 0 to fNumChildren - 1 do
-              fChildren[i].ComputeNonEdgeForces(idx, theta, negF, sum_Q);
+              fChildren[i].ComputeNonEdgeForces(idx, negF, sum_Q);
      end;
 end;
 
@@ -773,6 +1169,19 @@ end;
 procedure TSPTree.Init(parent: PSPTreeCell; inp_data, inp_corner,
   inp_width: PConstDoubleArr);
 begin
+     {$IFNDEF MRMATH_NOASM}
+     if GetCurCPUInstrType = itFPU
+     then
+         fNonEdgeForcesFunc := NonEdgeForce
+     else if fD = 2
+     then
+         fNonEdgeForcesFunc := ASMNonEdgeForceD2
+     else
+         fNonEdgeForcesFunc := ASMNonEdgeForce;
+     {$ELSE}
+     fNonEdgeForcesFunc := NonEdgeForce;
+     {$ENDIF}
+
      fNumChildren := 1 shl fD;
 
      fData := inp_data;
@@ -790,6 +1199,22 @@ begin
      SetLength(fBuff, fD);
 end;
 
+
+procedure TSPTree.InitComputeForces(theta: double);
+var i : integer;
+begin
+     // ###########################################
+     // #### Init everything just once
+     fTheta2 := sqr(theta);
+     fBoundaryMaxWidth2 := sqr(fBoundary.Maxwidth);
+
+     for i := 0 to fNumChildren - 1 do
+     begin
+          if fChildren[i] = nil then
+             break;
+          fChildren[i].InitComputeForces(theta);
+     end;
+end;
 
 function TSPTree.Insert(idx : integer): boolean;
 var pPoint : PConstDoubleArr;
@@ -946,6 +1371,8 @@ begin
      meanVec := X.Mean(False);
      Result := X.subVec(meanVec, True);
      maxVal := MatrixAbsMax( Result.StartElement, Result.Width, Result.Height, Result.LineWidth);
+     //maxVal := GenericMtxAbsMax( Result.StartElement, Result.Width, Result.Height, Result.LineWidth);
+
 
      if maxVal = 0 then
         raise Exception.Create('Error normalizing dataset - empty matrix');
@@ -1038,6 +1465,7 @@ begin
          aPca := fInitPCA()
      else
          aPca := DefInitPCA();
+
      try
         Result := X.Transpose;
         aPca.PCA(Result.GetObjRef, fInitDims, False);
@@ -1645,6 +2073,7 @@ begin
 
      // divide by two
      MatrixScaleAndAdd( @symP[0], numElem*sizeof(double), numElem, 1, 0, 0.5 );
+     //GenericMtxScaleAndAdd( @symP[0], numElem*sizeof(double), numElem, 1, 0, 0.5 );
 
      // return/store sym matrix
      fRows := symRow;
@@ -1666,8 +2095,9 @@ begin
      tree := TSPTree.Create(numDims, pY, fN);
      try
         sumQ := 0;
+        tree.InitComputeForces(fTheta);
         for n := 0 to fN - 1 do
-            tree.ComputeNonEdgeForces(n, fTheta, @buff[0], sumQ);
+            tree.ComputeNonEdgeForces(n, @buff[0], sumQ);
 
         // Loop over all edges to compute t-SNE error
         C := 0;
@@ -1816,7 +2246,7 @@ begin
 
           // ###########################################
           // #### Progress
-          if Assigned(fProgress) and ( (iter = fNumIter) or (iter mod 50 = 0) ) then
+          if Assigned(fProgress) and (iter mod 50 = 0) then
           begin
                fcost := EvaluateError(pY, numDims);
                doCancel := False;
@@ -1977,9 +2407,10 @@ begin
      sumQ := 0;
      tree := TSPTree.Create( numDims, pY, fN );
      try
+        tree.InitComputeForces(fTheta);
         tree.ComputeEdgeForces(fRows, fCols, fP, fGradPosf);
         for n := 0 to fN - 1 do
-            tree.ComputeNonEdgeForces(n, fTheta, @fGradNegf[n*numDims], sumQ);
+            tree.ComputeNonEdgeForces(n, @fGradNegf[n*numDims], sumQ);
 
         // compute final gradient
         invSumQ := 1/sumQ;

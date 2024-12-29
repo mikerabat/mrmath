@@ -385,7 +385,7 @@ begin
 end;
 
 procedure GenericMtxMean(dest : PDouble; destLineWidth : NativeInt; Src : PDouble; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
-var val : double;
+var val, val2 : double;
     x, y : NativeInt;
     pVal1 : PByte;
     pVal2 : PConstDoubleArr;
@@ -399,10 +399,25 @@ begin
           for y := 0 to Height - 1 do
           begin
                val := 0;
+               val2 := 0;
 
+               // perform the sum via two variables -> so the
+               // sse version is actually the same and there are less numerical
+               // problems (in tsne this actually makes a difference)
                pVal2 := PConstDoubleArr(pVal1);
-               for x := 0 to Width - 1 do
-                   val := val + pVal2^[x];
+               x := 0;
+               while x < width - 1 do
+               begin
+                    val := val + pVal2^[x];
+                    val2 := val2 + pVal2^[x + 1];
+                    inc(x, 2);
+               end;
+               if x < width then
+                  val := val + pVal2^[x];
+
+               val := val + val2;
+               //for x := 0 to Width - 1 do
+               //    val := val + pVal2^[x];
 
                if Width > 0 then
                   dest^ := val/Width;

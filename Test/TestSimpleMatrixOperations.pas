@@ -70,6 +70,7 @@ type
     procedure TestMultASMOddW1EvenH2Transposed;
     procedure TestMultASMOddW1OddH2Transposed;
     procedure TestMtxMeanRow;
+    procedure TestMtxMeanRow2;
     procedure TestMtxMeanColumn;
     procedure TestMtxSumColumn;
     procedure TestMtxSumRow;
@@ -3428,6 +3429,33 @@ begin
                         (endTime3 - startTime3)/mtxFreq*1000]));
 
      FreeMem(blk);
+end;
+
+procedure TASMMatrixOperations.TestMtxMeanRow2;
+var mt1 : Array[0..99] of double;
+    mean2,
+    mean1 : Array[0..1] of double;
+    tmp3 : double;
+    i: Integer;
+begin
+     tmp3 := -1;
+     for i := 0 to High(mean1) do
+     begin
+          mean1[i] := 0;
+          mean2[i] := 0;
+     end;
+
+     for i := 0 to High(mt1) do
+         mt1[i] := i;
+
+     GenericMtxMean(@mean1[0], sizeof(double), @mt1[0], 50*sizeof(double), 50, 2, True);
+     //ASMMatrixMeanRowAlignedEvenW(@mean2[0], sizeof(double), @mt1[0], 50*sizeof(double), 50, 2);
+     ASMMatrixMean(@mean2[0], sizeof(double), @mt1[0], 50*sizeof(double), 50, 2, true);
+
+
+     Check( SameValue(mean1[0], mean2[0]), 'Row mean failed');
+     Check( SameValue(mean1[1], mean2[1]), 'Row mean failed');
+     check( tmp3 = -1, 'WTF');
 end;
 
 procedure TASMMatrixOperations.TestMtxMeanColumn;

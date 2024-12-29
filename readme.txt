@@ -50,6 +50,11 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+
+date 29.12.2024
+* Speed updates for Barnes Hut -> some tree functions are now in assembler
+* Minor changes - e.g. changed the algorithm for calculating the mean sum to be more like sse style
+
 Date 20.12.2024
 * Barnes Hut Tree implementation of TSNE
 * Heap structure class

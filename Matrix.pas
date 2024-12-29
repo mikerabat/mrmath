@@ -1764,18 +1764,13 @@ function TDoubleMatrix.Mean(RowWise: boolean): TDoubleMatrix;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
 
-     if RowWise then
-     begin
-          Result := ResultClass.Create(1, fSubHeight);
-
-          MatrixMean(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise);
-     end
+     if RowWise
+     then
+         Result := ResultClass.Create(1, fSubHeight)
      else
-     begin
-          Result := ResultClass.Create(fSubWidth, 1);
+         Result := ResultClass.Create(fSubWidth, 1);
 
-          MatrixMean(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise);
-     end;
+     MatrixMean(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise);
 end;
 
 procedure TDoubleMatrix.MeanInPlace(RowWise: boolean);

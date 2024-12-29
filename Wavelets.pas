@@ -242,7 +242,7 @@ type
     property DetailVec : TDynArrayofDoubleArray read fdetc;
     property ApproxVec : TDynArrayofDoubleArray read fappc;
 
-    public
+  public
     constructor Create(wavtype : TWaveletType; NoSSE : boolean = False; unroledLoops : boolean = True);
     destructor Destroy; override;
 
