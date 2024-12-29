@@ -91,7 +91,10 @@ type
     function InternalTSNEBarnesHut( xs : TDoubleMatrix; numDims : integer) : TDoubleMatrix;
     procedure computeGradient( pY : PConstDoubleArr; numDims : integer;
                                var dC: TDoubleDynArray );
+    procedure computeGradientThreaded( pY : PConstDoubleArr; numDims : integer;
+                               var dC: TDoubleDynArray );
   public
+    class var Threaded : boolean;    // set this flag for large datasets - for smaller ones the thread overhead outweighs the benefit
     property OnProgress : TTSNEProgress read fProgress write fProgress;
     property OnInitPCA : TTSNEPCAInit read fInitPCA write fInitPCA;
 
@@ -1014,9 +1017,7 @@ var idx1, idx2 : integer;
     D : double;
     n, i : integer;
     dd : integer;
-    aPosF : TDoubleDynArray;
 begin
-     aPosf := Copy(posf, 0, Length(posf));
      if {$IFDEF MRMATH_NOASM} True or {$ENDIF} (fD <> 2) then
      begin
           idx1 := 0;
@@ -1046,7 +1047,7 @@ begin
      end {$IFDEF MRMATH_NOASM};{$ENDIF}
      {$IFNDEF MRMATH_NOASM}
      else  // dimension 2 fits in a xmm register -> use that :)
-         ASMComputeEdgeForceD2(PDouble(fData), @p[0], @aposf[0], @rows[0], @cols[0], fN);
+         ASMComputeEdgeForceD2(PDouble(fData), @p[0], @posf[0], @rows[0], @cols[0], fN);
      {$ENDIF}
 end;
 
@@ -2225,7 +2226,11 @@ begin
      for iter := 0 to fNumIter - 1 do
      begin
           // compute approximate gradient
-          computeGradient( pY, numDims, dY );
+          if Threaded
+          then
+              computeGradientThreaded( pY, numDims, dY )
+          else
+              computeGradient( pY, numDims, dY );
 
           // update gains
           UpdateGainsBarnesHut( gains, dY, uY, fN*numDims );
@@ -2408,6 +2413,7 @@ begin
      tree := TSPTree.Create( numDims, pY, fN );
      try
         tree.InitComputeForces(fTheta);
+
         tree.ComputeEdgeForces(fRows, fCols, fP, fGradPosf);
         for n := 0 to fN - 1 do
             tree.ComputeNonEdgeForces(n, @fGradNegf[n*numDims], sumQ);
@@ -2421,10 +2427,116 @@ begin
      end;
 end;
 
+// ###########################################
+// #### Threaded compute edge version
+// ###########################################
+
+type
+  TNonEdgeCallRec = record
+    idx : integer;
+    n : integer;
+    sumQ : double;
+    tree : TSPTree;
+    gradNeg : PConstDoubleArr;
+  end;
+  PNonEdgeCallRec = ^TNonEdgeCallRec;
+
+procedure ComputeNonEdgeForceGradProc(rec : Pointer);
+var i : integer;
+begin
+     for i := PNonEdgeCallRec(rec)^.idx to PNonEdgeCallRec(rec)^.idx + PNonEdgeCallRec(rec)^.n - 1 do
+         PNonEdgeCallRec(rec)^.tree.ComputeNonEdgeForces(i,
+                    @(PNonEdgeCallRec(rec)^.gradNeg^[i*PNonEdgeCallRec(rec)^.tree.fD]),
+                    PNonEdgeCallRec(rec)^.sumQ );
+end;
+
+procedure TtSNE.computeGradientThreaded(pY: PConstDoubleArr; numDims: integer;
+  var dC: TDoubleDynArray);
+var tree : TSPTree;
+   // n : Integer;
+    sumQ : double;
+    i : integer;
+    invSumQ : double;
+    calls : IMtxAsyncCallGroup;
+    data : Array[0..cMaxNumCores-1] of TNonEdgeCallRec;
+    numCalls : integer;
+    iter : integer;
+    actIdx : integer;
+begin
+     MatrixInit(fGradPosF, 0);
+     MatrixInit(fGradNegf, 0);
+
+     // compute all terms required for t-SNE gradient
+     sumQ := 0;
+     tree := TSPTree.Create( numDims, pY, fN );
+     try
+        tree.InitComputeForces(fTheta);
+
+        numCalls := 0;
+        actIdx := 0;
+        iter := Max(80, fN div numCPUCores);
+        for i := 0 to numCPUCores - 2 do
+        begin
+             data[i].idx := actIdx;
+             data[i].n := Min( fN - actIdx, iter );
+             data[i].tree := tree;
+             data[i].sumQ := 0;
+             data[i].gradNeg := @fGradNegf[0];
+
+             inc(actIdx, data[i].n);
+             inc(numCalls);
+        end;
+
+        if actIdx < fN then
+        begin
+             data[numCalls].idx := actIdx;
+             data[numCalls].n := fN - actIdx;
+             data[numCalls].tree := tree;
+             data[numCalls].sumQ := 0;
+             data[numCalls].gradNeg := @fGradNegf[0];
+
+             inc(numCalls);
+        end;
+
+
+        calls := nil;
+        if numCalls > 1 then
+        begin
+             calls := MtxInitTaskGroup;
+
+             for i := 0 to numCalls - 2 do
+                 calls.AddTaskRec(ComputeNonEdgeForceGradProc, @data[i]);
+        end;
+
+        // the last call in the main thread:
+        ComputeNonEdgeForceGradProc(@data[numCalls - 1]);
+
+        //for n := 0 to fN - 1 do
+        //    tree.ComputeNonEdgeForces(n, @fGradNegf[n*numDims], sumQ);
+
+        tree.ComputeEdgeForces(fRows, fCols, fP, fGradPosf);
+        if calls <> nil then
+           calls.SyncAll;
+        for i := 0 to numCalls - 1 do
+            sumQ := sumQ + data[i].sumQ;
+
+        // compute final gradient
+        invSumQ := 1/sumQ;
+        for i := 0 to fN*numDims - 1 do
+            dC[i] := fGradPosf[i] - (fGradNegf[i]*invSumQ);
+     finally
+            tree.Free;
+     end;
+end;
+
+
 {$EndRegion}
 
 // ###########################################
 // #### 
 // ###########################################
+
+initialization
+  TtSNE.Threaded := False;
 
 end.
