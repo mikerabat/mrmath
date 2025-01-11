@@ -102,6 +102,7 @@ uses
   FMAMatrixOperations in '..\..\FMAMatrixOperations.pas',
   FMAMatrixVectorMultOperations in '..\..\FMAMatrixVectorMultOperations.pas',
   FMAMatrixVectorMultOperationsx64 in '..\..\FMAMatrixVectorMultOperationsx64.pas',
+  ASMVecDist in '..\..\ASMVecDist.pas',
   ASMVecConvolve in '..\..\ASMVecConvolve.pas',
   ASMVecConvolvex64 in '..\..\ASMVecConvolvex64.pas',
   AVXVecConvolve in '..\..\AVXVecConvolve.pas',
