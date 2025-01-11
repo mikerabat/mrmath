@@ -63,7 +63,7 @@ type
     procedure EntropyFuncQ( var Value : double; const data : PDouble; LineWidth : integer; x, y : integer );
 
     function NormalizeInput( X : TDoubleMatrix ) : IMatrix;
-    function ApplyPCA( X : IMatrix ) : IMatrix;
+    function ApplyPCA( X : TDoubleMatrix ) : IMatrix;
     function PairwiseDist( X : TDoubleMatrix ) : IMatrix;
     function D2P( D : IMatrix ) : IMatrix;
     function HBeta( D : IMatrix; beta : double; var H : double; var P : IMatrix ) : boolean;
@@ -166,6 +166,7 @@ type
   TVPTreeDistFunc = function ( idx11, idx2 : integer ) : double of Object;
   TVPTree = class(TObject)
   private
+    const cNumNodeElemPerLine = 1024;
     type
       PVPTreeNode = ^TVPTreeNode;
       TVPTreeNode = record
@@ -174,7 +175,8 @@ type
         Left, Right : PVPTreeNode;
       end;
 
-      TVPTreeNodeArr = Array of TVPTreeNode;
+      TVPTreeNodeConstArr = Array[0..1023] of TVPTreeNode;
+      PVPTreeNodeConstArr = ^TVPTreeNodeConstArr;
 
       THeapItem = record
         dist : double;
@@ -185,7 +187,9 @@ type
       PHeapItemArr = Array of PHeapItem;
   private
     fRnd : TRandomGenerator;
-    fNodes : TVPTreeNodeArr;
+    fNodes :  TList;
+    fPActNode : PVPTreeNodeConstArr;
+    fActNodeIdx : integer;
     fNumNodes : integer;
 
     fItems : TDataPointArr;
@@ -205,11 +209,15 @@ type
     function BuildFromPoints( lower, upper : integer ) : PVPTreeNode;
     procedure InternalSearch( node : PVPTreeNode; idx : integer; k : integer;
                               heap : TPtrHeap; heapData : THeapItemArr);
+
+    function AddNodeArr : PVPTreeNodeConstArr;
+    procedure ClearNodes;
   public
     procedure BuildTree(items : TDataPointArr);
     procedure Search( idx : integer; k : integer; var res : TSearchPtEntryArr);
 
     constructor Create(D : integer; distFunc : TTSNEDistFunc; randAlg : TRandomAlgorithm = raChaCha; seed : integer = 0);
+    destructor Destroy; override;
   end;
 
   // ###########################################
@@ -346,6 +354,13 @@ end;
 
 { TVPTree }
 
+function TVPTree.AddNodeArr: PVPTreeNodeConstArr;
+begin
+     Result := PVPTreeNodeConstArr(GetMemory(sizeof(TVPTreeNodeConstArr)));
+     fNodes.Add(Result);
+     fActNodeIdx := 0;
+end;
+
 function TVPTree.BuildFromPoints(lower, upper: integer): PVPTreeNode;
 var i : Integer;
     tmp : TDataPoint;
@@ -356,10 +371,11 @@ begin
      if lower > upper then
         exit(nil);
 
-     if fNumNodes + 1 >= Length(fNodes) then
-        SetLength(fNodes, Max(fNumNodes + 4096,  upper - lower + 1) );
+     if (fPActNode = nil) or (fActNodeIdx = cNumNodeElemPerLine) then
+        fPActNode := AddNodeArr;
 
-     Result := @fNodes[fNumNodes];
+     Result := @fPActNode^[fActNodeIdx];
+     inc(fActNodeIdx);
      inc(fNumNodes);
 
      Result^.index := lower;
@@ -406,16 +422,33 @@ begin
           // #### Recursion to build left and right tree
           Result^.Left := BuildFromPoints(lower + 1, lower + med );   // original code goes up until med but makes that sense??
           Result^.Right := BuildFromPoints( lower + 1 + med, upper );
+     end
+     else
+     begin
+          Result.Left := nil;
+          Result.Right := nil;
+          Result.Threshold := 0;
      end;
 end;
 
 procedure TVPTree.BuildTree(items: TDataPointArr);
 begin
-     fNodes := nil;
+     fPActNode := nil;
+     ClearNodes;
      fNumNodes := 0;
      fItems := items;
 
      fRoot := BuildFromPoints( 0, Length(fItems) - 1);
+end;
+
+procedure TVPTree.ClearNodes;
+var i : Integer;
+begin
+     for i := 0 to fNodes.Count - 1 do
+         FreeMem(fNodes[i]);
+
+     fActNodeIdx := 0;
+     fNodes.Clear;
 end;
 
 constructor TVPTree.Create(D : integer; distFunc : TTSNEDistFunc; randAlg : TRandomAlgorithm; seed : integer);
@@ -423,6 +456,7 @@ begin
      fRnd := TRandomGenerator.Create(randAlg);
      fRnd.Init( seed );
      fD := D;
+     fNodes := TList.Create;
 
      case distFunc of
        dfEuclid: fDistFunc := DistanceEuclid;
@@ -434,6 +468,15 @@ begin
      end;
 
      inherited Create;
+end;
+
+destructor TVPTree.Destroy;
+begin
+     fRnd.Free;
+     ClearNodes;
+     fNodes.Free;
+
+     inherited;
 end;
 
 function TVPTree.DistanceAbs(idx1, idx2: integer): double;
@@ -450,9 +493,16 @@ var i : integer;
 begin
      Result := 0;
 
+     try
      for i := 0 to fD - 1 do// fItems[idx1].Dimensionality - 1 do
          Result := Result + sqr( PConstDoubleArr(fItems[idx1].fX)^[i] - PConstDoubleArr(fItems[idx2].fX)^[i] );
 
+     except
+     Result := 0;
+     for i := 0 to fD - 1 do// fItems[idx1].Dimensionality - 1 do
+         Result := Result + sqr( PConstDoubleArr(fItems[idx1].fX)^[i] - PConstDoubleArr(fItems[idx2].fX)^[i] );
+
+     end;
      Result := Sqrt(Result);
 end;
 
@@ -1455,7 +1505,7 @@ begin
      fyincs := nil;
 end;
 
-function TtSNE.ApplyPCA(X: IMatrix): IMatrix;
+function TtSNE.ApplyPCA(X: TDoubleMatrix): IMatrix;
 var aPca : TMatrixPCA;
 begin
      // apply pca and check if we can shrink it to the designated number of eigenvectors
@@ -2268,9 +2318,9 @@ begin
      // final cost...
      fCost := EvaluateError(pY, numDims);
 
-     // handle the reference counting
+     // handle the reference counting - result in in the matrix class that is assigned...
      Result := MatrixClass.Create;
-     Result.TakeOver(yData.GetObjRef);
+     Result.TakeOver(yData);
 end;
 
 procedure TtSNE.CalcPerplexity(x: TDoubleMatrix; perplexity: double;
