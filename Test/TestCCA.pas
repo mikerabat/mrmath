@@ -377,8 +377,8 @@ var x : IMatrix;
     fit : IMatrix;
 begin
      InitMathFunctions(itFMA, false);
-     x := MatrixFromTxtFile(BaseDataPath + 'x_pls.txt');
-     y := MatrixFromTxtFile(BaseDataPath + 'y_pls.txt');
+     x := MatrixFromTxtFile(BaseDataPath + 'X_pls.txt');
+     y := MatrixFromTxtFile(BaseDataPath + 'Y_pls.txt');
 
      fit := TDoubleMatrix.Create;
      pls := TMatrixPLS.Create;

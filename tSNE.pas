@@ -122,7 +122,7 @@ implementation
 
 uses MathUtilFunc, SysUtils, Math, Classes, MatrixASMStubSwitch,
      Dist, BlockSizeSetup, MtxThreadPool, ThreadedMatrix,
-     ThreadedMatrixOperations, SimpleMatrixOperations;
+     ThreadedMatrixOperations;
 
 // ###########################################
 // #### Helper Classes for Burnes Hut trees
@@ -153,7 +153,6 @@ type
   end;
   PDataPoint = ^TDataPoint;
   TDataPointArr = Array of TDataPoint;
-  PDataPointArr = Array of PDataPoint;
 
   TSearchPtEntry = record
     pt : PDataPoint;
