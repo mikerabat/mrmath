@@ -706,7 +706,7 @@ asm
    // RDI, RSI, RDX, RCX -> mov to RCX, RDX, R8, R9
 
    mov cols, r8;
-   mov N, r9;
+   mov N, r9d;
 
    mov r8, rdx;
    mov r9, rcx;
