@@ -50,6 +50,9 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+date 22.01.2025
+* Added some example projects (TSNE, EM, SPLINE, REGRESSION)
+* Some minor fixes to let tsne compile for MacOS (Thanks to Andrea Mauri)
 
 date 29.12.2024
 * Speed updates for Barnes Hut -> some tree functions are now in assembler
