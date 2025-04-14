@@ -50,6 +50,10 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+date 14.04.2025
+* Started a unit for complex number operations
+* New code to detect performance and efficiency cores
+
 date 22.01.2025
 * Added some example projects (TSNE, EM, SPLINE, REGRESSION)
 * Some minor fixes to let tsne compile for MacOS (Thanks to Andrea Mauri)
