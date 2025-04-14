@@ -265,9 +265,9 @@ type
     function SymEig(out EigVals : TDoubleMatrix) : TEigenvalueConvergence; overload;
     function SymEig(out EigVals : IMatrix; out EigVect : IMatrix) : TEigenvalueConvergence; overload;
     function SymEig(out EigVals : IMatrix) : TEigenvalueConvergence; overload;
-    function Eig(out EigVals : TDoubleMatrix; out EigVect : TDoubleMatrix; normEigVecs : boolean = False)  : TEigenvalueConvergence; overload;
+    function Eig(out EigVals : TDoubleMatrix; out EigVect : TDoubleMatrix; normEigVecs : TEigenvalueEivecNormalize = enNone)  : TEigenvalueConvergence; overload;
     function Eig(out EigVals : TDoubleMatrix)  : TEigenvalueConvergence; overload;
-    function Eig(out EigVals : IMatrix; out EigVect : IMatrix; normEigVecs : boolean = False) : TEigenvalueConvergence; overload;
+    function Eig(out EigVals : IMatrix; out EigVect : IMatrix; normEigVecs : TEigenvalueEivecNormalize = enNone) : TEigenvalueConvergence; overload;
     function Eig(out EigVals : IMatrix)  : TEigenvalueConvergence; overload;
     function Cholesky(out Chol : TDoubleMatrix) : TCholeskyResult; overload;
     function Cholesky(out Chol : IMatrix) : TCholeskyResult; overload;
@@ -575,9 +575,9 @@ type
     function SymEig(out EigVals : TDoubleMatrix) : TEigenvalueConvergence; overload; virtual;
     function SymEig(out EigVals : IMatrix; out EigVect : IMatrix) : TEigenvalueConvergence; overload;
     function SymEig(out EigVals : IMatrix) : TEigenvalueConvergence; overload;
-    function Eig(out EigVals : TDoublematrix; out EigVect : TDoubleMatrix; normEigVecs : boolean = False)  : TEigenvalueConvergence; overload;
+    function Eig(out EigVals : TDoublematrix; out EigVect : TDoubleMatrix; normEigVecs : TEigenvalueEivecNormalize = enNone)  : TEigenvalueConvergence; overload;
     function Eig(out EigVals : TDoublematrix)  : TEigenvalueConvergence; overload;
-    function Eig(out EigVals : IMatrix; out EigVect : IMatrix; normEigVecs : boolean = False) : TEigenvalueConvergence; overload;
+    function Eig(out EigVals : IMatrix; out EigVect : IMatrix; normEigVecs : TEigenvalueEivecNormalize = enNone) : TEigenvalueConvergence; overload;
     function Eig(out EigVals : IMatrix)  : TEigenvalueConvergence; overload;
     function Cholesky(out Chol : TDoubleMatrix) : TCholeskyResult; overload; virtual;
     function Cholesky(out Chol : IMatrix) : TCholeskyResult; overload;
@@ -1390,7 +1390,7 @@ begin
      MatrixSQRT(StartElement, LineWidth, fSubWidth, fSubHeight);
 end;
 
-function TDoubleMatrix.Eig(out EigVals, EigVect: IMatrix; normEigVecs : boolean = False): TEigenvalueConvergence;
+function TDoubleMatrix.Eig(out EigVals, EigVect: IMatrix; normEigVecs : TEigenvalueEivecNormalize = enNone): TEigenvalueConvergence;
 var outEigVals, outEigVect : TDoubleMatrix;
 begin
      Result := Eig(outEigVals, outEigVect, normEigVecs);
@@ -1434,7 +1434,7 @@ begin
          dt.Free;
 end;
 
-function TDoubleMatrix.Eig(out EigVals, EigVect: TDoubleMatrix; normEigVecs : boolean = False): TEigenvalueConvergence;
+function TDoubleMatrix.Eig(out EigVals, EigVect: TDoubleMatrix; normEigVecs : TEigenvalueEivecNormalize = enNone): TEigenvalueConvergence;
 var dt : TDoubleMatrix;
     vecs : TDoubleMatrix;
     pReal, pImag : PDouble;
@@ -1453,14 +1453,14 @@ begin
         inc(pImag);
 
         vecs := ResultClass.Create(fSubWidth, fSubHeight);
-        
+
         // create a copy since the original content is destroyed!
-        dummy := TDoubleMatrix.Create;
+        dummy := TDoubleMatrix.Create(self.Width, self.Height, True);
         try
            dummy.Assign(self);
            Result := MatrixUnsymEigVecInPlace(dummy.StartElement, dummy.LineWidth,
-                                              fSubWidth, 
-                                              pReal, dt.LineWidth, pImag, dt.LineWidth, 
+                                              fSubWidth,
+                                              pReal, dt.LineWidth, pImag, dt.LineWidth,
                                               vecs.StartElement, vecs.LineWidth);
         finally
                dummy.Free;
@@ -1468,8 +1468,8 @@ begin
 
         if Result = qlOk then
         begin
-             if normEigVecs then
-                MatrixNormEivecInPlace(vecs.StartElement, vecs.LineWidth, fSubWidth, pImag, dt.LineWidth);
+             if normEigVecs <> enNone then
+                MatrixNormEivecInPlace(vecs.StartElement, vecs.LineWidth, fSubWidth, pImag, dt.LineWidth, normEigVecs = enLen);
              
              EigVals := dt;
              EigVect := vecs;

@@ -44,7 +44,7 @@ procedure MatrixBalanceInPlace(A : PDouble; const LineWidthA : NativeInt; width 
 procedure MatrixBalanceBackInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; Scale : PDouble; const LineWidthScale : NativeInt);
 // Reduction of Matrix A to hessenberg form by the elimination method. The real, nonsymmetric matrix
 // A is replaced by an upper Hessenberg matrix with identical eigenvalues. Recommended, but not
-// required, i sthat this routine be preceded by MatrixBalance. Non Hessenberg elements (which should be zero)
+// required, is that this routine be preceded by MatrixBalance. Non Hessenberg elements (which should be zero)
 // are filled with random values and not replaced by zero elements.
 procedure MatrixHessenbergPermInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; perm : PInteger; const LineWidthPerm : NativeInt);
 procedure MatrixHessenbergPerm(dest : PDouble; const LineWidthDest : NativeInt; A : PDouble; const LineWidthA : NativeInt; width : NativeInt; perm : PInteger; const LineWidthPerm : NativeInt);
@@ -67,7 +67,10 @@ function MatrixEigHessenberg(A : PDouble; const LineWidthA : NativeInt; width : 
 // the imaginary part is stored in n+1. Note the function does not seem to correctly work with matrices with rank lower than width!
 function MatrixEigVecHessenbergInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; WR : PDouble;
  const LineWidthWR : NativeInt; WI : PDouble; const LineWidthWI : NativeInt; Eivec : PDouble; const LineWidthEivec : NativeInt) : TEigenvalueConvergence;
-procedure MatrixNormEivecInPlace(Eivec : PDouble; const LineWidthEivec : NativeInt; width : NativeInt; WI : PDouble; const LineWidthWI : NativeInt);
+
+ // normalize the eigenvectors either to a length of 1 (std) or such that the largest item has a value of 1
+ procedure MatrixNormEivecInPlace(Eivec : PDouble; const LineWidthEivec : NativeInt; width : NativeInt;
+   WI : PDouble; const LineWidthWI : NativeInt; normalizeLen : boolean);
 
 
 // ############################################
@@ -137,10 +140,10 @@ procedure MatrixUpperSymToTridiagInPlace( A : PDouble; LineWidthA : NativeInt; N
 
 implementation
 
-uses Math, MathUtilFunc, MatrixASMStubSwitch, HouseholderReflectors, types, 
+uses Math, MathUtilFunc, MatrixASMStubSwitch, HouseholderReflectors, types,
      BlockSizeSetup, ThreadedMatrixOperations, MtxThreadPool,
      LinAlgQR,
-     SysUtils, MatrixRotations, Classes;
+     SysUtils, MatrixRotations, Classes, CplxSimpleMatrixOperations;
 
 
 
@@ -1170,6 +1173,102 @@ begin
      end;
 end;
 
+procedure MatrixNormEivecInPlace(Eivec : PDouble; const LineWidthEivec : NativeInt; width : NativeInt; WI : PDouble;
+  const LineWidthWI : NativeInt; normalizeLen : boolean);
+var i, j : NativeInt;
+    pWi : PDouble;
+    pEivec : PDouble;
+    pTmp : PDouble;
+    pEivecCpl : PComplex;
+    maxVal : double;
+    t : TComplex;
+begin
+     assert(width > 0, 'Dimension error');
+     assert(width*sizeof(Double) <= LineWidthEivec, 'Dimension error');
+     assert(LineWidthWI >= sizeof(double), 'Dimension error');
+
+     if normalizeLen then
+     begin
+          // result of MatrixEigVecHessenbergInPlace is not normalized
+          // -> normalize to length of 1
+          i := 0;
+          while i < width do
+          begin
+               if PConstDoubleArr(WI)^[i] = 0 then
+               begin
+                    MatrixNormalize(Eivec, LineWidthEiVec, EiVec, LineWidthEiVec, 1, width, False );
+                    inc(Eivec);
+                    inc(i);
+               end
+               else
+               begin
+                    // complex eigenvector: two eigenvalues (conjugate complex) point to the same eigenvector
+                    CplxGenericMtxNormalize(PComplex( Eivec ), LineWidthEivec,
+                                            PComplex( Eivec ), LineWidthEivec, 1, width, False );
+                    inc(Eivec, 2);
+                    inc(i, 2);
+               end;
+          end;
+     end
+     else
+     begin
+          // normalize the largest element to 1
+          pWi := WI;
+          pEivec := Eivec;
+          j := 0;
+          while j < width do
+          begin
+               if pWi^ = 0 then
+               begin
+                    maxVal := pEivec^;
+                    ptmp := pEivec;
+                    inc(PByte(pTmp), LineWidthEivec);
+                    for i := 1 to width - 1 do
+                    begin
+                         if abs(maxVal) < abs(pTmp^) then
+                            maxVal := pTmp^;
+
+                         inc(PByte(pTmp), LineWidthEivec);
+                    end;
+
+                    if maxVal <> 0 then
+                       MatrixScaleAndAdd(pEivec, LineWidthEivec, 1, width, 0, 1/maxVal);
+               end
+               else
+               begin
+                    pEivecCpl := PComplex(pEivec);
+                    t := pEivecCpl^;
+
+                    inc(PByte(pEivecCpl), LineWidthEivec);
+
+                    for i := 1 to width - 1 do
+                    begin
+                         t := CMax(pEivecCpl^ , t );
+
+                         inc(PByte(pEivecCpl), LineWidthEivec);
+                    end;
+
+                    if  (t.real <> 0) or (t.imag <> 0) then
+                    begin
+                         pEivecCpl := PComplex( pEivec );
+                         for i := 0 to width - 1 do
+                         begin
+                              pEivecCpl^ := CDiv( pEivecCpl^, t);
+                              inc(PByte(pEivecCpl), LineWidthEivec);
+                         end;
+                    end;
+                    inc(pEivec);
+                    inc(PByte(pWi), LineWidthWI);
+                    inc(j);
+               end;
+
+               inc(pEivec);
+               inc(PByte(pWi), LineWidthWI);
+               inc(j);
+          end;
+     end;
+end;
+
 procedure Cdiv(const Ar, Ai, Br, Bi : double; var Cr, Ci : double); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 { Complex division, (Cr,Ci) = (Ar,Ai)/(Br,Bi) }
 var tmp : double;
@@ -1192,120 +1291,7 @@ begin
     end;
 end;
 
-function CAbs(ar, ai : double) : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
-var tmp : double;
-begin
-     if (ar = 0) and (ai = 0) then
-     begin
-          Result := 0;
-          exit;
-     end;
-
-     ar := ABS(ar);
-     ai := ABS(ai);
-
-     if ai > ar then
-     begin
-          tmp := ai;
-          ai := ar;
-          ar := tmp;
-     end;
-
-     if ai = 0
-     then
-         Result := ar
-     else
-         Result := ar * Sqrt(1 + ai / ar * ai / ar);
-end;
-
-procedure MatrixNormEivecInPlace(Eivec : PDouble; const LineWidthEivec : NativeInt; width : NativeInt; WI : PDouble; const LineWidthWI : NativeInt);
-var i, j : NativeInt;
-    pWi : PDouble;
-    pEivec, pEiveci, pEivecj : PDouble;
-    maxVal : double;
-    tr, ti : double;
-begin
-     assert(width > 0, 'Dimension error');
-     assert(width*sizeof(Double) <= LineWidthEivec, 'Dimension error');
-     assert(LineWidthWI >= sizeof(double), 'Dimension error');
-
-     pWi := WI;
-     pEivec := Eivec;
-     j := 0;
-     while j < width do
-     begin
-          if pWi^ = 0 then
-          begin
-               maxVal := pEivec^;
-
-               pEiveci := pEivec;
-               inc(PByte(pEiveci), LineWidthEivec);
-               for i := 1 to width - 1 do
-               begin
-                    if abs(pEiveci^) > abs(maxVal) then
-                       maxVal := pEiveci^;
-
-                    inc(PByte(pEiveci), LineWidthEivec);
-               end;
-
-               if maxVal <> 0 then
-               begin
-                    maxVal := 1/maxVal;
-                    pEiveci := pEivec;
-                    for i := 0 to width - 1 do
-                    begin
-                         pEiveci^ := maxVal*pEiveci^;
-                         inc(PByte(pEiveci), LineWidthEivec);
-                    end;
-               end;
-          end
-          else
-          begin
-               pEiveci := pEivec;
-               pEivecj := pEivec;
-               inc(pEivecj);
-
-               tr := pEiveci^;
-               ti := pEivecj^;
-
-               inc(PByte(pEiveci), LineWidthEivec);
-               inc(PByte(pEivecj), LineWidthEivec);
-
-               for i := 1 to width - 1 do
-               begin
-                    if CAbs(pEiveci^, pEivecj^) > CAbs(tr, ti) then
-                    begin
-                         tr := pEiveci^;
-                         ti := pEivecj^;
-                    end;
-
-                    inc(PByte(pEiveci), LineWidthEivec);
-                    inc(PByte(pEivecj), LineWidthEivec);
-               end;
-
-               if (tr <> 0) and (ti <> 0) then
-               begin
-                    pEiveci := pEivec;
-                    pEivecj := pEivec;
-                    inc(pEivecj);
-                    for i := 0 to width - 1 do
-                    begin
-                         CDiv(pEiveci^, pEivecj^, tr, ti, pEiveci^, pEivecj^);
-                         inc(PByte(pEiveci), LineWidthEivec);
-                         inc(PByte(pEivecj), LineWidthEivec);
-                    end;
-               end;
-               inc(pEivec);
-               inc(PByte(pWi), LineWidthWI);
-               inc(j);
-          end;
-
-          inc(pEivec);
-          inc(PByte(pWi), LineWidthWI);
-          inc(j);
-     end;
-end;
-
+// hqr2
 function MatrixEigVecHessenbergInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; WR : PDouble;
  const LineWidthWR : NativeInt; WI : PDouble; const LineWidthWI : NativeInt; Eivec : PDouble; const LineWidthEivec : NativeInt) : TEigenvalueConvergence;
 var nn, m, l, k : NativeInt;
@@ -2048,8 +2034,9 @@ begin
      MatrixHessenbergPerm(dest, LineWidthDest, A, LineWidthA, width, nil, 0);
 end;
 
+// hqr2
 function MatrixUnsymEigVecInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; WR : PDouble;
- const LineWidthWR : NativeInt; WI : PDouble; const LineWidthWI : NativeInt; Eivec : PDouble; const LineWidthEivec : NativeInt) : TEigenvalueConvergence;
+  const LineWidthWR : NativeInt; WI : PDouble; const LineWidthWI : NativeInt; Eivec : PDouble; const LineWidthEivec : NativeInt) : TEigenvalueConvergence;
 var perm : array of integer;
     scale : Array of double;
     pDest : PDouble;
@@ -2069,7 +2056,7 @@ begin
           inc(pDest);
           inc(PByte(pDest), LineWidthEivec);
      end;
-     
+
      MatrixInitEivecHess(A, LineWidthA, width, Eivec, LineWidthEivec, @perm[0], sizeof(integer));
 
      // calculate eigenvalues and eigenvectors from the hessenberg matrix
@@ -2527,7 +2514,7 @@ begin
 
      hesswork.PnlSize := hessBlockSize;
      hesswork.blkMultSize := Min( width, Max(QRMultBlockSize, HessMultBlockSize) );
-     hessWork.work := MtxAllocAlign( EigMemSize(hesswork, width) + (numCPUCores - 1)*BlockMultMemSize( hesswork.blkMultSize ), hessWork.mem );
+     hessWork.work := MtxAllocAlign( EigMemSize(hesswork, width) + (numUseCPUCores - 1)*BlockMultMemSize( hesswork.blkMultSize ), hessWork.mem );
      hessWork.T := hessWork.work;
      hessWork.tLineWidth := sizeof(double)*hesswork.PnlSize;
      // Y needs to point directly "under" T to work with the block reflectors
@@ -4586,7 +4573,7 @@ begin
      //numUsed := numCPUCores - 1;
      numUsed := numRealCores;
 
-     if numRealCores = numCPUCores then
+     if numRealCores = numUseCPUCores then
         dec(numUsed);
 
      // check if threading is speeding up the process
@@ -4625,7 +4612,7 @@ begin
      //numUsed := numCPUCores - 1;
      numUsed := numRealCores;
 
-     if numRealCores = numCPUCores then
+     if numRealCores = numUseCPUCores then
         dec(numUsed);
 
      // check if threading is speeding up the process
@@ -4672,7 +4659,7 @@ begin
           Result := sqr(blockSize) + Max(2, blockSize)*N + 2*(N - 1) + N*N + 2*N; // maximum work size
           MultMem := BlockMultMemSize( blkMultSize );
           if Threaded then
-             multMem := numCPUCores*MultMem;
+             multMem := numUseCPUCores*MultMem;
 
           Result := Result*sizeof(double) + multMem;
      end;

@@ -58,9 +58,9 @@ type
 
     function DefInitPCA : TMatrixPCA;
 
-    procedure UpdateGains(var Value : double; const data : PDouble; LineWidth : integer; x, y : integer);
+    procedure UpdateGains(var Value : double; const data : PDouble; LineWidth : NativeInt; x, y : NativeInt);
     procedure HBetaExp( var value : double );
-    procedure EntropyFuncQ( var Value : double; const data : PDouble; LineWidth : integer; x, y : integer );
+    procedure EntropyFuncQ( var Value : double; const data : PDouble; LineWidth : NativeInt; x, y : NativeInt );
 
     function NormalizeInput( X : TDoubleMatrix ) : IMatrix;
     function ApplyPCA( X : TDoubleMatrix ) : IMatrix;
@@ -1853,8 +1853,8 @@ begin
 
      // #################################################
      // #### now iterate
-     origNumCPUCores := NumCPUCores;
-     numCPUCores := Min(numcpuCores, numDims);
+     origNumCPUCores := numUseCPUCores;
+     numUseCPUCores := Min(numUseCPUCores, numDims);
 
      for iter := 1 to fNumIter do
      begin
@@ -1968,7 +1968,7 @@ begin
                   break;
           end;
      end;
-     numCPUCores := origNumCPUCores;
+     numUseCPUCores := origNumCPUCores;
 
      // final cost
      fQ := Q;
@@ -1983,7 +1983,7 @@ begin
 end;
 
 procedure TtSNE.UpdateGains(var Value: double; const data: PDouble; LineWidth,
-  x, y: integer);
+  x, y: NativeInt);
 var cmp1, cmp2 : double;
 begin
      // branchless version
@@ -2004,7 +2004,7 @@ begin
 end;
 
 procedure TtSNE.EntropyFuncQ(var Value: double; const data: PDouble; LineWidth,
-  x, y: integer);
+  x, y: NativeInt);
 begin
      value := Value*ln(fQ[x, y]);
 end;
@@ -2523,8 +2523,8 @@ begin
 
         numCalls := 0;
         actIdx := 0;
-        iter := Max(80, fN div numCPUCores);
-        for i := 0 to numCPUCores - 2 do
+        iter := Max(80, fN div numUseCPUCores);
+        for i := 0 to numUseCPUCores - 2 do
         begin
              data[i].idx := actIdx;
              data[i].n := Min( fN - actIdx, iter );

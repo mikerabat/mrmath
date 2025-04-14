@@ -1094,7 +1094,7 @@ begin
      if work = nil then
         qrData.work := MtxAllocAlign(pnlSize*sizeof(double)*height + 64, qrData.pWorkMem );
 
-     qrData.BlkMultMem := MtxMallocAlign(numCPUCores*(4 + BlockMultMemSize(qrData.BlkMultSize)), ptrMem);
+     qrData.BlkMultMem := MtxMallocAlign(numUseCPUCores*(4 + BlockMultMemSize(qrData.BlkMultSize)), ptrMem);
 
      // reference block reflector structure
      InitReflectorBlk(qrData);
@@ -1129,7 +1129,7 @@ begin
      if work = nil then
         qrData.work := MtxAllocAlign(BlockSize*sizeof(double)*height + 64, qrData.pWorkMem );
 
-     qrData.BlkMultMem := MtxMallocAlign(numCPUCores*(4 + BlockMultMemSize(qrData.BlkMultSize)), ptrMem);
+     qrData.BlkMultMem := MtxMallocAlign(numUseCPUCores*(4 + BlockMultMemSize(qrData.BlkMultSize)), ptrMem);
 
      // reference block reflector structure
      InitReflectorBlk(qrData);
@@ -1163,7 +1163,7 @@ begin
      if work = nil then
         qrData.work := MtxAllocAlign(BlockSize*sizeof(double)*height + 64, qrData.pWorkMem );
 
-     qrData.BlkMultMem := MtxMallocAlign(numCPUCores*(4 + BlockMultMemSize(qrData.BlkMultSize)), ptrMem);
+     qrData.BlkMultMem := MtxMallocAlign(numUseCPUCores*(4 + BlockMultMemSize(qrData.BlkMultSize)), ptrMem);
 
      // reference block reflector structure
      InitReflectorBlk(qrData);

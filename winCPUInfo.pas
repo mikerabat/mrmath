@@ -67,17 +67,63 @@ type
       3: (Reserved: array [0..1] of ULONGLONG);
   end;
 
+  CPU_Set_Information_Type = DWord;
+
+  TCpuSet = packed record
+    id : DWord;
+    group : Word;
+    LogicalProcessorIndex : Byte;
+    CoreIndex : Byte;
+    LastLevelCacheIndex : BYte;
+    NumNodeIndex : Byte;
+    EfficiencyClass : Byte;
+    // union {
+    //    BYTE AllFlags;
+//        struct {
+//          BYTE Parked : 1;
+//          BYTE Allocated : 1;
+//          BYTE AllocatedToTargetProcess : 1;
+//          BYTE RealTime : 1;
+//          BYTE ReservedFlags : 4;
+//        } DUMMYSTRUCTNAME;
+//      } DUMMYUNIONNAME2;
+    Flags : Byte;
+
+    //union {
+//        DWORD Reserved;
+//        BYTE  SchedulingClass;
+//      };
+    SchedulingClass : Byte;
+    Reserved : Array[0..2] of byte;
+
+    AllocationTag : UInt64;
+  end;
+  TSystemCPUSetInformation = packed record
+    Size : DWord;
+    atype : CPU_Set_Information_Type; // not stated: it's an enum and we assume it to be 4 bytes long
+    cpuSet : TCpuSet;
+  end;
+  PSystemCPUSetInformation = ^TSystemCPUSetInformation;
+
 type
   TLogicalProcessorInfProc = function (
   Buffer: PSystemLogicalProcessorInformation;
   var ReturnLength: DWORD): BOOL; stdcall;
 
+  TGetSystemCpuSetInformationProc = function (
+     informatin : PSystemCPUSetInformation;
+     BufferLength : ULong;
+     var ReturnedLength : ULong;
+     Proc : THandle;
+     Flags : ULong) : Bool; stdcall;
 
 var sysInfo : TSystemInfo;
     ReturnLength: DWORD;
     Buffer: array of TSystemLogicalProcessorInformation;
+    cpuBuf : array of TSystemCPUSetInformation;
     i : integer;
     logicalInfoProc : TLogicalProcessorInfProc;
+    GetSystemCpuSetInformation : TGetSystemCpuSetInformationProc;
     dllHdl : THandle;
       
 initialization
@@ -121,6 +167,37 @@ initialization
                 //       end;
                   end;
              end;
+
+             GetSystemCpuSetInformation := TGetSystemCpuSetInformationProc( GetProcAddress(dllHdl, 'GetSystemCpuSetInformation'));
+             if Assigned(GetSystemCpuSetInformation) then
+             begin
+                  if not GetSystemCpuSetInformation( nil, 0, ReturnLength, GetCurrentProcess, 0) then
+                  begin
+                       if GetLastError = ERROR_INSUFFICIENT_BUFFER then
+                       begin
+                            if ReturnLength > 0 then
+                            begin
+                                 SetLength(cpuBuf, ReturnLength div sizeof(TSystemCPUSetInformation));
+                                 if not GetSystemCpuSetInformation(@cpuBuf[0], ReturnLength, ReturnLength, GetCurrentProcess, 0) then
+                                    RaiseLastOSError;
+
+
+                                 // ###########################################
+                                 // #### Go through all cpu sets.
+                                 for i := 0 to Length(cpuBuf) - 1 do
+                                 begin
+                                      case cpuBuf[i].cpuSet.EfficiencyClass of
+                                        0: inc(numPCores);
+                                      else
+                                          inc(numECores);
+                                      end;
+                                 end;
+                            end;
+                       end
+                       else
+                           RaiseLastOSError;
+                  end;
+             end;
           finally
                  FreeLibrary(dllHdl);
           end;
@@ -131,15 +208,22 @@ initialization
   
   GetSystemInfo(SysInfo);
   numCPUCores := SysInfo.dwNumberOfProcessors;
-  if numCPUCores > cMaxNumCores then
-     numCPUCores := cMaxNumCores;
+  numUseCPUCores := numCPUCores;
+  if numUseCPUCores > cMaxNumCores then
+     numUseCPUCores := cMaxNumCores;
 
   numCoresForSimpleFuncs := numRealCores;
   if numCoresForSimpleFuncs > 3 then
      numCoresForSimpleFuncs := 3;
 
   if numRealCores = 0 then
-     numRealCores := numCPUCores;
+     numRealCores := numUseCPUCores;
+
+  if numECores = 0 then
+  begin
+       numPCores := numUseCPUCores;
+       numECores := 0;
+  end;
 
 finalization
 {$ENDIF}

@@ -234,6 +234,13 @@ initialization
   if numCoresForSimpleFuncs > 3 then
      numCoresForSimpleFuncs := 3;
 
+  numPCores := numCPUCores;
+  numECores := 0;
+
+  numUseCPUCores := numCPUCores;
+   if numUseCPUCores > cMaxNumCores then
+      numUseCPUCores := cMaxNumCores;
+
 {$ELSE}
 
 var cpuInfo : NSProcessInfo;

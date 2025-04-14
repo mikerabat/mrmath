@@ -417,9 +417,17 @@ initialization
       numCPUCores := cMaxNumCores;
    numRealCores := numCPUCores;
 
+   numPCores := numCPUCores;
+   numECores := 0;
+
    numCoresForSimpleFuncs := numRealCores;
    if numCoresForSimpleFuncs > 3 then
       numCoresForSimpleFuncs := 3;
+
+   numUseCPUCores := numCPUCores;
+   if numUseCPUCores > cMaxNumCores then
+      numUseCPUCores := cMaxNumCores;
+
 
 {$ENDIF}
 

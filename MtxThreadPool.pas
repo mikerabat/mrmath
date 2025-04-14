@@ -67,9 +67,16 @@ function MtxInitTaskGroup : IMtxAsyncCallGroup;
 
 const cMaxNumCores = 64;                          // limit the maximum usabel cores
 
-var numCPUCores : NativeInt = 0;
+type
+  TNumCoreOpt = (coAll, coRealCores, coPerformanceCores);
+procedure InitNumUsedCores( optType : TNumCoreOpt );
+
+var numUseCPUCores : NativeInt = 0;
+    numCPUCores : NativeInt = 0;
     numRealCores : NativeInt = 0;             // cores without hyperthreading
     numCoresForSimpleFuncs : NativeInt = 0;   // for median and scaling operations
+    numPCores : NativeInt = 0;                // performance cores
+    numECores : NativeInt = 0;                // efficiency cores
 
 implementation
 
@@ -97,6 +104,15 @@ uses MacOsThreadPool;
 var threadPoolProviderFunc : TThreadPoolProviderFunc;
     thrPool : IMtxThreadPool = nil;
 
+procedure InitNumUsedCores( optType : TNumCoreOpt );
+begin
+     case optType of
+      coAll: numUseCPUCores := numCPUCores;
+      coRealCores: numUseCPUCores := numRealCores;
+      coPerformanceCores: numUseCPUCores := numPCores;
+     end;
+end;
+
 procedure SetThreadPoolProvider( func : TThreadPoolProviderFunc );
 begin
      threadPoolProviderFunc := func;
@@ -107,7 +123,7 @@ begin
      if thrpool = nil then
      begin
           thrPool := threadPoolProviderFunc();
-          thrPool.InitPool(numCPUCores);
+          thrPool.InitPool(numUseCPUCores);
      end;
 end;
 

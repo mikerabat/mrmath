@@ -81,6 +81,7 @@ procedure ThrMatrixFunc(dest : PDouble; const destLineWidth : NativeInt; width, 
 
 // helper functions
 function NumCoresToUseForMult(width1, height1, width2, height2, blockSize : NativeInt) : integer;
+function NumCoresFoBlkMult2( blkSize : NativeInt ) : integer;
 
 implementation
 
@@ -490,15 +491,20 @@ begin
           Result := 1;
 
           if height1 > blockSize then
-             Result := Min(numCPUCores, 1 + height1 div blockSize);
+             Result := Min(numUseCPUCores, 1 + height1 div blockSize);
      end
      else
      begin
           numBlocks := height1 div Blocksize + width2 div BlockSize;
 
           // at least 2 block per core:
-          Result := Max(1, Min(numCPUCores, numBlocks ) );
+          Result := Max(1, Min(numUseCPUCores, numBlocks ) );
      end;
+end;
+
+function NumCoresFoBlkMult2( blkSize : NativeInt ) : integer;
+begin
+     Result := Max(1, Min(numUseCPUCores, blkSize div 64));
 end;
 
 procedure ThrMatrixMultDirect(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
@@ -979,12 +985,12 @@ var i : NativeInt;
     objs : Array[0..cMaxNumCores - 1] of TAsyncMatrixVectorMultRec;
     numUsed : integer;
 begin
-     heightFits := (height mod numCPUCores) = 0;
-     thrHeight := Max(8, height div numCPUCores + NativeInt(not heightFits) );
+     heightFits := (height mod numUseCPUCores) = 0;
+     thrHeight := Max(8, height div numUseCPUCores + NativeInt(not heightFits) );
 
      // ###############################################
      // #### Prepare thread objects
-     numTask := Min(numCPUCores, height div thrHeight + 1);
+     numTask := Min(numUseCPUCores, height div thrHeight + 1);
      numUsed := 0;
 
      for i := 0 to numTask - 1 do
@@ -1168,7 +1174,7 @@ var i: NativeInt;
     numUsed : integer;
 begin
      // check if it is really necessary to thread the call:
-     if (width < numCPUCores) and (height < numCPUCores) then
+     if (width < numUseCPUCores) and (height < numUseCPUCores) then
      begin
           MatrixFunc(dest, destLineWidth, width, height, func);
           exit;
@@ -1179,7 +1185,7 @@ begin
      startY := 0;
      if width > height then
      begin
-          thrSize := Max(64, width div numCPUCores);
+          thrSize := Max(64, width div numUseCPUCores);
 
           while width > 0 do
           begin
@@ -1196,7 +1202,7 @@ begin
                inc(numUsed);
           end;
 
-          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          if (numUsed >= 2) and (numUsed > numUseCPUCores) then
           begin
                inc(objs[numUsed - 2].width, objs[numUsed - 1].width);
                dec(numUsed);
@@ -1204,7 +1210,7 @@ begin
      end
      else
      begin
-          thrSize := Max(64, height div numCPUCores);
+          thrSize := Max(64, height div numUseCPUCores);
 
           while height > 0 do
           begin
@@ -1221,7 +1227,7 @@ begin
                dec(height, thrSize);
           end;
 
-          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          if (numUsed >= 2) and (numUsed > numUseCPUCores) then
           begin
                inc(objs[numUsed - 2].height, objs[numUsed - 1].height);
                dec(numUsed);
@@ -1249,7 +1255,7 @@ var i: integer;
     numUsed : integer;
 begin
      // check if it is really necessary to thread the call:
-     if (width < numCPUCores) and (height < numCPUCores) then
+     if (width < numUseCPUCores) and (height < numUseCPUCores) then
      begin
           MatrixFunc(dest, destLineWidth, width, height, func);
           exit;
@@ -1260,7 +1266,7 @@ begin
      startY := 0;
      if width > height then
      begin
-          thrSize := Max(64, width div numCPUCores);
+          thrSize := Max(64, width div numUseCPUCores);
 
           while width > 0 do
           begin
@@ -1277,7 +1283,7 @@ begin
                inc(numUsed);
           end;
 
-          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          if (numUsed >= 2) and (numUsed > numUseCPUCores) then
           begin
                inc(objs[numUsed - 2].width, objs[numUsed - 1].width);
                dec(numUsed);
@@ -1285,7 +1291,7 @@ begin
      end
      else
      begin
-          thrSize := Max(64, height div numCPUCores);
+          thrSize := Max(64, height div numUseCPUCores);
 
           while height > 0 do
           begin
@@ -1302,7 +1308,7 @@ begin
                dec(height, thrSize);
           end;
 
-          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          if (numUsed >= 2) and (numUsed > numUseCPUCores) then
           begin
                inc(objs[numUsed - 2].height, objs[numUsed - 1].height);
                dec(numUsed);
@@ -1330,7 +1336,7 @@ var i: integer;
     numUsed : integer;
 begin
      // check if it is really necessary to thread the call:
-     if (width < numCPUCores) and (height < numCPUCores) then
+     if (width < numUseCPUCores) and (height < numUseCPUCores) then
      begin
           MatrixFunc(dest, destLineWidth, width, height, func);
           exit;
@@ -1341,7 +1347,7 @@ begin
      startY := 0;
      if width > height then
      begin
-          thrSize := Max(64, width div numCPUCores);
+          thrSize := Max(64, width div numUseCPUCores);
 
           while width > 0 do
           begin
@@ -1358,7 +1364,7 @@ begin
                inc(numUsed);
           end;
 
-          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          if (numUsed >= 2) and (numUsed > numUseCPUCores) then
           begin
                inc(objs[numUsed - 2].width, objs[numUsed - 1].width);
                dec(numUsed);
@@ -1366,7 +1372,7 @@ begin
      end
      else
      begin
-          thrSize := Max(64, height div numCPUCores);
+          thrSize := Max(64, height div numUseCPUCores);
 
           while height > 0 do
           begin
@@ -1383,7 +1389,7 @@ begin
                dec(height, thrSize);
           end;
 
-          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          if (numUsed >= 2) and (numUsed > numUseCPUCores) then
           begin
                inc(objs[numUsed - 2].height, objs[numUsed - 1].height);
                dec(numUsed);
@@ -1411,7 +1417,7 @@ var i: integer;
     numUsed : integer;
 begin
      // check if it is really necessary to thread the call:
-     if (width < numCPUCores) and (height < numCPUCores) then
+     if (width < numUseCPUCores) and (height < numUseCPUCores) then
      begin
           MatrixFunc(dest, destLineWidth, width, height, func);
           exit;
@@ -1422,7 +1428,7 @@ begin
      startY := 0;
      if width > height then
      begin
-          thrSize := Max(64, width div numCPUCores);
+          thrSize := Max(64, width div numUseCPUCores);
 
           while width > 0 do
           begin
@@ -1439,7 +1445,7 @@ begin
                inc(numUsed);
           end;
 
-          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          if (numUsed >= 2) and (numUsed > numUseCPUCores) then
           begin
                inc(objs[numUsed - 2].width, objs[numUsed - 1].width);
                dec(numUsed);
@@ -1447,7 +1453,7 @@ begin
      end
      else
      begin
-          thrSize := Max(64, height div numCPUCores);
+          thrSize := Max(64, height div numUseCPUCores);
 
           while height > 0 do
           begin
@@ -1464,7 +1470,7 @@ begin
                dec(height, thrSize);
           end;
 
-          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          if (numUsed >= 2) and (numUsed > numUseCPUCores) then
           begin
                inc(objs[numUsed - 2].height, objs[numUsed - 1].height);
                dec(numUsed);
@@ -1494,7 +1500,7 @@ var i: integer;
     numUsed : integer;
 begin
      // check if it is really necessary to thread the call:
-     if (width < numCPUCores) and (height < numCPUCores) then
+     if (width < numUseCPUCores) and (height < numUseCPUCores) then
      begin
           MatrixFunc(dest, destLineWidth, width, height, func);
           exit;
@@ -1505,7 +1511,7 @@ begin
      StartY := 0;
      if width > height then
      begin
-          thrSize := Max(64, width div numCPUCores);
+          thrSize := Max(64, width div numUseCPUCores);
 
           while width > 0 do
           begin
@@ -1522,7 +1528,7 @@ begin
                inc(numUsed);
           end;
 
-          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          if (numUsed >= 2) and (numUsed > numUseCPUCores) then
           begin
                inc(objs[numUsed - 2].width, objs[numUsed - 1].width);
                dec(numUsed);
@@ -1530,7 +1536,7 @@ begin
      end
      else
      begin
-          thrSize := Max(64, height div numCPUCores);
+          thrSize := Max(64, height div numUseCPUCores);
 
           while height > 0 do
           begin
@@ -1547,7 +1553,7 @@ begin
                dec(height, thrSize);
           end;
 
-          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          if (numUsed >= 2) and (numUsed > numUseCPUCores) then
           begin
                inc(objs[numUsed - 2].height, objs[numUsed - 1].height);
                dec(numUsed);
@@ -1575,7 +1581,7 @@ var i: NativeInt;
     numUsed : integer;
 begin
      // check if it is really necessary to thread the call:
-     if (width < numCPUCores) and (height < numCPUCores) then
+     if (width < numUseCPUCores) and (height < numUseCPUCores) then
      begin
           MatrixFunc(dest, destLineWidth, width, height, func);
           exit;
@@ -1586,7 +1592,7 @@ begin
      startY := 0;
      if width > height then
      begin
-          thrSize := Max(64, width div numCPUCores);
+          thrSize := Max(64, width div numUseCPUCores);
 
           while width > 0 do
           begin
@@ -1603,7 +1609,7 @@ begin
                inc(numUsed);
           end;
 
-          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          if (numUsed >= 2) and (numUsed > numUseCPUCores) then
           begin
                inc(objs[numUsed - 2].width, objs[numUsed - 1].width);
                dec(numUsed);
@@ -1611,7 +1617,7 @@ begin
      end
      else
      begin
-          thrSize := Max(64, height div numCPUCores);
+          thrSize := Max(64, height div numUseCPUCores);
 
           while height > 0 do
           begin
@@ -1628,7 +1634,7 @@ begin
                dec(height, thrSize);
           end;
 
-          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          if (numUsed >= 2) and (numUsed > numUseCPUCores) then
           begin
                inc(objs[numUsed - 2].height, objs[numUsed - 1].height);
                dec(numUsed);
@@ -1668,7 +1674,7 @@ begin
      numUsed := 0;
      if width > height then
      begin
-          thrSize := width div numCPUCores;
+          thrSize := width div numUseCPUCores;
 
           while width > 0 do
           begin
@@ -1683,7 +1689,7 @@ begin
                inc(numUsed);
           end;
 
-          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          if (numUsed >= 2) and (numUsed > numUseCPUCores) then
           begin
                inc(objs[numUsed - 2].width, objs[numUsed - 1].width);
                dec(numUsed);
@@ -1691,7 +1697,7 @@ begin
      end
      else
      begin
-          thrSize := height div numCPUCores;
+          thrSize := height div numUseCPUCores;
 
           while height > 0 do
           begin
@@ -1706,7 +1712,7 @@ begin
                inc(numUsed);
           end;
 
-          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          if (numUsed >= 2) and (numUsed > numUseCPUCores) then
           begin
                inc(objs[numUsed - 2].height, objs[numUsed - 1].height);
                dec(numUsed);
@@ -1749,7 +1755,7 @@ var i: NativeInt;
     numUsed : integer;
 begin
      // check if it is really necessary to thread the call:
-     if (width < numCPUCores) and (height < numCPUCores) then
+     if (width < numUseCPUCores) and (height < numUseCPUCores) then
      begin
           MatrixSort(Dest, destLineWidth, Width, height, RowWise, nil);
           exit;
@@ -1759,7 +1765,7 @@ begin
      numUsed := 0;
      if not RowWise then
      begin
-          maxNumCores := Min(width, numCPUCores);
+          maxNumCores := Min(width, numUseCPUCores);
 
           thrSize := Max(64, width div maxNumCores);
           hlpMem := MtxMallocAlign( maxNumCores*height*sizeof(double), mem);
@@ -1787,7 +1793,7 @@ begin
      end
      else
      begin
-          maxNumCores := Min(height, numCPUCores);
+          maxNumCores := Min(height, numUseCPUCores);
 
           thrSize := Max(64, height div maxNumCores);
 
@@ -1805,7 +1811,7 @@ begin
                inc(numUsed);
           end;
 
-          if (numUsed >= 2) and (numUsed > numCPUCores) then
+          if (numUsed >= 2) and (numUsed > numUseCPUCores) then
           begin
                inc(objs[numUsed - 2].height, objs[numUsed - 1].height);
                dec(numUsed);
@@ -1839,7 +1845,7 @@ var i: NativeInt;
     mem : Pointer;
 begin
      // check if it is really necessary to thread the call:
-     if (width < numCPUCores) and (height < numCPUCores) then
+     if (width < numUseCPUCores) and (height < numUseCPUCores) then
      begin
           MatrixMedian(Dest, destLineWidth, Src, srcLineWidth, Width, height, RowWise, nil);
           exit;
@@ -1933,7 +1939,7 @@ var i: NativeInt;
     maxNumCores : integer;
 begin
      // check if it is really necessary to thread the call:
-     if (width < numCPUCores) and (height < numCPUCores) then
+     if (width < numUseCPUCores) and (height < numUseCPUCores) then
      begin
           MatrixRollMedian(Dest, destLineWidth, Width, height, order, rowWise);
           exit;

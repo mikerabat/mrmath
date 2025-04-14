@@ -150,7 +150,7 @@ type
 
 implementation
 
-uses Math, MathUtilFunc;
+uses Math, MathUtilFunc, CplxSimpleMatrixOperations;
 
 // ###########################################
 // #### Auxilary functions
@@ -206,113 +206,6 @@ begin
      end;
 end;
 
-// ###########################################
-// #### Complex number arithmetic helper functions
-// ###########################################
-
-function CAbs( const val : TComplex ) : double;
-var x, y : double;
-    temp : double;
-begin
-     x := abs( val.real );
-     y := abs( val.imag );
-     if x = 0
-     then
-         Result := y
-     else if y = 0
-     then
-         Result := x
-     else
-     begin
-          temp := min(y, x)/max(y, x);
-          Result := max(x, y)*sqrt(1 + sqr(temp));
-     end;
-end;
-
-function CAdd( const x1, x2 : TComplex ) : TComplex;
-begin
-     Result.real := x1.real + x2.real;
-     Result.imag := x1.imag + x2.imag;
-end;
-
-function CSub( const x1, x2 : TComplex ) : TComplex;
-begin
-     Result.real := x1.real - x2.real;
-     Result.imag := x1.imag - x2.imag;
-end;
-
-
-function CMul(const x1, x2 : TComplex ) : TComplex;
-begin
-     Result.real := x1.real*x2.real - x1.imag*x2.imag;
-     Result.imag := x1.real*x2.imag + x1.imag*x2.real;
-end;
-
-function CDiv( const x1, x2 : TComplex ) : TComplex;
-var denom : double;
-    r : double;
-begin
-     if abs( x2.real ) >= abs(x2.imag) then
-     begin
-          r := x2.imag/x2.real;
-          denom := x2.real + x2.imag*r;
-          Result.real := (x1.real + r*x1.imag)/denom;
-          Result.imag := (x1.imag - r*x1.real)/denom;
-     end
-     else
-     begin
-          r := x2.real/x2.imag;
-          denom := x2.imag + x2.real*r;
-
-          Result.real := (x1.real*r + x1.imag)/denom;
-          Result.imag := (x1.imag*r - x1.real)/denom;
-     end;
-end;
-
-function RCMul(x1 : double; x2 : TComplex ) : TComplex;
-begin
-     Result.real := x1*x2.real;
-     Result.imag := x1*x2.imag;
-end;
-
-function CSqrt( const x : TComplex ) : TComplex;
-var a, b : double;
-    r, w : double;
-    c : double;
-begin
-     Result := InitComplex(0, 0);
-     if (x.real = 0) and (x.imag = 0) then
-        exit;
-
-     if x.imag = 0 then
-     begin
-          if x.real < 0
-          then
-              Result.imag := sqrt(abs(x.real))
-          else
-              Result.real := sqrt(x.real);
-     end
-     else
-     begin
-          a := abs(x.Real);
-          b := abs(x.imag);
-
-          r := Min(a, b)/Max(a, b);
-          c := ifthen( a >= b, 1, r);
-          w := sqrt(Max(a, b))*sqrt(0.5*(c + sqrt(1 + sqr(r))));
-
-          if x.real >= 0 then
-          begin
-               Result.real := w;
-               Result.imag := x.imag/(2*w);
-          end
-          else
-          begin
-               Result.imag := w*math.sign(x.imag);
-               Result.real := x.imag/(2*Result.imag);
-          end;
-     end;
-end;
 
 // ###########################################
 // #### Polynom root finding

@@ -620,9 +620,9 @@ begin
      // #### prepare objs
      numUsed := 0;
 
-     thrSize := Max(32, width div numCPUCores + Integer((width mod numCPUCores) <> 0));
+     thrSize := Max(32, width div numUseCPUCores + Integer((width mod numUseCPUCores) <> 0));
 
-     for i := 0 to numCPUCores - 1 do
+     for i := 0 to numUseCPUCores - 1 do
      begin
           wSize := thrSize;
           if wSize*(i + 1) >= width then
@@ -774,7 +774,7 @@ var parity : NativeInt;
     rc : TRecMtxLUDecompData;
     mem : Pointer;
 begin
-     mem := MtxAlloc(4*numCPUCores*(cBlkMultSize + numCPUCores + 2)*cBlkMultSize*sizeof(double) + $20);
+     mem := MtxAlloc(4*numUseCPUCores*(cBlkMultSize + numUseCPUCores + 2)*cBlkMultSize*sizeof(double) + $20);
      FillChar(indx^, width*sizeof(integer), 0);
 
      rc.progress := progress;
@@ -872,11 +872,11 @@ begin
      numUsed := 0;
 
      // at least 32 blocks
-     thrSize := Max(32, width div numCPUCores + Integer((width mod numCPUCores) <> 0));
+     thrSize := Max(32, width div numUseCPUCores + Integer((width mod numUseCPUCores) <> 0));
 
      // ############################################################
      // #### prepare tasks
-     for i := 0 to numCPUCores - 1 do
+     for i := 0 to numUseCPUCores - 1 do
      begin
           wSize := thrSize;
           if wSize*(i+1) > width then
@@ -936,7 +936,7 @@ begin
      LULineWidth := w*SizeOf(double);
      LUDecomp := MtxMallocAlign(w*width*sizeof(double), ptrMem);
 
-     mem := MtxAllocAlign(4*numCPUCores*(cBlkMultSize + numCPUCores + 2)*cBlkMultSize*sizeof(double) + $20, ptrMem1);
+     mem := MtxAllocAlign(4*numUseCPUCores*(cBlkMultSize + numUseCPUCores + 2)*cBlkMultSize*sizeof(double) + $20, ptrMem1);
      SetLength(indx, width);
      MatrixCopy(LUDecomp, LULineWidth, A, LineWidthA, width, width);
 
@@ -1019,21 +1019,21 @@ begin
           exit;
      end;
 
-     thrSize := Max(1, width2 div numCPUCores + Integer((width2 mod numCPUCores) <> 0));
+     thrSize := Max(1, width2 div numUseCPUCores + Integer((width2 mod numUseCPUCores) <> 0));
 
      // first copy the B matrix to X -> the result is overwritten
      MatrixCopy(X, LineWidthX, B, LineWidthB, width2, width);
 
      // now distribute the computaions accross all cpu's
      calls := nil;
-     if Min(thrSize, numCPUCores) > 1 then
+     if Min(thrSize, numUseCPUCores) > 1 then
         calls := MtxInitTaskGroup;
      numUsed := 0;
      
-     for i := 0 to Min(thrSize, numCPUCores) - 1 do
+     for i := 0 to Min(thrSize, numUseCPUCores) - 1 do
      begin
           wSize := thrSize;
-          if i = Min(thrSize, numCPUCores) - 1 then
+          if i = Min(thrSize, numUseCPUCores) - 1 then
              wSize := width2 - i*thrSize;
 
           objs[numUsed].A := LUDecomp;

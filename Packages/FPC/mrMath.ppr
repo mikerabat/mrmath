@@ -24,6 +24,7 @@ uses
   {$IFDEF LINUX} cthreads, {$ENDIF}
   MatrixConst in '..\..\MatrixConst.pas',
   SimpleMatrixOperations in '..\..\SimpleMatrixOperations.pas',
+  CplxSimpleMatrixOperations in '..\..\CplxSimpleMatrixOperations.pas',
 
 // ###########################################
 // #### Assembler only routines

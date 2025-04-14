@@ -76,6 +76,7 @@ const cNegMaxDoubles : Array[0..1] of double = (-1.7e+308, -1.7e+308);
 
 type
   TEigenvalueConvergence = (qlOk, qlNoConverge, qlMatrixError);
+  TEigenvalueEivecNormalize = ( enNone, enLen, enMaxVal ); // none, normalize to length 1, normalize to max = 1
 
 type
   TMathOperationRes = (moSuccess, moFailure);
@@ -93,8 +94,14 @@ type
 type
   TMatrixFunc = procedure(var Value : double);
   TMatrixObjFunc = procedure(var Value : double) of Object;
-  TMatrixMtxRefFunc = procedure(var Value : double; const data : PDouble; LineWidth : integer; x, y : integer);
-  TMatrixMtxRefObjFunc = procedure(var Value : double; const data : PDouble; LineWidth : integer; x, y : integer) of Object;
+  TMatrixMtxRefFunc = procedure(var Value : double; const data : PDouble; LineWidth : NativeInt; x, y : NativeInt);
+  TMatrixMtxRefObjFunc = procedure(var Value : double; const data : PDouble; LineWidth : NativeInt; x, y : NativeInt) of Object;
+
+  TCplxMatrixFunc = procedure(var Value : TComplex);
+  TCplxMatrixObjFunc = procedure(var Value : TComplex) of Object;
+  TCplxMatrixMtxRefFunc = procedure(var Value : TComplex; const data : PComplex; LineWidth : NativeInt; x, y : NativeInt);
+  TCplxMatrixMtxRefObjFunc = procedure(var Value : TComplex; const data : PComplex; LineWidth : NativeInt; x, y : NativeInt) of Object;
+
 
 {$IFDEF FPC}
    {.$DEFINE ANONMETHODS}
@@ -107,7 +114,10 @@ type
 
 {$IFDEF ANONMETHODS}
   TMatrixFuncRef = reference to procedure(var Value : double);
-  TMatrixMtxRefFuncRef = reference to procedure(var Value : double; const data : PDouble; LineWidth : integer; x, y : integer);
+  TMatrixMtxRefFuncRef = reference to procedure(var Value : double; const data : PDouble; LineWidth : NativeInt; x, y : NativeInt);
+
+  TCplxMatrixFuncRef = reference to procedure(var Value : TComplex);
+  TCplxMatrixMtxRefFuncRef = reference to procedure(var Value : TComplex; const data : PComplex; LineWidth : NativeInt; x, y : NativeInt);
 {$ENDIF}
 
 function ConvEQUProgress(value : TLinEquProgressWOObj) : TLinEquProgress;
@@ -130,6 +140,11 @@ type
 // #### Creates a pointer to the x, y element of the given matrix (row major)
 function GenPtr(const A : PDouble; incX, incY : NativeInt; const LineWidthA : NativeInt) : PDouble; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function GenPtrArr(const A : PDouble; incX, incY : NativeInt; const LineWidthA : NativeInt) : PConstDoubleArr; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+
+// complex version
+function CplxGenPtr(const A : PComplex; incX, incY : NativeInt; const LineWidthA : NativeInt) : PComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+function CplxGenPtrArr(const A : PComplex; incX, incY : NativeInt; const LineWidthA : NativeInt) : PConstComplexArr; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+
 
 // ###########################################
 // #### Sets the pointer to the next available 32bytes alligned address
@@ -159,6 +174,20 @@ end;
 function GenPtrArr(const A : PDouble; incX, incY : NativeInt; const LineWidthA : NativeInt) : PConstDoubleArr; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 begin
      Result := PConstDoubleArr(A);
+     Result := @Result^[incX];
+     inc(PByte(Result), incY*LineWidthA);
+end;
+
+function CplxGenPtr(const A : PComplex; incX, incY : NativeInt; const LineWidthA : NativeInt) : PComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+begin
+     Result := A;
+     inc(Result, incX);
+     inc(PByte(Result), incY*LineWidthA);
+end;
+
+function CplxGenPtrArr(const A : PComplex; incX, incY : NativeInt; const LineWidthA : NativeInt) : PConstComplexArr; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+begin
+     Result := PConstComplexArr(A);
      Result := @Result^[incX];
      inc(PByte(Result), incY*LineWidthA);
 end;

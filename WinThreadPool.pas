@@ -132,7 +132,7 @@ constructor TSimpleWinThreadGroup.Create(pool : TMtxThreadPool);
 begin
      fPool := pool;
      fTaskList := TInterfaceList.Create;
-     fTaskList.Capacity := numCPUCores;
+     fTaskList.Capacity := numUseCPUCores;
 
      inherited Create;
 end;

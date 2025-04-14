@@ -57,6 +57,8 @@ type
   procedure TestEigValVecFromSymMtx;
   procedure TestBigEigValVecFromSymMtx;
   procedure TestBigThreadedEigValVecFromSymMtx;
+
+  procedure TestEigVec2x2;
  end;
 
 implementation
@@ -80,7 +82,7 @@ begin
      Move(B, dest, sizeof(B));
      Check(qlOk = MatrixUnsymEigVecInPlace(@dest[0], 3*sizeof(double), 3, @Wr[0], sizeof(double), @wi[0], sizeof(double), 
                               @eivec[0], 3*sizeof(double)), 'Error no convergence');
-     MatrixNormEivecInPlace(@Eivec[0], 3*SizeOf(double), 3, @WI[0], sizeof(double));
+     MatrixNormEivecInPlace(@Eivec[0], 3*SizeOf(double), 3, @WI[0], sizeof(double), False);
 
      Check(CheckMtx(EigVals, Wr, -1, -1, 0.001), 'Error wrong eigenvalues');
      Check(CheckMtx(EigVec, Eivec, -1, -1, 0.001), 'Error wrong eigenvectors');
@@ -673,11 +675,32 @@ begin
      checK(qlOk = MatrixUnsymEigVecInPlace(@dest[0], 3*sizeof(double), 3, @wr[0], sizeof(double), @wi[0], sizeof(double), 
                                            @eivec[0], 3*sizeof(double)), 'Error no convergence');
 
-     MatrixNormEivecInPlace(@Eivec[0], 3*SizeOf(double), 3, @WI[0], sizeof(double));
+     MatrixNormEivecInPlace(@Eivec[0], 3*SizeOf(double), 3, @WI[0], sizeof(double), False);
 
      Check(CheckMtx(EigVals, Wr, -1, -1, 0.001), 'Error wrong eigenvalues');
      Check(CheckMtx(EigVec, Eivec, -1, -1, 0.001), 'Error wrong eigenvectors');
 end;
+
+procedure TTestEigensystems.TestEigVec2x2;
+const x : Array[0..3] of double = (4, 2, 1, -1);
+var a : IMatrix;
+    b, c : IMatrix;
+begin
+     InitMathFunctions(itFPU, false);
+     a := TDoubleMatrix.Create(x, 2, 2);
+     a.Eig(b, c);
+
+     Status('Eigvals:' );
+     Status( WriteMtx( b.GetObjRef, 5 ) );
+
+     Status('EigVec:');
+     Status( WriteMtx( c.GetObjRef, 5 ));
+
+     c.Normalize(False);
+     Status('Normalized:');
+     Status( WriteMtx( c.GetObjRef, 5 ));
+end;
+
 
 procedure TTestEigensystems.TestEigVecComplex;
 const A : Array[0..15] of double = (10, 9, 8, 9, 2, 8, 4, 7, 6, 5, 6, 2, 5, 0, 8, 4);
@@ -688,6 +711,8 @@ var dest : Array[0..15] of double;
     Eivec : Array[0..15] of double;
     Wr : Array[0..3] of double;
     Wi : Array[0..3] of double;
+    i, j : Integer;
+    s : string;
 begin
      FillChar(wr, sizeof(wr), 0);
      FillChar(wi, sizeof(wi), 0);
@@ -696,7 +721,17 @@ begin
      checK(qlOk = MatrixUnsymEigVecInPlace(@dest[0], 4*sizeof(double), 4, @wr[0], sizeof(double), @wi[0], sizeof(double), 
                                            @eivec[0], 4*sizeof(double)), 'Error no convergence');
 
-     MatrixNormEivecInPlace(@Eivec[0], 4*SizeOf(double), 4, @WI[0], sizeof(double));
+     InitMathFunctions(itFPU, false);
+     MatrixNormEivecInPlace(@Eivec[0], 4*SizeOf(double), 4, @WI[0], sizeof(double), False);
+
+     for i := 0 to 3 do
+     begin
+          s := '';
+          for j := 0 to 3 do
+              s := s + Format( '%.3f, ', [eivec[i*4 + j]] );
+
+          Status(s);
+     end;
 
      Check(CheckMtx(EigValsR, WR, -1, -1, 0.001), 'Error wrong real Eigenvalue part');
      Check(CheckMtx(EigValsI, WI, -1, -1, 0.001), 'Error wrong imaginary Eigenvalue part');
@@ -997,7 +1032,7 @@ begin
      FillChar(wr, sizeof(wr), 0);
      FillChar(wi, sizeof(wi), 0);
      Check(qlOk = MatrixUnsymEigVec(@B[0], 3*sizeof(double), 3, @Wr[0], sizeof(double), @Wi[0], sizeof(double), @Eivec[0], 3*sizeof(double)), 'error in convergence of eigenvector routine');
-     MatrixNormEivecInPlace(@Eivec[0], 3*sizeof(double), 3, @wi[0], sizeof(double));
+     MatrixNormEivecInPlace(@Eivec[0], 3*sizeof(double), 3, @wi[0], sizeof(double), False);
      
      Check(CheckMtx(EigVals, Wr, -1, -1, 0.001), 'Error wrong eigenvalues');
      Check(CheckMtx(EigVec, Eivec, -1, -1, 0.001), 'Error wrong eigenvectors');

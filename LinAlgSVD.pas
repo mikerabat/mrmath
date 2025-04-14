@@ -2534,13 +2534,13 @@ begin
      Result := 64 + Max(w2*w2*sizeof(double) + w2*sizeof(double) + svdData.SVDMultSize*w2*sizeof(double),
                         sizeof(double)*(w2*w2 + 3*w2)
                         )  +
-                    numCPUCores*BlockMultMemSize( BlockMatrixCacheSize );
+                    numUseCPUCores*BlockMultMemSize( BlockMatrixCacheSize );
 
      // no qr decomp -> reduce workspace needed
      if (height >= width) and (Height <= mnthr) then
      begin
           // mem for TauP, TauQ, D, E, Bidiagonlaization multiplication memory
-          Result := 64 + sizeof(double)*(  (3 + 5)*w2 + (w2 + height)*SVDBlockSize) + numCPUCores*BlockMultMemSize(Max(SVDBlockSize, QRMultBlockSize));
+          Result := 64 + sizeof(double)*(  (3 + 5)*w2 + (w2 + height)*SVDBlockSize) + numUseCPUCores*BlockMultMemSize(Max(SVDBlockSize, QRMultBlockSize));
      end;
 end;
 
@@ -2616,7 +2616,7 @@ begin
      //numUsed := numCPUCores - 1;
      numUsed := numRealCores;
 
-     if numRealCores = numCPUCores then
+     if numRealCores = numUseCPUCores then
         dec(numUsed);
 
      // check if threading is speeding up the process
@@ -2665,7 +2665,7 @@ begin
      //numUsed := numCPUCores - 1;
      numUsed := numRealCores;
 
-     if numRealCores = numCPUCores then
+     if numRealCores = numUseCPUCores then
         dec(numUsed);
 
      // check if threading is speeding up the process

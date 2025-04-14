@@ -1038,7 +1038,7 @@ var i : integer;
 begin
      MemoryBarrier;
      spinWaitCnt := 4000;
-     if numCPUCores > numRealCores then
+     if numUseCPUCores > numRealCores then
         spinWaitCnt := 100;
      for i := 0 to numElem - 1 do
      begin
@@ -1327,6 +1327,11 @@ begin
      Result := ( (w < 1024) and (h < 1024) and (w > BlockedMatrixMultSize) and (h > BlockedMatrixMultSize) );
 end;
 
+// these functions have a probelm...
+// on cpu's with performance and efficiency cores the efficiency cores make the calls slowing down everything
+// tremendously - in addition the spin wait rountine - when the yieldprocessor function is involved - slows down
+// everything again (afaik PAUSE can lead to get the cpu into a different power state and may be used to reduce power consumption).
+
 procedure ThrBlockMatrixMultiplicationT2(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
   const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
 var h1, h : NativeInt;
@@ -1356,7 +1361,7 @@ var h1, h : NativeInt;
     calls : IMtxAsyncCallGroup;
     waitObjs : TFlagRecArr;
 begin
-     usedCores := NumCoresToUseForMult(width1, height1, height2, width2, blockSize);
+     usedCores := NumCoresFoBlkMult2( Min( blockSize, Min(width1, Min(height1, width2 ) ) ) );
 
      if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
         exit;
@@ -1532,7 +1537,7 @@ var w, h : NativeInt;
     calls : IMtxAsyncCallGroup;
     waitObj : TFlagRecArr;
 begin
-     usedCores := NumCoresToUseForMult(width1, height1, height2, width2, blockSize);
+     usedCores := NumCoresFoBlkMult2( Min( blockSize, Min(width1, Min(height1, width2 ) ) ) );
 
      if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
         exit;

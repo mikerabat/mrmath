@@ -1852,7 +1852,10 @@ var aMt1, aMt2 : PDouble;
     i : Integer;
     isSame : boolean;
     errOccured : boolean;
+    numOrigCores : integer;
 begin
+     numOrigCores := numUseCPUCores;
+
      InitMtxThreadPool;
      errOccured := False;
      for i := 0 to Length(cMtxWidth) - 1 do
@@ -1865,7 +1868,7 @@ begin
 
           start1 := MtxGetTime;
           ThrBlockMatrixMultiplicationT2(aDest1, aDestLineWidth1, aMt1, aMt2, cMtxWidth[i], cMtxHeight[i], cMtxWidth[i], cMtxHeight[i],
-                                         aMt1LineWidth, aMt2LineWidth, BlockMatrixCacheSize, doNone, nil);
+                                         aMt1LineWidth, aMt2LineWidth, 5*BlockMatrixCacheSize, doNone, nil);
           end1 := MtxGetTime;
 
           start2 := MtxGetTime;
@@ -1887,6 +1890,7 @@ begin
           FreeMem(aMem4);
      end;
 
+     numUseCPUCores := numOrigCores;
      Check(not errOccured, 'Problem with threaded matrix multiplication');
 end;
 
