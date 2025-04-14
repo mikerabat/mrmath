@@ -101,7 +101,7 @@ begin
      for i := 0 to slIn.Count - 1 do
      begin
           // AVX in the first few characters hints for a procedure/function name
-          if (Pos('PROC NEAR', slIn[i] ) > 1) or (Pos('SINGLE PROC', slIn[i] ) > 1) then
+          if (Pos(' PROC', slIn[i] ) > 1) then // or (Pos('SINGLE PROC', slIn[i] ) > 1) then
           begin
                // search for the function name in the output file
                s := slIn[i];
