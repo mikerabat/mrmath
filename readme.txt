@@ -50,6 +50,9 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+date: 23.05.2025
+* just added row and col swap routines in the matrix class
+
 date 14.04.2025
 * Started a unit for complex number operations
 * New code to detect performance and efficiency cores
