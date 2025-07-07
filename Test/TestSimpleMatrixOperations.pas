@@ -131,6 +131,7 @@ type
     procedure TestSQRT;
     procedure TestVecDistABS;
     procedure TestVecDistSQR;
+    procedure TestRowSwap;
   end;
 
   {$IFDEF FMX} [TestFixture] {$ENDIF}
@@ -4624,6 +4625,22 @@ begin
      // #### Do the assembler version:
      ASMSymRank2UpdateUpper(@C1[0], cN*sizeof(double), @A[0], ck*sizeof(double), @B[0], ck*sizeof(Double), cN, ck);
      Check(CheckMtx( C, C1 ),  'Error Asm Sym Rank2 update failed' );
+end;
+
+procedure TASMMatrixOperations.TestRowSwap;
+var m : IMatrix;
+    c1, c2 : PDouble;
+begin
+     m := TDoubleMatrix.CreateRand(5, 5);
+
+     Status(WriteMtx(m.GetObjRef));
+     c1 := m.StartElement;
+     c2 := c1;   // points to the first element
+     inc(c2, 4); // points to the last element
+     MatrixColSwap(c1, c2, m.LineWidth, 5);
+     m.SetSubMatrix(0, 0, 4, 5); // hide last column
+
+     Status(WriteMtx(m.GetObjRef));
 end;
 
 procedure TASMMatrixOperations.TestBigRank2Upd;
