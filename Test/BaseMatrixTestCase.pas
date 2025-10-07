@@ -55,7 +55,7 @@ type
    procedure FillAlignedMtx(mtxSize : integer; out pX : PDouble; out pMem : PByte); overload;
    procedure FillAlignedMtx(mtxWidth, mtxHeight : integer; out pX : PDouble; out pMem : PByte; out LineWidthAligned : NativeInt); overload;
    procedure FillUnalignedMtx(mtxWidth, mtxHeight : integer; out pX : PDouble; out pMem : PByte; out LineWidthAligned : NativeInt);
-   procedure WriteMatlabData(const fileName : string; const data : Array of double; width : integer);
+   procedure WriteMatlabData(const fileName : string; const data : Array of double; width : integer); overload;
    procedure TryClearCache;
    function WriteMtx(const data : Array of Double; width : integer; prec : integer = 3) : string; overload;
    function WriteMtx(data : PDouble; LineWidth : NativeInt; width : integer; height : integer; prec : integer = 3) : string; overload;
@@ -66,6 +66,10 @@ type
    function CheckMtxIdx(data1, data2 : PDouble; LineWidth1, LineWidth2 : NativeInt; mtxWidth, mtxHeight : integer; out idx : integer; const epsilon : double = 1e-4) : boolean; overload;
    function WriteMtxDyn(const data : TDoubleDynArray; width : integer; prec : integer = 3) : string; overload;
    function LoadBin( fn : String ) : TDoubleDynArray;
+
+   function CplxWriteMtx(const data : Array of TComplex; width : integer; prec : integer = 3) : string; overload;
+   procedure WriteMatlabData(const fileName : string; const data : Array of TComplex; width : integer); overload;
+   procedure WriteBin( const filename : string; const data : Array of TComplex );
  end;
 
  TBaseImgTestCase = class(TBaseMatrixTestCase)
@@ -400,7 +404,7 @@ begin
 end;
 
 function TBaseMatrixTestCase.WriteMtx(const data: array of Double;
-  width: integer; prec : integer = 3): string; 
+  width: integer; prec : integer = 3): string;
 var x, y : integer;
 begin
      Result := '';
@@ -681,6 +685,50 @@ begin
 end;
 {$ENDIF}
 
+procedure TBaseMatrixTestCase.WriteBin(const filename: string;
+  const data: array of TComplex);
+begin
+     with TFileStream.Create(filename, fmCreate or fmOpenWrite) do
+     try
+        WriteBuffer( data[0], sizeof(TComplex)*Length(data));
+     finally
+            Free;
+     end;
+end;
+
+procedure TBaseMatrixTestCase.WriteMatlabData(const fileName: string;
+  const data: array of TComplex; width: integer);
+var i : integer;
+    s : string;
+begin
+     // write a file which can be read into matlab using the load command
+     // the procedure is usefull to verify the results against this program.
+     with TStringList.Create do
+     try
+        BeginUpdate;
+        s := '';
+        for i := 0 to Length(data) - 1 do
+        begin
+             s := s + Format('%.9f + i*%.9f,', [data[i].real, data[i].imag]);
+
+             if i mod width = width - 1 then
+             begin
+                  s[length(s)] := ';';
+                  if i = Length(data) - 1 then
+                     system.Delete(s, Length(s), 1);
+                  Add(s);
+                  s := '';
+             end;
+        end;
+        EndUpdate;
+
+        SaveToFile(FileName {$IF not Defined(FPC) and (CompilerVersion >= 20)} , TEncoding.ASCII {$IFEND});
+     finally
+            Free;
+     end;
+end;
+
+
 function TBaseMatrixTestCase.WriteMtx(mtx: TDoubleMatrix;
   prec: integer): string;
 begin
@@ -709,6 +757,22 @@ begin
               Result := Result and (pMtx^[x] = value);
 
           inc(PByte(pMtx), LineWidth);
+     end;
+end;
+
+
+function TBaseMatrixTestCase.CplxWriteMtx(const data: array of TComplex; width,
+  prec: integer): string;
+var x, y : integer;
+begin
+     Result := '';
+
+     for y := 0 to (High(data) + 1) div width - 1 do
+     begin
+          for x := 0 to width - 1 do
+              Result := Result + Format('%3.*f + i*%3.*f  ', [prec, data[x + y*width].real, prec, data[x + y*width].imag]);
+
+          Result := Result + #13#10;
      end;
 end;
 

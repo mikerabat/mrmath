@@ -29,6 +29,11 @@ procedure GenericBlockMatrixMultiplication(dest : PDouble; const destLineWidth :
   width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
   const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation = doNone; mem : PDouble = nil);
 
+procedure CplxGenericBlockMatrixMultiplication(dest : PComplex; const destLineWidth : NativeInt; mt1, mt2 : PComplex;
+  width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+  const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation = doNone; mem : PComplex = nil);
+
+
 // calculates dest = mt1'*mt2
 procedure GenericBlockMatrixMultiplicationT1(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
   const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation; mem : Pdouble);
@@ -80,7 +85,8 @@ uses BlockSizeSetup, SimpleMatrixOperations, MatrixASMStubSwitch, Math,
      {$IFDEF MSWINDOWS}
      Windows,
      {$ENDIF}
-     MtxThreadPool, ThreadedMatrixOperations, MathUtilFunc;
+     MtxThreadPool, ThreadedMatrixOperations, MathUtilFunc,
+     CplxSimpleMatrixOperations;
 
 {$I 'mrMath_CPU.inc'}
 
@@ -818,6 +824,113 @@ begin
      if not Assigned(mem) then
         FreeMem(actBlk);
 end;
+
+procedure CplxGenericBlockMatrixMultiplication(dest : PComplex; const destLineWidth : NativeInt; mt1, mt2 : PComplex;
+  width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;
+  const LineWidth1, LineWidth2 : NativeInt; blockSize : NativeInt; op : TMatrixMultDestOperation = doNone; mem : PComplex = nil);
+var w, h : NativeInt;
+    blkIdxX : NativeInt;
+    actBlk : PComplex;
+    multBlk : PComplex;
+    pA, pB : PComplex;
+    blkIdxY : NativeInt;
+    idx : NativeInt;
+    gamma : NativeInt;
+    pDest : PComplex;
+    pMt2 : PComplex;
+    w1FitCacheSize : boolean;
+    w2FitCacheSize : boolean;
+    h1FitCacheSize : boolean;
+    blkHeight : NativeInt;
+    blkWidth : NativeInt;
+    gammaWidth : NativeInt;
+    sizeVal : NativeInt;
+begin
+     if (width1 = 0) or (width2 = 0) or (height1 = 0) or (height2 = 0) then
+     	  exit;
+     assert((width1 = height2), 'Dimension error');
+     assert((destLineWidth - Width2*sizeof(TComplex) >= 0) and (LineWidth1 >= width1*sizeof(TComplex)) and (LineWidth2 >= width2*sizeof(TComplex)), 'Line widths do not match');
+
+     // estimate a good blocksize - one with a small number of zero columns (but as near as possible to cCacheMtxSize
+     if blockSize <= 0 then
+     begin
+          sizeVal := Max(width1, width2);
+
+          while sizeVal > cCacheMtxSize do
+                sizeVal := sizeVal shr 1;
+
+          blockSize := Min(Max(width1, width2), Max(64, sizeVal));
+     end;
+
+     h1FitCacheSize := (height1 mod blockSize) = 0;
+     w2FitCacheSize := (width2 mod blockSize) = 0;
+     w1FitCacheSize := (width1 mod blockSize) = 0;
+
+     h := height1 div blockSize + NativeInt(not h1FitCacheSize) - 1;
+     w := width2 div blockSize + NativeInt(not w2FitCacheSize) - 1;
+     gamma := width1 div blockSize + NativeInt(not w1FitCacheSize) - 1;
+
+     if Assigned(mem)
+     then
+         actBlk := mem
+     else
+         GetMem(actBlk, CplxBlockMultMemSize(blockSize));
+
+     multBlk := actBlk;
+     inc(multBlk, blockSize*blockSize);
+
+     blkHeight := blockSize;
+
+     for blkIdxY := 0 to h do
+     begin
+          if (blkIdxY = h) and not h1FitCacheSize then
+             blkHeight := (height1 mod blockSize);
+
+          pDest := dest;
+          inc(PByte(pDest), blkIdxY*blockSize*destLineWidth);
+          pMt2 := mt2;
+          blkWidth := blockSize;
+
+          for blkIdxX := 0 to w do
+          begin
+               if (blkIdxX = w) and not w2FitCacheSize then
+                  blkWidth := (width2 mod blockSize);
+
+               FillChar(actBlk^, blockSize*blockSize*sizeof(TComplex), 0);
+               pa := mt1;
+               pb := pMt2;
+
+               gammaWidth := blockSize;
+               for idx := 0 to gamma do
+               begin
+                    if (idx = gamma) and not w1FitCacheSize then
+                       gammaWidth := width1 mod blockSize;
+
+                    CplxGenericMtxMult(multBlk, blockSize*sizeof(TComplex), pa, pb, gammaWidth, blkHeight, blkWidth, gammaWidth, LineWidth1, LineWidth2);
+                    CplxGenericMtxAdd(actBlk, blockSize*sizeof(TComplex), actBlk, multBlk, blkWidth, blkHeight, blockSize*sizeof(TComplex), blockSize*sizeof(TComplex));
+
+                    inc(pa, gammaWidth);
+                    inc(PByte(pb), gammaWidth*LineWidth2);
+               end;
+
+               // build the result: dest = Dest +- A*B  (according to the operator)
+               case op of
+                 doNone: CplxGenericMtxCopy(pDest, destLineWidth, ActBlk, blockSize*sizeof(TComplex), blkWidth, blkHeight);
+                 doAdd:  CplxGenericMtxAdd(pDest, destLineWidth, ActBlk, pDest, blkWidth, blkHeight, blockSize*sizeof(TComplex), destLineWidth);
+                 doSub:  CplxGenericMtxSub(pDest, destLineWidth, pDest, ActBlk, blkWidth, blkHeight, destLineWidth, blockSize*sizeof(TComplex));
+               end;
+
+               inc(pDest, blockSize);
+               inc(pMt2, blockSize);
+          end;
+
+          inc(PByte(mt1), blkHeight*LineWidth1);
+     end;
+
+     if not Assigned(mem) then
+        FreeMem(actBlk);
+end;
+
 
 // calculates mt1'*mt2
 procedure GenericBlockMatrixMultiplicationT1(dest : PDouble; const destLineWidth : NativeInt; mt1, mt2 : PDouble; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt;

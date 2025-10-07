@@ -36,6 +36,7 @@ type
     procedure TestSinCosTan;
     // matrix stuff
     procedure TestCplxInit;
+    procedure TestCplxCopy;
     procedure TestCplxAdd;
     procedure TestCplAddVec;
     procedure TestCplxSub;
@@ -55,11 +56,17 @@ type
     procedure TestRowColSwap;
 
     procedure TestApplyFunc;
+
+    procedure TestLU;
+    procedure TestLU2;
+
+    procedure TestMtxInverse;
+    procedure TestDeterminant;
   end;
 
 implementation
 
-uses CplxSimpleMatrixOperations, Math;
+uses CplxSimpleMatrixOperations, Math, LinAlgLU, Types, RandomEng;
 
 procedure LocDoubleVal( var x : TComplex );
 begin
@@ -263,6 +270,20 @@ begin
          Check( CCmp( z2x2[i], cRes2x2[i] ) = 0, 'Complex matrix add failed');
 end;
 
+procedure TestSimpleCmplxFunctions.TestCplxCopy;
+var z8x8 : Array[0..63] of TComplex;
+    res : Array[0..63] of TComplex;
+    i: Integer;
+begin
+     for i := 0 to Length(z8x8) - 1 do
+         z8x8[i] := InitComplex(i, i + 1);
+
+     CplxGenericMtxCopy(@res[0], 8*sizeof(TComplex), @z8x8[0], 8*sizeof(TComplex), 8, 8);
+
+     for i := 0 to Length(z8x8) - 1 do
+         Check( CCmp( z8x8[i], res[i] ) = 0, 'Complex copy failed');
+end;
+
 procedure TestSimpleCmplxFunctions.TestCplxInit;
 var z8x8 : Array[0..63] of TComplex;
     ref : TComplex;
@@ -442,6 +463,45 @@ begin
          Check(CCmp(b[i], c[i]) = 0, 'In place transpose failed');
 end;
 
+procedure TestSimpleCmplxFunctions.TestDeterminant;
+var i : integer;
+    a : Array[0..15] of TComplex;
+    det : TComplex;
+    idx : Array[0..3] of Integer;
+const cRes : TComplex = (real : 33120; imag : 4608); // from matlab ;)
+begin
+     for i := 0 to High(a) do
+     begin
+          a[i] := InitComplex(i, i + 1);
+
+          if (i mod 3) = 0 then
+          begin
+               a[i].real := -a[i].real;
+               a[i].imag := -a[i].imag;
+          end;
+     end;
+
+     CplxMatrixLUDecompInPlace(@a[0], 4*sizeof(TComplex), 4, @idx[0]);
+     Status(CplxWriteMtx(a, 4));
+
+
+     for i := 0 to High(a) do
+     begin
+          a[i] := InitComplex(i, i + 1);
+
+          if (i mod 3) = 0 then
+          begin
+               a[i].real := -a[i].real;
+               a[i].imag := -a[i].imag;
+          end;
+     end;
+
+     det := CplxMatrixDeterminant(@a[0], 4*sizeof(TComplex), 4);
+     status( Format('%.3f + i*%.3f', [det.real, det.imag]));
+
+     Check( CCmp(det, cRes) = 0, 'Complex determinant failed');
+end;
+
 procedure TestSimpleCmplxFunctions.TestElemAddScale;
 const cAddVal : TComplex = (real: 3; imag: -1);
       cMulVal : TComplex = (real : 2; imag: 2);
@@ -500,6 +560,109 @@ begin
      Check( SameValue( 1.0397, x3.real, 1e-3 ) and SameValue(0.7854, x3.imag, 1e-3 ), 'Complex ln failed' );
      Check( SameValue( 0.8047, x4.real, 1e-3 ) and SameValue(2.6779, x4.imag, 1e-3 ), 'Complex ln failed' );
      Check( SameValue( 1.2825, x5.real, 1e-3 ) and SameValue(-2.1588, x5.imag, 1e-3 ), 'Complex ln failed' );
+end;
+
+procedure TestSimpleCmplxFunctions.TestLU;
+const A : Array[0..3] of TComplex = ( (real:1; imag: -1), (real: 0; imag: -1),
+                                       (real: 0; imag: 2), (real: 2; imag: -1) );
+      B : Array[0..3] of TComplex = ( (real: 1; imag : -1), (real: 0; imag: -1),
+                                      (real: -1; imag: 1), (real: 1; imag: -2));
+var LUDecomp : Array[0..3] of TComplex;
+    res : TLinEquResult;
+    idx : Array[0..1] of integer;
+begin
+     Move(A, LUDecomp, sizeof(A));
+
+     res := CplxMatrixLUDecompInPlace(@LUDecomp[0], 2*sizeof(TComplex), 2, @idx[0]);
+
+     Check(res = leOk, 'Singularity detected!');
+     CheckEqualsMem(@b[0], @LUDecomp[0], sizeof(B), 'LU decomp failed with: ' + CplxWriteMtx(LUDecomp, 2));
+end;
+
+
+procedure TestSimpleCmplxFunctions.TestLU2;
+var x : TComplexDynArray;
+    idx : TIntegerDynArray;
+    i : integer;
+    rnd : TRandomGenerator;
+    res : TLinEquResult;
+const cWidth = 127;
+      // this value has been evaluated from Matlab
+      cExpectedLastElem : TComplex = ( real: 486.05324; imag: 9.5027968 );
+begin
+     rnd := TRandomGenerator.Create( raMersenneTwister );
+     try
+        SetLength(x, cWidth*cWidth);
+        SetLength(idx, cWidth);
+
+        rnd.Init(12705677);
+        for i := 0 to Length(x) - 1 do
+        begin
+             x[i].real := rnd.RandInt(200);
+             x[i].imag := rnd.RandInt(100);
+        end;
+
+        // write to matlab file
+//        WriteBin('d:\lutest.txt', x);
+
+        res := CplxMatrixLUDecompInPlace(@x[0],  cWidth*sizeof(TComplex), cWidth, @idx[0]);
+
+        Check(res = leOk, 'Singularity detected!');
+        Check( CCmp( x[Length(x) - 1], cExpectedLastElem, 1e-4 ) = 0, 'Complex large LU decomposition failed');
+     finally
+            rnd.Free;
+     end;
+end;
+
+procedure TestSimpleCmplxFunctions.TestMtxInverse;
+var a : Array[0..15] of TComplex;
+    i : integer;
+    res : TLinEquResult;
+const cRefRes : Array[0..15] of TComplex = (
+  (real: 0.242950984513183; imag: -0.232956465478163),
+  (real: 0.027322404371585; imag: -0.032786885245902),
+  (real: 0.007541478129713; imag: -0.008295625942685),
+  (real: -0.041420435345218; imag: 0.025207287622910),
+
+  (real: 0.027322404371585; imag: -0.032786885245902),
+  (real: 0.040983606557377; imag: -0.049180327868852),
+  (real: 0; imag: 0),
+  (real: 0.013661202185792; imag: -0.016393442622951),
+
+  (real: 0.007541478129713; imag: -0.008295625942685),
+  (real: 0; imag: 0),
+  (real: 0.022624434389140; imag: -0.024886877828054),
+  (real: 0.015082956259427; imag: -0.016591251885370),
+
+  (real: -0.166420435345218; imag: 0.150207287622910),
+  (real: 0.013661202185792; imag: -0.016393442622951),
+  (real: 0.015082956259427; imag: -0.016591251885370),
+  (real: 0.028497927123771; imag: -0.016525315464563)
+  );
+
+begin
+     for i := 0 to High(a) do
+         a[i] := InitComplex(1, 1); //, i + 1);
+
+     res := CplxMatrixInverseInPlace(@a[0], 4*sizeof(TComplex), 4);
+     Check( res = leSingular, 'Non singular complex matrix - should be singular');
+
+     for i := 0 to High(a) do
+     begin
+          a[i] := InitComplex(i, i + 1);
+
+          if (i mod 3) = 0 then
+          begin
+               a[i].real := -a[i].real;
+               a[i].imag := -a[i].imag;
+          end;
+     end;
+
+     res := CplxMatrixInverseInPlace(@a[0], 4*sizeof(TComplex), 4);
+     Check( res = leOk, 'Singular complex matrix');
+
+     for i := 0 to High(a) do
+         Check( CCmp(a[i], cRefRes[i], 1e-5) = 0, 'Complex inverse failed');
 end;
 
 procedure TestSimpleCmplxFunctions.TestCplxNormalize;

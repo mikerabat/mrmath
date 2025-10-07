@@ -50,6 +50,12 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+date 07.10.2025
+* Complex LU decomposition (functions only)
+* Complex Determinant
+* Complex Inverse
+* extended complex routines - some matrix operations (mul, add, transpose and others)
+
 date: 23.05.2025
 * just added row and col swap routines in the matrix class
 

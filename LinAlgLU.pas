@@ -20,10 +20,6 @@ interface
 
 uses MatrixConst;
 
-// interface functions (used in different parts - don't call them directly)
-procedure LUSwap(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; k1, k2 : NativeInt; indx : PIntegerArray; var parity : NativeInt);
-procedure LUBacksup(A : PDouble; width, height : NativeInt; B : PDouble; const LineWidth : NativeInt);
-
 // inplace LU decomposition of the matrix A. Diagonal elements of the lower triangular matrix are set to one
 // thus the diagonal elements of the resulting matrix A are composed from the upper diagonal elements only.
 // The index records the row permutation effected by the partial pivoting.
@@ -41,7 +37,7 @@ function MatrixInverseInPlace(A : PDouble; const LineWidthA : NativeInt; width :
 function MatrixDeterminant(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; progress : TLinEquProgress = nil) : double;
 
 
-// Matrix Line Equation Solver routines which are based on LU decomposition.
+// Matrix Linear Equation Solver routines which are based on LU decomposition.
 // note these functions use temporarily double the size of A memory.
 // The result is stored in X. B and X must have the same size, also B may have
 // more than one column.
@@ -66,10 +62,30 @@ function ThrMatrixLinEQSolve(A : PDouble; const LineWidthA : NativeInt; width : 
  const LineWidthX : NativeInt;  width2 : integer; const NumRefinments : integer = 0; progress : TLinEquProgress = nil) : TLinEquResult;
 
 
+// ###########################################
+// #### Complex value LU decomposition
+function CplxMatrixLUDecompInPlace(A : PComplex; const LineWidthA : NativeInt; width : NativeInt; indx : PIntegerArray; progress : TLinEquProgress = nil) : TLinEquResult;
+procedure CplxMatrixLUBackSubst(LUDecomp : PComplex; const LineWidthLU : NativeInt; width : NativeInt; const  indx : PIntegerArray; B : PComplex; const LineWidthB : NativeInt; progress : TLinEquProgress = nil);
+
+// inverse of a matrix by using the LU decomposition
+function CplxMatrixInverseInPlace(A : PComplex; const LineWidthA : NativeInt; width : NativeInt; progress : TLinEquProgress = nil) : TLinEquResult;
+
+// same as the real value solver...
+function CplxMatrixLinEQSolve(A : PComplex; const LineWidthA : NativeInt; width : NativeInt;
+  B : PComplex; const LineWidthB : NativeInt; X : PComplex;
+  const LineWidthX : NativeInt; Width2 : NativeInt;
+  const NumRefinments : NativeInt = 0; progress : TLinEquProgress = nil) : TLinEquResult;
+
+
+// Matrix determinant calculated from the LU decomposition. Returns zero in case of a singular matrix. Drawback is a double
+// memory usage since the LU decomposition must be stored in a temporary matrix.
+function CplxMatrixDeterminant(A : PComplex; const LineWidthA : NativeInt; width : NativeInt; progress : TLinEquProgress = nil) : TComplex;
+
 implementation
 
 uses MatrixASMStubSwitch, Math, SysUtils, Types, MtxThreadPool,
-     ThreadedMatrixOperations, BlockSizeSetup;
+     ThreadedMatrixOperations, BlockSizeSetup, CplxSimpleMatrixOperations,
+  BlockedMult;
 
 // ######################################################
 // #### internaly used objects and definitions
@@ -101,7 +117,7 @@ end;
 
 // LUSWAP performs a series of row interchanges on the matrix A.
 // One row interchange is initiated for each of rows K1 through K2 of A.
-procedure LUSwap(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; k1, k2 : NativeInt; indx : PIntegerArray; var parity : NativeInt);
+procedure LUSwap(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; k1, k2 : NativeInt; indx : PIntegerArray);
 var i : NativeInt;
     pA1, pA2 : PDouble;
 begin
@@ -115,8 +131,6 @@ begin
 
                // swap a complete row at once
                MatrixRowSwap(pA1, pA2, width);
-
-               parity := -parity;
           end;
      end;
 end;
@@ -165,7 +179,7 @@ type
   end;
 
 function InternalRecursiveMatrixLUDecompInPlace(A : PDouble;  width, height : NativeInt;
- indx : PIntegerArray; var parity : NativeInt; var data : TRecMtxLUDecompData) : TLinEquResult;
+ indx : PIntegerArray; var data : TRecMtxLUDecompData) : TLinEquResult;
 var mn : NativeInt;
     pA : PDouble;
     idx : NativeInt;
@@ -182,13 +196,13 @@ begin
           nleft := mn div 2;
           nright := width - nleft;
 
-          Result := InternalRecursiveMatrixLUDecompInPlace(A, nLeft, height, indx, parity, data);
+          Result := InternalRecursiveMatrixLUDecompInPlace(A, nLeft, height, indx, data);
 
           if Result <> leOk then
              exit;
 
           pA := GenPtr(A, nLeft, 0, data.LineWidth);
-          LUSwap(pA, data.LineWidth, nright, 0, nleft - 1, indx, parity);
+          LUSwap(pA, data.LineWidth, nright, 0, nleft - 1, indx);
 
           // lu backsup A12 = L - one*A12
           if nRight > 1 then
@@ -212,7 +226,7 @@ begin
           end;
 
           // apply recursive LU to A(nleft + 1, nleft + 1);
-          Result := InternalRecursiveMatrixLUDecompInPlace(pB, nright, height - nleft, @(indx^[nleft]), parity, data);
+          Result := InternalRecursiveMatrixLUDecompInPlace(pB, nright, height - nleft, @(indx^[nleft]), data);
           if Result <> leok then
              exit;
 
@@ -220,7 +234,7 @@ begin
               indx^[i] := indx^[i] + nLeft;
 
           // dlswap
-          LUSwap(A, data.LineWidth, nleft, nleft, mn - 1, indx, parity);
+          LUSwap(A, data.LineWidth, nleft, nleft, mn - 1, indx);
      end
      else
      begin
@@ -267,18 +281,16 @@ begin
 end;
 
 function MatrixLUDecompInPlace(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; indx : PIntegerArray; progress : TLinEquProgress) : TLinEquResult;
-var parity : NativeInt;
-    mem : Pointer;
+var mem : Pointer;
     rc : TRecMtxLUDecompData;
 begin
      FillChar(indx^, width*sizeof(integer), 0);
-     parity := 1;
      rc.progress := progress;
      rc.numCols := width;
      rc.numCalc := 0;
      rc.blkMultMem := MtxAllocAlign( BlockMultMemSize(cBlkMultSize), mem );
      rc.LineWidth := LineWidthA;
-     Result := InternalRecursiveMatrixLUDecompInPlace(A, width, width, indx, parity, rc);
+     Result := InternalRecursiveMatrixLUDecompInPlace(A, width, width, indx, rc);
      FreeMem(mem);
 end;
 
@@ -423,11 +435,10 @@ var LUDecomp : PDouble;
     indx : Array of Integer;
     i : NativeInt;
     pVal : PDouble;
-    parity : NativeInt;
     rc : TRecMtxLUDecompData;
     w : NativeInt;
     ptrMem : Pointer;
-    mem : Array[0..(8+4*cBlkMultSize*cBlkMultSize)] of double;
+    mem : Pointer;
 begin
      assert(width > 0, 'Dimension error');
      assert(LineWidthA >= width*sizeof(double), 'Dimension error');
@@ -440,18 +451,22 @@ begin
      rc.progress := progress;
      rc.numCols := width;
      rc.numCalc := 0;
-     rc.blkMultMem := AlignPtr64( @mem[0] );
+     rc.blkMultMem := MtxMallocAlign( BlockMultMemSize( cBlkMultSize ), mem );
      rc.LineWidth := w*sizeof(double);
 
-     parity := 1;
-     if InternalRecursiveMatrixLUDecompInPlace(LUDecomp, width, width, @indx[0], parity, rc) = leSingular then
+     if InternalRecursiveMatrixLUDecompInPlace(LUDecomp, width, width, @indx[0], rc) = leSingular then
      begin
           Result := 0;
           FreeMem(ptrMem);
+          FreeMem(mem);
           exit;
      end;
      pVal := LUDecomp;
-     Result := parity;
+     Result := 1;
+     for i := 0 to Length(indx) - 1 do
+         if indx[i] <> i then
+            Result := -Result;
+
      for i := 0 to width - 1 do
      begin
           Result := Result * pVal^;
@@ -460,6 +475,7 @@ begin
      end;
 
      FreeMem(ptrMem);
+     FreeMem(mem);
 end;
 
 function MatrixLinEQSolve(A : PDouble; const LineWidthA : NativeInt; width : NativeInt; B : PDouble; const LineWidthB : NativeInt; X : PDouble;
@@ -656,7 +672,7 @@ begin
 end;
 
 function InternalThrMatrixLUDecomp(A : PDouble; width, height : integer;
- indx : PIntegerArray; var parity : NativeInt; var data : TRecMtxLUDecompData) : TLinEquResult;
+ indx : PIntegerArray; var data : TRecMtxLUDecompData) : TLinEquResult;
 // this is basically a copy of the unthreaded LU decomposition but with threaded parts (LU Backsup and Multiplication)!
 const cMinThrMultSize = 64;
 var mn : NativeInt;
@@ -675,14 +691,14 @@ begin
           nleft := mn div 2;
           nright := width - nleft;
 
-          Result := InternalThrMatrixLUDecomp(A, nLeft, height, indx, parity, data);
+          Result := InternalThrMatrixLUDecomp(A, nLeft, height, indx, data);
 
           if Result <> leOk then
              exit;
 
           pA := A;
           inc(pA, nLeft);
-          LUSwap(pA, data.LineWidth, nright, 0, nleft - 1, indx, parity);
+          LUSwap(pA, data.LineWidth, nright, 0, nleft - 1, indx);
 
           // lu backsup A12 = L - one*A12
           if nRight > 1 then
@@ -715,7 +731,7 @@ begin
           end;
 
           // apply recursive LU to A(nleft + 1, nleft + 1);
-          Result := InternalThrMatrixLUDecomp(pB, nright, height - nleft, @(indx^[nleft]), parity, data);
+          Result := InternalThrMatrixLUDecomp(pB, nright, height - nleft, @(indx^[nleft]), data);
           if Result <> leok then
              exit;
 
@@ -723,7 +739,7 @@ begin
               indx^[i] := indx^[i] + nLeft;
 
           // dlswap
-          LUSwap(A, data.LineWidth, nleft, nleft, mn - 1, indx, parity);
+          LUSwap(A, data.LineWidth, nleft, nleft, mn - 1, indx);
      end
      else
      begin
@@ -770,8 +786,7 @@ begin
 end;
 
 function ThrMatrixLUDecomp(A : PDouble; const LineWidthA : NativeInt; width : integer; indx : PIntegerArray; progress : TLinEquProgress = nil) : TLinEquResult;
-var parity : NativeInt;
-    rc : TRecMtxLUDecompData;
+var rc : TRecMtxLUDecompData;
     mem : Pointer;
 begin
      mem := MtxAlloc(4*numUseCPUCores*(cBlkMultSize + numUseCPUCores + 2)*cBlkMultSize*sizeof(double) + $20);
@@ -782,8 +797,7 @@ begin
      rc.numCalc := 0;
      rc.LineWidth := LineWidthA;
      rc.blkMultMem := AlignPtr32(mem);
-     parity := 1;
-     Result := InternalThrMatrixLUDecomp(A, width, width, indx, parity, rc);
+     Result := InternalThrMatrixLUDecomp(A, width, width, indx, rc);
 
      FreeMem(mem);
 end;
@@ -919,7 +933,6 @@ var LUDecomp : PDouble;
     indx : Array of Integer;
     i : integer;
     pVal : PDouble;
-    parity : NativeInt;
     rc : TRecMtxLUDecompData;
     w : integer;
     mem : PDouble;
@@ -946,8 +959,7 @@ begin
      rc.blkMultMem := mem;
      rc.LineWidth := w*sizeof(double);
 
-     parity := 1;
-     if InternalThrMatrixLUDecomp(LUDecomp, width, width, @indx[0], parity, rc) = leSingular then
+     if InternalThrMatrixLUDecomp(LUDecomp, width, width, @indx[0], rc) = leSingular then
      begin
           Result := 0;
           FreeMem(ptrMem);
@@ -955,7 +967,11 @@ begin
           exit;
      end;
      pVal := LUDecomp;
-     Result := parity;
+     Result := 1;
+     for i := 0 to Length(indx) - 1 do
+         if indx[i] <> i then
+            Result := -Result;
+
      for i := 0 to width - 1 do
      begin
           Result := Result * pVal^;
@@ -1122,6 +1138,469 @@ begin
      lineWidth := aLineWidth;
      width := aWidth;
      height := aheight;
+end;
+
+// ###########################################
+// #### Complex LU decomposition
+// ###########################################
+
+procedure CplxLUBacksup(A : PComplex; width, height : NativeInt; B : PComplex; const LineWidth : NativeInt);
+var j, i, k : NativeInt;
+    pA, pAi : PComplex;
+    pB : PComplex;
+    pBj : PConstComplexArr;
+    pBDestj : PConstComplexArr;
+    pBDest, pBDesti : PComplex;
+begin
+     pA := CplxGenPtr(A, 0, 1, LineWidth);
+     pB := B;
+     pBDest := CplxGenPtr( B, 0, 1, LineWidth);
+     for k := 0 to height - 1 do
+     begin
+          pAi := pA;
+          pBDesti := pBDest;
+
+          for i := k + 1 to height - 1 do
+          begin
+               pBj := PConstComplexArr( pB );
+               pBDestj := PConstComplexArr( pBDesti );
+               for j := 0 to width - 1 do
+                   pBDestj^[j] := CSubMul(pBDestj^[j], pBj^[j], pAi^);
+
+               inc(PByte(pAi), LineWidth);
+               inc(PByte(pBDesti), LineWidth);
+          end;
+          inc(pA);
+          inc(PByte(pA), LineWidth);
+          inc(PByte(pB), LineWidth);
+          inc(PByte(pBDest), LineWidth);
+     end;
+end;
+
+
+// LUSWAP performs a series of row interchanges on the matrix A.
+// One row interchange is initiated for each of rows K1 through K2 of A.
+procedure CplxLUSwap(A : PComplex; const LineWidthA : NativeInt; width : NativeInt; k1, k2 : NativeInt; indx : PIntegerArray);
+var i : NativeInt;
+    pA1, pA2 : PComplex;
+begin
+     for i := k1 to k2 do
+     begin
+          if indx^[i] <> i then
+          begin
+               // interchange rows
+               pA1 := CplxGenPtr(A, 0, i, LineWidthA);
+               pA2 := CplxGenPtr(A, 0, indx^[i], LineWidthA);
+
+               // swap a complete row at once
+               CplxGenericRowSwap(pA1, pA2, width);
+          end;
+     end;
+end;
+
+
+function InternalRecursiveCplxMatrixLUDecompInPlace(A : PComplex;  width, height : NativeInt;
+ indx : PIntegerArray; var data : TRecMtxLUDecompData) : TLinEquResult;
+var mn : NativeInt;
+    pA : PComplex;
+    idx : NativeInt;
+    maxVal : TComplex;
+    nleft, nright : NativeInt;
+    i : NativeInt;
+    pB, a12, a21 : PComplex;
+    absMaxVal : double;
+    absVal : double;
+    lineWidthBlk : NativeInt;
+begin
+     mn := min(width, height);
+
+     if mn > 1 then
+     begin
+          nleft := mn div 2;
+          nright := width - nleft;
+
+          Result := InternalRecursiveCplxMatrixLUDecompInPlace(A, nLeft, height, indx, data);
+
+          if Result <> leOk then
+             exit;
+
+          pA := CplxGenPtr(A, nLeft, 0, data.LineWidth);
+          CplxLUSwap(pA, data.LineWidth, nright, 0, nleft - 1, indx);
+
+          // lu backsup A12 = L - one*A12
+          if nRight > 1 then
+             CplxLUBacksup(A, nRight, nLeft, pA, data.LineWidth);
+
+          // matrix mult sub
+          // A22 = A22 - A21*A12
+          a12 := CplxGenPtr(A, nLeft, 0, data.LineWidth);
+          pB := CplxGenPtr(A, nLeft, nLeft, data.LineWidth);
+          a21 := CplxGenPtr(A, 0, nleft, data.LineWidth);
+
+          // in this case it's faster to have a small block size!
+          if (nright > cBlkMultSize) or (height - nleft > cBlkMultSize)
+          then
+              //BlockMatrixMultiplication(pB, data.LineWidth, a21, a12, nleft, height - nleft, nright, nleft, data.LineWidth, data.LineWidth, cBlkMultSize, doSub, data.blkMultMem)
+              CplxGenericBlockMatrixMultiplication(pB, data.LineWidth, a21, a12, nleft, height - nleft, nright, nleft, data.LineWidth, data.LineWidth, cBlkMultSize, doSub, PComplex(data.blkMultMem))
+          else
+          begin
+               lineWidthBlk := (nright + nright and $01)*sizeof(TComplex);
+               CplxGenericMtxMult(PComplex(data.blkMultMem), lineWidthBlk, a21, a12, nleft, height - nleft, nright, nleft, data.LineWidth, data.LineWidth);
+               CplxGenericMtxSub(pB, data.LineWidth, pB, PComplex(data.blkMultMem), nright, height - nleft, data.LineWidth, lineWidthBlk);
+          end;
+
+          // apply recursive LU to A(nleft + 1, nleft + 1);
+          Result := InternalRecursiveCplxMatrixLUDecompInPlace(pB, nright, height - nleft, @(indx^[nleft]), data);
+          if Result <> leok then
+             exit;
+
+          for i := nLeft to width - 1 do
+              indx^[i] := indx^[i] + nLeft;
+
+          // dlswap
+          CplxLUSwap(A, data.LineWidth, nleft, nleft, mn - 1, indx);
+     end
+     else
+     begin
+          // find maximum element of this column
+          maxVal := cCplxZero;
+          absMaxVal := 0;
+          idx := -1;
+          pA := A;
+          for i := 0 to Height - 1 do
+          begin
+               absVal := CAbs1(pA^);
+               if absVal > absMaxVal then
+               begin
+                    idx := i;
+                    maxVal := pA^;
+                    absMaxVal := absVal;
+               end;
+
+               inc(PByte(pA), data.LineWidth);
+          end;
+
+          // now it's time to apply the gauss elimination
+          indx^[0] := idx;
+
+          // check for save invertion of maxVal
+          if absMaxVal > 10/MaxDouble then
+          begin
+               CplxGenericMtxScaleAndAdd(A, data.LineWidth, 1, Height, cCplxZero, CInv(maxVal));
+
+               pA := CplxGenPtr(A, 0, idx, data.LineWidth);
+               pA^ := A^;
+               A^ := maxVal;
+
+               Result := leOk;
+
+               if Assigned(data.progress) then
+               begin
+                    inc(data.numCalc);
+                    data.progress(data.numCalc*100 div data.numCols);
+               end;
+          end
+          else
+              Result := leSingular;
+     end;
+end;
+
+function CplxMatrixLUDecompInPlace(A : PComplex; const LineWidthA : NativeInt; width : NativeInt; indx : PIntegerArray; progress : TLinEquProgress = nil) : TLinEquResult;
+var mem : Pointer;
+    rc : TRecMtxLUDecompData;
+begin
+     FillChar(indx^, width*sizeof(integer), 0);
+     rc.progress := progress;
+     rc.numCols := width;
+     rc.numCalc := 0;
+     rc.blkMultMem := MtxAllocAlign( CplxBlockMultMemSize(cBlkMultSize), mem );
+     rc.LineWidth := LineWidthA;
+     Result := InternalRecursiveCplxMatrixLUDecompInPlace(A, width, width, indx, rc);
+     FreeMem(mem);
+end;
+
+procedure CplxMatrixLUBackSubst(LUDecomp : PComplex; const LineWidthLU : NativeInt; width : NativeInt; const  indx : PIntegerArray; B : PComplex; const LineWidthB : NativeInt; progress : TLinEquProgress = nil);
+var i : NativeInt;
+    ii : NativeInt;
+    ip : NativeInt;
+    j : NativeInt;
+    sum : TComplex;
+    pB : PComplex;
+    pB2 : PComplex;
+    pVal : PComplex;
+    pVal2 : PConstComplexArr;
+begin
+     assert(width*sizeof(double) <= LineWidthLU, 'Dimension Error');
+
+     if Assigned(progress) then
+        progress(0);
+
+     ii := -1;
+     pB2 := B;
+     for i := 0 to width - 1 do
+     begin
+          ip := indx^[i];
+          pB := CplxGenPtr(B, 0, ip, LineWidthB);
+          sum := pB^;
+          pB^ := pB2^;
+
+          if ii >= 0 then
+          begin
+               pVal2 := CplxGenPtrArr(LUDecomp, 0, i, LineWidthLU );
+               pB := CplxGenPtr(B, 0, ii, LineWidthB);
+               for j := ii to i - 1 do
+               begin
+                    sum := CSubMul(sum, pVal2^[j], pB^);
+                    inc(PByte(pB), LineWidthB);
+               end;
+          end
+          else if CCmp(sum, cCplxZero) <> 0
+          then
+              ii := i;
+
+          pB2^ := sum;
+          inc(PByte(pB2), LineWidthB);
+     end;
+
+     if Assigned(progress) then
+        progress(50);
+
+     pB := CplxGenPtr(B, 0, width - 1, LineWidthB);
+     pVal := CplxGenPtr( LUDecomp, width - 1, width -1 , LineWidthLU);
+     for i := width - 1 downto 0 do
+     begin
+          sum := pB^;
+
+          pB2 := CplxGenPtr(pB, 0, 1, LineWidthB);
+          pVal2 := CplxGenPtrArr(pVal, 1, 0, LineWidthLU);
+          for j := 0 to width - i - 2 do
+          begin
+               sum := CSubMul( sum, pVal2^[j], pB2^ );
+               inc(PByte(pB2), LineWidthB);
+          end;
+
+          pB^ := CDiv(sum, pVal^);
+
+          dec(pVal);
+          dec(PByte(pVal), LineWidthLU);
+          dec(PByte(pB), LineWidthB);
+     end;
+
+     if Assigned(progress) then
+        progress(100);
+end;
+
+function CplxMatrixLinEQSolve(A : PComplex; const LineWidthA : NativeInt; width : NativeInt;
+  B : PComplex; const LineWidthB : NativeInt; X : PComplex;
+  const LineWidthX : NativeInt; Width2 : NativeInt;
+  const NumRefinments : NativeInt = 0; progress : TLinEquProgress = nil) : TLinEquResult;
+var indx : Array of Integer;
+    LUDecomp : TComplexDynArray;
+    sdp : TComplex;
+    row : TComplexDynArray;
+    pB : PComplex;
+    i : NativeInt;
+    pA : PComplex;
+    j, k : NativeInt;
+    pX : PComplex;
+    pVal : PComplex;
+    refinementCounter : NativeInt;
+    progObj : TLinearEQProgress;
+    progRef : TLinEquProgress;
+begin
+     progRef := nil;
+     progObj := nil;
+     if Assigned(progress) then
+     begin
+          progObj := TLinearEQProgress.Create;
+          progObj.refProgress := progress;
+          progObj.numRefinenmentSteps := NumRefinments;
+          progRef := {$IFDEF FPC}@{$ENDIF}progObj.LUDecompSolveProgress;
+     end;
+
+
+     // ###########################################
+     // #### Standard LU Decomposition
+     SetLength(LUDecomp, width*width);
+     CplxGenericMtxCopy(@LUDecomp[0], width*sizeof(TComplex), A, LineWidthA, width, width);
+     SetLength(indx, width);
+     Result := CplxMatrixLUDecompInPlace(@LUDecomp[0], LineWidthA, width, @indx[0], progRef);
+
+     if Result = leSingular then
+     begin
+          progObj.Free;
+          exit;
+     end;
+
+     for i := 0 to width2 - 1 do
+     begin
+          // copy one column
+          pX := X;
+          inc(pX, i);
+          pVal := B;
+          inc(pVal, i);
+          for j := 0 to width - 1 do
+          begin
+               pX^ := pVal^;
+               inc(PByte(pX), LineWidthX);
+               inc(PByte(pVal), LineWidthB);
+          end;
+          pX := X;
+          inc(pX, i);
+
+          // calculate vector X
+          CplxMatrixLUBackSubst(@LUDecomp[0], width*sizeof(TComplex), width, @indx[0], pX, LineWidthX);
+     end;
+
+     // ###########################################
+     // #### Iterative refinements
+     if NumRefinments > 0 then
+     begin
+          SetLength(row, width);
+          // for each solution do a separate refinement:
+          for k := 0 to width2 - 1 do
+          begin
+               if Assigned(progobj) then
+                  progObj.RefinementProgress(Int64(k)*100 div Int64(width2));
+
+               for refinementCounter := 0 to NumRefinments - 1 do
+               begin
+                    pb := B;
+
+                    pA := A;
+                    for i := 0 to width - 1 do
+                    begin
+                         pVal := pA;
+
+                         sdp := RCMul(-1, pB^);
+                         inc(PByte(pB), LineWidthB);
+                         pX := X;
+                         for j := 0 to width - 1 do
+                         begin
+                              sdp := CAddMul(sdp, pX^, pVal^);
+                              inc(pVal);
+                              inc(pX);
+                         end;
+
+                         inc(PByte(pA), LineWidthA);
+                         row[i] := sdp;
+                    end;
+
+                    MatrixLUBackSubst(@LUDecomp[0], sizeof(double)*width, width, @indx[0], @row[0], sizeof(double));
+                    pX := X;
+                    for i := 0 to width - 1 do
+                    begin
+                         pX^ := CSub(pX^, row[i]);
+                         inc(PByte(pX), LineWidthX);
+                    end;
+               end;
+
+               inc(B);
+               inc(X);
+          end;
+     end;
+
+     if Assigned(progObj) then
+        progObj.Free;
+     if Assigned(progress) then
+        progress(100);
+end;
+
+
+function CplxMatrixInverseInPlace(A : PComplex; const LineWidthA : NativeInt; width : NativeInt; progress : TLinEquProgress = nil) : TLinEquResult;
+var Y : PComplex;
+    ptrMem : Pointer;
+    indx : TIntegerDynArray;
+    i, j : NativeInt;
+    pVal : PComplex;
+    col : TComplexDynArray;
+    w : NativeInt;
+begin
+     Assert(lineWidthA >= width*sizeof(TComplex), 'Dimension Error');
+     Assert(width > 0, 'Dimension error');
+
+     w := width + width and $01;
+     Y := MtxMallocAlign(w*w*sizeof(TComplex), ptrMem);
+     SetLength(indx, width);
+     SetLength(col, width);
+
+     CplxGenericMtxCopy(Y, sizeof(TComplex)*w, A, LineWidthA, width, width);
+     Result := CplxMatrixLUDecompInPlace(Y, w*sizeof(TComplex), width, @indx[0], progress);
+
+     if Result = leSingular then
+     begin
+          FreeMem(ptrMem);
+          exit;
+     end;
+
+     for j := 0 to width - 1 do
+     begin
+          pVal := CplxGenPtr( A, j, 0, LineWidthA );
+
+          for i := 0 to width - 1 do
+              col[i] := cCplxZero;
+          col[j] := cCplxReal1;
+          CplxMatrixLUBackSubst(Y, w*sizeof(TComplex), width, @indx[0], @col[0], sizeof(TComplex));
+
+          for i := 0 to width - 1 do
+          begin
+               pVal^ := col[i];
+               inc(PByte(pVal), LineWidthA);
+          end;
+     end;
+
+     FreeMem(ptrMem);
+end;
+
+function CplxMatrixDeterminant(A : PComplex; const LineWidthA : NativeInt; width : NativeInt; progress : TLinEquProgress = nil) : TComplex;
+var LUDecomp : PComplex;
+    indx : TIntegerDynArray;
+    i : NativeInt;
+    pVal : PComplex;
+    rc : TRecMtxLUDecompData;
+    w : NativeInt;
+    ptrMem : Pointer;
+    mem : Pointer;
+    parity : integer;
+begin
+     assert(width > 0, 'Dimension error');
+     assert(LineWidthA >= width*sizeof(TComplex), 'Dimension error');
+
+     w := width + width and $01;
+     LUDecomp := MtxMallocAlign(w*w*sizeof(TComplex), ptrMem);
+     SetLength(indx, width);
+     CplxGenericMtxCopy(LUDecomp, w*sizeof(TComplex), A, LineWidthA, width, width);
+
+     rc.progress := progress;
+     rc.numCols := width;
+     rc.numCalc := 0;
+     rc.blkMultMem := MtxMallocAlign( CplxBlockMultMemSize( cBlkMultSize ), mem );
+     rc.LineWidth := w*sizeof(TComplex);
+
+     if InternalRecursiveCplxMatrixLUDecompInPlace(LUDecomp, width, width, @indx[0], rc) = leSingular then
+     begin
+          Result := cCplxZero;
+          FreeMem(ptrMem);
+          FreeMem(mem);
+          exit;
+     end;
+     pVal := LUDecomp;
+
+     parity := 1;
+     for i := 0 to Length(indx) - 1 do
+         if indx[i] <> i then
+            parity := -parity;
+
+     Result := InitComplex(parity, 0);
+     for i := 0 to width - 1 do
+     begin
+          Result := CMul(Result, pVal^);
+          inc(pVal);
+          inc(PByte(pVal), w*sizeof(TComplex));
+     end;
+
+     FreeMem(ptrMem);
+     FreeMem(mem);
 end;
 
 end.

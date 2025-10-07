@@ -532,7 +532,7 @@ begin
      Result := MtxMallocAlign( NumBytes, mem );
 
      if Assigned(Result) then
-        MtxMemInit(mem, NumBytes, 0 );
+        MtxMemInit(Result, NumBytes, 0 );
 end;
 
 function MtxMallocAlign( NumBytes : NativeInt; var mem : Pointer ) : Pointer;
