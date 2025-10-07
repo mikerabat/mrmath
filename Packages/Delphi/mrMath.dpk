@@ -43,6 +43,7 @@ package mrMath;
 {$RUNONLY}
 {$IMPLICITBUILD OFF}
 
+{$DEFINE VER340ORUP}
 
 // note the check is for the compiler version but the suffix corresponds to the package version
 {$IFDEF VER210}
