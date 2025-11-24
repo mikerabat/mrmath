@@ -319,7 +319,7 @@ end;
 function TRandomGenerator.RandInt64(const aRange: Int64): Int64;
 var val1, val2 : LongWord;
 begin
-     val1 := fRandLW($8FFFFFFF);
+     val1 := fRandLW($7FFFFFFF);
      val2 := fRandLW($FFFFFFFF);
 
      Result := ( ( Int64(val1) shl 32) + Int64(val2) ) mod aRange;
