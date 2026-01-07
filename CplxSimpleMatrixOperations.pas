@@ -22,23 +22,15 @@ uses MatrixConst, Math, Types;
 // ###########################################
 // #### Complex number handling
 // ###########################################
-// sqrt( val.real^2 + val.imag^2 )
 function CAbs( const val : TComplex ) : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
-// abs(val.real) + abs(val.imag)
-function CAbs1( const val : TComplex ) : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function CConj( const val : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function CAdd( const x1, x2 : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function CSub( const x1, x2 : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function CMul(const x1, x2 : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function CDiv( const x1, x2 : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
-function CInv( const x1 : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function RCMul(const x1 : double; const x2 : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function CMax( const x1, x2 : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function CMin( const x1, x2 : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
-// perform x1 + x2*x3
-function CAddMul( const x1, x2, x3 : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
-// perform x1 - x2*x3
-function CSubMul( const x1, x2, x3 : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 
 function CCmp( const x, y : TComplex; eps : double = 0 ) : TValueRelationship;
 
@@ -46,7 +38,7 @@ function CCmp( const x, y : TComplex; eps : double = 0 ) : TValueRelationship;
 // #### Higher order function
 function CSqrt( const x : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function CExp( const x : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
-function CLn( const x : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+function CLn( const x : TComplex ) : TComplex; //{$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function CSin( const x : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function CCos( const x : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function CTan( const x : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
@@ -57,7 +49,6 @@ function CTan( const x : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersi
 
 // todo: to be filled with the same function as in SimpleMatrixOPerations.pas
 procedure CplxGenericMtxInit( dest : PComplex; destLineWidth : NativeInt; width, height : NativeInt; const value : TComplex );
-procedure CplxGenericMtxCopy(dest : PComplex; destLineWidth : NativeInt; Src : PComplex; srcLineWidth : NativeInt; width, height : NativeInt);
 
 procedure CplxGenericColSwap(A, B : PComplex; const LineWidthAB : NativeInt; Height : NativeInt);
 procedure CplxGenericRowSwap(A, B : PComplex; width : NativeInt);
@@ -138,7 +129,6 @@ procedure CplxGenericSubMtxFunc(dest : PComplex; const destLineWidth : NativeInt
 const cCplxReal1 : TComplex = (real: 1; imag: 0);
       cCplxImag1 : TComplex = (real: 0; imag: 1);
       cCplxImagM1 : TComplex = (real: 0; imag: -1);
-      cCplxZero : TComplex = (real : 0; imag : 0);
 
 implementation
 
@@ -165,11 +155,6 @@ begin
      end;
 end;
 
-function CAbs1( const val : TComplex ) : double;
-begin
-     Result := abs(val.real) + abs(val.imag);
-end;
-
 function CConj( const val : TComplex ) : TComplex;
 begin
      Result.real := val.real;
@@ -194,18 +179,6 @@ begin
      Result.imag := x1.real*x2.imag + x1.imag*x2.real;
 end;
 
-function CAddMul( const x1, x2, x3 : TComplex ) : TComplex;
-begin
-     Result.real := x1.real + x2.real*x3.real - x2.imag*x3.imag;
-     Result.imag := x1.imag + x2.real*x3.imag + x2.imag*x3.real;
-end;
-
-function CSubMul( const x1, x2, x3 : TComplex ) : TComplex;
-begin
-     Result.real := x1.real - x2.real*x3.real + x2.imag*x3.imag;
-     Result.imag := x1.imag - x2.real*x3.imag - x2.imag*x3.real;
-end;
-
 function CDiv( const x1, x2 : TComplex ) : TComplex;
 var denom : double;
     r : double;
@@ -224,27 +197,6 @@ begin
 
           Result.real := (x1.real*r + x1.imag)/denom;
           Result.imag := (x1.imag*r - x1.real)/denom;
-     end;
-end;
-
-// calculates 1/x1
-function CInv( const x1 : TComplex ) : TComplex;
-var denom : double;
-    r : double;
-begin
-     if Abs(x1.real) >= Abs(x1.imag) then
-     begin
-          r := x1.imag/x1.Real;
-          denom := x1.real + x1.imag*r;
-          Result.real := 1/denom;
-          Result.imag := -r/denom;
-     end
-     else
-     begin
-          r := x1.real/x1.imag;
-          denom := x1.imag + r*x1.real;
-          Result.real := r/denom;
-          Result.imag := -1/denom;
      end;
 end;
 
@@ -467,19 +419,6 @@ begin
               pDest^[x] := value;
 
           inc(PByte(pDest), destLineWidth);
-     end;
-end;
-
-procedure CplxGenericMtxCopy(dest : PComplex; destLineWidth : NativeInt; Src : PComplex; srcLineWidth : NativeInt; width, height : NativeInt);
-var x, y : NativeInt;
-begin
-     for y := 0 to Height - 1 do
-     begin
-          for x := 0 to Width - 1 do
-               PConstComplexArr(dest)^[x] := PConstComplexArr(src)^[x];
-
-          inc(PByte(dest), destLineWidth);
-          inc(PByte(src), srcLineWidth);
      end;
 end;
 
@@ -776,7 +715,7 @@ begin
                valCounter2 := mt2;
                for idx := 0 to width1 - 1 do
                begin
-                    dest^ := CAddMul(dest^, valCounter1^[idx], valCounter2^);
+                    dest^ := CAdd(dest^, CMul(valCounter1^[idx], valCounter2^));
                     inc(PByte(valCounter2), LineWidth2);
                end;
 
@@ -805,7 +744,7 @@ begin
           begin
                pdest^ := InitComplex(0, 0);
                for idx := 0 to width1 - 1 do
-                   pDest^ := CAddMul(pDest^, PConstComplexArr(mt1)^[idx], pMt2^[idx]);
+                   pDest^ := CAdd(pDest^, CMul(PConstComplexArr(mt1)^[idx], pMt2^[idx]));
 
                inc(PByte(pMt2), LineWidth2);
                inc(pDest);
@@ -1026,7 +965,7 @@ begin
      for y := 0 to height - 1 do
      begin
           for x := 0 to width - 1 do
-              PConstComplexArr(dest)^[x] := CAddMul( Offset, PConstComplexArr(dest)^[x], Scale);
+              PConstComplexArr(dest)^[x] := CAdd( CMul(PConstComplexArr(dest)^[x], Scale), Offset);
 
           inc(PByte(dest), LineWidth);
      end;

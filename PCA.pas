@@ -66,6 +66,7 @@ type
     fEigVals : IMatrix;
     fMeanElem : IMatrix;
     fMeanNormExamples : IMatrix;
+    fMeanHelp : IMatrix;
 
     function WeightedMean(Examples : TDoubleMatrix; const Weights : Array of double) : IMatrix;
     function EigVecT : TDoubleMatrix;
@@ -92,7 +93,13 @@ type
 
     function ProjectToFeatureSpace(Example : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
     procedure ProjectToFeatureSpace(Example : TDoubleMatrix; ResMatrix : TDoubleMatrix; Column : integer); overload;
-    function Reconstruct(Features : TDoubleMatrix) : TDoubleMatrix;
+    // this function is for fast multiple use on preallocated input data
+    // internally some temporary memory is allocated once
+    procedure ProjectToFeatureSpace( Example : PDouble; Res : PDouble ); overload;
+
+    function Reconstruct(Features : TDoubleMatrix) : TDoubleMatrix; overload;
+    // this function is for fast multiple use on preallocated input data
+    procedure Reconstruct( features : PDouble; res : PDouble); overload;
 
     property OnProgress : TMtxProgress read fProgress write fProgress;
 
@@ -194,7 +201,7 @@ type
 
 implementation
 
-uses Math, MathUtilFunc;
+uses Math, MathUtilFunc, MatrixASMStubSwitch;
 
 
 procedure InternalSortSVD(W : TDoubleMatrix; U, V : TDoubleMatrix; L, R : integer);
@@ -698,11 +705,34 @@ begin
         raise EPCAException.Create('PCA object not initialized');
 
      if (Features.Width <> 1) or (Features.Height <> fEigVecs.Width) then
-        raise EPCAException.Create('Dimensions of PCA feature space differs from given example'); 
-     
+        raise EPCAException.Create('Dimensions of PCA feature space differs from given example');
+
      // Example := (EigVec*Features) + MeanElem
      Result := fEigVecs.Mult(Features);
      Result.AddInplace(fMeanElem);
+end;
+
+procedure TMatrixPCA.ProjectToFeatureSpace(Example, Res: PDouble);
+var lw : NativeInt;
+begin
+     if not Assigned(fMeanHelp) then
+        fMeanHelp := TDoubleMatrix.Create( Max(fMeanElem.Width, fMeanElem.Height), 1);
+
+     lw := fMeanHelp.Width*sizeof(double);
+     MatrixSub( fMeanHelp.StartElement, lw, Example, fMeanElem.StartElement, fMeanElem.Height, 1, lw, lw);
+     MatrixMtxVecMult(res, sizeof(double), fEigVecsT.StartElement, fMeanHelp.StartElement,
+                      fEigVecsT.LineWidth, sizeof(double), fEigVecsT.Width, fEigVecsT.Height, 1, 0);
+end;
+
+procedure TMatrixPCA.Reconstruct(features, res: PDouble);
+var lw : NativeInt;
+begin
+     lw := fEigVecs.Height*sizeof(double);
+     MatrixMtxVecMult( res, sizeof(double), fEigVecs.StartElement, features,
+                       fEigVecs.LineWidth, sizeof(double), fEigVecs.Width, fEigVecs.Height, 1, 0);
+     MatrixAdd( res, fEigVecs.Height*sizeof(double), fMeanElem.StartElement, res,
+                fEigVecs.Height, 1, lw, lw);
+
 end;
 
 { TFastRobustPCA }
@@ -1390,7 +1420,6 @@ begin
      else
          Result := inherited PropTypeOfName(Name);
 end;
-
 
 procedure TMatrixPCA.OnLineEQProgress(Progress: integer);
 begin
