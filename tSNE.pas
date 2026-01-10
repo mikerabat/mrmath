@@ -122,107 +122,18 @@ implementation
 
 uses MathUtilFunc, SysUtils, Math, Classes, MatrixASMStubSwitch,
      Dist, BlockSizeSetup, MtxThreadPool, ThreadedMatrix,
-     ThreadedMatrixOperations;
+     ThreadedMatrixOperations, SpatialTrees;
 
 // ###########################################
 // #### Helper Classes for Burnes Hut trees
 // ###########################################
 
-// basically the implementation from https://stevehanov.ca/blog/?id=130
-// I think this one was used in the original code
-
-// ###########################################
-// #### Data point but without the dimension - we don't want to store that dimension
-// value extrax for each point.
-type
-  TDataPoint = record
-  private
-    fInd : integer;
-    fX : PConstDoubleArr;
-
-    function GetX(index: integer): double;
-  public
-    property Ind : integer read fInd;
-    property X[ index : integer ] : double read GetX;
-
-    procedure Init; overload;
-    procedure Init( ref : TDataPoint ); overload;
-    procedure Init( (*d, *) ind : integer; x : PDouble ); overload;
-
-    procedure TakeOver( ref : TDataPoint );
-  end;
-  PDataPoint = ^TDataPoint;
-  TDataPointArr = Array of TDataPoint;
-
-  TSearchPtEntry = record
-    pt : PDataPoint;
-    dist : double;
-  end;
-  TSearchPtEntryArr = Array of TSearchPtEntry;
-
-  // ###########################################
-  // #### Vantage point tree
-  TVPTreeDistFunc = function ( idx11, idx2 : integer ) : double of Object;
-  TVPTree = class(TObject)
-  private
-    const cNumNodeElemPerLine = 1024;
-    type
-      PVPTreeNode = ^TVPTreeNode;
-      TVPTreeNode = record
-        Index : integer;
-        Threshold : double;
-        Left, Right : PVPTreeNode;
-      end;
-
-      TVPTreeNodeConstArr = Array[0..1023] of TVPTreeNode;
-      PVPTreeNodeConstArr = ^TVPTreeNodeConstArr;
-
-      THeapItem = record
-        dist : double;
-        index : integer;
-      end;
-      PHeapItem = ^THeapItem;
-      THeapItemArr = Array of THeapItem;
-      PHeapItemArr = Array of PHeapItem;
-  private
-    fRnd : TRandomGenerator;
-    fNodes :  TList;
-    fPActNode : PVPTreeNodeConstArr;
-    fActNodeIdx : integer;
-    fNumNodes : integer;
-
-    fItems : TDataPointArr;
-    fRoot : PVPTreeNode;
-
-    fDists : THeapItemArr;
-    fPDists : PHeapItemArr;   // points to the fDists records
-    fHlp : TDataPointArr;
-    fTau : double;
-
-    fD : integer;
-    //fSL : TStringList;
-    fDistFunc : TVPTreeDistFunc;
-
-    function DistanceEuclid( idx1, idx2 : integer ) : double;
-    function DistanceAbs( idx1, idx2 : integer ) : double;
-    function BuildFromPoints( lower, upper : integer ) : PVPTreeNode;
-    procedure InternalSearch( node : PVPTreeNode; idx : integer; k : integer;
-                              heap : TPtrHeap; heapData : THeapItemArr);
-
-    function AddNodeArr : PVPTreeNodeConstArr;
-    procedure ClearNodes;
-  public
-    procedure BuildTree(items : TDataPointArr);
-    procedure Search( idx : integer; k : integer; var res : TSearchPtEntryArr);
-
-    constructor Create(D : integer; distFunc : TTSNEDistFunc; randAlg : TRandomAlgorithm = raChaCha; seed : integer = 0);
-    destructor Destroy; override;
-  end;
 
   // ###########################################
   // #### SP tree data structures
   // the record actually does not make a copy but points to given data
   // structures. Data stems from the parent tree element...
+type
   TSPTreeCell = record
     Dimension : integer;
     Corner : PConstDoubleArr;
@@ -301,302 +212,6 @@ type
     constructor Create( parent : TSPTree; d : integer; inpData : PConstDoubleArr; corner : PConstDoubleArr; widths : PConstDoubleArr); overload;
     destructor Destroy; override;
   end;
-
-// ###########################################
-// #### VP Tree
-// ###########################################
-
-{$REGION 'VP Tree'}
-{ TDataPoint }
-
-procedure TDataPoint.Init(ref: TDataPoint);
-begin
-     fInd := ref.fInd;
-//     fD := ref.fD;
-     fX := ref.fX;
-end;
-
-procedure TDataPoint.Init;
-begin
-     fInd := 0;
-  //   fD := 0;
-     fX := nil;
-end;
-
-procedure TDataPoint.Init((*d,*) ind: integer; x: PDouble);
-begin
-  //   fD := d;
-     fInd := ind;
-     fX := PConstDoubleArr( x );
-end;
-
-function TDataPoint.GetX(index: integer): double;
-begin
-     //assert(index < fD, 'Index out of bounds');
-     Result := fX^[index];
-end;
-
-procedure TDataPoint.TakeOver(ref: TDataPoint);
-begin
-     //fD := ref.fD;
-     fX := ref.fX;
-     fInd := ref.fInd;
-
-     //ref.fD := 0;
-     ref.fX := nil;
-     ref.fInd := 0;
-end;
-
-// ###########################################
-// #### VP Tree
-// ###########################################
-
-{ TVPTree }
-
-function TVPTree.AddNodeArr: PVPTreeNodeConstArr;
-begin
-     Result := PVPTreeNodeConstArr(GetMemory(sizeof(TVPTreeNodeConstArr)));
-     fNodes.Add(Result);
-     fActNodeIdx := 0;
-end;
-
-function TVPTree.BuildFromPoints(lower, upper: integer): PVPTreeNode;
-var i : Integer;
-    tmp : TDataPoint;
-    med : integer;
-    numElem : integer;
-begin
-     // indicates we are done here
-     if lower > upper then
-        exit(nil);
-
-     if (fPActNode = nil) or (fActNodeIdx = cNumNodeElemPerLine) then
-        fPActNode := AddNodeArr;
-
-     Result := @fPActNode^[fActNodeIdx];
-     inc(fActNodeIdx);
-     inc(fNumNodes);
-
-     Result^.index := lower;
-
-     if upper > lower then
-     begin
-          // Choose an arbitrary point and move it to the start
-          i := fRnd.RandInt( (upper - lower + 1) ) + lower;
-          //i := lower + (upper - lower) div 2;
-          //i := lower + 1;
-
-          tmp := fItems[i];
-          fItems[i] := fItems[lower];
-          fItems[lower] := tmp;
-
-          // number of elements to sort from (from lower + 1 to upper)
-          numElem := upper - lower;
-
-          // Partition around the median distance
-          if Length(fDists) < (upper - lower + 1) then
-          begin
-               SetLength(fDists, upper - lower + 1);
-               SetLength(fHlp, upper - lower + 1);
-               SetLength(fPDists, upper - lower + 1);
-          end;
-          med := numElem div 2;
-
-          // make a copy -> put back later on, we sort on indices :)
-          Move( fItems[lower + 1], fHlp[0], numElem*sizeof(fHlp[0]));
-          for i := 0 to numElem - 1 do
-          begin
-               fDists[i].dist := fDistFunc(lower + i + 1, lower);
-               fDists[i].index := i;
-               fPDists[i] := @fDists[i];
-          end;
-          Result^.Threshold := KthLargestP( @fPDists[0], numElem, med);
-
-          // write back the partitioned data from the helper array using the partioned
-          // indices from the KthlargestP function
-          for i := 0 to numElem - 1 do
-              fItems[lower + 1 + i] := fHlp[ fPDists[i]^.index ];
-
-          // ###########################################
-          // #### Recursion to build left and right tree
-          Result^.Left := BuildFromPoints(lower + 1, lower + med );   // original code goes up until med but makes that sense??
-          Result^.Right := BuildFromPoints( lower + 1 + med, upper );
-     end
-     else
-     begin
-          Result.Left := nil;
-          Result.Right := nil;
-          Result.Threshold := 0;
-     end;
-end;
-
-procedure TVPTree.BuildTree(items: TDataPointArr);
-begin
-     fPActNode := nil;
-     ClearNodes;
-     fNumNodes := 0;
-     fItems := items;
-
-     fRoot := BuildFromPoints( 0, Length(fItems) - 1);
-end;
-
-procedure TVPTree.ClearNodes;
-var i : Integer;
-begin
-     for i := 0 to fNodes.Count - 1 do
-         FreeMem(fNodes[i]);
-
-     fActNodeIdx := 0;
-     fNodes.Clear;
-end;
-
-constructor TVPTree.Create(D : integer; distFunc : TTSNEDistFunc; randAlg : TRandomAlgorithm; seed : integer);
-begin
-     fRnd := TRandomGenerator.Create(randAlg);
-     fRnd.Init( seed );
-     fD := D;
-     fNodes := TList.Create;
-
-     case distFunc of
-       dfEuclid: fDistFunc := DistanceEuclid;
-       dfNormEuclid: raise ENotSupportedException.Create('Normlized Euclidian distance not supported in approximate TSNE');
-       dfAbs: fDistFunc := DistanceAbs;
-       dfMahalanobis: raise ENotSupportedException.Create('Mahalonobis distance not supported in approximate TSNE');
-     else
-         fDistFunc := DistanceEuclid;
-     end;
-
-     inherited Create;
-end;
-
-destructor TVPTree.Destroy;
-begin
-     fRnd.Free;
-     ClearNodes;
-     fNodes.Free;
-
-     inherited;
-end;
-
-function TVPTree.DistanceAbs(idx1, idx2: integer): double;
-var i : integer;
-begin
-     Result := 0;
-
-     for i := 0 to fD - 1 do// fItems[idx1].Dimensionality - 1 do
-         Result := Result + Abs( PConstDoubleArr(fItems[idx1].fX)^[i] - PConstDoubleArr(fItems[idx2].fX)^[i] );
-end;
-
-function TVPTree.DistanceEuclid(idx1, idx2: integer): double;
-var i : integer;
-begin
-     Result := 0;
-
-     try
-     for i := 0 to fD - 1 do// fItems[idx1].Dimensionality - 1 do
-         Result := Result + sqr( PConstDoubleArr(fItems[idx1].fX)^[i] - PConstDoubleArr(fItems[idx2].fX)^[i] );
-
-     except
-     Result := 0;
-     for i := 0 to fD - 1 do// fItems[idx1].Dimensionality - 1 do
-         Result := Result + sqr( PConstDoubleArr(fItems[idx1].fX)^[i] - PConstDoubleArr(fItems[idx2].fX)^[i] );
-
-     end;
-     Result := Sqrt(Result);
-end;
-
-procedure TVPTree.InternalSearch(node: PVPTreeNode; idx : integer; k: integer; heap: TPtrHeap;
- heapData : THeapItemArr);
-var dist : double;
-    elem : PHeapItem;
-begin
-     if node = nil then
-        exit;
-
-     // Compute distance between target and current node
-     dist := fDistFunc(node^.Index, idx);
-
-     // check if it's within the radius
-     if dist < fTau then
-     begin
-          // remove element if we have already k elements
-          if heap.Count = k
-          then
-              elem := heap.Pop
-          else
-              elem := @heapData[heap.Count];
-          elem^.index := node^.Index;
-          elem^.dist := dist;
-          heap.Add(elem);
-
-          if heap.Count = k then
-             fTau := PHeapItem( heap.Top )^.dist;
-     end;
-                                   
-     // Return if we arrived at a leaf
-     if (node^.Left = nil) and (node^.Right = nil) then
-        exit;
-
-     // check if target is within the radius
-
-     // does it really make a difference if we search right first?
-     if dist < node^.Threshold then
-     begin
-          // search left node first
-          if dist - fTau <= node^.Threshold then
-             InternalSearch(node^.Left, idx, k, heap, heapData);
-
-          if dist + fTau >= node^.Threshold then
-             InternalSearch(node^.Right, idx, k, heap, heapData);
-     end
-     else
-     begin
-          // search right node first
-          if dist + fTau >= node^.Threshold then
-             InternalSearch(node^.Right, idx, k, heap, heapData);
-
-          if dist - fTau <= node^.Threshold then
-             InternalSearch(node^.Left, idx, k, heap, heapData);
-     end;
-end;
-
-function DoubleDistCmp( item1, item2 : Pointer ) : integer;
-begin
-     Result := CompareValue( TVPTree.PHeapItem(item1)^.dist, TVPTree.PHeapItem(item2)^.dist );
-     //Result := CompareValue( TVPTree.PHeapItem(item2)^.dist, TVPTree.PHeapItem(item1)^.dist );
-end;
-
-procedure TVPTree.Search(idx : integer; k : integer; var res : TSearchPtEntryArr);
-var heapData : THeapItemArr;
-    heap : TPtrHeap;
-    i : Integer;
-    pItem : PHeapItem;
-begin
-     // the first element is the one with the shortes distance (0)
-     // we have never more than k elements
-     SetLength(heapData, k);
-     fTau := MaxDouble;
-
-     heap := TPtrHeap.Create( DoubleDistCmp );
-     //try
-        heap.Capacity := k;
-
-        // perform search... and reverse
-        InternalSearch(fRoot, idx, k, heap, heapData);
-        SetLength(res, heap.Count);
-        for i := Length(res) - 1 downto 0 do
-        begin
-             pItem := heap.Pop;
-
-             res[i].pt := @fItems[ pItem^.index ];
-             res[i].dist := pItem^.dist;
-        end;
-     //finally
-            heap.Free;
-     //end;
-end;
-
-{$ENDREGION}
 
 // ###########################################
 // #### SPTREE
@@ -2338,6 +1953,17 @@ var curP : TDoubleDynArray;
     m : Integer;
    // invSumP : double;
     ptRow : integer;
+
+  function DistFuncToTreeDistFunc( distFunc : TTSNEDistFunc ) : TSpatialTreeDistFuncType;
+  begin
+       case distFunc of
+         dfOrig,
+         dfEuclid: Result := TSpatialTreeDistFuncType.dfEuclid;
+         dfAbs: Result := TSpatialTreeDistFuncType.dfAbs;
+       else
+           raise Exception.Create('TSNE Distance function not implemented for KD-Trees - use only euclid or abs (manhattan) distance');
+       end;
+  end;
 begin
      fN := X.Height;
      SetLength( fRows, 1 + X.Height);
@@ -2363,7 +1989,7 @@ begin
           objX[n].Init( (*X.Width, *)n, X.StartElement );
      end;
      X.UseFullMatrix;
-     tree := TVPTree.Create(X.Width, fDistFunc, fRandAlgorithm, fSeed);
+     tree := TVPTree.Create(X.Width, DistFuncToTreeDistFunc( fDistFunc ), fRandAlgorithm, fSeed);
      try
         tree.BuildTree(objX);
 

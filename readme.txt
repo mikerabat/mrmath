@@ -50,6 +50,10 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+date: 10.01.2026
+* Added Vantage points trees and KD trees in a new unit
+* Moved the already existing implementation of VP trees from tsne to the unit.
+
 date: 23.05.2025
 * just added row and col swap routines in the matrix class
 

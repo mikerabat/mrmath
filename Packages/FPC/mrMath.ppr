@@ -163,6 +163,7 @@ uses
   SSA in '..\..\SSA.pas',
   MtxUtilFunc in '..\..\MtxUtilFunc.pas',
   RollingMedMean in '..\..\RollingMedMean.pas',
+  SpatialTrees in '..\SpatialTrees.pas',
   Wavelets in '..\..\Wavelets.pas';
 
 begin
