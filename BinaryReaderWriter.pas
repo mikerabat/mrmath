@@ -21,7 +21,7 @@ unit BinaryReaderWriter;
 
 interface
 
-uses SysUtils, Classes, BaseMathPersistence, types;
+uses SysUtils, Classes, BaseMathPersistence, types, MatrixConst;
 
 // #############################################################
 // #### Loading/saving data
@@ -31,7 +31,9 @@ type
     procedure ReadBinaryData(sectName : String; Len : LongInt; obj : TBaseMathPersistence; aStream : TStream);
     procedure ReadStringData(sectName : String; Len : LongInt; obj : TBaseMathPersistence; aStream : TStream);
     procedure ReadDoubleData(sectName : String; Len : LongInt; obj : TBaseMathPersistence; aStream : TStream);
+    procedure ReadCmplxData(sectName : String; Len : LongInt; obj : TBaseMathPersistence; aStream : TStream);
     procedure ReadDoubleArrData(sectName : String; Len : LongInt; obj : TBaseMathPersistence; aStream : TStream);
+    procedure ReadCmplxArrData(sectName : String; Len : LongInt; obj : TBaseMathPersistence; aStream : TStream);
     procedure ReadIntArrData(sectName : String; Len : LongInt; obj : TBaseMathPersistence; aStream : TStream);
     procedure ReadListDoubleArrData(Len : LongInt; obj : TBaseMathPersistence; aStream : TStream);
     procedure ReadListIntArrData(Len : LongInt; obj : TBaseMathPersistence; aStream : TStream);
@@ -47,10 +49,12 @@ type
 
     procedure WriteObjDescriptor(const Name : String; const Value : String); override;
     procedure WriteDoubleArr(const Name : String; const Value : Array of double); override;
+    procedure WriteCmplxArr(const Name : String; const Value : Array of TComplex); override;
     procedure WriteListBegin(const Name : String; count : integer); override;
     procedure WriteListEnd; override;
     procedure WriteBinaryProperty(const Name : String; const Value; size : integer); override;
     procedure WriteProperty(const Name : String; const Value : double); overload; override;
+    procedure WriteProperty(const Name : String; const Value : TComplex); overload; override;
     procedure WriteProperty(const Name : String; const Value : String); overload; override;
     procedure WriteProperty(const Name : String; const Value : integer); overload; override;
     procedure WriteObject(Obj : TBaseMathPersistence); override;
@@ -72,7 +76,8 @@ const cBinaryReaderHeader : Array[0..4] of AnsiChar = 'RMCLS';
 {$MINENUMSIZE 1}
 type
   TBinarySectionType = (bsBinary, bsString, bsDouble, bsDoubleArr, bsIntArr, bsInteger, bsBeginList,
-                        bsListIntArr, bsListDoubleArr, bsEndList, bsObjectDescription, bsObjectBegin, bsObjectEnd, bsEndaStream);
+                        bsListIntArr, bsListDoubleArr, bsEndList, bsObjectDescription, bsObjectBegin,
+                        bsObjectEnd, bsEndaStream, bsComplex, bsComplexArr);
 
 type
   TBinarySectionRec = packed record
@@ -185,6 +190,8 @@ begin
                 bsListIntArr: ReadListIntArrData(sect.Len, obj.MathIOObj, aStream);
                 bsListDoubleArr: ReadListDoubleArrData(sect.Len, obj.MathIOObj, aStream);
                 bsInteger: ReadIntegerData(sectName, sect.Len, obj.MathIOObj, aStream);
+                bsComplex: ReadCmplxData(sectName, sect.Len, obj.MathIOObj, aStream);
+                bsComplexArr: ReadCmplxArrData(sectName, sect.Len, obj.MathIOObj, aStream);
                 bsBeginList: ReadListBeginData(sectName, sect.len, obj.MathIOObj, aStream);
                 bsEndList: ReadEndList(obj.MathIOObj);
                 bsObjectBegin: objs.Push(TSectObj.Create(sectName, ReadObjFromStream(aStream)));
@@ -235,6 +242,33 @@ begin
      SetLength(value, len - Length(sSect) - sizeof(TBinarySectionRec));
      aStream.ReadBuffer(value[0], Length(value));
      ReadBinaryProperty(obj, sectName, Value[0], Length(value));
+end;
+
+procedure TBinaryReaderWriter.ReadCmplxArrData(sectName: String; Len: Integer;
+  obj: TBaseMathPersistence; aStream: TStream);
+var value : TComplexDynArray;
+    sSect : UTF8String;
+begin
+     sSect := UTF8String(sectName);
+
+     assert(((len - Length(sSect) - sizeof(TBinarySectionRec)) mod sizeof(TComplex)) = 0, 'Error wrong initialized section');
+     SetLength(value, (len - length(sSect) - sizeof(TBinarySectionRec)) div sizeof(TComplex));
+     if Length(value) > 0 then
+        aStream.ReadBuffer(value[0], sizeof(TComplex)*Length(value));
+     ReadCmplxArr(obj, sectName, Value);
+end;
+
+
+procedure TBinaryReaderWriter.ReadCmplxData(sectName: String; Len: Integer;
+  obj: TBaseMathPersistence; aStream: TStream);
+var value : TComplex;
+    sSect : UTF8String;
+begin
+     sSect := UTF8String(sectName);
+
+     assert(len - Length(sSect) - sizeof(TBinarySectionRec) = sizeof(TComplex), 'Error wrong initialized section');
+     aStream.ReadBuffer(value, sizeof(TComplex));
+     ReadCmplxProperty(obj, sectName, Value);
 end;
 
 procedure TBinaryReaderWriter.ReadDoubleArrData(sectName: String;
@@ -355,6 +389,26 @@ begin
      if Size > 0 then
         Stream.Write(Value, size);
 end;
+
+procedure TBinaryReaderWriter.WriteCmplxArr(const Name: String;
+  const Value: array of TComplex);
+var sect : TBinarySectionRec;
+    sName : UTF8String;
+begin
+     sName := UTF8String(Name);
+
+     sect.Len := sizeof(sect) + Length(sName) + Length(Value)*Sizeof(TComplex);
+     sect.SectTpye := bsComplexArr;
+     sect.NameLen := Length(sName);
+
+     Stream.Write(sect, sizeof(sect));
+     if Length(sName) > 0 then
+        Stream.Write(sName[1], Length(sName));
+
+     if Length(Value) > 0 then
+        Stream.Write(Value[0], Length(Value)*sizeof(TComplex));
+end;
+
 
 procedure TBinaryReaderWriter.WriteDoubleArr(const Name: String;
   const Value: Array of double);
@@ -498,6 +552,25 @@ begin
 
      Stream.WriteBuffer(sect, sizeof(sect));
 end;
+
+procedure TBinaryReaderWriter.WriteProperty(const Name: String;
+  const Value: TComplex);
+var sect : TBinarySectionRec;
+    sName : UTF8String;
+begin
+     sName := UTF8String(Name);
+
+     sect.Len := sizeof(sect) + Length(sName) + sizeof(LongInt);
+     sect.SectTpye := bsComplex;
+     sect.NameLen := Length(sName);
+
+     Stream.Write(sect, sizeof(sect));
+     if Length(sName) > 0 then
+        Stream.WriteBuffer(sName[1], Length(sName));
+
+     Stream.WriteBuffer(Value, sizeof(Value));
+end;
+
 
 procedure TBinaryReaderWriter.WriteObject(Obj: TBaseMathPersistence);
 begin

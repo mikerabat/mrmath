@@ -57,7 +57,7 @@ uses PCA,
      {$IFNDEF FMX} {$IFDEF Windows} Graphics, {$ENDIF} {$ENDIF}
      BinaryReaderWriter, BaseMathPersistence, IncrementalPCA,
      JSONReaderWriter, MtxTimer, ThreadedMatrix, MatrixASMStubSwitch,
-     KernelPCA, Math;
+     KernelPCA, Math, DblMatrix;
 
 { TTestEigensystems }
 
@@ -515,12 +515,12 @@ begin
              radius  := 1;
      end;
 
-     pcares := TKernelPCA.KernelPCAGauss(x.GetObjRef, 0.95, True, 0.5);
+     pcares := TKernelPCA.KernelPCAGauss(x.GetObjRef as TDoubleMatrix, 0.95, True, 0.5);
      X.SetSubMatrix(0, 0, 1, X.Height);
 end;
 
 procedure TTestKernelPCA.TestKernelPCAProj;
-var x : IMatrix;
+var x : IDoubleMatrix;
     cnt: Integer;
     rho, phi: double;
     radius : double;
@@ -552,12 +552,13 @@ begin
      try
         SetProperties(props);
         res := TDoubleMatrix.Create;
-        Check(KernelPCA( x.GetObjRef, 0.95, True, res.GetObjRef) = True, 'Error Kernel PCA failed');
+        Check(KernelPCA( x.GetObjRef as TDoubleMatrix, 0.95, True,
+                         res.GetObjRef as TDoubleMatrix) = True, 'Error Kernel PCA failed');
 
         //MatrixToTxtFile('D:\x_res.txt', res.GetObjRef);
 
         X.SetSubMatrix(0, 0, 1, x.Height);
-        res1 := ProjectToFeatureSpace(X.GetObjRef);
+        res1 := ProjectToFeatureSpace(X.GetObjRef as TDoubleMatrix);
      finally
             Free;
      end;
@@ -572,10 +573,11 @@ begin
      try
         SetProperties(props);
         res := TDoubleMatrix.Create;
-        Check(KernelPCA( x.GetObjRef, 0.95, True, res.GetObjRef) = True, 'Error Kernel PCA failed');
+        Check(KernelPCA( x.GetObjRef as TDoubleMatrix, 0.95, True,
+                         res.GetObjRef as TDoubleMatrix) = True, 'Error Kernel PCA failed');
 
         X.SetSubMatrix(0, 0, 1, x.Height);
-        res1 := ProjectToFeatureSpace(X.GetObjRef);
+        res1 := ProjectToFeatureSpace(X);
      finally
             Free;
      end;
@@ -584,7 +586,7 @@ begin
 end;
 
 procedure TTestKernelPCA.TestKernelPCAPersistence;
-var x : IMatrix;
+var x : IDoubleMatrix;
     cnt: Integer;
     rho, phi: double;
     radius : double;
@@ -615,11 +617,11 @@ begin
      with kpca do
      try
         SetProperties(props);
-        Check(KernelPCA( x.GetObjRef, 0.95, True, nil) = True, 'Error Kernel PCA failed');
+        Check(KernelPCA( x.GetObjRef as TDoubleMatrix, 0.95, True, nil) = True, 'Error Kernel PCA failed');
 
         kpca.SaveToFile( 'kpca.dat', TBinaryReaderWriter );
         X.SetSubMatrix(0, 0, 1, x.Height);
-        res1 := ProjectToFeatureSpace(X.GetObjRef);
+        res1 := ProjectToFeatureSpace(X);
      finally
             Free;
      end;
@@ -627,7 +629,7 @@ begin
      kpca := ReadObjFromFile( 'kpca.dat' ) as TKernelPCA;
 
      try
-        res2 := kpca.ProjectToFeatureSpace(X.GetObjRef);
+        res2 := kpca.ProjectToFeatureSpace(X);
      finally
             kpca.Free;
      end;

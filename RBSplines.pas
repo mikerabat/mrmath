@@ -26,7 +26,7 @@ unit RBSplines;
 
 interface
 
-uses sysUtils, Types, Matrix;
+uses sysUtils, Types, Matrix, DblMatrix;
 
 type
   ESplineException = class(Exception);
@@ -39,42 +39,42 @@ type
     fOrder : integer;
     fPeriodic : boolean;
 
-    fBreaks : IMatrix;
-    fCoefs : IMatrix;
+    fBreaks : IDoubleMatrix;
+    fCoefs : IDoubleMatrix;
 
-    function evalPoly(x : IMatrix; dim : integer; coefs : IMatrix; var idx : TIntegerDynArray) : IMatrix;
+    function evalPoly(x : IDoubleMatrix; dim : integer; coefs : IDoubleMatrix; var idx : TIntegerDynArray) : IDoubleMatrix;
     procedure splineBase(breaks : TDoubleDynArray);
-    function SolveSystem(x, y : IMatrix) : IMatrix;
+    function SolveSystem(x, y : IDoubleMatrix) : IDoubleMatrix;
 
     procedure ExpFunc( var x : double );
-    function LQSolve(A, y : IMatrix) : IMatrix;
-    function RobustSolve(A, y : IMatrix) : IMatrix;
+    function LQSolve(A, y : IDoubleMatrix) : IDoubleMatrix;
+    function RobustSolve(A, y : IDoubleMatrix) : IDoubleMatrix;
 
-    function IntCoefs : IMatrix; overload;
-    procedure InternalInitCoefs(mtxX, mtxY: IMatrix; breaksLen : integer); overload;
+    function IntCoefs : IDoubleMatrix; overload;
+    procedure InternalInitCoefs(mtxX, mtxY: IDoubleMatrix; breaksLen : integer); overload;
   public
-    property Coefs : IMatrix read fCoefs;
+    property Coefs : IDoubleMatrix read fCoefs;
     
     procedure InitSpline(const x, y, breaks : TDoubleDynArray); overload;
     function EvalSpline(const x : TDoubleDynArray) : TDoubleDynArray; overload;
 
-    procedure InitSpline(x, y, breaks : IMatrix); overload;
-    function EvalSpline(x : IMatrix) : IMatrix; overload;
+    procedure InitSpline(x, y, breaks : IDoubleMatrix); overload;
+    function EvalSpline(x : IDoubleMatrix) : IDoubleMatrix; overload;
 
     // calculates the jth derrivative of the spline at points x
     function DiffSpline(const x : TDoubleDynArray; j : integer) : TDoubleDynArray; overload;
-    function DiffSpline(x : IMatrix; j : integer) : IMatrix; overload;
+    function DiffSpline(x : IDoubleMatrix; j : integer) : IDoubleMatrix; overload;
     function IntSpline( const intFrom, intTo : double) : double; overload;      // definitive integral
     function IntSpline(const x : TDoubleDynArray) : TDoubleDynArray; overload;  // indefinite integral @ breaks[0]
     function IntSpline(a : double; const x : TDoubleDynArray) : TDoubleDynArray; overload;  // indefinite integral
-    function IntSpline(x : IMatrix) : IMatrix; overload;  // indefinite integral @ breaks[0]
-    function IntSpline(a : double; x : IMatrix) : IMatrix; overload;  // indefinite integral
+    function IntSpline(x : IDoubleMatrix) : IDoubleMatrix; overload;  // indefinite integral @ breaks[0]
+    function IntSpline(a : double; x : IDoubleMatrix) : IDoubleMatrix; overload;  // indefinite integral
 
     // ###########################################
     // #### Just for debugging
-    function DebugSplineBase( breaks : TDoubleDynArray ) : IMatrix;
-    function DebugEvalPoly( x, breaks : TDoubleDynArray) : IMatrix;
-    function DebugSolveSystem( x, y, breaks : TDoubleDynArray) : IMatrix;
+    function DebugSplineBase( breaks : TDoubleDynArray ) : IDoubleMatrix;
+    function DebugEvalPoly( x, breaks : TDoubleDynArray) : IDoubleMatrix;
+    function DebugSolveSystem( x, y, breaks : TDoubleDynArray) : IDoubleMatrix;
     
     // Spline Order, default is cubic spline with order = 4;
     // Beta = 0 -> non robust solving; 
@@ -101,15 +101,15 @@ begin
      inherited Create;
 end;
 
-function TRobustBSpline.SolveSystem(x, y : IMatrix): IMatrix;
-var base : IMatrix;
+function TRobustBSpline.SolveSystem(x, y : IDoubleMatrix): IDoubleMatrix;
+var base : IDoubleMatrix;
     i : Integer;
-    A : IMatrix;
+    A : IDoubleMatrix;
     hA : integer;
     idx : TIntegerDynArray;
     ii : integer;
     h : integer;
-    tmp : IMatrix;
+    tmp : IDoubleMatrix;
 begin
      base := EvalPoly(x, forder, fCoefs, idx);
 
@@ -166,8 +166,8 @@ begin
      end;
 end;
 
-function TRobustBSpline.DebugEvalPoly(x, breaks: TDoubleDynArray): IMatrix;
-var mtxX : IMatrix;
+function TRobustBSpline.DebugEvalPoly(x, breaks: TDoubleDynArray): IDoubleMatrix;
+var mtxX : IDoubleMatrix;
     idx : TIntegerDynArray;
 begin
      mtxX := MatrixClass.Create(x, 1, Length(x));
@@ -176,8 +176,8 @@ begin
      Result := evalPoly(mtxX, forder, fCoefs, idx);
 end;
 
-function TRobustBSpline.DebugSolveSystem(x, y, breaks: TDoubleDynArray): IMatrix;
-var mtxX, mtxY : IMatrix;
+function TRobustBSpline.DebugSolveSystem(x, y, breaks: TDoubleDynArray): IDoubleMatrix;
+var mtxX, mtxY : IDoubleMatrix;
 begin
      mtxX := MatrixClass.Create(x, 1, Length(x));
      mtxY := MatrixClass.Create(y, 1, Length(y));
@@ -187,14 +187,14 @@ begin
 end;
 
 function TRobustBSpline.DebugSplineBase(
-  breaks: TDoubleDynArray): IMatrix;
+  breaks: TDoubleDynArray): IDoubleMatrix;
 begin
      splineBase(breaks);
 
      Result := fCoefs;
 end;
 
-function TRobustBSpline.DiffSpline(x: IMatrix; j: integer): IMatrix;
+function TRobustBSpline.DiffSpline(x: IDoubleMatrix; j: integer): IDoubleMatrix;
 var res : TDoubleDynArray;
 begin
      res := DiffSpline(x.SubMatrix, j);
@@ -203,8 +203,8 @@ begin
 end;
 
 function TRobustBSpline.DiffSpline(const x: TDoubleDynArray; j: integer): TDoubleDynArray;
-var diffCoefs : IMatrix;
-    mtxX : IMatrix;
+var diffCoefs : IDoubleMatrix;
+    mtxX : IDoubleMatrix;
     s, i: Integer;
     diffScale : double;
     dummy : TIntegerDynArray;
@@ -247,7 +247,7 @@ begin
      end;
 end; 
 
-function TRobustBSpline.evalPoly(x: IMatrix; dim : integer; coefs : IMatrix; var idx : TIntegerDynArray): IMatrix;
+function TRobustBSpline.evalPoly(x: IDoubleMatrix; dim : integer; coefs : IDoubleMatrix; var idx : TIntegerDynArray): IDoubleMatrix;
 var xs : TDoubleDynArray;
     breakIdx : integer;
     y, yy : Integer;
@@ -296,7 +296,7 @@ begin
 end;
 
 function TRobustBSpline.EvalSpline(const x : TDoubleDynArray): TDoubleDynArray;
-var mtxX : IMatrix;
+var mtxX : IDoubleMatrix;
     dummy : TIntegerDynArray;
 begin
      if not Assigned(fCoefs) then
@@ -306,7 +306,7 @@ begin
      Result := evalPoly(mtxX, 1, fCoefs, dummy).SubMatrix;
 end;
 
-function TRobustBSpline.EvalSpline(x: IMatrix): IMatrix;
+function TRobustBSpline.EvalSpline(x: IDoubleMatrix): IDoubleMatrix;
 var dummy : TIntegerDynArray;
 begin
      if not Assigned(fCoefs) then
@@ -329,7 +329,7 @@ begin
 end;
 
 procedure TRobustBSpline.InitSpline(const x, y, breaks: TDoubleDynArray);
-var mtxX, mtxY : IMatrix;
+var mtxX, mtxY : IDoubleMatrix;
 begin
      mtxX := MatrixClass.Create(x, 1, Length(x));
      mtxY := MatrixClass.Create(y, 1, Length(y));
@@ -339,9 +339,9 @@ begin
      InternalInitCoefs( mtxX, mtxY, Length(breaks) );
 end;
 
-procedure TRobustBSpline.InternalInitCoefs( mtxX, mtxY : IMatrix; breaksLen : integer );
-var u : IMatrix;
-    C : IMatrix;
+procedure TRobustBSpline.InternalInitCoefs( mtxX, mtxY : IDoubleMatrix; breaksLen : integer );
+var u : IDoubleMatrix;
+    C : IDoubleMatrix;
     iX : integer;
     iY : integer;
     coefsX : integer;
@@ -379,8 +379,8 @@ begin
      fCoefs.ReshapeInPlace(fOrder, fcoefs.Width div fOrder, True);
 end;
 
-procedure TRobustBSpline.InitSpline(x, y, breaks: IMatrix);
-var mtxX, mtxY : IMatrix;
+procedure TRobustBSpline.InitSpline(x, y, breaks: IDoubleMatrix);
+var mtxX, mtxY : IDoubleMatrix;
 begin
      mtxX := x.Clone;
      mtxY := y.Clone;
@@ -390,10 +390,10 @@ begin
      InternalInitCoefs( mtxX, mtxY, breaks.Height );
 end;
 
-function TRobustBSpline.IntCoefs: IMatrix;
-var hb : IMatrix;
-    iCoefs : IMatrix;
-    y : IMatrix;
+function TRobustBSpline.IntCoefs: IDoubleMatrix;
+var hb : IDoubleMatrix;
+    iCoefs : IDoubleMatrix;
+    y : IDoubleMatrix;
     n, m : Integer;
     k : Integer;
 begin
@@ -431,9 +431,9 @@ begin
 end;
 
 function TRobustBSpline.IntSpline(const x : TDoubleDynArray): TDoubleDynArray;
-var iCoefs : IMatrix;
+var iCoefs : IDoubleMatrix;
     dummy : TIntegerDynArray;
-    mtxX : IMatrix;
+    mtxX : IDoubleMatrix;
 begin
      iCoefs := IntCoefs;
 
@@ -442,10 +442,10 @@ begin
      Result := evalPoly(mtxX, 1, iCoefs, dummy).SubMatrix;
 end;
 
-function TRobustBSpline.IntSpline(x: IMatrix): IMatrix;
-var iCoefs : IMatrix;
+function TRobustBSpline.IntSpline(x: IDoubleMatrix): IDoubleMatrix;
+var iCoefs : IDoubleMatrix;
     dummy : TIntegerDynArray;
-    mtxX : IMatrix;
+    mtxX : IDoubleMatrix;
 begin
      iCoefs := IntCoefs;
 
@@ -459,11 +459,11 @@ begin
 end;
 
 function TRobustBSpline.IntSpline(a: double; const x: TDoubleDynArray): TDoubleDynArray;
-var iCoefs : IMatrix;
-    aMtx : IMatrix;
-    i0 : IMatrix;
+var iCoefs : IDoubleMatrix;
+    aMtx : IDoubleMatrix;
+    i0 : IDoubleMatrix;
     dummy : TIntegerDynArray;
-    mtxX : IMatrix;
+    mtxX : IDoubleMatrix;
 begin
      iCoefs := IntCoefs;
 
@@ -480,12 +480,12 @@ begin
      Result := evalPoly(mtxX, 1, iCoefs, dummy).SubMatrix;
 end;
 
-function TRobustBSpline.IntSpline(a: double; x: IMatrix): IMatrix;
-var iCoefs : IMatrix;
-    aMtx : IMatrix;
-    i0 : IMatrix;
+function TRobustBSpline.IntSpline(a: double; x: IDoubleMatrix): IDoubleMatrix;
+var iCoefs : IDoubleMatrix;
+    aMtx : IDoubleMatrix;
+    i0 : IDoubleMatrix;
     dummy : TIntegerDynArray;
-    mtxX : IMatrix;
+    mtxX : IDoubleMatrix;
 begin
      iCoefs := IntCoefs;
 
@@ -507,10 +507,10 @@ begin
 end;
 
 function TRobustBSpline.IntSpline(const intFrom, intTo: double): double;
-var iCoefs : IMatrix;
-    a, b : IMatrix;
+var iCoefs : IDoubleMatrix;
+    a, b : IDoubleMatrix;
     dummy : TIntegerDynArray;
-    mtxA, mtxB : IMatrix;
+    mtxA, mtxB : IDoubleMatrix;
 begin
      iCoefs := IntCoefs;
 
@@ -522,8 +522,8 @@ begin
      Result := mtxB.Vec[0] - mtxA.Vec[0];
 end;
 
-function TRobustBSpline.LQSolve(A, y: IMatrix): IMatrix;
-var aInv : IMatrix;
+function TRobustBSpline.LQSolve(A, y: IDoubleMatrix): IDoubleMatrix;
+var aInv : IDoubleMatrix;
 begin
      if A.Width > A.Height then
      begin
@@ -538,15 +538,15 @@ begin
      Result.TransposeInPlace;
 end;
 
-function TRobustBSpline.RobustSolve(A, y: IMatrix): IMatrix;
+function TRobustBSpline.RobustSolve(A, y: IDoubleMatrix): IDoubleMatrix;
 var iter : integer;
     alpha : double;
     h : Integer;
     idx : integer;
-    r : IMatrix;
+    r : IDoubleMatrix;
     rrmean : double;
-    sum : IMatrix;
-    yspw, aspw : IMatrix;
+    sum : IDoubleMatrix;
+    yspw, aspw : IDoubleMatrix;
 begin
      // ###########################################
      // #### Robust solving of an overdetermined linear equation system
@@ -591,22 +591,22 @@ begin
 end;
 
 procedure TRobustBSpline.splineBase(breaks: TDoubleDynArray);
-var h : IMatrix;
+var h : IDoubleMatrix;
     counter: Integer;
     pieces : integer;
     deg : integer;
-    aCoefs : IMatrix;
+    aCoefs : IDoubleMatrix;
     cnt: Integer;
-    hh : IMatrix;
+    hh : IDoubleMatrix;
     idx : integer;
     k : integer;
     j : Integer;
-    Q : IMatrix;
-    c0 : IMatrix;
+    Q : IDoubleMatrix;
+    c0 : IDoubleMatrix;
     x, y : integer;
-    fmax : IMatrix;
-    tmp : IMatrix;
-    scale : IMatrix;
+    fmax : IDoubleMatrix;
+    tmp : IDoubleMatrix;
+    scale : IDoubleMatrix;
     sortIdx : TIntegerDynArray;
 begin
      deg := fOrder - 1;

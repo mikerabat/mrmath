@@ -3,7 +3,7 @@
 // #### offered under the licence agreement described on
 // #### http://www.mrsoft.org/
 // ####
-// #### Copyright:(c) 2011, Michael R. . All rights reserved.
+// #### Copyright:(c) 2025, Michael R. . All rights reserved.
 // ####
 // #### Unless required by applicable law or agreed to in writing, software
 // #### distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,111 +12,92 @@
 // #### limitations under the License.
 // ###################################################################
 
-
 unit Matrix;
-
-// ############################################
-// #### Base matrix operations
-// ############################################
 
 interface
 
-uses SysUtils, Classes, Types, MatrixConst, BaseMathPersistence, RandomEng;
+uses SysUtils, Classes, BaseMathPersistence, MatrixConst, Types,
+     RandomEng;
 
-{$I 'mrMath_CPU.inc'}
-
-{$IFDEF FPC}
-   {.$DEFINE ANONMETHODS}
-{$ELSE}
-   {$IF CompilerVersion >= 20.0}
-      {$DEFINE ANONMETHODS}
-   {$IFEND}
-{$ENDIF}
-
+// ###########################################
+// #### Abstract base class. The memory management base class for various matrix classes
+// is implemented here. Every other method is abstract
 type
   EBaseMatrixException = class(Exception);
+  EMatrixTypeException = class(EBaseMatrixException);
   ELinEQSingularException = class(EBaseMatrixException);
 
-type
-  TDoubleMatrix = class;
+  TMatrixType = (mtReal, mtComplex);
+
+  TBaseMatrix = class;
   IMatrix = interface(IMathPersistence)
-    ['{8B76CD12-4314-41EB-BD98-302A024AA0EC}']
-    function StartElement : PDouble;
-    function LineWidth : integer;
-
-    procedure SetLinEQProgress(value : TLinEquProgress);
-    function GetLinEQProgress : TLinEquProgress;
-
-    function GetItems(x, y: integer): double; register;
-    procedure SetItems(x, y: integer; const Value: double); register;
-
-    function GetVecItem(idx: integer): double; register;
-    procedure SetVecItem(idx: integer; const Value: double); register;
-
-    function GetSubWidth : integer;
-    function GetSubHeight : integer;
+  ['{71AE57A2-6389-4234-A09D-5552D0DFB4E2}']
+    procedure Clear;
     procedure SetWidth(const Value : integer);
     procedure SetHeight(const Value : integer);
-    procedure SetWidthHeight(const Width, Height : integer);
-    procedure Resize(aNewWidth, aNewHeight : Integer);           // setwidthheight with data preserve
+    function GetSubWidth : integer;
+    function GetSubHeight : integer;
     function GetVecLen : integer;
+    function GetType : TMatrixType;
 
-    property Width : integer read GetSubWidth write SetWidth;
-    property Height : integer read GetSubHeight write SetHeight;
+    function GetItems(x, y: integer): double;
+    procedure SetItems(x, y: integer; const Value: double);
 
-    property LinEQProgress : TLinEquProgress read GetLinEQProgress write SetLinEQProgress;
+    function GetVecItem(idx: integer): double;
+    procedure SetVecItem(idx: integer; const Value: double);
 
     // general access
     property Items[x, y : integer] : double read GetItems write SetItems; default;
     property Vec[idx : integer] : double read GetVecItem write SetVecItem; // matrix as vector
-    property VecLen : integer read GetVecLen;
 
-    procedure Clear;
-    function GetObjRef : TDoubleMatrix;
+    function GetObjRef : TBaseMatrix;
+    function Cast( const IID : TGuid ) : IMatrix; // cast and clone to double or complex matrix
 
-    function SubMatrix : TDoubleDynArray;
+    procedure SetLinEQProgress(value : TLinEquProgress);
+    function GetLinEQProgress : TLinEquProgress;
+
+    property Width : integer read GetSubWidth write SetWidth;
+    property Height : integer read GetSubHeight write SetHeight;
+    property LinEQProgress : TLinEquProgress read GetLinEQProgress write SetLinEQProgress;
+
+    procedure SetWidthHeight(const aWidth, aHeight : integer);
+    procedure Resize(aNewWidth, aNewHeight : Integer);           // setwidthheight with data preserve
+
+    // direct access functionality (use only when you know what you are doing!)
+    function StartElement : PDouble;
+    function LineWidth : NativeInt;
+
     procedure SetSubMatrix(x, y, Subwidth, Subheight : integer);
     procedure UseFullMatrix;
 
-    procedure SetRow(row : integer; const Values : Array of Double); overload;
-    procedure SetRow(row : integer; Values : TDoubleMatrix; ValRow : integer = 0); overload;
+    // ###########################################
+    // #### common matrix functions shared by all matrix classes
     procedure SetRow(row : integer; Values : IMatrix; ValRow : integer = 0); overload;
-    procedure SetColumn(col : integer; const Values : Array of Double); overload;
-    procedure SetColumn(col : integer; Values : TDoubleMatrix; ValCols : integer = 0); overload;
     procedure SetColumn(col : integer; Values : IMatrix; ValCols : integer = 0); overload;
 
     procedure SwapRow( idx1, idx2 : integer );
     procedure SwapColumn( idx1, idx2 : integer );
 
-    procedure SetValue(const initVal : double); overload;
-    procedure SetValue(const initVal : double; x, y, aWidth, aHeight : NativeInt); overload;  // sets the value in a subsection of the matrix
-    procedure InitRandom(method : TRandomAlgorithm; seed : LongInt);         // sets the matrix to random values between 0 - 1
+    function SubColMtxIdx( colIdx : TIntegerDynArray ) : IMatrix; overload;
+    function SubRowMtxIdx( rowIdx : TIntegerDynArray ) : IMatrix; overload;
+    function SubMtxIdx( colIdx : TIntegerDynArray; rowIdx : TIntegerDynArray ) : IMatrix; overload;
+    function SubColMtx( fromIdx, toIdx : integer ) : IMatrix; overload;
+    function SubRowMtx( fromIdx, toIdx : integer ) : IMatrix; overload;
+    function SubMtx( fromColIdx, ToColIdx, fromRowIdx, ToRowIdx : integer ) : IMatrix; overload;
 
-    function SubColMtx( colIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
-    function SubRowMtx( rowIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
-    function SubMtx( colIdx : TIntegerDynArray; rowIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
-    function SubColMtx( fromIdx, toIdx : integer ) : TDoubleMatrix; overload;
-    function SubRowMtx( fromIdx, toIdx : integer ) : TDoubleMatrix; overload;
-    function SubMtx( fromColIdx, ToColIdx, fromRowIdx, ToRowIdx : integer ) : TDoubleMatrix; overload;
-
-    function Reshape(newWidth, newHeight : integer; RowMajor : boolean = False) : TDoubleMatrix;
+    function Reshape(newWidth, newHeight : integer; RowMajor : boolean = False) : IMatrix;
     procedure ReshapeInPlace(newWidth, newHeight : integer; ColMajor : boolean = False);
-    function AsVector( ColMajor : boolean = False ) : TDoubleMatrix;
 
+    function AsVector( ColMajor : boolean = False ) : IMatrix;
 
     // ###################################################
     // #### Simple matrix utility functions
-    function Max : double;
-    function Min : double;
-    function Sum : double; overload;
-
-    function Abs : TDoubleMatrix;
+    function Abs : IMatrix;
     procedure AbsInPlace;
 
     procedure DiagInPlace(createDiagMtx : boolean);
-    function Diag(createDiagMtx : boolean) : TDoubleMatrix; overload;
-    function Diag(K : integer) : TDoubleMatrix; overload; // returns the diagonal on offset k
-    function Trace : double;
+    function Diag(createDiagMtx : boolean) : IMatrix;
+    function DiagFromOffset(K : integer) : IMatrix;  // returns the diagonal on offset k
 
     procedure Normalize(RowWise : boolean);
     procedure NormZeroMeanVarOne(RowWise : boolean);
@@ -124,231 +105,120 @@ type
 
     // ###################################################
     // #### Base Matrix operations
+    function Transpose : IMatrix;
     procedure TransposeInPlace;
-    function Transpose : TDoubleMatrix;
 
-    procedure AddInplace(Value : TDoubleMatrix); overload;
-    function Add(Value : TDoubleMatrix) : TDoubleMatrix; overload;
-    procedure AddVecInPlace(Value : TDoubleMatrix; rowWise : Boolean); overload;
-    function AddVec(aVec : TDoubleMatrix; rowWise : Boolean) : TDoubleMatrix; overload;
-    procedure AddVecInPlace(Value : IMatrix; rowWise : Boolean); overload;
-    function AddVec(iVec : IMatrix; rowWise : Boolean) : TDoubleMatrix; overload;
+    procedure AddInplace(Value : IMatrix);
+    function Add(Value : IMatrix) : IMatrix;
+    procedure AddVecInPlace(Value : IMatrix; rowWise : Boolean);
+    function AddVec(aVec : IMatrix; rowWise : Boolean) : IMatrix;
 
-    procedure SubInPlace(Value : TDoubleMatrix); overload;
-    function Sub(Value : TDoubleMatrix) : TDoubleMatrix; overload;
-    procedure SubVecInPlace(Value : TDoubleMatrix; rowWise : Boolean); overload;
-    function SubVec(aVec : TDoubleMatrix; rowWise : Boolean) : TDoubleMatrix; overload;
-    procedure SubVecInPlace(Value : IMatrix; rowWise : Boolean); overload;
-    function SubVec(iVec : IMatrix; rowWise : Boolean) : TDoubleMatrix; overload;
+    procedure SubInPlace(Value : IMatrix);
+    function Sub(Value : IMatrix) : IMatrix;
+    procedure SubVecInPlace(Value : IMatrix; rowWise : Boolean);
+    function SubVec(aVec : IMatrix; rowWise : Boolean) : IMatrix;
 
-    procedure MultInPlace(Value : TDoubleMatrix); overload;
-    function Mult(Value : TDoubleMatrix) : TDoubleMatrix; overload;
+    procedure MultInPlace(Value : IMatrix);
+    function Mult(Value : IMatrix) : IMatrix;
 
     // multT1: dest = mt1' * mt2     mt1' = mt1.transpose
-    procedure MultInPlaceT1(Value : TDoubleMatrix); overload;
-    function MultT1(Value : TDoubleMatrix) : TDoubleMatrix; overload;
+    procedure MultInPlaceT1(Value : IMatrix);
+    function MultT1(Value : IMatrix) : IMatrix;
 
-    // multT2: dest = mt1 * mt2'     mt2 = mt2.transpose
-    procedure MultInPlaceT2(Value : TDoubleMatrix); overload;
-    function MultT2(Value : TDoubleMatrix) : TDoubleMatrix; overload;
-    procedure AddInplace(Value : IMatrix); overload;
-    function Add(Value : IMatrix) : TDoubleMatrix; overload;
-    procedure SubInPlace(Value : IMatrix); overload;
-    function Sub(Value : IMatrix) : TDoubleMatrix; overload;
-    procedure MultInPlace(Value : IMatrix); overload;
-    function Mult(Value : IMatrix) : TDoubleMatrix; overload;
-    procedure MultInPlaceT1(Value : IMatrix); overload;
-    function MultT1(Value : IMatrix) : TDoubleMatrix; overload;
-    procedure MultInPlaceT2(Value : IMatrix); overload;
-    function MultT2(Value : IMatrix) : TDoubleMatrix; overload;
-    procedure ElementWiseMultInPlace(Value : TDoubleMatrix); overload;
-    function ElementWiseMult(Value : TDoubleMatrix) : TDoubleMatrix; overload;
-    procedure ElementWiseMultInPlace(Value : IMatrix); overload;
-    function ElementWiseMult(Value : IMatrix) : TDoubleMatrix; overload;
-    procedure ElementWiseDivInPlace(Value : TDoubleMatrix); overload;
-    function ElementWiseDiv(Value : TDoubleMatrix) : TDoubleMatrix; overload;
-    procedure ElementWiseDivInPlace(Value : IMatrix); overload;
-    function ElementWiseDiv(Value : IMatrix) : TDoubleMatrix; overload;
+    procedure MultInPlaceT2(Value : IMatrix);
+    function MultT2(Value : IMatrix) : IMatrix;
 
+    procedure ElementWiseMultInPlace(Value : IMatrix);
+    function ElementWiseMult(Value : IMatrix) : IMatrix;
+    procedure ElementWiseDivInPlace(Value : IMatrix);
+    function ElementWiseDiv(Value : IMatrix) : IMatrix;
 
     procedure AddAndScaleInPlace(const Offset, Scale : double);
-    function AddAndScale(const Offset, Scale : double) : TDoubleMatrix;
+    function AddAndScale(const Offset, Scale : double) : IMatrix;
 
-    function Mean(RowWise : boolean) : TDoubleMatrix;
+    function Mean(RowWise : boolean) : IMatrix;
     procedure MeanInPlace(RowWise : boolean);
-    function Variance(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
+    function Variance(RowWise : boolean; unbiased : boolean = True) : IMatrix;
     procedure VarianceInPlace(RowWise : boolean; unbiased : boolean = True);
-    function Std(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
+    function Std(RowWise : boolean; unbiased : boolean = True) : IMatrix;
     procedure StdInPlace(RowWise : boolean; unbiased : boolean = True);
 
     // calculates mean and variance in one step and stores the mean in the first row, the variance in the second
     // if RowWise is selected. If rowwise is false it's vice versa
-    function MeanVariance(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
+    function MeanVariance(RowWise : boolean; unbiased : boolean = True) : IMatrix;
     procedure MeanVarianceInPlace(RowWise : boolean; unbiased : boolean = True);
 
-    function Median(RowWise : boolean) : TDoubleMatrix;
+    function Median(RowWise : boolean) : IMatrix;
     procedure MedianInPlace(RowWise : boolean);
-    function RollMedian(RowWise : boolean; order : integer) : TDoubleMatrix;
+    function RollMedian(RowWise : boolean; order : integer) : IMatrix;
     procedure RollMedianInPlace(RowWise : boolean; order : integer);
 
     procedure SortInPlace(RowWise : boolean);
-    function Sort(RowWise : boolean) : TDoubleMatrix;
+    function Sort(RowWise : boolean) : IMatrix;
 
-    function Diff(RowWise : boolean) : TDoubleMatrix;
+    function Diff(RowWise : boolean) : IMatrix;
     procedure DiffInPlace(RowWise : boolean);
-    function Sum(RowWise : boolean) : TDoubleMatrix; overload;
+    function Sum(RowWise : boolean) : IMatrix; overload;
     procedure SumInPlace(RowWise : boolean); overload;
     procedure SumInPlace(RowWide : boolean; keepMemory : boolean); overload;
-    function CumulativeSum(RowWise : boolean) : TDoubleMatrix;
+    function CumulativeSum(RowWise : boolean) : IMatrix;
     procedure CumulativeSumInPlace(RowWise : boolean);
 
-    function Add(const Value : double) : TDoubleMatrix; overload;
-    procedure AddInPlace(const Value : double); overload;
-    function Scale(const Value : double) : TDoubleMatrix;
+    function AddConst(const Value : double) : IMatrix;
+    procedure AddConstInPlace(const Value : double);
+    function Scale(const Value : double) : IMatrix;
     procedure ScaleInPlace(const Value : Double);
-    function ScaleAndAdd(const aOffset, aScale : double) : TDoubleMatrix;
+    function ScaleAndAdd(const aOffset, aScale : double) : IMatrix;
     procedure ScaleAndAddInPlace(const aOffset, aScale : double);
-    function SQRT : TDoubleMatrix;
+    function SQRT : IMatrix;
     procedure SQRTInPlace;
 
-    procedure ElementwiseFuncInPlace(func : TMatrixFunc); overload;
-    function ElementwiseFunc(func : TMatrixFunc) : TDoubleMatrix; overload;
-    procedure ElementwiseFuncInPlace(func : TMatrixObjFunc); overload;
-    function ElementwiseFunc(func : TMatrixObjFunc) : TDoubleMatrix; overload;
-    procedure ElementwiseFuncInPlace(func : TMatrixMtxRefFunc); overload;
-    function ElementwiseFunc(func : TMatrixMtxRefFunc) : TDoubleMatrix; overload;
-    procedure ElementwiseFuncInPlace(func : TMatrixMtxRefObjFunc); overload;
-    function ElementwiseFunc(func : TMatrixMtxRefObjFunc) : TDoubleMatrix; overload;
-
-    {$IFDEF ANONMETHODS}
-    procedure ElementwiseFuncInPlace(func : TMatrixFuncRef); overload;
-    function ElementwiseFunc(func : TMatrixFuncRef) : TDoubleMatrix; overload;
-    procedure ElementwiseFuncInPlace(func : TMatrixMtxRefFuncRef); overload;
-    function ElementwiseFunc(func : TMatrixMtxRefFuncRef) : TDoubleMatrix; overload;
-    {$ENDIF}
-
-    // ###################################################
-    // #### Linear System solver A*x = B -> use A.SolveLinEQ(B) -> x
-    function SolveLinEQ(Value : TDoubleMatrix; numRefinements : integer = 0) : TDoubleMatrix; overload;
-    function SolveLinEQ(Value : IMatrix; numRefinements : integer = 0) : TDoubleMatrix; overload;
-    procedure SolveLinEQInPlace(Value : TDoubleMatrix; numRefinements : integer = 0); overload;
-    procedure SolveLinEQInPlace(Value : IMatrix; numRefinements : integer = 0); overload;
-
-    // solves least sqaures A*x = b using the QR decomposition
-    procedure SolveLeastSquaresInPlace(out x : TDoubleMatrix; b : TDoubleMatrix); overload;
-    procedure SolveLeastSquaresInPlace(out x : IMatrix; b : IMatrix); overload;
-    procedure SolveLeastSquares(out x : TDoubleMatrix; b : TDoubleMatrix); overload;
-    procedure SolveLeastSquares(out x : IMatrix; b : IMatrix); overload;
-
-    // matrix inversion (based on LU decomposition)
-    function InvertInPlace : TLinEquResult;
-    function Invert : TDoubleMatrix; overload;
-    function Invert( out InvMtx : TDoubleMatrix ) : TLinEquResult; overload;
-    function Invert( out InvMtx : IMatrix ) : TLinEquResult; overload;
-    function PseudoInversionInPlace : TSVDResult;
-    function PseudoInversion(out Mtx : TDoubleMatrix) : TSVDResult; overload;
-    function PseudoInversion(out Mtx : IMatrix) : TSVDResult; overload;
-
-    function Determinant : double;
-
-    // ###################################################
-    // #### Special functions
-    procedure MaskedSetValue(const Mask : Array of boolean; const newVal : double);
-    procedure RepeatMatrixInPlace(numX, numY : integer);
-    function RepeatMatrix(numX, numY : integer) : TDoubleMatrix;
-
-    // ###################################################
-    // #### Matrix transformations
-    function SVD(out U, V, W : TDoubleMatrix; onlyDiagElements : boolean = False) : TSVDResult; overload;
-    function SVD(out U, V, W : IMatrix; onlyDiagElements : boolean = False) : TSVDResult; overload;
-
-    // the symmetric eigenvalue calculation actually references only the upper part of the matrix
-    // -> therefore symmetry does not need to be maintained explicitly
-    function SymEig(out EigVals : TDoubleMatrix; out EigVect : TDoubleMatrix) : TEigenvalueConvergence; overload;
-    function SymEig(out EigVals : TDoubleMatrix) : TEigenvalueConvergence; overload;
-    function SymEig(out EigVals : IMatrix; out EigVect : IMatrix) : TEigenvalueConvergence; overload;
-    function SymEig(out EigVals : IMatrix) : TEigenvalueConvergence; overload;
-    function Eig(out EigVals : TDoubleMatrix; out EigVect : TDoubleMatrix; normEigVecs : TEigenvalueEivecNormalize = enNone)  : TEigenvalueConvergence; overload;
-    function Eig(out EigVals : TDoubleMatrix)  : TEigenvalueConvergence; overload;
-    function Eig(out EigVals : IMatrix; out EigVect : IMatrix; normEigVecs : TEigenvalueEivecNormalize = enNone) : TEigenvalueConvergence; overload;
-    function Eig(out EigVals : IMatrix)  : TEigenvalueConvergence; overload;
-    function Cholesky(out Chol : TDoubleMatrix) : TCholeskyResult; overload;
-    function Cholesky(out Chol : IMatrix) : TCholeskyResult; overload;
-    // only internaly used -> use the other QR or QRFull methods instead
-    //function QR(out R : TDoubleMatrix; out tau : TDoubleMatrix) : TQRResult; overload;
-    //function QR(out R : IMatrix; out tau : IMatrix) : TQRResult; overload;
-    procedure QR(out R : TDoubleMatrix); overload;
-    procedure QR(out R : IMatrix); overload;
-    procedure QRFull(out Q, R : TDoubleMatrix); overload;
-    procedure QRFull(out Q, R : IMatrix); overload;
 
     // ###################################################
     // #### Matrix assignment operations
-    procedure Assign(Value : TDoubleMatrix); overload;
     procedure Assign(Value : IMatrix); overload;
-    procedure Assign(Value : TDoubleMatrix; OnlySubElements : boolean); overload;
-    procedure Assign(Value : IMatrix; OnlySubElements : boolean); overload;
-    procedure Assign(const Mtx : Array of double; W, H : integer); overload;
-    procedure AssignDyn(Value : TDoubleDynArray; W, H : integer);
-    procedure AssignSubMatrix(Value : TDoubleMatrix; X : integer = 0; Y : integer = 0); overload;
-    procedure AssignSubMatrix(Value : IMatrix; X : integer = 0; Y : integer = 0); overload;
-
+    procedure AssignEx(Value : IMatrix; OnlySubElements : boolean); overload;
+    procedure AssignSubMatrix(Value : IMatrix; X : integer = 0; Y : integer = 0);
     procedure Append(Value : IMatrix; appendColumns : boolean); overload;
-    procedure Append(Value : TDoubleMatrix; appendColumns : boolean); overload;
+
+    procedure InitRandom(method : TRandomAlgorithm; var seed : LongInt);
+
+    // ###########################################
+    // #### Linear systems
+    function SolveLinEQ(Value : IMatrix; numRefinements : integer = 0) : IMatrix;
+    procedure SolveLinEQInPlace(Value : IMatrix; numRefinements : integer = 0);
+
+    // matrix inversion (based on LU decomposition)
+    function InvertInPlace : TLinEquResult;
+    function Invert : IMatrix; overload;
+    function InvertEx( out InvMtx : IMatrix ) : TLinEquResult; overload;
+
 
     // moves data from Value to self and clears original object
-    procedure TakeOver(Value : TDoubleMatrix); overload;
-    procedure TakeOver(Value : IMatrix); overload;
+    procedure TakeOver(Value : IMatrix);
+    function Clone : IMatrix;
 
-    function Clone : TDoubleMatrix;
+    // ###################################################
+    // #### Special functions
+    procedure RepeatMatrixInPlace(numX, numY : integer);
+    function RepeatMatrix(numX, numY : integer) : IMatrix;
+
+    property VecLen : integer read GetVecLen;
   end;
+  IMatrixDynArr = Array of IMatrix;
 
-// #################################################
-// #### Builds base matrix operations
-  TDoubleMatrixClass = class of TDoubleMatrix;
-  TDoubleMatrix = class(TBaseMathPersistence, IMatrix)
-  private
-    type
-      TLocConstDoubleArr = Array[0..MaxInt div sizeof(double) - 1] of double;
-      PLocConstDoubleArr = ^TLocConstDoubleArr;
+// ###########################################
+// #### Memory handling of for the (for now) 2 matrix classes bundled in one base class
+  TBaseMatrixClass = class of TBaseMatrix;
+  TBaseMatrix = class(TBaseMathPersistence, IMatrix)
   protected
-    // used to determine which class type to use as a result
-    // e.g. the threaded class does not override all standard functions but
-    // the resulting class type shall always be the threaded class!
-    class function ResultClass : TDoubleMatrixClass; virtual;
-
-    function GetItems(x, y: integer): double; register; inline;
-    procedure SetItems(x, y: integer; const Value: double); register; inline;
-    // Access as vector -> same as GetItem(idx mod width, idx div width)
-    function GetVecItem(idx: integer): double; register;
-    procedure SetVecItem(idx: integer; const Value: double); register;
-
-    // matrix persistence functions
-    procedure DefineProps; override;
-    function PropTypeOfName(const Name : string) : TPropType; override;
-
-    class function ClassIdentifier : String; override;
-    procedure OnLoadStringProperty(const Name : String; const Value : String); overload; override;
-    procedure OnLoadIntProperty(const Name : String; Value : integer); overload; override;
-    procedure OnLoadDoubleArr(const Name : String; const Value : TDoubleDynArray); override;
-
-    procedure SetLinEQProgress(value : TLinEquProgress);
-    function GetLinEQProgress : TLinEquProgress;
-
-    procedure InternalSetWidthHeight(const aWidth, aHeight : integer; AssignMem : boolean = True);
-    procedure ReserveMem(width, height: integer);
-  private
-    fMemory : Pointer;
-    fData : PLocConstDoubleArr;       // 16 byte aligned pointer:
+    fMemory : Pointer;             // unaligned memory block
+    fData : PByte;                 // 32 byte aligned data
+    fItemSize : integer;           // 8 = double, 16 = complex
     fLineWidth : NativeInt;
-    fObj : TObject;                // arbitrary object
 
-    procedure MtxRandWithEng(var value : double);
-    procedure MtxRand(var value : double);
-  protected
     fHeight : integer;
     fWidth : integer;
-    fName : String;
     fSubWidth : integer;
     fSubHeight : integer;
     fOffsetX : integer;
@@ -356,2703 +226,674 @@ type
 
     fLinEQProgress : TLinEquProgress;
 
+    fName: string;
+
+    class function NumberType : TNumberType; virtual; abstract;
     procedure CheckAndRaiseError(assertionVal : boolean; const msg : string); inline;
 
-    procedure SetData(data : PDouble; srcLineWidth, width, height : integer);
     procedure Clear;
     procedure SetWidth(const Value : integer);
     procedure SetHeight(const Value : integer);
     function GetSubWidth : integer;
     function GetSubHeight : integer;
     function GetVecLen : integer;
-    function GetObjRef : TDoubleMatrix;
 
-    // qr decomposition without clearing the lower triangular matrix and factors tau
-    procedure QR(out ecosizeR : TDoubleMatrix; out tau : TDoubleMatrix); overload; virtual;
-    procedure QR(out ecosizeR : IMatrix; out tau : IMatrix); overload;
-    procedure Hess( out h : TDoubleMatrix; out tau : TDoubleMatrix ); overload; virtual;
-  public
-    property Width : integer read GetSubWidth write SetWidth;
-    property Height : integer read GetSubHeight write SetHeight;
-    procedure SetWidthHeight(const aWidth, aHeight : integer);
-    procedure Resize(aNewWidth, aNewHeight : Integer);           // setwidthheight with data preserve
+    procedure SetLinEQProgress(value : TLinEquProgress);
+    function GetLinEQProgress : TLinEquProgress;
 
-    property Name : string read fName write fName;
+    procedure InternalSetWidthHeight(const aWidth, aHeight : integer; AssignMem : boolean = True);
+    procedure ReserveMem(width, height: integer);
 
-    property LinEQProgress : TLinEquProgress read GetLinEQProgress write SetLinEQProgress;
+    procedure DefineProps; override;
+    function PropTypeOfName(const Name : string) : TPropType; override;
 
-    // general access
+    function GetObjRef : TBaseMatrix;
 
-    // direct access functionality (use only when you know what you are doing!)
-    function StartElement : PDouble; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
-    function LineWidth : integer; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+    procedure OnLoadIntProperty(const Name : String; Value : integer); overload; override;
+    procedure OnLoadStringProperty(const Name : String; const Value : String); overload; override;
 
-    property Items[x, y : integer] : double read GetItems write SetItems; default;
-    property Vec[idx : integer] : double read GetVecItem write SetVecItem; // matrix as vector
-    property VecLen : integer read GetVecLen;  // width*height
-    function SubMatrix : TDoubleDynArray;
-    procedure SetSubMatrix(x, y, Subwidth, Subheight : integer);
-    procedure UseFullMatrix;
+    class function GetItemSize : integer; virtual; abstract;
+  protected
+    // ###########################################
+    // #### Interface mapping - we cannot define a different matrix return value without this trick
+    procedure IMatrix.SetRow = SetRowI;
+    procedure IMatrix.SetColumn = SetColumnI;
+    function IMatrix.SubColMtxIdx = SubColMtxIdxI;
+    function IMatrix.SubRowMtxIdx = SubRowMtxIdxI;
+    function IMatrix.SubMtxIdx = SubMtxIdxI;
+    function IMatrix.SubColMtx = SubColMtxI;
+    function IMatrix.SubRowMtx = SubRowMtxI;
+    function IMatrix.SubMtx = SubMtxI;
+    function IMatrix.Reshape = ReshapeI;
+    function IMatrix.AsVector = AsVectorI;
+    function IMatrix.Abs = AbsI;
 
-    procedure SetRow(row : integer; const Values : Array of Double); overload;
-    procedure SetRow(row : integer; Values : TDoubleMatrix; ValRow : integer = 0); overload;
-    procedure SetRow(row : integer; Values : IMatrix; ValRow : integer = 0); overload;
-    procedure SetColumn(col : integer; const Values : Array of Double); overload;
-    procedure SetColumn(col : integer; Values : TDoubleMatrix; ValCols : integer = 0); overload;
-    procedure SetColumn(col : integer; Values : IMatrix; ValCols : integer = 0); overload;
-
-    procedure SwapRow( idx1, idx2 : integer );
-    procedure SwapColumn( idx1, idx2 : integer );
-
-    procedure SetValue(const initVal : double); overload;
-    procedure SetValue(const initVal : double; x, y, aWidth, aHeight : NativeInt); overload;  // sets the value in a subsection of the matrix
-    procedure InitRandom(method : TRandomAlgorithm; seed : LongInt);
-
-    function SubColMtx( colIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
-    function SubRowMtx( rowIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
-    function SubMtx( colIdx : TIntegerDynArray; rowIdx : TIntegerDynArray ) : TDoubleMatrix; overload;
-    function SubColMtx( fromIdx, toIdx : integer ) : TDoubleMatrix; overload;
-    function SubRowMtx( fromIdx, toIdx : integer ) : TDoubleMatrix; overload;
-    function SubMtx( fromColIdx, ToColIdx, fromRowIdx, ToRowIdx : integer ) : TDoubleMatrix; overload;
-
-    function Reshape(newWidth, newHeight : integer; ColMajor : boolean = False) : TDoubleMatrix;
-    procedure ReshapeInPlace(newWidth, newHeight : integer; ColMajor : boolean = False);
-    function AsVector( ColMajor : boolean = False ) : TDoubleMatrix;
-
-    // ###################################################
-    // #### Simple matrix utility functions
-    function Max : double;
-    function Min : double;
-    function Sum : double; overload;
-
-    function Abs : TDoubleMatrix;
-    procedure AbsInPlace;
-
-    procedure DiagInPlace(createDiagMtx : boolean);
-    function Diag(createDiagMtx : boolean) : TDoubleMatrix; overload;
-    function Diag(K : integer) : TDoubleMatrix; overload; // returns the diagonal on offset k
-    function Trace : double;
-
-    procedure Normalize(RowWise : boolean);
-    procedure NormZeroMeanVarOne(RowWise : boolean);
-    function ElementwiseNorm2(doSqrt : boolean = True) : double;
+    function IMatrix.Diag = DiagI;
+    function IMatrix.DiagFromOffset = DiagFromOffsetI;
 
     // ###################################################
     // #### Base Matrix operations
-    procedure TransposeInPlace;
-    function Transpose : TDoubleMatrix;
+    function IMatrix.Transpose = TransposeI;
 
-    procedure AddInplace(Value : TDoubleMatrix); overload; virtual;
-    function Add(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
-    procedure AddVecInPlace(Value : TDoubleMatrix; rowWise : Boolean); overload;
-    function AddVec(aVec : TDoubleMatrix; rowWise : Boolean) : TDoubleMatrix; overload;
-    procedure AddVecInPlace(Value : IMatrix; rowWise : Boolean); overload;
-    function AddVec(iVec : IMatrix; rowWise : Boolean) : TDoubleMatrix; overload;
+    procedure IMatrix.AddInplace = AddInplaceI;
+    function IMatrix.Add = AddI;
+    procedure IMatrix.AddVecInPlace = AddVecInPlaceI;
+    function IMatrix.AddVec = AddVecI;
 
-    procedure SubInPlace(Value : TDoubleMatrix); overload; virtual;
-    function Sub(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
-    procedure SubVecInPlace(Value : TDoubleMatrix; rowWise : Boolean); overload;
-    function SubVec(aVec : TDoubleMatrix; rowWise : Boolean) : TDoubleMatrix; overload;
-    procedure SubVecInPlace(Value : IMatrix; rowWise : Boolean); overload;
-    function SubVec(iVec : IMatrix; rowWise : Boolean) : TDoubleMatrix; overload;
+    procedure IMatrix.SubInPlace = SubInPlaceI;
+    function IMatrix.Sub = SubI;
+    procedure IMatrix.SubVecInPlace = SubVecInPlaceI;
+    function IMatrix.SubVec = SubVecI;
 
-    procedure MultInPlace(Value : TDoubleMatrix); overload; virtual;
-    function Mult(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
-    procedure MultInPlaceT1(Value : TDoubleMatrix); overload; virtual;
-    function MultT1(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
-    procedure MultInPlaceT2(Value : TDoubleMatrix); overload; virtual;
-    function MultT2(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
-    procedure AddInplace(Value : IMatrix); overload;
-    function Add(Value : IMatrix) : TDoubleMatrix; overload;
-    procedure SubInPlace(Value : IMatrix); overload;
-    function Sub(Value : IMatrix) : TDoubleMatrix; overload;
-    procedure MultInPlace(Value : IMatrix); overload;
-    function Mult(Value : IMatrix) : TDoubleMatrix; overload;
-    procedure MultInPlaceT1(Value : IMatrix); overload;
-    function MultT1(Value : IMatrix) : TDoubleMatrix; overload;
-    procedure MultInPlaceT2(Value : IMatrix); overload;
-    function MultT2(Value : IMatrix) : TDoubleMatrix; overload;
-    procedure ElementWiseMultInPlace(Value : IMatrix); overload;
-    function ElementWiseMult(Value : IMatrix) : TDoubleMatrix; overload;
-    procedure ElementWiseMultInPlace(Value : TDoubleMatrix); overload; virtual;
-    function ElementWiseMult(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
+    procedure IMatrix.MultInPlace = MultInPlaceI;
+    function IMatrix.Mult = MultI;
 
-    procedure ElementWiseDivInPlace(Value : TDoubleMatrix); overload; virtual;
-    function ElementWiseDiv(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
-    procedure ElementWiseDivInPlace(Value : IMatrix); overload; virtual;
-    function ElementWiseDiv(Value : IMatrix) : TDoubleMatrix; overload; virtual;
+    // multT1: dest = mt1' * mt2     mt1' = mt1.transpose
+    procedure IMatrix.MultInPlaceT1 = MultInPlaceT1I;
+    function IMatrix.MultT1 = MultT1I;
 
-    procedure AddAndScaleInPlace(const Offset, Scale : double); virtual;
-    function AddAndScale(const Offset, Scale : double) : TDoubleMatrix; virtual;
+    procedure IMatrix.MultInPlaceT2 = MultInPlaceT2I;
+    function IMatrix.MultT2 = MultT2I;
 
-    function Mean(RowWise : boolean) : TDoubleMatrix;
-    procedure MeanInPlace(RowWise : boolean);
-    function Variance(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
-    procedure VarianceInPlace(RowWise : boolean; unbiased : boolean = True);
-    function Std(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
-    procedure StdInPlace(RowWise : boolean; unbiased : boolean = True);
+    procedure IMatrix.ElementWiseMultInPlace = ElementWiseMultInPlaceI;
+    function IMatrix.ElementWiseMult = ElementWiseMultI;
+    procedure IMatrix.ElementWiseDivInPlace = ElementWiseDivInPlaceI;
+    function IMatrix.ElementWiseDiv = ElementWiseDivI;
 
-     // calculates mean and variance in one step and stores the mean in the first row, the variance in the second
-    // if RowWise is selected. If rowwise is false it's vice versa
-    function MeanVariance(RowWise : boolean; unbiased : boolean = True) : TDoubleMatrix;
-    procedure MeanVarianceInPlace(RowWise : boolean; unbiased : boolean = True);
+    function IMatrix.AddAndScale = AddAndScaleI;
 
-    function Median(RowWise : boolean) : TDoubleMatrix; virtual;
-    procedure MedianInPlace(RowWise : boolean);
-    function RollMedian(RowWise : boolean; order : integer) : TDoubleMatrix;
-    procedure RollMedianInPlace(RowWise : boolean; order : integer); virtual;
+    function IMatrix.Mean = MeanI;
+    function IMatrix.Variance = VarianceI;
+    function IMatrix.Std = StdI;
+    function IMatrix.MeanVariance = MeanVarianceI;
 
-    procedure SortInPlace(RowWise : boolean); virtual;
-    function Sort(RowWise : boolean) : TDoubleMatrix;
+    function IMatrix.Median = MedianI;
+    function IMatrix.RollMedian = RollMedianI;
 
-    function Diff(RowWise : boolean) : TDoubleMatrix;
-    procedure DiffInPlace(RowWise : boolean);
-    function Sum(RowWise : boolean) : TDoubleMatrix; overload;
-    procedure SumInPlace(RowWise : boolean); overload;
-    procedure SumInPlace(RowWise : boolean; keepMemory : boolean); overload;
-    function CumulativeSum(RowWise : boolean) : TDoubleMatrix;
-    procedure CumulativeSumInPlace(RowWise : boolean);
+    function IMatrix.Sort = SortI;
 
-    function Add(const Value : double) : TDoubleMatrix; overload;
-    procedure AddInPlace(const Value : double); overload;
-    function Scale(const Value : double) : TDoubleMatrix;
-    procedure ScaleInPlace(const Value : Double);
-    function ScaleAndAdd(const aOffset, aScale : double) : TDoubleMatrix;
-    procedure ScaleAndAddInPlace(const aOffset, aScale : double);
-    function SQRT : TDoubleMatrix;
-    procedure SQRTInPlace;
+    function IMatrix.Diff = DiffI;
+    function IMatrix.Sum = SumI;
+    function IMatrix.CumulativeSum = CumulativeSumI;
 
-    procedure ElementwiseFuncInPlace(func : TMatrixFunc); overload; virtual;
-    function ElementwiseFunc(func : TMatrixFunc) : TDoubleMatrix; overload; virtual;
-    procedure ElementwiseFuncInPlace(func : TMatrixObjFunc); overload; virtual;
-    function ElementwiseFunc(func : TMatrixObjFunc) : TDoubleMatrix; overload; virtual;
-    procedure ElementwiseFuncInPlace(func : TMatrixMtxRefFunc); overload; virtual;
-    function ElementwiseFunc(func : TMatrixMtxRefFunc) : TDoubleMatrix; overload; virtual;
-    procedure ElementwiseFuncInPlace(func : TMatrixMtxRefObjFunc); overload; virtual;
-    function ElementwiseFunc(func : TMatrixMtxRefObjFunc) : TDoubleMatrix; overload; virtual;
-
-    {$IFDEF ANONMETHODS}
-    procedure ElementwiseFuncInPlace(func : TMatrixFuncRef); overload; virtual;
-    function ElementwiseFunc(func : TMatrixFuncRef) : TDoubleMatrix; overload; virtual;
-    procedure ElementwiseFuncInPlace(func : TMatrixMtxRefFuncRef); overload; virtual;
-    function ElementwiseFunc(func : TMatrixMtxRefFuncRef) : TDoubleMatrix; overload; virtual;
-    {$ENDIF}
-
+    function IMatrix.AddConst = AddConstI;
+    function IMatrix.Scale = ScaleI;
+    function IMatrix.ScaleAndAdd = ScaleAndAddI;
+    function IMatrix.SQRT = SQRTI;
 
     // ###################################################
-    // #### Linear System solver A*x = B -> use A.SolveLinEQ(B) -> x
-    function SolveLinEQ(Value : TDoubleMatrix; numRefinements : integer = 0) : TDoubleMatrix; overload; virtual;
-    function SolveLinEQ(Value : IMatrix; numRefinements : integer = 0) : TDoubleMatrix; overload;
-    procedure SolveLinEQInPlace(Value : TDoubleMatrix; numRefinements : integer = 0); overload; virtual;
-    procedure SolveLinEQInPlace(Value : IMatrix; numRefinements : integer = 0); overload;
+    // #### Matrix assignment operations
+    procedure IMatrix.Assign = AssignI;
+    procedure IMatrix.AssignEx = AssignExI;
+    procedure IMatrix.AssignSubMatrix = AssignSubMatrixI;
+    procedure IMatrix.Append = AppendI;
+    function IMatrix.Cast = CastI;
 
-    // solves least sqaures A*x = b using the QR decomposition
-    procedure SolveLeastSquaresInPlace(out x : TDoubleMatrix; b : TDoubleMatrix); overload; virtual;
-    procedure SolveLeastSquaresInPlace(out x : IMatrix; b : IMatrix); overload;
-    procedure SolveLeastSquares(out x : TDoubleMatrix; b : TDoubleMatrix) ; overload; virtual;
-    procedure SolveLeastSquares(out x : IMatrix; b : IMatrix); overload;
+    // ###########################################
+    // #### Linear systems
+    function IMatrix.SolveLinEQ = SolveLinEQI;
+    procedure IMatrix.SolveLinEQInPlace = SolveLinEQInPlaceI;
 
-    // Matrix inversion (via LU decomposition)
-    function InvertInPlace : TLinEquResult; virtual;
-    function Invert : TDoubleMatrix; overload; virtual;
-    function Invert( out InvMtx : TDoubleMatrix ) : TLinEquResult; overload; virtual;
-    function Invert( out InvMtx : IMatrix ) : TLinEquResult; overload; virtual;
-    function Determinant : double; virtual;
+    // matrix inversion (based on LU decomposition)
+    function IMatrix.Invert = InvertI;
+    function IMatrix.InvertEx = InvertExI;
 
-    // pseudoinversion via svd
-    function PseudoInversionInPlace : TSVDResult;
-    function PseudoInversion(out Mtx : TDoubleMatrix) : TSVDResult; overload;
-    function PseudoInversion(out Mtx : IMatrix) : TSVDResult; overload;
+    // moves data from Value to self and clears original object
+    procedure IMatrix.TakeOver = TakeOverI;
+    function IMatrix.Clone = CloneI;
 
     // ###################################################
     // #### Special functions
-    procedure MaskedSetValue(const Mask : Array of boolean; const newVal : double);
-    procedure RepeatMatrixInPlace(numX, numY : integer);
-    function RepeatMatrix(numX, numY : integer) : TDoubleMatrix;
+    function IMatrix.RepeatMatrix = RepeatMatrixI;
+
+  protected
+    // ###########################################
+    // #### Interface functions - all are abstract and implemented by the derrived classes
+    function GetItems(x, y: integer): double; virtual; abstract;
+    procedure SetItems(x, y: integer; const Value: double); virtual; abstract;
+
+    function GetVecItem(idx: integer): double; virtual; abstract;
+    procedure SetVecItem(idx: integer; const Value: double); virtual; abstract;
+
+    function GetType : TMatrixType; virtual; abstract;
+    procedure SetRowI(row : integer; Values : IMatrix; ValRow : integer = 0); virtual; abstract;
+    procedure SetColumnI(col : integer; Values : IMatrix; ValCols : integer = 0); virtual; abstract;
+
+    procedure SwapRow( idx1, idx2 : integer ); virtual; abstract;
+    procedure SwapColumn( idx1, idx2 : integer ); virtual; abstract;
+
+    function SubColMtxIdxI( colIdx : TIntegerDynArray ) : IMatrix; overload; virtual; abstract;
+    function SubRowMtxIdxI( rowIdx : TIntegerDynArray ) : IMatrix; overload; virtual; abstract;
+    function SubMtxIdxI( colIdx : TIntegerDynArray; rowIdx : TIntegerDynArray ) : IMatrix; overload; virtual; abstract;
+    function SubColMtxI( fromIdx, toIdx : integer ) : IMatrix; overload; virtual; abstract;
+    function SubRowMtxI( fromIdx, toIdx : integer ) : IMatrix; overload; virtual; abstract;
+    function SubMtxI( fromColIdx, ToColIdx, fromRowIdx, ToRowIdx : integer ) : IMatrix; overload; virtual; abstract;
+
+    function ReshapeI(newWidth, newHeight : integer; ColMajor : boolean = False) : IMatrix; virtual; abstract;
+    procedure ReshapeInPlace(newWidth, newHeight : integer; ColMajor : boolean = False); virtual; abstract;
+
+    function AsVectorI( ColMajor : boolean = False ) : IMatrix; virtual; abstract;
 
     // ###################################################
-    // #### Matrix transformations
-    function SVD(out U, V, W : TDoubleMatrix; onlyDiagElements : boolean = False) : TSVDResult; overload; virtual;
-    function SVD(out U, V, W : IMatrix; onlyDiagElements : boolean = False) : TSVDResult; overload;
+    // #### Simple matrix utility functions
+    function AbsI : IMatrix; virtual; abstract;
+    procedure AbsInPlace; virtual; abstract;
 
-    // the symmetric eigenvalue calculation actually references only the upper part of the matrix
-    // -> therefore symmetry does not need to be maintained explicitly
-    function SymEig(out EigVals : TDoubleMatrix; out EigVect : TDoubleMatrix) : TEigenvalueConvergence; overload; virtual;
-    function SymEig(out EigVals : TDoubleMatrix) : TEigenvalueConvergence; overload; virtual;
-    function SymEig(out EigVals : IMatrix; out EigVect : IMatrix) : TEigenvalueConvergence; overload;
-    function SymEig(out EigVals : IMatrix) : TEigenvalueConvergence; overload;
-    function Eig(out EigVals : TDoublematrix; out EigVect : TDoubleMatrix; normEigVecs : TEigenvalueEivecNormalize = enNone)  : TEigenvalueConvergence; overload;
-    function Eig(out EigVals : TDoublematrix)  : TEigenvalueConvergence; overload;
-    function Eig(out EigVals : IMatrix; out EigVect : IMatrix; normEigVecs : TEigenvalueEivecNormalize = enNone) : TEigenvalueConvergence; overload;
-    function Eig(out EigVals : IMatrix)  : TEigenvalueConvergence; overload;
-    function Cholesky(out Chol : TDoubleMatrix) : TCholeskyResult; overload; virtual;
-    function Cholesky(out Chol : IMatrix) : TCholeskyResult; overload;
+    procedure DiagInPlace(createDiagMtx : boolean); virtual; abstract;
+    function DiagI(createDiagMtx : boolean) : IMatrix; overload; virtual; abstract;
+    function DiagFromOffsetI(K : integer) : IMatrix; overload; virtual; abstract; // returns the diagonal on o ffset k
 
-    // cleared lower triangle qr decomposition -> R only
-    procedure QR(out R : TDoubleMatrix); overload;
-    procedure QR(out R : IMatrix); overload;
-    procedure QRFull(out Q, R : TDoubleMatrix); overload; virtual;
-    procedure QRFull(out Q, R : IMatrix); overload;
+    procedure Normalize(RowWise : boolean); virtual; abstract;
+    procedure NormZeroMeanVarOne(RowWise : boolean); virtual; abstract;
+    function ElementwiseNorm2(doSqrt : boolean = True) : double; virtual; abstract;
 
-    // hessenberg decomposition. Lower part is zeroed out
-    procedure Hess( out h : TDoubleMAtrix ); overload;
-    procedure Hess( out h : IMatrix ); overload;
-    // for the full transformation: Q*H*Q' = A
-    procedure HessFull(out Q, h : TDoubleMatrix); overload;
-    procedure HessFull(out Q, h : IMatrix); overload;
-    
+    // ###################################################
+    // #### Base Matrix operations
+    function TransposeI : IMatrix; virtual; abstract;
+    procedure TransposeInPlace; virtual; abstract;
+
+    procedure AddInplaceI(Value : IMatrix); overload;
+    function AddI(Value : IMatrix) : IMatrix; overload;
+    procedure AddVecInPlaceI(Value : IMatrix; rowWise : Boolean);
+    function AddVecI(aVec : IMatrix; rowWise : Boolean) : IMatrix;
+
+    procedure SubInPlaceI(Value : IMatrix);
+    function SubI(Value : IMatrix) : IMatrix;
+    procedure SubVecInPlaceI(Value : IMatrix; rowWise : Boolean);
+    function SubVecI(aVec : IMatrix; rowWise : Boolean) : IMatrix;
+
+    procedure MultInPlaceI(Value : IMatrix);
+    function MultI(Value : IMatrix) : IMatrix;
+
+    // multT1: dest = mt1' * mt2     mt1' = mt1.transpose
+    procedure MultInPlaceT1I(Value : IMatrix);
+    function MultT1I(Value : IMatrix) : IMatrix;
+
+    procedure MultInPlaceT2I(Value : IMatrix);
+    function MultT2I(Value : IMatrix) : IMatrix;
+
+    procedure ElementWiseMultInPlaceI(Value : IMatrix);
+    function ElementWiseMultI(Value : IMatrix) : IMatrix;
+    procedure ElementWiseDivInPlaceI(Value : IMatrix);
+    function ElementWiseDivI(Value : IMatrix) : IMatrix;
+
+    procedure AddAndScaleInPlace(const Offset, Scale : double); virtual; abstract;
+    function AddAndScaleI(const Offset, Scale : double) : IMatrix;
+
+    function MeanI(RowWise : boolean) : IMatrix; virtual; abstract;
+    procedure MeanInPlace(RowWise : boolean); virtual; abstract;
+    function VarianceI(RowWise : boolean; unbiased : boolean = True) : IMatrix; virtual; abstract;
+    procedure VarianceInPlace(RowWise : boolean; unbiased : boolean = True); virtual; abstract;
+    function StdI(RowWise : boolean; unbiased : boolean = True) : IMatrix; virtual; abstract;
+    procedure StdInPlace(RowWise : boolean; unbiased : boolean = True); virtual; abstract;
+
+    // calculates mean and variance in one step and stores the mean in the first row, the variance in the second
+    // if RowWise is selected. If rowwise is false it's vice versa
+    function MeanVarianceI(RowWise : boolean; unbiased : boolean = True) : IMatrix; virtual; abstract;
+    procedure MeanVarianceInPlace(RowWise : boolean; unbiased : boolean = True); virtual; abstract;
+
+    function MedianI(RowWise : boolean) : IMatrix; virtual; abstract;
+    procedure MedianInPlace(RowWise : boolean); virtual; abstract;
+    function RollMedianI(RowWise : boolean; order : integer) : IMatrix; virtual; abstract;
+    procedure RollMedianInPlace(RowWise : boolean; order : integer); virtual; abstract;
+
+    procedure SortInPlace(RowWise : boolean); virtual; abstract;
+    function SortI(RowWise : boolean) : IMatrix; virtual; abstract;
+
+    function DiffI(RowWise : boolean) : IMatrix; virtual; abstract;
+    procedure DiffInPlace(RowWise : boolean); virtual; abstract;
+    function SumI(RowWise : boolean) : IMatrix; virtual; abstract;
+    procedure SumInPlace(RowWise : boolean); overload; virtual; abstract;
+    procedure SumInPlace(RowWide : boolean; keepMemory : boolean); overload; virtual; abstract;
+    function CumulativeSumI(RowWise : boolean) : IMatrix; virtual; abstract;
+    procedure CumulativeSumInPlace(RowWise : boolean); virtual; abstract;
+
+    function AddConstI(const Value : double) : IMatrix; overload; virtual; abstract;
+    procedure AddConstInPlace(const Value : double); overload; virtual; abstract;
+    function ScaleI(const Value : double) : IMatrix; virtual; abstract;
+    procedure ScaleInPlace(const Value : Double); virtual; abstract;
+    function ScaleAndAddI(const aOffset, aScale : double) : IMatrix; virtual; abstract;
+    procedure ScaleAndAddInPlace(const aOffset, aScale : double); virtual; abstract;
+    function SQRTI : IMatrix; virtual; abstract;
+    procedure SQRTInPlace; virtual; abstract;
+
+
     // ###################################################
     // #### Matrix assignment operations
-    procedure Assign(Value : TDoubleMatrix); overload;
-    procedure Assign(Value : IMatrix); overload;
-    procedure Assign(Value : TDoubleMatrix; OnlySubElements : boolean); overload;
-    procedure Assign(Value : IMatrix; OnlySubElements : boolean); overload;
-    procedure Assign(const Mtx : Array of double; W, H : integer); overload;
-    procedure AssignDyn(Value : TDoubleDynArray; W, H : integer);
-    procedure AssignSubMatrix(Value : TDoubleMatrix; X : integer = 0; Y : integer = 0); overload;
-    procedure AssignSubMatrix(Value : IMatrix; X : integer = 0; Y : integer = 0); overload;
+    procedure AssignI(Value : IMatrix); overload;
+    procedure AssignExI(Value : IMatrix; OnlySubElements : boolean); overload;
+    procedure AssignSubMatrixI(Value : IMatrix; X : integer = 0; Y : integer = 0);
+    procedure AppendI(Value : IMatrix; appendColumns : boolean);
+    procedure InitRandom(method : TRandomAlgorithm; var seed : LongInt); virtual; abstract;
 
-    procedure Append(Value : IMatrix; appendColumns : boolean); overload;
-    procedure Append(Value : TDoubleMatrix; appendColumns : boolean); overload;
+    // ###########################################
+    // #### Linear systems
+    function SolveLinEQI(Value : IMatrix; numRefinements : integer = 0) : IMatrix;
+    procedure SolveLinEQInPlaceI(Value : IMatrix; numRefinements : integer = 0);
 
-    // actually the same as assign but it takes over the data and leaves an empty matrix object behind.
-    procedure TakeOver(Value : TDoubleMatrix); overload;
-    procedure TakeOver(Value : IMatrix); overload;
+    // matrix inversion (based on LU decomposition)
+    function InvertInPlace : TLinEquResult; virtual; abstract;
+    function InvertI : IMatrix; overload; virtual; abstract;
+    function InvertExI( out InvMtx : IMatrix ) : TLinEquResult; overload; virtual; abstract;
 
-    function Clone : TDoubleMatrix;
 
-    constructor Create(aWidth, aHeight : integer; NoLineWidthGap : boolean); overload;
+    // moves data from Value to self and clears original object
+    procedure TakeOverI(Value : IMatrix);
+    function CloneI : IMatrix; virtual; abstract;
+
+    // ###################################################
+    // #### Special functions
+    procedure RepeatMatrixInPlace(numX, numY : integer); virtual; abstract;
+    function RepeatMatrixI(numX, numY : integer) : IMatrix; virtual; abstract;
+
+    // ###########################################
+    // #### Genereal assignments
+    procedure DoTakeOver( Value : TBaseMatrix );
+
+    // changes the actual class type e.g from TDoubleMatrx to TCplxMatrix
+    // -> this is a bit dangerous in case there are references out there that
+    // use interfaces. Use only with IMatrix or the base class
+    // current matrix is destroyed and a self is assigned a new type
+    procedure ChangeClass( cl : TBaseMatrixClass );
+  public
+    property Width : integer read GetSubWidth write SetWidth;
+    property Height : integer read GetSubHeight write SetHeight;
+    property VecLen : integer read GetVecLen;
+
+    // general access - real elements are available in all types of matrices
+    property Items[x, y : integer] : double read GetItems write SetItems; default;
+    property Vec[idx : integer] : double read GetVecItem write SetVecItem; // matrix as vector
+
+    property LinEQProgress : TLinEquProgress read GetLinEQProgress write SetLinEQProgress;
+
+    property Name : string read fName write fName;
+
+    procedure SetWidthHeight(const aWidth, aHeight : integer);
+    procedure Resize(aNewWidth, aNewHeight : Integer);           // setwidthheight with data preserve
+
+    // direct access functionality (use only when you know what you are doing!)
+    function StartElement : PDouble; {$IFNDEF FPC} inline; {$ENDIF}
+    function LineWidth : NativeInt; {$IFNDEF FPC} inline; {$ENDIF}
+
+    procedure SetSubMatrix(x, y, Subwidth, Subheight : integer);
+    procedure UseFullMatrix;
+
+    // cast the content of the class - result is then from given matrix class
+    function CastI( const IID : TGuid ) : IMatrix;
+    function Cast( toClass : TBaseMatrixClass ) : TBaseMatrix;
+
+    procedure AfterConstruction; override;
+
     constructor Create; overload;
-    constructor CreateVec( aLen : integer; const initVal : double = 0 );
-    constructor Create(aWidth, aHeight : integer; const initVal : double = 0); overload;
-    constructor CreateEye(aWidth : integer);
-    constructor Create(data : PDouble; aLineWidth : integer; aWidth, aHeight : integer); overload;
-    constructor CreateCpy( aWidth, aHeight : integer; data : PDouble; aLineWidth : integer);   // different params than in create since delphi complains 
-    constructor CreateDyn(const Data : TDoubleDynArray; aWidth, aHeight : integer); overload;
-    constructor CreateDyn(const Data : TDoubleDynArray; fromDataIdx : integer; aWidth, aHeight : integer); overload;
-    constructor Create(const Mtx : Array of double; W, H : integer); overload;
-    constructor CreateRand(aWidth, aHeight : integer; method : TRandomAlgorithm; seed : LongInt); overload; // uses random engine
-    constructor CreateRand(aWidth, aHeight : integer); overload; // uses system default random
-    constructor CreateLinSpace(aVecLen : integer; const StartVal : double; const EndVal : double);
+    constructor Create( data : PByte; aLineWidth : NativeInt; aWidth, aHeight : integer); overload;
     destructor Destroy; override;
   end;
 
-type
-  TDoubleMatrixDynArr = Array of TDoubleMatrix;
-  IMatrixDynArr = Array of IMatrix;
-
-// default class used in derrived methods like in the global subspace methods:
-// override the class value to use different matrix class implementations
-// e.g. the threaded version
-type
-  TMatrixClass = class(TBaseMathPersistence)
-  private
-    fMatrixClass : TDoubleMatrixClass;
-    function GetMtxClass: TDoubleMatrixClass;
-    procedure SetMtxClass(const Value: TDoubleMatrixClass);
-  protected
-    procedure DefineProps; override;
-  public
-    property MatrixClass : TDoubleMatrixClass read GetMtxClass write SetMtxClass;
-
-    class var DefMatrixClass : TDoubleMatrixClass;
-  end;
-
-
-function MatrixFromTxtFile( fileName : string; mtxClass : TDoubleMatrixClass ) : TDoubleMatrix; overload;
-function MatrixFromTxtFile( fileName : string ) : TDoubleMatrix; overload;
-
-procedure MatrixToTxtFile(const fileName : string; const mtx : TDoubleMatrix; prec : integer = 8);
-procedure WriteBinary(const fn : string; mtx : IMatrix);
+procedure RegisterCastClass( const aIntf : TGuid; cl : TBaseMatrixClass );
 
 implementation
 
-uses Math, MatrixASMStubSwitch, Eigensystems, LinAlgSVD, LinAlgQR, BlockSizeSetup, LinAlgCholesky,
-     LinAlgLU, MathUtilFunc;
-
+uses MatrixASMStubSwitch, Math, DblMatrix, CplxMatrix, MathUtilFunc, TypInfo;
 
 // ###########################################
-// #### Inline functions (need to be first)
+// #### Register a container class
 // ###########################################
 
-procedure TDoubleMatrix.CheckAndRaiseError(assertionVal: boolean; const msg: string);
+type
+  TMatrixClIntf = record
+    IID : TGuid;
+    cl : TBaseMatrixClass;
+  end;
+
+var locMatrixIntf : Array of TMatrixClIntf;
+    locNumMatrixIntf : integer = 0;
+
+procedure RegisterCastClass( const aIntf : TGuid; cl : TBaseMatrixClass );
+begin
+     if Length(locMatrixIntf) <= locNumMatrixIntf then
+        SetLength(locMatrixIntf, locNumMatrixIntf + 10);
+
+     locMatrixIntf[locNumMatrixIntf].IID := aIntf;
+     locMatrixIntf[locNumMatrixIntf].cl := cl;
+     inc(locNumMatrixIntf);
+end;
+
+// ###########################################
+// #### Resulting matix functions - bring both matrix interfaces on the compatible
+// #### form: dbl dbl -> dbl, cplx cplx -> cplx, dbl cplx -> cplx
+
+type
+  TValidMatrixType = (vmDouble, vmComplex);
+
+function GetCommonMatrix( inp1, inp2 : IMatrix; out outDbl1, outDbl2 : IDoubleMatrix;
+  out cplx1, cplx2 : ICplxMatrix) : TValidMatrixType;
+var b1, b2 : boolean;
+begin
+     cplx1 := nil;
+     cplx2 := nil;
+     outDbl1 := nil;
+     outDbl2 := nil;
+
+     Result := vmDouble;
+     b1 := Supports(inp1, IDoubleMatrix, outDbl1);
+     b2 := Supports(inp2, IDoubleMatrix, outDbl2);
+     if b1 and b2 then
+        exit;
+
+     Result := vmComplex;
+     b1 := Supports(inp1, ICplxMatrix, cplx1);
+     b2 := Supports(inp2, ICplxMatrix, cplx2);
+     if b1 and b2 then
+        exit;
+
+     if outDbl1 <> nil then
+        cplx1 := TCplxMatrix.CreateFromDbl( outDbl1.SubMatrix, outDbl1.Width, outDbl1.Height );
+     if outDbl2 <> nil then
+        cplx2 := TCplxMatrix.CreateFromDbl( outDbl2.SubMatrix, outDbl2.Width, outDbl2.Height );
+end;
+
+function GetCommonMtxConvInput( inp1 : TBaseMatrix; inp2 : IMatrix; out outDbl1, outDbl2 : IDoubleMatrix;
+  out cplx1, cplx2 : ICplxMatrix) : TValidMatrixType;
+var b1, b2 : boolean;
+    cl : IDoubleMatrix;
+begin
+     cplx1 := nil;
+     cplx2 := nil;
+     outDbl1 := nil;
+     outDbl2 := nil;
+
+     Result := vmDouble;
+     b1 := Supports(inp1, IDoubleMatrix, outDbl1);
+     b2 := Supports(inp2, IDoubleMatrix, outDbl2);
+     if b1 and b2 then
+        exit;
+
+     Result := vmComplex;
+     b1 := Supports(inp1, ICplxMatrix, cplx1);
+     b2 := Supports(inp2, ICplxMatrix, cplx2);
+     if b1 and b2 then
+        exit;
+
+     if outDbl1 <> nil then
+     begin
+          // ###########################################
+          // #### Try to change class type of the input...
+          cl := outDbl1.Clone;
+          outDbl1 := nil; // remove reference...
+          (inp1.GetObjRef).ChangeClass(TCplxMatrix);
+          (inp1.GetObjRef as TCplxMatrix).AssignDbl(cl.StartElement, cl.LineWidth, cl.Width, cl.Height);
+
+          if not Supports(inp1, ICplxMatrix, cplx1) then
+             raise EBaseMatrixException.Create('Failed to change class type');
+     end;
+     if outDbl2 <> nil then
+        cplx2 := TCplxMatrix.CreateFromDbl( outDbl2.SubMatrix, outDbl2.Width, outDbl2.Height );
+end;
+
+
+function TBaseMatrix.AddAndScaleI(const Offset, Scale: double): IMatrix;
+var d1 : IDoubleMatrix;
+    c1 : ICplxMatrix;
+begin
+     if Supports(self, IDoubleMatrix, d1) then
+     begin
+          d1.AddAndScale(Offset, Scale);
+          exit;
+     end;
+     if Supports(self, ICplxMatrix, c1) then
+     begin
+          c1.AddAndScale(Offset, Scale);
+          exit;
+     end;
+end;
+
+function TBaseMatrix.AddI(Value: IMatrix): IMatrix;
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
+begin
+     case GetCommonMatrix(self, Value, d1, d2, c1, c2) of
+       vmDouble: Result := d1.Add(d2);
+       vmComplex: Result := c1.Add(c2);
+     end;
+end;
+
+procedure TBaseMatrix.AddInplaceI(Value: IMatrix);
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
+begin
+     // note: the function raises an exception if self is double and value is complex!
+     // -> we cannot change the class type
+     case GetCommonMtxConvInput(self, Value, d1, d2, c1, c2) of
+       vmDouble: d1.AddInPlace(d2);
+       vmComplex: c1.AddInPlace(c2);
+     end;
+end;
+
+function TBaseMatrix.AddVecI(aVec: IMatrix; rowWise: Boolean): IMatrix;
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
+begin
+     case GetCommonMatrix(self, aVec, d1, d2, c1, c2) of
+       vmDouble: Result := d1.AddVec(d2, rowWise);
+       vmComplex: Result := c1.AddVec(c2, rowWise);
+     end;
+end;
+
+procedure TBaseMatrix.AddVecInPlaceI(Value: IMatrix; rowWise: Boolean);
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
+begin
+     // note: the function raises an exception if self is double and value is complex!
+     // -> we cannot change the class type
+     case GetCommonMtxConvInput(self, Value, d1, d2, c1, c2) of
+       vmDouble: d1.AddVecInPlace(d2, rowWise);
+       vmComplex: c1.AddVecInPlace(c2, rowWise);
+     end;
+end;
+
+procedure TBaseMatrix.AfterConstruction;
+begin
+     if fItemSize = 0 then
+        fItemSize := GetItemSize;
+
+     inherited;
+end;
+
+procedure TBaseMatrix.AppendI(Value: IMatrix; appendColumns: boolean);
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
+begin
+     // note: the function raises an exception if self is double and value is complex!
+     // -> we cannot change the class type
+     case GetCommonMtxConvInput(self, Value, d1, d2, c1, c2) of
+       vmDouble: d1.Append(d2, appendColumns);
+       vmComplex: c1.Append(c2, appendColumns);
+     end;
+end;
+
+procedure TBaseMatrix.AssignExI(Value: IMatrix; OnlySubElements: boolean);
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
+begin
+     // note: the function raises an exception if self is double and value is complex!
+     // -> we cannot change the class type
+     case GetCommonMtxConvInput(self, Value, d1, d2, c1, c2) of
+       vmDouble: d1.AssignEx(d2, OnlySubElements);
+       vmComplex: c1.AssignEx(c2, OnlySubElements);
+     end;
+end;
+
+
+procedure TBaseMatrix.AssignI(Value: IMatrix);
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
+begin
+     // note: the function raises an exception if self is double and value is complex!
+     // -> we cannot change the class type
+     case GetCommonMtxConvInput(self, Value, d1, d2, c1, c2) of
+       vmDouble: d1.Assign(d2);
+       vmComplex: c1.Assign(c2);
+     end;
+end;
+
+procedure TBaseMatrix.AssignSubMatrixI(Value: IMatrix; X, Y: integer);
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
+begin
+     // note: the function raises an exception if self is double and value is complex!
+     // -> we cannot change the class type
+     case GetCommonMtxConvInput(self, Value, d1, d2, c1, c2) of
+       vmDouble: d1.AssignSubMatrix(d2, X, Y);
+       vmComplex: c1.AssignSubMatrix(c2, X, Y);
+     end;
+end;
+
+
+function TBaseMatrix.Cast(toClass: TBaseMatrixClass): TBaseMatrix;
+var pLine : PDouble;
+    pOutline : PDOuble;
+    y: Integer;
+    mtx : IMatrix;
+    convFunc : TNumConvFunc;
+    x: Integer;
+begin
+     // ###########################################
+     // #### Call assignments
+     if toClass.NumberType <> NumberType then
+     begin
+          Result := toClass.Create;
+          Result.SetWidthHeight(Width, Height);
+
+          // convert from one number type to the next one
+          // -> complex to double using CABs operator
+          // -> double to complex InitComplex(value, 0);
+
+          convFunc := GetConvFunc(NumberType, toClass.NumberType);
+          for y := 0 to Height - 1 do
+          begin
+               pLine := GenPtr(StartElement, 0, y, LineWidth);
+               pOutline := GenPtr(Result.StartElement, 0, y, Result.LineWidth);
+
+               for x := 0 to Width - 1 do
+               begin
+                    convFunc( PByte(pLine), PByte(pOutline));
+                    inc(PByte(pLine), GetItemSize);
+                    inc(PByte(pOutline), Result.GetItemSize);
+               end;
+          end;
+     end
+     else
+     begin
+          // no cast to the same classe -> use the clone operation
+          mtx := CloneI;
+          Result := toClass.Create;
+          Result.TakeOverI(mtx);
+     end;
+end;
+
+function TBaseMatrix.CastI(const IID: TGuid): IMatrix;
+var i: Integer;
+begin
+     for i := 0 to locNumMatrixIntf - 1 do
+     begin
+          // maybe move that to a global interface container list
+          if IsEqualGUID( IID, locMatrixIntf[i].IID ) then
+          begin
+               Result := Cast(locMatrixIntf[i].cl);
+               exit;
+          end;
+     end;
+
+     raise EMatrixTypeException.Create('Cast to unknown interface');
+end;
+
+procedure TBaseMatrix.ChangeClass(cl: TBaseMatrixClass);
+var refCnt : integer;
+begin
+     // all references may only be IMatrix - so... this should work then
+     // basically we exchange the pointer self with another class...
+     // note the data is lost only the class changes -> if you need it to be filled
+     // up again you nee to do this outside this routine
+
+     // -> note: this is not 100% thread safe but the class itself was never to be
+     // built to be used over multiple threads.
+     refCnt := self.RefCount;
+     self.FRefCount := 1;  // the last release will free "self"
+
+     // ###########################################
+     // #### Recreate self the new class -> data is assigned "outside"
+     self._Release; // runs implicitly free
+     self := cl.Create;
+     self.fRefCount := refCnt;
+end;
+
+procedure TBaseMatrix.CheckAndRaiseError(assertionVal: boolean; const msg: string);
 begin
      if not assertionVal then
         raise EBaseMatrixException.Create(msg);
 end;
 
-procedure TDoubleMatrix.SetItems(x, y: integer; const Value: double);
-var pData : PLocConstDoubleArr;
-begin
-     CheckAndRaiseError((x >= 0) and (x < fSubWidth), 'Dimension error');
-     CheckAndRaiseError((y >= 0) and (y < fSubHeight), 'Dimension error');
-     pData := fData;
-     inc(PByte(pData), (fOffsetY + y)*fLineWidth);
 
-     pData^[fOffsetX + x] := Value;
+procedure TBaseMatrix.Clear;
+begin
+     ReserveMem(0, 0);
+
+     fWidth := 0;
+     fHeight := 0;
+     fSubWidth := 0;
+     fSubHeight := 0;
 end;
 
-function TDoubleMatrix.GetItems(x, y: integer): double;
-var pData : PLocConstDoubleArr;
-begin
-     CheckAndRaiseError((x >= 0) and (x < fSubWidth) and (y >= 0) and (y < fSubHeight), 'Dimension error');
-     pData := fData;
-     inc(PByte(pData), (fOffsetY + y)*fLineWidth);
-
-     Result := pData^[fOffsetX + x];
-end;
-
-procedure TDoubleMatrix.SetVecItem(idx: integer; const Value: double);
-begin
-     if idx < fSubWidth 
-     then
-         SetItems(idx, 0, Value)
-     else
-         SetItems(idx mod fSubWidth, idx div fSubWidth, Value);
-end;
-
-function TDoubleMatrix.GetVecItem(idx: integer): double;
-begin
-     if idx < fSubWidth
-     then
-         Result := GetItems(idx, 0)
-     else
-         Result := GetItems(idx mod fSubWidth, idx div fSubWidth);
-end;
-
-// ###########################################
-// #### TDoubleMatrix
-// ###########################################
-
-function TDoubleMatrix.Abs: TDoubleMatrix;
-begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'Dimension Error');
-     Result := ResultClass.Create;
-     Result.Assign(Self, True);
-
-     MatrixAbs(Result.StartElement, Result.LineWidth, Result.Width, Result.Height);
-end;
-
-procedure TDoubleMatrix.AbsInPlace;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-
-     MatrixAbs(StartElement, LineWidth, fSubWidth, fSubHeight);
-end;
-
-function TDoubleMatrix.Add(Value: IMatrix): TDoubleMatrix;
-begin
-     Result := Add(Value.GetObjRef);
-end;
-
-function TDoubleMatrix.Add(const Value: double): TDoubleMatrix;
-begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'Dimension Error');
-     Result := ResultClass.Create;
-     Result.Assign(Self, True);
-
-     MatrixElemAdd(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, Value);
-end;
-
-function TDoubleMatrix.AddAndScale(const Offset, Scale: double): TDoubleMatrix;
-begin
-     CheckAndRaiseError((width > 0) and (Height > 0), 'No data assigned');
-     Result := ResultClass.Create;
-     Result.Assign(self, True);
-
-     Result.AddAndScaleInPlace(Offset, Scale);
-end;
-
-procedure TDoubleMatrix.AddAndScaleInPlace(const Offset, Scale: double);
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-
-     MatrixAddAndScale(StartElement, LineWidth, fSubWidth, fSubHeight, Offset, Scale);
-end;
-
-procedure TDoubleMatrix.AddInplace(const Value: double);
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-
-     MatrixAddAndScale(StartElement, LineWidth, fSubWidth, fSubHeight, Value, 1);
-end;
-
-procedure TDoubleMatrix.AddInplace(Value: IMatrix);
-begin
-     AddInplace(Value.GetObjRef);
-end;
-
-procedure TDoubleMatrix.AddInplace(Value: TDoubleMatrix);
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     // inplace matrix addition
-     CheckAndRaiseError((fSubWidth = Value.fSubWidth) and (fSubHeight = Value.fSubHeight), 'Matrix dimensions do not match');
-     MatrixAdd(StartElement, LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight, LineWidth, Value.LineWidth);
-end;
-
-procedure TDoubleMatrix.Assign(const Mtx: array of double; W, H : integer);
-begin
-     CheckAndRaiseError((W*H > 0) and (Length(Mtx) = W*H), 'Dimension error');
-
-     SetWidthHeight(W, H);
-     MatrixCopy(StartElement, LineWidth, @Mtx[0], W*sizeof(double), W, H);
-end;
-
-procedure TDoubleMatrix.AssignDyn(Value: TDoubleDynArray; W, H: integer);
-begin
-     CheckAndRaiseError((W*H > 0) and (Length(Value) = W*H), 'Dimension error');
-
-     SetWidthHeight(W, H);
-     MatrixCopy(StartElement, LineWidth, @Value[0], W*sizeof(double), W, H);
-end;
-
-procedure TDoubleMatrix.AssignSubMatrix(Value: IMatrix; X, Y: integer);
-begin
-     AssignSubMatrix(Value.GetObjRef, X, Y);
-end;
-
-procedure TDoubleMatrix.Assign(Value: IMatrix; OnlySubElements: boolean);
-begin
-     Assign(Value.GetObjRef, OnlySubElements);
-end;
-
-procedure TDoubleMatrix.Assign(Value: IMatrix);
-begin
-     Assign(Value.GetObjRef);
-end;
-
-procedure TDoubleMatrix.Append(Value: TDoubleMatrix; appendColumns: boolean);
-var pStart : PDouble;
-begin
-     if AppendColumns then
-     begin
-          CheckAndRaiseError(Value.Height = fSubHeight, 'Dimension error, number of rows are not equal');
-          Resize(fSubWidth + Value.Width, fSubHeight);
-          pStart := StartElement;
-          inc(pStart, fSubWidth - Value.Width);
-          MatrixCopy(pStart, LineWidth, Value.StartElement, Value.LineWidth, Value.Width, Value.Height );
-     end
-     else
-     begin
-          CheckAndRaiseError(Value.Width = fSubWidth, 'Dimension error, number of columns are not equal');
-          Resize(fSubWidth, Value.Height + fSubHeight);
-          pStart := GenPtr(StartElement, 0, fSubHeight - Value.Height, LineWidth);
-          MatrixCopy(pStart, LineWidth, Value.StartElement, Value.LineWidth, Value.Width, Value.Height );
-     end;
-end;
-
-procedure TDoubleMatrix.Append(Value: IMatrix; appendColumns: boolean);
-begin
-     Append(Value.GetObjRef, appendColumns);
-end;
-
-
-procedure TDoubleMatrix.AssignSubMatrix(Value: TDoubleMatrix; X, Y: integer);
-var pSelf, pValue : PDouble;
-begin
-     CheckAndRaiseError((Value.Width <= Width + x) and (Value.Height <= Height + y), 'Dimension error');
-     if (Value.Width = 0) or (Value.Height = 0) then
-        exit;
-
-     pSelf := GenPtr(StartElement, x, y, LineWidth);
-     pValue := Value.StartElement;
-
-     MatrixCopy(pSelf, LineWidth, pValue, Value.LineWidth, Value.Width, Value.Height);
-end;
-
-procedure TDoubleMatrix.Assign(Value: TDoubleMatrix; OnlySubElements: boolean);
-begin
-     fName := Value.Name;
-
-     if OnlySubElements then
-     begin
-          SetWidthHeight(Value.Width, Value.Height);
-          MatrixCopy(StartElement, LineWidth, Value.StartElement, Value.LineWidth, Value.Width, Value.Height);
-     end
-     else
-     begin
-          SetWidthHeight(Value.fWidth, Value.fHeight);
-          MatrixCopy(StartElement, LineWidth, PDouble(Value.fData), Value.LineWidth, Value.fWidth, Value.fHeight);
-          fSubWidth := Value.fSubWidth;
-          fSubHeight := Value.fSubHeight;
-     end;
-end;
-
-function TDoubleMatrix.Add(Value : TDoubleMatrix) : TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     CheckAndRaiseError((Value.fSubWidth = fSubWidth) and (Value.fSubHeight = fSubHeight), 'Dimension error');
-
-     Result := ResultClass.Create(fSubWidth, fSubHeight);
-     MatrixAdd(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight, LineWidth, Value.LineWidth);
-end;
-
-procedure TDoubleMatrix.AddVecInPlace(Value: TDoubleMatrix; rowWise: Boolean);
-var incX : NativeInt;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     if rowWise
-     then
-         CheckAndRaiseError((Value.VecLen = Width), 'Arguments dimension error')
-     else
-         CheckAndRaiseError((Value.VecLen = Height), 'Arguments dimension error');
-     incX := sizeof(double);
-
-     if value.Width = 1 then
-        incX := value.LineWidth;
-
-     MatrixAddVec(StartElement, LineWidth, Value.StartElement, incX, Width, Height, RowWise);
-end;
-
-function TDoubleMatrix.AddVec(aVec: TDoubleMatrix;
-  rowWise: Boolean): TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     if rowWise
-     then
-         CheckAndRaiseError((aVec.VecLen = Width), 'Arguments dimension error')
-     else
-         CheckAndRaiseError((aVec.VecLen = Height), 'Arguments dimension error');
-
-     Result := Clone;
-     Result.AddVecInPlace(aVec, rowWise);
-end;
-
-procedure TDoubleMatrix.AddVecInPlace(Value: IMatrix; rowWise: Boolean);
-begin
-     AddVecInPlace(Value.getObjRef, RowWise);
-end;
-
-function TDoubleMatrix.AddVec(iVec: IMatrix; rowWise: Boolean): TDoubleMatrix;
-begin
-     Result := AddVec(iVec.GetObjRef, RowWise);
-end;
-
-
-procedure TDoubleMatrix.Assign(Value: TDoubleMatrix);
-begin
-     Assign(Value, False);
-end;
-
-function TDoubleMatrix.Cholesky(out Chol: TDoubleMatrix): TCholeskyResult;
-var x, y : integer;
-begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubWidth = fSubHeight), 'Cholesky decomposition is only allowed on square matrices');
-     chol := ResultClass.Create;
-     try
-        chol.Assign(Self);
-        // block wise cholesky decomposition
-        Result := MatrixCholeskyInPlace4(chol.StartElement, chol.LineWidth, chol.Width, 0, fLinEQProgress);
-
-        if Result = crOk then
-        begin
-             // zero out the upper elements
-             for y := 0 to fSubWidth - 1 do
-             begin
-                  for x := y + 1 to fSubWidth - 1 do
-                      Chol[x, y] := 0;
-             end;
-        end
-        else
-            FreeAndNil(chol);
-     except
-           FreeAndNil(chol);
-           Result := crNoPositiveDefinite;
-     end;
-end;
-
-constructor TDoubleMatrix.Create;
-begin
-     inherited Create;
-
-     SetWidthHeight(1, 1);
-end;
-
-constructor TDoubleMatrix.Create(data: PDouble; aLineWidth, aWidth,
+constructor TBaseMatrix.Create(data: PByte; aLineWidth: NativeInt; aWidth,
   aHeight: integer);
 begin
      inherited Create;
 
+     fItemSize := GetItemSize;
+
      fWidth := aWidth;
      fHeight := aHeight;
      fMemory := data;
-     fData := PLocConstDoubleArr(data);
+     fData := data;
      fLineWidth := aLineWidth;
 
      fOffsetX := 0;
      fOffsetY := 0;
      fSubWidth := fWidth;
      fSubHeight := fHeight;
-     CheckAndRaiseError(width*sizeof(double) <= LineWidth, 'Dimension error');
+     CheckAndRaiseError(width*fItemSize <= LineWidth, 'Dimension error');
 end;
 
-constructor TDoubleMatrix.Create(aWidth, aHeight: integer; const initVal : double);
+constructor TBaseMatrix.Create;
 begin
      inherited Create;
 
-     SetWidthHeight(aWidth, aHeight);
-
-     if initVal <> 0 then
-        SetValue(initVal);
-end;
-
-constructor TDoubleMatrix.CreateDyn(const Data : TDoubleDynArray; aWidth, aHeight : integer);
-begin
-     CheckAndRaiseError((aWidth*aHeight > 0) and (Length(Data) >= aWidth*aHeight), 'Dimension error');
-
-     inherited Create;
-
-     SetWidthHeight(aWidth, aHeight);
-     MatrixCopy(StartElement, LineWidth, @Data[0], aWidth*sizeof(double), aWidth, aHeight);
-end;
-
-constructor TDoubleMatrix.CreateEye(aWidth: integer);
-var i : integer;
-begin
-     inherited Create;
-
-     SetWidthHeight(aWidth, aWidth);
-
-     for i := 0 to width - 1 do
-         Items[i, i] := 1;
-end;
-
-constructor TDoubleMatrix.CreateRand(aWidth, aHeight: integer;
-  method: TRandomAlgorithm; seed: LongInt);
-begin
-     inherited Create;
-
-     SetWidthHeight(aWidth, aHeight);
-
-     InitRandom(method, seed);
-end;
-
-constructor TDoubleMatrix.CreateLinSpace(aVecLen: integer; const StartVal,
-  EndVal: double);
-var value : double;
-    pVec : PDouble;
-    counter: Integer;
-    dx : double;
-begin
-     assert(vecLen >= 0, 'Error: initialized by negative len');
-
-     inherited Create;
-
-     SetWidthHeight(1, aVecLen);
-
-     if aVecLen = 0 then
-        exit;
-
-     dx := (EndVal - StartVal)/Math.Max(1, aVecLen - 1);
-
-     pVec := StartElement;
-     value := startVal;
-     for counter := 0 to aVecLen - 1 do
-     begin
-          pVec^ := value;
-          value := value + dx;
-          inc(PByte(pVec), LineWidth);
-     end;
-
-     // account for small accumulated errors - so at least the last
-     // value is as expected
-     if aVecLen > 1 then
-        Vec[vecLen - 1] := EndVal;
-end;
-
-constructor TDoubleMatrix.Create(const Mtx: array of double; W, H: integer);
-begin
-     CheckAndRaiseError((W*H > 0) and (Length(Mtx) = W*H), 'Dimension error');
-
-     inherited Create;
-
-     SetWidthHeight(W, H);
-     MatrixCopy(StartElement, LineWidth, @Mtx[0], W*sizeof(double), W, H);
-end;
-
-constructor TDoubleMatrix.Create(aWidth, aHeight: integer;
-  NoLineWidthGap: boolean);
-begin
-     CheckAndRaiseError((aWidth > 0) and (aHeight > 0), 'Dimension error');
-
-     inherited Create;
-
-     SetWidthHeight(aWidth, aHeight);
-
-     // just shorten the linewidth -> so we get continous element access
-     if NoLineWidthGap then
-        fLineWidth := aWidth*SizeOf(double);
-end;
-
-constructor TDoubleMatrix.CreateCpy(aWidth, aHeight : integer; data : PDouble; aLineWidth : integer);
-begin
-     CheckAndRaiseError((aWidth*aHeight >= 0) and (aLineWidth >= aWidth*sizeof(double)), 'Dimension error');
-     
-     inherited Create;
-
-     if (data <> nil) then
-     begin
-          SetWidthHeight(aWidth, aHeight);
-          MatrixCopy( StartElement, LineWidth, data, aLineWidth, aWidth, aHeight);
-     end;
-end;
-
-constructor TDoubleMatrix.CreateDyn(const Data: TDoubleDynArray; fromDataIdx,
-  aWidth, aHeight: integer);
-begin
-     CheckAndRaiseError((aWidth*aHeight > 0) and (Length(Data) - fromDataIdx >= aWidth*aHeight), 'Dimension error');
-
-     inherited Create;
-
-     SetWidthHeight(aWidth, aHeight);
-     MatrixCopy(StartElement, LineWidth, @Data[fromDataIdx], aWidth*sizeof(double), aWidth, aHeight);
-end;
-
-procedure TDoubleMatrix.MtxRand(var value: double);
-begin
-     value := Random;
-end;
-
-procedure TDoubleMatrix.MtxRandWithEng(var value: double);
-begin
-     value := TRandomGenerator(fObj).Random;
-end;
-
-constructor TDoubleMatrix.CreateRand(aWidth, aHeight: integer);
-var tmp : TDoubleMatrix;
-begin
-     inherited Create;
-
-     // note: since the random function depends on internal states of the random engine
-     // we need to make sure this is NEVER called in threads -> internal states
-     // could be reused and the result is not what we expect from random numbers
-     // (first surfaced in threaded cholesky decomposition on my 32core machine)
-     tmp := TDoubleMatrix.Create( aWidth, aHeight );
-     tmp.ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}MtxRand);
-     TakeOver(tmp);
-
-     tmp.Free;
-end;
-
-constructor TDoubleMatrix.CreateVec( aLen : integer; const initVal : double = 0 );
-begin
-     inherited Create;
-
-     SetWidthHeight( aLen, 1 );
-
-     if initVal <> 0 then
-        SetValue( initVal );   
-end;
-
-function TDoubleMatrix.CumulativeSum(RowWise: boolean): TDoubleMatrix;
-begin
-     Result := TDoubleMatrix.Create(Width, Height);
-     MatrixCumulativeSum(Result.StartElement, Result.LineWidth, StartElement, LineWidth, width, height, RowWise);
-end;
-
-procedure TDoubleMatrix.CumulativeSumInPlace(RowWise: boolean);
-begin
-     MatrixCumulativeSum(StartElement, LineWidth, StartElement, LineWidth, Width, Height, RowWise);
-end;
-
-function TDoubleMatrix.Determinant: double;
-begin
-     CheckAndRaiseError((Width > 0) and (Height = Width), 'Determinant only allowed on square matrices');
-     Result := MatrixDeterminant(StartElement, LineWidth, fSubWidth);
-end;
-
-function TDoubleMatrix.Diag(createDiagMtx : boolean): TDoubleMatrix;
-var x : integer;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-
-     if createDiagMtx then
-     begin
-          if (width = 1) then
-          begin
-               Result := TDoubleMatrix.Create(height, height);
-               for x := 0 to Height - 1 do
-                   Result[x, x] := Vec[x];
-          end
-          else if height = 1 then
-          begin
-               Result := TDoubleMatrix.Create(width, width);
-               for x := 0 to width - 1 do
-                   Result[x, x] := Vec[x];
-          end
-          else
-          begin
-               Result := TDoubleMatrix.Create(Math.Min(Width, Height), Math.Min(Width, Height));
-               for x := 0 to Math.Min(Width, Height) - 1 do
-                   Result[x, x] := Items[x, x];
-          end;
-     end
-     else
-     begin
-          Result := TDoubleMatrix.Create(1, Math.Min(Width, Height));
-          for x := 0 to Result.Height - 1 do
-              Result[Math.Min(x, Result.width - 1), x] := Items[x, x];
-     end;
-end;
-
-function TDoubleMatrix.Diag(K: integer): TDoubleMatrix;
-var x : integer;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-
-     // vector converted to diagonal matrix
-     if (width = 1) or (height = 1) then
-     begin
-          if k < 0 then
-          begin
-               Result := TDoubleMatrix.Create(VecLen, VecLen + System.abs(k));
-
-               for x := 0 to VecLen - 1 do
-                   Result[x, x - k] := Vec[x];
-          end
-          else
-          begin
-               Result := TDoubleMatrix.Create(VecLen + System.abs(k), VecLen);
-
-               for x := 0 to VecLen - 1 do
-                   Result[x + k, x] := Vec[x];
-          end;
-     end
-     else
-     begin
-          if k < 0 
-          then
-              CheckAndRaiseError( (System.abs(k) < height), 'Offset out of bounds')
-          else
-              CheckAndRaiseError( (System.abs(k) < width), 'Offset out of bounds');
-         
-          // return a vector of the diagonal
-          if k < 0 then
-          begin
-               Result := TDoubleMatrix.Create(1, Math.Min(Width, Height + k));
-               for x := 0 to Math.Min(Width, Height + k) - 1 do
-                   Result.Vec[x] := Items[x, x - k];
-          end
-          else
-          begin
-               Result := TDoubleMatrix.Create(1, Math.Min(Width - k, Height));
-               for x := 0 to Math.Min(Width - k, Height) - 1 do
-                   Result.Vec[x] := Items[x + k, x];
-          end;
-     end;
-end;
-
-procedure TDoubleMatrix.DiagInPlace(createDiagMtx : boolean);
-var dl : IMatrix;
-begin
-     dl := Diag(createDiagMtx);
-
-     TakeOver(dl);
-end;
-
-function TDoubleMatrix.Diff(RowWise: boolean): TDoubleMatrix;
-var newWidth : integer;
-    newHeight : integer;
-begin
-     Result := nil;
-     if (width = 0) or (height = 0) then
-        exit;
-
-     newWidth := Width;
-     newHeight := Height;
-     if RowWise 
-     then
-         dec(newWidth)
-     else
-         dec(newHeight);
-
-     Result := ResultClass.Create(newWidth, newHeight);
-     MatrixDiff(Result.StartElement, Result.LineWidth, StartElement, LineWidth, Width, Height, RowWise);
-end;
-
-procedure TDoubleMatrix.DiffInPlace(RowWise: boolean);
-begin
-     if (width = 0) or (height = 0) then
-        exit;
-
-     MatrixDiff(StartElement, LineWidth, StartElement, LineWidth, Width, height, RowWise);
-
-     // just reduce the sub width
-     if RowWise
-     then
-         dec(fSubWidth)
-     else
-         dec(fSubHeight);
-end;
-
-function TDoubleMatrix.SolveLinEQ(Value: TDoubleMatrix; numRefinements : integer) : TDoubleMatrix;
-begin
-     // solves the System: A * x = b
-     // whereas A is the matrix stored in self, and be is the matrix in Value
-     // The result is a matrix having the size of Value.
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     CheckAndRaiseError((fSubWidth = fSubHeight) and (Value.fSubHeight = fSubHeight), 'Dimension error');
-
-     Result := ResultClass.Create(Value.fSubWidth, fSubHeight);
-     try
-        if MatrixLinEQSolve(StartElement, LineWidth, fSubWidth, Value.StartElement, Value.LineWidth, Result.StartElement,
-                            Result.LineWidth, Value.fSubWidth, numRefinements, fLinEQProgress) = leSingular
-     then
-         raise ELinEQSingularException.Create('Matrix is singular');
-
-     except
-           FreeAndNil(Result);
-           raise;
-     end;
-end;
-
-procedure TDoubleMatrix.SolveLeastSquares(out x : TDoubleMatrix; b : TDoubleMatrix);
-var tmpA : TDoubleMatrix;
-begin
-     CheckAndRaiseError( width <= Height, 'Height must be at least width');
-     
-     tmpA := Clone;
-     try
-        x := ResultClass.Create( 1, Width );
-
-        MatrixQRSolve( x.StartElement, x.LineWidth, tmpA.StartElement, tmpA.LineWidth, b.StartElement, b.LineWidth, width, height);
-     finally
-            tmpA.Free;
-     end;
-end;
-
-procedure TDoubleMatrix.SolveLeastSquares(out x : IMatrix; b: IMatrix);
-var tmp : TDoubleMatrix;
-begin
-     SolveLeastSquares(tmp, b.GetObjRef);
-
-     x := tmp;
-end;
-
-procedure TDoubleMatrix.SolveLeastSquaresInPlace(out x: TDoubleMatrix;
-  b: TDoubleMatrix);
-begin
-     CheckAndRaiseError( width <= Height, 'Height must be at least width');
-     
-     x := ResultClass.Create( 1, Width );
-
-     MatrixQRSolve( x.StartElement, x.LineWidth, StartElement, LineWidth, b.StartElement, b.LineWidth, width, height);
-end;
-
-procedure TDoubleMatrix.SolveLeastSquaresInPlace(out x: IMatrix;
-  b: IMatrix);
-var tmp : TDoubleMatrix;
-begin
-     SolveLeastSquaresInPlace(tmp, b.GetObjRef);
-     x := tmp;
-end;
-
-function TDoubleMatrix.SolveLinEQ(Value: IMatrix;
-  numRefinements: integer): TDoubleMatrix;
-begin
-     Result := SolveLinEQ(Value.GetObjRef, numRefinements);
-end;
-
-procedure TDoubleMatrix.SolveLinEQInPlace(Value: IMatrix;
-  numRefinements: integer);
-begin
-     SolveLinEQInPlace(Value.GetObjRef, numRefinements);
-end;
-
-procedure TDoubleMatrix.SolveLinEQInPlace(Value: TDoubleMatrix; numRefinements : integer);
-var dt : TDoubleMatrix;
-begin
-     // solves the System: A * x = b
-     // whereas A is the matrix stored in self, and be is the matrix in Value
-     // The result is a matrix having the size of Value.
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     CheckAndRaiseError((fSubWidth = fSubHeight) and (Value.fSubHeight = fSubHeight), 'Dimension error');
-
-     dt := ResultClass.Create(Value.fSubWidth, fSubHeight);
-     try
-        if MatrixLinEQSolve(StartElement, LineWidth, fSubWidth, Value.StartElement, Value.LineWidth, dt.StartElement,
-                            dt.LineWidth, Value.fSubWidth, numRefinements, fLinEQProgress) = leSingular
-        then
-            raise ELinEQSingularException.Create('Matrix is singular');
-
-        TakeOver(dt);
-     finally
-            dt.Free;
-     end;
-end;
-
-function TDoubleMatrix.SQRT: TDoubleMatrix;
-begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
-     Result := ResultClass.Create;
-     Result.Assign(Self, True);
-
-     MatrixSQRT(Result.StartElement, Result.LineWidth, Result.Width, Result.Height);
-end;
-
-procedure TDoubleMatrix.SQRTInPlace;
-begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
-     MatrixSQRT(StartElement, LineWidth, fSubWidth, fSubHeight);
-end;
-
-function TDoubleMatrix.Eig(out EigVals, EigVect: IMatrix; normEigVecs : TEigenvalueEivecNormalize = enNone): TEigenvalueConvergence;
-var outEigVals, outEigVect : TDoubleMatrix;
-begin
-     Result := Eig(outEigVals, outEigVect, normEigVecs);
-     EigVals := outEigVals;
-     EigVect := outEigVect;
-end;
-
-function TDoubleMatrix.Eig(out EigVals: IMatrix): TEigenvalueConvergence;
-var outEigVals : TDoubleMatrix;
-begin
-     Result := Eig(outEigVals);
-     EigVals := outEigVals;
-end;
-
-function TDoubleMatrix.Eig(out EigVals: TDoublematrix): TEigenvalueConvergence;
-var dt : TDoubleMatrix;
-    pReal, pImag : PDouble;
-    dummy : TDoubleMatrix;
-    perm : TIntegerDynArray;
-begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight = fSubWidth), 'Eigenvalues are only defined for square matrices');
-
-     EigVals := nil;
-     dt := ResultClass.Create(2, fSubHeight);
-     pReal := dt.StartElement;
-     pImag := pReal;
-     inc(pImag);
-
-     dummy := TDoubleMatrix.Create;
-     dummy.Assign(self);
-
-     SetLength(perm, fSubWidth);
-     MatrixHessenbergPerm(dummy.StartElement, dummy.LineWidth, StartElement, LineWidth, fSubWidth, @perm[0], sizeof(integer));
-     Result := MatrixEigHessenbergInPlace(dummy.StartElement, dummy.LineWidth, fSubWidth, pReal, dt.LineWidth, pImag, dt.LineWidth);
-     dummy.Free;
-     
-     if Result = qlOk
-     then
-         EigVals := dt
-     else
-         dt.Free;
-end;
-
-function TDoubleMatrix.Eig(out EigVals, EigVect: TDoubleMatrix; normEigVecs : TEigenvalueEivecNormalize = enNone): TEigenvalueConvergence;
-var dt : TDoubleMatrix;
-    vecs : TDoubleMatrix;
-    pReal, pImag : PDouble;
-    dummy : TDoubleMatrix;
-begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight = fSubWidth), 'Eigenvalues are only defined for square matrices');
-
-     EigVals := nil;
-     EigVect := nil;
-     dt := nil;
-     vecs := nil;
-     try
-        dt := ResultClass.Create(2, fSubHeight);
-        pReal := dt.StartElement;
-        pImag := pReal;
-        inc(pImag);
-
-        vecs := ResultClass.Create(fSubWidth, fSubHeight);
-
-        // create a copy since the original content is destroyed!
-        dummy := TDoubleMatrix.Create(self.Width, self.Height, True);
-        try
-           dummy.Assign(self);
-           Result := MatrixUnsymEigVecInPlace(dummy.StartElement, dummy.LineWidth,
-                                              fSubWidth,
-                                              pReal, dt.LineWidth, pImag, dt.LineWidth,
-                                              vecs.StartElement, vecs.LineWidth);
-        finally
-               dummy.Free;
-        end;
-
-        if Result = qlOk then
-        begin
-             if normEigVecs <> enNone then
-                MatrixNormEivecInPlace(vecs.StartElement, vecs.LineWidth, fSubWidth, pImag, dt.LineWidth, normEigVecs = enLen);
-             
-             EigVals := dt;
-             EigVect := vecs;
-        end
-        else
-        begin
-             dt.Free;
-             vecs.Free;
-        end;
-     except
-           dt.Free;
-           vecs.Free;
-
-           raise;
-     end;
-end;
-
-function TDoubleMatrix.ElementwiseFunc(func: TMatrixFunc): TDoubleMatrix;
-begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
-     Result := ResultClass.Create;
-     Result.Assign(self);
-
-     MatrixFunc(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, func);
-end;
-
-procedure TDoubleMatrix.ElementwiseFuncInPlace(func: TMatrixFunc);
-begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
-
-     MatrixFunc(StartElement, LineWidth, fSubWidth, fSubHeight, func);
-end;
-
-function TDoubleMatrix.ElementwiseFunc(func: TMatrixObjFunc): TDoubleMatrix;
-begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
-     Result := ResultClass.Create;
-     Result.Assign(self);
-
-     MatrixFunc(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, func);
-end;
-
-procedure TDoubleMatrix.ElementwiseFuncInPlace(func: TMatrixObjFunc);
-begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
-
-     MatrixFunc(StartElement, LineWidth, fSubWidth, fSubHeight, func);
-end;
-
-function TDoubleMatrix.ElementwiseFunc(func: TMatrixMtxRefFunc): TDoubleMatrix;
-begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
-     Result := ResultClass.Create;
-     Result.Assign(self);
-
-     MatrixFunc(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, func);
-end;
-
-function TDoubleMatrix.ElementwiseFunc(func: TMatrixMtxRefObjFunc): TDoubleMatrix;
-begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
-     Result := ResultClass.Create;
-     Result.Assign(self);
-
-     MatrixFunc(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, func);
-end;
-
-procedure TDoubleMatrix.ElementwiseFuncInPlace(func: TMatrixMtxRefFunc);
-begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
-
-     MatrixFunc(StartElement, LineWidth, fSubWidth, fSubHeight, func);
-end;
-
-procedure TDoubleMatrix.ElementwiseFuncInPlace(func: TMatrixMtxRefObjFunc);
-begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
-
-     MatrixFunc(StartElement, LineWidth, fSubWidth, fSubHeight, func);
-end;
-
-
-{$IFDEF ANONMETHODS}
-procedure TDoubleMatrix.ElementwiseFuncInPlace(func : TMatrixFuncRef);
-begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
-
-     MatrixFunc(StartElement, LineWidth, fSubWidth, fSubHeight, func);
-end;
-
-function TDoubleMatrix.ElementwiseFunc(func : TMatrixFuncRef) : TDoubleMatrix;
-begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
-     Result := ResultClass.Create;
-     Result.Assign(self);
-
-     MatrixFunc(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, func);
-end;
-
-procedure TDoubleMatrix.ElementwiseFuncInPlace(func : TMatrixMtxRefFuncRef);
-begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
-
-     MatrixFunc(StartElement, LineWidth, fSubWidth, fSubHeight, func);
-end;
-
-function TDoubleMatrix.ElementwiseFunc(func : TMatrixMtxRefFuncRef) : TDoubleMatrix;
-begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'No data assigned');
-     Result := ResultClass.Create;
-     Result.Assign(self);
-
-     MatrixFunc(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, func);
-end;
-
-{$ENDIF}
-
-
-function TDoubleMatrix.ElementWiseMult(Value: TDoubleMatrix) : TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     CheckAndRaiseError((fSubWidth = Value.fSubWidth) and (fSubHeight = Value.fSubHeight), 'Dimension error');
-     Result := ResultClass.Create( Width, Height );
-     MatrixElemMult(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight, LineWidth, Value.LineWidth);
-end;
-
-procedure TDoubleMatrix.ElementWiseMultInPlace(Value: TDoubleMatrix);
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     CheckAndRaiseError((fSubWidth = Value.fSubWidth) and (fSubHeight = Value.fSubHeight), 'Dimension error');
-     MatrixElemMult(StartElement, LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight, LineWidth, Value.LineWidth);
-end;
-
-function TDoubleMatrix.ElementWiseDiv(Value: TDoubleMatrix): TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     CheckAndRaiseError((fSubWidth = Value.fSubWidth) and (fSubHeight = Value.fSubHeight), 'Dimension error');
-     Result := ResultClass.Create;
-     Result.Assign(self);
-     MatrixElemDiv(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight, LineWidth, Value.LineWidth);
-end;
-
-procedure TDoubleMatrix.ElementWiseDivInPlace(Value: TDoubleMatrix);
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     CheckAndRaiseError((fSubWidth = Value.fSubWidth) and (fSubHeight = Value.fSubHeight), 'Dimension error');
-     MatrixElemDiv(StartElement, LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight, LineWidth, Value.LineWidth);
-end;
-
-procedure TDoubleMatrix.ElementWiseDivInPlace(Value : IMatrix);
-begin
-     ElementWiseDivInPlace(Value.GetObjRef);
-end;
-
-function TDoubleMatrix.ElementWiseDiv(Value : IMatrix) : TDoubleMatrix;
-begin
-     Result := ElementWiseDiv(Value.GetObjRef);
-end;
-
-function TDoubleMatrix.ElementwiseNorm2(doSqrt : boolean = True): double;
-begin
-     Result := 0;
-
-     if (Width > 0) and (Height > 0) then
-        Result := MatrixElementwiseNorm2(StartElement, LineWidth, Width, Height, doSqrt);
-end;
-
-function TDoubleMatrix.GetLinEQProgress: TLinEquProgress;
-begin
-     Result := fLinEQProgress;
-end;
-
-function TDoubleMatrix.GetObjRef: TDoubleMatrix;
-begin
-     Result := self;
-end;
-
-function TDoubleMatrix.GetSubHeight: integer;
-begin
-     Result := fSubHeight;
-end;
-
-function TDoubleMatrix.GetSubWidth: integer;
-begin
-     Result := fSubWidth;
-end;
-
-function TDoubleMatrix.GetVecLen: integer;
-begin
-     // treat matrix as vector
-     Result := fSubWidth*fSubHeight;
-end;
-
-function TDoubleMatrix.Invert: TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     CheckAndRaiseError(fSubWidth = fSubHeight, 'Operation only allowed on square matrices');
-
-     Result := ResultClass.Create;
-     try
-        Result.Assign(Self, True);
-
-        if MatrixInverseInPlace(Result.StartElement, Result.LineWidth, fSubWidth, fLinEQProgress) = leSingular then
-           raise ELinEQSingularException.Create('Singular matrix');
-     except
-           Result.Free;
-           raise;
-     end;
-end;
-
-function TDoubleMatrix.Invert(out InvMtx : TDoubleMatrix): TLinEquResult;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     CheckAndRaiseError(fSubWidth = fSubHeight, 'Operation only allowed on square matrices');
-
-     InvMtx := ResultClass.Create;
-     InvMtx.Assign(Self, True);
-
-     Result := MatrixInverseInPlace(InvMtx.StartElement, InvMtx.LineWidth, fSubWidth, fLinEQProgress);
-     if Result <> leOk then
-        FreeAndNil(invMtx);
-end;
-
-function TDoubleMatrix.Invert(out InvMtx: IMatrix): TLinEquResult;
-var tmp : TDoubleMatrix;
-begin
-     Result := Invert(tmp);
-     InvMtx := tmp;
-end;
-
-
-function TDoubleMatrix.InvertInPlace: TLinEquResult;
-var dt : TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     CheckAndRaiseError(fSubWidth = fSubHeight, 'Operation only allowed on square matrices');
-
-     dt := ResultClass.Create(Width, Height);
-     try
-        dt.Assign(self, True);
-        Result := MatrixInverseInPlace(dt.StartElement, dt.LineWidth, fSubWidth, fLinEQProgress);
-        if Result = leOk then
-           TakeOver(dt);
-
-        FreeAndNil(dt);
-     except
-           dt.Free;
-           raise;
-     end;
-end;
-
-function TDoubleMatrix.LineWidth: integer;
-begin
-     Result := fLineWidth;
-end;
-
-// set all values where mask = true to the new value
-procedure TDoubleMatrix.MaskedSetValue(const Mask: array of boolean;
-  const newVal: double);
-var y : integer;
-    x : integer;
-    maskIdx : integer;
-    pValue2 : PConstDoubleArr;
-    pValue1 : PByte;
-begin
-     CheckAndRaiseError(fSubWidth*fSubHeight = Length(Mask), 'Error number of mask elements must be the same as the matrix dimension');
-     pValue1 := PByte(StartElement);
-     maskIdx := 0;
-     for y := 0 to fsubHeight - 1 do
-     begin
-          pValue2 := PConstDoubleArr(pValue1);
-
-          for x := 0 to fSubWidth - 1 do
-          begin
-               if not mask[maskidx] then
-                  pValue2^[x] := newVal;
-
-               inc(maskidx);
-          end;
-          inc(pValue1, LineWidth);
-     end;
-end;
-
-function TDoubleMatrix.Max: double;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-
-     Result := MatrixMax(StartElement, fSubWidth, fSubHeight, LineWidth);
-end;
-
-function TDoubleMatrix.Mean(RowWise: boolean): TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-
-     if RowWise
-     then
-         Result := ResultClass.Create(1, fSubHeight)
-     else
-         Result := ResultClass.Create(fSubWidth, 1);
-
-     MatrixMean(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise);
-end;
-
-procedure TDoubleMatrix.MeanInPlace(RowWise: boolean);
-var dl : TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-
-     dl := Mean(RowWise);
-     try
-        TakeOver(dl);
-     finally
-            dl.Free;
-     end;
-end;
-
-function TDoubleMatrix.MeanVariance(RowWise, unbiased: boolean): TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-
-     if RowWise then
-     begin
-          Result := ResultClass.Create(2, fSubHeight);
-
-          MatrixMeanVar(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise, unbiased);
-     end
-     else
-     begin
-          Result := ResultClass.Create(fSubWidth, 2);
-
-          MatrixMeanVar(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise, unbiased);
-     end;
-end;
-
-procedure TDoubleMatrix.MeanVarianceInPlace(RowWise, unbiased: boolean);
-var dt : TDoubleMatrix;
-begin
-     dt := MeanVariance(RowWise, unbiased);
-     try
-        TakeOver(dt);
-     finally
-            dt.Free;
-     end;
-end;
-
-function TDoubleMatrix.Median(RowWise: boolean): TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-
-     if RowWise then
-     begin
-          Result := ResultClass.Create(1, fSubHeight);
-
-          MatrixMedian(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise, nil);
-     end
-     else
-     begin
-          Result := ResultClass.Create(fSubWidth, 1);
-
-          MatrixMedian(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise, nil);
-     end;
-end;
-
-procedure TDoubleMatrix.MedianInPlace(RowWise: boolean);
-var dl : TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-
-     dl := Median(RowWise);
-     try
-        TakeOver(dl);
-     finally
-            dl.Free;
-     end;
-end;
-
-function TDoubleMatrix.RollMedian(RowWise: boolean;
-  order: integer): TDoubleMatrix;
-begin
-     Result := Clone;
-     Result.RollMedianInPlace(RowWise, order);
-end;
-
-procedure TDoubleMatrix.RollMedianInPlace(RowWise: boolean; order: integer);
-begin
-     CheckAndRaiseError( (Width > 0) and (Height > 0), 'No data assigned');
-     MatrixRollMedian(StartElement, LineWidth, Width, Height, order, RowWise);
-end;
-
-function TDoubleMatrix.Sort(RowWise: boolean): TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     Result := ResultClass.Create;
-     Result.Assign(self);
-
-     Result.SortInPlace(RowWise);
-end;
-
-procedure TDoubleMatrix.SortInPlace(RowWise: boolean);
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-
-     MatrixSort(StartElement, LineWidth, width, Height, RowWise, nil);
-end;
-
-function TDoubleMatrix.Std(RowWise: boolean; unbiased : boolean = True): TDoubleMatrix;
-begin
-     Result := Variance(RowWise, unbiased);
-     Result.SQRTInPlace;
-end;
-
-procedure TDoubleMatrix.StdInPlace(RowWise: boolean; unbiased : boolean = True);
-var dl : TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-
-     dl := Std(RowWise, unbiased);
-     try
-        TakeOver(dl);
-     finally
-            dl.Free;
-     end;
-end;
-
-function TDoubleMatrix.Variance(RowWise: boolean; unbiased : boolean = True): TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-
-     if RowWise then
-     begin
-          Result := ResultClass.Create(1, fSubHeight);
-
-          MatrixVar(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise, unbiased);
-     end
-     else
-     begin
-          Result := ResultClass.Create(fSubWidth, 1);
-
-          MatrixVar(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise, unbiased);
-     end;
-end;
-
-procedure TDoubleMatrix.VarianceInPlace(RowWise: boolean; unbiased : boolean = True);
-var dl : TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-
-     dl := Variance(RowWise, unbiased);
-     try
-        TakeOver(dl);
-     finally
-            dl.Free;
-     end;
-end;
-
-function TDoubleMatrix.Min: double;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-
-     Result := MatrixMin(StartElement, fSubWidth, fSubHeight, LineWidth);
-end;
-
-function TDoubleMatrix.Mult(Value: TDoubleMatrix): TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     Result := ResultClass.Create(Value.fSubWidth, fSubHeight);
-
-     MatrixMult(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight,
-                Value.fSubWidth, Value.fSubHeight, LineWidth, Value.LineWidth);
-end;
-
-procedure TDoubleMatrix.MultInPlace(Value: TDoubleMatrix);
-var dl : TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     CheckAndRaiseError((fOffsetX = 0) and (fOffsetY = 0) and (fWidth = fSubWidth) and (fHeight = fSubHeight), 'Operation only allowed on full matrices');
-     CheckAndRaiseError((fSubWidth = Value.fSubHeight), 'Dimension error');
-
-     dl := Mult(Value);
-     try
-        TakeOver(dl);
-     finally
-            dl.Free;
-     end;
-end;
-
-procedure TDoubleMatrix.MultInPlaceT1(Value: TDoubleMatrix);
-var dl : TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     CheckAndRaiseError((fOffsetX = 0) and (fOffsetY = 0) and (fWidth = fSubWidth) and (fHeight = fSubHeight), 'Operation only allowed on full matrices');
-
-     dl := MultT1(Value);
-     try
-        TakeOver(dl);
-     finally
-            dl.Free;
-     end;
-end;
-
-procedure TDoubleMatrix.MultInPlaceT2(Value: TDoubleMatrix);
-var dl : TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     CheckAndRaiseError((fOffsetX = 0) and (fOffsetY = 0) and (fWidth = fSubWidth) and (fHeight = fSubHeight), 'Operation only allowed on full matrices');
-
-     dl := MultT2(Value);
-     try
-        TakeOver(dl);
-     finally
-            dl.Free;
-     end;
-end;
-
-function TDoubleMatrix.MultT1(Value: TDoubleMatrix): TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     Result := ResultClass.Create(Value.fSubWidth, fSubWidth);
-
-     MatrixMultT1Ex(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight,
-                Value.fSubWidth, Value.fSubHeight, LineWidth, Value.LineWidth, BlockMatrixCacheSize, doNone, nil);
-end;
-
-function TDoubleMatrix.MultT2(Value: TDoubleMatrix): TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     Result := ResultClass.Create(Value.fSubHeight, fSubHeight);
-
-     MatrixMultT2Ex(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight,
-                Value.fSubWidth, Value.fSubHeight, LineWidth, Value.LineWidth, BlockMatrixCacheSize, doNone, nil);
-end;
-
-function TDoubleMatrix.Scale(const Value: double): TDoubleMatrix;
-begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'Dimension Error');
-     Result := ResultClass.Create;
-     Result.Assign(Self, True);
-
-     MatrixAddAndScale(Result.StartElement, Result.LineWidth, Result.Width, Result.Height, 0, Value);
-end;
-
-function TDoubleMatrix.ScaleAndAdd(const aOffset, aScale: double): TDoubleMatrix;
-begin
-     CheckAndRaiseError((width > 0) and (Height > 0), 'No data assigned');
-     Result := ResultClass.Create;
-     Result.Assign(self, True);
-
-     Result.ScaleAndAddInPlace(aOffset, aScale);
-end;
-
-procedure TDoubleMatrix.ScaleAndAddInPlace(const aOffset, aScale: double);
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     
-     MatrixScaleAndAdd(StartElement, LineWidth, fSubWidth, fSubHeight, aOffset, aScale);
-end;
-
-procedure TDoubleMatrix.ScaleInPlace(const Value: Double);
-begin
-     MatrixAddAndScale(StartElement, LineWidth, fSubWidth, fSubHeight, 0, Value);
-end;
-
-procedure TDoubleMatrix.Normalize(RowWise: boolean);
-var dt : TDoubleMatrix;
-begin
-     CheckAndRaiseError((width > 0) and (height > 0), 'Dimension error');
-
-     dt := ResultClass.Create(Width, Height);
-     try
-        MatrixNormalize(dt.StartElement, dt.LineWidth, StartElement, LineWidth, Width, Height, RowWise);
-        TakeOver(dt);
-     finally
-            dt.Free;
-     end;
-end;
-
-procedure TDoubleMatrix.NormZeroMeanVarOne(RowWise : boolean);
-begin
-     CheckAndRaiseError((width > 0) and (height > 0), 'Dimension error');
-     MatrixNormalizeMeanVar(StartElement, LineWidth, width, height, RowWise);
-end;
-
-function TDoubleMatrix.PseudoInversion(out mtx : TDoubleMatrix) : TSVDResult;
-var tmp : TDoubleMatrix;
-begin
-     CheckAndRaiseError((width > 0) and (height > 0), 'Dimension error');
-
-     mtx := ResultClass.Create( height, width );
-     tmp := ResultClass.Create;
-     try
-        tmp.Assign(self);
-        
-        Result := MatrixPseudoinverse2Ex( mtx.StartElement, mtx.LineWidth, tmp.StartElement, tmp.LineWidth, Width, Height, 
-                                        StartElement, LineWidth, fLinEQProgress );
-
-        if Result <> srOk then
-           FreeAndNil(mtx);
-
-        FreeAndNil(tmp);
-           
-        mtx.fLinEQProgress := nil;
-     except
-           FreeAndNil(mtx);
-           FreeAndNil(tmp);
-
-           raise;
-     end;
-end;
-
-function TDoubleMatrix.PseudoInversion(out Mtx: IMatrix): TSVDResult;
-var outMtx : TDoubleMatrix;
-begin
-     Result := PseudoInversion(outMtx);
-     Mtx := outMtx;
-end;
-
-function TDoubleMatrix.PseudoInversionInPlace: TSVDResult;
-var mtx : TDoubleMatrix;
-begin
-     CheckAndRaiseError((width > 0) and (height > 0), 'Dimension error');
-
-     mtx := ResultClass.Create(height, width);
-     try
-        Result := MatrixPseudoinverse2(mtx.StartElement, mtx.LineWidth, StartElement, LineWidth, Width, Height, fLinEQProgress);
-
-        if Result = srOk then
-           TakeOver(mtx);
-     finally
-            mtx.Free;
-     end;
-end;
-
-procedure TDoubleMatrix.QR(out R: IMatrix);
-var outR : TDoubleMatrix;
-begin
-     QR(outR);
-     R := outR;
-end;
-
-
-procedure TDoubleMatrix.QR(out R: TDoubleMatrix);
-var tmp : TDoubleMatrix;
-    i, j : integer;
-begin
-     QR(R, tmp);
-     tmp.Free;
-
-     R.Resize( Width, Math.Min(Width, Height) );
-     // clear lower triangular matrix of R
-     for i := 1 to R.Height - 1 do
-          for j := 0 to i - 1 do
-              R[j, i] := 0;
-end;
-
-procedure TDoubleMatrix.QR(out ecosizeR: IMatrix; out tau : IMatrix);
-var outR : TDoubleMatrix;
-    outTau : TDoubleMatrix;
-begin
-     QR(outR, outTau);
-     ecosizeR := outR;
-     tau := outTau;
-end;
-
-procedure TDoubleMatrix.QRFull(out Q, R: TDoubleMatrix);
-var tau : TDoubleMatrix;
-    tmp : TDoubleMatrix;
-    x, y : integer;
-    pdata : PConstDoubleArr;
-begin
-     Q := nil;
-     R := nil;
-     tau := nil;
-
-     // ###########################################
-     // #### First create a compact QR decomposition
-     QR(R, Tau);
-
-     // ###########################################
-     // #### Calculation Q from the previous operation
-     tmp := ResultClass.Create;
-     try
-        tmp.Assign(R);
-     
-        MatrixQFromQRDecomp(tmp.StartElement, tmp.LineWidth, Width, Height, tau.StartElement, fLinEQProgress);
-
-        // now assign only the relevant parts of Q (or just copy it if we have a square matrix)
-        if Width = height 
-        then
-            Q := tmp
-        else
-        begin
-             // economy size Q:
-             tmp.SetSubMatrix(0, 0, Math.min(tmp.Width, tmp.Height), tmp.Height);
-          
-             Q := ResultClass.Create;
-             Q.Assign(tmp, True);
-             tmp.Free;
-             
-             tmp := R;
-             tmp.SetSubMatrix(0, 0, tmp.Width, Math.Min(tmp.Width, tmp.Height));
-             R := ResultClass.Create;
-             R.Assign(tmp, True);
-             tmp.Free;
-        end;       
-
-        // clear R so we only have un upper triangle matrix
-        // zero out the parts occupied by Q
-        for y := 1 to R.Height - 1 do
-        begin
-             pData := PConstDoubleArr( R.StartElement );
-             inc(PByte(pData), y*R.LineWidth);
-             for x := 0 to Math.Min(r.Width, y) - 1 do
-                 pData^[x] := 0;
-        end;
-     finally
-            Tau.Free;
-     end;
-end;
-
-procedure TDoubleMatrix.QRFull(out Q, R: IMatrix);
-var outR, outQ : TDoubleMatrix;
-begin
-     QRFull(outQ, outR);
-     Q := outQ;
-     R := outR;
-end;
-
-procedure TDoubleMatrix.QR(out ecosizeR: TDoubleMatrix; out tau : TDoubleMatrix);
-begin
-     // note: the QR decomposition here does not update the resulting matrix size -> it is further used in the Q decomposition and that memory
-     // is needed there. So in any subsequent call one needs to adjust the size self. Also the lower triangular data is not destroyed and set to 0!
-     ecosizeR := Clone;
-     tau := ResultClass.Create(width, 1);
-     try
-        MatrixQRDecompInPlace2(ecosizeR.StartElement, ecosizeR.LineWidth, width, height, tau.StartElement, fLinEQProgress);
-     except
-           FreeAndNil(ecosizeR);
-           FreeAndNil(tau);
-
-           raise;
-     end;
-end;
-
-// ###########################################
-// #### Hessenberg decomponsition
-// ###########################################
-
-procedure TDoubleMatrix.Hess( out h : TDoubleMatrix );
-var tau : TDoubleMatrix;
-    x, y : integer;
-    pData : PConstDoubleArr;
-begin
-     CheckAndRaiseError( Width = Height, 'Hessenberg decomposition only allowed on square matrices');
-     
-     Hess( h, tau );
-
-     tau.Free;
-     // clear h so we only have an upper (+1) triangle matrix
-     // zero out the parts occupied by Q
-     for y := 2 to h.Height - 1 do
-     begin
-          pData := PConstDoubleArr( h.StartElement );
-          inc(PByte(pData), y*h.LineWidth);
-          for x := 0 to y - 2 do
-              pData^[x] := 0;
-     end;
-end;
-
-procedure TDoubleMatrix.Hess( out h : IMatrix );
-var tmp, tau : TDoubleMatrix;
-    x, y : integer;
-    pData : PConstDoubleArr;
-begin
-     CheckAndRaiseError( Width = Height, 'Hessenberg decomposition only allowed on square matrices');
-     
-     Hess( tmp, tau );
-     tau.Free;
-     h := tmp;
-
-     // clear h so we only have an upper (+1) triangle matrix
-     // zero out the parts occupied by Q
-     for y := 2 to h.Height - 1 do
-     begin
-          pData := PConstDoubleArr( h.StartElement );
-          inc(PByte(pData), y*h.LineWidth);
-          for x := 0 to y - 2 do
-              pData^[x] := 0;
-     end;
-end;
-
-// for the full transformation: Q*H*Q' = A
-procedure TDoubleMatrix.HessFull(out Q, h : TDoubleMatrix);
-var tau : TDoubleMatrix;
-    x, y : integer;
-    pdata : PConstDoubleArr;
-begin
-     CheckAndRaiseError( Width = Height, 'Hessenberg decomposition only allowed on square matrices');
-     
-     Q := nil;
-     h := nil;
-     Tau := nil;
-
-     // ###########################################
-     // #### First create a compact QR decomposition
-     Hess(h, Tau);
-
-     // ###########################################
-     // #### Calculation Q from the previous operation
-     Q := h.Clone;
-     try
-        MatrixQFromHessenbergDecomp(Q.StartElement, Q.LineWidth, Width, tau.StartElement, fLinEQProgress);
-        
-        // clear h so we only have an upper (+1) triangle matrix
-        // zero out the parts occupied by Q
-        for y := 2 to h.Height - 1 do
-        begin
-             pData := PConstDoubleArr( h.StartElement );
-             inc(PByte(pData), y*h.LineWidth);
-             for x := 0 to y - 2 do
-                 pData^[x] := 0;
-        end;
-     finally
-            Tau.Free;
-     end;
-end;
-
-procedure TDoubleMatrix.Hess(out h, tau: TDoubleMatrix);
-begin
-     tau := ResultClass.Create( width, 1 );
-     h := Clone;
-     try
-        MatrixHessenberg2InPlace( h.StartElement, h.LineWidth, Width, tau.StartElement, HessBlockSize );
-     except
-           FreeAndNil(tau);
-           FreeAndNil(h);
-           
-           raise;
-     end;
-end;
-
-procedure TDoubleMatrix.HessFull(out Q, h : IMatrix);
-var temp1, temp2 : TDoubleMatrix;
-begin
-     HessFull(temp1, temp2);
-     Q := temp1;
-     h := temp2;
-end;
-
-function TDoubleMatrix.RepeatMatrix(numX, numy : integer): TDoubleMatrix;
-begin
-     Result := Clone;
-     Result.RepeatMatrixInPlace(numX, numY);
-end;
-
-procedure TDoubleMatrix.RepeatMatrixInPlace(numX, numY: integer);
-var origW, origH : integer;
-    aSubMtx : IMatrix;
-    x, y : Integer;
-begin
-     origW := Width;
-     origH := Height;
-
-     aSubMtx := Clone;
-
-     SetWidthHeight( Width*numX, Height*numY );
-
-     for y := 0 to numY - 1 do
-         for x := 0 to numX - 1 do
-             AssignSubMatrix(aSubMtx, x*origW, y*origH);
-end;
-
-procedure TDoubleMatrix.ReserveMem(width, height : integer);
-begin
-     // check if we need to reserve memory or if we already have a matrix with this size
-     if (fWidth = width) and (fHeight = height) and (width > 0) and (height > 0) and Assigned(fMemory) then
-        exit;
-
-     if Assigned(fMemory) then
-        FreeMem(fMemory);
-
-     fData := nil;
-     fMemory := nil;
-     fLineWidth := 0;
-     // create an always aligned matrix
-     if (width > 0) and (height > 0) then
-     begin
-          // take special care for vectores - there are optimized functions
-          // for those types (e.g. vector matrix multiplication)
-          if width > 1 then
-          begin
-               // get an AVX friendly linewidth
-               fData := MtxAllocAlign(width, height, fLineWidth, fMemory);
-          end
-          else
-          begin
-               fMemory := MtxAlloc($20 + height*width*sizeof(double));
-               fData := AlignPtr32( fMemory ); 
-               fLineWidth := sizeof(double);
-          end;
-
-          CheckAndRaiseError(fMemory <> nil, 'Failed to allocate memory');
-     end;
-end;
-
-function TDoubleMatrix.Reshape(newWidth, newHeight: integer; ColMajor : boolean = False) : TDoubleMatrix;
-var xOld, yOld : integer;
-    x, y : Integer;
-begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'Error operation not allowed on empty matrices');
-     CheckAndRaiseError((newWidth*newHeight) = (fSubWidth*fSubHeight), 'Error new dimension does not fit into the old one');
-
-     Result := ResultClass.Create(newWidth, newHeight);
-     try
-        if ColMajor then
-        begin
-             // reshape along columns not rows...
-             xOld := 0;
-             yOld := 0;
-             for x := 0 to newWidth - 1 do
-             begin
-                  for y := 0 to newHeight - 1 do
-                  begin
-                       Result[x, y] := Items[xOld, yOld];
-
-                       inc(yOld);
-                       if yOld = Height then
-                       begin                       
-                            inc(xOld);
-                            yOld := 0;
-                       end;
-                  end;
-             end;
-        end
-        else
-        begin
-             // reshape along rows not columns...
-             xOld := 0;
-             yOld := 0;
-             for y := 0 to newheight - 1 do
-             begin
-                  for x := 0 to newWidth - 1 do
-                  begin
-                       Result[x, y] := Items[xOld, yOld];
-
-                       inc(xOld);
-                       if xOld = Width then
-                       begin                       
-                            inc(yOld);
-                            xOld := 0;
-                       end;
-                  end;
-             end;
-        end;
-     except
-           FreeAndNil(Result);
-
-           raise;
-     end;
-end;
-
-procedure TDoubleMatrix.ReshapeInPlace(newWidth, newHeight: integer; ColMajor : boolean = False);
-var res : TDoubleMatrix;
-begin
-     CheckAndRaiseError((fWidth > 0) and (fHeight > 0), 'Error operation not allowed on empty matrices');
-     CheckAndRaiseError((fWidth = fSubWidth) and (fHeight = fSubHeight), 'Operation only allowed on full matrices');
-     CheckAndRaiseError((newWidth*newHeight) = (fWidth*fHeight), 'Error new dimension does not fit into the old one');
-
-     // check if the line width fits the old width -> then we only have to adjust the
-     // line width parameter, otherwise copy. 
-     if (fWidth = fSubWidth) and (fHeight = fSubHeight) and (fLineWidth = fWidth*sizeof(double)) and not ColMajor
-     then
-         fLineWidth := newWidth*sizeof(double)
-     else
-     begin
-          res := Reshape(newWidth, newHeight, ColMajor);
-          TakeOver(res);
-          res.Free;
-     end;
-
-     fWidth := newWidth;
-     fHeight := newHeight;
-     fSubWidth := newWidth;
-     fSubHeight := newHeight;
-     fOffsetX := 0;
-     fOffsetY := 0;
-end;
-
-class function TDoubleMatrix.ResultClass: TDoubleMatrixClass;
-begin
-     Result := TDoubleMatrix;
-end;
-
-procedure TDoubleMatrix.SetColumn(col : integer; Values: TDoubleMatrix; ValCols : integer);
-begin
-     CheckAndRaiseError(Values.fSubHeight = fSubHeight, 'Dimension error');
-     CheckAndRaiseError((col >= 0) and (col < fSubWidth), 'Error index out of bounds');
-
-     MatrixCopy( GenPtr( StartElement, col, 0, LineWidth ), LineWidth,
-                 GenPtr( Values.StartElement, ValCols, 0, Values.LineWidth ), values.LineWidth,
-                 1, fSubHeight);
-end;
-
-procedure TDoubleMatrix.SetColumn(col: integer; Values: IMatrix;
-  ValCols: integer);
-begin
-     SetColumn(col, values.GetObjRef, ValCols);
-end;
-
-procedure TDoubleMatrix.SetData(data: PDouble; srcLineWidth, width,
-  height: integer);
-begin
-     ReserveMem(width, height);
-
-     MatrixCopy(StartElement, LineWidth, data, srcLineWidth, width, height);
-end;
-
-procedure TDoubleMatrix.SetColumn(col : integer; const Values: array of Double);
-begin
-     CheckAndRaiseError(fSubHeight = Length(Values), 'Dimension error');
-     CheckAndRaiseError((col >= 0) and (col < fSubWidth), 'Error index out of bounds');
-
-     MatrixCopy( GenPtr( StartElement, col, 0, LineWidth ), LineWidth,
-                 @Values[0], sizeof(double),
-                 1, fsubHeight );
-end;
-
-procedure TDoubleMatrix.SetHeight(const Value: integer);
-begin
-     SetWidthHeight(fWidth, Value);
-end;
-
-procedure TDoubleMatrix.SetLinEQProgress(value: TLinEquProgress);
-begin
-     fLinEQProgress := value;
-end;
-
-procedure TDoubleMatrix.SetRow(row : integer; Values: TDoubleMatrix; ValRow : integer);
-begin
-     CheckAndRaiseError(Values.Width = fSubWidth, 'Dimension Error');
-     CheckAndRaiseError((row >= 0) and (row < fSubHeight), 'Error index out of bounds');
-
-     MatrixCopy( GenPtr( StartElement, 0, row, LineWidth), LineWidth,
-                 GenPtr(Values.StartElement, 0, ValRow, Values.LineWidth), VAlues.LineWidth,
-                 fSubWidth, 1 );
-end;
-
-procedure TDoubleMatrix.SetRow(row : integer; const Values: array of Double);
-begin
-     CheckAndRaiseError(Length(Values) = fSubWidth, 'Dimension Error');
-     CheckAndRaiseError((row >= 0) and (row < fSubHeight), 'Error index out of bounds');
-
-     MatrixCopy( GenPtr( StartElement, 0, row, LineWidth), LineWidth,
-                 @Values[0], fSubWidth*sizeof(double),
-                 fSubWidth, 1 );
-end;
-
-procedure TDoubleMatrix.SetSubMatrix(x, y, Subwidth, Subheight: integer);
-begin
-     CheckAndRaiseError((x >= 0) and (x + SubWidth <= fWidth), 'Dimension x error');
-     CheckAndRaiseError((y >= 0) and (y + SubHeight <= fHeight), 'Dimension y error');
-
-     fOffsetX := x;
-     fOffsetY := y;
-     fSubWidth := Subwidth;
-     fSubHeight := Subheight;
-end;
-
-procedure TDoubleMatrix.SetValue(const initVal: double);
-begin
-     if (Width > 0) and (height > 0) then
-        MatrixInit( StartElement, LineWidth, width, height, initVal);
-end;
-
-procedure TDoubleMatrix.SetValue(const initVal : double; x, y, aWidth, aHeight : NativeInt);
-begin
-     CheckAndRaiseError( Width >= x + aWidth, 'Dimension X Error');
-     CheckAndRaiseError( Height >= y + aHeight, 'Dimension Y Error');
-
-     MatrixInit( GenPtr( StartElement, x, y, LineWidth ), LineWidth, aWidth, aHeight, initVal);
-end;
-
-procedure TDoubleMatrix.SetWidth(const Value: integer);
-begin
-     SetWidthHeight(Value, fHeight);
-end;
-
-procedure TDoubleMatrix.SetWidthHeight(const aWidth, aHeight: integer);
-begin
-     InternalSetWidthHeight(aWidth, aHeight, True);
-end;
-
-procedure TDoubleMatrix.Resize(aNewWidth, aNewHeight: Integer);
-var origSubWidth,
-    origSubHeight : integer;
-    origMemory : Pointer;
-    origLineWidth : NativeInt;
-    origStart : PDouble;
-begin
-     CheckAndRaiseError( (aNewWidth > 0) and (aNewHeight > 0), 'Width and height need to be greater than 0');
-     origSubWidth := fSubWidth;
-     origSubHeight := fSubHeight;
-     origMemory := fMemory;
-     origLineWidth := fLineWidth;
-
-     origStart := StartElement;
-
-     fMemory := nil;
-     fData := nil;
-
-     InternalSetWidthHeight(aNewWidth, aNewHeight, True);
-
-     // #######################################
-     // #### copy old memory and free
-     // note only the submatrix stuff is copied
-     MatrixCopy( StartElement, LineWidth, origStart, origLineWidth,
-                 Math.Min(fWidth, origSubWidth), Math.Min( fHeight, origSubHeight ) );
-
-     FreeMem(origMemory);
-end;
-
-
-procedure TDoubleMatrix.InitRandom(method : TRandomAlgorithm; seed : LongInt);
-begin
-     fObj := TRandomGenerator.Create;
-     TRandomGenerator(fObj).RandMethod := method;
-     TRandomGenerator(fObj).Init(seed);
-     MatrixFunc(StartElement, LineWidth, fSubWidth, fSubHeight, {$IFDEF FPC}@{$ENDIF}MtxRandWithEng);
-     FreeAndNil(fObj);
-end;
-
-procedure TDoubleMatrix.InternalSetWidthHeight(const aWidth, aHeight: integer; AssignMem : boolean);
-begin
-     CheckAndRaiseError((aWidth > 0) and (aHeight > 0), 'Dimension error');
-
-     if AssignMem
-     then
-         ReserveMem(aWidth, aHeight)
-     else
-         ReserveMem(0, 0);
-
-     fWidth := aWidth;
-     fHeight := aHeight;
-     fSubWidth := aWidth;
-     fSubHeight := aHeight;
-end;
-
-function TDoubleMatrix.StartElement: PDouble;
-begin
-     if (fWidth <> 0) and (fHeight <> 0)
-     then
-         Result := PDouble(NativeUInt(@ (fData^[fOffsetX])) + NativeUInt(fOffsetY*fLineWidth))
-     else
-         Result := nil;
-end;
-
-function TDoubleMatrix.Sub(Value: TDoubleMatrix): TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     CheckAndRaiseError((Value.fSubWidth = fSubWidth) and (Value.fSubHeight = fSubHeight), 'Dimension error');
-
-     Result := ResultClass.Create(fSubWidth, fSubHeight);
-     MatrixSub(Result.StartElement, Result.LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight, LineWidth, Value.LineWidth);
-end;
-
-procedure TDoubleMatrix.SubInPlace(Value: TDoubleMatrix);
-begin
-     CheckAndRaiseError((Value.fSubWidth = fSubWidth) and (Value.fSubHeight = fSubHeight), 'Dimension error');
-     MatrixSub(StartElement, LineWidth, StartElement, Value.StartElement, fSubWidth, fSubHeight, LineWidth, Value.LineWidth);
-end;
-
-procedure TDoubleMatrix.SubVecInPlace(Value: TDoubleMatrix; rowWise : Boolean);
-var incX : NativeInt;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     if rowWise
-     then
-         CheckAndRaiseError((Value.VecLen = Width), 'Arguments dimension error')
-     else
-         CheckAndRaiseError((Value.VecLen = Height), 'Arguments dimension error');
-
-     incX := sizeof(double);
-
-     if value.Width = 1 then
-        incX := value.LineWidth;
-
-     MatrixSubVec(StartElement, LineWidth, Value.StartElement, incX, Width, Height, RowWise);
-end;
-
-function TDoubleMatrix.SubVec(aVec: TDoubleMatrix; rowWise : Boolean): TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     if rowWise
-     then
-         CheckAndRaiseError((aVec.VecLen = Width), 'Arguments dimension error')
-     else
-         CheckAndRaiseError((aVec.VecLen = Height), 'Arguments dimension error');
-
-     Result := Clone;
-     Result.SubVecInPlace(aVec, rowWise);
-end;
-
-procedure TDoubleMatrix.SubVecInPlace(Value: IMatrix; rowWise: Boolean);
-begin
-     SubVecInPlace(Value.GetObjRef, RowWise);
-end;
-
-function TDoubleMatrix.SubVec(iVec: IMatrix; rowWise: Boolean): TDoubleMatrix;
-begin
-     Result := SubVec(iVec.GetObjRef, RowWise);
-end;
-
-function TDoubleMatrix.SubMatrix: TDoubleDynArray;
-begin
-     Result := nil;
-     if fSubWidth*fSubHeight = 0 then
-        exit;
-
-     SetLength(Result, fSubWidth*fSubHeight);
-     MatrixCopy( @Result[0], fSubWidth*sizeof(double), StartElement, LineWidth, fSubWidth, fSubHeight);
-end;
-
-function TDoubleMatrix.SubColMtx(fromIdx, toIdx: integer): TDoubleMatrix;
-var colIdx : TIntegerDynArray;
-    i: Integer;
-begin
-     CheckAndRaiseError( (fromIdx >= 0) and (fromIdx < width), 'Column Index out of bounds');
-     CheckAndRaiseError( (ToIdx >= 0) and (toIdx < width), 'Column Index out of bounds');
-
-     if toIdx >= fromIdx then
-     begin
-          SetLength(colIdx, toIdx - fromIdx + 1);
-          for i := 0 to Length(colIdx) - 1 do
-              colIdx[i] := fromIdx + i;
-     end
-     else
-     begin
-          SetLength(colIdx, fromIdx - toIdx + 1);
-          for i := 0 to Length(colIdx) - 1 do
-              colIdx[i] := fromIdx - i;
-     end;
-     Result := SubMtx(colIdx, nil );
-end;
-
-function TDoubleMatrix.SubRowMtx(fromIdx, toIdx: integer): TDoubleMatrix;
-var rowIdx : TIntegerDynArray;
-    i: Integer;
-begin
-     CheckAndRaiseError( (fromIdx >= 0) and (fromIdx < Height), 'Row Index out of bounds');
-     CheckAndRaiseError( (fromIdx >= 0) and (fromIdx < Height), 'Row Index out of bounds');
-
-     if toIdx >= fromIdx then
-     begin
-          SetLength(rowIdx, toIdx - fromIdx + 1);
-          for i := 0 to Length(rowIdx) - 1 do
-              rowIdx[i] := fromIdx + i;
-     end
-     else
-     begin
-          SetLength(rowIdx, fromIdx - toIdx + 1);
-          for i := 0 to Length(rowIdx) - 1 do
-              rowIdx[i] := fromIdx - i;
-     end;
-     Result := SubMtx(nil, rowIdx);
+     fItemSize := GetItemSize;
 end;
 
-
-function TDoubleMatrix.SubMtx(fromColIdx, ToColIdx, fromRowIdx,
-  ToRowIdx: integer): TDoubleMatrix;
-var colIdx : TIntegerDynArray;
-    rowIdx : TIntegerDynArray;
-    increment : integer;
-    i : integer;
-begin
-     CheckAndRaiseError( (fromColIdx >= 0) and (fromColIdx < width), 'Column Index out of bounds');
-     CheckAndRaiseError( (ToColIdx >= 0) and (toColIdx < width), 'Column Index out of bounds');
-     CheckAndRaiseError( (fromRowIdx >= 0) and (fromRowIdx < Height), 'Row Index out of bounds');
-     CheckAndRaiseError( (fromRowIdx >= 0) and (fromRowIdx < Height), 'Row Index out of bounds');
-
-     SetLength(colIdx, System.Abs(ToColIdx - fromColIdx) + 1);
-     SetLength(rowIdx, System.Abs(ToRowIdx - fromRowIdx) + 1);
-
-     increment := 1;
-     if ToColIdx < fromColIdx then
-        increment := -1;
-     for i := 0 to Length(colIdx) - 1 do
-         colIdx[i] := fromColIdx + i*increment;
-
-     increment := 1;
-     if ToRowIdx < fromRowIdx then
-        increment := -1;
-     for i := 0 to Length(rowIdx) - 1 do
-         rowIdx[i] := fromRowIdx + i*increment;
-
-     Result := SubMtx(colIdx, rowIdx);
-end;
-
-function TDoubleMatrix.SubColMtx(colIdx: TIntegerDynArray): TDoubleMatrix;
-begin
-     Result := SubMtx(colIdx, nil);
-end;
-
-function TDoubleMatrix.SubMtx(colIdx, rowIdx: TIntegerDynArray): TDoubleMatrix;
-var i : integer;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'Not allowed on an empty matrix');
-     // ###########################################
-     // #### A nil value in the parameter actually select all
-     if colIdx = nil then
-     begin
-          SetLength( colIdx, Width );
-          for i := 0 to Length(colIdx) - 1 do
-              colIdx[i] := i;
-     end;
-     if rowIdx = nil then
-     begin
-          SetLength( rowIdx, Height );
-          for i := 0 to Length(rowIdx) - 1 do
-              rowIdx[i] := i;
-     end;
-
-     // ###########################################
-     // #### Check if the index is out of bounds
-     for i := 0 to Length(colIdx) - 1 do
-         CheckAndRaiseError( (colIdx[i] >= 0) and (colIdx[i] < Width), 'Column index out of bounds');
-     for i := 0 to Length(rowIdx) - 1 do
-         CheckAndRaiseError( (rowIdx[i] >= 0) and (rowIdx[i] < Height), 'Column index out of bounds');
-
-     Result := ResultClass.Create( Length(colIdx), Length(rowIdx));
-
-     MatrixIndex(Result.StartElement, Result.LineWidth, StartElement, LineWidth, colIdx, rowIdx);
-end;
-
-function TDoubleMatrix.SubRowMtx(rowIdx: TIntegerDynArray): TDoubleMatrix;
-begin
-     Result := SubMtx( nil, rowIdx );
-end;
-
-function TDoubleMatrix.Sum(RowWise: boolean): TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-
-     if RowWise then
-     begin
-          Result := ResultClass.Create(1, fSubHeight);
-
-          MatrixSum(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise);
-     end
-     else
-     begin
-          Result := ResultClass.Create(fSubWidth, 1);
-
-          MatrixSum(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise);
-     end;
-end;
-
-function TDoubleMatrix.Sum: double;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-
-     Result := MatrixSum(StartElement, LineWidth, width, height);
-end;
-
-procedure TDoubleMatrix.SumInPlace(RowWise, keepMemory: boolean);
-begin
-     if not keepMemory 
-     then
-         SumInPlace(RowWise)
-     else
-     begin
-          CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-
-          // inplace sum + do not change the 
-          if RowWise then
-          begin
-               MatrixSum(PDouble(fData), LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise);
-               fOffsetX := 0;
-               fSubWidth := 1;
-          end
-          else
-          begin
-               MatrixSum(PDouble(fData), LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight, RowWise);
-               fOffsetY := 0;
-               fSubHeight := 1;
-          end;
-     end;
-end;
-
-procedure TDoubleMatrix.SumInPlace(RowWise: boolean);
-var dl : TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-
-     dl := Sum(RowWise);
-     try
-        TakeOver(dl);
-     finally
-            dl.Free;
-     end;
-end;
-
-function TDoubleMatrix.SVD(out U, V, W: IMatrix; onlyDiagElements: boolean): TSVDResult;
-var uObj, vObj, wObj : TDoubleMatrix;
-begin
-     Result := SVD(uObj, vObj, wObj, onlyDiagElements);
-     U := uObj;
-     V := vObj;
-     W := wObj;
-end;
-
-procedure TDoubleMatrix.SwapColumn(idx1, idx2: integer);
-begin
-     CheckAndRaiseError((idx1 >= 0) and (idx1 < Width), 'Dimension error');
-     CheckAndRaiseError((idx2 >= 0) and (idx2 < Width), 'Dimension error');
-
-     if idx1 <> idx2 then
-        MatrixColSwap( GenPtr( StartElement, idx1, 0, LineWidth ),
-                       GenPtr( StartElement, idx2, 0, LineWidth ),
-                       LineWidth,
-                       Height
-                     );
-
-end;
-
-procedure TDoubleMatrix.SwapRow(idx1, idx2: integer);
-begin
-     CheckAndRaiseError((idx1 >= 0) and (idx1 < Height), 'Dimension error');
-     CheckAndRaiseError((idx2 >= 0) and (idx2 < Height), 'Dimension error');
-
-     if idx1 <> idx2 then
-        MatrixRowSwap( GenPtr( StartElement, 0, idx1, LineWidth ),
-                       GenPtr( StartElement, 0, idx2, LineWidth ),
-                       Width
-                     );
-end;
-
-function TDoubleMatrix.SVD(out U, V, W: TDoubleMatrix; onlyDiagElements : boolean): TSVDResult;
-var pW : PConstDoubleArr;
-    wArr : PByte;
-    minWH : NativeInt;
-    i : Integer;
+procedure TBaseMatrix.DefineProps;
 begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'Dimension error');
-
-     U := nil;
-     V := nil;
-     W := nil;
-     wArr := nil;
-     try
-        minWH := Math.Min(fSubWidth, fSubHeight);
-
-        W := ResultClass.Create(ifthen(onlyDiagElements, 1, minWH), minWH);
-
-        pW := PConstDoubleArr( W.StartElement );
-        if not onlyDiagElements then
-        begin
-             wArr := MtxAlloc( minWH*sizeof(double));
-             pW := PConstDoubleArr( wArr );
-        end;
-
-        if width > height then
-        begin
-             V := Transpose;
-             U := ResultClass.Create( fSubHeight, fSubHeight );
-
-             Result := MatrixSVDInPlace2(V.StartElement, V.LineWidth, Height, Width, pW, U.StartElement, U.LineWidth, 
-                                         SVDBlockSize, fLinEQProgress );
-
-             // we need a final transposition on the matrix U and V
-             U.TransposeInPlace;
-             V.TransposeInPlace;
-        end
-        else
-        begin
-             U := Clone;
-             V := ResultClass.Create(fSubWidth, fSubWidth);
+     inherited;
 
-             Result := MatrixSVDInPlace2Ex(U.StartElement, U.LineWidth, Width, Height, pW, V.StartElement, V.LineWidth, 
-                                         StartElement, LineWidth,
-                                         SVDBlockSize, fLinEQProgress);
-        end;
+     AddStringProperty('Name', fName);
 
-        if Result <> srOk then
-        begin
-             FreeAndNil(u);
-             FreeAndNil(V);
-             FreeAndNil(W);
-        end
-        else if not onlyDiagElements then
-        begin
-             for i := 0 to minWH - 1 do
-                 W[i, i] := pW^[i];
-        end;
+     AddIntProperty('Width', fWidth);
+     AddIntProperty('Height', fHeight);
 
-        if Assigned(wArr) then
-           FreeMem(wArr);
-     except
-           FreeAndNil(u);
-           FreeAndNil(V);
-           FreeAndNil(W);
-
-           if Assigned(wArr) then
-              FreeMem(wArr);
-
-           raise;
-     end;
-end;
-
-function TDoubleMatrix.SymEig(out EigVals: TDoubleMatrix): TEigenvalueConvergence;
-var dt : TDoubleMatrix;
-    vecs : TDoubleMatrix;
-begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubWidth = fSubHeight), 'Eigenvalue calculation only allowed on square matrices');
-
-     EigVals := nil;
-
-     dt := ResultClass.Create(1, fSubHeight);
-     vecs := ResultClass.Create(fSubWidth, fSubWidth);
-     try
-        vecs.Assign(self, True);
-        Result := MatrixEigUpperSymmetricMatrixInPlace2(vecs.StartElement, vecs.LineWidth, fSubWidth,
-                                                        PConstDoubleArr( dt.StartElement ), True,
-                                                        SymEigBlockSize, fLinEQProgress);
-        if Result = qlOk then
-        begin
-             dt.TransposeInPlace;
-             EigVals := dt;
-             vecs.Free;
-        end
-        else
-        begin
-             dt.Free;
-             vecs.Free;
-        end;
-     except
-           FreeAndNil(dt);
-           FreeAndNil(vecs);
-           raise;
-     end;
+     AddIntProperty('SubWidth', fSubWidth);
+     AddIntProperty('SubHeight', fSubHeight);
+     AddIntProperty('OffsetX', fOffsetX);
+     AddIntProperty('OffsetY', fOffsetY);
 end;
 
-function TDoubleMatrix.SymEig(out EigVals,
-  EigVect: TDoubleMatrix): TEigenvalueConvergence;
-var dt : TDoubleMatrix;
-    vecs : TDoubleMatrix;
+destructor TBaseMatrix.Destroy;
 begin
-     CheckAndRaiseError((fSubWidth > 0) and (fSubWidth = fSubHeight), 'Eigenvalue calculation only allowed on square matrices');
-
-     EigVals := nil;
-     EigVect := nil;
-
-     dt := ResultClass.Create(fSubWidth, 1);
-     vecs := ResultClass.Create(fSubWidth, fSubWidth);
-     try
-        vecs.Assign(self, True);
-        Result := MatrixEigUpperSymmetricMatrixInPlace2(vecs.StartElement, vecs.LineWidth, fSubWidth,
-                                                        PConstDoubleArr( dt.StartElement ), False,
-                                                        SymEigBlockSize, fLinEQProgress);
-        if Result = qlOk then
-        begin
-             dt.TransposeInPlace;
-             EigVals := dt;
-             EigVect := vecs;
-        end
-        else
-        begin
-             dt.Free;
-             vecs.Free;
-        end;
-     except
-           FreeAndNil(dt);
-           FreeAndNil(vecs);
+     Clear;
 
-           raise;
-     end;
+     inherited;
 end;
 
-procedure TDoubleMatrix.TakeOver(Value: TDoubleMatrix);
+procedure TBaseMatrix.DoTakeOver(Value: TBaseMatrix);
 begin
      // free memory from self
      Clear;
@@ -3080,159 +921,165 @@ begin
      value.fOffsetY := 0;
 end;
 
-procedure TDoubleMatrix.TakeOver(Value: IMatrix);
+function TBaseMatrix.ElementWiseDivI(Value: IMatrix): IMatrix;
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
 begin
-     TakeOver(Value.GetObjRef);
-end;
-
-function TDoubleMatrix.Trace: double;
-var i : Integer;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     CheckAndRaiseError((Width = Height), 'Trace only defined on square matrices');
-
-     Result := 0;
-     for i := 0 to Width - 1 do
-         Result := Result + Items[i, i];
-end;
-
-function TDoubleMatrix.Transpose : TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     Result := ResultClass.Create(fSubHeight, fSubWidth);
-     MatrixTranspose(Result.StartElement, Result.LineWidth, StartElement, LineWidth, fSubWidth, fSubHeight);
-end;
-
-procedure TDoubleMatrix.TransposeInPlace;
-var dt : TDoubleMatrix;
-begin
-     CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
-     // transpose is only allowed on full matrix
-     CheckAndRaiseError((fOffsetX = 0) and (fOffsetY = 0) and (fSubWidth = fWidth) and (fSubHeight = fHeight), 'Operation only allowed on full matrices');
-
-     // in case of vectors we can fasten things up a bit
-     if (fwidth = 1) and (LineWidth = sizeof(double)) then
-     begin
-          fWidth := fHeight;
-          fSubWidth := fSubHeight;
-          fHeight := 1;
-          fSubHeight := 1;
-          fLineWidth := fWidth*sizeof(double);
-          exit;
-     end;
-
-     if fHeight = 1 then
-     begin
-          fHeight := fWidth;
-          fSubHeight := fSubWidth;
-          fWidth := 1;
-          fSubWidth := 1;
-          fLineWidth := sizeof(double);
-          exit;
-     end;
-
-     // ###########################################
-     // #### Standard transpose     
-     dt := Transpose;
-     try
-        TakeOver(dt);
-     finally
-            dt.Free;
+     case GetCommonMatrix(self, Value, d1, d2, c1, c2) of
+       vmDouble: Result := d1.ElementWiseDiv(d2);
+       vmComplex: Result := c1.ElementWiseDiv(c2);
      end;
 end;
 
-procedure TDoubleMatrix.UseFullMatrix;
+procedure TBaseMatrix.ElementWiseDivInPlaceI(Value: IMatrix);
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
 begin
-     fOffsetX := 0;
-     fOffsetY := 0;
-     fSubWidth := fWidth;
-     fSubHeight := fHeight;
+     // note: the function raises an exception if self is double and value is complex!
+     // -> we cannot change the class type
+     case GetCommonMtxConvInput(self, Value, d1, d2, c1, c2) of
+       vmDouble: d1.ElementWiseDivInPlace(d2);
+       vmComplex: c1.ElementWiseDivInPlace(c2);
+     end;
 end;
 
-// ###########################################################
-// #### Persistence functions
-procedure TDoubleMatrix.DefineProps;
-var origSubWidth, origSubHeight, origOffsetX, origOffsetY : integer;
+function TBaseMatrix.ElementWiseMultI(Value: IMatrix): IMatrix;
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
 begin
-     AddStringProperty('Name', fName);
-     AddIntProperty('Width', fWidth);
-     AddIntProperty('Height', fHeight);
-
-     origSubWidth := fSubWidth;
-     origSubHeight := fSubHeight;
-     origOffsetX := fOffsetX;
-     origOffsetY := fOffsetY;
-
-     UseFullMatrix;
-     AddDoubleArr('data', SubMatrix);
-     SetSubMatrix(origOffsetX, origOffsetY, origSubWidth, origSubHeight);
-
-     // note: add the offsets after we data -> this ensures that variables are not ovewritten
-     AddIntProperty('SubWidth', fSubWidth);
-     AddIntProperty('SubHeight', fSubHeight);
-     AddIntProperty('OffsetX', fOffsetX);
-     AddIntProperty('OffsetY', fOffsetY);
+     case GetCommonMatrix(self, Value, d1, d2, c1, c2) of
+       vmDouble: Result := d1.ElementWiseMult(d2);
+       vmComplex: Result := c1.ElementWiseMult(c2);
+     end;
 end;
 
-function TDoubleMatrix.PropTypeOfName(const Name: string): TPropType;
+procedure TBaseMatrix.ElementWiseMultInPlaceI(Value: IMatrix);
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
 begin
-     if CompareText(Name, 'Name') = 0
+     // note: the function raises an exception if self is double and value is complex!
+     // -> we cannot change the class type
+     case GetCommonMtxConvInput(self, Value, d1, d2, c1, c2) of
+       vmDouble: d1.ElementWiseMultInPlace(d2);
+       vmComplex: c1.ElementWiseMultInPlace(c2);
+     end;
+end;
+
+function TBaseMatrix.GetLinEQProgress: TLinEquProgress;
+begin
+     Result := fLinEQProgress;
+end;
+
+function TBaseMatrix.GetObjRef: TBaseMatrix;
+begin
+     Result := self;
+end;
+
+function TBaseMatrix.GetSubHeight: integer;
+begin
+     Result := fSubHeight;
+end;
+
+function TBaseMatrix.GetSubWidth: integer;
+begin
+     Result := fSubWidth;
+end;
+
+function TBaseMatrix.GetVecLen: integer;
+begin
+     // treat matrix as vector
+     Result := fSubWidth*fSubHeight;
+end;
+
+procedure TBaseMatrix.InternalSetWidthHeight(const aWidth,
+  aHeight: integer; AssignMem: boolean);
+begin
+     CheckAndRaiseError((aWidth > 0) and (aHeight > 0), 'Dimension error');
+
+     if AssignMem
      then
-         Result := ptString
-     else if CompareText(Name, 'Width') = 0
-     then
-         Result := ptInteger
-     else if CompareText(Name, 'Height') = 0
-     then
-         Result := ptInteger
-     else if CompareText(Name, 'data') = 0
-     then
-         Result := ptDouble
-     else if CompareText(Name, 'SubWidth') = 0
-     then
-         Result := ptInteger
-     else if CompareText(Name, 'SubHeight') = 0
-     then
-         Result := ptInteger
-     else if CompareText(Name, 'OffsetX') = 0
-     then
-         Result := ptInteger
-     else if CompareText(Name, 'OffsetY') = 0
-     then
-         Result := ptInteger
+         ReserveMem(aWidth, aHeight)
      else
-         Result := inherited PropTypeOfName(Name);
+         ReserveMem(0, 0);
+
+     fWidth := aWidth;
+     fHeight := aHeight;
+     fSubWidth := aWidth;
+     fSubHeight := aHeight;
 end;
 
-
-destructor TDoubleMatrix.Destroy;
+function TBaseMatrix.LineWidth: NativeInt;
 begin
-     Clear;
-
-     inherited;
+     Result := fLineWidth;
 end;
 
-procedure TDoubleMatrix.OnLoadDoubleArr(const Name: String;
-  const Value: TDoubleDynArray);
+function TBaseMatrix.MultI(Value: IMatrix): IMatrix;
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
 begin
-     if (CompareText(Name, 'data') = 0) and (Length(Value) > 0) then
-     begin
-          CheckAndRaiseError(Length(value) = fWidth*fHeight, 'The loaded array does not fit the expected size.');
-          Assign(Value, fWidth, fHeight);
+     case GetCommonMatrix(self, Value, d1, d2, c1, c2) of
+       vmDouble: Result := d1.Mult(d2);
+       vmComplex: Result := c1.Mult(c2);
      end;
 end;
 
-procedure TDoubleMatrix.OnLoadStringProperty(const Name, Value: String);
+procedure TBaseMatrix.MultInPlaceI(Value: IMatrix);
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
 begin
-     if CompareText(Name, 'Name') = 0
-     then
-         fName := Value
-     else
-         inherited;
+     // note: the function raises an exception if self is double and value is complex!
+     // -> we cannot change the class type
+     case GetCommonMtxConvInput(self, Value, d1, d2, c1, c2) of
+       vmDouble: d1.MultInPlace(d2);
+       vmComplex: c1.MultInPlace(c2);
+     end;
 end;
 
-procedure TDoubleMatrix.OnLoadIntProperty(const Name: String;
-  Value: integer);
+procedure TBaseMatrix.MultInPlaceT1I(Value: IMatrix);
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
+begin
+     // note: the function raises an exception if self is double and value is complex!
+     // -> we cannot change the class type
+     case GetCommonMtxConvInput(self, Value, d1, d2, c1, c2) of
+       vmDouble: d1.MultInPlaceT1(d2);
+       vmComplex: c1.MultInPlaceT1(c2);
+     end;
+end;
+
+
+procedure TBaseMatrix.MultInPlaceT2I(Value: IMatrix);
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
+begin
+     case GetCommonMtxConvInput(self, Value, d1, d2, c1, c2) of
+       vmDouble: d1.MultInPlaceT2(d2);
+       vmComplex: c1.MultInPlaceT2(c2);
+     end;
+end;
+
+function TBaseMatrix.MultT1I(Value: IMatrix): IMatrix;
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
+begin
+     case GetCommonMatrix(self, Value, d1, d2, c1, c2) of
+       vmDouble: Result := d1.MultT1(d2);
+       vmComplex: Result := c1.MultT1(c2);
+     end;
+end;
+
+function TBaseMatrix.MultT2I(Value: IMatrix): IMatrix;
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
+begin
+     case GetCommonMatrix(self, Value, d1, d2, c1, c2) of
+       vmDouble: Result := d1.MultT2(d2);
+       vmComplex: Result := c1.MultT2(c2);
+     end;
+end;
+
+
+procedure TBaseMatrix.OnLoadIntProperty(const Name: String; Value: integer);
 begin
      if CompareText(Name, 'Width') = 0
      then
@@ -3253,239 +1100,237 @@ begin
      then
          fOffsetY := Value
      else
+         inherited;
 end;
 
-function TDoubleMatrix.Cholesky(out Chol: IMatrix): TCholeskyResult;
-var outChol : TDoubleMatrix;
+procedure TBaseMatrix.OnLoadStringProperty(const Name, Value: String);
 begin
-     Result := Cholesky(outChol);
-     Chol := outChol;
-end;
-
-class function TDoubleMatrix.ClassIdentifier: String;
-begin
-     Result := 'MTX';
-end;
-
-procedure TDoubleMatrix.Clear;
-begin
-     ReserveMem(0, 0);
-
-     fWidth := 0;
-     fHeight := 0;
-     fSubWidth := 0;
-     fSubHeight := 0;
-end;
-
-function TDoubleMatrix.Clone: TDoubleMatrix;
-begin
-     Result := ResultClass.Create(Width, Height);
-     Result.Assign(Self, True);
-end;
-
-procedure TDoubleMatrix.SetRow(row: integer; Values: IMatrix; ValRow: integer);
-begin
-     SetRow(row, Values.GetObjRef, ValRow);
-end;
-
-function TDoubleMatrix.ElementWiseMult(Value: IMatrix): TDoubleMatrix;
-begin
-     Result := ElementWiseMult(Value.GetObjRef);
-end;
-
-procedure TDoubleMatrix.ElementWiseMultInPlace(Value: IMatrix);
-begin
-     ElementWiseMultInPlace(Value.GetObjRef);
-end;
-
-function TDoubleMatrix.Mult(Value: IMatrix): TDoubleMatrix;
-begin
-     Result := Mult(Value.GetObjRef);
-end;
-
-procedure TDoubleMatrix.MultInPlace(Value: IMatrix);
-begin
-     MultInPlace(Value.GetObjRef);
-end;
-
-procedure TDoubleMatrix.MultInPlaceT1(Value: IMatrix);
-begin
-     MultInPlaceT1(Value.GetObjRef);
-end;
-
-procedure TDoubleMatrix.MultInPlaceT2(Value: IMatrix);
-begin
-     MultInPlaceT2(Value.GetObjRef);
-end;
-
-function TDoubleMatrix.MultT1(Value: IMatrix): TDoubleMatrix;
-begin
-     Result := MultT1(Value.GetObjRef);
-end;
-
-function TDoubleMatrix.MultT2(Value: IMatrix): TDoubleMatrix;
-begin
-     Result := MultT2(VAlue.GetObjRef);
-end;
-
-function TDoubleMatrix.Sub(Value: IMatrix): TDoubleMatrix;
-begin
-     Result := Sub(Value.GetObjRef);
-end;
-
-procedure TDoubleMatrix.SubInPlace(Value: IMatrix);
-begin
-     SubInPlace(Value.GetObjRef);
-end;
-
-function TDoubleMatrix.SymEig(out EigVals, EigVect: IMatrix): TEigenvalueConvergence;
-var outEigVals, outEigVect : TDoubleMatrix;
-begin
-     Result := SymEig(outEigVals, outEigVect);
-     EigVals := outEigVals;
-     EigVect := outEigVect;
-end;
-
-function TDoubleMatrix.SymEig(out EigVals: IMatrix): TEigenvalueConvergence;
-var outEigVals : TDoubleMatrix;
-begin
-     Result := SymEig(outEigVals);
-     EigVals := outEigVals;
-end;
-
-function TMatrixClass.GetMtxClass: TDoubleMatrixClass;
-begin
-     Result := fMatrixClass;
-     if Result = nil then
-        Result := DefMatrixClass;
-end;
-
-procedure TMatrixClass.SetMtxClass(const Value: TDoubleMatrixClass);
-begin
-     fMatrixClass := Value;
-end;
-
-procedure TMatrixClass.DefineProps;
-begin
-     // do nothing here
-end;
-
-// ###########################################
-// #### Utility Functions to read and write simple textual based matrices
-// ###########################################
-
-procedure WriteBinary(const fn : string; mtx : IMatrix);
-var vec : IMatrix;
-begin
-     vec := mtx.AsVector(True);
-     with TFileStream.Create(fn, fmOpenWrite or fmCreate) do
-     try
-        WriteBuffer( vec.SubMatrix[0], sizeof(double)*vec.VecLen);
-     finally
-            Free;
-     end;
-end;
-
-procedure MatrixToTxtFile(const fileName : string; const mtx : TDoubleMatrix; prec : integer = 8);
-var s : UTF8String;
-    x, y : integer;
-    ft : TFormatSettings;    
-begin
-     ft := GetLocalFMTSet;
-
-     ft.DecimalSeparator := '.';
-
-     with TFileStream.Create(fileName, fmCreate or fmOpenWrite) do
-     try
-        for y := 0 to mtx.Height - 1 do
-        begin
-             s := '';
-             for x := 0 to mtx.width - 1 do
-                 s := s + UTF8String(Format('%.*f,', [prec, mtx[x, y]], ft));
-
-             s[length(s)] := #13;
-             s := s + #10;
-
-             WriteBuffer(s[1], Length(s));
-        end;
-     finally
-            Free;
-     end;
-end;
-
-function MatrixFromTxtFile( fileName : string ) : TDoubleMatrix; overload;
-begin
-     Result := MatrixFromTxtFile( fileName, TDoubleMatrix );
-end;
-
-function TDoubleMatrix.AsVector( ColMajor : boolean = False ): TDoubleMatrix;
-begin
-     if Height = 1
+     if CompareText(Name, 'Name') = 0
      then
-         Result := Clone
+         fName := Value
      else
-         Result := Reshape(width*height, 1, ColMajor);
+         inherited;
 end;
 
-{$Warnings off}
-function MatrixFromTxtFile( fileName : string; mtxClass : TDoubleMatrixClass ) : TDoubleMatrix;
-var fmt : TFormatSettings;
-    w, h : integer;
-    arr : TDoubleDynArray;
-    numElem : integer;
-    i : integer;
-    slLine : TStringList;
-    aFile : TStringList;
-    cnt: Integer;
+function TBaseMatrix.PropTypeOfName(const Name: string): TPropType;
 begin
-     fmt := GetLocalFMTSet;
-     fmt.DecimalSeparator := '.';
+     if CompareText(Name, 'Width') = 0
+     then
+         Result := ptInteger
+     else if CompareText(Name, 'Height') = 0
+     then
+         Result := ptInteger
+     else if CompareText(Name, 'SubWidth') = 0
+     then
+         Result := ptInteger
+     else if CompareText(Name, 'SubHeight') = 0
+     then
+         Result := ptInteger
+     else if CompareText(Name, 'OffsetX') = 0
+     then
+         Result := ptInteger
+     else if CompareText(Name, 'OffsetY') = 0
+     then
+         Result := ptInteger
+     else if CompareText(Name, 'Name') = 0
+     then
+         Result := ptString
+     else
+         Result := inherited PropTypeOfName( Name );
+end;
 
-     numElem := 0;
+procedure TBaseMatrix.ReserveMem(width, height: integer);
+begin
+     // check if we need to reserve memory or if we already have a matrix with this size
+     if (fWidth = width) and (fHeight = height) and (width > 0) and (height > 0) and Assigned(fMemory) then
+        exit;
 
-     aFile := TStringList.Create;
-     try
-        aFile.LoadFromFile(filename);
-        w := 0;
-        h := aFile.Count;
-        
-        slLine := TStringList.Create;
-        slLine.Delimiter := ',';
-        try
-           for cnt := 0 to h - 1 do
-           begin
-                slLine.DelimitedText := aFile[cnt];
+     if Assigned(fMemory) then
+        FreeMem(fMemory);
 
-                if w = 0 then
-                begin
-                     w := slLine.Count;
-                     SetLength(arr, w*h);
-                end;
+     fData := nil;
+     fMemory := nil;
+     fLineWidth := 0;
+     // create an always aligned matrix
+     if (width > 0) and (height > 0) then
+     begin
+          // take special care for vectores - there are optimized functions
+          // for those types (e.g. vector matrix multiplication)
+          if width > 1 then
+          begin
+               // get an AVX friendly linewidth
+               fData := MtxAllocAlign(width*(fItemSize div 8), height, fLineWidth, fMemory);
+          end
+          else
+          begin
+               // aligned "vector" - make sure the items are placed next to each other
+               // -> some functions like Matrix vector multiplication like it
+               // better to have the memory aligned without "holes"
+               fMemory := MtxAlloc($20 + height*width*fItemSize);
+               fData := AlignPtr32( fMemory );
+               fLineWidth := fItemSize;
+          end;
 
-                if w <> slLine.Count then
-                   raise Exception.Create('Number of columns do not match');
-
-                for i := 0 to slLine.Count - 1 do
-                begin 
-                     arr[numElem] := StrToFloat( slLine[i], fmt );
-                     inc(numElem);
-                end;
-           end;
-        finally
-               slLine.Free;
-        end;
-
-        // ###########################################
-        // #### Build resulting matrix
-        SetLength(arr, numElem);
-        Result := mtxClass.Create(arr, w, h );
-     finally
-            aFile.Free;
+          CheckAndRaiseError(fMemory <> nil, 'Failed to allocate memory');
      end;
 end;
 
-initialization
-   TMatrixClass.DefMatrixClass := TDoubleMatrix;
-   RegisterMathIO(TDoubleMatrix);
+procedure TBaseMatrix.Resize(aNewWidth, aNewHeight: Integer);
+var origSubWidth,
+    origSubHeight : integer;
+    origMemory : Pointer;
+    origLineWidth : NativeInt;
+    origStart : PDouble;
+begin
+     CheckAndRaiseError( (aNewWidth > 0) and (aNewHeight > 0), 'Width and height need to be greater than 0');
+     origSubWidth := fSubWidth;
+     origSubHeight := fSubHeight;
+     origMemory := fMemory;
+     origLineWidth := fLineWidth;
+
+     origStart := StartElement;
+
+     fMemory := nil;
+     fData := nil;
+
+     InternalSetWidthHeight(aNewWidth, aNewHeight, True);
+
+     // #######################################
+     // #### copy old memory and free
+     // note only the submatrix stuff is copied
+     MatrixCopy( StartElement, LineWidth, origStart, origLineWidth,
+                 (1 + Integer(fItemSize > sizeof(double)))*Math.Min(fWidth, origSubWidth), Math.Min( fHeight, origSubHeight ) );
+
+     FreeMem(origMemory);
+end;
+
+
+procedure TBaseMatrix.SetHeight(const Value: integer);
+begin
+     SetWidthHeight(fWidth, Value);
+end;
+
+procedure TBaseMatrix.SetLinEQProgress(value: TLinEquProgress);
+begin
+     fLinEQProgress := value;
+end;
+
+procedure TBaseMatrix.SetSubMatrix(x, y, Subwidth, Subheight: integer);
+begin
+     CheckAndRaiseError((x >= 0) and (x + SubWidth <= fWidth), 'Dimension x error');
+     CheckAndRaiseError((y >= 0) and (y + SubHeight <= fHeight), 'Dimension y error');
+
+     fOffsetX := x;
+     fOffsetY := y;
+     fSubWidth := Subwidth;
+     fSubHeight := Subheight;
+end;
+
+procedure TBaseMatrix.SetWidth(const Value: integer);
+begin
+     SetWidthHeight(Value, fHeight);
+end;
+
+procedure TBaseMatrix.SetWidthHeight(const aWidth, aHeight: integer);
+begin
+     InternalSetWidthHeight(aWidth, aHeight, True);
+end;
+
+function TBaseMatrix.SolveLinEQI(Value: IMatrix;
+  numRefinements: integer): IMatrix;
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
+begin
+     case GetCommonMatrix(self, Value, d1, d2, c1, c2) of
+       vmDouble: Result := d1.SolveLinEQ(d2, numRefinements);
+       vmComplex: Result := c1.SolveLinEQ(c2, numRefinements);
+     end;
+end;
+
+procedure TBaseMatrix.SolveLinEQInPlaceI(Value: IMatrix;
+  numRefinements: integer);
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
+begin
+     case GetCommonMtxConvInput(self, Value, d1, d2, c1, c2) of
+       vmDouble: d1.SolveLinEQInPlace(d2, numRefinements);
+       vmComplex: c1.SolveLinEQInPlace(c2, numRefinements);
+     end;
+end;
+
+function TBaseMatrix.StartElement: PDouble;
+begin
+     if (fWidth <> 0) and (fHeight <> 0)
+     then
+         Result := PDouble(NativeUInt((NativeUInt(fData) + NativeUInt(fItemSize*fOffsetX)) +
+                           NativeUInt(fOffsetY*fLineWidth)))
+     else
+         Result := nil;
+
+end;
+
+function TBaseMatrix.SubI(Value: IMatrix): IMatrix;
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
+begin
+     case GetCommonMatrix(self, Value, d1, d2, c1, c2) of
+       vmDouble: Result := d1.Sub(d2);
+       vmComplex: Result := c1.Sub(c2);
+     end;
+end;
+
+procedure TBaseMatrix.SubInPlaceI(Value: IMatrix);
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
+begin
+     case GetCommonMtxConvInput(self, Value, d1, d2, c1, c2) of
+       vmDouble: d1.SubInPlace(d2);
+       vmComplex: c1.SubInPlace(c2);
+     end;
+end;
+
+
+function TBaseMatrix.SubVecI(aVec: IMatrix; rowWise: Boolean): IMatrix;
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
+begin
+     case GetCommonMatrix(self, aVec, d1, d2, c1, c2) of
+       vmDouble: Result := d1.SubVec(d2, rowWise);
+       vmComplex: Result := c1.SubVec(c2, rowWise);
+     end;
+end;
+
+
+procedure TBaseMatrix.SubVecInPlaceI(Value: IMatrix; rowWise: Boolean);
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
+begin
+     // note: the function raises an exception if self is double and value is complex!
+     // -> we cannot change the class type
+     case GetCommonMtxConvInput(self, Value, d1, d2, c1, c2) of
+       vmDouble: d1.SubVecInPlace(d2, rowWise);
+       vmComplex: c1.SubVecInPlace(c2, rowWise);
+     end;
+end;
+
+procedure TBaseMatrix.TakeOverI(Value: IMatrix);
+var d1, d2 : IDoubleMatrix;
+    c1, c2 : ICplxMatrix;
+begin
+     // note: the function raises an exception if self is double and value is complex!
+     // -> we cannot change the class type
+     case GetCommonMtxConvInput(self, Value, d1, d2, c1, c2) of
+       vmDouble: d1.TakeOver(d2);
+       vmComplex: c1.TakeOver(c2);
+     end;
+end;
+
+procedure TBaseMatrix.UseFullMatrix;
+begin
+     fOffsetX := 0;
+     fOffsetY := 0;
+     fSubWidth := fWidth;
+     fSubHeight := fHeight;
+end;
 
 end.

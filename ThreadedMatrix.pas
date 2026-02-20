@@ -21,7 +21,7 @@ unit ThreadedMatrix;
 
 interface
 
-uses Matrix, MatrixConst;
+uses DblMatrix, Matrix, MatrixConst;
 
 {$IFDEF FPC}
    {.$DEFINE ANONMETHODS}
@@ -39,9 +39,6 @@ type
   protected
     class function ResultClass : TDoubleMatrixClass; override;
     class function ClassIdentifier : String; override;
-
-    procedure QR(out ecosizeR : TDoubleMatrix; out tau : TDoubleMatrix); override;
-    procedure Hess(out h, tau: TDoubleMatrix); override;
   public
     procedure MultInPlace(Value : TDoubleMatrix); override;
     function Mult(Value : TDoubleMatrix) : TDoubleMatrix; override;
@@ -84,7 +81,7 @@ type
     // threaded lin alg functions
     function InvertInPlace : TLinEquResult; override;
     function Invert : TDoubleMatrix; overload; override;
-    function Invert( out InvMtx : TDoubleMatrix ) : TLinEquResult; overload; override;
+    function InvertEx( out InvMtx : TDoubleMatrix ) : TLinEquResult; overload; override;
 
     function SolveLinEQ(Value : TDoubleMatrix; numRefinements : integer = 0) : TDoubleMatrix; override;
     procedure SolveLinEQInPlace(Value : TDoubleMatrix; numRefinements : integer = 0); override;
@@ -99,7 +96,10 @@ type
     // solves least sqaures A*x = b using the QR decomposition
     procedure SolveLeastSquaresInPlace(out x : TDoubleMatrix; b : TDoubleMatrix); overload; override;
     procedure SolveLeastSquares(out x : TDoubleMatrix; b : TDoubleMatrix); overload; override;
-    
+
+    procedure QR(out ecosizeR : TDoubleMatrix; out tau : TDoubleMatrix); override;
+    procedure Hess(out h, tau: TDoubleMatrix); override;
+
     class procedure InitThreadPool;
     class procedure FinalizeThreadPool;
   end;
@@ -137,7 +137,7 @@ function TThreadedMatrix.AddAndScale(const aOffset,
 begin
      assert((width > 0) and (Height > 0), 'No data assigned');
      Result := ResultClass.Create;
-     Result.Assign(self, True);
+     Result.AssignEx(self, True);
 
      Result.AddAndScaleInPlace(aOffset, aScale);
 end;
@@ -275,7 +275,7 @@ begin
 
      Result := ResultClass.Create;
      try
-        Result.Assign(Self, True);
+        Result.AssignEx(Self, True);
 
         if ThrMatrixInverse(Result.StartElement, Result.LineWidth, fSubWidth, fLinEQProgress) = leSingular then
            raise ELinEQSingularException.Create('Singular matrix');
@@ -285,13 +285,13 @@ begin
      end;
 end;
 
-function TThreadedMatrix.Invert(out InvMtx: TDoubleMatrix): TLinEquResult;
+function TThreadedMatrix.InvertEx(out InvMtx: TDoubleMatrix): TLinEquResult;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
      CheckAndRaiseError(fSubWidth = fSubHeight, 'Operation only allowed on square matrices');
 
      InvMtx := ResultClass.Create;
-     InvMtx.Assign(Self, True);
+     InvMtx.AssignEx(Self, True);
 
      Result := ThrMatrixInverse(InvMtx.StartElement, InvMtx.LineWidth, fSubWidth, fLinEQProgress);
      if Result <> leOk then
@@ -306,7 +306,7 @@ begin
 
      dt := ResultClass.Create(Width, Height);
      try
-        dt.Assign(self, True);
+        dt.AssignEx(self, True);
         Result := ThrMatrixInverse(dt.StartElement, dt.LineWidth, fSubWidth, fLinEQProgress);
         if Result = leOk then
            Assign(dt);
@@ -497,15 +497,15 @@ begin
              tmp.SetSubMatrix(0, 0, Math.min(tmp.Width, tmp.Height), tmp.Height);
           
              Q := ResultClass.Create;
-             Q.Assign(tmp, True);
+             Q.AssignEx(tmp, True);
              tmp.Free;
              
              tmp := R;
              tmp.SetSubMatrix(0, 0, tmp.Width, Math.Min(tmp.Width, tmp.Height));
              R := ResultClass.Create;
-             R.Assign(tmp, True);
+             R.AssignEx(tmp, True);
              tmp.Free;
-        end;       
+        end;
 
         // clear R so we only have un upper triangle matrix
         // zero out the parts occupied by Q
@@ -615,7 +615,7 @@ begin
         then
             raise ELinEQSingularException.Create('Matrix is singular');
 
-        Assign(dt, False);
+        AssignEx(dt, False);
      finally
             dt.Free;
      end;
@@ -736,7 +736,7 @@ begin
      dt := ResultClass.Create(1, fSubHeight);
      vecs := ResultClass.Create(fSubWidth, fSubWidth);
      try
-        vecs.Assign(self, True);
+        vecs.AssignEx(self, True);
         Result := ThrMtxEigUpperSymmetricMatrixInPlace2(vecs.StartElement, vecs.LineWidth, fSubWidth,
                                                         PConstDoubleArr( dt.StartElement ), True,
                                                         SymEigBlockSize, fLinEQProgress);
@@ -771,7 +771,7 @@ begin
      dt := ResultClass.Create(fSubWidth, 1);
      vecs := ResultClass.Create(fSubWidth, fSubWidth);
      try
-        vecs.Assign(self, True);
+        vecs.AssignEx(self, True);
         Result := ThrMtxEigUpperSymmetricMatrixInPlace2(vecs.StartElement, vecs.LineWidth, fSubWidth,
                                                         PConstDoubleArr( dt.StartElement ), False,
                                                         SymEigBlockSize, fLinEQProgress);

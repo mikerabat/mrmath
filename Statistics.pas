@@ -16,7 +16,7 @@ unit Statistics;
 
 interface
 
-uses MatrixConst, Matrix, BaseMathPersistence;
+uses MatrixConst, Matrix, DblMatrix, BaseMathPersistence;
 
 // ###########################################
 // #### Useful functions used in for different statistics
@@ -113,7 +113,7 @@ type
   private
     fN : integer;
     fMeanVar : TMeanVarRec;
-    fRefData : IMatrix;
+    fRefData : IDoubleMatrix;
     fMinVal, fMaxVal : Double;
     fNumBins : integer;
   protected
@@ -1293,7 +1293,7 @@ begin
      Result := True;
      if SameText(Name, cPropData)
      then
-         fRefData := (obj as TDoubleMatrix) as IMatrix
+         fRefData := (obj as TDoubleMatrix)
      else
          Result := Inherited OnLoadObject(Name, Obj);
 end;
@@ -1381,25 +1381,32 @@ end;
 class function TStatTest.HistogramIntf(data: IMatrix; nBins: integer; minVal,
   maxVal: double; RowWise: Boolean): IMatrix;
 begin
-     Result := Histogram( data.GetObjRef, nBins, minVal, maxVal, RowWise);
+     TDoubleMatrix.CheckForRealMtx(data);
+
+     Result := Histogram( data.GetObjRef as TDoubleMatrix, nBins, minVal, maxVal, RowWise);
 end;
 
 class function TStatTest.HistogramIntf(data: IMatrix; nBins: integer;
   RowWise: Boolean): IMatrix;
 begin
-     Result := Histogram( data.GetObjRef, nBins, RowWise );
+     TDoubleMatrix.CheckForRealMtx(data);
+
+     Result := Histogram( data.GetObjRef as TDoubleMatrix, nBins, RowWise );
 end;
 
 class procedure TStatTest.ChiSquare1(data1, data2: IMatrix; nBins,
   numConstraints: integer; var df, chsq, prob: double);
 begin
+     TDoubleMatrix.CheckForRealMtx(data1);
+     TDoubleMatrix.CheckForRealMtx(data2);
+
      ChiSquare1( data1.GetObjRef, data2.GetObjRef, nBins, numConstraints, df, chsq, prob);
 end;
 
 class procedure TStatTest.ChiSquare1(data1, data2: TDoubleMatrix; nBins,
   numConstraints: integer; var df, chsq, prob: double);
 var minVal, maxVal : double;
-    hist1, hist2 : IMatrix;
+    hist1, hist2 : IDoubleMatrix;
     vec1, vec2 : TDoubleMatrix;
     x: Integer;
 begin
@@ -1419,8 +1426,8 @@ begin
           vec2 := data2.AsVector(True);
      end;
 
-     hist1 := HistogramIntf( data1, nBins, minVal, maxVal, True);
-     hist2 := HistogramIntf( data2, nBins, minVal, maxVal, True);
+     hist1 := Histogram( data1, nBins, minVal, maxVal, True);
+     hist2 := Histogram( data2, nBins, minVal, maxVal, True);
 
      if data1 <> vec1 then
         vec1.Free;
@@ -1448,7 +1455,7 @@ begin
      fNumBins := nBins;
 
      fRefData := data1.AsVector(True);
-     fRefData := HistogramIntf(data1, nBins, fMinVal, fMaxVal);
+     fRefData := Histogram(data1, nBins, fMinVal, fMaxVal);
 end;
 
 procedure TStatTest.ChiSquare1(data2: TDoubleMatrix;

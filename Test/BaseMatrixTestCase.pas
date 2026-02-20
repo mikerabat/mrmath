@@ -32,7 +32,7 @@ uses
   fpcunit, testregistry,
   {$IFDEF MSWINDOWS} Windows, {$ELSE} lcltype, {$ENDIF}
   {$ENDIF}
-  Classes, SysUtils, Types, Matrix, MatrixConst;
+  Classes, SysUtils, Types, Matrix, CplxMatrix, DblMatrix, MatrixConst;
 
 type
 
@@ -55,17 +55,26 @@ type
    procedure FillAlignedMtx(mtxSize : integer; out pX : PDouble; out pMem : PByte); overload;
    procedure FillAlignedMtx(mtxWidth, mtxHeight : integer; out pX : PDouble; out pMem : PByte; out LineWidthAligned : NativeInt); overload;
    procedure FillUnalignedMtx(mtxWidth, mtxHeight : integer; out pX : PDouble; out pMem : PByte; out LineWidthAligned : NativeInt);
-   procedure WriteMatlabData(const fileName : string; const data : Array of double; width : integer);
+   procedure WriteMatlabData(const fileName : string; const data : Array of double; width : integer); overload;
    procedure TryClearCache;
    function WriteMtx(const data : Array of Double; width : integer; prec : integer = 3) : string; overload;
    function WriteMtx(data : PDouble; LineWidth : NativeInt; width : integer; height : integer; prec : integer = 3) : string; overload;
    function WriteMtx(mtx : TDoubleMatrix; prec : integer = 3) : string; overload;
+   function WriteMtx(mtx : TBaseMatrix; prec : integer = 3) : string; overload;
+   function WriteMtx(mtx : TCplxMatrix; prec : integer = 3) : string; overload;
    function CheckMtx(const data1 : Array of Double; const data2 : Array of double; w : integer = -1; h : integer = -1; const epsilon : double = 1e-4) : boolean;
    function CheckMtxIdx(const data1 : Array of Double; const data2 : Array of double; out idx : integer; w : integer = -1; h : integer = -1; const epsilon : double = 1e-4) : boolean; overload;
    function CheckMtxIdx(data1, data2 : PDouble; const mtxSize : integer; out idx : integer; const epsilon : double = 1e-4) : boolean; overload;
    function CheckMtxIdx(data1, data2 : PDouble; LineWidth1, LineWidth2 : NativeInt; mtxWidth, mtxHeight : integer; out idx : integer; const epsilon : double = 1e-4) : boolean; overload;
+
+   function CplxCheckMtx( const data1 : Array of TComplex; const data2 : Array of TComplex; w : integer = -1; h : integer = -1; const epsiolon : double = 1e-4) : boolean; overload;
+   function CplxCheckMtxIdx( data1, data2 : PComplex; LineWidth1, LineWidth2 : NativeInt; mtxWidth, mtxHeight : integer; out idx : integer; const epsilon : double = 1e-4) : boolean; overload;
    function WriteMtxDyn(const data : TDoubleDynArray; width : integer; prec : integer = 3) : string; overload;
    function LoadBin( fn : String ) : TDoubleDynArray;
+
+   function CplxWriteMtx(const data : Array of TComplex; width : integer; prec : integer = 3) : string; overload;
+   procedure WriteMatlabData(const fileName : string; const data : Array of TComplex; width : integer); overload;
+   procedure WriteBin( const filename : string; const data : Array of TComplex );
  end;
 
  TBaseImgTestCase = class(TBaseMatrixTestCase)
@@ -200,7 +209,7 @@ begin
           begin
                if not SameValue(p1^[x], p2^[x], Epsilon) then
                begin
-                    Result := SameValue(p1^[x], p2^[x], Epsilon) ;
+                    Result := False;
                     idx := x + y*mtxWidth;
                     exit;
                end;
@@ -400,7 +409,7 @@ begin
 end;
 
 function TBaseMatrixTestCase.WriteMtx(const data: array of Double;
-  width: integer; prec : integer = 3): string; 
+  width: integer; prec : integer = 3): string;
 var x, y : integer;
 begin
      Result := '';
@@ -681,6 +690,50 @@ begin
 end;
 {$ENDIF}
 
+procedure TBaseMatrixTestCase.WriteBin(const filename: string;
+  const data: array of TComplex);
+begin
+     with TFileStream.Create(filename, fmCreate or fmOpenWrite) do
+     try
+        WriteBuffer( data[0], sizeof(TComplex)*Length(data));
+     finally
+            Free;
+     end;
+end;
+
+procedure TBaseMatrixTestCase.WriteMatlabData(const fileName: string;
+  const data: array of TComplex; width: integer);
+var i : integer;
+    s : string;
+begin
+     // write a file which can be read into matlab using the load command
+     // the procedure is usefull to verify the results against this program.
+     with TStringList.Create do
+     try
+        BeginUpdate;
+        s := '';
+        for i := 0 to Length(data) - 1 do
+        begin
+             s := s + Format('%.9f + i*%.9f,', [data[i].real, data[i].imag]);
+
+             if i mod width = width - 1 then
+             begin
+                  s[length(s)] := ';';
+                  if i = Length(data) - 1 then
+                     system.Delete(s, Length(s), 1);
+                  Add(s);
+                  s := '';
+             end;
+        end;
+        EndUpdate;
+
+        SaveToFile(FileName {$IF not Defined(FPC) and (CompilerVersion >= 20)} , TEncoding.ASCII {$IFEND});
+     finally
+            Free;
+     end;
+end;
+
+
 function TBaseMatrixTestCase.WriteMtx(mtx: TDoubleMatrix;
   prec: integer): string;
 begin
@@ -713,11 +766,93 @@ begin
 end;
 
 
+function TBaseMatrixTestCase.CplxWriteMtx(const data: array of TComplex; width,
+  prec: integer): string;
+var x, y : integer;
+begin
+     Result := '';
+
+     for y := 0 to (High(data) + 1) div width - 1 do
+     begin
+          for x := 0 to width - 1 do
+              Result := Result + Format('%3.*f + i*%3.*f  ', [prec, data[x + y*width].real, prec, data[x + y*width].imag]);
+
+          Result := Result + #13#10;
+     end;
+end;
+
+
 function TBaseMatrixTestCase.CheckMtxVal(const mtx: array of double;
   value: double): boolean;
 begin
      Result := CheckMtxVal(@mtx[0], Length(mtx)*sizeof(double), Length(mtx), 1, value);
 end;
+
+function TBaseMatrixTestCase.WriteMtx(mtx: TBaseMatrix; prec: integer): string;
+begin
+     if mtx is TDoubleMatrix
+     then
+         Result := WriteMtx(mtx as TDoubleMatrix, prec)
+     else
+         Result := WriteMtx(mtx as TCplxMatrix, prec);
+end;
+
+function TBaseMatrixTestCase.WriteMtx(mtx: TCplxMatrix; prec: integer): string;
+begin
+     CplxWriteMtx( mtx.SubMatrix, mtx.Width, prec);
+end;
+
+function TBaseMatrixTestCase.CplxCheckMtx(const data1, data2: array of TComplex; w,
+  h: integer; const epsiolon: double): boolean;
+var idx : integer;
+begin
+     if w = -1 then
+     begin
+          if h = -1 then
+             h := 1;
+
+          w := Length(data1) div h;
+     end
+     else
+     if h = -1
+     then
+         h := Length(data1) div w;
+
+     if w*h <> Length(data1) then
+        exit(False);
+     if w*h <> Length(data2) then
+        exit(False);
+
+     Result := CplxCheckMtxIdx(PComplex(@data1[0]), PComplex(@data2[0]),
+                           w*sizeof(TComplex), w*sizeof(TComplex), w, h, idx, epsiolon );
+end;
+
+function TBaseMatrixTestCase.CplxCheckMtxIdx(data1, data2: PComplex; LineWidth1,
+  LineWidth2: NativeInt; mtxWidth, mtxHeight: integer; out idx: integer;
+  const epsilon: double): boolean;
+var p1, p2 : PConstComplexArr;
+    x, y : integer;
+begin
+     Result := True;
+     p1 := PConstComplexArr(data1);
+     p2 := PConstComplexArr(data2);
+     for y := 0 to mtxHeight - 1 do
+     begin
+          for x := 0 to mtxWidth - 1 do
+          begin
+               if not SameValue(p1^[x].real, p2^[x].real, Epsilon) or
+                  not SameValue(p1^[x].imag, p2^[x].imag, Epsilon) then
+               begin
+                    Result := False;
+                    idx := x + y*mtxWidth;
+                    exit;
+               end;
+          end;
+          inc(PByte(p1), LineWidth1);
+          inc(PByte(p2), LineWidth2);
+     end;
+end;
+
 
 initialization
   {$IFDEF FPC}

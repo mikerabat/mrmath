@@ -18,7 +18,7 @@ unit PLS;
 
 interface
 
-Uses SysUtils, MatrixConst, Matrix, BaseMathPersistence;
+Uses SysUtils, MatrixConst, Matrix, DblMatrix, BaseMathPersistence;
 
 // ###########################################
 // #### Partial least squares   
@@ -28,8 +28,8 @@ Type
   TMatrixPLS = Class(TMatrixClass)
   private
     fAlgorithm : TPLSAlgorithm;
-    fBeta: IMatrix;
-    fXMean, fYMean : IMatrix;
+    fBeta: IDoubleMatrix;
+    fXMean, fYMean : IDoubleMatrix;
   protected
     procedure Clear;
 
@@ -44,15 +44,17 @@ Type
 
     function PLSRegress( Xreg, Yreg : TDoubleMatrix; NComp : integer ) : boolean; overload;
     function PLSRegress( Xreg, Yreg : TDoubleMatrix; NComp : integer; fitted : TDoubleMatrix ) : boolean; overload;
+    function PLSRegress( Xreg, Yreg : IDoubleMatrix; NComp : integer ) : boolean; overload;
+    function PLSRegress( Xreg, Yreg : IDoubleMatrix; NComp : integer; fitted : IDoubleMatrix ) : boolean; overload;
 
     function Project(x : TDoubleMatrix) : TDoubleMatrix;
 
     property Algorithm : TPLSAlgorithm read fAlgorithm write fAlgorithm;
 
     // out
-    property Beta: IMatrix read fBeta;
-    property YMean: IMatrix read fYMean;         // residual when calculating plsr
-    property XMean: IMatrix read fXMean;
+    property Beta: IDoubleMatrix read fBeta;
+    property YMean: IDoubleMatrix read fYMean;         // residual when calculating plsr
+    property XMean: IDoubleMatrix read fXMean;
   End;
 
 
@@ -76,13 +78,13 @@ begin
 end;
 
 function TMatrixPLS.Project(x: TDoubleMatrix): TDoubleMatrix;
-var tmp : IMatrix;
+var tmp : IDoubleMatrix;
 begin
      tmp := TDoubleMatrix.Create(X.Width + 1, X.Height);
-     tmp := x.SubVec(fXMean, True);
+     tmp := x.SubVec(fXMean.GetObjRef as TDoubleMatrix, True);
      //
-     Result := tmp.Mult(fBeta);
-     Result.AddVecInPlace(fYMean, True);
+     Result := (tmp.GetObjRef as TDoubleMatrix).Mult(fBeta.GetObjRef as TDoubleMatrix);
+     Result.AddVecInPlace(fYMean.GetObjRef as TDoubleMatrix, True);
 end;
 
 
@@ -140,19 +142,19 @@ function TMatrixPLS.PLSRegress(Xreg, Yreg: TDoubleMatrix; NComp: integer; fitted
 var nobs : Integer;
     npred : integer;
     nresp : integer;
-    ym, xm : IMatrix;
-    S : IMatrix;
-    R, P, V : IMatrix;
-    T, U : IMatrix;
-    Q : IMatrix;
+    ym, xm : IDoubleMatrix;
+    S : IDoubleMatrix;
+    R, P, V : IDoubleMatrix;
+    T, U : IDoubleMatrix;
+    Q : IDoubleMatrix;
     i, j : Integer;
     domIdx : integer;
     eigMax : double;
-    eigVec, eigVal, tmp : IMatrix;
-    rl, tl : IMatrix;
-    tm : IMatrix;
+    eigVec, eigVal, tmp : IDoubleMatrix;
+    rl, tl : IDoubleMatrix;
+    tm : IDoubleMatrix;
     nt : double;
-    pl, ql, ul, vl : IMatrix;
+    pl, ql, ul, vl : IDoubleMatrix;
 begin
      Result := False;
 
@@ -162,11 +164,11 @@ begin
 
      // mean centering data matrix
      fXMean := Xreg.Mean(False);
-     xm := Xreg.SubVec(fXMean, True);
+     xm := Xreg.SubVec(fXMean.GetObjRef as TDoubleMatrix, True);
 
      // mean centering responses
      fYMean := Yreg.Mean(False);
-     ym := Yreg.SubVec(fYMean, True);
+     ym := Yreg.SubVec(fYMean.GetObjRef as TDoubleMatrix, True);
 
      // S = X'*Y;
      S := xm.MultT1(ym);
@@ -285,12 +287,25 @@ begin
      // in case a resulting object is provided we do the multiplication here
      if Assigned(fitted) then
      begin
-          fitted.Assign(T);
-          fitted.MultInPlaceT2(Q);
-          fitted.AddVecInPlace(fYMean, True);
+          fitted.Assign(T.GetObjRef as TDoubleMatrix);
+          fitted.MultInPlaceT2(Q.GetObjRef as TDoubleMatrix);
+          fitted.AddVecInPlace(fYMean.GetObjRef as TDoubleMatrix, True);
      end;
 
      Result := True;
+end;
+
+function TMatrixPLS.PLSRegress(Xreg, Yreg: IDoubleMatrix;
+  NComp: integer): boolean;
+begin
+     Result := PLSRegress(Xreg.GetObjRef as TDoubleMatrix, YReg.GetObjRef as TDoubleMatrix, NComp);
+end;
+
+function TMatrixPLS.PLSRegress(Xreg, Yreg: IDoubleMatrix; NComp: integer;
+  fitted: IDoubleMatrix): boolean;
+begin
+     Result := PLSRegress(XReg.GetObjRef as TDoubleMatrix, YReg.GetObjRef as TDoubleMatrix,
+                          NComp, fitted as TDoubleMatrix);
 end;
 
 initialization

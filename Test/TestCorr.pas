@@ -41,7 +41,7 @@ type
 
 implementation
 
-uses Corr, Math, BaseMathPersistence, CPUFeatures, MatrixASMStubSwitch;
+uses Corr, Math, BaseMathPersistence, DblMatrix, CPUFeatures, MatrixASMStubSwitch;
 
 { TestCorrelation }
 
@@ -53,8 +53,8 @@ const cw1 : Array[0..4] of double = (1, 2, 3, 4, 5);
                             (1, 2, 3, 3, 3) );
       cCoreCoeffs : Array[0..3] of double = (0, -1, 1, 0.8839);
 var cor : TCorrelation;
-    w1 : IMatrix;
-    w2 : IMatrix;
+    w1 : IDoubleMatrix;
+    w2 : IDoubleMatrix;
     counter : integer;
     cr : double;
 begin
@@ -87,10 +87,10 @@ const cA : Array[0..8] of double = (-1, 1, 2,
                                         3, -1.5, 1 );
       cCov1 : Array[0..3] of double = (10.3333, 3, 
                                        3, 1);
-var A : IMatrix;
-    covA : IMatrix;
-    covA1 : IMatrix;
-    a1, a2 : IMatrix;
+var A : IDoubleMatrix;
+    covA : IDoubleMatrix;
+    covA1 : IDoubleMatrix;
+    a1, a2 : IDoubleMatrix;
 begin
      A := TDoubleMatrix.Create( cA, 3, 3);
      with TCorrelation.Create do
@@ -160,7 +160,7 @@ const cDWTCorr = 0.9879;
       cInvCorr = -0.9501;      // referenced with matlab script
       cInvDWTCorr = 0.6899;
       
-var master, tpl : IMatrix;
+var master, tpl : IDoubleMatrix;
     dtw : TDynamicTimeWarp;
     dist : double;
     cr : double;
@@ -242,11 +242,11 @@ const cX : Array[0..4] of double = (1, 2, 3, 4, 5);
 
       cWarpedX : Array[0..4] of double = (1, 2, 3, 4, 5);
       cWarpedY : Array[0..4] of double = (2, 2, 3, 4, 4);
-var x, y : IMatrix;
+var x, y : IDoubleMatrix;
     dtw : TDynamicTimeWarp;
     dist : double;
-    warp : IMatrix;
-    warpSSE : IMatrix;
+    warp : IDoubleMatrix;
+    warpSSE : IDoubleMatrix;
 begin
      x := TDoubleMatrix.Create(cX, Length(cX), 1);
      y := TDoubleMatrix.Create(cY, Length(cY), 1);

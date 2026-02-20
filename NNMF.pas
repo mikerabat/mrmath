@@ -20,7 +20,7 @@ interface
 // #### Non-Negative Matrix factorization
 // ###########################################
 
-uses SysUtils, Classes, Matrix, MatrixConst, BaseMathPersistence;
+uses SysUtils, Classes, Matrix, DblMatrix, MatrixConst, BaseMathPersistence;
 
 type
   TNNMFPropsMethod = (nnmfDivergence, nnmfEukledian, nnmfAlternateLeastSquare);
@@ -44,10 +44,10 @@ type
     fH: TDoubleMatrix;
     fW: TDoubleMatrix;
     fWInv : TDoubleMatrix;
-    
+
     fOnProgress: TNMFProgress;
     procedure Clear;
-    
+
     // procedures applied to each element of a matrix:
     procedure epsFunc(var value: double);
     procedure maxFunc(var value : double);
@@ -65,21 +65,21 @@ type
     property W : TDoubleMatrix read fW;
     property WInv : TDoubleMatrix read fWInv;
 
-    function CalcNMF(V : TDoubleMatrix) : TNMFRes;
+    function CalcNMF(V : TDoubleMatrix; randSeed : integer = 0) : TNMFRes;
     procedure InitProjectionmatrix; // calculates pseudoinverse of W
 
     function ProjectToFeatureSpace(Example: TDoubleMatrix): TDoubleMatrix;
     function Reconstruct(Features: TDoubleMatrix): TDoubleMatrix;
 
     procedure SetProperties(const props : TNNMFProps);
-    
+
     constructor Create;
     destructor Destroy; override;
   end;
 
 implementation
 
-uses Math, MathUtilFunc;
+uses Math, MathUtilFunc, RandomEng;
 
 const cNNMFH = 'NNMFH';
       cNNMFW = 'NNMFW';
@@ -119,7 +119,7 @@ end;
 destructor TNNMF.Destroy;
 begin
      Clear;
-     
+
      inherited;
 end;
 
@@ -127,26 +127,29 @@ end;
 // #### NNMF algorithms
 // ###########################################
 
-function TNNMF.CalcNMF(V: TDoubleMatrix) : TNMFRes;
+function TNNMF.CalcNMF(V: TDoubleMatrix; randSeed : integer = 0) : TNMFRes;
 var lenOfEigVec : integer;
     NumOfEigVec : integer;
     RankOfBasis : integer;
-    sumW : IMatrix;
+    sumW : TDoubleMatrix;
     counter: Integer;
-    wh : IMatrix; 
-    hht : IMatrix;
-    temp1 : IMatrix;
-    temp2 : IMatrix;
+    wh : TDoubleMatrix;
+    hht : TDoublematrix;
+    temp1 : TDoublematrix;
+    temp2 : TDoublematrix;
+    temp3 : TDoubleMatrix;
     iter : integer;
     nm : integer;
     dnorm0, dnorm : double;
     lastW, lastH : TDoubleMatrix;
-    epsMtx : IMatrix;
+    epsMtx : TDoublematrix;
     progress, lastProgress : integer;
+    epsV : double;
+    epsTemp : double;
 begin
      Result := nmOk;
      Clear;
-     
+
      // ###########################################
      // #### Preprocess params
      lenOfEigVec := V.Height;
@@ -157,14 +160,22 @@ begin
 
      dnorm0 := 0;
      nm := V.Height*V.Width;
-        
+
      lastW := nil;
      lastH := nil;
-        
+     temp1 := nil;
+     temp2 := nil;
+     wh := nil;
+     hht := nil;
+     sumW := nil;
+
+     epsV := eps( v.Max );
+
      // ###########################################
      // #### Randomly initialize matrices
      try
-        fW := MatrixClass.CreateRand(RankOfBasis, lenOfEigVec);
+        //fW := MatrixClass.CreateRand(RankOfBasis, lenOfEigVec);
+        fW := MatrixClass.CreateRand(RankOfBasis, lenOfEigVec, raMersenneTwister, randSeed);
 
         sumW := fW.Sum(False);
         for counter := 0 to fW.Height - 1 do
@@ -175,7 +186,7 @@ begin
         fW.UseFullMatrix;
         sumW := nil;
 
-        fH := MatrixClass.CreateRand(NumOfEigVec, RankOfBasis);
+        fH := MatrixClass.CreateRand(NumOfEigVec, RankOfBasis, raMersenneTwister, randSeed);
 
         if ( fProps.UseLastResIfFail ) and (fProps.method <> nnmfAlternateLeastSquare ) then
         begin
@@ -192,29 +203,34 @@ begin
              begin
                   // implements:
                   //  H = H.*(W'*(V./(W*H)));
+                  FreeAndNil(wh);
                   wh := fW.Mult(fH);
                   if fProps.DoUpdateWithEPSMtx then
-                  begin
-                       epsMtx := wh.ElementwiseFunc({$IFDEF FPC}@{$ENDIF}epsFunc);
-                       wh.AddInPlace(epsMtx);
-                  end;
+                     wh.AddConstInPlace(epsV);
+                  FreeAndNil(temp1);
                   temp1 := V.ElementWiseDiv(wh);
+                  FreeAndNil(temp2);
                   temp2 := fW.MultT1(temp1);
-                  
+
                   fH.ElementWiseMultInPlace(temp2);
 
                   //  W = W.*((V./(W*H))*H');
                   wh := fW.Mult(fH);
                   if fProps.DoUpdateWithEPSMtx then
-                  begin
-                       epsMtx := wh.ElementwiseFunc({$IFDEF FPC}@{$ENDIF}epsFunc);
-                       wh.AddInPlace(epsMtx);
-                  end;
+                     wh.AddConstInPlace(epsV);
+                  FreeAndNil(temp1);
                   temp1 := V.ElementWiseDiv(wh);
+                  FreeAndNil(temp2);
                   temp2 := temp1.MultT2(fH);
+                  if fProps.DoUpdateWithEPSMtx then
+                  begin
+                       epsTemp := eps(temp2.Max);
+                       temp2.AddConstInPlace(epsTemp);
+                  end;
                   fW.ElementWiseMultInPlace(temp2);
 
                   //  W = W./(ones(LenOfEigVec,1)*sum(W));
+                  FreeAndNil(sumW);
                   sumW := fW.Sum(False);
                   for counter := 0 to fW.Height - 1 do
                   begin
@@ -227,28 +243,34 @@ begin
              begin
                   // euclidian update
 
-                  // implements 
+                  // implements
                   // W = W.*(V*H')./(W*(H*H'));
+                  FreeAndNil(hht);
                   hht := fH.MultT2(fH);
+                  FreeAndNil(wh);
                   wh := fW.Mult(hht);
+                  FreeAndNil(temp1);
                   temp1 := V.MultT2(fH);
                   if fProps.DoUpdateWithEPSMtx then
                   begin
-                       epsMtx := temp1.ElementwiseFunc({$IFDEF FPC}@{$ENDIF}epsFunc);
-                       wh.AddInplace(epsMtx);
+                       epsTemp := eps(temp1.Max);
+                       wh.AddConstInPlace(epsTemp);
                   end;
-                  
+
                   temp1.ElementWiseDivInPlace(wh);
                   fW.ElementWiseMultInPlace(temp1);
-                  
+
                   // H = H.*(W'*V)./((W'*W)*H);
+                  FreeAndNil(hht);
                   hht := fW.MultT1(fW);
+                  FreeAndNil(wh);
                   wh := hht.Mult(fH);
+                  FreeAndNil(temp1);
                   temp1 := fW.MultT1(V);
                   if fProps.DoUpdateWithEPSMtx then
                   begin
-                       epsMtx := temp1.ElementwiseFunc({$IFDEF FPC}@{$ENDIF}epsFunc);
-                       wh.AddInplace(epsMtx);
+                       epsTemp := eps(temp1.Max);
+                       wh.AddConstInPlace(epsTemp);
                   end;
                   temp1.ElementWiseDivInPlace(wh);
                   fH.ElementWiseMultInPlace(temp1);
@@ -259,6 +281,7 @@ begin
                   // h = max(0, w0\a);
                   // w = max(0, a/h);
 
+                  FreeAndNil(temp1);
                   if fW.PseudoInversion(temp1) = srNoConvergence then
                   begin
                        Result := nmFloatingPointPrecReached;
@@ -267,29 +290,33 @@ begin
                   temp1.MultInPlace(V);
                   temp1.ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}maxFunc);
 
+                  FreeAndNil(temp2);
                   if temp1.PseudoInversion(temp2) = srNoConvergence then
                   begin
                        Result := nmFloatingPointPrecReached;
                        exit;
                   end;
 
+                  temp3 := temp2;
                   temp2 := V.Mult(temp2);
+                  FreeAndNil(temp3);
                   temp2.ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}maxFunc);
-                  
+
                   fH.Assign(temp1);
                   fW.Assign(temp2);
              end;
-                  
+
 
              // ###########################################
              // #### check for convergence (very simple one!)
              // checks if the change in the reconstruction error is smaller than the given tolerance
              if fProps.tolUpdate > 0 then
              begin
+                  FreeAndNil(temp2);
                   temp2 := fW.Mult(fH);
                   temp2.SubInPlace(V);
-                  dNorm := sqrt( sqr(temp2.ElementwiseNorm2) / nm );
-                  
+                  dNorm := sqrt( temp2.ElementwiseNorm2(False) / nm );
+
                   if iter > 0 then
                   begin
                        // check if change in norm is smaller than the given tolerance
@@ -304,7 +331,7 @@ begin
 
                   dNorm0 := dNorm;
              end;
-             
+
              // make clones in case an update fails due to floating point precission
              // problems -> use the last valid matrix
              if (fProps.UseLastResIfFail) and (fProps.method <> nnmfAlternateLeastSquare) then
@@ -314,31 +341,28 @@ begin
                   lastW := fW.Clone;
                   lastH := fH.Clone;
              end;
-             
+
              progress := (iter + 1)*100 div fProps.MaxIter;
-             
+
              if Assigned(fOnProgress) and (lastProgress <> progress) then
              begin
                   lastProgress := progress;
                   fOnProgress(self, progress);
              end;
         end;
-
-        lastW.Free;
-        lastH.Free;
-     except              
+     except
            // if update is divergent (or made too often)
            on E : EInvalidOp do
-           begin 
-                Clear; 
+           begin
+                Clear;
 
-                if fProps.method = nnmfAlternateLeastSquare 
+                if fProps.method = nnmfAlternateLeastSquare
                 then
                     Result := nmFailed
                 else
                 begin
                      Result := nmFloatingPointPrecReached;
-                
+
                      if fProps.UseLastResIfFail then
                      begin
                           fW := lastW;
@@ -353,6 +377,14 @@ begin
 
          Result := nmFailed;
      end;
+
+     FreeAndNil(sumW);
+     FreeAndNil(wh);
+     FreeAndNil(hht);
+     FreeAndNil(temp1);
+     FreeAndNil(temp2);
+     FreeAndNil(lastW);
+     FreeAndNil(lastH);
 end;
 
 // ###########################################
@@ -373,7 +405,7 @@ end;
 
 function TNNMF.ProjectToFeatureSpace(
   Example: TDoubleMatrix): TDoubleMatrix;
-var exmplTransp : IMatrix;
+var exmplTransp : TDoubleMatrix;
 begin
      if not Assigned(fW) then
         raise ENMFException.Create('NMF object not initialized');
@@ -385,6 +417,7 @@ begin
      begin
           exmplTransp := Example.Transpose;
           Result := fWInv.Mult(exmplTransp);
+          FreeAndNil(exmplTransp);
      end
      else
          Result := fWInv.Mult(Example);
@@ -404,7 +437,7 @@ end;
 
 procedure TNNMF.epsFunc(var value : double);
 begin
-     value := eps(value);
+     value := 4*eps(value);
 end;
 
 procedure TNNMF.maxFunc(var value: double);

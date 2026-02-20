@@ -32,6 +32,9 @@ function pythag(const A, B : double) : double; {$IFNDEF FPC} {$IF CompilerVersio
 function sign(const a : double; const b : double) : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 procedure DoubleSwap(var a, b : Double); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 procedure DblPtrSwap( var a, b : PDouble);  {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+procedure CplxPtrSwap( var a, b : PComplex);  {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+
+procedure CplxSwap(var a, b : TComplex); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 
 function lcm(a, b : NativeInt) : NativeInt;  // least common multiple
 function gcm(a, b : NativeInt) : NativeInt; // greatest common divisior
@@ -64,6 +67,22 @@ procedure QuickSort2( var A, B : TDoubleDynArray );
 function KthLargest(var vals : TDoubleDynArray; elemNum : Cardinal) : double; overload;
 function KthLargest(valsArr : PDouble; numElem : integer; elemNum : Cardinal) : double; overload;
 function KthLargestP(vals : PPConstDoubleArr; numElem : integer; elemNum : Cardinal) : double; overload;
+
+// complex KthLargest - sort order is according to the CCmp operator!
+// the content (sort order) of the array is destroyed
+function CplxKthLargest(var vals : TComplexDynArray; elemNum : Cardinal) : TComplex; overload;
+function CplxKthLargest(valsArr : PComplex; numElem : integer; elemNum : Cardinal) : TComplex; overload;
+function CplxKthLargest(vals : PPConstComplexArr; numElem : integer; elemNum : Cardinal) : TComplex; overload;
+
+procedure CplxQuickSort(A : PConstComplexArr; Width : integer); overload;
+
+
+// ###########################################
+// #### Number converstion
+type
+  TNumConvFunc = procedure(inp : PByte; outp : PByte );
+function GetConvFunc( inpType, outputType : TNumberType ) : TNumConvFunc;
+
 
 // gauss window
 // creates a gasus window with a maximum at N div 2 using the formula w = exp( -(a*x)^2/2)
@@ -128,7 +147,7 @@ type
 
 implementation
 
-uses Math;
+uses Math, CplxSimpleMatrixOperations;
 
 // ##########################################
 // #### utility function implementation
@@ -151,8 +170,24 @@ begin
      b := temp;
 end;
 
+procedure CplxSwap(var a, b : TComplex); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+var temp : TComplex;
+begin
+     temp := a;
+     a := b;
+     b := temp;
+end;
+
 procedure DblPtrSwap( var a, b : PDouble);
 var temp : PDouble;
+begin
+     temp := a;
+     a := b;
+     b := temp;
+end;
+
+procedure CplxPtrSwap( var a, b : PComplex);  {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+var temp : PComplex;
 begin
      temp := a;
      a := b;
@@ -788,6 +823,124 @@ begin
      end;
 end;
 
+function CplxKthLargest(var vals : TComplexDynArray; elemNum : Cardinal) : TComplex; overload;
+begin
+     Result := CplxKthLargest(PComplex(@vals[0]), Length(vals), elemNum);
+end;
+
+function CplxKthLargest(valsArr : PComplex; numElem : integer; elemNum : Cardinal) : TComplex; overload;
+var i, ir, j, l, mid : Cardinal;
+    a : TComplex;
+    vals : PConstComplexArr;
+begin
+     vals := PConstComplexArr(valsArr);
+
+     Result := cCplxZero;
+     l := 0;
+     if numElem = 0 then
+        exit;
+     ir := numElem - 1;
+
+     while True do
+     begin
+          if ir <= l + 1 then
+          begin
+               if (ir = l + 1) and ( CCmp(vals^[ir], vals^[l]) = LessThanValue ) then
+                  CplxSwap(vals^[l], vals^[ir]);
+               Result := vals^[elemNum];
+               exit;
+          end;
+
+          mid := (l + ir) div 2;
+          CplxSwap(vals^[mid], vals^[l + 1]);
+          if CCmp(vals^[l], vals^[ir]) = GreaterThanValue then
+             CplxSwap(vals^[l], vals^[ir]);
+          if CCmp(vals^[l + 1], vals^[ir]) = GreaterThanValue then
+             CplxSwap(vals^[l + 1], vals^[ir]);
+          if CCmp(vals^[l], vals^[l + 1]) = GreaterThanValue then
+             CplxSwap(vals^[l], vals^[l + 1]);
+
+          i := l + 1;
+          j := ir;
+          a := vals^[l + 1];
+          while True do
+          begin
+               repeat
+                     inc(i);
+               until CCmp(vals^[i], a) >= EqualsValue;
+               repeat
+                     dec(j);
+               until CCmp(vals^[j], a) <= EqualsValue;
+
+               if j < i then
+                  break;
+
+               CplxSwap(vals^[i], vals^[j]);
+          end;
+          vals^[l + 1] := vals^[j];
+          vals^[j] := a;
+          if j >= elemNum then
+             ir := j - 1;
+          if j <= elemNum then
+             l := i;
+     end;
+end;
+
+function CplxKthLargest(vals : PPConstComplexArr; numElem : integer; elemNum : Cardinal) : TComplex; overload;
+var i, ir, j, l, mid : Cardinal;
+    a : PComplex;
+begin
+     Result := cCplxZero;
+     l := 0;
+     if numElem = 0 then
+        exit;
+     ir := numElem - 1;
+
+     while True do
+     begin
+          if ir <= l + 1 then
+          begin
+               if (ir = l + 1) and (CCmp(vals^[ir]^, vals^[l]^) = LessThanValue) then
+                  CplxPtrSwap(vals^[l], vals^[ir]);
+               Result := vals^[elemNum]^;
+               exit;
+          end;
+
+          mid := (l + ir) div 2;
+          CplxPtrSwap(vals^[mid], vals^[l + 1]);
+          if CCmp(vals^[l]^, vals^[ir]^) = GreaterThanValue then
+             CplxPtrSwap(vals^[l], vals^[ir]);
+          if CCmp(vals^[l + 1]^, vals^[ir]^) = GreaterThanValue then
+             CplxPtrSwap(vals^[l + 1], vals^[ir]);
+          if CCmp(vals^[l]^, vals^[l + 1]^) = GreaterThanValue then
+             CplxPtrSwap(vals^[l], vals^[l + 1]);
+
+          i := l + 1;
+          j := ir;
+          a := vals^[l + 1];
+          while True do
+          begin
+               repeat
+                     inc(i);
+               until CCmp(vals^[i]^, a^) >= EqualsValue;
+               repeat
+                     dec(j);
+               until CCmp(vals^[j]^, a^) <= EqualsValue;
+
+               if j < i then
+                  break;
+
+               CplxPtrSwap(vals^[i], vals^[j]);
+          end;
+          vals^[l + 1] := vals^[j];
+          vals^[j] := a;
+          if j >= elemNum then
+             ir := j - 1;
+          if j <= elemNum then
+             l := i;
+     end;
+end;
+
 function ei( x : double ) : double;
 const cMaxIter = 100;
       cEuler = 0.5521566;
@@ -844,6 +997,39 @@ begin
           Result := exp(x)*(1.0 + sum)/x;
      end;
 end;
+
+procedure CplxQuickSort(A : PConstComplexArr; Width : integer); overload;
+procedure QS(A: PConstComplexArr; iLo, iHi: Integer);
+var Lo, Hi : Integer;
+    MidVal, T: TComplex;
+begin
+     Lo := iLo;
+     Hi := iHi;
+     MidVal := A^[(Lo + Hi) div 2];
+     repeat
+           while CCmp(A^[Lo], MidVal) = LessThanValue do Inc(Lo);
+           while CCmp(A^[Hi], MidVal) = GreaterThanValue do Dec(Hi);
+           if Lo <= Hi then
+           begin
+                // Swap values
+                T := A^[Lo];
+                A^[Lo] := A^[Hi];
+                A^[Hi] := T;
+                Inc(Lo);
+                Dec(Hi);
+           end;
+    until Lo > Hi;
+
+    if Hi > iLo then QS(A, iLo, Hi);
+    if Lo < iHi then QS(A, Lo, iHi);
+end;
+begin
+     if width <= 1 then
+        exit;
+
+     QS(A, 0, width - 1);
+end;
+
 
 function expInt( n : integer; x : double ) : double;
 const cMaxIter = 100;
@@ -1324,6 +1510,32 @@ begin
         exit(nil);
 
      Result := fList[0];
+end;
+
+// ###########################################
+// #### Number conversion functions -
+// #### used to cast one matrix type to another (e.g. double to complex or vice versa)
+// ###########################################
+
+procedure ConvDoubleToCplx( inp : PByte; outP : PByte );
+begin
+     PComplex( outP )^ := InitComplex(PDouble(inp)^, 0);
+end;
+
+procedure ConvCplxToDouble( inp : PByte; outP : PByte );
+begin
+     PDouble( outP )^ := CAbs( PComplex( inp )^ );
+end;
+
+function GetConvFunc( inpType, outputType : TNumberType ) : TNumConvFunc;
+begin
+     assert( inpType <> outputType, 'No Conversion from the same type');
+     case inpType of
+       ntDouble:  Result := {$IFDEF FPC}@{$ENDIF}ConvDoubleToCplx;
+       ntComplex: Result := {$IFDEF FPC}@{$ENDIF}ConvCplxToDouble;
+     else
+         raise Exception.Create('Unknown number type.');
+     end;
 end;
 
 initialization

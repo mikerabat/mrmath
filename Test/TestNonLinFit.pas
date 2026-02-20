@@ -21,13 +21,13 @@ interface
 {$ENDIF}
 
 uses {$IFDEF FPC} testregistry {$ELSE}  {$IFDEF FMX}DUnitX.TestFramework {$ELSE}TestFramework {$ENDIF} {$ENDIF} ,
-     Classes, SysUtils, Matrix, BaseMatrixTestCase;
+     Classes, DblMatrix, SysUtils, Matrix, BaseMatrixTestCase;
 
 type
   {$IFDEF FMX} [TestFixture] {$ENDIF}
   TestNonLinFitOptimization = class(TBaseMatrixTestCase)
   private
-    procedure OnAtanIterate(Sender : TObject; a, x, y : IMatrix);
+    procedure OnAtanIterate(Sender : TObject; a, x, y : IDoubleMatrix);
   published
     procedure TestArctanOpt;
     procedure TestPolynomFit;
@@ -41,7 +41,7 @@ uses Types, NonLinearFit, MatrixASMStubSwitch;
 
 { TestTDoubleMatrix }
 
-procedure TestNonLinFitOptimization.OnAtanIterate(Sender: TObject; a, x, y: IMatrix);
+procedure TestNonLinFitOptimization.OnAtanIterate(Sender: TObject; a, x, y: IDoubleMatrix);
 var i: Integer;
 begin
      for i := 0 to x.Height - 1 do
@@ -49,7 +49,7 @@ begin
 end;
 
 procedure TestNonLinFitOptimization.TestArctanOpt;
-var x, y, a0, a1, a : IMatrix;
+var x, y, a0, a1, a : IDoubleMatrix;
     i : integer;
 begin
      x := TDoubleMatrix.Create(1, 100);
@@ -77,17 +77,18 @@ begin
             Free;
      end;
 
-     Check(CheckMtx(a0.SubMatrix, a.SubMatrix, -1, -1, 0.02), 'Differences too high');
+     Check(CheckMtx((a0.GetObjRef as TDoubleMatrix).SubMatrix,
+                     (a.GetObjRef as TDoubleMatrix).SubMatrix, -1, -1, 0.02), 'Differences too high');
 end;
 
 procedure TestNonLinFitOptimization.TestEvalPolynom;
 const cNumPts : integer = 20;
 var x, y : TDoubleDynArray;
     idx : integer;
-    a : IMatrix;
+    a : IDoubleMatrix;
     val : double;
-    x1 : IMatrix;
-    y1 : IMatrix;
+    x1 : IDoubleMatrix;
+    y1 : IDoubleMatrix;
 begin
      SetLength(x, cNumPts);
      SetLength(y, cNumPts);
@@ -115,9 +116,9 @@ begin
 end;
 
 procedure TestNonLinFitOptimization.TestLinRegress;
-var x, y : IMatrix;
+var x, y : IDoubleMatrix;
     counter: Integer;
-    coef1, coef2 : IMatrix;
+    coef1, coef2 : IDoubleMatrix;
 begin
      y := TDoubleMatrix.CreateRand(1, 20);
      x := TDoubleMatrix.CreateLinSpace(20, -5, 5);
@@ -142,7 +143,7 @@ procedure TestNonLinFitOptimization.TestPolynomFit;
 const cNumPts : integer = 20;
 var x, y : TDoubleDynArray;
     idx : integer;
-    a : IMatrix;
+    a : IDoubleMatrix;
     val : double;
 begin
      SetLength(x, cNumPts);

@@ -24,6 +24,7 @@ interface
 uses SysUtils, Types;
 
 type
+  TNumberType = (ntDouble, ntComplex);
   TLinEquResult = (leOk, leSingular);
   TSVDResult = (srOk, srNoConvergence);
   TCholeskyResult = (crOk, crNoPositiveDefinite);
@@ -53,8 +54,11 @@ type
    PComplex = ^TComplex;
    TComplexDynArray = Array of TComplex;
 
-   TConstPDoubleArr = Array[0..MaxInt div sizeof(double) - 1] of PDouble;
+   TConstPDoubleArr = Array[0..MaxInt div sizeof(PDouble) - 1] of PDouble;
    PPConstDoubleArr = ^TConstPDoubleArr;
+
+   TConstPComplexArr = Array[0..MaxInt div sizeof(PComplex) - 1] of PComplex;
+   PPConstComplexArr = ^TConstPComplexArr;
 
 const cDefEpsilon : double = 1e-20;
       cMinusOne : double = -1;
@@ -73,6 +77,12 @@ const cNegMaxDoubles : Array[0..1] of double = (-1.7e+308, -1.7e+308);
       cMaxDoubles : Array[0..1] of double = (1.7e+308, 1.7e+308);
       cMulM1Bits : Array[0..1] of Int64 = ($8000000000000000, $0);
 
+const cCplxReal1 : TComplex = (real: 1; imag: 0);
+      cCplxImag1 : TComplex = (real: 0; imag: 1);
+      cCplxImagM1 : TComplex = (real: 0; imag: -1);
+      cCplxZero : TComplex = (real : 0; imag : 0);
+
+
 
 type
   TEigenvalueConvergence = (qlOk, qlNoConverge, qlMatrixError);
@@ -90,6 +100,7 @@ type
 
   TConstComplexArr = Array[0..MaxInt div sizeof(TComplex) - 1] of TComplex;
   PConstComplexArr = ^TConstComplexArr;
+
 
 type
   TMatrixFunc = procedure(var Value : double);

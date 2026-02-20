@@ -50,7 +50,7 @@ type
 implementation
 
 uses MathUtilFunc, Types, Statistics, MtxTimer, MtxUtilFunc, Matrix, Math,
-  RandomEng;
+  RandomEng, DblMatrix;
 
 { TTestEM }
 
@@ -239,9 +239,9 @@ end;
 procedure TTestSpecialFuncs.TestGammaP;
 var x, y : double;
     i, j : integer;
-    mat : IMatrix;
+    mat : IDoubleMatrix;
     idx : integer;
-    ref : IMatrix;
+    ref : IDoubleMatrix;
 begin
      ref := MatrixFromTxtFile(BaseDataPath + 'gammaInc_ref.txt');
      mat := TDoubleMatrix.Create(4, 100);

@@ -16,7 +16,7 @@ unit Corr;
 
 interface
 
-uses SysUtils, Math, MatrixConst, Matrix, BaseMathPersistence, Types;
+uses SysUtils, Math, MatrixConst, Matrix, BaseMathPersistence, Types, DblMatrix;
 
 {$I 'mrMath_CPU.inc'}
 
@@ -32,15 +32,20 @@ type
   public
     function Correlate(x, y : IMatrix; const VarianceRatioThreshold: double = 0; canRaiseException : boolean = True) : double; overload; // correlation coefficient between t, r (must have the same length)
     function Correlate(x, y : IMatrix; var prob, z : double) : double; overload; // pearson correlation with Fishers's z and probobality
+    function Correlate(x, y : IDoubleMatrix; const VarianceRatioThreshold: double = 0; canRaiseException : boolean = True) : double; overload; // correlation coefficient between t, r (must have the same length)
+    function Correlate(x, y : IDoubleMatrix; var prob, z : double) : double; overload; // pearson correlation with Fishers's z and probobality
+
     function Correlate(x, y : PDouble; len : integer) : double; overload;        // pearson correlation but with pointers
 
     function CorrelateWeighted(x, y, w : IMatrix) : double; overload; // weighted correlation
     function CorrelateWeighted(x, y, w : IMatrix; var prob, z : double) : double; overload; // weighted correlation
-    
+
     // spearman correlation. X, Y need to be vectors
     class function CorrelateSpearman( x, y : IMatrix; var zd, probd, rs, probrs : double ) : double;
     class function Covariance(x, y : IMatrix; Unbiased : boolean = True) : IMatrix; overload; // covariance matrix
     class function Covariance(A : IMatrix; Unbiased : boolean = True) : IMatrix; overload;   // covariance matrix of matrix A
+    class function Covariance(x, y : IDoubleMatrix; Unbiased : boolean = True) : IDoubleMatrix; overload; // covariance matrix
+    class function Covariance(A : IDoubleMatrix; Unbiased : boolean = True) : IDoubleMatrix; overload;   // covariance matrix of matrix A
   end;
 
 // see: https://en.wikipedia.org/wiki/Dynamic_time_warping
@@ -70,7 +75,7 @@ type
     fSearchBoundaryRight : TIntegerDynArray;
     fAccDist : TDoubleDynArray;
     fMinLastRow : TDoubleDynArray;
-    fW1, fW2 : IMatrix;
+    fW1, fW2 : IDoubleMatrix;
     fW1Arr, fW2Arr : TDoubleDynArray;
     fNumW : integer;
     fMaxSearchWin : integer;
@@ -112,8 +117,8 @@ type
     // setup
     class var UseSSE : boolean;
 
-    property W1 : IMatrix read fW1;  // stores the last result (warped vector)
-    property W2 : IMatrix read fW2;
+    property W1 : IDoubleMatrix read fW1;  // stores the last result (warped vector)
+    property W2 : IDoubleMatrix read fW2;
 
     property W1Arr : TDoubleDynArray read fW1Arr;
     property W2Arr : TDoubleDynArray read fW2Arr;
@@ -131,6 +136,7 @@ type
     function DTWCorr(t, r : IMatrix; MaxSearchWin : integer = 0) : double; overload;  // calculate the correlation coefficient between both warped vectors
 
     function FastDTW(x, y : IMatrix; var dist : double; Radius : integer = 1)  : IMatrix; overload; // applies fastdtw
+    function FastDTW(x, y : IDoubleMatrix; var dist : double; Radius : integer = 1)  : IDoubleMatrix; overload; // applies fastdtw
     function FastDTWCorr(t, r : IMatrix; Radius : integer = 1) : double; overload;  // calculate the correlation coefficient between both warped vectors
     function FastDTWCorr(t, r : IMatrix; var dist : double; Radius : integer = 1) : double; overload;
 
@@ -169,36 +175,25 @@ const cLocDivBy2 : Array[0..1] of double = (0.5, 0.5);
 // ###########################################
 
 function TCorrelation.Correlate(x, y: IMatrix; var prob, z: double): double;
-var df : integer;
-    t : double;
 begin
-     Result := Correlate(x, y);
-     df := (x.Width*x.Height - 2);
-     t := Result * sqrt( df/( (1 - Result + cTiny)*(1 + Result + cTiny) ) );
-     
-     z := 0.5*ln( (1 + (Result) + cTiny)/(1 - Result + cTiny)); // Fishers z transformation
-     prob := betaI( 0.5*df, 0.5, df/(df + sqr(t)) );            // probability
+     TDoubleMatrix.CheckForRealMtx(x);
+     TDoubleMatrix.CheckForRealMtx(y);
+
+     Result := Correlate(x as IDoubleMatrix, y as IDoubleMatrix, prob, z);
 end;
 
 
 // note: afterwards w1 and w2 are mean normalized and w2 width and height is changed!
 function TCorrelation.Correlate(x, y: IMatrix; const VarianceRatioThreshold: double = 0; canRaiseException : boolean = True): double;
-var w1, w2 : IMatrix;
 begin
-     w1 := x;
-     if x.Height <> 1 then
-        w1 := x.Reshape(x.Width*x.Height, 1);
-     w2 := y;
-     if y.Height <> 1 then
-        w2 := y.Reshape(y.Width*y.Height, 1);
+     TDoubleMatrix.CheckForRealMtx(x);
+     TDoubleMatrix.CheckForRealMtx(y);
 
-     assert(w1.Width = w2.Width, 'Dimension error');
-     
-     Result := InternalCorrelate(w1, w2, VarianceRatioThreshold, canRaiseException);
+     Result := Correlate( x as IDoubleMatrix, y as IDoubleMatrix, VarianceRatioThreshold, canRaiseException);
 end;
 
-class function TCorrelation.Covariance(x, y: IMatrix; Unbiased : boolean = True): IMatrix;
-var xc, tmp : IMatrix;
+class function TCorrelation.Covariance(x, y: IDoubleMatrix; Unbiased : boolean = True): IDoubleMatrix;
+var xc, tmp : IDoubleMatrix;
 begin
      if x.Width*x.Height <> y.Width*y.Height then
         raise Exception.Create('Error length of x and y must be the same');
@@ -206,37 +201,37 @@ begin
      xc := TDoubleMatrixClass(x.GetObjRef.ClassType).Create(2, x.Width*x.Height);
 
      // build matrix with 2 columns
-     if x.Width = 1 
+     if x.Width = 1
      then
          tmp := x
      else
          tmp := x.Reshape(1, x.Width*x.Height, True);
      xc.SetColumn(0, tmp);
 
-     if y.Width = 1 
+     if y.Width = 1
      then
          tmp := y
      else
          tmp := y.Reshape(1, x.Width*x.Height, True);
      xc.SetColumn(1, tmp);
-     
+
      Result := Covariance(xc, Unbiased);
 end;
 
 // each row is an observation, each column a variable
-class function TCorrelation.Covariance(A: IMatrix; Unbiased: boolean): IMatrix;
-var aMean : IMatrix;
-    ac : IMatrix;
-    tmp : IMatrix;
+class function TCorrelation.Covariance(A: IDoubleMatrix; Unbiased: boolean): IDoubleMatrix;
+var aMean : IDoubleMatrix;
+    ac : IDoubleMatrix;
+    tmp : IDoubleMatrix;
     m : Integer;
 begin
      aMean := A.Mean(False);
      ac := A.SubVec( aMean, True );
 
-     m := ac.Height; 
+     m := ac.Height;
      tmp := ac.Transpose;
      ac := tmp.Mult(ac);
-    
+
      if Unbiased then
         dec(m);
 
@@ -251,7 +246,7 @@ var meanVar1 : TMeanVarRec;
     meanVar2 : TMeanVarRec;
 begin
      // note the routine avoids memory allocations thus it runs on the raw optimized functions:
-     
+
      // calc: 1/(n-1)/(var_w1*var_w2) sum_i=0_n (w1_i - mean_w1)*(w2_i - mean_w2)
      MatrixMeanVar( @meanVar1, 2*sizeof(double), w1.StartElement, w1.LineWidth, w1.Width, 1, True, True);
      MatrixMeanVar( @meanVar2, 2*sizeof(double), w2.StartElement, w2.LineWidth, w2.Width, 1, True, True);
@@ -275,8 +270,8 @@ begin
 
      end;
 
-     w1.AddInPlace( -meanVar1.aMean );
-     w2.AddInPlace( -meanVar2.aMean );
+     w1.AddConstInPlace( -meanVar1.aMean );
+     w2.AddConstInPlace( -meanVar2.aMean );
 
      Result := MatrixVecDotMult( w1.StartElement, sizeof(double), w2.StartElement, sizeof(double), w1.Width);
      Result := Result/sqrt(meanVar1.aVar*meanVar2.aVar)/(w1.Width - 1);
@@ -383,11 +378,14 @@ end;
 
 function TDynamicTimeWarp.DTW(t, r: IMatrix; var dist: double; MaxSearchWin : integer = 0): IMatrix;
 begin
-     DTW( t.SubMatrix, r.SubMatrix, dist, MaxSearchWin);
+     TDoubleMatrix.CheckForRealMtx(t);
+     TDoubleMatrix.CheckForRealMtx(r);
+
+     DTW( (t as IDoubleMatrix).SubMatrix, (r as IDoubleMatrix).SubMatrix, dist, MaxSearchWin);
 
      fW1 := TDoubleMatrix.Create( Copy( fW1Arr, 0, fNumW ), fNumW, 1);
      fW2 := TDoubleMatrix.Create( Copy( fW2Arr, 0, fNumW ), fNumW, 1);
-     
+
      Result := fw1;
 end;
 
@@ -408,59 +406,15 @@ end;
 // ###########################################
 
 function TDynamicTimeWarp.FastDTW(x, y: IMatrix; var dist: double; Radius : integer = 1): IMatrix;
-var counter: Integer;
+var xd, yd : IDoubleMatrix;
 begin
-     dist := 0;
+     TDoubleMatrix.CheckForRealMtx(x);
+     TDoubleMatrix.CheckForRealMtx(y);
 
-     radius := Max(1, radius);
+     xd := x as IDoubleMatrix;
+     yd := y as IDoubleMatrix;
 
-     // ###########################################
-     // #### Preparation
-     fMaxPathLen := 0;
-     fMaxWinLen := 0;
-
-     InitXY(x, y);
-     
-     // prepare memory
-     if Length(fWindow) < Max(x.Width, y.Width)*2 then
-     begin
-          SetLength(fWindow, (radius*4 + 4)*Max(x.Width, y.Width));
-          SetLength(fPath, 3*Max(x.Width, y.Width));
-          SetLength(fDistIdx, Length(fWindow));
-     end;
-     
-     // ###########################################
-     // #### Find optimal path
-     fNumPath := 0;
-     InternalFastDTW(0, x.Width, 0, y.Width, Max(1, Radius), dist);
-
-
-     // ###########################################
-     // #### Build result
-     if not Assigned(fW1) then
-     begin
-          fW1 := MatrixClass.Create(fNumPath, 1);
-          fW2 := MatrixClass.Create(fNumPath, 1);
-     end;
-     fW1.UseFullMatrix;
-     fW2.UseFullMatrix;
-
-     if fW1.Width < fNumPath then
-     begin
-          fW1.SetWidthHeight(fNumPath, 1);
-          fW2.SetWidthHeight(fNumPath, 1);
-     end;
-     
-     fW1.SetSubMatrix(0, 0, fNumPath, 1);
-     fW2.SetSubMatrix(0, 0, fNumPath, 1);
-     
-     for counter := 0 to fNumPath - 1 do
-     begin
-          fW1.Vec[counter] := fX^[fPath[counter].i];
-          fW2.Vec[counter] := fY^[fPath[counter].j];
-     end;
-
-     Result := FW1;
+     Result := FastDTW(xd, yd, dist, radius);
 end;
 
 function TDynamicTimeWarp.FastDTW(x, y: TDoubleDynArray; var dist: double;
@@ -520,6 +474,64 @@ begin
 
      Result := FW1.SubMatrix;
 end;
+
+function TDynamicTimeWarp.FastDTW(x, y: IDoubleMatrix; var dist: double;
+  Radius: integer): IDoubleMatrix;
+var counter: Integer;
+begin
+     dist := 0;
+
+     radius := Max(1, radius);
+
+     // ###########################################
+     // #### Preparation
+     fMaxPathLen := 0;
+     fMaxWinLen := 0;
+
+     InitXY(x, y);
+
+     // prepare memory
+     if Length(fWindow) < Max(x.Width, y.Width)*2 then
+     begin
+          SetLength(fWindow, (radius*4 + 4)*Max(x.Width, y.Width));
+          SetLength(fPath, 3*Max(x.Width, y.Width));
+          SetLength(fDistIdx, Length(fWindow));
+     end;
+
+     // ###########################################
+     // #### Find optimal path
+     fNumPath := 0;
+     InternalFastDTW(0, x.Width, 0, y.Width, Max(1, Radius), dist);
+
+
+     // ###########################################
+     // #### Build result
+     if not Assigned(fW1) then
+     begin
+          fW1 := MatrixClass.Create(fNumPath, 1);
+          fW2 := MatrixClass.Create(fNumPath, 1);
+     end;
+     fW1.UseFullMatrix;
+     fW2.UseFullMatrix;
+
+     if fW1.Width < fNumPath then
+     begin
+          fW1.SetWidthHeight(fNumPath, 1);
+          fW2.SetWidthHeight(fNumPath, 1);
+     end;
+
+     fW1.SetSubMatrix(0, 0, fNumPath, 1);
+     fW2.SetSubMatrix(0, 0, fNumPath, 1);
+
+     for counter := 0 to fNumPath - 1 do
+     begin
+          fW1.Vec[counter] := fX^[fPath[counter].i];
+          fW2.Vec[counter] := fY^[fPath[counter].j];
+     end;
+
+     Result := FW1;
+end;
+
 
 function TDynamicTimeWarp.FastDTWCorr(t, r: IMatrix; var dist: double;
   Radius: integer): double;
@@ -1411,12 +1423,45 @@ begin
      Result := InternalCorrelateArr(x, y, len);
 end;
 
+function TCorrelation.Correlate(x, y: IDoubleMatrix;
+  const VarianceRatioThreshold: double; canRaiseException: boolean): double;
+var w1, w2 : IMatrix;
+begin
+     w1 := x;
+     if x.Height <> 1 then
+        w1 := x.Reshape(x.Width*x.Height, 1);
+     w2 := y;
+     if y.Height <> 1 then
+        w2 := y.Reshape(y.Width*y.Height, 1);
+
+     assert(w1.Width = w2.Width, 'Dimension error');
+
+     Result := InternalCorrelate(w1, w2, VarianceRatioThreshold, canRaiseException);
+end;
+
+function TCorrelation.Correlate(x, y: IDoubleMatrix; var prob,
+  z: double): double;
+var df : integer;
+    t : double;
+begin
+     Result := Correlate(x, y);
+     df := (x.Width*x.Height - 2);
+     t := Result * sqrt( df/( (1 - Result + cTiny)*(1 + Result + cTiny) ) );
+
+     z := 0.5*ln( (1 + (Result) + cTiny)/(1 - Result + cTiny)); // Fishers z transformation
+     prob := betaI( 0.5*df, 0.5, df/(df + sqr(t)) );            // probability
+
+end;
+
 class function TCorrelation.CorrelateSpearman(x, y: IMatrix; var zd, probd, rs,
   probrs: double): double;
 var x1, x2 : TDoubleDynArray;
 begin
-     x1 := x.SubMatrix;
-     x2 := y.SubMatrix;
+     TDoubleMatrix.CheckForRealMtx(x);
+     TDoubleMatrix.CheckForRealMtx(y);
+
+     x1 := (x as IDoubleMatrix).SubMatrix;
+     x2 := (y as IDoubleMatrix).SubMatrix;
 
      assert(Length(x1) = Length(x2), 'Error unequal length in x, y');
 
@@ -1430,10 +1475,14 @@ function TCorrelation.CorrelateWeighted(x, y, w: IMatrix; var prob,
 var df : integer;
     t : double;
 begin
+     TDoubleMatrix.CheckForRealMtx(x);
+     TDoubleMatrix.CheckForRealMtx(y);
+     TDoubleMatrix.CheckForRealMtx(w);
+
      Result := CorrelateWeighted(x, y, w);
      df := (x.Width*x.Height - 2);
      t := Result * sqrt( df/( (1 - Result + cTiny)*(1 + Result + cTiny) ) );
-     
+
      z := 0.5*ln( (1 + (Result) + cTiny)/(1 - Result + cTiny)); // Fishers z transformation
      prob := betaI( 0.5*df, 0.5, df/(df + sqr(t)) );            // probability
 end;
@@ -1443,6 +1492,10 @@ function TCorrelation.CorrelateWeighted(x, y, w: IMatrix): double;
 var w1, w2 : IMatrix;
     weights : IMatrix;
 begin
+     TDoubleMatrix.CheckForRealMtx(x);
+     TDoubleMatrix.CheckForRealMtx(y);
+     TDoubleMatrix.CheckForRealMtx(w);
+
      weights := w;
      if weights.Height <> 1 then
         weights := w.Reshape(w.Width*w.Height, 1);
@@ -1540,5 +1593,57 @@ begin
      else
          probrs := 0;
 end;
+
+class function TCorrelation.Covariance(x, y: IMatrix;
+  Unbiased: boolean): IMatrix;
+var xc, tmp : IMatrix;
+begin
+     if x.Width*x.Height <> y.Width*y.Height then
+        raise Exception.Create('Error length of x and y must be the same');
+
+     xc := TDoubleMatrixClass(x.GetObjRef.ClassType).Create(2, x.Width*x.Height);
+
+     // build matrix with 2 columns
+     if x.Width = 1
+     then
+         tmp := x
+     else
+         tmp := x.Reshape(1, x.Width*x.Height, True);
+     xc.SetColumn(0, tmp);
+
+     if y.Width = 1
+     then
+         tmp := y
+     else
+         tmp := y.Reshape(1, x.Width*x.Height, True);
+     xc.SetColumn(1, tmp);
+
+     Result := Covariance(xc, Unbiased);
+end;
+
+
+class function TCorrelation.Covariance(A: IMatrix;
+  Unbiased: boolean): IMatrix;
+var aMean : IMatrix;
+    ac : IMatrix;
+    tmp : IMatrix;
+    m : Integer;
+begin
+     aMean := A.Mean(False);
+     ac := A.SubVec( aMean, True );
+
+     m := ac.Height;
+     tmp := ac.Transpose;
+     ac := tmp.Mult(ac);
+
+     if Unbiased then
+        dec(m);
+
+     if m > 0 then
+        ac.ScaleInPlace(1/m);
+
+     Result := ac;
+end;
+
 
 end.

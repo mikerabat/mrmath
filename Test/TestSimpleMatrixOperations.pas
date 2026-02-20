@@ -163,7 +163,7 @@ uses ASMMatrixOperations, AVXMatrixOperations, ThreadedMatrixOperations, MtxThre
      ASMMatrixTransposeOperations, ASMMatrixNormOperations, ASMMatrixCumSumDiffOperations,
      ASMMatrixMeanOperations, ASMMatrixSumOperations, ASMMoveOperations, ASMVecDist,
      {$ENDIF}
-     MatrixConst, MathUtilFunc, Statistics, MatrixASMStubSwitch;
+     MatrixConst, MathUtilFunc, Statistics, MatrixASMStubSwitch, DblMatrix;
 
 procedure TestMatrixOperations.TestAbs;
 const mt1 : Array[0..5] of double = (-1, 2, 2, -2, 3, -3);
@@ -1610,11 +1610,11 @@ begin
 end;
 
 procedure TestMatrixOperations.TestApplyfunc;
-var m1 : IMatrix;
-    m2 : IMatrix;
+var m1 : IDoubleMatrix;
+    m2 : IDoubleMatrix;
     i : integer;
 begin
-     m1 := TDoubleMatrix.Create(100, 1); 
+     m1 := TDoubleMatrix.Create(100, 1);
      for i := 0 to 99 do
          m1[i, 0] := -pi + pi/100;
      m2 := m1.ElementwiseFunc({$IFDEF FPC}@{$ENDIF}sinxDivX);

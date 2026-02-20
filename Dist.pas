@@ -16,7 +16,7 @@ unit Dist;
 
 interface
 
-uses Matrix, BaseMathPersistence;
+uses Matrix, DblMatrix, BaseMathPersistence;
 
 // ###################################################################
 // #### different distance measures
@@ -30,8 +30,8 @@ type
   TDistance = class(TMatrixClass)
   private
     fRx : Integer;
-    fMean : IMatrix;
-    fR : IMatrix;
+    fMean : IDoubleMatrix;
+    fR : IDoubleMatrix;
     fNumIter : integer;
   protected
     class function ClassIdentifier : String; override;
@@ -45,50 +45,50 @@ type
     property NumIter : integer read fNumIter;
   
     // init the distance fields from "outside"; use aMean, aR, dimx for mahalonobis and the other one for L1, euclid
-    procedure Init(aMean, aCov : IMatrix); overload;
-    procedure Init(aMean : IMatrix); overload;
+    procedure Init(aMean, aCov : IDoubleMatrix); overload;
+    procedure Init(aMean : IDoubleMatrix); overload;
 
     // Returns the eucledian distance (L2) in square units. Return value is a vector of width Y
     // euclid(i) = sum( (Y(i, :) - MU).*((Y(i, :) - MU))
-    procedure InitEuclid(X : IMatrix);
-    function EuclidDist(Y : IMatrix) : IMatrix;
-    class function Euclid(X, Y : IMatrix) : IMatrix;
+    procedure InitEuclid(X : IDoubleMatrix);
+    function EuclidDist(Y : IDoubleMatrix) : IDoubleMatrix;
+    class function Euclid(X, Y : IDoubleMatrix) : IDoubleMatrix;
 
-    procedure InitMahal(X : IMatrix; doTryFastInf : boolean = True);
-    function MahalDist(Y : IMatrix) : IMatrix;
+    procedure InitMahal(X : IDoubleMatrix; doTryFastInf : boolean = True);
+    function MahalDist(Y : IDoubleMatrix) : IDoubleMatrix;
 
     // regularized weiszfeld according to: "Robust L1 approaches to computing the geometric median and principal and independent compoents"
     // Keeling, Kunisch
-    procedure InitL1DistReg(X : IMatrix; tau : double = 10; maxIter : integer = 200; relTol : double = 1e-6);
+    procedure InitL1DistReg(X : IDoubleMatrix; tau : double = 10; maxIter : integer = 200; relTol : double = 1e-6);
 
     // calculate geometric median using the weiszfeld algorithm
-    procedure InitL1Dist(X : IMatrix; maxIter : integer = 200; relTol : double = 1e-6; beta : double = 1e-5);  
-    function L1Dist(y : IMatrix) : IMatrix;
-    class function L1(x, y : IMatrix) : IMatrix; overload;
-    class function L1(x, y : IMatrix; maxIter : integer; relTol : double; beta : double) : IMatrix; overload;
+    procedure InitL1Dist(X : IDoubleMatrix; maxIter : integer = 200; relTol : double = 1e-6; beta : double = 1e-5);
+    function L1Dist(y : IDoubleMatrix) : IDoubleMatrix;
+    class function L1(x, y : IDoubleMatrix) : IDoubleMatrix; overload;
+    class function L1(x, y : IDoubleMatrix; maxIter : integer; relTol : double; beta : double) : IDoubleMatrix; overload;
 
-    class function L1Reg(x, y : IMatrix) : IMatrix; overload;
-    class function L1Reg(x, y : IMatrix; maxIter : integer; relTol : double; tau : double) : IMatrix; overload;
+    class function L1Reg(x, y : IDoubleMatrix) : IDoubleMatrix; overload;
+    class function L1Reg(x, y : IDoubleMatrix; maxIter : integer; relTol : double; tau : double) : IDoubleMatrix; overload;
 
     // Returns the Mahalonobis distance in squared units.
     // Return value is a vector of width Y.
     // mahal =  (Y( i, :) - MU)* sigma^-1 *y(i, :) - MU)
-    class function Mahalanobis(X, Y : IMatrix) : IMatrix; overload;
+    class function Mahalanobis(X, Y : IDoubleMatrix) : IDoubleMatrix; overload;
 
     // calculates the mahalonobis disance from given covariance matrix R and mean M
-    class function Mahalanobis(Y, aCov, aMean : IMatrix) : IMatrix; overload;
+    class function Mahalanobis(Y, aCov, aMean : IDoubleMatrix) : IDoubleMatrix; overload;
 
     // ###########################################
     // #### Pairwise distance functions
     // #### as input is assumed: columns are coordinates, rows are elements
     // #### Result is a vector of length (Height)*(Height - 1) div 2
     // ###########################################
-    class function EuclidPairDist( X : IMatrix ) : IMatrix; overload;
-    class function NormEuclidPairDist( X : IMatrix ) : IMatrix; overload;  // normalized euclid: rows are scaled by inverse of variance
-    class function AbsPairDist( X : IMatrix ) : IMatrix; overload;
-    class function MinkowskyPairDist( X : IMatrix; exponent : Double = 2 ) : IMatrix; overload;
-    class function ChebychevPairDist( X : IMatrix ) : IMatrix; overload;
-    class function MahalanobisPairDist( X : IMatrix ) : IMatrix; overload;
+    class function EuclidPairDist( X : IDoubleMatrix ) : IDoubleMatrix; overload;
+    class function NormEuclidPairDist( X : IDoubleMatrix ) : IDoubleMatrix; overload;  // normalized euclid: rows are scaled by inverse of variance
+    class function AbsPairDist( X : IDoubleMatrix ) : IDoubleMatrix; overload;
+    class function MinkowskyPairDist( X : IDoubleMatrix; exponent : Double = 2 ) : IDoubleMatrix; overload;
+    class function ChebychevPairDist( X : IDoubleMatrix ) : IDoubleMatrix; overload;
+    class function MahalanobisPairDist( X : IDoubleMatrix ) : IDoubleMatrix; overload;
 
     class function EuclidPairDist( X : TDoubleMatrix ) : TDoubleMatrix; overload;
     class function NormEuclidPairDist( X : TDoubleMatrix ) : TDoubleMatrix; overload;  // normalized euclid: rows are scaled by inverse of variance
@@ -105,9 +105,9 @@ uses SysUtils, MatrixConst, MatrixASMStubSwitch, Math, Corr, MathUtilFunc,
 
 { TDistance }
 
-procedure TDistance.InitMahal(X: IMatrix; doTryFastInf : boolean = True);
-var C : IMatrix;
-    R : IMatrix;
+procedure TDistance.InitMahal(X: IDoubleMatrix; doTryFastInf : boolean = True);
+var C : IDoubleMatrix;
+    R : IDoubleMatrix;
 begin
      fRx := x.Height;
      fMean := X.Mean(False);
@@ -115,16 +115,16 @@ begin
      C.QR(R);
      R.TransposeInPlace;
 
-     if not doTryFastInf or (R.Invert(fR) <> leOk) then
+     if not doTryFastInf or (R.InvertEx(fR) <> leOk) then
         if R.PseudoInversion(fR) = srNoConvergence then
            raise Exception.Create('Error could not invert matrix');
 end;
 
-function TDistance.MahalDist(Y: IMatrix): IMatrix;
-var M : IMatrix;
-    ri : IMatrix;
+function TDistance.MahalDist(Y: IDoubleMatrix): IDoubleMatrix;
+var M : IDoubleMatrix;
+    ri : IDoubleMatrix;
     i : integer;
-    Q : IMatrix;
+    Q : IDoubleMatrix;
 begin
      if not Assigned(fMean) or not Assigned(fR) then
         raise Exception.Create('Error call InitMahal first');
@@ -156,7 +156,7 @@ end;
 
 // ###############################################
 // #### One time used short methods
-class function TDistance.Mahalanobis(X, Y: IMatrix): IMatrix;
+class function TDistance.Mahalanobis(X, Y: IDoubleMatrix): IDoubleMatrix;
 begin
      with TDistance.Create do
      try
@@ -167,7 +167,7 @@ begin
      end;
 end;
 
-class function TDistance.Mahalanobis(Y, aCov, aMean: IMatrix): IMatrix;
+class function TDistance.Mahalanobis(Y, aCov, aMean: IDoubleMatrix): IDoubleMatrix;
 begin
      with TDistance.Create do
      try
@@ -178,13 +178,13 @@ begin
      end;
 end;
 
-procedure TDistance.InitEuclid(X: IMatrix);
+procedure TDistance.InitEuclid(X: IDoubleMatrix);
 begin
      fMean := X.Mean(False);
 end;
 
-function TDistance.EuclidDist(Y: IMatrix): IMatrix;
-var dist : IMatrix;
+function TDistance.EuclidDist(Y: IDoubleMatrix): IDoubleMatrix;
+var dist : IDoubleMatrix;
 begin
      if not Assigned(fMean) then
         raise Exception.Create('Error call InitEuclid first');
@@ -195,7 +195,7 @@ begin
      Result := dist;
 end;
 
-class function TDistance.Euclid(X, Y: IMatrix): IMatrix;
+class function TDistance.Euclid(X, Y: IDoubleMatrix): IDoubleMatrix;
 begin
      with TDistance.Create do
      try
@@ -211,13 +211,13 @@ begin
      Value := 1/sqrt(Value);
 end;
 
-procedure TDistance.InitL1Dist(X: IMatrix; maxIter : integer = 200; relTol : double = 1e-6; beta : double = 1e-5);
+procedure TDistance.InitL1Dist(X: IDoubleMatrix; maxIter : integer = 200; relTol : double = 1e-6; beta : double = 1e-5);
 var eps : double;
     counter : integer;
-    weights, data : IMatrix;
+    weights, data : IDoubleMatrix;
     i : integer;
-    oldMean : IMatrix;
-    meanSub : IMatrix;
+    oldMean : IDoubleMatrix;
+    meanSub : IDoubleMatrix;
 begin
      // initialize with geometric median using the standard Weiszfeld algorithm
      // check out: https://de.mathworks.com/matlabcentral/fileexchange/64781-weiszfeld-input-structure-
@@ -243,7 +243,7 @@ begin
           // add beat for regularization and then reduce beta dividing it by 2 in each iteration
           // until divide by 2^10 is met
           if weights.Min < beta then
-             weights.AddInPlace( beta );
+             weights.AddConstInPlace( beta );
           weights.ElementwiseFuncInPlace( {$IFDEF FPC}@{$ENDIF}sqrtFunc );
 
           data := X.Clone;
@@ -273,8 +273,8 @@ begin
      end;
 end;
 
-function TDistance.L1Dist(y: IMatrix): IMatrix;
-var dist : IMatrix;
+function TDistance.L1Dist(y: IDoubleMatrix): IDoubleMatrix;
+var dist : IDoubleMatrix;
 begin
      if not Assigned(fMean) then
         raise Exception.Create('Error call InitAbs first');
@@ -286,13 +286,13 @@ begin
 end;
 
 
-class function TDistance.L1Reg(x, y: IMatrix): IMatrix;
+class function TDistance.L1Reg(x, y: IDoubleMatrix): IDoubleMatrix;
 begin
      Result := L1Reg(x, y, 200, 1e-6, 10);
 end;
 
-class function TDistance.L1Reg(x, y: IMatrix; maxIter: integer; relTol,
-  tau: double): IMatrix;
+class function TDistance.L1Reg(x, y: IDoubleMatrix; maxIter: integer; relTol,
+  tau: double): IDoubleMatrix;
 begin
      with TDistance.Create do
      try
@@ -303,7 +303,7 @@ begin
      end;
 end;
 
-class function TDistance.L1(x, y: IMatrix): IMatrix;
+class function TDistance.L1(x, y: IDoubleMatrix): IDoubleMatrix;
 begin
      with TDistance.Create do
      try
@@ -315,8 +315,8 @@ begin
 end;
 
 
-class function TDistance.L1(x, y: IMatrix; maxIter: integer; relTol,
-  beta: double): IMatrix;
+class function TDistance.L1(x, y: IDoubleMatrix; maxIter: integer; relTol,
+  beta: double): IDoubleMatrix;
 begin
      with TDistance.Create do
      try
@@ -327,14 +327,14 @@ begin
      end;
 end;
 
-procedure TDistance.Init(aMean: IMatrix);
+procedure TDistance.Init(aMean: IDoubleMatrix);
 begin
      fMean := aMean.Clone;
      fR := nil;
      fRx := 0;
 end;
 
-procedure TDistance.Init(aMean, aCov: IMatrix);
+procedure TDistance.Init(aMean, aCov: IDoubleMatrix);
 begin
      if aCov.Cholesky(fR) <> crOk then
         raise Exception.Create('Cannot init mahalanobis');
@@ -386,10 +386,10 @@ begin
      Result := True;
      if SameText(Name, cDistR)
      then
-         fR := (obj as TDoubleMatrix) as IMatrix
+         fR := (obj as TDoubleMatrix) as IDoubleMatrix
      else if SameText(Name, cDistMean)
      then
-         fMean := (obj as TDoubleMatrix) as IMatrix
+         fMean := (obj as TDoubleMatrix) as IDoubleMatrix
      else
          Result := inherited OnLoadObject(Name, Obj);
 end;
@@ -403,21 +403,21 @@ begin
          inherited;
 end;
 
-procedure TDistance.InitL1DistReg(X: IMatrix; tau: double; maxIter: integer;
+procedure TDistance.InitL1DistReg(X: IDoubleMatrix; tau: double; maxIter: integer;
   relTol: double);
 var eps : double;
     counter : integer;
-    data : IMatrix;
-    dataP1 : IMatrix;
+    data : IDoubleMatrix;
+    dataP1 : IDoubleMatrix;
     i : integer;
-    newMean : IMatrix;
-    meanSub : IMatrix;
-    denom : IMatrix;
+    newMean : IDoubleMatrix;
+    meanSub : IDoubleMatrix;
+    denom : IDoubleMatrix;
     sumDenom : double;
-    row : IMatrix;
-    tmp : IMatrix;
-procedure switchMtx(var x1, x2 : IMatrix);
-var tmp : IMatrix;
+    row : IDoubleMatrix;
+    tmp : IDoubleMatrix;
+procedure switchMtx(var x1, x2 : IDoubleMatrix);
+var tmp : IDoubleMatrix;
 begin
      tmp := x1;
      x1 := x2;
@@ -511,7 +511,7 @@ class function TDistance.EuclidPairDist(X: TDoubleMatrix): TDoubleMatrix;
 var y1, y2 : Integer;
     h : integer;
     p1, p2 : PDouble;
-    destLine : IMatrix;
+    destLine : IDoubleMatrix;
     idx : integer;
 begin
      Result := DefMatrixClass.Create(  X.Height*(X.Height - 1) div 2, 1);
@@ -540,11 +540,11 @@ end;
 
 
 class function TDistance.NormEuclidPairDist(X: TDoubleMatrix): TDoubleMatrix;
-var varX : IMatrix;
+var varX : IDoubleMatrix;
     y1, y2 : Integer;
     h : integer;
     p1, p2 : PDouble;
-    destLine : IMatrix;
+    destLine : IDoubleMatrix;
     idx : integer;
 begin
      varX := X.Variance(False, True);
@@ -583,7 +583,7 @@ class function TDistance.AbsPairDist(X: TDoubleMatrix): TDoubleMatrix;
 var y1, y2 : Integer;
     h : integer;
     p1, p2 : PDouble;
-    destLine : IMatrix;
+    destLine : IDoubleMatrix;
     sumVal : double;
     idx : integer;
 begin
@@ -616,7 +616,7 @@ class function TDistance.MinkowskyPairDist(X: TDoubleMatrix; exponent : Double =
 var y1, y2 : Integer;
     h : integer;
     p1, p2 : PDouble;
-    destLine : IMatrix;
+    destLine : IDoubleMatrix;
     sumVal : double;
     idx : integer;
     pDest : PConstDoubleArr;
@@ -656,12 +656,12 @@ class function TDistance.MahalanobisPairDist(X: TDoubleMatrix): TDoubleMatrix;
 var y1, y2 : Integer;
     h : integer;
     p1, p2 : PDouble;
-    destLine : IMatrix;
+    destLine : IDoubleMatrix;
     idx : integer;
-    help : IMatrix;
-    Q : IMatrix;
+    help : IDoubleMatrix;
+    Q : IDoubleMatrix;
     i : integer;
-    chol : IMatrix;
+    chol : IDoubleMatrix;
     pQ : PDouble;
     pX : PDouble;
 begin
@@ -718,7 +718,7 @@ class function TDistance.ChebychevPairDist(X: TDoubleMatrix): TDoubleMatrix;
 var y1, y2 : Integer;
     h : integer;
     p1, p2 : PDouble;
-    destLine : IMatrix;
+    destLine : IDoubleMatrix;
     idx : integer;
 begin
      Result := DefMatrixClass.Create( X.Height*(X.Height - 1) div 2, 1);
@@ -745,35 +745,35 @@ begin
 end;
 
 
-class function TDistance.EuclidPairDist(X: IMatrix): IMatrix;
+class function TDistance.EuclidPairDist(X: IDoubleMatrix): IDoubleMatrix;
 begin
-     Result := EuclidPairDist(x.GetObjRef);
+     Result := EuclidPairDist(TDoubleMatrix(x.GetObjRef));
 end;
 
-class function TDistance.NormEuclidPairDist(X: IMatrix): IMatrix;
+class function TDistance.NormEuclidPairDist(X: IDoubleMatrix): IDoubleMatrix;
 begin
-     Result := NormEuclidPairDist(X.GetObjRef);
+     Result := NormEuclidPairDist(TDoubleMatrix(X.GetObjRef));
 end;
 
-class function TDistance.AbsPairDist(X: IMatrix): IMatrix;
+class function TDistance.AbsPairDist(X: IDoubleMatrix): IDoubleMatrix;
 begin
-     Result := AbsPairDist(X.GetObjRef);
+     Result := AbsPairDist(TDoubleMatrix(X.GetObjRef));
 end;
 
-class function TDistance.MinkowskyPairDist(X: IMatrix;
-  exponent: Double): IMatrix;
+class function TDistance.MinkowskyPairDist(X: IDoubleMatrix;
+  exponent: Double): IDoubleMatrix;
 begin
-     Result := MinkowskyPairDist(X.GetObjRef, exponent);
+     Result := MinkowskyPairDist(TDoubleMatrix(X.GetObjRef), exponent);
 end;
 
-class function TDistance.ChebychevPairDist(X: IMatrix): IMatrix;
+class function TDistance.ChebychevPairDist(X: IDoubleMatrix): IDoubleMatrix;
 begin
-     Result := ChebychevPairDist(X.GetObjRef);
+     Result := ChebychevPairDist(TDoubleMatrix(X.GetObjRef));
 end;
 
-class function TDistance.MahalanobisPairDist(X: IMatrix): IMatrix;
+class function TDistance.MahalanobisPairDist(X: IDoubleMatrix): IDoubleMatrix;
 begin
-     Result := MahalanobisPairDist(X.GetObjRef); 
+     Result := MahalanobisPairDist(TDoubleMatrix(X.GetObjRef));
 end;
 
 initialization

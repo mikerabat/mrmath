@@ -47,14 +47,15 @@ type
 implementation
 
 uses CCA, Math, Matrix, PLS, BinaryReaderWriter, BaseMathPersistence, 
-     JSONReaderWriter, ThreadedMatrix, MtxTimer, MatrixASMStubSwitch;
+     JSONReaderWriter, ThreadedMatrix, MtxTimer, MatrixASMStubSwitch,
+     DblMatrix;
 
 { TTestCCA }
 
 procedure TTestCCA.TestCCAImages;
 var x, y : TDoubleMatrix;
     w, h, i : integer;
-    yp : IMatrix;
+    yp : IDoubleMatrix;
     start, stop : int64;
 begin
      InitMathFunctions(itFMA, False);
@@ -139,7 +140,7 @@ end;
 procedure TTestCCA.TestCCAThreadedImg;
 var x, y : TDoubleMatrix;
     w, h, i : integer;
-    yp : IMatrix;
+    yp : IDoubleMatrix;
     start, stop : int64;
 begin
      // load images
@@ -274,7 +275,7 @@ const cY : Array[0..3] of double = ( -15.0000, -5.0000, 5.0000, 15.0000);
    );
 
 var lpls : TMatrixPLS;
-    x, y : IMatrix;
+    x, y : IDoubleMatrix;
     FNComp : integer;
 
 begin
@@ -286,7 +287,7 @@ begin
 
      LPLS := TMatrixPLS.Create;
 
-     LPLS.PLSRegress(X.GetObjRef,Y.GetObjRef, FNComp);
+     LPLS.PLSRegress(X.GetObjRef as TDoubleMatrix, Y.GetObjRef as TDoubleMatrix, FNComp);
  
      LPLS.Free;
 end;
@@ -294,9 +295,9 @@ end;
 procedure TTestPLS.TestPLSImages;
 var x, y : TDoubleMatrix;
     w, h, i : integer;
-    yp : IMatrix;
-    yFit : IMatrix;
-    y2 : IMatrix;
+    yp : IDoubleMatrix;
+    yFit : IDoubleMatrix;
+    y2 : IDoubleMatrix;
 begin
      // load images
      x := LoadImages(w, h, 'CCATest', '*.bmp');
@@ -310,7 +311,7 @@ begin
      with TMatrixPLS.Create do
      try
         yFit := TDoubleMatrix.Create;
-        PLSRegress(X, Y, 4, yFit.GetObjRef);
+        PLSRegress(X, Y, 4, yFit.GetObjRef as TDoubleMatrix);
 
         y2 := yFit.Clone;
         Check( CheckMtx(yFit.SubMatrix, y.SubMatrix, -1, -1, 0.05), 'Projections not accurate' );
@@ -371,10 +372,10 @@ end;
 
 // test from data stemming from Andrea Mauri
 procedure TTestPLS.TestPlsRegress;
-var x : IMatrix;
-    y : IMatrix;
+var x : IDoubleMatrix;
+    y : IDoubleMatrix;
     pls : TMatrixPLS;
-    fit : IMatrix;
+    fit : IDoubleMatrix;
 begin
      InitMathFunctions(itFMA, false);
      x := MatrixFromTxtFile(BaseDataPath + 'X_pls.txt');
@@ -383,7 +384,7 @@ begin
      fit := TDoubleMatrix.Create;
      pls := TMatrixPLS.Create;
      try
-        pls.PLSRegress(x.GetObjRef, y.GetObjRef, 4, fit.GetObjRef);
+        pls.PLSRegress(x, y, 4, fit);
      finally
             pls.Free;
      end;

@@ -23,7 +23,7 @@ interface
 // #### Eigenvalue Problem". This class follows the tutorial from Ambarish Jash
 // ###############################################
 
-uses SysUtils, Classes, Matrix, PCA, MatrixConst, BaseMathPersistence;
+uses SysUtils, DblMatrix, Classes, Matrix, PCA, MatrixConst, BaseMathPersistence;
 
 type
   TKernelMapping = (kmGauss, kmPoly);
@@ -39,24 +39,24 @@ type
     fSigma : double;
     fP : integer;
     fC : double;
-    fEigVecs : IMatrix;  // scaled eigenvectors (scaled by 1/sqrt(eigval[i])
-    fEigVals : IMatrix;
+    fEigVecs : IDoubleMatrix;  // scaled eigenvectors (scaled by 1/sqrt(eigval[i])
+    fEigVals : IDoubleMatrix;
     fMapping : TKernelMapping;
     fSigmaExp : double;
     fPseudoCenter : boolean;
-    fK : IMatrix;
-    fOrigX : IMatrix;
+    fK : IDoubleMatrix;
+    fOrigX : IDoubleMatrix;
 
     procedure GaussExpFunc( var value : double );
     procedure PolyFunc( var value : double );
 
-    function GaussMapping(X : IMatrix) : IMatrix;
-    function PolyMapping(X : IMatrix) : IMatrix;
+    function GaussMapping(X : IDoubleMatrix) : IDoubleMatrix;
+    function PolyMapping(X : IDoubleMatrix) : IDoubleMatrix;
 
-    function PseudoCenter( K : IMatrix ) : IMatrix;
+    function PseudoCenter( K : IDoubleMatrix ) : IDoubleMatrix;
 
     procedure Clear;
-    function ProjectXToFeatureSpace: IMatrix;  // projects the fK_cent matrix to the feature space
+    function ProjectXToFeatureSpace: IDoubleMatrix;  // projects the fK_cent matrix to the feature space
   protected
     procedure DefineProps; override;
     function PropTypeOfName(const Name: string): TPropType; override;
@@ -69,7 +69,8 @@ type
     procedure SetProperties(const props : TKernelPCAProps);
 
     function KernelPCA( X : TDoubleMatrix; cutEPS : double; isRelativeValue : boolean; ProjData : TDoubleMatrix) : boolean;
-    function ProjectToFeatureSpace(Example : TDoubleMatrix) : TDoubleMatrix;
+    function ProjectToFeatureSpace(Example : TDoubleMatrix) : TDoubleMatrix; overload;
+    function ProjectToFeatureSpace(Example : IDoubleMatrix) : IDoubleMatrix; overload;
 
     constructor Create;
 
@@ -122,11 +123,11 @@ end;
 
 function TKernelPCA.KernelPCA(X: TDoubleMatrix; cutEPS: double;
   isRelativeValue: boolean; ProjData : TDoubleMatrix): boolean;
-var covMtx : IMatrix;
-    mv : IMatrix;
+var covMtx : IDoubleMatrix;
+    mv : IDoubleMatrix;
     sumEigVals : double;
     i : integer;
-    tmp : IMatrix;
+    tmp : IDoubleMatrix;
 begin
      Clear;
 
@@ -169,7 +170,9 @@ begin
              end;
 
              // sort the eigenvectors and eigenvalues
-             SortEigValsEigVecs(fEigVals.GetObjRef, fEigVecs.GetObjRef, 0, fEigVals.Height - 1);
+             SortEigValsEigVecs(fEigVals.GetObjRef as TDoubleMatrix,
+                                fEigVecs.GetObjRef as TDoubleMatrix,
+                                0, fEigVals.Height - 1);
 
              // shrink eigenspace according to the given parameter
              // at least one eigenvector shall be kept
@@ -183,12 +186,12 @@ begin
                        // shrink space to 0..i
                        fEigVals.SetSubMatrix(0, 0, 1, i);
                        mv := MatrixClass.Create;
-                       mv.Assign(fEigVals, True);
+                       mv.AssignEx(fEigVals, True);
                        fEigVals := mv;
 
                        fEigVecs.SetSubMatrix(0, 0, i, fEigVecs.Height);
                        mv := MatrixClass.Create;
-                       mv.Assign(fEigVecs, True);
+                       mv.AssignEx(fEigVecs, True);
                        fEigVecs := mv;
 
                        break;
@@ -207,7 +210,7 @@ begin
              if Assigned(ProjData) then
              begin
                   tmp := ProjectXToFeatureSpace;
-                  ProjData.TakeOver(tmp);
+                  ProjData.TakeOver(tmp.GetObjRef as TDoubleMatrix);
                   tmp := nil;
              end;
           except
@@ -221,8 +224,8 @@ end;
 
 function TKernelPCA.ProjectToFeatureSpace(
   Example: TDoubleMatrix): TDoubleMatrix;
-var k : IMatrix;
-    x : IMatrix;
+var k : IDoubleMatrix;
+    x : IDoubleMatrix;
 begin
      x := Example.Transpose;
      
@@ -239,16 +242,16 @@ begin
         k := PseudoCenter(k);
 
      // note: the eigenvectors are already scaled!
-     Result := k.Mult( fEigVecs );
+     Result := (TDoubleMatrix(k.GetObjRef)).Mult( fEigVecs.GetObjRef as TDoubleMatrix );
 end;
 
 // ###############################################
 // #### Kernel mappings
 // #### Base idea from https://github.com/steven2358/kmbox
 
-function TKernelPCA.GaussMapping(X: IMatrix): IMatrix;
-var covMtx : IMatrix;
-    norm1, norm2 : IMatrix;
+function TKernelPCA.GaussMapping(X: IDoubleMatrix): IDoubleMatrix;
+var covMtx : IDoubleMatrix;
+    norm1, norm2 : IDoubleMatrix;
 begin
      norm1 := X.ElementWiseMult(X);
      norm1.SumInPlace(True, True);
@@ -266,12 +269,12 @@ begin
      Result := covMtx;
 end;
 
-function TKernelPCA.PolyMapping(X: IMatrix): IMatrix;
+function TKernelPCA.PolyMapping(X: IDoubleMatrix): IDoubleMatrix;
 begin
      assert( fP > 0, 'Poly mapping needs an exponent > 1');
      Result := X.MultT2(fOrigX);
      if fC <> 0 then
-        Result.AddInplace(fC);
+        Result.AddConstInplace(fC);
      Result.ElementwiseFuncInPlace( {$IFDEF FPC}@{$ENDIF}PolyFunc );
 end;
 
@@ -285,10 +288,10 @@ begin
      value := IntPower(value, fP);
 end;
 
-function TKernelPCA.PseudoCenter(K: IMatrix): IMatrix;
-var ones1, ones2 : IMatrix;
-    tmp : IMatrix;
-    tmp2 : IMatrix;
+function TKernelPCA.PseudoCenter(K: IDoubleMatrix): IDoubleMatrix;
+var ones1, ones2 : IDoubleMatrix;
+    tmp : IDoubleMatrix;
+    tmp2 : IDoubleMatrix;
 begin
      // one_mat = ones(size(K));
      // this is for all
@@ -317,8 +320,14 @@ begin
      Result.AddInplace(tmp);
 end;
 
-function TKernelPCA.ProjectXToFeatureSpace: IMatrix;
-var k : IMatrix;
+function TKernelPCA.ProjectToFeatureSpace(
+  Example: IDoubleMatrix): IDoubleMatrix;
+begin
+     Result := ProjectToFeatureSpace( Example.GetObjRef as TDoubleMatrix );
+end;
+
+function TKernelPCA.ProjectXToFeatureSpace: IDoubleMatrix;
+var k : IDoubleMatrix;
 begin
      // Projecting the data in lower dimensions
      k := fK;

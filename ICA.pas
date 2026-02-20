@@ -21,7 +21,7 @@ interface
 
 // Independent component analysis using the informax algorithm:
 
-uses SysUtils, Classes, Matrix, MatrixConst, BaseMathPersistence, PCA;
+uses SysUtils, Classes, Matrix, DblMatrix, MatrixConst, BaseMathPersistence, PCA;
 
 type
   TFastICANonLinEstimator = (iePow3, ieTanh, ieGauss, ieSkew);
@@ -59,8 +59,8 @@ type
     fMeanVec : IMatrix;
 
     procedure Clear;
-    function WhitenData(examples : TDoubleMatrix; out wz : IMatrix) : IMatrix;
-    function InvertAndSQRT(mtx: IMatrix): IMatrix;
+    function WhitenData(examples : TDoubleMatrix; out wz : IDoubleMatrix) : IDoubleMatrix;
+    function InvertAndSQRT(mtx: IDoubleMatrix): IDoubleMatrix;
 
     procedure LocPow3(var value : double);
     procedure LocTanh(var value : double);
@@ -68,10 +68,10 @@ type
     procedure LocSQR(var value : double);
     procedure LocInv(var value : double);
 
-    function MtxPow3(X, B : IMatrix; const myy : double) : IMatrix;
-    function MtxTanh(X, B : IMatrix; const myy : double) : IMatrix;
-    function MtxGauss(X, B : IMatrix; const myy : double) : IMatrix;
-    function MtxSkew(X, B : IMatrix; const myy : double) : IMatrix;
+    function MtxPow3(X, B : IDoubleMatrix; const myy : double) : IDoubleMatrix;
+    function MtxTanh(X, B : IDoubleMatrix; const myy : double) : IDoubleMatrix;
+    function MtxGauss(X, B : IDoubleMatrix; const myy : double) : IDoubleMatrix;
+    function MtxSkew(X, B : IDoubleMatrix; const myy : double) : IDoubleMatrix;
 
     procedure InfoMaxICA(Examples : TDoubleMatrix);
     procedure FastICA(Examples : TDoubleMatrix);
@@ -141,15 +141,15 @@ end;
 
 procedure TMatrixICA.FastICA(Examples: TDoubleMatrix);
 var pca : TMatrixPCA;
-    whiteMtx : IMatrix;
-    deWhiteMtx : IMatrix;
+    whiteMtx : IDoubleMatrix;
+    deWhiteMtx : IDoubleMatrix;
     counter: Integer;
-    whiteImg : IMatrix;
-    hlp, hlp2 : IMatrix;
+    whiteImg : IDoubleMatrix;
+    hlp, hlp2 : IDoubleMatrix;
     myyK : double;
-    
-    B : IMatrix;
-    Bold, Bold2 : IMatrix;
+
+    B : IDoubleMatrix;
+    Bold, Bold2 : IDoubleMatrix;
 
     minAbsCos : double;
     minAbsCos2 : double;
@@ -159,8 +159,8 @@ var pca : TMatrixPCA;
     isFineTune : boolean;
     numIter : integer;
     long : boolean;
-    
-function MinDiag(mtx : IMatrix) : double;
+
+function MinDiag(mtx : IDoubleMatrix) : double;
 var x : integer;
     hlp : IMatrix;
 begin
@@ -206,7 +206,7 @@ begin
              Examples.SetSubMatrix(counter, 0, 1, Examples.Height);
 
              hlp := Examples.Sub(pca.Mean);
-             hlp := whiteMtx.Mult(hlp);
+             hlp := whiteMtx.Mult(hlp) as IDoubleMatrix;
 
              whiteImg.SetColumn(counter, hlp);
         end;
@@ -230,7 +230,7 @@ begin
 
      // orthogonalize random init
      hlp := MatrixClass.CreateRand(Min(whiteImg.Width, fProps.NumIC), whiteImg.Height);
-     hlp.AddInplace(-0.5);
+     hlp.AddConstInPlace(-0.5);
      // it's not as stable as svd but faster and since we are dealing with random inits
      // the rank is normally full
      hlp.QRFull(B, hlp2);
@@ -244,7 +244,7 @@ begin
      begin
           // Symmetric orthogonalization.
           // B = B * real(inv(B' * B)^(1/2));
-          hlp := B.MultT1(B);
+          hlp := B.MultT1(B) as IDoubleMatrix;
           hlp := InvertAndSQRT(hlp);
           B.MultInPlace(hlp);
 
@@ -338,11 +338,11 @@ begin
 end;
 
 procedure TMatrixICA.InfoMaxICA(Examples: TDoubleMatrix);
-var mx : IMatrix;
+var mx : IDoubleMatrix;
     numOfBlocks : integer;
-    mIdentMatB : IMatrix;
-    mW, mU, mUt : IMatrix;
-    Wz : IMatrix;
+    mIdentMatB : IDoubleMatrix;
+    mW, mU, mUt : IDoubleMatrix;
+    Wz : IDoubleMatrix;
     i : Integer;
     t : integer;
     annealingIdx :integer;
@@ -388,7 +388,7 @@ begin
                        mx.UseFullMatrix;
                        mx.SetSubMatrix(t, 0, Min(mx.Width - t, fProps.BlockSize), mx.Height);
                        mU := mW.Mult(mX);
-                       mUt := mU.Transpose;
+                       mUt := mU.Transpose as IDoubleMatrix;
 
                        // performs: 1 - 2*1./(1 + exp(-mU)
                        mU.ElementwiseFuncInPlace( {$IFDEF FPC}@{$ENDIF}elemExp );
@@ -411,7 +411,7 @@ begin
         // #### Build result
         fW := mW.Mult(Wz);
         fWInv := fW.Invert;
-        fWInv := pca.EigVecs.Mult(fWInv);
+        fWInv := pca.EigVecs.Mult(fWInv.GetObjRef as TDoubleMatrix) as IDoubleMatrix;
      
         fW.MultInPlace(pca.EigVecsT);
 
@@ -421,8 +421,8 @@ begin
      end;
 end;
 
-function TMatrixICA.InvertAndSQRT(mtx: IMatrix): IMatrix;
-var u, v, s : IMatrix;
+function TMatrixICA.InvertAndSQRT(mtx: IDoubleMatrix): IDoubleMatrix;
+var u, v, s : IDoubleMatrix;
     tolerance : double;
     i, j : Integer;
 begin
@@ -456,7 +456,7 @@ begin
               U[j, i] := U[j, i]*s[0, i];
      end;
 
-     Result := V.Mult(U);
+     Result := V.Mult(U) as IDoubleMatrix;
 end;
 
 procedure TMatrixICA.LocPow3(var value: double);
@@ -480,22 +480,22 @@ begin
         value := 1/value;
 end;
 
-function TMatrixICA.MtxTanh(X, B: IMatrix; const myy : double): IMatrix;
-var hypTan : IMatrix;
-    hlp, hlp1 : IMatrix;
-    Y : IMatrix;
-    hlp2 : IMatrix;
-    Beta : IMatrix;
+function TMatrixICA.MtxTanh(X, B: IDoubleMatrix; const myy : double): IDoubleMatrix;
+var hypTan : IDoubleMatrix;
+    hlp, hlp1 : IDoubleMatrix;
+    Y : IDoubleMatrix;
+    hlp2 : IDoubleMatrix;
+    Beta : IDoubleMatrix;
 begin
      if myy = 1 then
      begin
           // B = X * hypTan / numSamples - ...
           // ones(size(B,1),1) * sum(1 - hypTan .^ 2) .* B / numSamples * ...
           // a1;
-          hypTan := X.MultT1(B);
+          hypTan := X.MultT1(B); // as IDoubleMatrix;
           hypTan.ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}LocTanh);
 
-          Result := X.Mult(hypTan);
+          Result := X.Mult(hypTan) as IDoubleMatrix;
           Result.ScaleInPlace(1/x.Width);
      
           hlp := MatrixClass.Create(1, B.Height, 1);
@@ -515,24 +515,24 @@ begin
           // Y = X' * B;
           // hypTan = tanh(a1 * Y);
           // Beta = sum(Y .* hypTan);
-          y := X.MultT1(B);
+          y := X.MultT1(B) as IDoubleMatrix;
           hypTan := y.ElementwiseFunc({$IFDEF FPC}@{$ENDIF}LocTanh);
-          Beta := Y.ElementWiseMult(hypTan);
+          Beta := Y.ElementWiseMult(hypTan) as IDoubleMatrix;
           Beta.SumInPlace(False);
           
           // D = diag(1 ./ (Beta - a1 * sum(1 - hypTan .^ 2)));
-          hlp1 := hypTan.ElementWiseMult(hypTan);
+          hlp1 := hypTan.ElementWiseMult(hypTan) as IDoubleMatrix;
           hlp1.ScaleAndAddInPlace(-1, 1);
           hlp1.SumInPlace(False);
           hlp1.ScaleInPlace(-fProps.a1);
-          hlp := beta.Sub(hlp1);
-          
+          hlp := beta.Sub(hlp1) as IDoubleMatrix;
+
           hlp.ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}LocInv);
           hlp.DiagInPlace(True);
 
           // B = B + myy * B * (Y' * hypTan - diag(Beta)) * D;
-          hlp1 := Y.MultT1(hypTan);
-          hlp2 := Beta.Diag(True);
+          hlp1 := Y.MultT1(hypTan) as IDoubleMatrix;
+          hlp2 := Beta.Diag(True) as IDoubleMatrix;
           hlp1.SubInPlace(hlp2);
           hlp1.MultInPlace(hlp);
           hlp2 := B.Mult(hlp1);
@@ -547,14 +547,14 @@ begin
      Value := exp(-fProps.a2*Value*0.5);
 end;
 
-function TMatrixICA.MtxGauss(X, B: IMatrix; const myy : double): IMatrix;
-var hlp : IMatrix;
-    hlpSqr : IMatrix;
-    ex : IMatrix;
-    y : IMatrix;
-    gauss : IMatrix;
-    beta : IMatrix;
-    d : IMatrix;
+function TMatrixICA.MtxGauss(X, B: IDoubleMatrix; const myy : double): IDoubleMatrix;
+var hlp : IDoubleMatrix;
+    hlpSqr : IDoubleMatrix;
+    ex : IDoubleMatrix;
+    y : IDoubleMatrix;
+    gauss : IDoubleMatrix;
+    beta : IDoubleMatrix;
+    d : IDoubleMatrix;
 begin
      if myy = 1 then
      begin
@@ -613,11 +613,11 @@ begin
      end;
 end;
 
-function TMatrixICA.MtxPow3(X, B: IMatrix; const myy : double): IMatrix;
-var hlp : IMatrix;
-    y : IMatrix;
-    beta : IMatrix;
-    D : IMatrix;
+function TMatrixICA.MtxPow3(X, B: IDoubleMatrix; const myy : double): IDoubleMatrix;
+var hlp : IDoubleMatrix;
+    y : IDoubleMatrix;
+    beta : IDoubleMatrix;
+    D : IDoubleMatrix;
 begin
      if myy = 1 then
      begin
@@ -642,7 +642,7 @@ begin
           beta.SumInPlace(False);
 
           // D = diag(1 ./ (Beta - 3 * numSamples));
-          D := Beta.Add(-3*X.Width);
+          D := Beta.AddConst(-3*X.Width);
           D.ElementwiseFuncInPlace({$IFDEF FPC}@{$ENDIF}LocInv);
           D.DiagInPlace(True);
 
@@ -658,11 +658,11 @@ begin
      end;
 end;
 
-function TMatrixICA.MtxSkew(X, B: IMatrix; const myy : double): IMatrix;
-var Gskew : IMatrix;
-    y : IMatrix;
-    beta : IMatrix;
-    D : IMatrix;
+function TMatrixICA.MtxSkew(X, B: IDoubleMatrix; const myy : double): IDoubleMatrix;
+var Gskew : IDoubleMatrix;
+    y : IDoubleMatrix;
+    beta : IDoubleMatrix;
+    D : IDoubleMatrix;
 begin
      if myy = 1 then
      begin
@@ -703,21 +703,21 @@ function TMatrixICA.ProjectToFeatureSpace(
   Example: TDoubleMatrix): TDoubleMatrix;
 var meanNorm : IMatrix;
 begin
-     meanNorm := example.Sub(fMeanVec);
-     Result := fW.Mult(meanNorm);
+     meanNorm := example.Sub(fMeanVec.GetObjRef as TDoubleMatrix);
+     Result := (fW.GetObjRef as TDoubleMatrix).Mult(meanNorm.GetObjRef as TDoubleMatrix);
 end;
 
 function TMatrixICA.Reconstruct(Features: TDoubleMatrix): TDoubleMatrix;
 begin
      // project to combined pca/ica space
-     Result := fWInv.Mult(Features);
-     Result.AddInplace(fMeanVec);
+     Result := (fWInv.GetObjRef as TDoubleMatrix).Mult(Features);
+     Result.AddInplace(fMeanVec.GetObjRef as TDoubleMatrix);
 end;
 
-function TMatrixICA.WhitenData(examples: TDoubleMatrix; out wz : IMatrix): IMatrix;
-var mean : IMatrix;
-    mWz : IMatrix;
-    meanCentData : IMatrix;
+function TMatrixICA.WhitenData(examples: TDoubleMatrix; out wz : IDoubleMatrix): IDoubleMatrix;
+var mean : IDoubleMatrix;
+    mWz : IDoubleMatrix;
+    meanCentData : IDoubleMatrix;
     x : integer;
 begin
      // mean centered data matrix

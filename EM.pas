@@ -16,21 +16,21 @@ unit EM;
 
 interface
 
-uses Matrix;
+uses Matrix, DblMatrix;
 
 //  EM algorithm for k multidimensional Gaussian mixture estimation
 type
-  TExpectationMaxUpdate = procedure(Sender : TObject; iter : integer; W, M : IMatrix; V : IMatrixDynArr; E : IMatrix) of object;
+  TExpectationMaxUpdate = procedure(Sender : TObject; iter : integer; W, M : IDoubleMatrix; V : IDoubleMatrixDynArr; E : IMatrix) of object;
   TExpectationMax = class(TMatrixClass)
   private
     fNumIter : integer;
     fltol : double;
-    fW, fM : IMatrix;
-    fV : IMatrixDynArr;
+    fW, fM : IDoubleMatrix;
+    fV : IDoubleMatrixDynArr;
     fk : Integer;
-    fX : IMatrix;
-    fS, fU : IMatrix;
-    fE : IMatrix;
+    fX : IDoubleMatrix;
+    fS, fU : IDoubleMatrix;
+    fE : IDoubleMatrix;
 
     fOnUpdate: TExpectationMaxUpdate;
 
@@ -39,28 +39,28 @@ type
     // ###########################################
     // #### EM steps
     function Likelihood: double;
-    function Expectation : IMatrix;
-    function Maximization( E : IMatrix ) : boolean;  // returns false if invertion failed or no examples in one example
+    function Expectation : IDoubleMatrix;
+    function Maximization( E : IDoubleMatrix ) : boolean;  // returns false if invertion failed or no examples in one example
   public
     property OnUpdate : TExpectationMaxUpdate read fOnUpdate write fOnUpdate;
-    property E : IMatrix read fE;  // expectation matrix of the last iteration
+    property E : IDoubleMatrix read fE;  // expectation matrix of the last iteration
     
     // estimate weights matrix W, mean vectors M and covariance matrix V on
     // input data X. A data point is presented row wise.
     // k states the number of components.
     // returns false if search excceeds the maximum number of iterations
-    function Estimate(X : IMatrix; k : integer; var W, M : IMatrix; var V : IMatrixDynArr) : boolean;
+    function Estimate(X : IDoubleMatrix; k : integer; var W, M : IDoubleMatrix; var V : IDoubleMatrixDynArr) : boolean;
 
     // initialize search with these values
-    procedure Init( W, M : IMatrix; V : IMatrixDynArr ); overload; // full init with weights, mean and covariances
-    procedure Init( M : IMatrix ); overload;  // initialize centers only
+    procedure Init( W, M : IDoubleMatrix; V : IDoubleMatrixDynArr ); overload; // full init with weights, mean and covariances
+    procedure Init( M : IDoubleMatrix ); overload;  // initialize centers only
 
     // n: max number of iterations; ltol : percentage of the log likelihood difference between 2 iterations
     constructor Create( n : integer = 1000; ltol : double = 0.1);
 
     // for a one time em step
-    class function EM(X : IMatrix; k : integer; var W, M : IMatrix; var V : IMatrixDynArr; n : integer = 1000; ltol : double = 0.1 ) : boolean; overload;
-    class function EM(X : IMatrix; k : integer; InitM : IMatrix; var W, M : IMatrix; var V : IMatrixDynArr; n : integer = 1000; ltol : double = 0.1 ) : boolean; overload;
+    class function EM(X : IDoubleMatrix; k : integer; var W, M : IDoubleMatrix; var V : IDoubleMatrixDynArr; n : integer = 1000; ltol : double = 0.1 ) : boolean; overload;
+    class function EM(X : IDoubleMatrix; k : integer; InitM : IDoubleMatrix; var W, M : IDoubleMatrix; var V : IDoubleMatrixDynArr; n : integer = 1000; ltol : double = 0.1 ) : boolean; overload;
   end;
 
 implementation
@@ -78,11 +78,11 @@ begin
      inherited Create;
 end;
 
-function TExpectationMax.Estimate(X : IMatrix; k : integer; var W, M : IMatrix; var V : IMatrixDynArr) : boolean;
+function TExpectationMax.Estimate(X : IDoubleMatrix; k : integer; var W, M : IDoubleMatrix; var V : IDoubleMatrixDynArr) : boolean;
 var ln, lo : double;
     iter : Integer;
-    mtxE : IMatrix;
-    mT : IMatrix;
+    mtxE : IDoubleMatrix;
+    mT : IDoubleMatrix;
 begin
      Result := False;
 
@@ -156,14 +156,14 @@ begin
      end;
 end;
 
-function TExpectationMax.Expectation: IMatrix;
+function TExpectationMax.Expectation: IDoubleMatrix;
 var a : double;
-    s : IMatrix;
-    iV : IMatrixDynArr;
+    s : IDoubleMatrix;
+    iV : IDoubleMatrixDynArr;
     i, j : Integer;
     d : integer;
-    dXM : IMatrix;
-    tmp : IMatrix;
+    dXM : IDoubleMatrix;
+    tmp : IDoubleMatrix;
     p1 : double;
 begin
      fX.UseFullMatrix;
@@ -210,7 +210,7 @@ begin
      end;
 end;
 
-procedure TExpectationMax.Init(W, M : IMatrix; V : IMatrixDynArr);
+procedure TExpectationMax.Init(W, M : IDoubleMatrix; V : IDoubleMatrixDynArr);
 var i : integer;
 begin
      fW := nil;
@@ -233,7 +233,7 @@ procedure TExpectationMax.InitEM;
 var i : integer;
     idx : TIntegerDynArray;
     rnd : TRandomGenerator;
-    newM : IMatrix;
+    newM : IDoubleMatrix;
     centerChanged : double;
     iter : Integer;
     minDist : double;
@@ -241,9 +241,9 @@ var i : integer;
     numMVals : TIntegerDynArray;
     mValsIdx : Array of TIntegerDynArray;
     ii: Integer;
-    dist : IMatrix;
+    dist : IDoubleMatrix;
     dDist : double;
-    v : IMatrix;
+    v : IDoubleMatrix;
     lastCenterChanged : double;
     n : integer;
     doKMeans : boolean;
@@ -327,7 +327,7 @@ begin
           // check the change
           newM.UseFullMatrix;
           fM.UseFullMatrix;
-          lastCenterChanged := (newM.Sub( fM ) as IMatrix).ElementwiseNorm2;
+          lastCenterChanged := (newM.Sub( fM ) as IDoubleMatrix).ElementwiseNorm2;
 
           if lastCenterChanged >= centerChanged*0.99 then
              break;
@@ -362,10 +362,10 @@ end;
 function TExpectationMax.Likelihood: double;
 var n : integer;
     i : Integer;
-    iV : IMatrix;
+    iV : IDoubleMatrix;
     A1, A2 : double;
-    udiff : IMatrix;
-    S : IMatrix;
+    udiff : IDoubleMatrix;
+    S : IDoubleMatrix;
 begin
      n := fX.Height;
 
@@ -395,11 +395,11 @@ begin
      fM.UseFullMatrix;
 end;
 
-function TExpectationMax.Maximization(E: IMatrix) : boolean;
+function TExpectationMax.Maximization(E: IDoubleMatrix) : boolean;
 var d, n : integer;
     i, j: Integer;
-    tmp : IMatrix;
-    dXM : IMatrix;
+    tmp : IDoubleMatrix;
+    dXM : IDoubleMatrix;
 begin
      Result := False;
      fX.UseFullMatrix;
@@ -458,15 +458,15 @@ begin
      Result := True;
 end;
 
-procedure TExpectationMax.Init(M: IMatrix);
+procedure TExpectationMax.Init(M: IDoubleMatrix);
 begin
      fM := M;
      fV := nil;
      fW := nil;
 end;
 
-class function TExpectationMax.EM(X: IMatrix; k: integer; var W, M: IMatrix;
-  var V: IMatrixDynArr; n: integer; ltol: double): boolean;
+class function TExpectationMax.EM(X: IDoubleMatrix; k: integer; var W, M: IDoubleMatrix;
+  var V: IDoubleMatrixDynArr; n: integer; ltol: double): boolean;
 begin
      with TExpectationMax.Create(n, ltol) do
      try
@@ -476,8 +476,8 @@ begin
      end;
 end;
 
-class function TExpectationMax.EM(X: IMatrix; k: integer; InitM: IMatrix; var W,
-  M: IMatrix; var V: IMatrixDynArr; n: integer; ltol: double): boolean;
+class function TExpectationMax.EM(X: IDoubleMatrix; k: integer; InitM: IDoubleMatrix; var W,
+  M: IDoubleMatrix; var V: IDoubleMatrixDynArr; n: integer; ltol: double): boolean;
 begin
      with TExpectationMax.Create(n, ltol) do
      try

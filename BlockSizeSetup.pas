@@ -46,6 +46,7 @@ procedure SetupBlockedMatrixMultSize;
 
 // returns the needed additional size when doing a blocked multiplication
 function BlockMultMemSize(blkSize : integer) : integer;
+function CplxBlockMultMemSize(blkSize : integer) : integer;
 
 implementation
 
@@ -302,6 +303,11 @@ begin
      blockByteSize := blkSize*blkSize*sizeof(double);
 
      Result := 4*blockByteSize;
+end;
+
+function CplxBlockMultMemSize(blkSize : integer) : integer;
+begin
+     Result := 2*BlockMultMemSize(blkSize);
 end;
 
 end.

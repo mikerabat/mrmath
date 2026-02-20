@@ -16,7 +16,7 @@ unit CCA;
 
 interface
 
-uses SysUtils, Classes, Matrix, MatrixConst, BaseMathPersistence;
+uses SysUtils, Classes, Matrix, DblMatrix, MatrixConst, BaseMathPersistence;
 
 // ########################################################
 // #### Implementation of the Canonical Correlation Analysis based on
@@ -32,16 +32,16 @@ type
   TMatrixCCA = class(TMatrixClass)
   private
     fProgress: TMtxProgress;
-    fWxT : IMatrix;
-    fWyT : IMatrix;
-    fR : IMatrix;
-    fInvWy : IMatrix;   // used in the project method
-    fMeanX : IMatrix;   // used in the project method
-    fMeanY : IMatrix;   // used in the project method
+    fWxT : TDoubleMatrix;
+    fWyT : TDoubleMatrix;
+    fR : TDoubleMatrix;
+    fInvWy : TDoubleMatrix;   // used in the project method
+    fMeanX : TDoubleMatrix;   // used in the project method
+    fMeanY : TDoubleMatrix;   // used in the project method
 
     fLastProgress : integer;
     fBaseProgress : integer;
-    function InvertAndSQRT(mtx : IMatrix) : IMatrix;
+    function InvertAndSQRT(mtx : TDoubleMatrix) : TDoubleMatrix;
     procedure DoProgress(Progress : integer);
     procedure InvProgress( Progress : integer);
     procedure SVDProgress( Progress : integer);
@@ -51,16 +51,20 @@ type
     function PropTypeOfName(const Name : string) : TPropType; override;
 
     function OnLoadObject(const Name : String; Obj : TBaseMathPersistence) : boolean; override;
+
+    procedure clear;
   public
-    property WxT : IMatrix read fWxT;
-    property WyT : IMatrix read fWyT;
-    property R : IMatrix read fR;
+    property WxT : TDoubleMatrix read fWxT;
+    property WyT : TDoubleMatrix read fWyT;
+    property R : TDoubleMatrix read fR;
 
     property OnProgress : TMtxProgress read fProgress write fProgress;
 
     function Project(X : TDoubleMatrix) : TDoubleMatrix;
 
     procedure CCA(X, Y: TDoubleMatrix; doRegularization : Boolean = True; Lamda : double = 1e-5);
+
+    destructor Destroy; override;
   end;
 
 implementation
@@ -69,8 +73,8 @@ uses Math, MathUtilFunc;
 
 { TMatrixCCA }
 
-function TMatrixCCA.InvertAndSQRT(mtx: IMatrix): IMatrix;
-var u, v, w : IMatrix;
+function TMatrixCCA.InvertAndSQRT(mtx: TDoubleMatrix): TDoubleMatrix;
+var u, v, w : TDoubleMatrix;
     tolerance : double;
     i, j : Integer;
 begin
@@ -81,29 +85,35 @@ begin
      // -> use that same decomposition as well for the inverting process!
      if mtx.SVD(U, V, W, True) <> srOk then
         raise ELinEQSingularException.Create('Error could not invert covariance matrix C');
-     V.TransposeInPlace;
-        
-     // main algorithm see MatrixPseudoinverse
-     tolerance := w.height*eps(w.Max);
+     try
+        V.TransposeInPlace;
 
-     for i := 0 to W.Height - 1 do
-     begin
-          if sqr(W[0, i]) <= tolerance
-          then
-              W[0, i] := 0
-          else
-              W[0, i] := 1/sqrt(W[0, i]);
+        // main algorithm see MatrixPseudoinverse
+        tolerance := w.height*eps(w.Max);
+
+        for i := 0 to W.Height - 1 do
+        begin
+             if sqr(W[0, i]) <= tolerance
+             then
+                 W[0, i] := 0
+             else
+                 W[0, i] := 1/sqrt(W[0, i]);
+        end;
+
+        // compute inversion by inv = V*W*U'
+        U.TransposeInPlace;
+        for i := 0 to U.Height - 1 do
+        begin
+             for j := 0 to U.Width - 1 do
+                 U[j, i] := U[j, i]*W[0, i];
+        end;
+
+        Result := V.Mult(U);
+     finally
+            U.Free;
+            V.Free;
+            W.Free;
      end;
-
-     // compute inversion by inv = V*W*U'
-     U.TransposeInPlace;
-     for i := 0 to U.Height - 1 do
-     begin
-          for j := 0 to U.Width - 1 do
-              U[j, i] := U[j, i]*W[0, i];
-     end;
-
-     Result := V.Mult(U);
 end;
 
 procedure TMatrixCCA.DoProgress(Progress: integer);
@@ -126,138 +136,162 @@ end;
 
 procedure TMatrixCCA.CCA(X, Y: TDoubleMatrix; doRegularization: Boolean;
   Lamda: double);
-var meanNormX : IMatrix;
-    meanNormY : IMatrix;
-    Cxx, Cyy, Cxy : IMatrix;
-    invCxx, invCyy : IMatrix;
-    U, V, W : IMatrix;
-    tmp : IMatrix;
+var meanNormX : TDoubleMatrix;
+    meanNormY : TDoubleMatrix;
+    Cxx, Cyy, Cxy : TDoubleMatrix;
+    invCxx, invCyy : TDoubleMatrix;
+    U, V, W : TDoubleMatrix;
+    tmp : TDoubleMatrix;
     counter: Integer;
     N : integer;
     p, q : integer;
     numCC : integer;
 begin
-     fLastProgress := -1;
+     Clear;
 
-     N := X.Width;
-     p := X.Height;
-     q := Y.Height;
+     meanNormX := nil;
+     meanNormY := nil;
+     Cxx := nil;
+     Cyy := nil;
+     Cxy := nil;
+     U := nil;
+     V := nil;
+     W := nil;
+     tmp := nil;
+     try
+        fLastProgress := -1;
 
-     assert(N = y.Width, 'Error matrices height must be the same');
+        N := X.Width;
+        p := X.Height;
+        q := Y.Height;
 
-     DoProgress(0);
+        assert(N = y.Width, 'Error matrices height must be the same');
 
-     // ##################################################
-     // #### mean normalize data
-     fMeanX := X.Mean(True);
-     fMeanY := Y.Mean(True);
+        DoProgress(0);
 
-     meanNormX := X.SubVec(fMeanX, False);
-     meanNormY := Y.SubVec(fMeanY, False);
+        // ##################################################
+        // #### mean normalize data
+        fMeanX := X.Mean(True);
+        fMeanY := Y.Mean(True);
 
-     DoProgress(2);
+        meanNormX := X.SubVec(fMeanX, False);
+        meanNormY := Y.SubVec(fMeanY, False);
 
-     // ##################################################
-     // #### overall covariance matrix C = [Cxx Cxy; Cyx Cyy]
-     // #### used method is more efficient than computing cov([X; Y]) directly
-     tmp := meanNormX.Transpose;
-     Cxx := meanNormX.Mult(tmp);
-     Cxx.ScaleInPlace(1/(N-1));
+        DoProgress(2);
 
-     DoProgress(3);
+        // ##################################################
+        // #### overall covariance matrix C = [Cxx Cxy; Cyx Cyy]
+        // #### used method is more efficient than computing cov([X; Y]) directly
+        tmp := meanNormX.Transpose;
+        Cxx := meanNormX.Mult(tmp);
+        Cxx.ScaleInPlace(1/(N-1));
+        FreeAndNil(tmp);
 
-     tmp := meanNormY.Transpose;
-     Cyy := meanNormY.Mult(tmp);
-     Cyy.ScaleInPlace(1/(N-1));
+        DoProgress(3);
 
-     DoProgress(5);
+        tmp := meanNormY.Transpose;
+        Cyy := meanNormY.Mult(tmp);
+        Cyy.ScaleInPlace(1/(N-1));
 
-     Cxy := meanNormX.Mult(tmp);
-     Cxy.ScaleInPlace(1/(N-1));
+        DoProgress(5);
 
-     DoProgress(8);
-  //   Cyx := Cxy.Transpose;
+        Cxy := meanNormX.Mult(tmp);
+        Cxy.ScaleInPlace(1/(N-1));
 
-     // ##################################################
-     // ##### Regularization:
-     // #####  Even if Cxx and Cyy have full rank the matrix B = [Cxx 0; 0 Cyy] will
-     // #####  become singular. An approach to deal with these singularity is to add a
-     // #####  multiple of the identity matrix to these matrices. As a result the
-     // #####  matrices Cxx, Cyy and B are rendered positive definite. The original
-     // #####  eigenvalues can be achieved by subtracting the values added before from
-     // #####  the computed eigenvalues.
-     if doRegularization then
-     begin
-          for counter := 0 to Min(N, p) - 1 do
-              Cxx[counter, counter] := Cxx[counter, counter] + Lamda;
-          for counter := 0 to Min(N, q) - 1 do
-              Cyy[counter, counter] := Cyy[counter, counter] + Lamda;
+        DoProgress(8);
+     //   Cyx := Cxy.Transpose;
+
+        // ##################################################
+        // ##### Regularization:
+        // #####  Even if Cxx and Cyy have full rank the matrix B = [Cxx 0; 0 Cyy] will
+        // #####  become singular. An approach to deal with these singularity is to add a
+        // #####  multiple of the identity matrix to these matrices. As a result the
+        // #####  matrices Cxx, Cyy and B are rendered positive definite. The original
+        // #####  eigenvalues can be achieved by subtracting the values added before from
+        // #####  the computed eigenvalues.
+        if doRegularization then
+        begin
+             for counter := 0 to Min(N, p) - 1 do
+                 Cxx[counter, counter] := Cxx[counter, counter] + Lamda;
+             for counter := 0 to Min(N, q) - 1 do
+                 Cyy[counter, counter] := Cyy[counter, counter] + Lamda;
+        end;
+
+        // ####################################################
+        // ##### compute projection matrices
+        // ####################################################
+
+        // ####################################################
+        // #### compute inverse matrices
+        fBaseProgress := 8;
+        cyy.LinEQProgress := {$IFDEF FPC}@{$ENDIF}InvProgress;
+        invCyy := InvertAndSQRT(Cyy);
+        DoProgress( 45 );
+        fBaseProgress := 45;
+        Cxx.LinEQProgress := {$IFDEF FPC}@{$ENDIF}InvProgress;
+        invCxx := InvertAndSQRT(Cxx);
+        DoProgress(82);
+
+        // ####################################################
+        // #### compute Wx, Wy.
+        tmp := TDoubleMatrix.Create;
+        tmp.AssignEx(invCxx, True);
+        tmp.MultInPlace(cxy);
+        tmp.MultInPlace(invCyy);
+
+        DoProgress(83);
+        fBaseProgress := 83;
+
+        tmp.LinEQProgress := {$IFDEF FPC}@{$ENDIF}svdProgress;
+        if tmp.SVD(U, V, W, True) <> srOk then
+           raise ELinEQSingularException.Create('Error could not calculate SVD');
+
+        V.TransposeInPlace;
+
+        DoProgress(95);
+        // ####################################################
+        // #### Compute cannonical correlation vectors
+        invCxx.MultInPlace(U);
+        invCyy.MultInPlace(V);
+
+        // number of CC's is min p, q!
+        numCC := min(p, q);
+        invCxx.SetSubMatrix(0, 0, numCC, invCxx.Height);
+        fWxT := invCxx.Transpose;
+
+        DoProgress(97);
+
+        invCyy.SetSubMatrix(0, 0, numCC, invCyy.Height);
+        fWyT := invCyy.Transpose;
+
+        W.SetSubMatrix(0, 0, 1, numCC);
+        fR := MatrixClass.Create;
+        fR.Assign(W);
+
+        // ###########################################
+        // #### Prepare for projection method
+        fInvWy := fWyT.Transpose;
+        if fInvWy.InvertInPlace = leSingular then
+           raise Exception.Create('Error cannot invert Wy for projection');
+
+        fInvWy.MultInPlace(fWxT);
+
+        DoProgress(100);
+     finally
+            meanNormX.Free;
+            meanNormY.Free;
+            Cxx.Free;
+            Cyy.Free;
+            Cxy.Free;
+            U.Free;
+            V.Free;
+            W.Free;
+            tmp.Free;
      end;
-
-     // ####################################################
-     // ##### compute projection matrices
-     // ####################################################
-
-     // ####################################################
-     // #### compute inverse matrices
-     fBaseProgress := 8;
-     cyy.LinEQProgress := {$IFDEF FPC}@{$ENDIF}InvProgress;
-     invCyy := InvertAndSQRT(Cyy);
-     DoProgress( 45 );
-     fBaseProgress := 45;
-     Cxx.LinEQProgress := {$IFDEF FPC}@{$ENDIF}InvProgress;
-     invCxx := InvertAndSQRT(Cxx);
-     DoProgress(82);
-
-     // ####################################################
-     // #### compute Wx, Wy.
-     tmp := TDoubleMatrix.Create;
-     tmp.Assign(invCxx, True);
-     tmp.MultInPlace(cxy);
-     tmp.MultInPlace(invCyy);
-
-     DoProgress(83);
-     fBaseProgress := 83;
-
-     tmp.LinEQProgress := {$IFDEF FPC}@{$ENDIF}svdProgress;
-     if tmp.SVD(U, V, W, True) <> srOk then
-        raise ELinEQSingularException.Create('Error could not calculate SVD');
-
-     V.TransposeInPlace;
-
-     DoProgress(95);
-     // ####################################################
-     // #### Compute cannonical correlation vectors
-     invCxx.MultInPlace(U);
-     invCyy.MultInPlace(V);
-
-     // number of CC's is min p, q!
-     numCC := min(p, q);
-     invCxx.SetSubMatrix(0, 0, numCC, invCxx.Height);
-     fWxT := invCxx.Transpose;
-
-     DoProgress(97);
-
-     invCyy.SetSubMatrix(0, 0, numCC, invCyy.Height);
-     fWyT := invCyy.Transpose;
-
-     W.SetSubMatrix(0, 0, 1, numCC);
-     fR := MatrixClass.Create;
-     fR.Assign(W);
-
-     // ###########################################
-     // #### Prepare for projection method
-     fInvWy := fWyT.Transpose;
-     if fInvWy.InvertInPlace = leSingular then
-        raise Exception.Create('Error cannot invert Wy for projection');
-
-     fInvWy.MultInPlace(fWxT);
-
-     DoProgress(100);
 end;
 
 function TMatrixCCA.Project(X: TDoubleMatrix): TDoubleMatrix;
-var tmp : IMatrix;
+var tmp : TDoubleMatrix;
 begin
      if not Assigned(fInvWy) then
         raise Exception.Create('Error inverted matrix not ready');
@@ -266,6 +300,7 @@ begin
      tmp := X.Sub(fMeanX);
      Result := fInvWy.Mult(tmp);
      Result.AddInplace(fMeanY);
+     tmp.Free;
 end;
 
 // ######################################################################
@@ -285,20 +320,38 @@ begin
      Result := cCCAIdentifier;
 end;
 
+procedure TMatrixCCA.clear;
+begin
+     FreeAndNil(fWxT);
+     FreeAndNil(fWyT);
+     FreeAndNil(fR);
+     FreeAndNil(fInvWy);
+     FreeAndNil(fMeanX);
+     FreeAndNil(fMeanY);
+
+end;
+
 procedure TMatrixCCA.DefineProps;
 begin
      if Assigned(fR) then
-        AddObject(cCCAR, R.GetObjRef);
+        AddObject(cCCAR, R);
      if Assigned(fWxT) then
-        AddObject(cCCAWx, fWxT.GetObjRef);
+        AddObject(cCCAWx, fWxT);
      if Assigned(fWyT) then
-        AddObject(cCCAWy, fWyT.GetObjRef);
+        AddObject(cCCAWy, fWyT);
      if Assigned(fInvWy) then
-        AddObject(cCCAInvWy, fInvWy.GetObjRef);
+        AddObject(cCCAInvWy, fInvWy);
      if Assigned(fMeanX) then
-        AddObject(cCCAMeanX, fMeanX.GetObjRef);
+        AddObject(cCCAMeanX, fMeanX);
      if Assigned(fMeanY) then
-        AddObject(cCCAMeanY, fMeanY.GetObjRef);
+        AddObject(cCCAMeanY, fMeanY);
+end;
+
+destructor TMatrixCCA.Destroy;
+begin
+     Clear;
+
+     inherited;
 end;
 
 function TMatrixCCA.PropTypeOfName(const Name: string): TPropType;
@@ -317,19 +370,19 @@ begin
      Result := True;
      if SameText(Name, cCCAR)
      then
-         fR := obj as IMatrix
+         fR := obj as TDoubleMatrix
      else if SameText(Name, cCCAWx)
      then
-         fWxT := obj as IMatrix
+         fWxT := obj as TDoubleMatrix
      else if SameText(Name, cCCAWy)
      then
-         fWyT := obj as IMatrix
-     else if SameText(Name, cCCAInvWy) 
+         fWyT := obj as TDoubleMatrix
+     else if SameText(Name, cCCAInvWy)
      then
-         fInvWy := obj as IMatrix
-     else if SameText(Name, cCCAMeanY) 
+         fInvWy := obj as TDoubleMatrix
+     else if SameText(Name, cCCAMeanY)
      then
-         fMeanY := obj as IMatrix
+         fMeanY := obj as TDoubleMatrix
      else
          Result := inherited OnLoadObject(Name, Obj);
 end;

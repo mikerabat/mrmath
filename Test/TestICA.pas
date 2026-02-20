@@ -21,7 +21,7 @@ interface
 {$ENDIF}
 
 uses {$IFDEF FPC} testregistry {$ELSE} {$IFDEF FMX}DUnitX.TestFramework {$ELSE}TestFramework {$ENDIF} {$ENDIF},
-     Classes, SysUtils, Types, Matrix, BaseMatrixTestCase;
+     Classes, SysUtils, Types, Matrix, DblMatrix, BaseMatrixTestCase;
 
 type
   {$IFDEF FMX} [TestFixture] {$ENDIF}
@@ -59,9 +59,9 @@ begin
         begin
              Examples.SetSubMatrix(counter, 0, 1, Examples.Height);
              projMtx := ica.ProjectToFeatureSpace(Examples);
-             reconMtx := ica.Reconstruct(projMtx.GetObjRef);
+             reconMtx := ica.Reconstruct(projMtx.GetObjRef as TDoubleMatrix);
 
-             ImageFromMatrix(reconMtx.GetObjRef, w, h, Format('%s%sica_%d.bmp', [ExtractFilePath(ParamStr(0)), PathDelim, counter]));
+             ImageFromMatrix(reconMtx.GetObjRef as TDoubleMatrix, w, h, Format('%s%sica_%d.bmp', [ExtractFilePath(ParamStr(0)), PathDelim, counter]));
         end;
      finally
             ica.Free;
@@ -103,7 +103,7 @@ begin
      props.stabilization := True;
      ICA.ICA ( Examples, props );
 
-     MatrixToTxtFile('D:\ica_w.txt', ICA.W.GetObjRef);
+     MatrixToTxtFile('D:\ica_w.txt', ICA.W.GetObjRef as TDoubleMatrix);
      ICA.Free;
 end;
 

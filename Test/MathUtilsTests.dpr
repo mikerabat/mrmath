@@ -71,7 +71,7 @@ uses
   Eigensystems in '..\Eigensystems.pas',
   LinearAlgebraicEquations in '..\LinearAlgebraicEquations.pas',
   MathUtilFunc in '..\MathUtilFunc.pas',
-  Matrix in '..\Matrix.pas',
+  DblMatrix in '..\DblMatrix.pas',
   MatrixConst in '..\MatrixConst.pas',
   MtxThreadPool in '..\MtxThreadPool.pas',
   SimpleMatrixOperations in '..\SimpleMatrixOperations.pas',
@@ -163,8 +163,6 @@ uses
   RollingMedMean in '..\RollingMedMean.pas',
   Wavelets in '..\Wavelets.pas',
   CplxSimpleMatrixOperations in '..\CplxSimpleMatrixOperations.pas',
-  // ###########################################
-  // #### Test cases
   BaseMatrixTestCase in 'BaseMatrixTestCase.pas',
   TestSimpleMatrixOperations in 'TestSimpleMatrixOperations.pas',
   TestAVX in 'TestAVX.pas',
@@ -188,7 +186,9 @@ uses
   TestSpecialFunc in 'TestSpecialFunc.pas',
   TestTSNE in 'TestTSNE.pas',
   TestCmplx in 'TestCmplx.pas',
-  TestWavelets in 'TestWavelets.pas';
+  TestWavelets in 'TestWavelets.pas',
+  CplxMatrix in '..\CplxMatrix.pas',
+  Matrix in '..\Matrix.pas';
 
 {$R *.RES}
 

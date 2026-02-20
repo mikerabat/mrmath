@@ -19,7 +19,7 @@ interface
 {$IFDEF FPC}{$Mode Delphi} {$modeswitch advancedrecords} {$ENDIF}
 
 
-uses Matrix, Types, RandomEng, PCA, MatrixConst;
+uses Matrix, DblMatrix, Types, RandomEng, PCA, MatrixConst;
 
 {$I 'mrMath_CPU.inc'}
 
@@ -31,7 +31,7 @@ uses Matrix, Types, RandomEng, PCA, MatrixConst;
 // t-Distributed Stochastic Neighbor Embedding:
 type
   TTSNEDistFunc = (dfOrig, dfEuclid, dfNormEuclid, dfAbs, dfMahalanobis);
-  TTSNEProgress = procedure(Sender : TObject; iter : integer; cost : double; yMap : IMatrix; var doCancel : boolean) of Object;
+  TTSNEProgress = procedure(Sender : TObject; iter : integer; cost : double; yMap : IDoubleMatrix; var doCancel : boolean) of Object;
   TTSNEPCAInit = function : TMatrixPCA of Object;
   TtSNE = class(TMatrixClass)
   private
@@ -45,8 +45,8 @@ type
 
     // internal states
     fBeta : double;
-    fy_grads, fyincs : IMatrix;
-    fQ : IMatrix;
+    fy_grads, fyincs : IDoubleMatrix;
+    fQ : IDoubleMatrix;
     fMinGain : double;
     fNumIter : integer;
 
@@ -62,16 +62,16 @@ type
     procedure HBetaExp( var value : double );
     procedure EntropyFuncQ( var Value : double; const data : PDouble; LineWidth : NativeInt; x, y : NativeInt );
 
-    function NormalizeInput( X : TDoubleMatrix ) : IMatrix;
-    function ApplyPCA( X : TDoubleMatrix ) : IMatrix;
-    function PairwiseDist( X : TDoubleMatrix ) : IMatrix;
-    function D2P( D : IMatrix ) : IMatrix;
-    function HBeta( D : IMatrix; beta : double; var H : double; var P : IMatrix ) : boolean;
-    function tsne_p( P : IMatrix; numDims : integer ) : IMatrix;
+    function NormalizeInput( X : TDoubleMatrix ) : IDoubleMatrix;
+    function ApplyPCA( X : TDoubleMatrix ) : IDoubleMatrix;
+    function PairwiseDist( X : TDoubleMatrix ) : IDoubleMatrix;
+    function D2P( D : IDoubleMatrix ) : IDoubleMatrix;
+    function HBeta( D : IDoubleMatrix; beta : double; var H : double; var P : IDoubleMatrix ) : boolean;
+    function tsne_p( P : IDoubleMatrix; numDims : integer ) : IDoubleMatrix;
     function InternalTSNE(xs: TDoubleMatrix; numDims: integer): TDoubleMatrix;
-    function PairDist(Xs: TDoubleMatrix): IMatrix;
+    function PairDist(Xs: TDoubleMatrix): IDoubleMatrix;
 
-    function InitRand( w, h : Integer ) : IMatrix;
+    function InitRand( w, h : Integer ) : IDoubleMatrix;
 
     // ###########################################
     // #### Burnes Hut
@@ -1414,12 +1414,12 @@ begin
      end;
 end;
 
-function TtSNE.NormalizeInput(X: TDoubleMatrix): IMatrix;
+function TtSNE.NormalizeInput(X: TDoubleMatrix): IDoubleMatrix;
 var maxVal : double;
-    meanVec : IMatrix;
+    meanVec : IDoubleMatrix;
 begin
      meanVec := X.Mean(False);
-     Result := X.subVec(meanVec, True);
+     Result := X.subVec(meanVec.GetObjRef as TDoubleMatrix, True);
      maxVal := MatrixAbsMax( Result.StartElement, Result.Width, Result.Height, Result.LineWidth);
      //maxVal := GenericMtxAbsMax( Result.StartElement, Result.Width, Result.Height, Result.LineWidth);
 
@@ -1443,48 +1443,28 @@ begin
 end;
 
 function TtSNE.SymTSNE(X: TDoubleMatrix; theta : double = 0.5; numDims : integer = 2): TDoubleMatrix;
-var xs : IMatrix;
-    //tmp : double;
-    //itmp : integer;
-    //buf : TDoubleDynArray;
+var xs : IDoubleMatrix;
 begin
      fTheta := theta;
      xs := ApplyPCA(X);
-     xs := NormalizeInput(xs.GetObjRef);
-
-     // output to compare with the original implementation
-     //buf := xs.SubMatrix;
-
-     //with TFileStream.Create('D:\xs.bin', fmCreate or fmOpenWrite) do
-//     try
-//        itmp := xs.Height; WriteBuffer(iTmp, sizeof(integer));
-//        itmp := xs.Width; WriteBuffer(iTmp, sizeof(integer));
-//        WriteBuffer(fTheta, sizeof(double));
-//        tmp := fPerplexity; WriteBuffer(tmp, sizeof(double));
-//        iTmp := xs.Width; WriteBuffer(iTmp, sizeof(integer));
-//        iTmp := 2000; WriteBuffer(iTmp, sizeof(integer));
-//
-//        WriteBuffer(buf[0], Length(buf)*sizeof(double));
-//     finally
-//            Free;
-//     end;
+     xs := NormalizeInput(TDoubleMatrix(xs.GetObjRef));
 
      if theta = 0
      then
-         Result := InternalTSNE( xs.GetObjRef, numDims )
+         Result := InternalTSNE( xs.GetObjRef as TDoubleMatrix, numDims )
      else
-         Result := InternalTSNEBarnesHut(xs.GetObjRef, numDims);
+         Result := InternalTSNEBarnesHut(xs.GetObjRef as TDoubleMatrix, numDims);
 end;
 
-function TtSNE.InitRand(w, h: Integer): IMatrix;
+function TtSNE.InitRand(w, h: Integer): IDoubleMatrix;
 begin
      Result := MatrixClass.Create(w, h, True); // prepare for better block mult
      Result.InitRandom(fRandAlgorithm, fSeed);
 end;
 
 function TtSNE.InternalTSNE( xs : TDoubleMatrix; numDims : integer) : TDoubleMatrix;
-var D, P : IMatrix;
-    yData : IMatrix;
+var D, P : IDoubleMatrix;
+    yData : IDoubleMatrix;
 begin
      D := PairDist(xs);
 
@@ -1497,14 +1477,14 @@ begin
 
      // handle the reference counting
      Result := MatrixClass.Create;
-     Result.TakeOver(yData.GetObjRef);
+     Result.TakeOver(yData.GetObjRef as TDoubleMatrix);
 
      fQ := nil;
      fy_grads := nil;
      fyincs := nil;
 end;
 
-function TtSNE.ApplyPCA(X: TDoubleMatrix): IMatrix;
+function TtSNE.ApplyPCA(X: TDoubleMatrix): IDoubleMatrix;
 var aPca : TMatrixPCA;
 begin
      // apply pca and check if we can shrink it to the designated number of eigenvectors
@@ -1518,11 +1498,11 @@ begin
 
      try
         Result := X.Transpose;
-        aPca.PCA(Result.GetObjRef, fInitDims, False);
+        aPca.PCA(Result.GetObjRef as TDoubleMatrix, fInitDims, False);
 
         Result.SubVecInPlace(aPca.Mean, False);
 
-        Result := aPca.EigVecsT.Mult( Result );
+        Result := aPca.EigVecsT.Mult( Result.GetObjRef as TDoubleMatrix );
         Result.TransposeInPlace;
      finally
             aPca.Free;
@@ -1537,8 +1517,8 @@ end;
 
 {$REGION 'Exact tsne'}
 
-function TtSNE.PairwiseDist(X: TDoubleMatrix): IMatrix;
-var sum_x : IMatrix;
+function TtSNE.PairwiseDist(X: TDoubleMatrix): IDoubleMatrix;
+var sum_x : IDoubleMatrix;
 begin
      sum_x := X.ElementWiseMult(X);
      sum_x.SumInPlace(True);
@@ -1549,8 +1529,8 @@ begin
      Result.AddVecInPlace(sum_x, False);
 end;
 
-function TtSNE.PairDist(Xs: TDoubleMatrix): IMatrix;
-var pDist : IMatrix;
+function TtSNE.PairDist(Xs: TDoubleMatrix): IDoubleMatrix;
+var pDist : IDoubleMatrix;
     w : integer;
     idx : integer;
     x, y : integer;
@@ -1594,18 +1574,18 @@ begin
      Result.ElementWiseMultInPlace(Result);
 end;
 
-function TtSNE.D2P(D: IMatrix): IMatrix;
+function TtSNE.D2P(D: IDoubleMatrix): IDoubleMatrix;
 var i : NativeInt;
     numPts : NativeInt;
     betaMin, betaMax : double;
     beta : TDoubleDynArray;
-    subVec : IMatrix;
-    thisP : IMatrix;
+    subVec : IDoubleMatrix;
+    thisP : IDoubleMatrix;
     tries : integer;
     H, logU : double;
     hDiff : double;
-    P : IMatrix;
-procedure FillSubVec( subVec, D : IMatrix; i : integer);
+    P : IDoubleMatrix;
+procedure FillSubVec( subVec, D : IDoubleMatrix; i : integer);
 var idx : integer;
     ii : integer;
 begin
@@ -1619,7 +1599,7 @@ begin
           end;
      end;
 end;
-procedure FillP(P, subVec : IMatrix; i : integer);
+procedure FillP(P, subVec : IDoubleMatrix; i : integer);
 var idx : integer;
     ii : integer;
 begin
@@ -1731,18 +1711,18 @@ end;
 //    P = P / sumP;
 //end
 
-function TtSNE.HBeta(D: IMatrix; beta: double; var H : double; var P: IMatrix) : boolean;
+function TtSNE.HBeta(D: IDoubleMatrix; beta: double; var H : double; var P: IDoubleMatrix) : boolean;
 var sumP : double;
-    muldp : IMatrix;
+    muldp : IDoubleMatrix;
 begin
      fBeta := beta;
      P := D.ElementwiseFunc( HBetaExp );
-     sumP := (P.Sum(True) as IMatrix).Vec[0] + MinSingle;  // barnes hut from mr maaten does this (but with mindouble)
+     sumP := (P.Sum(True) as IDoubleMatrix).Vec[0] + MinSingle;  // barnes hut from mr maaten does this (but with mindouble)
      muldp := D.ElementWiseMult(P);
 
      if sumP >= 1e-13 then
      begin
-          H := ln(sumP) + beta*(muldp.Sum(True) as IMatrix).Vec[0]/sumP;
+          H := ln(sumP) + beta*(muldp.Sum(True) as IDoubleMatrix).Vec[0]/sumP;
 
           P.ScaleInPlace(1/sumP);
           Result := True;
@@ -1773,26 +1753,26 @@ begin
      value :=  cmpVal*value + cMinDouble;
 end;
 
-function TtSNE.tsne_p(P: IMatrix; numDims : integer): IMatrix;
+function TtSNE.tsne_p(P: IDoubleMatrix; numDims : integer): IDoubleMatrix;
 var n : integer;                        // number of instances
     momentum : double;                  // initial momentum
     epsilon : double;
     scaleFact : double;
     i : integer;
-    PT : IMatrix;
+    PT : IDoubleMatrix;
     constEntr : double;
-    yData : IMatrix;
-    gains : IMatrix;
+    yData : IDoubleMatrix;
+    gains : IDoubleMatrix;
     iter: Integer;
-    sum_ydata : IMatrix;
-    tmp : IMatrix;
-    num : IMatrix;
-    L, Q : IMatrix;
+    sum_ydata : IDoubleMatrix;
+    tmp : IDoubleMatrix;
+    num : IDoubleMatrix;
+    L, Q : IDoubleMatrix;
     doCancel : boolean;
     aSum : double;
-    aMean : IMatrix;
-    yMul : IMatrix;
-    tmp2 : IMatrix;
+    aMean : IDoubleMatrix;
+    yMul : IDoubleMatrix;
+    tmp2 : IDoubleMatrix;
     line1, line2 : PConstDoubleArr;
     y : integer;
     origNumCPUCores : integer;
@@ -1887,7 +1867,7 @@ begin
           for i := 0 to num.Width - 1 do
               num[i, i] := 0;
 
-          aSum := num.Sum;
+          aSum := num.SumAll;
           Q.Assign( num );
           Q.ScaleInPlace( 1/aSum );
           //Q.ElementwiseFuncInPlace({$ifdef FPC}@{$ENDIF}MaxFunc );
@@ -2187,7 +2167,7 @@ var sumP : double;
     iter: Integer;
     momentum : double;
     aMean : TDoubleDynArray;
-    yData : IMatrix;
+    yData : IDoubleMatrix;
     pY : PConstDoubleArr;
     doCancel : boolean;
 const cStopLyingIter = 250;
@@ -2319,7 +2299,7 @@ begin
 
      // handle the reference counting - result in in the matrix class that is assigned...
      Result := MatrixClass.Create;
-     Result.TakeOver(yData);
+     Result.TakeOver(yData.GetObjRef as TDoubleMatrix);
 end;
 
 procedure TtSNE.CalcPerplexity(x: TDoubleMatrix; perplexity: double;

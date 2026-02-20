@@ -22,23 +22,44 @@ uses MatrixConst, Math, Types;
 // ###########################################
 // #### Complex number handling
 // ###########################################
+// sqrt( val.real^2 + val.imag^2 )
 function CAbs( const val : TComplex ) : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+// abs(val.real) + abs(val.imag)
+function CAbs1( const val : TComplex ) : double; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function CConj( const val : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function CAdd( const x1, x2 : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function CSub( const x1, x2 : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function CMul(const x1, x2 : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function CDiv( const x1, x2 : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+function CInv( const x1 : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function RCMul(const x1 : double; const x2 : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function CMax( const x1, x2 : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function CMin( const x1, x2 : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 
+// perform x1 + x2*x3
+function CAddMul( const x1, x2, x3 : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+// performs x1 := x1 + x2*x3
+procedure CIncMul( var x1 : TComplex; const x2, x3 : TComplex ); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+// performs x1 := x1 + x2*conj(x3)
+procedure CIncMulConj( var x1 : TComplex; const x2, x3 : TComplex ); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+
+// perform x1 - x2*x3
+function CSubMul( const x1, x2, x3 : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+
+
+// performs x1 := x1 + x2;
+procedure CInc( var x1 : TComplex; const x2 : TComplex ); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+// performs x1 := x1 - x2;
+procedure CDec( var x1 : TComplex; const x2 : TComplex ); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+
+function CNeg( const x1 : TComplex ): TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function CCmp( const x, y : TComplex; eps : double = 0 ) : TValueRelationship;
 
 // ###########################################
 // #### Higher order function
 function CSqrt( const x : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function CExp( const x : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
-function CLn( const x : TComplex ) : TComplex; //{$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+function CLn( const x : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function CSin( const x : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function CCos( const x : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
 function CTan( const x : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
@@ -49,6 +70,10 @@ function CTan( const x : TComplex ) : TComplex; {$IFNDEF FPC} {$IF CompilerVersi
 
 // todo: to be filled with the same function as in SimpleMatrixOPerations.pas
 procedure CplxGenericMtxInit( dest : PComplex; destLineWidth : NativeInt; width, height : NativeInt; const value : TComplex );
+procedure CplxGenericMtxCopy(dest : PComplex; destLineWidth : NativeInt; Src : PComplex; srcLineWidth : NativeInt; width, height : NativeInt);
+
+procedure CplxGenericMtxIndex( dest : PComplex; destLineWidth : NativeInt; Src : PComplex; srcLineWidth : NativeInt; colIdx, rowIdx : TIntegerDynArray);
+
 
 procedure CplxGenericColSwap(A, B : PComplex; const LineWidthAB : NativeInt; Height : NativeInt);
 procedure CplxGenericRowSwap(A, B : PComplex; width : NativeInt);
@@ -68,11 +93,17 @@ procedure CplxGenericMtxElemAdd(Dest : PComplex; LineWidth, Width, Height : Nati
 procedure CplxGenericMtxAddAndScale(Dest : PComplex; LineWidth, Width, Height : NativeInt; const Offset, Scale : TComplex);
 procedure CplxGenericMtxScaleAndAdd(Dest : PComplex; LineWidth, Width, Height : NativeInt; const Offset, Scale : TComplex);
 
+procedure CplxGenericMtxCumulativeSum(dest : PComplex; destLineWidth : NativeInt; Src : PComplex;
+  srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+procedure CplxGenericMtxDifferentiate(dest : PComplex; destLineWidth : NativeInt; Src : PComplex;
+  srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+
+
 // calculates Result := sum_0_n-1( x[i]*y[i] );
 function CplGenericVecDotMult( x : PComplex; incX : NativeInt; y : PComplex; incY : NativeInt; N : NativeInt ) : TComplex;
 
 // element wise eukledian norm
-function CplxGenericMtxElementwiseNorm2(Src : PComplex; srcLineWidth : NativeInt; Width, height : NativeInt; doSqrt : boolean) : TComplex;
+function CplxGenericMtxElementwiseNorm2(Src : PComplex; srcLineWidth : NativeInt; Width, height : NativeInt; doSqrt : boolean) : double;
 
 // conjugate transpose:
 procedure CplxGenericMtxTranspose(dest : PComplex; const destLineWidth : NativeInt; mt : PComplex; const LineWidth : NativeInt; width : NativeInt; height : NativeInt); overload;
@@ -85,6 +116,8 @@ procedure CplxGenericMtxTransposeNoConj(dest : PComplex; const destLineWidth : N
 
 // apply the principal square on each element
 procedure CplxGenericMtxSqrt(dest : PComplex; destLineWidth : NativeInt; width, height : NativeInt);
+// apply cabs on each element
+procedure CplxGenericMtxAbs(dest : PComplex; destLineWidth : NativeInt; width, height : NativeInt);
 
 // min/max operations using the cabs operator
 function CplxGenericMtxMax(mt : PComplex; width, height : NativeInt; const LineWidth : NativeInt) : TComplex;
@@ -96,6 +129,10 @@ procedure CplxGenericMtxElemDiv(dest : PComplex; destLineWidth : NativeInt; mt1,
 
 // normalization
 procedure CplxGenericMtxNormalize(dest : PComplex; destLineWidth : NativeInt; Src : PComplex; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+procedure CplxGenericMtxNormalizeMeanVar(dest : PComplex; destLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+
+procedure CplxGenericMtxSum(dest : PComplex; destLineWidth : NativeInt; Src : PComplex; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+function CplxGenericMtxSumSum(Src : PComplex; srcLineWidth : NativeInt; width, height : NativeInt) : TComplex;
 
 
 // Apply a function to a matrix:
@@ -126,11 +163,24 @@ procedure CplxGenericSubMtxFunc(dest : PComplex; const destLineWidth : NativeInt
 procedure CplxGenericSubMtxFunc(dest : PComplex; const destLineWidth : NativeInt; startX, startY, width, height : NativeInt; func : TCplxMatrixMtxRefFuncRef); overload;
 {$ENDIF}
 
-const cCplxReal1 : TComplex = (real: 1; imag: 0);
-      cCplxImag1 : TComplex = (real: 0; imag: 1);
-      cCplxImagM1 : TComplex = (real: 0; imag: -1);
+// ###########################################
+// #### Variance/Mean
+procedure CplxGenericMtxMean(dest : PComplex; destLineWidth : NativeInt; Src : PComplex; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+procedure CplxGenericMtxVar(dest : PComplex; destLineWidth : NativeInt; Src : PComplex; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; unbiased : boolean);
+procedure CplxGenericMtxMeanVar(dest : PComplex; destLineWidth : NativeInt; Src : PComplex; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; unbiased : boolean);
+
+
+// ###########################################
+// #### sorting/median
+procedure CplxGenericMtxMedian(dest : PComplex; destLineWidth : NativeInt; Src : PComplex; srcLineWidth : NativeInt;
+  width, height : NativeInt; RowWise : boolean; tmp : PComplex = nil);
+procedure CplxGenericMtxRollMedian( dest : PComplex; const destLineWidth : NativeInt; Width, Height : NativeInt; order : integer; rowWise : boolean);
+procedure CplxGenericMtxSort(dest : PComplex; destLineWidth : NativeInt; width, height : integer; RowWise : boolean; tmp : PComplex = nil);
+
 
 implementation
+
+uses RollingMedMean, MathUtilFunc;
 
 // ###########################################
 // #### Complex number arithmetic helper functions
@@ -155,6 +205,11 @@ begin
      end;
 end;
 
+function CAbs1( const val : TComplex ) : double;
+begin
+     Result := abs(val.real) + abs(val.imag);
+end;
+
 function CConj( const val : TComplex ) : TComplex;
 begin
      Result.real := val.real;
@@ -173,10 +228,53 @@ begin
      Result.imag := x1.imag - x2.imag;
 end;
 
+procedure CInc( var x1 : TComplex; const x2 : TComplex );
+begin
+     x1.real := x1.real + x2.real;
+     x1.imag := x1.imag + x2.imag;
+end;
+
+procedure CDec( var x1 : TComplex; const x2 : TComplex );
+begin
+     x1.real := x1.real - x2.real;
+     x1.imag := x1.imag - x2.imag;
+end;
+
+function CNeg( const x1 : TComplex ): TComplex;
+begin
+     Result.real := -x1.real;
+     Result.imag := -x1.imag;
+end;
+
 function CMul(const x1, x2 : TComplex ) : TComplex;
 begin
      Result.real := x1.real*x2.real - x1.imag*x2.imag;
      Result.imag := x1.real*x2.imag + x1.imag*x2.real;
+end;
+
+function CAddMul( const x1, x2, x3 : TComplex ) : TComplex;
+begin
+     Result.real := x1.real + x2.real*x3.real - x2.imag*x3.imag;
+     Result.imag := x1.imag + x2.real*x3.imag + x2.imag*x3.real;
+end;
+
+procedure CIncMul( var x1 : TComplex; const x2, x3 : TComplex ); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+begin
+     x1.real := x1.real + x2.real*x3.real - x2.imag*x3.imag;
+     x1.imag := x1.imag + x2.real*x3.imag + x2.imag*x3.real;
+end;
+
+// performs x1 := x1 + x2*conj(x3)
+procedure CIncMulConj( var x1 : TComplex; const x2, x3 : TComplex ); {$IFNDEF FPC} {$IF CompilerVersion >= 17.0} inline; {$IFEND} {$ENDIF}
+begin
+     x1.real := x1.real + x2.real*x3.real + x2.imag*x3.imag;
+     x1.imag := x1.imag - x2.real*x3.imag + x2.imag*x3.real;
+end;
+
+function CSubMul( const x1, x2, x3 : TComplex ) : TComplex;
+begin
+     Result.real := x1.real - x2.real*x3.real + x2.imag*x3.imag;
+     Result.imag := x1.imag - x2.real*x3.imag - x2.imag*x3.real;
 end;
 
 function CDiv( const x1, x2 : TComplex ) : TComplex;
@@ -197,6 +295,27 @@ begin
 
           Result.real := (x1.real*r + x1.imag)/denom;
           Result.imag := (x1.imag*r - x1.real)/denom;
+     end;
+end;
+
+// calculates 1/x1
+function CInv( const x1 : TComplex ) : TComplex;
+var denom : double;
+    r : double;
+begin
+     if Abs(x1.real) >= Abs(x1.imag) then
+     begin
+          r := x1.imag/x1.Real;
+          denom := x1.real + x1.imag*r;
+          Result.real := 1/denom;
+          Result.imag := -r/denom;
+     end
+     else
+     begin
+          r := x1.real/x1.imag;
+          denom := x1.imag + r*x1.real;
+          Result.real := r/denom;
+          Result.imag := -1/denom;
      end;
 end;
 
@@ -223,13 +342,13 @@ begin
      // same length? -> first test real value sign, then imag sign
      if Result = 0 then
      begin
-          s1 := Sign(x.real);
-          s2 := Sign(y.real);
+          s1 := Math.Sign(x.real);
+          s2 := Math.Sign(y.real);
 
           if s1 = s2 then
           begin
-               s1 := Sign(x.imag);
-               s2 := Sign(y.imag);
+               s1 := Math.Sign(x.imag);
+               s2 := Math.Sign(y.imag);
 
                if (s1 = s2) then
                begin
@@ -268,7 +387,6 @@ begin
      else
          Result := x2;
 end;
-
 
 // prinzipal root
 function CSqrt( const x : TComplex ) : TComplex;
@@ -422,6 +540,38 @@ begin
      end;
 end;
 
+procedure CplxGenericMtxCopy(dest : PComplex; destLineWidth : NativeInt; Src : PComplex; srcLineWidth : NativeInt; width, height : NativeInt);
+var x, y : NativeInt;
+begin
+     for y := 0 to Height - 1 do
+     begin
+          for x := 0 to Width - 1 do
+               PConstComplexArr(dest)^[x] := PConstComplexArr(src)^[x];
+
+          inc(PByte(dest), destLineWidth);
+          inc(PByte(src), srcLineWidth);
+     end;
+end;
+
+
+procedure CplxGenericMtxIndex( dest : PComplex; destLineWidth : NativeInt; Src : PComplex; srcLineWidth : NativeInt; colIdx, rowIdx : TIntegerDynArray);
+var pDest : PConstComplexArr;
+    pSrc : PConstComplexArr;
+    x, y : NativeInt;
+begin
+     pDest := PConstComplexArr(dest);
+     for y := 0 to Length(rowIdx) - 1 do
+     begin
+          pSrc := PConstComplexArr( CplxGenPtrArr(src, 0, rowIdx[y], srcLineWidth) );
+
+          for x := 0 to Length(colIdx) - 1 do
+              pDest^[x] := pSrc^[colIdx[x]];
+
+          inc( PByte(pDest), destLineWidth );
+     end;
+end;
+
+
 procedure CplxGenericColSwap(A, B : PComplex; const LineWidthAB : NativeInt; Height : NativeInt);
 var tmp : TComplex;
     i : NativeInt;
@@ -460,17 +610,21 @@ var x, y: Integer;
 begin
      assert((destLineWidth >= width*sizeof(TComplex)) and (srcLineWidth >= width*sizeof(TComplex)) and (width > 0) and (height > 0), 'Dimension error');
 
+     // implements the normc and normr function in Matlab
+     // as of the real matrix we follow here the the formula
+     // normVal := 1/sqrt(sum(v.*v))
+     // v = v.*normVal
      // same normalization as for real numbers but using complex mult and divide operations...
      if RowWise then
      begin
           for y := 0 to height - 1 do
           begin
                pSrc := PConstComplexArr(Src);
-               normVal := InitComplex(0, 0);
+               normVal := cCplxZero;
 
                for x := 0 to width - 1 do
-                   normVal := CAdd(normVal, CMul( pSrc^[x], pSrc^[x] ) );
-               normVal := CDiv( cCplxReal1, CSqrt(normVal) );
+                   CInc(normVal, CMul(pSrc^[x], pSrc^[x]));
+               normVal := CDiv(cCplxReal1, CSqrt(normVal));
 
                pDest := PConstComplexArr(dest);
                for x := 0 to width - 1 do
@@ -485,50 +639,86 @@ begin
           for x := 0 to width - 1 do
           begin
                pSrc := PConstComplexArr(Src);
-               normVal := InitComplex(0, 0);
+               normVal := cCplxZero;
                for y := 0 to height - 1 do
                begin
-                    normVal := CAdd(normVal, CMul( pSrc^[0], pSrc^[0] ) );
+                    CInc(normVal, CMul(pSrc^[x], pSrc^[x]));
                     inc(PByte(pSrc), srcLineWidth);
                end;
-               normVal := CDiv( cCplxReal1, CSqrt(normVal) );
+               normVal := CDiv(cCplxReal1, CSqrt(normVal));
 
                pSrc := PConstComplexArr(Src);
                pDest := PConstComplexArr(dest);
 
                for y := 0 to height - 1 do
                begin
-                    pDest^[0] := CMul(normVal, pSrc^[0]);
+                    pDest^[x] := CMul(normVal, pSrc^[x]);
 
                     inc(PByte(pDest), destLineWidth);
                     inc(PByte(pSrc), srcLineWidth);
                end;
-
-               inc(dest);
-               inc(src);
           end;
      end;
 end;
 
-function CplxGenericMtxElementwiseNorm2(Src : PComplex; srcLineWidth : NativeInt; Width, height : NativeInt; doSqrt : boolean) : TComplex;
+procedure CplxGenericMtxNormalizeMeanVar(dest : PComplex; destLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+var meanVar : TComplexDynArray;
+    x, y : NativeInt;
+    invstdDev : TComplex;
+const cMinVar : TComplex = (real : 1e-300; Imag : 0);
+begin
+     if RowWise then
+     begin
+          SetLength(meanVar, 2*height);
+
+          CplxGenericMtxMeanVar(@meanVar[0], 2*sizeof(TComplex), dest, destLineWidth, width, height, True, True);
+
+          for y := 0 to Height - 1 do
+          begin
+               invstdDev := cCplxZero;
+               if CCmp( meanVar[1 + y*2], cMinVar ) = GreaterThanValue then
+                  invstdDev := CDiv( cCplxReal1,  CSqrt(meanVar[1 + y*2]) );
+
+               CplxGenericMtxAddAndScale(Dest, destLineWidth, Width, 1, CNeg(meanVar[0 + y*2]), invstdDev);
+               inc(PByte(dest), destLineWidth);
+          end;
+     end
+     else
+     begin
+          SetLength(meanVar, 2*Width);
+          CplxGenericMtxMeanVar( @meanVar[0], width*sizeof(TComplex), dest, destLineWidth, width, height, False, True);
+
+          for x := 0 to Width - 1 do
+          begin
+               invstdDev := cCplxZero;
+               if  CCmp(meanVar[x + width], cMinVar ) = GreaterThanValue then
+                  invstdDev := CDiv( cCplxReal1, CSqrt(meanVar[x + width]));
+
+               CplxGenericMtxAddAndScale(Dest, destLineWidth, 1, Height, CNeg(meanVar[x]), invstdDev);
+               inc(dest);
+          end;
+     end;
+end;
+
+
+function CplxGenericMtxElementwiseNorm2(Src : PComplex; srcLineWidth : NativeInt; Width, height : NativeInt; doSqrt : boolean) : double;
 var pSrc : PConstComplexArr;
     x, y : NativeInt;
 begin
      assert((width > 0) and (height > 0) and (srcLineWidth >= width*sizeof(double)), 'Dimension error');
 
-     Result := InitComplex(0, 0);
+     Result := 0;
 
      pSrc := PConstComplexArr(Src);
      for y := 0 to Height - 1 do
      begin
           for x := 0 to Width - 1 do
-              Result := CAdd(Result, CMul(pSrc^[x], pSrc^[x]));
-
+              Result := Result + sqr(pSrc^[x].real) + sqr(pSrc^[x].imag);
           inc(PByte(pSrc), srcLineWidth);
      end;
 
      if doSqrt then
-        Result := CSqrt(Result);
+        Result := Sqrt(Result);
 end;
 
 
@@ -696,6 +886,100 @@ begin
 end;
 
 
+procedure CplxGenericMtxCumulativeSum(dest : PComplex; destLineWidth : NativeInt; Src : PComplex;
+  srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+var val : TComplex;
+    x, y : NativeInt;
+    pVal1 : PByte;
+    pVal2 : PConstComplexArr;
+    pVal : PComplex;
+    pDest : PComplex;
+begin
+     assert((Width > 0) and (Height > 0), 'No data assigned');
+
+     pVal1 := PByte(Src);
+     if RowWise then
+     begin
+          for y := 0 to Height - 1 do
+          begin
+               val := cCplxZero;
+
+               pVal2 := PConstComplexArr(pVal1);
+               for x := 0 to Width - 1 do
+               begin
+                    val := CAdd( val, pVal2^[x] );
+                    PConstComplexArr(dest)^[x] := val;
+               end;
+
+               inc(pVal1, srcLineWidth);
+               inc(PByte(dest), destLineWidth);
+          end;
+     end
+     else
+     begin
+          for x := 0 to Width - 1 do
+          begin
+               val := cCplxZero;
+
+               pVal := PComplex(pVal1);
+               pDest := dest;
+               for y := 0 to Height - 1 do
+               begin
+                    val := CAdd(val, pVal^);
+                    pDest^ := val;
+                    inc(PByte(pVal), srcLineWidth);
+                    inc(PByte(pDest), destLineWidth);
+               end;
+
+               inc(pVal1, sizeof(TComplex));
+               inc(dest);
+          end;
+     end;
+end;
+
+procedure CplxGenericMtxDifferentiate(dest : PComplex; destLineWidth : NativeInt; Src : PComplex; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+var x, y : NativeInt;
+    pVal11 : PComplex;
+    pVal2 : PConstComplexArr;
+    pVal1 : PComplex;
+    pDest : PComplex;
+begin
+     assert((Width > 0) and (Height > 0), 'No data assigned');
+
+     if RowWise then
+     begin
+          pVal2 := PConstComplexArr(src);
+          for y := 0 to Height - 1 do
+          begin
+               for x := 0 to Width - 2 do
+                   PConstComplexArr(dest)^[x] := CSub(PConstComplexArr(pVal2)^[x + 1], PConstComplexArr(pVal2)^[x]);
+
+               inc(PByte(pVal2), srcLineWidth);
+               inc(PByte(dest), destLineWidth);
+          end;
+     end
+     else
+     begin
+          for x := 0 to Width - 1 do
+          begin
+               pVal1 := PComplex(src);
+               pVal11 := pVal1;
+               inc(PByte(pVal11), srcLineWidth);
+               pDest := dest;
+               for y := 0 to Height - 2 do
+               begin
+                    pDest^ := CSub(pVal11^, pVal1^);
+                    pVal1 := pVal11;
+                    inc(PByte(pVal11), srcLineWidth);
+                    inc(PByte(pDest), destLineWidth);
+               end;
+
+               inc(src);
+               inc(dest);
+          end;
+     end;
+end;
+
 procedure CplxGenericMtxMult(dest : PComplex; const destLineWidth : NativeInt; mt1, mt2 : PComplex; width1 : NativeInt; height1 : NativeInt; width2 : NativeInt; height2 : NativeInt; const LineWidth1, LineWidth2 : NativeInt);
 var x, y, idx : NativeInt;
     destOffset : NativeInt;
@@ -715,7 +999,7 @@ begin
                valCounter2 := mt2;
                for idx := 0 to width1 - 1 do
                begin
-                    dest^ := CAdd(dest^, CMul(valCounter1^[idx], valCounter2^));
+                    CIncMul(dest^, valCounter1^[idx], valCounter2^);
                     inc(PByte(valCounter2), LineWidth2);
                end;
 
@@ -742,9 +1026,10 @@ begin
           pMt2 := PConstComplexArr(mt2);
           for x := 0 to height2 - 1 do
           begin
-               pdest^ := InitComplex(0, 0);
+               pdest^ := cCplxZero;
+               // performs
                for idx := 0 to width1 - 1 do
-                   pDest^ := CAdd(pDest^, CMul(PConstComplexArr(mt1)^[idx], pMt2^[idx]));
+                   CIncMulConj(pDest^, PConstComplexArr(mt1)^[idx], pMt2^[idx]);
 
                inc(PByte(pMt2), LineWidth2);
                inc(pDest);
@@ -770,8 +1055,7 @@ begin
 
           for x := 0 to Width - 1 do
           begin
-               valCounter^ := pMt^[x];
-               valCounter^.imag := -valCounter^.imag; // conjugate complex...
+               valCounter^ := CConj(pMt^[x]); // conjugate complex
                inc(PByte(valCounter), destLineWidth);
           end;
           inc(dest);
@@ -848,6 +1132,27 @@ begin
           inc(PByte(dest), destLineWidth);
      end;
 end;
+
+procedure CplxGenericMtxAbs(dest : PComplex; destLineWidth : NativeInt; width, height : NativeInt);
+var x, y : NativeInt;
+    pLine : PConstComplexArr;
+begin
+     assert((width > 0) and (height > 0), 'Dimension Error');
+     assert(width*sizeof(TComplex) <= destLineWidth, 'Dimension Error');
+
+     // principal square on each element
+     for y := 0 to Height - 1 do
+     begin
+          pLine := PConstComplexArr(dest);
+          for x := 0 to width - 1 do
+          begin
+               pLine^[x].real := CAbs(pLine^[x]);
+               pLine^[x].imag := 0;
+          end;
+          inc(PByte(dest), destLineWidth);
+     end;
+end;
+
 
 function CplxGenericMtxMax(mt : PComplex; width, height : NativeInt; const LineWidth : NativeInt) : TComplex;
 var x, y : NativeInt;
@@ -965,7 +1270,7 @@ begin
      for y := 0 to height - 1 do
      begin
           for x := 0 to width - 1 do
-              PConstComplexArr(dest)^[x] := CAdd( CMul(PConstComplexArr(dest)^[x], Scale), Offset);
+              PConstComplexArr(dest)^[x] := CAddMul( Offset, PConstComplexArr(dest)^[x], Scale);
 
           inc(PByte(dest), LineWidth);
      end;
@@ -1240,6 +1545,479 @@ begin
      end;
 end;
 
+procedure CplxGenericMtxMean(dest : PComplex; destLineWidth : NativeInt; Src : PComplex; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+var val, val2 : TComplex;
+    x, y : NativeInt;
+    pVal1 : PByte;
+    pVal2 : PConstComplexArr;
+    pVal : PComplex;
+begin
+     assert((Width > 0) and (Height > 0), 'No data assigned');
+
+     pVal1 := PByte(Src);
+     if RowWise then
+     begin
+          for y := 0 to Height - 1 do
+          begin
+               val := cCplxZero;
+               val2 := cCplxZero;
+
+               // perform the sum via two variables -> so the
+               // sse version is actually the same and there are less numerical
+               // problems (in tsne this actually makes a difference)
+               pVal2 := PConstComplexArr(pVal1);
+               x := 0;
+               while x < width - 1 do
+               begin
+                    val := CAdd(val, pVal2^[x]);
+                    val2 := CAdd(val2, pVal2^[x + 1]);
+                    inc(x, 2);
+               end;
+               if x < width then
+                  val := CAdd(val, pVal2^[x]);
+
+               val := CAdd(val, val2);
+               //for x := 0 to Width - 1 do
+               //    val := val + pVal2^[x];
+
+               if Width > 0 then
+                  dest^ := RCMul(1/Width, val);
+               inc(pVal1, srcLineWidth);
+               inc(PByte(dest), destLineWidth);
+          end;
+     end
+     else
+     begin
+          for x := 0 to Width - 1 do
+          begin
+               val := cCplxZero;
+
+               pVal := PComplex(pVal1);
+               for y := 0 to Height - 1 do
+               begin
+                    val := CAdd(val, pVal^);
+                    inc(PByte(pVal), srcLineWidth);
+               end;
+
+               if Height > 0 then
+                  dest^ := RCMul(1/height, val);
+
+               inc(pVal1, sizeof(TComplex));
+               inc(dest);
+          end;
+     end;
+end;
+
+procedure CplxGenericMtxVar(dest : PComplex; destLineWidth : NativeInt; Src : PComplex; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; unbiased : boolean);
+var val : TComplex;
+    x, y : NativeInt;
+    pVal1 : PByte;
+    pVal2 : PConstComplexArr;
+    pVal : PComplex;
+    meanVal : TComplex;
+    aVariance : TComplex;
+    tmp : TComplex;
+begin
+     assert((Width > 0) and (Height > 0), 'No data assigned');
+
+     pVal1 := PByte(Src);
+     if RowWise then
+     begin
+          for y := 0 to Height - 1 do
+          begin
+               val := cCplxZero;
+
+               pVal2 := PConstComplexArr(pVal1);
+               for x := 0 to Width - 1 do
+                   val := CAdd(val, pVal2^[x]);
+
+               aVariance := cCplxZero;
+               if Width > 0 then
+               begin
+                    meanVal := RCMul(1/width, val);
+
+                    for x := 0 to Width - 1 do
+                    begin
+                         tmp := CSub(pVal2^[x], meanVal);
+                         aVariance := CAdd(aVariance, CMul(tmp, tmp));
+                    end;
+
+                    if unbiased
+                    then
+                        dest^ := RCMul(1/Max(1, width - 1), aVariance)
+                    else
+                        dest^ := RCMul(1/width, aVariance);
+               end
+               else
+                   dest^ := cCplxZero;
+               inc(pVal1, srcLineWidth);
+               inc(PByte(dest), destLineWidth);
+          end;
+     end
+     else
+     begin
+          for x := 0 to Width - 1 do
+          begin
+               val := cCplxZero;
+
+               pVal := PComplex(pVal1);
+               for y := 0 to Height - 1 do
+               begin
+                    val := CAdd(val, pVal^);
+                    inc(PByte(pVal), srcLineWidth);
+               end;
+
+               if Height > 0 then
+               begin
+                    meanVal := RCMul(1/Height, val);
+
+                    aVariance := cCplxZero;
+                    pVal := PComplex(pVal1);
+                    for y := 0 to Height - 1 do
+                    begin
+                         tmp := CSub(pVal^, meanVal);
+                         aVariance := CAdd(aVariance, CMul(tmp, tmp));
+                         inc(PByte(pVal), srcLineWidth);
+                    end;
+
+                    if unbiased
+                    then
+                        dest^ := RCMul( 1/Max(1, Height - 1), aVariance)
+                    else
+                        dest^ := RCMul(1/Height, aVariance);
+               end
+               else
+                   dest^ := cCplxZero;
+
+               inc(pVal1, sizeof(TComplex));
+               inc(dest);
+          end;
+     end;
+end;
+
+procedure CplxGenericMtxMeanVar(dest : PComplex; destLineWidth : NativeInt; Src : PComplex; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean; unbiased : boolean);
+var x, y : NativeInt;
+    pVal1 : PByte;
+    pVal2 : PConstComplexArr;
+    pVal : PComplex;
+    pDest1 : PComplex;
+    meanVal : TComplex;
+    tmp : TComplex;
+begin
+     assert((Width > 0) and (Height > 0), 'No data assigned');
+     assert( not RowWise or (destLineWidth >= 2*sizeof(TComplex)), 'Results linewidth is too short');
+
+     pVal1 := PByte(Src);
+     if RowWise then
+     begin
+          for y := 0 to Height - 1 do
+          begin
+               meanVal := cCplxZero;
+
+               pVal2 := PConstComplexArr(pVal1);
+               for x := 0 to Width - 1 do
+                    CInc(meanVal, pVal2^[x]);
+
+               if Width > 0 then
+               begin
+                    meanVal := RCMul(1/Width, meanVal);
+                    dest^ := meanVal;
+                    inc(dest);
+
+                    dest^ := cCplxZero;
+                    for x := 0 to Width - 1 do
+                    begin
+                         tmp := CSub(pVal2^[x], meanVal);
+                         CInc(dest^, CMul(tmp, tmp) );
+                    end;
+
+                    if unbiased
+                    then
+                        dest^ := RCMul(1/Max(1, width - 1), dest^)
+                    else
+                        dest^ := RCMul(1/Width, dest^);
+
+                    dec(dest);
+               end
+               else
+               begin
+                    dest^ := cCplxZero;
+                    inc(dest);
+                    dest^ := InitComplex(Infinity, Infinity);
+                    dec(dest);
+               end;
+
+               inc(pVal1, srcLineWidth);
+               inc(PByte(dest), destLineWidth);
+          end;
+     end
+     else
+     begin
+          pDest1 := dest;
+          inc(PByte(pDest1), destLineWidth);
+
+          for x := 0 to Width - 1 do
+          begin
+               meanVal := cCplxZero;
+
+               pVal := PComplex(pVal1);
+               for y := 0 to Height - 1 do
+               begin
+                    CInc(meanVal, pVal^);
+                    inc(PByte(pVal), srcLineWidth);
+               end;
+
+               if Height > 0 then
+               begin
+                    meanVal := RCMul(1/Height, meanVal);
+                    dest^ := meanVal;
+
+                    pVal := PComplex(pVal1);
+                    pDest1^ := cCplxZero;
+                    for y := 0 to Height - 1 do
+                    begin
+                         tmp := CSub( pVal^, meanVal );
+                         CInc(pDest1^, CMul(tmp, tmp));
+                         inc(PByte(pVal), srcLineWidth);
+                    end;
+
+                    if unbiased
+                    then
+                        pDest1^ := RCMul(1/Max(1, height - 1), pDest1^)
+                    else
+                        pDest1^ := RCMul(1/Height, pDest1^);
+               end
+               else
+               begin
+                    dest^ := cCplxZero;
+                    pDest1^ := InitComplex(Infinity, Infinity);
+               end;
+
+               inc(pVal1, sizeof(TComplex));
+               inc(dest);
+               inc(pDest1);
+          end;
+     end;
+end;
+
+procedure CplxGenericMtxSum(dest : PComplex; destLineWidth : NativeInt; Src : PComplex; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
+var val : TComplex;
+    x, y : NativeInt;
+    pVal1 : PByte;
+    pVal2 : PConstComplexArr;
+    pVal : PComplex;
+begin
+     assert((Width > 0) and (Height > 0), 'No data assigned');
+
+     pVal1 := PByte(Src);
+     if RowWise then
+     begin
+          for y := 0 to Height - 1 do
+          begin
+               val := cCplxZero;
+
+               pVal2 := PConstComplexArr(pVal1);
+               for x := 0 to Width - 1 do
+                   CInc(val, pVal2^[x]);
+
+               dest^ := val;
+               inc(pVal1, srcLineWidth);
+               inc(PByte(dest), destLineWidth);
+          end;
+     end
+     else
+     begin
+          for x := 0 to Width - 1 do
+          begin
+               val := cCplxZero;
+
+               pVal := PComplex(pVal1);
+               for y := 0 to Height - 1 do
+               begin
+                    CInc(val, pVal^);
+                    inc(PByte(pVal), srcLineWidth);
+               end;
+
+               dest^ := val;
+               inc(pVal1, sizeof(double));
+               inc(dest);
+          end;
+     end;
+end;
+
+function CplxGenericMtxSumSum(Src : PComplex; srcLineWidth : NativeInt; width, height : NativeInt) : TComplex;
+var x, y : NativeInt;
+    pVal2 : PConstComplexArr;
+    lineVal : TComplex;
+begin
+     assert((Width >= 0) and (Height >= 0), 'No data assigned');
+     Result := cCplxZero;
+     for y := 0 to Height - 1 do
+     begin
+          pVal2 := PConstComplexArr(src);
+          lineVal := cCplxZero;
+          for x := 0 to Width - 1 do
+              CInc(lineVal, pVal2^[x]);
+
+          CInc(Result, lineVal);
+
+          inc(PByte(src), srcLineWidth);
+     end;
+end;
+
+
+
+// ###########################################
+// #### Sorting/median
+// ###########################################
+
+procedure CplxGenericMtxMedian(dest : PComplex; destLineWidth : NativeInt; Src : PComplex; srcLineWidth : NativeInt;
+  width, height : NativeInt; RowWise : boolean; tmp : PComplex = nil);
+var x, y : NativeInt;
+    pVal1 : PByte;
+    pVal : PComplex;
+    tmpMem : PComplex;
+begin
+     assert((Width > 0) and (Height > 0), 'No data assigned');
+
+     if (Width = 0) or (height = 0) then
+        exit;
+
+     tmpMem := tmp;
+     
+     pVal1 := PByte(Src);
+     if RowWise then
+     begin
+          if tmp = nil then
+             tmpMem := GetMemory(width*sizeof(TComplex));
+          
+          for y := 0 to Height - 1 do
+          begin
+               // copy since we destroy the array when calculating the median
+               Move(pVal1^, tmpMem^, Width*sizeof(TComplex));
+               
+               if Width and 1 = 1 
+               then
+                   dest^ := CplxKthLargest(tmpMem, width, width div 2)
+               else
+                   dest^ := RCMul(0.5, CAdd( CplxKthLargest(tmpMem, width, width div 2), CplxKthLargest(tmpMem, width, Max(0, width div 2 - 1))));
+
+               inc(pVal1, srcLineWidth);
+               inc(PByte(dest), destLineWidth);
+          end;
+     end
+     else
+     begin
+          if tmp = nil then
+             tmpMem := GetMemory(height*sizeof(double));
+          
+          for x := 0 to Width - 1 do
+          begin
+               pVal := PComplex(pVal1);
+               for y := 0 to Height - 1 do
+               begin
+                    PConstComplexArr(tmpMem)^[y] := pVal^;
+                    inc(PByte(pVal), srcLineWidth);
+               end;
+
+               if height and 1 = 1 
+               then
+                   dest^ := CplxKthLargest(tmpMem, height, height div 2)
+               else
+                   dest^ := RCMul(0.5, CAdd(CplxKthLargest(tmpMem, height, height div 2),
+                                       CplxKthLargest(tmpMem, height, Max(0, height div 2 - 1))));
+
+               inc(pVal1, sizeof(TComplex));
+               inc(dest);
+          end;
+     end;
+
+     if tmp = nil then
+        FreeMemory(tmpMem);
+end;
+
+procedure CplxGenericMtxSort(dest : PComplex; destLineWidth : NativeInt; width, height : integer; RowWise : boolean; tmp : PComplex = nil);
+var x, y : NativeInt;
+    pDest : PComplex;
+    tmpMem : PComplex;
+begin
+     assert((Width > 0) and (Height > 0), 'No data assigned');
+
+     if (Width = 0) or (height = 0) then
+        exit;
+
+     if RowWise then
+     begin
+          for y := 0 to Height - 1 do
+          begin
+               CplxQuickSort(PConstComplexArr(Dest), width);
+               inc(PByte(dest), destLineWidth);
+          end;
+     end
+     else
+     begin
+          tmpMem := tmp;
+          if tmp = nil then
+             tmpMem := GetMemory(height*sizeof(TComplex));
+
+          for x := 0 to Width - 1 do
+          begin
+               pDest := dest;
+
+               for y := 0 to Height - 1 do
+               begin
+                    PConstComplexArr(tmpMem)^[y] := pDest^;
+                    inc(PByte(pDest), destLineWidth);
+               end;
+
+               CplxQuickSort(PConstComplexArr(tmpMem), height);
+
+               pDest := dest;
+               for y := 0 to Height - 1 do
+               begin
+                    pDest^ := PConstComplexArr(tmpMem)^[y];
+                    inc(PByte(pDest), destLineWidth);
+               end;
+
+               inc(dest);
+          end;
+
+          if tmp = nil then
+             FreeMemory(tmpMem);
+     end;
+end;
+
+
+procedure CplxGenericMtxRollMedian( dest : PComplex; const destLineWidth : NativeInt; Width, Height : NativeInt; order : integer; rowWise : boolean);
+var rollMed : TCplxRollingMedian;
+    i : Integer;
+begin
+     if (width <= 0) or (height <= 0) then
+        exit;
+     rollMed := TCplxRollingMedian.Create(order);
+     try
+        if RowWise then
+        begin
+             for i := 0 to Height - 1 do
+             begin
+                  rollMed.FilterVals(dest, sizeof(double), Width);
+                  rollMed.Clear;
+                  inc(PByte(dest), destLineWidth);
+             end;
+        end
+        else
+        begin
+             for i := 0 to Width - 1 do
+             begin
+                  rollMed.FilterVals(dest, destLineWidth, Height);
+                  rollMed.Clear;
+                  inc(dest);
+             end;
+        end;
+     finally
+            rollMed.Free;
+     end;
+end;
 
 {$ENDIF}
 

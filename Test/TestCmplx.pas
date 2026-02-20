@@ -22,7 +22,7 @@ interface
 {$ENDIF}
 
 uses {$IFDEF FPC} testregistry {$ELSE}  {$IFDEF FMX}DUnitX.TestFramework {$ELSE}TestFramework {$ENDIF} {$ENDIF} ,
-     Classes, SysUtils, MatrixConst, BaseMatrixTestCase;
+     Classes, SysUtils, MatrixConst, BaseMatrixTestCase, CplxMatrix;
 
 type
   {$IFDEF FMX} [TestFixture] {$ENDIF}
@@ -36,6 +36,7 @@ type
     procedure TestSinCosTan;
     // matrix stuff
     procedure TestCplxInit;
+    procedure TestCplxCopy;
     procedure TestCplxAdd;
     procedure TestCplAddVec;
     procedure TestCplxSub;
@@ -55,11 +56,65 @@ type
     procedure TestRowColSwap;
 
     procedure TestApplyFunc;
+
+    procedure TestLU;
+    procedure TestLU2;
+
+    procedure TestMtxInverse;
+    procedure TestDeterminant;
   end;
+
+type
+  {$IFDEF FMX} [TestFixture] {$ENDIF}
+  TestCmplxMatrix = class(TBaseMatrixTestCase)
+  private
+    fRefMatrix2 : ICplxMatrix;
+    fRefMatrix1 : ICplxMatrix;
+  public
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
+    procedure TestConstructor;
+    procedure TestAdd;
+    procedure TestSub;
+    procedure TestMul;
+    procedure TestAddScale;
+    procedure TestScaleAdd;
+    procedure TestMinMax;
+    procedure TestTranspose;
+    procedure TestNorm;
+
+    procedure TestDeterminant;
+    procedure TestInverse;
+    procedure TestSwap;
+
+    procedure TestPersistenceBin;
+    procedure TestPersistenceJson;
+  end;
+
+type
+  {$IFDEF FMX} [TestFixture] {$ENDIF}
+  TestCombinedMatrix = class(TBaseMatrixTestCase)
+  private
+  published
+    procedure TestAdd;
+    procedure TestSub;
+    procedure TestAddInPlace;
+    procedure TestSubInPlace;
+    procedure TestMult;
+
+    procedure TestAddScale;
+    procedure TestAssign;
+    procedure TestCast;
+    procedure TestLinEQ;
+  end;
+
+
 
 implementation
 
-uses CplxSimpleMatrixOperations, Math;
+uses CplxSimpleMatrixOperations, Math, LinAlgLU, Types, RandomEng, Matrix,
+  DblMatrix, BinaryReaderWriter, BaseMathPersistence, JSONReaderWriter;
 
 procedure LocDoubleVal( var x : TComplex );
 begin
@@ -263,6 +318,20 @@ begin
          Check( CCmp( z2x2[i], cRes2x2[i] ) = 0, 'Complex matrix add failed');
 end;
 
+procedure TestSimpleCmplxFunctions.TestCplxCopy;
+var z8x8 : Array[0..63] of TComplex;
+    res : Array[0..63] of TComplex;
+    i: Integer;
+begin
+     for i := 0 to Length(z8x8) - 1 do
+         z8x8[i] := InitComplex(i, i + 1);
+
+     CplxGenericMtxCopy(@res[0], 8*sizeof(TComplex), @z8x8[0], 8*sizeof(TComplex), 8, 8);
+
+     for i := 0 to Length(z8x8) - 1 do
+         Check( CCmp( z8x8[i], res[i] ) = 0, 'Complex copy failed');
+end;
+
 procedure TestSimpleCmplxFunctions.TestCplxInit;
 var z8x8 : Array[0..63] of TComplex;
     ref : TComplex;
@@ -339,12 +408,12 @@ const cA2x2 : Array[0..3] of TComplex = ( (real: 2; imag: -3), (real: 4; imag: -
                                           (real: 10; imag: 2), (real: -4; imag: -4) );
 
       // a*b'
-      cRes1_2x2 : Array[0..3] of TComplex = ( (real: 27; imag: -17), (real: -6; imag: -26),
-                                          (real: 15; imag: 29), (real: 6; imag: -10) );
+      cRes1_2x2 : Array[0..3] of TComplex = ( (real: 17; imag: -29), (real: 14; imag: -2),
+                                              (real: 27; imag: 15), (real: -18; imag: 18) );
 
       // b*a'
-      cRes2_2x2 : Array[0..3] of TComplex = ( (real: 27; imag: -17), (real: 15; imag: 29),
-                                          (real: -6; imag: -26), (real: 6; imag: -10) );
+      cRes2_2x2 : Array[0..3] of TComplex = ( (real: 17; imag: 29), (real: 27; imag: -15),
+                                              (real: 14; imag: 2), (real: -18; imag: -18) );
 var z2x2 : Array[0..3] of TComplex;
     i : integer;
 begin
@@ -364,18 +433,18 @@ end;
 procedure TestSimpleCmplxFunctions.TestCplxNorm;
 const cA2x2 : Array[0..3] of TComplex = ( (real: 2; imag: -3), (real: 4; imag: -4),
                                           (real: 1; imag: 2), (real: 4; imag: 4) );
-      cRes1 : TComplex = ( real: 4.4319; imag: -4.9640);
-      cRes2 : TComplex = ( real: 1.2872; imag: - 3.1075);
-      cRes3 : TComplex = ( real: 4.0492; imag: -4.9392);
-var a, b, c : TComplex;
+      cRes1 : double = 45;
+      cRes2 : double = 82;
+      cRes3 : double = 50;
+var a, b, c : double;
 begin
-     a := CplxGenericMtxElementwiseNorm2(@cA2x2[0], 2*sizeof(TComplex), 2, 1, True);
-     b := CplxGenericMtxElementwiseNorm2(@cA2x2[0], 2*sizeof(TComplex), 2, 2, True);
-     c := CplxGenericMtxElementwiseNorm2(@cA2x2[0], 3*sizeof(TComplex), 3, 1, True);
+     a := CplxGenericMtxElementwiseNorm2(@cA2x2[0], 2*sizeof(TComplex), 2, 1, False);
+     b := CplxGenericMtxElementwiseNorm2(@cA2x2[0], 2*sizeof(TComplex), 2, 2, False);
+     c := CplxGenericMtxElementwiseNorm2(@cA2x2[0], 3*sizeof(TComplex), 3, 1, False);
 
-     Check( CCmp( a, cRes1, 1e-3 ) = 0, 'Complex norm failed');
-     Check( CCmp( b, cRes2, 1e-3 ) = 0, 'Complex norm failed');
-     Check( CCmp( c, cRes3, 1e-3 ) = 0, 'Complex norm failed');
+     Check( SameValue(a, cRes1), 'Complex norm 1 failed');
+     Check( SameValue(b, cRes2), 'Complex norm 2 failed');
+     Check( SameValue(c, cRes3), 'Complex norm 3 failed');
 end;
 
 procedure TestSimpleCmplxFunctions.TestCplxSub;
@@ -442,6 +511,45 @@ begin
          Check(CCmp(b[i], c[i]) = 0, 'In place transpose failed');
 end;
 
+procedure TestSimpleCmplxFunctions.TestDeterminant;
+var i : integer;
+    a : Array[0..15] of TComplex;
+    det : TComplex;
+    idx : Array[0..3] of Integer;
+const cRes : TComplex = (real : 33120; imag : 4608); // from matlab ;)
+begin
+     for i := 0 to High(a) do
+     begin
+          a[i] := InitComplex(i, i + 1);
+
+          if (i mod 3) = 0 then
+          begin
+               a[i].real := -a[i].real;
+               a[i].imag := -a[i].imag;
+          end;
+     end;
+
+     CplxMatrixLUDecompInPlace(@a[0], 4*sizeof(TComplex), 4, @idx[0]);
+     Status(CplxWriteMtx(a, 4));
+
+
+     for i := 0 to High(a) do
+     begin
+          a[i] := InitComplex(i, i + 1);
+
+          if (i mod 3) = 0 then
+          begin
+               a[i].real := -a[i].real;
+               a[i].imag := -a[i].imag;
+          end;
+     end;
+
+     det := CplxMatrixDeterminant(@a[0], 4*sizeof(TComplex), 4);
+     status( Format('%.3f + i*%.3f', [det.real, det.imag]));
+
+     Check( CCmp(det, cRes) = 0, 'Complex determinant failed');
+end;
+
 procedure TestSimpleCmplxFunctions.TestElemAddScale;
 const cAddVal : TComplex = (real: 3; imag: -1);
       cMulVal : TComplex = (real : 2; imag: 2);
@@ -500,6 +608,109 @@ begin
      Check( SameValue( 1.0397, x3.real, 1e-3 ) and SameValue(0.7854, x3.imag, 1e-3 ), 'Complex ln failed' );
      Check( SameValue( 0.8047, x4.real, 1e-3 ) and SameValue(2.6779, x4.imag, 1e-3 ), 'Complex ln failed' );
      Check( SameValue( 1.2825, x5.real, 1e-3 ) and SameValue(-2.1588, x5.imag, 1e-3 ), 'Complex ln failed' );
+end;
+
+procedure TestSimpleCmplxFunctions.TestLU;
+const A : Array[0..3] of TComplex = ( (real:1; imag: -1), (real: 0; imag: -1),
+                                       (real: 0; imag: 2), (real: 2; imag: -1) );
+      B : Array[0..3] of TComplex = ( (real: 1; imag : -1), (real: 0; imag: -1),
+                                      (real: -1; imag: 1), (real: 1; imag: -2));
+var LUDecomp : Array[0..3] of TComplex;
+    res : TLinEquResult;
+    idx : Array[0..1] of integer;
+begin
+     Move(A, LUDecomp, sizeof(A));
+
+     res := CplxMatrixLUDecompInPlace(@LUDecomp[0], 2*sizeof(TComplex), 2, @idx[0]);
+
+     Check(res = leOk, 'Singularity detected!');
+     CheckEqualsMem(@b[0], @LUDecomp[0], sizeof(B), 'LU decomp failed with: ' + CplxWriteMtx(LUDecomp, 2));
+end;
+
+
+procedure TestSimpleCmplxFunctions.TestLU2;
+var x : TComplexDynArray;
+    idx : TIntegerDynArray;
+    i : integer;
+    rnd : TRandomGenerator;
+    res : TLinEquResult;
+const cWidth = 127;
+      // this value has been evaluated from Matlab
+      cExpectedLastElem : TComplex = ( real: 486.05324; imag: 9.5027968 );
+begin
+     rnd := TRandomGenerator.Create( raMersenneTwister );
+     try
+        SetLength(x, cWidth*cWidth);
+        SetLength(idx, cWidth);
+
+        rnd.Init(12705677);
+        for i := 0 to Length(x) - 1 do
+        begin
+             x[i].real := rnd.RandInt(200);
+             x[i].imag := rnd.RandInt(100);
+        end;
+
+        // write to matlab file
+//        WriteBin('d:\lutest.txt', x);
+
+        res := CplxMatrixLUDecompInPlace(@x[0],  cWidth*sizeof(TComplex), cWidth, @idx[0]);
+
+        Check(res = leOk, 'Singularity detected!');
+        Check( CCmp( x[Length(x) - 1], cExpectedLastElem, 1e-4 ) = 0, 'Complex large LU decomposition failed');
+     finally
+            rnd.Free;
+     end;
+end;
+
+procedure TestSimpleCmplxFunctions.TestMtxInverse;
+var a : Array[0..15] of TComplex;
+    i : integer;
+    res : TLinEquResult;
+const cRefRes : Array[0..15] of TComplex = (
+  (real: 0.242950984513183; imag: -0.232956465478163),
+  (real: 0.027322404371585; imag: -0.032786885245902),
+  (real: 0.007541478129713; imag: -0.008295625942685),
+  (real: -0.041420435345218; imag: 0.025207287622910),
+
+  (real: 0.027322404371585; imag: -0.032786885245902),
+  (real: 0.040983606557377; imag: -0.049180327868852),
+  (real: 0; imag: 0),
+  (real: 0.013661202185792; imag: -0.016393442622951),
+
+  (real: 0.007541478129713; imag: -0.008295625942685),
+  (real: 0; imag: 0),
+  (real: 0.022624434389140; imag: -0.024886877828054),
+  (real: 0.015082956259427; imag: -0.016591251885370),
+
+  (real: -0.166420435345218; imag: 0.150207287622910),
+  (real: 0.013661202185792; imag: -0.016393442622951),
+  (real: 0.015082956259427; imag: -0.016591251885370),
+  (real: 0.028497927123771; imag: -0.016525315464563)
+  );
+
+begin
+     for i := 0 to High(a) do
+         a[i] := InitComplex(1, 1); //, i + 1);
+
+     res := CplxMatrixInverseInPlace(@a[0], 4*sizeof(TComplex), 4);
+     Check( res = leSingular, 'Non singular complex matrix - should be singular');
+
+     for i := 0 to High(a) do
+     begin
+          a[i] := InitComplex(i, i + 1);
+
+          if (i mod 3) = 0 then
+          begin
+               a[i].real := -a[i].real;
+               a[i].imag := -a[i].imag;
+          end;
+     end;
+
+     res := CplxMatrixInverseInPlace(@a[0], 4*sizeof(TComplex), 4);
+     Check( res = leOk, 'Singular complex matrix');
+
+     for i := 0 to High(a) do
+         Check( CCmp(a[i], cRefRes[i], 1e-5) = 0, 'Complex inverse failed');
 end;
 
 procedure TestSimpleCmplxFunctions.TestCplxNormalize;
@@ -658,9 +869,542 @@ begin
 
 end;
 
+{ TestCmplxMatrix }
+
+// some base constant complex matrices used in the matrix test cases
+
+procedure TestCmplxMatrix.SetUp;
+const cX : Array[0..8] of TComplex = ( (real: 8; imag: 4),  (real: 1; imag: 8), (real: 7; imag: 1),
+                                       (real: 10; imag: 7),  (real: 9; imag: 1), (real: 8; imag: 1),
+                                       (real: 7; imag: 2),  (real: 10; imag: 3), (real: 8; imag: 9) );
+
+const cy : Array[0..8] of TComplex = ( (real: 7; imag: 5),  (real: 1; imag: 8), (real: 8; imag: 7),
+                                       (real: 4; imag: 5),  (real: 5; imag: 8), (real: 8; imag: 7),
+                                       (real: 10; imag: 7),  (real: 4; imag: 3), (real: 2; imag: 2) );
+begin
+     fRefMatrix1 := TCplxMatrix.Create(cX, 3, 3);
+     fRefMatrix2 := TCplxMatrix.Create(cy, 3, 3);
+end;
+
+procedure TestCmplxMatrix.TearDown;
+begin
+     fRefMatrix2 := nil;
+     fRefMatrix1 := nil;
+end;
+
+procedure TestCmplxMatrix.TestAdd;
+const cRes : Array[0..8] of TComplex = ( (real: 15; imag: 9),  (real: 2; imag: 16), (real: 15; imag: 8),
+                                       (real: 14; imag: 12),  (real: 14; imag: 9), (real: 16; imag: 8),
+                                       (real: 17; imag: 9),  (real: 14; imag: 6), (real: 10; imag: 11) );
+var res : ICplxMatrix;
+begin
+     res := fRefMatrix1.Add(fRefMatrix2);
+
+     Check( CplxCheckMtx(res.SubMatrix, cRes), 'Complex matrix add failed');
+end;
+
+procedure TestCmplxMatrix.TestAddScale;
+const cCplxOffset : TComplex = (real : 5; imag : -1);
+      cCplxScale : TComplex = (real : -1; imag: 2);
+
+      cRes : Array[0..8] of TComplex = ( (real: -19; imag: 23),  (real: -20; imag: 5), (real: -12; imag: 24),
+                                       (real: -27; imag: 24),  (real: -14; imag: 28), (real: -13; imag: 26),
+                                       (real: -14; imag: 23),  (real: -19; imag: 28), (real: -29; imag: 18) );
+
+var res : ICplxMatrix;
+begin
+     res := fRefMatrix1.AddAndScaleC( cCplxOffset, cCplxScale );
+
+     Check( CplxCheckMtx(res.SubMatrix, cRes), 'Complex matrix add failed');
+end;
+
+procedure TestCmplxMatrix.TestConstructor;
+var m : ICplxMatrix;
+    i : Integer;
+    seed : integer;
+begin
+     m := TCplxMatrix.Create(10, 10);
+     Check( (m.Width = 10) and (m.Height = 10), 'Default constructor failed');
+     Check( CCmp( m[4, 4], cCplxZero) = 0, 'Default init failed');
+
+     m := TCplxMatrix.Create(3, 5, InitComplex(3, -2));
+     Check( (m.Width = 3) and (m.Height = 5), 'Default constructor with value failed');
+     Check( CCmp( m[1, 3], InitComplex(3, -2)) = 0, 'Default init with value failed');
+
+     m := TCplxMatrix.CreateVec(10, InitComplex(3, -2));
+     Check( (m.Width = 10) and (m.Height = 1), 'Vector constructor failed');
+     Check( CCmp( m.VecC[2], InitComplex(3, -2)) = 0, 'Vector init failed');
+
+
+     m := TCplxMatrix.CreateEye(2);
+     Check( (m.Width = 2) and (m.Height = 2), 'Eye constructor failed');
+     Check( CCmp( m[1, 0], cCplxZero) = 0, 'Eye value failed');
+     Check( CCmp( m[0, 1], cCplxZero) = 0, 'Eye value failed');
+     Check( CCmp( m[1, 1], cCplxReal1) = 0, 'Eye value failed');
+     Check( CCmp( m[0, 0], cCplxReal1) = 0, 'Eye value failed');
+
+     m := TCplxMatrix.CreateRand(3, 3);
+     for i := 0 to m.VecLen - 2 do
+         Check( CCmp( m.VecC[i], m.VecC[i + 1] ) <> 0, 'Random init failed');
+
+     seed := 12;
+     m := TCplxMatrix.CreateRand(3, 3, raChaCha, seed);
+     for i := 0 to m.VecLen - 2 do
+         Check( CCmp( m.VecC[i], m.VecC[i + 1] ) <> 0, 'Random init failed');
+
+     m := TCplxMatrix.CreateLinSpace(11, InitComplex(-1, -1), InitComplex(1, 1));
+
+     Check( CCmp( m.VecC[0], InitComplex(-1, -1) ) = 0, 'Linera spacing failed');
+     Check( CCmp( m.VecC[10], InitComplex(1, 1) ) = 0, 'Linera spacing failed');
+     Check( CCmp( m.VecC[5], InitComplex(0, 0), 1e-4) = 0, 'Linera spacing failed');
+end;
+
+procedure TestCmplxMatrix.TestDeterminant;
+const cD1 : TComplex = ( real: 740; imag: 1100 );
+      cD2 : TComplex = (real : -183; imag: -510 );
+var d1, d2 : TComplex;
+begin
+     d1 := fRefMatrix1.Determinant;
+     d2 := fRefMatrix2.Determinant;
+
+     Check( CCmp(d1, cD1) = 0, 'Complex determinant 1 failed');
+     Check( CCmp(d2, cD2) = 0, 'Complex determinant 2 failed');
+end;
+
+procedure TestCmplxMatrix.TestInverse;
+var inv : ICplxMatrix;
+
+const cRes : Array[0..8] of TComplex = ( (real: 0.0558; imag: -0.0133),  (real: -0.0746; imag: 0.0222), (real: 0.0686; imag: -0.0381),
+                                       (real: -0.2082; imag: -0.0100),  (real: 0.1940; imag: 0.0167), (real: 0.0514; imag: -0.0286),
+                                       (real: 0.1398; imag: 0.0639),  (real: -0.0431; imag: -0.1312), (real: -0.0958; imag: 0.0264) );
+
+
+begin
+     Check( fRefMatrix2.InvertEx(inv) = leOk, 'Complex inverse failed');
+
+     Check( CplxCheckMtx(inv.SubMatrix, cRes, -1, -1, 0.01), 'Inverse complex values failed');
+end;
+
+procedure TestCmplxMatrix.TestMinMax;
+const cMin1: TComplex = ( real : 7; imag : 1 );
+      cMin2 : TComplex = ( real : 2; imag : 2 );
+      cMax1 : TComplex = ( real : 10; imag : 7 );
+      cMax2 : TComplex = ( real : 10; imag : 7 );
+var min1, min2 : TComplex;
+    max1, max2 : TComplex;
+begin
+     min1 := fRefMatrix1.Min;
+     min2 := fRefMatrix2.Min;
+     max1 := fRefMatrix1.Max;
+     max2 := fRefMatrix2.Max;
+
+     Check( CCmp( cMin1, min1 ) = 0, 'Complex Min 1 failed');
+     Check( CCmp( cMin2, min2 ) = 0, 'Complex Min 2 failed');
+     Check( CCmp( cMax1, max1 ) = 0, 'Complex Max 1 failed');
+     Check( CCmp( cMax2, max2 ) = 0, 'Complex Max 2 failed');
+end;
+
+procedure TestCmplxMatrix.TestMul;
+
+const cRes : Array[0..8] of TComplex = ( (real: 63; imag: 164),  (real: -58; imag: 141), (real: 0; imag: 175),
+                                       (real: 139; imag: 214),  (real: 20; imag: 192), (real: 110; imag: 215),
+                                       (real: 81; imag: 257),  (real: 22; imag: 213), (real: 99; imag: 193) );
+var res : ICplxMatrix;
+    res1 : ICplxMatrix;
+begin
+     res := fRefMatrix1.Mult(fRefMatrix2);
+     Check( CplxCheckMtx(res.SubMatrix, cRes), 'Complex matrix mul failed');
+
+     res1 := fRefMatrix1.Transpose;
+     res := fRefMatrix1.MultT1(fRefMatrix2);
+     res1 := res1.Mult(fRefMatrix2);
+
+     Check( CplxCheckMtx(res1.SubMatrix, res.SubMatrix), 'Complex matrix mulT1 failed');
+     res1 := fRefMatrix2.Transpose;
+     res := fRefMatrix1.MultT2(fRefMatrix2);
+     res1 := fRefMatrix1.Mult(res1);
+
+     Check( CplxCheckMtx(res1.SubMatrix, res.SubMatrix), 'Complex matrix mulT2 failed');
+end;
+
+procedure TestCmplxMatrix.TestNorm;
+var d1, d2 : double;
+    x : ICplxMatrix;
+    xr : TComplexDynArray;
+const cFirstRow : Array[0..2] of TComplex = ((real: 0.8857; imag: -0.1365),  (real: 0.5452; imag: 0.5960),
+                                             (real: 0.6301; imag: -0.3238));
+begin
+     d1 := fRefMatrix1.ElementwiseNorm2(False);
+     d2 := fRefMatrix2.ElementwiseNorm2(False);
+
+     Check( SameValue( d1, 798 ), 'Elementwise norm 1 failed');
+     Check( SameValue( d2, 677 ), 'Elementwise norm 1 failed');
+
+     x := fRefMatrix1.Clone;
+     x.Normalize(True);
+     x.SetSubMatrix(0, 0, 3, 1);
+     xr := x.SubMatrix;
+     Check( CplxCheckMtx(xr, cFirstRow), 'Complex normalize failed');
+
+     x := fRefMatrix1.TransposeNonConj;
+     x.Normalize(False);
+     x.SetSubMatrix(0, 0, 1, 3);
+     xr := x.SubMatrix;
+     Check( CplxCheckMtx(xr, cFirstRow), 'Complex normalize failed');
+end;
+
+procedure TestCmplxMatrix.TestPersistenceBin;
+var mtx : TCplxMatrix;
+    dx : TComplexDynArray;
+    i : Integer;
+begin
+     SetLength(dx, 5*10);
+
+     for i := 0 to Length(dx) - 1 do
+         dx[i] := InitComplex(-1 + i, 2 + i);
+
+     mtx := TCplxMatrix.Create(dx, 5, 10);
+     try
+        TBinaryReaderWriter.StaticSaveToFile(mtx, 'cplxData1.dat');
+     finally
+            mtx.Free;
+     end;
+
+     mtx := ReadObjFromFile('cplxData1.dat') as TCplxMatrix;
+     Check((mtx.Width = 5) and (mtx.Height = 10), 'Error matrix dimension are not correct');
+     Check( CCmp(mtx[0, 0], dx[0], 0) = 0, 'Failed to read complex array');
+
+     mtx.Free;
+end;
+
+
+procedure TestCmplxMatrix.TestPersistenceJson;
+var mtx : TCplxMatrix;
+    dx : TComplexDynArray;
+    i : Integer;
+begin
+     SetLength(dx, 5*10);
+
+     for i := 0 to Length(dx) - 1 do
+         dx[i] := InitComplex(-1 + i, 2 + i);
+
+     mtx := TCplxMatrix.Create(dx, 5, 10);
+     try
+        TJsonReaderWriter.StaticSaveToFile(mtx, 'cplxData1.json');
+     finally
+            mtx.Free;
+     end;
+
+     mtx := ReadObjFromFile('cplxData1.json') as  TCplxMatrix;
+     Check((mtx.Width = 5) and (mtx.Height = 10), 'Error matrix dimension are not correct');
+     Check( CCmp(mtx[0, 0], dx[0], 0) = 0, 'Failed to read complex array');
+
+     mtx.Free;
+end;
+
+
+procedure TestCmplxMatrix.TestScaleAdd;
+const cCplxOffset : TComplex = (real : 5; imag : -1);
+      cCplxScale : TComplex = (real : -1; imag: 2);
+
+      cRes : Array[0..8] of TComplex = ( (real: -11; imag: 11),  (real: -12; imag: -7), (real: -4; imag: 12),
+                                       (real: -19; imag: 12),  (real: -6; imag: 16), (real: -5; imag: 14),
+                                       (real: -6; imag: 11),  (real: -11; imag: 16), (real: -21; imag: 6) );
+
+var res : ICplxMatrix;
+begin
+     res := fRefMatrix1.ScaleAndAdd( cCplxOffset, cCplxScale );
+
+     Check( CplxCheckMtx(res.SubMatrix, cRes), 'Complex matrix scale add failed');
+end;
+
+
+procedure TestCmplxMatrix.TestSub;
+const cRes : Array[0..8] of TComplex = ( (real: 1; imag: -1),  (real: 0; imag: 0), (real: -1; imag: -6),
+                                       (real: 6; imag: 2),  (real: 4; imag: -7), (real: 0; imag: -6),
+                                       (real: -3; imag: -5),  (real: 6; imag: 0), (real: 6; imag: 7) );
+var res : ICplxMatrix;
+begin
+     res := fRefMatrix1.Sub(fRefMatrix2);
+
+     Check( CplxCheckMtx(res.SubMatrix, cRes), 'Complex matrix sub failed');
+end;
+
+procedure TestCmplxMatrix.TestSwap;
+var x : ICplxMatrix;
+
+const cSwapRow : Array[0..8] of TComplex = ( (real: 10; imag: 7),  (real: 9; imag: 1), (real: 8; imag: 1),
+                                             (real: 7; imag: 2),  (real: 10; imag: 3), (real: 8; imag: 9),
+                                             (real: 8; imag: 4),  (real: 1; imag: 8), (real: 7; imag: 1)
+                                              );
+      const cSwapCol : Array[0..8] of TComplex =
+                   ( (real: 1; imag: 8),  (real: 7; imag: 1), (real: 8; imag: 4),
+                     (real: 9; imag: 1),  (real: 8; imag: 1), (real: 10; imag: 7),
+                     (real: 10; imag: 3), (real: 8; imag: 9), (real: 7; imag: 2) );
+
+begin
+     x := fRefMatrix1.Clone;
+
+     x.SwapRow(0, 1);
+     x.SwapRow(2, 1);
+
+     Check(CplxCheckMtx(x.SubMatrix, cSwapRow), 'Row Swap failed');
+
+     x := fRefMatrix1.Clone;
+
+     x.SwapColumn(0, 1);
+     x.SwapColumn(2, 1);
+
+     Check(CplxCheckMtx(x.SubMatrix, cSwapCol), 'Column Swap failed');
+end;
+
+procedure TestCmplxMatrix.TestTranspose;
+var res1 : ICplxMatrix;
+    res2 : ICplxMatrix;
+    ref : TComplexDynArray;
+const cRes1 : Array[0..8] of TComplex = ( (real: 8; imag: -4),  (real: 10; imag: -7), (real: 7; imag: -2),
+                                       (real: 1; imag: -8),  (real: 9; imag: -1), (real: 10; imag: -3),
+                                       (real: 7; imag: -1),  (real: 8; imag: -1), (real: 8; imag: -9) );
+
+      cRes2 : Array[0..8] of TComplex = ( (real: 7; imag: 5),  (real: 4; imag: 5), (real: 10; imag: 7),
+                                       (real: 1; imag: 8),  (real: 5; imag: 8), (real: 4; imag: 3),
+                                       (real: 8; imag: 7),  (real: 8; imag: 7), (real: 2; imag: 2) );
+
+begin
+     ref := fRefMatrix1.SubMatrix;
+     res1 := fRefMatrix1.Transpose;
+
+     Check( CplxCheckMtx(res1.SubMatrix, cRes1), 'Complex matrix Transpose failed');
+     res2 := fRefMatrix2.TransposeNonConj;
+
+     Check( CplxCheckMtx(res2.SubMatrix, cRes2), 'Complex matrix Transpose(non conjugate) failed');
+
+     res1.TransposeInPlace;
+     Check( CplxCheckMtx(res1.SubMatrix, ref), 'Complex matrix transposeinplace failed');
+
+end;
+
+{ TestCombinedMatrix }
+
+procedure TestCombinedMatrix.TestAdd;
+var mtx1 : IMatrix;
+    mtx2 : IMatrix;
+    res1, res2 : IMatrix;
+
+begin
+     mtx1 := TDoubleMatrix.Create(3, 3, 12);
+     mtx2 := TCplxMatrix.Create(3, 3, InitComplex(2, 3));
+
+     res1 := mtx1.Add(mtx2);
+     res2 := mtx2.Add(mtx1);
+
+     Check( res1.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+     Check( res2.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+
+     Check( CplxCheckMtx( (res1.GetObjRef as TCplxMatrix).SubMatrix,
+                          (res2.GetObjRef as TCplxMatrix).SubMatrix ), 'Wrong result in mixed matrix type');
+end;
+
+procedure TestCombinedMatrix.TestAddInPlace;
+var mtx1 : IMatrix;
+    mtx2 : IMatrix;
+    res1, res2 : IMatrix;
+begin
+     mtx1 := TDoubleMatrix.Create(3, 3, 12);
+     mtx2 := TCplxMatrix.Create(3, 3, InitComplex(2, 3));
+
+     res1 := mtx1.Clone;
+     res1.AddInplace(mtx2);
+
+     res2 := mtx2;
+     res2.AddInplace(mtx1);
+
+     Check( res1.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+     Check( res2.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+     Check( CplxCheckMtx( (res1.GetObjRef as TCplxMatrix).SubMatrix,
+                          (res2.GetObjRef as TCplxMatrix).SubMatrix ), 'Wrong result in mixed matrix type');
+end;
+
+
+procedure TestCombinedMatrix.TestAddScale;
+var mtx1 : IMatrix;
+    mtx2 : IMatrix;
+    res1, res2 : IMatrix;
+    seed : integer;
+begin
+     seed := 0;
+     mtx1 := TDoubleMatrix.CreateRand(3, 3, raMersenneTwister, seed);
+     mtx2 := TCplxMatrixClass.CreateRand(3, 3);
+
+     mtx1.AddAndScaleInPlace(3, 3);
+     mtx2.AddAndScaleInPlace(2, 3);
+
+     mtx1.ScaleAndAddInPlace(3, 3);
+     mtx2.ScaleAndAddInPlace(2, 3);
+
+     res1 := mtx1.Scale(3);
+     res2 := mtx2.Scale(3);
+
+     Check( res1.GetObjRef is TDoubleMatrix, 'Wrong result matrix type');
+     Check( res2.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+end;
+
+procedure TestCombinedMatrix.TestAssign;
+var mtx1 : IMatrix;
+    mtx2 : IMatrix;
+    res1, res2 : IMatrix;
+begin
+     // this routine does not check for correct results but rather only for correct resulting classes
+     mtx1 := TDoubleMatrix.Create(3, 3, 12);
+     mtx2 := TCplxMatrix.Create(3, 3, InitComplex(2, 3));
+
+     res1 := mtx1.Clone;
+     res1.Assign(mtx2);
+
+     Check( res1.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+
+     res2 := mtx2.Clone;
+     res2.AssignEx(mtx1, true);
+
+     Check( res1.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+
+     res1 := mtx1.Clone;
+     res1.AssignSubMatrix(mtx2);
+
+     Check( res1.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+end;
+
+procedure TestCombinedMatrix.TestCast;
+var x, y, z : IMatrix;
+    idx : integer;
+    seed : integer;
+begin
+     x := TDoubleMatrix.CreateRand(4, 4, raMersenneTwister, seed);
+     y := x.GetObjRef.Cast(TCplxMatrix);
+     Check( y.GetObjRef is TCplxMatrix, 'Cast failed');
+
+     z := y.GetObjRef.Cast(TDoubleMatrix);
+     Check( z.GetObjRef is TDoubleMatrix, 'Cast failed');
+
+     Check( CheckMtxIdx(x.StartElement, z.StartElement, x.LineWidth, z.LineWidth, x.Width, x.Height, idx, 0), 'Cast failed on idx ' + IntToStr(idx));
+
+     y := x.Cast(ICplxMatrix);
+     Check( y.GetObjRef is TCplxMatrix, 'Cast failed');
+
+     z := y.Cast(IDoubleMatrix);
+     Check( z.GetObjRef is TDoubleMatrix, 'Cast failed');
+
+     Check( CheckMtxIdx(x.StartElement, z.StartElement, x.LineWidth, z.LineWidth, x.Width, x.Height, idx, 0), 'Cast failed on idx ' + IntToStr(idx));
+end;
+
+procedure TestCombinedMatrix.TestLinEQ;
+const cX : Array[0..8] of TComplex = ( (real: 8; imag: 4),  (real: 1; imag: 8), (real: 7; imag: 1),
+                                       (real: 10; imag: 7),  (real: 9; imag: 1), (real: 8; imag: 1),
+                                       (real: 7; imag: 2),  (real: 10; imag: 3), (real: 8; imag: 9) );
+var x : IMatrix;
+    y : IMatrix;
+begin
+     x := TCplxMatrix.Create(cX, 3, 3);
+     y := x.GetObjRef.Cast(TDoubleMatrix);
+
+     Check( y.GetObjRef is TDoubleMatrix, 'Wrong result matrix type');
+
+     Check( y.InvertInPlace = leOk, 'Invert with IMatrix failed');
+     Check( x.InvertInPlace = leOk, 'Invert with IMatrix failed');
+
+end;
+
+procedure TestCombinedMatrix.TestMult;
+var mtx1 : IMatrix;
+    mtx2 : IMatrix;
+    res1, res2 : IMatrix;
+begin
+     // this routine does not check for correct results but rather only for correct resulting classes
+     mtx1 := TDoubleMatrix.Create(3, 3, 12);
+     mtx2 := TCplxMatrix.Create(3, 3, InitComplex(2, 3));
+
+     res1 := mtx1.Mult(mtx2);
+     res2 := mtx2.Mult(mtx1);
+
+     Check( res1.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+     Check( res2.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+
+     res1 := mtx1.MultT1(mtx2);
+     res2 := mtx2.MultT1(mtx1);
+
+     Check( res1.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+     Check( res2.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+
+     res1 := mtx1.MultT2(mtx2);
+     res2 := mtx2.MultT2(mtx1);
+
+     Check( res1.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+     Check( res2.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+
+     res1 := mtx1.Clone;
+     res1.MultInPlace(mtx2);
+     res2 := mtx2.Clone;
+     res2.MultInPlace(mtx1);
+
+     Check( res1.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+     Check( res2.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+
+     res1 := mtx1.Clone;
+     res1.MultInPlaceT1(mtx2);
+     res2 := mtx2.Clone;
+     res2.MultInPlaceT1(mtx1);
+
+     Check( res1.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+     Check( res2.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+
+     res1 := mtx1.Clone;
+     res1.MultInPlaceT2(mtx2);
+     res2 := mtx2.Clone;
+     res2.MultInPlaceT2(mtx1);
+
+     Check( res1.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+     Check( res2.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+end;
+
+
+procedure TestCombinedMatrix.TestSub;
+var mtx1 : IMatrix;
+    mtx2 : IMatrix;
+    res1, res2 : IMatrix;
+begin
+     mtx1 := TDoubleMatrix.Create(3, 3, 12);
+     mtx2 := TCplxMatrix.Create(3, 3, InitComplex(2, 3));
+
+     res1 := mtx1.Sub(mtx2);
+     res2 := mtx2.Sub(mtx1);
+
+     Check( res1.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+     Check( res2.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+end;
+
+procedure TestCombinedMatrix.TestSubInPlace;
+var mtx1 : IMatrix;
+    mtx2 : IMatrix;
+    res1, res2 : IMatrix;
+begin
+     mtx1 := TDoubleMatrix.Create(3, 3, 12);
+     mtx2 := TCplxMatrix.Create(3, 3, InitComplex(2, 3));
+
+     res1 := mtx1.Clone;
+     res1.SubInPlace(mtx2);
+
+     res2 := mtx2;
+     res2.SubInplace(mtx1);
+
+     Check( res1.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+     Check( res2.GetObjRef is TCplxMatrix, 'Wrong result matrix type');
+end;
+
 initialization
 {$IFNDEF FMX}
   RegisterTest(TestSimpleCmplxFunctions{$IFNDEF FPC}.Suite{$ENDIF});
+  RegisterTest(TestCmplxMatrix{$IFNDEF FPC}.Suite{$ENDIF});
+  RegisterTest(TestCombinedMatrix{$IFNDEF FPC}.Suite{$ENDIF});
 {$ENDIF}
 
 

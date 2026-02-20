@@ -23,7 +23,7 @@ interface
 uses
   {$IFDEF FPC} testregistry {$ELSE} {$IFDEF FMX}DUnitX.TestFramework {$ELSE}TestFramework {$ENDIF} {$ENDIF} ,
   Classes, SysUtils, Types, Matrix, BaseMatrixTestCase,
-  ThreadedMatrix;
+  ThreadedMatrix, DblMatrix;
 
 type
   {$IFDEF FMX} [TestFixture] {$ENDIF}
@@ -81,8 +81,8 @@ type
   {$IFDEF FMX} [TestFixture] {$ENDIF}
   TestIMatrix = class(TBaseMatrixTestCase)
   private
-    fRefMatrix2 : IMatrix;
-    fRefMatrix1 : IMatrix;
+    fRefMatrix2 : IDoubleMatrix;
+    fRefMatrix1 : IDoubleMatrix;
   public
     procedure SetUp; override;
     procedure TearDown; override;
@@ -104,8 +104,8 @@ type
   {$IFDEF FMX} [TestFixture] {$ENDIF}
   TestTThreadedMatrix = class(TBaseMatrixTestCase)
   private
-    fRefMatrix2 : TDoubleMatrix;
-    fRefMatrix1 : TDoubleMatrix;
+    fRefMatrix2 : IDoubleMatrix;
+    fRefMatrix1 : IDoubleMatrix;
 
     procedure ElemWiseSqr(var elem : double);
   public
@@ -338,60 +338,60 @@ begin
      
      mtx1.Free;
 
-     mtx1 := mtx.Diag(-1);
+     mtx1 := mtx.DiagFromOffset(-1);
      check( (mtx1.Width = 1) and (mtx1.Height = 3), 'Bad matrix size');
-     mtx2 := mtx1.Diag(-1);
+     mtx2 := mtx1.DiagFromOffset(-1);
      Check( (mtx2.Width = 3) and (mtx2.Height = 4), 'Bad matrix size');
      mtx2.Free;
      mtx1.Free;
 
 
-     mtx1 := mtx.Diag(-2);
+     mtx1 := mtx.DiagFromOffset(-2);
      check( (mtx1.Width = 1) and (mtx1.Height = 3), 'Bad matrix size');
-     mtx2 := mtx1.Diag(-2);
+     mtx2 := mtx1.DiagFromOffset(-2);
      Check( (mtx2.Width = 3) and (mtx2.Height = 5), 'Bad matrix size');
      mtx2.Free;
      mtx1.Free;
 
-     mtx1 := mtx.Diag(-3);
+     mtx1 := mtx.DiagFromOffset(-3);
      check( (mtx1.Width = 1) and (mtx1.Height = 2), 'Bad matrix size');
-     mtx2 := mtx1.Diag(-3);
+     mtx2 := mtx1.DiagFromOffset(-3);
      Check( (mtx2.Width = 2) and (mtx2.Height = 5), 'Bad matrix size');
      mtx2.Free;
      mtx1.Free;
 
-     mtx1 := mtx.Diag(-4);
+     mtx1 := mtx.DiagFromOffset(-4);
      check( (mtx1.Width = 1) and (mtx1.Height = 1), 'Bad matrix size');
-     mtx2 := mtx1.Diag(-4);
+     mtx2 := mtx1.DiagFromOffset(-4);
      Check( (mtx2.Width = 1) and (mtx2.Height = 5), 'Bad matrix size');
      mtx2.Free;
      mtx1.Free;
 
      mtx.TransposeInPlace;
-     mtx1 := mtx.Diag(1);
+     mtx1 := mtx.DiagFromOffset(1);
      check( (mtx1.Width = 1) and (mtx1.Height = 3), 'Bad matrix size');
-     mtx2 := mtx1.Diag(1);
+     mtx2 := mtx1.DiagFromOffset(1);
      Check( (mtx2.Width = 4) and (mtx2.Height = 3), 'Bad matrix size');
      mtx2.Free;
      mtx1.Free;
 
-     mtx1 := mtx.Diag(2);
+     mtx1 := mtx.DiagFromOffset(2);
      check( (mtx1.Width = 1) and (mtx1.Height = 3), 'Bad matrix size');
-     mtx2 := mtx1.Diag(2);
+     mtx2 := mtx1.DiagFromOffset(2);
      Check( (mtx2.Width = 5) and (mtx2.Height = 3), 'Bad matrix size');
      mtx2.Free;
      mtx1.Free;
 
-     mtx1 := mtx.Diag(3);
+     mtx1 := mtx.DiagFromOffset(3);
      check( (mtx1.Width = 1) and (mtx1.Height = 2), 'Bad matrix size');
-     mtx2 := mtx1.Diag(3);
+     mtx2 := mtx1.DiagFromOffset(3);
      Check( (mtx2.Width = 5) and (mtx2.Height = 2), 'Bad matrix size');
      mtx2.Free;
      mtx1.Free;
 
-     mtx1 := mtx.Diag(4);
+     mtx1 := mtx.DiagFromOffset(4);
      check( (mtx1.Width = 1) and (mtx1.Height = 1), 'Bad matrix size');
-     mtx2 := mtx1.Diag(4);
+     mtx2 := mtx1.DiagFromOffset(4);
      Check( (mtx2.Width = 5) and (mtx2.Height = 1), 'Bad matrix size');
      mtx2.Free;
      mtx1.Free;
@@ -472,7 +472,7 @@ end;
 
 procedure TestTDoubleMatrix.TestMult2;
      // test to show if the bug reported from sutetemp is fixed:
-var a, b, c: IMatrix;
+var a, b, c: IDoubleMatrix;
     cc : TDoubleDynArray;
     counter: Integer;
 begin
@@ -680,19 +680,14 @@ begin
 end;
 
 procedure TestTDoubleMatrix.TestRandomInit;
-var mtx1, mtx2 : TDoubleMatrix;
+var mtx2 : TDoubleMatrix;
+    seed : integer;
 begin
-     RandSeed := 301;
-     mtx1 := TDoubleMatrix.CreateRand(100, 100);
-     mtx2 := TDoubleMatrix.CreateRand(100, 100, raSystem, 301);
+     seed := 301;
+     mtx2 := TDoubleMatrix.CreateRand(100, 100, raSystem, seed);
      try
-        {$IFNDEF FPC}
-        // FPC note: the default random function is different than the delphi one -> so a check
-        // here is meaningless but we have at least a functional test
-        Check(CheckMtx(mtx1.SubMatrix, mtx2.SubMatrix, -1, -1, 0.0000001), 'Random init failed');
-        {$ENDIF}
+        Check((mtx2.Width = 100) and (mtx2.Height = 100), 'Random init failed');
      finally
-            mtx1.Free;
             mtx2.Free;
      end;
 end;
@@ -748,7 +743,7 @@ begin
      rows := Arr([0, 2, 4, 5, 6, 7, 14, 19]);
      cols :=Arr([0, 1, 3, 4, 5, 6, 7, 12, 18]);
      
-     mtx1 := mtx.SubMtx(cols, rows);
+     mtx1 := mtx.SubMtxIdx(cols, rows);
 
      for x := 0 to Length(cols) - 1 do
      begin
@@ -941,7 +936,7 @@ var x : TDoubleMatrix;
     j: Integer;
 begin
      x := TDoubleMatrix.CreateRand(4, 4);
-     x.Append(x.Clone as IMatrix, False);
+     x.Append(x.Clone, False);
 
      for i := 0 to x.Width - 1 do
          for j := 0 to x.Height div 2 - 1 do
@@ -952,7 +947,7 @@ begin
      x.Free;
 
      x := TDoubleMatrix.CreateRand(4, 4);
-     x.Append(x.Clone as IMatrix, True);
+     x.Append(x.Clone, True);
 
      for i := 0 to x.Width div 2 - 1 do
          for j := 0 to x.Height - 1 do
@@ -991,14 +986,14 @@ end;
 
 procedure TestTThreadedMatrix.TearDown;
 begin
-     fRefMatrix1.Free;
-     fRefMatrix2.Free;
+     fRefMatrix1 := nil;
+     fRefMatrix2 := nil;
      TThreadedMatrix.FinalizeThreadPool;
 end;
 
 procedure TestTThreadedMatrix.TestApplyFunc;
-var dest1, dest2 : IMatrix;
-    m1 : IMatrix;
+var dest1, dest2 : IDoubleMatrix;
+    m1 : IDoubleMatrix;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : Int64;
 begin
@@ -1020,7 +1015,7 @@ begin
 end;
 
 procedure TestTThreadedMatrix.TestCholesky;
-var a, b, c : IMatrix;
+var a, b, c : IDoubleMatrix;
     res : TCholeskyResult;
     startTime, endTime : Int64;
 begin
@@ -1052,7 +1047,7 @@ var x : TDoubleDynArray;
     i: Integer;
     start, stop : Int64;
     det, detThr : double;
-    m1, m2 : IMatrix;
+    m1, m2 : IDoubleMatrix;
 begin
      {$IFDEF FMX} Setup; {$ENDIF};
      // big inversion
@@ -1090,7 +1085,7 @@ const cBlkWidth = 1024;
 var x : TDoubleDynArray;
     i: Integer;
     start, stop : Int64;
-    m1, m2 : IMatrix;
+    m1, m2 : IDoubleMatrix;
 begin
      {$IFDEF FMX} Setup; {$ENDIF};
      // big inversion
@@ -1123,9 +1118,9 @@ const cBlkWidth = 1024;
 var x : TDoubleDynArray;
     i: Integer;
     start, stop : Int64;
-    m1, m2 : IMatrix;
-    y : IMatrix;
-    x1, x2 : IMatrix;
+    m1, m2 : IDoubleMatrix;
+    y : IDoubleMatrix;
+    x1, x2 : IDoubleMatrix;
 begin
      {$IFDEF FMX} Setup; {$ENDIF};
      // big inversion
@@ -1162,8 +1157,8 @@ var a, x1, x2, b : TDoubleDynArray;
     i : integer;
     start, stop : int64;
     index : integer;
-    m1, m2 : IMatrix;
-    mb : IMatrix;
+    m1, m2 : IDoubleMatrix;
+    mb : IDoubleMatrix;
 begin
      {$IFDEF FMX} Setup; {$ENDIF};
      SetLength(a, cBlkSize);
@@ -1203,7 +1198,7 @@ const cBlkWidth = 2048;
 var a : TDoubleDynArray;
     i : integer;
     start, stop : int64;
-    m1, m2 : IMatrix;
+    m1, m2 : IDoubleMatrix;
 begin
      {$IFDEF FMX} Setup; {$ENDIF};
      SetLength(a, cBlkSize);
@@ -1261,7 +1256,7 @@ const cBlkWidth = 2048;
 var a : TDoubleDynArray;
     i : integer;
     start, stop : int64;
-    m1, m2 : IMatrix;
+    m1, m2 : IDoubleMatrix;
 begin
      {$IFDEF FMX} Setup; {$ENDIF};
      SetLength(a, cBlkSize);
@@ -1307,10 +1302,10 @@ const cBlkWidth = 512;
 var a : TDoubleDynArray;
     i : integer;
     start, stop : int64;
-    m1, m2 : IMatrix;
+    m1, m2 : IDoubleMatrix;
 
-    u1, v1, w1 : IMatrix;
-    u2, v2, w2 : IMatrix;
+    u1, v1, w1 : IDoubleMatrix;
+    u2, v2, w2 : IDoubleMatrix;
 begin
      {$IFDEF FMX} Setup; {$ENDIF};
      SetLength(a, cBlkSize);
@@ -1349,10 +1344,10 @@ const cBlkWidth = 512;
 var a : TDoubleDynArray;
     i : integer;
     start, stop : int64;
-    m1, m2 : IMatrix;
+    m1, m2 : IDoubleMatrix;
 
-    e1, v1 : IMatrix;
-    e2, v2 : IMatrix;
+    e1, v1 : IDoubleMatrix;
+    e2, v2 : IDoubleMatrix;
 begin
      {$IFDEF FMX} Setup; {$ENDIF};
      SetLength(a, cBlkSize);
@@ -1382,8 +1377,8 @@ end;
 
 
 procedure TestTThreadedMatrix.TestThreadMult;
-var dest1, dest2 : IMatrix;
-    m1 : IMatrix;
+var dest1, dest2 : IDoubleMatrix;
+    m1 : IDoubleMatrix;
     startTime1, endTime1 : Int64;
     startTime2, endTime2 : Int64;
 begin
@@ -1408,19 +1403,19 @@ end;
 
 procedure TestIMatrix.SetUp;
 begin
-     fRefMatrix1 := ReadObjFromFile(BaseDataPath + 'MatrixData1.txt') as IMatrix;
-     fRefMatrix2 := ReadObjFromFile(BaseDataPath + 'MatrixData2.txt') as IMatrix;
+     fRefMatrix1 := ReadObjFromFile(BaseDataPath + 'MatrixData1.txt') as IDoubleMatrix;
+     fRefMatrix2 := ReadObjFromFile(BaseDataPath + 'MatrixData2.txt') as IDoubleMatrix;
 end;
 
 procedure TestIMatrix.TearDown;
 begin
      fRefMatrix2 := nil;
-     fRefMatrix1 := Nil;
+     fRefMatrix1 := nil;
 end;
 
 procedure TestIMatrix.TesMedian;
-var mtx1 : IMatrix;
-    mtx2 : IMatrix;
+var mtx1 : IDoubleMatrix;
+    mtx2 : IDoubleMatrix;
 begin
      {$IFDEF FMX} Setup; {$ENDIF};
      mtx1 := fRefMatrix1.Median(True);
@@ -1434,7 +1429,7 @@ begin
 end;
 
 procedure TestIMatrix.TestAdd;
-var mtx : IMatrix;
+var mtx : IDoubleMatrix;
     dx : Array[0..49] of double;
     i : Integer;
 begin
@@ -1461,8 +1456,8 @@ procedure TestIMatrix.TestAssign;
 const mtx : Array[0..5] of double = (1, 2, 3, 4, 5, 6);
       mty : Array[0..3] of double = (0, -1, -2, -3);
       mtDest : Array[0..5] of double = (1, 0, -1, 4, -2, -3);
-var mt1 : IMatrix;
-    mt2 : IMatrix;
+var mt1 : IDoubleMatrix;
+    mt2 : IDoubleMatrix;
 begin
      mt1 := TDoubleMatrix.Create;
      // creates a 3x2 matrix and assigns the above values
@@ -1482,10 +1477,10 @@ begin
 end;
 
 procedure TestIMatrix.TestCovariance;
-var meanMtx : IMatrix;
-    cov : IMatrix;
+var meanMtx : IDoubleMatrix;
+    cov : IDoubleMatrix;
     i : integer;
-    c1 : IMatrix;
+    c1 : IDoubleMatrix;
     data : Array[0..99] of double;
 begin
      {$IFDEF FMX} Setup; {$ENDIF};
@@ -1593,8 +1588,8 @@ end;
 
 
 procedure TestIMatrix.TestMult;
-var mtx : IMatrix;
-    mtx1 : IMatrix;
+var mtx : IDoubleMatrix;
+    mtx1 : IDoubleMatrix;
 begin
      {$IFDEF FMX} Setup; {$ENDIF};
      mtx1 := fRefMatrix2.Transpose;
@@ -1607,8 +1602,8 @@ procedure TestIMatrix.TestMult2;
 const x : Array[0..8] of double = (1, 2, 3, 4, 5, 6, 7, 8, 9);
     y : Array[0..8] of double = (0, 1, 2, 3, 4, 5, 6, 7, 8);
     res : Array[0..8] of double = (24, 30, 36, 51, 66, 81, 78, 102, 126);
-var m1, m2 : IMatrix;
-    m3 : IMatrix;
+var m1, m2 : IDoubleMatrix;
+    m3 : IDoubleMatrix;
 begin
      m1 := TDoubleMatrix.Create;
      m1.Assign(x, 3, 3);
@@ -1621,9 +1616,9 @@ begin
 end;
 
 procedure TestIMatrix.TestPinv;
-var mtx, res : IMatrix;
+var mtx, res : IDoubleMatrix;
 begin
-     mtx := ReadObjFromFile( BaseDataPath + 'pinvSpecial.json' ) as IMatrix;
+     mtx := ReadObjFromFile( BaseDataPath + 'pinvSpecial.json' ) as IDoubleMatrix;
 
      InitMathFunctions(itFPU, False);
      Check( mtx.PseudoInversion(res) = srOk, 'Pseudoinversion failed');
@@ -1641,7 +1636,7 @@ begin
 end;
 
 procedure TestIMatrix.TestSub;
-var mtx : IMatrix;
+var mtx : IDoubleMatrix;
     dx : Array[0..49] of double;
     i : Integer;
 begin

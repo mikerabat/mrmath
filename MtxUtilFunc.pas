@@ -16,7 +16,7 @@ unit MtxUtilFunc;
 
 interface
 
-uses Matrix;
+uses Matrix, DblMatrix;
 
 // ###########################################
 // #### special matrix utility functions
@@ -41,7 +41,7 @@ uses Types, Math, Eigensystems, MatrixConst;
 // #### Matrix exponential 
 function expm( A : IMatrix ) : IMatrix;
 begin
-     Result := expm(A.GetObjRef);
+     Result := expm(A.GetObjRef as TDoubleMatrix);
 end;
 
 function expm( A : TDoubleMatrix ) : TDoubleMatrix;
@@ -97,20 +97,20 @@ begin
      a2 := aa.Mult(aa);
      
      x := a2.Scale(cFactX[3]);
-     x.AddInplace( id.Scale(cFactX[2]) as IMatrix );
+     x.AddInplace( id.Scale(cFactX[2]) );
      x.MultInPlace(a2);
-     x.AddInplace( id.Scale(cFactX[1]) as IMatrix );
+     x.AddInplace( id.Scale(cFactX[1]) );
      x.MultInPlace(a2);
-     x.AddInplace( id.Scale(cFactX[0]) as IMatrix );
+     x.AddInplace( id.Scale(cFactX[0]) );
      x.MultInPlace(a2);
      x.AddInplace(id);
 
      y := a2.Scale(cFactY[3]);
-     y.AddInplace( id.Scale(cFactY[2]) as IMatrix );
+     y.AddInplace( id.Scale(cFactY[2]) );
      y.MultInPlace(a2);
-     y.AddInplace( id.Scale(cFactY[1]) as IMatrix );
+     y.AddInplace( id.Scale(cFactY[1]) );
      y.MultInPlace(a2);
-     y.AddInplace( id.Scale(cFactY[0]) as IMatrix );
+     y.AddInplace( id.Scale(cFactY[0]) );
      y.MultInPlace(aa);
 
      // (x - y) \ (x + y)
@@ -120,7 +120,7 @@ begin
      if r.InvertInPlace = leSingular then
         raise ELinEQSingularException.Create('Failed to calculate matrix inverse');
 
-     r.MultInPlace( x.Add(y) as IMatrix );
+     r.MultInPlace( x.Add(y) );
 
      // undo scaling by repeated squaring
      for k := 0 to s - 1 do
@@ -135,7 +135,7 @@ begin
 
      // take over data 
      Result := TDoubleMatrix.Create;
-     Result.TakeOver(r);
+     Result.TakeOver(r.GetObjRef as TDoubleMatrix);
 end;
 
 end.

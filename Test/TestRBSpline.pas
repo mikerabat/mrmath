@@ -25,7 +25,7 @@ interface
 // ###########################################
 
 uses {$IFDEF FPC} testregistry, {$ELSE} {$IFDEF FMX}DUnitX.TestFramework {$ELSE}TestFramework {$ENDIF}, {$ENDIF}
-     BaseMatrixTestCase, Classes, SysUtils, matrix, RandomEng;
+     BaseMatrixTestCase, Classes, SysUtils, DblMatrix, matrix, RandomEng;
 
 type
   {$IFDEF FMX} [TestFixture] {$ENDIF}
@@ -34,7 +34,7 @@ type
     fRnd : TRandomGenerator;
     fNoiseAmpl : double;
     
-    procedure GenSplineInput(var x, y, breaks : IMatrix; noiseAmpl : double; cl : TDoubleMatrixClass);
+    procedure GenSplineInput(var x, y, breaks : IDoubleMatrix; noiseAmpl : double; cl : TDoubleMatrixClass);
 
     procedure SinFunc(var value : double);
   published
@@ -54,13 +54,16 @@ begin
      value := Sin(Value) + sin(2*value) + fNoiseAmpl*fRnd.RandGauss;
 end;
 
-procedure TTestRBSpline.GenSplineInput(var x, y, breaks: IMatrix; noiseAmpl : double; cl : TDoubleMatrixClass);
+procedure TTestRBSpline.GenSplineInput(var x, y, breaks: IDoubleMatrix;
+  noiseAmpl : double; cl : TDoubleMatrixClass);
+var seed : integer;
 begin
      fNoiseAmpl := noiseAmpl;
      fRnd := TRandomGenerator.Create(raSystem);
      try
         fRnd.Init( 99 );
-        x := cl.CreateRand(1, 200, raSystem, 99);
+        seed := 99;
+        x := cl.CreateRand(1, 200, raSystem, seed);
         x.ScaleInPlace(2*pi);
         x.SortInPlace(False);
 
@@ -73,9 +76,9 @@ begin
 end;
 
 procedure TTestRBSpline.MultithreadSpline;
-var x, y, breaks : IMatrix;
+var x, y, breaks : IDoubleMatrix;
     rb : TRobustBSpline;
-    xx, yy : IMatrix;
+    xx, yy : IDoubleMatrix;
     counter: Integer;
 begin
      TThreadedMatrix.InitThreadPool;
@@ -109,10 +112,10 @@ begin
 end;
 
 procedure TTestRBSpline.RobustSplineTest;
-var x, y, breaks : IMatrix;
+var x, y, breaks : IDoubleMatrix;
     rb : TRobustBSpline;
-    xx, yy : IMatrix;
-    yyR : IMatrix;
+    xx, yy : IDoubleMatrix;
+    yyR : IDoubleMatrix;
     counter: Integer;
 begin
      GenSplineInput(x, y, breaks, 0.05, TDoubleMatrix);
@@ -147,9 +150,9 @@ begin
 end;
 
 procedure TTestRBSpline.SingleThreadSpline;
-var x, y, breaks : IMatrix;
+var x, y, breaks : IDoubleMatrix;
     rb : TRobustBSpline;
-    xx, yy : IMatrix;
+    xx, yy : IDoubleMatrix;
     counter: Integer;
 begin
      TRobustBSpline.DefMatrixClass := TDoubleMatrix;

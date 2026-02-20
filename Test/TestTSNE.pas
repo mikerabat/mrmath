@@ -35,14 +35,14 @@ type
 
 implementation
 
-uses tSNE, RandomEng, MatrixASMStubSwitch;
+uses DblMatrix, tSNE, RandomEng, MatrixASMStubSwitch;
 { TTestTSNE }
 
 procedure TTestTSNE.TestASM;
-var x : IMatrix;
+var x : IDoubleMatrix;
     i, j : Integer;
     rnd : TRandomGenerator;
-    xmap, xmap2 : IMatrix;
+    xmap, xmap2 : IDoubleMatrix;
     ndim : integer;
 begin
      rnd := TRandomGenerator.Create( raMersenneTwister );
@@ -67,10 +67,10 @@ begin
              end;
 
              InitMathFunctions(itFPU, false);
-             xmap := TtSNE.SymTSNE(X.GetObjRef, ndim, ndim, 5, 0.3, 1000, dfOrig, 221, raSystem);
+             xmap := TtSNE.SymTSNE(X.GetObjRef as TDoubleMatrix, ndim, ndim, 5, 0.3, 1000, dfOrig, 221, raSystem);
 
              InitMathFunctions(itSSE, false);
-             xmap2 := TtSNE.SymTSNE(X.GetObjRef, ndim, ndim, 5, 0.3, 1000, dfOrig, 221, raSystem);
+             xmap2 := TtSNE.SymTSNE(X.GetObjRef as TDoubleMatrix, ndim, ndim, 5, 0.3, 1000, dfOrig, 221, raSystem);
 
 
              // only for 2 dim the accuracy is good enough that we get the same results regardless the instruction set used
@@ -113,7 +113,7 @@ begin
 
      //MatrixToTxtFile('D:\tsne.txt', x.GetObjRef);
      //WriteBinary('D:\tsne_bin.dat', x);
-     xmap := TtSNE.SymTSNE(X.GetObjRef, 2, 2, 6, 0);
+     xmap := TtSNE.SymTSNE(X.GetObjRef as TDoubleMatrix, 2, 2, 6, 0);
 
      check((xmap.Width = 2) and (xmap.Height = x.Height), 'Dimension error in tsne');
      //MatrixToTxtFile('D:\tsne_xmap.txt', xmap.GetObjRef);
@@ -148,7 +148,7 @@ begin
 
      //MatrixToTxtFile('D:\tsne.txt', x.GetObjRef);
      //WriteBinary('D:\tsne_bin.dat', x);
-     xmap := TtSNE.SymTSNE(X.GetObjRef, 2, 2, 6, 0.5);
+     xmap := TtSNE.SymTSNE(X.GetObjRef as TDoubleMatrix, 2, 2, 6, 0.5);
 
      check((xmap.Width = 2) and (xmap.Height = x.Height), 'Dimension error in tsne');
      //MatrixToTxtFile('D:\tsne_xmap.txt', xmap.GetObjRef);

@@ -23,29 +23,29 @@ unit SSA;
 
 interface
 
-uses Matrix, Types;
+uses DblMatrix, Types, Matrix;
 
 type
   ESingularSpectrumException = class(EBaseMatrixException);
 type
   TSingularSpectrumAnalysis = class(TMatrixClass)
   private
-    fV : IMatrix;
-    fU : IMatrix;
-    fEigVals : IMatrix;
+    fV : IDoubleMatrix;
+    fU : IDoubleMatrix;
+    fEigVals : IDoubleMatrix;
     fM, fN, fK : Integer;
 
-    procedure InternalCalcSSA(mtx : IMatrix; L : integer);
-    function InternalCalcOverlappedSSA(mtx : IMatrix; L, Z, q : integer; numComponents : integer; idx : TIntegerDynArray ) : IMatrix;
+    procedure InternalCalcSSA(mtx : IDoubleMatrix; L : integer);
+    function InternalCalcOverlappedSSA(mtx : IDoubleMatrix; L, Z, q : integer; numComponents : integer; idx : TIntegerDynArray ) : IDoubleMatrix;
 
-    function EmbedMtx( values : IMatrix; L : integer ) : IMatrix;
+    function EmbedMtx( values : IDoubleMatrix; L : integer ) : IDoubleMatrix;
   public
-    function Reconstruct( numComponents : integer ) : IMatrix; overload;
-    function Reconstruct( idx : TIntegerDynArray ) : IMatrix; overload;
+    function Reconstruct( numComponents : integer ) : IDoubleMatrix; overload;
+    function Reconstruct( idx : TIntegerDynArray ) : IDoubleMatrix; overload;
 
     // calculate ssa in one run.
     procedure CalcSSA( values : TDoubleDynArray; L : integer ); overload;
-    procedure CalcSSA( values : IMatrix; L : integer ); overload;
+    procedure CalcSSA( values : IDoubleMatrix; L : integer ); overload;
 
 { direct comment from the original implementation:
 % Consider a time series segment of length Z.
@@ -71,7 +71,7 @@ type
 % Written by Michel Leles, 07/05/2015
 }
     class function CalcSSAOverlap( values : TDoubleDynArray; L : integer; Z : integer; q : integer; numComponents : integer; idx : TIntegerDynArray ) : TDoubleDynArray; overload;
-    class function CalcSSAOverlap( values : IMatrix; L : integer; Z : integer; q : integer; numComponents : integer; idx : TIntegerDynArray ) : IMatrix; overload;
+    class function CalcSSAOverlap( values : IDoubleMatrix; L : integer; Z : integer; q : integer; numComponents : integer; idx : TIntegerDynArray ) : IDoubleMatrix; overload;
   end;
 
 implementation
@@ -82,7 +82,7 @@ uses MatrixConst, Math, MathUtilFunc, PCA;
 
 procedure TSingularSpectrumAnalysis.CalcSSA(values: TDoubleDynArray;
   L: integer);
-var mtx : IMatrix;
+var mtx : IDoubleMatrix;
 begin
      if Length(values) < L - 1 then
         raise ESingularSpectrumException.Create('Error: Vector length is too short for the given embedding length.');
@@ -91,8 +91,8 @@ begin
      InternalCalcSSA(mtx, L);
 end;
 
-procedure TSingularSpectrumAnalysis.CalcSSA(values: IMatrix; L: integer);
-var mtx : IMatrix;
+procedure TSingularSpectrumAnalysis.CalcSSA(values: IDoubleMatrix; L: integer);
+var mtx : IDoubleMatrix;
 begin
      mtx := values.AsVector(True);
      if mtx.Width < L - 1 then
@@ -103,8 +103,8 @@ end;
 
 class function TSingularSpectrumAnalysis.CalcSSAOverlap(values: TDoubleDynArray; L,
   Z, q: integer; numComponents : integer; idx : TIntegerDynArray) : TDoubleDynArray;
-var mtx : IMatrix;
-    res : IMatrix;
+var mtx : IDoubleMatrix;
+    res : IDoubleMatrix;
 begin
      if Length(values) < L - 1 then
         raise ESingularSpectrumException.Create('Error: Vector length is too short for the given embedding length.');
@@ -120,9 +120,9 @@ begin
      end;
 end;
 
-class function TSingularSpectrumAnalysis.CalcSSAOverlap(values: IMatrix; L, Z,
-  q: integer; numComponents : integer; idx : TIntegerDynArray) : IMatrix;
-var mtx : IMatrix;
+class function TSingularSpectrumAnalysis.CalcSSAOverlap(values: IDoubleMatrix; L, Z,
+  q: integer; numComponents : integer; idx : TIntegerDynArray) : IDoubleMatrix;
+var mtx : IDoubleMatrix;
 begin
      mtx := values.AsVector(True);
      if mtx.Width < L - 1 then
@@ -137,8 +137,8 @@ begin
 end;
 
 
-function TSingularSpectrumAnalysis.EmbedMtx(values: IMatrix;
-  L: integer): IMatrix;
+function TSingularSpectrumAnalysis.EmbedMtx(values: IDoubleMatrix;
+  L: integer): IDoubleMatrix;
 var y : Integer;
     k : integer;
 begin
@@ -154,14 +154,14 @@ begin
      Result.TransposeInPlace;
 end;
 
-function TSingularSpectrumAnalysis.InternalCalcOverlappedSSA(mtx: IMatrix; L,
-  Z, q: integer; numComponents : integer; idx : TIntegerDynArray) : IMatrix;
+function TSingularSpectrumAnalysis.InternalCalcOverlappedSSA(mtx: IDoubleMatrix; L,
+  Z, q: integer; numComponents : integer; idx : TIntegerDynArray) : IDoubleMatrix;
 var n, p, pp : integer;
     L_B : integer;
-    y_aux : IMatrix;
+    y_aux : IDoubleMatrix;
     rho : integer;
-function LocCalcSSA( fromIdx, toIdx : integer ) : IMatrix;
-var series : IMatrix;
+function LocCalcSSA( fromIdx, toIdx : integer ) : IDoubleMatrix;
+var series : IDoubleMatrix;
 begin
      series := mtx.SubColMtx(fromIdx, toIdx);
      InternalCalcSSA(series, L);
@@ -205,9 +205,9 @@ begin
      Result.AssignSubMatrix(y_aux, rho + L_B, 0);
 end;
 
-procedure TSingularSpectrumAnalysis.InternalCalcSSA(mtx: IMatrix;
+procedure TSingularSpectrumAnalysis.InternalCalcSSA(mtx: IDoubleMatrix;
   L: integer);
-var X : IMatrix;
+var X : IDoubleMatrix;
 begin
      if L > mtx.VecLen div 2 then
         L := mtx.VecLen - L;
@@ -230,11 +230,14 @@ begin
         raise ESingularSpectrumException.Create('Error - svd did not converge');
 
      // sort according to size of singular values
-     SortSVD( fEigVals.GetObjRef, fU.GetObjRef, fV.GetObjRef, 0, fEigVals.Height - 1);
+     SortSVD( fEigVals.GetObjRef as TDoubleMatrix,
+              fU.GetObjRef as TDoubleMatrix,
+              fV.GetObjRef as TDoubleMatrix,
+              0, fEigVals.Height - 1);
      fU.TransposeInPlace;
 end;
 
-function TSingularSpectrumAnalysis.Reconstruct(idx: TIntegerDynArray): IMatrix;
+function TSingularSpectrumAnalysis.Reconstruct(idx: TIntegerDynArray): IDoubleMatrix;
 var res : TDoubleDynArray;
     Lp, Kp : integer;
     cmpCnt: Integer;
@@ -293,7 +296,7 @@ begin
 end;
 
 
-function TSingularSpectrumAnalysis.Reconstruct(numComponents: integer): IMatrix;
+function TSingularSpectrumAnalysis.Reconstruct(numComponents: integer): IDoubleMatrix;
 var idx : TIntegerDynArray;
     i : integer;
 begin

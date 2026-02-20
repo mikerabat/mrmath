@@ -20,11 +20,11 @@ interface
 // #### Nonlinear optimization using Levenberg Marquard
 // #################################################
 
-uses BaseMathPersistence, Matrix, Types;
+uses BaseMathPersistence, Matrix, DblMatrix, Types;
 
 type
-  TNonLinOptIteratorObj = procedure (Sender : TObject; a, x : IMatrix; y : IMatrix) of Object;
-  TNonLinOptIterator = procedure (Sender : TObject; a, x : IMatrix; y : IMatrix);
+  TNonLinOptIteratorObj = procedure (Sender : TObject; a, x : IDoubleMatrix; y : IDoubleMatrix) of Object;
+  TNonLinOptIterator = procedure (Sender : TObject; a, x : IDoubleMatrix; y : IDoubleMatrix);
 type
   TNonLinFitOptimizer = class(TInterfacedObject)
   private
@@ -35,15 +35,15 @@ type
     fDerivStep: double;
     fTolX: double;
     fSqrtEPS : double;
-    fHlp, fCoef, fVec : IMatrix;
+    fHlp, fCoef, fVec : IDoubleMatrix;
     
-    procedure WeightedNonLinIterator(weights : IMatrix; a, x, y : IMatrix);
+    procedure WeightedNonLinIterator(weights : IDoubleMatrix; a, x, y : IDoubleMatrix);
   private
     // fast polyfit
-    fV : IMatrix;
-    fWork : IMatrix;
-    fStaticV : IMatrix;
-    fPinvV : IMatrix;
+    fV : IDoubleMatrix;
+    fWork : IDoubleMatrix;
+    fStaticV : IDoubleMatrix;
+    fPinvV : IDoubleMatrix;
     fOrder : Integer;
 
   public
@@ -61,8 +61,8 @@ type
 
 
     // Returns the fitted params. The params must be in organized in columns!
-    function Optimize(x, y, weights, a0 : IMatrix) : IMatrix; overload; //
-    function Optimize(x, y, a0 : IMatrix) : IMatrix; overload; // fits with sigma = 1
+    function Optimize(x, y, weights, a0 : IDoubleMatrix) : IDoubleMatrix; overload; //
+    function Optimize(x, y, a0 : IDoubleMatrix) : IDoubleMatrix; overload; // fits with sigma = 1
 
     // tries to find the coefficients of a polynomial P(x) of degree N the fits the data Y best in a
     // least-squares sense. P is a row vector of length N + 1 in descending powser P(1)*x^n + P(2)*x^(n-1) + ... + P(N+1)
@@ -74,26 +74,27 @@ type
     //                     p0]
     // the data is assumed to be order column wise, the result will then be width=x.width, height=n + 1
 
-    function PolynomFit(x, y : TDoubleDynArray; N : integer) : IMatrix; overload;
-    function PolynomFit(x, y : IMatrix; N : integer) : IMatrix; overload;
-    procedure PolynomFit(x, y : IMatrix; N : Integer; res : IMatrix); overload;  // store result in res
-    procedure LineFit(x, y : IMatrix; res : IMatrix); overload;  // fits a straight line through x and y using a simple (but fast) algorithm
-    function LineFit(x, y : IMatrix) : IMatrix; overload;
+    function PolynomFit(x, y : TDoubleDynArray; N : integer) : IDoubleMatrix; overload;
+    function PolynomFit(x, y : IDoubleMatrix; N : integer) : IDoubleMatrix; overload;
+    procedure PolynomFit(x, y : IDoubleMatrix; N : Integer; res : IDoubleMatrix); overload;  // store result in res
+    procedure LineFit(x, y : IDoubleMatrix; res : IDoubleMatrix); overload;  // fits a straight line through x and y using a simple (but fast) algorithm
+    function LineFit(x, y : IDoubleMatrix) : IDoubleMatrix; overload;
 
-    procedure PolynomFitFast(x, y : IMatrix; N : Integer; res : IMatrix); overload; // using QR least squares
+    procedure PolynomFitFast(x, y : IDoubleMatrix; N : Integer; res : IDoubleMatrix); overload; // using QR least squares
 
     // for multiple evaluations with the same x vector use this init first -> avoid multiple memory allocations
-    procedure InitPolyFit(x : IMatrix; N : integer);
-    procedure PolynomFitFast(y : IMatrix; res : IMatrix); overload;
-    procedure PolynomFit(y : IMatrix; res : IMatrix); overload;
+    procedure InitPolyFit(x : IDoubleMatrix; N : integer);
+    procedure PolynomFitFast(y : IDoubleMatrix; res : IDoubleMatrix); overload;
+    procedure PolynomFit(y : IDoubleMatrix; res : IDoubleMatrix); overload;
+
 
 
     // ###########################################
     // #### polygon evaluation
-    function EvalPoly(x, coef : IMatrix) : IMatrix; overload;              
-    procedure EvalPoly(x, coef : IMatrix; var res : IMatrix); overload; // without memory allocations (only once for res if not initialized yet)     
+    function EvalPoly(x, coef : IDoubleMatrix) : IDoubleMatrix; overload;
+    procedure EvalPoly(x, coef : IDoubleMatrix; var res : IDoubleMatrix); overload; // without memory allocations (only once for res if not initialized yet)
                                                                         // use this for multiple evaluations in a loop
-    
+
     constructor Create;
   end;
 
@@ -104,26 +105,26 @@ uses SysUtils, Math, MathUtilFunc, MatrixConst, MatrixASMStubSwitch, LinAlgQR,
 
 { TNonLinOptimizer }
 
-function TNonLinFitOptimizer.Optimize(x, y, weights, a0: IMatrix): IMatrix;
+function TNonLinFitOptimizer.Optimize(x, y, weights, a0: IDoubleMatrix): IDoubleMatrix;
 var lambda : double;
     iter : Integer;
     k : Integer;
     p : integer;
-    zbeta : IMatrix;
-    aOld : IMatrix;
-    r : IMatrix;
-    rplus : IMatrix;
-    yFit : IMatrix;
-    yPlus : IMatrix;
+    zbeta : IDoubleMatrix;
+    aOld : IDoubleMatrix;
+    r : IDoubleMatrix;
+    rplus : IDoubleMatrix;
+    yFit : IDoubleMatrix;
+    yPlus : IDoubleMatrix;
     sse, sseOld : double;
-    delta : IMatrix;
+    delta : IDoubleMatrix;
     nb : double;
-    a1 : IMatrix;
-    J : IMatrix;
-    diagJtJ : IMatrix;
-    Jplus : IMatrix;
+    a1 : IDoubleMatrix;
+    J : IDoubleMatrix;
+    diagJtJ : IDoubleMatrix;
+    Jplus : IDoubleMatrix;
     i : Integer;
-    yRef : IMatrix;
+    yRef : IDoubleMatrix;
     stepSize : double;
 begin
      assert(a0.width = 1, 'Error only param vectors are allowed');
@@ -194,7 +195,7 @@ begin
           rplus := TDoubleMatrix.Create(r.Width, r.Height + p);
           rplus.AssignSubMatrix(r);
 
-          if JPlus.PseudoInversionInPlace <> srOk then
+          if (JPlus as IDoubleMatrix).PseudoInversionInPlace <> srOk then
              raise Exception.Create('Error could not invert Jacobian');
           Jplus.MultInPlace(rplus);
           Result.AddInplace(Jplus);
@@ -228,7 +229,7 @@ begin
                for i := 0 to diagJtJ.Width - 1 do
                    JPlus[i, J.Height + i] := diagJtJ[i, 0];
 
-               if JPlus.PseudoInversionInPlace <> srOk then
+               if (JPlus as IDoubleMatrix).PseudoInversionInPlace <> srOk then
                   raise Exception.Create('Error could not invert Jacobian');
                Jplus.MultInPlace(rplus);
 
@@ -260,7 +261,7 @@ begin
      fSqrtEPS := sqrt(eps(1));
 end;
 
-function TNonLinFitOptimizer.EvalPoly(x, coef: IMatrix): IMatrix;
+function TNonLinFitOptimizer.EvalPoly(x, coef: IDoubleMatrix): IDoubleMatrix;
 var counter: Integer;
     doTranspose : boolean;
 begin
@@ -288,7 +289,7 @@ begin
         x.TransposeInPlace;
 
      // prepare mult matrix
-     fVec.SetValue( 1 );
+     (fVec as IDoubleMatrix).SetValue( 1 );
      for counter := fHlp.Height - 1 downto 0 do
      begin
           fHlp.SetRow(counter, fVec);
@@ -302,7 +303,7 @@ begin
         x.TransposeInPlace;
 end;
 
-procedure TNonLinFitOptimizer.EvalPoly(x, coef : IMatrix; var res: IMatrix);
+procedure TNonLinFitOptimizer.EvalPoly(x, coef : IDoubleMatrix; var res: IDoubleMatrix);
 var counter: Integer;
     doTranspose : boolean;
 begin
@@ -330,7 +331,7 @@ begin
         x.TransposeInPlace;
 
      // prepare mult matrix
-     fVec.SetValue( 1 );
+     (fVec as IDoubleMatrix).SetValue( 1 );
      for counter := fHlp.Height - 1 downto 0 do
      begin
           fHlp.SetRow(counter, fVec);
@@ -351,8 +352,8 @@ begin
         x.TransposeInPlace;
 end;
 
-function TNonLinFitOptimizer.Optimize(x, y, a0: IMatrix): IMatrix;
-var weights : IMatrix;
+function TNonLinFitOptimizer.Optimize(x, y, a0: IDoubleMatrix): IDoubleMatrix;
+var weights : IDoubleMatrix;
 begin
      weights := TDoubleMatrix.Create(1, x.height);
      weights.ScaleAndAddInPlace(1, 0);
@@ -361,8 +362,8 @@ begin
 end;
 
 function TNonLinFitOptimizer.PolynomFit(x, y: TDoubleDynArray;
-  N: integer): IMatrix;
-var xVals, yVals : IMatrix;
+  N: integer): IDoubleMatrix;
+var xVals, yVals : IDoubleMatrix;
 begin
      assert(Length(x) = Length(y), 'Error length of xvals is different to length of y');
      assert(Length(x) > n, 'error cannot calculate polynomfit on data less then N');
@@ -374,7 +375,7 @@ begin
      Result := PolynomFit(xVals, yVals, N);
 end;
 
-function TNonLinFitOptimizer.PolynomFit(x, y: IMatrix; N: integer): IMatrix;
+function TNonLinFitOptimizer.PolynomFit(x, y: IDoubleMatrix; N: integer): IDoubleMatrix;
 begin
      assert(x.Height = y.Height, 'Error length of xvals is different to length of y');
      assert((x.Width >= 1) and (y.Width >= 1), 'Dimension error');
@@ -384,12 +385,12 @@ begin
      PolynomFit(x, y, N, Result);
 end;
 
-procedure TNonLinFitOptimizer.PolynomFit(x, y: IMatrix; N: Integer;
-  res: IMatrix);
-var V : IMatrix;
+procedure TNonLinFitOptimizer.PolynomFit(x, y: IDoubleMatrix; N: Integer;
+  res: IDoubleMatrix);
+var V : IDoubleMatrix;
     j, i : integer;
     dim : integer;
-    p : IMatrix;
+    p : IDoubleMatrix;
 begin
      assert(x.Height = y.Height, 'Error length of xvals is different to length of y');
      assert((x.Width >= 1) and (y.Width >= 1), 'Dimension error');
@@ -407,7 +408,7 @@ begin
           end;
 
           // Create result p = V\y
-          if V.PseudoInversionInPlace <> srOk then
+          if (V as IDOubleMatrix).PseudoInversionInPlace <> srOk then
              raise Exception.Create('Error cannot create pseudoinverse of the Vandermonde matrix');
 
           y.SetSubMatrix(dim, 0, 1, y.Height);
@@ -419,7 +420,7 @@ begin
 end;
 
 
-procedure TNonLinFitOptimizer.PolynomFitFast(x, y: IMatrix; N: Integer; res: IMatrix);
+procedure TNonLinFitOptimizer.PolynomFitFast(x, y: IDoubleMatrix; N: Integer; res: IDoubleMatrix);
 var j, i : integer;
     dim : integer;
     pWork : PDouble;
@@ -470,7 +471,7 @@ begin
      end;     
 end;
 
-procedure TNonLinFitOptimizer.InitPolyFit(x: IMatrix; N: integer);
+procedure TNonLinFitOptimizer.InitPolyFit(x: IDoubleMatrix; N: integer);
 var pV : PConstDoubleArr;
     i, j : integer;
     ax : Double;
@@ -504,7 +505,7 @@ begin
      fWork := nil;
 end;
 
-procedure TNonLinFitOptimizer.PolynomFitFast(y, res: IMatrix);
+procedure TNonLinFitOptimizer.PolynomFitFast(y, res: IDoubleMatrix);
 var j : integer;
     pWork : PDouble;
     pX : PConstDoubleArr;
@@ -532,14 +533,14 @@ begin
          res[0, fOrder - j] := pX^[j];
 end;
 
-procedure TNonLinFitOptimizer.PolynomFit(y, res: IMatrix);
+procedure TNonLinFitOptimizer.PolynomFit(y, res: IDoubleMatrix);
 var pX : PConstDoubleArr;
     j : integer;
 begin
      // ###########################################
      // #### do this only one time...
      if not Assigned( fPinvV ) then
-        fStaticV.PseudoInversion(fPinvV);
+        (fStaticV as IDoubleMatrix).PseudoInversion(fPinvV);
 
      if not Assigned(fWork) then
         fWork := TDoubleMatrix.Create;
@@ -557,7 +558,7 @@ begin
 end;
 
 
-procedure TNonLinFitOptimizer.LineFit(x, y, res: IMatrix);
+procedure TNonLinFitOptimizer.LineFit(x, y, res: IDoubleMatrix);
 var meanx, meanY : double;
     m1, m2 : double;
     counter: Integer;
@@ -598,14 +599,14 @@ begin
      res.Vec[1] := meanY - m1/m2*meanX;
 end;
 
-function TNonLinFitOptimizer.LineFit(x, y: IMatrix): IMatrix;
+function TNonLinFitOptimizer.LineFit(x, y: IDoubleMatrix): IDoubleMatrix;
 begin
      Result := TDoubleMatrix.Create(1, 2);
      LineFit(x, y, Result); 
 end;
 
 procedure TNonLinFitOptimizer.WeightedNonLinIterator(weights, a, x,
-  y: IMatrix);
+  y: IDoubleMatrix);
 begin
      if Assigned(fOnIterate1)
      then

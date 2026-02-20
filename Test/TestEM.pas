@@ -25,14 +25,14 @@ interface
 {$ENDIF}
 
 uses {$IFDEF FPC} testregistry, {$ELSE} {$IFDEF FMX}DUnitX.TestFramework {$ELSE}TestFramework {$ENDIF}, {$ENDIF}
-     BaseMatrixTestCase, Classes, SysUtils, matrix;
+     BaseMatrixTestCase, Classes, SysUtils, matrix, DblMatrix;
 
 type
   // testmethoden für die matrix funktionen
   {$IFDEF FMX} [TestFixture] {$ENDIF}
   TTestEM = class(TBaseMatrixTestCase)
   private
-    function PrepareEM( cl : TDoubleMatrixClass ) : IMatrix;
+    function PrepareEM( cl : TDoubleMatrixClass ) : IDoubleMatrix;
   published
     procedure SingleThreadEM;
     procedure MultithreadEM;
@@ -45,9 +45,9 @@ uses EM, RandomEng, ThreadedMatrix, MatrixASMStubSwitch;
 { TestEM }
 
 procedure TTestEM.SingleThreadEM;
-var x : IMatrix;
-    W, M : IMatrix;
-    V : IMatrixDynArr;
+var x : IDoubleMatrix;
+    W, M : IDoubleMatrix;
+    V : IDoubleMatrixDynArr;
     counter: integer;
 begin
      x := PrepareEM( TDoubleMatrix );
@@ -79,9 +79,9 @@ end;
 
 
 procedure TTestEM.MultithreadEM;
-var x : IMatrix;
-    W, M : IMatrix;
-    V : IMatrixDynArr;
+var x : IDoubleMatrix;
+    W, M : IDoubleMatrix;
+    V : IDoubleMatrixDynArr;
     counter: integer;
 begin
      InitMathFunctions(itFPU, false);
@@ -118,7 +118,7 @@ begin
 end;
 
 
-function TTestEM.PrepareEM( cl : TDoubleMatrixClass ): IMatrix;
+function TTestEM.PrepareEM( cl : TDoubleMatrixClass ): IDoubleMatrix;
 var i: Integer;
     rnd : TRandomGenerator;
 begin

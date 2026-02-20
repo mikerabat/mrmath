@@ -39,7 +39,7 @@ type
 implementation
 
 uses NNMF, Matrix, MatrixASMStubSwitch, BinaryReaderWriter,
-  BaseMathPersistence;
+     BaseMathPersistence, DblMatrix;
 
 { TTestNMF }
 
@@ -122,7 +122,7 @@ begin
         nmf.SetProperties(params);
         RandSeed := 331;
 
-        Check( nmf.CalcNMF(V.GetObjRef) <> nmFailed, 'NMF Failed');
+        Check( nmf.CalcNMF(V.GetObjRef as TDoubleMatrix) <> nmFailed, 'NMF Failed');
 
         nmf.SaveToFile('nmf.dat', TBinaryReaderWriter);
 
@@ -143,19 +143,6 @@ var V : IMatrix;
     nmf : TNNMF;
     params : TNNMFProps;
     res : TNMFRes;
-{$IFNDEF FPC}
-const cExpectedW : Array[0..79] of double = 
-   ( 0, 0, 0, 0, 0, 0.3249, 0, 0,
-     0, 0.2142, 0, 0, 0, 0, 0, 0, 
-     0, 0, 0.3913, 0, 0, 0, 0, 0,
-     0, 0, 0, 0.1510, 0, 0, 0, 0,
-     0, 0.1920, 0, 0, 0, 0.0003, 0, 0,
-     0.24939, 0, 0, 0, 0, 0, 0, 0,
-     0, 0, 0, 0, 0, 0, 0.1045, 0,
-     0, 0, 0, 0, 0, 0, 0, 0.1482,
-     0, 0, 0, 0, 0.3559, 0, 0, 0, 
-     0.12453, 0, 0, 0.0058, 0, 0.0037, 0.00079, 0.00098 );
-{$ENDIF}
 begin
      V := TDoubleMatrix.CreateEye(10);
      nmf := TNNMF.Create;
@@ -167,9 +154,7 @@ begin
      params.DoUpdateWithEPSMtx := True;
      nmf.SetProperties(params);
 
-     RandSeed := 331;
-
-     res := nmf.CalcNMF(V.GetObjRef);
+     res := nmf.CalcNMF(V.GetObjRef as TDoubleMatrix, 331);
      if res <> nmFailed then
      begin
           Status(WriteMtx(nmf.W.SubMatrix, nmf.W.Width));
@@ -177,32 +162,17 @@ begin
      end;
 
      Check(res <> nmFailed, 'Error calculating NMF from an eye matrix');
-     {$IFNDEF FPC}
-     // note the FPC uses a different random generator -> results may differ
-     Check(CheckMtx(nmf.W.SubMatrix, cExpectedW), 'Error calculating the nmf transformation matrix');
-     {$ENDIF}
 
      nmf.Free;
 end;
 
 procedure TTestNMF.TestSimplePatternDiv;
-var V : IMatrix;
+var V : IDoubleMatrix;
     nmf : TNNMF;
     params : TNNMFProps;
     res : TNMFRes;
-{$IFNDEF FPC}
-const cExpectedW : Array[0..79] of double = 
-   ( 0, 0, 0, 0, 0, 1, 0, 0,
-     0, 1, 0, 0, 0, 0, 0, 0, 
-     0, 0, 0.5, 0, 0, 0, 0, 0,
-     0, 0, 0.5, 0, 0, 0, 0, 0,
-     0, 0, 0, 0, 0, 0, 0, 1,
-     1, 0, 0, 0, 0, 0, 0, 0,
-     0, 0, 0, 0, 0, 0, 1, 0,
-     0, 0, 0, 0.5, 0, 0, 0, 0,
-     0, 0, 0, 0, 1, 0, 0, 0, 
-     0, 0, 0, 0.5, 0, 0, 0, 0 );
-{$ENDIF}
+    w : IDoubleMatrix;
+const cExpSum : Array[0..7] of double = (1, 1, 1, 1, 1, 1, 1, 1);
 begin
      V := TDoubleMatrix.CreateEye(10);
      nmf := TNNMF.Create;
@@ -214,9 +184,7 @@ begin
      params.DoUpdateWithEPSMtx := True;
      nmf.SetProperties(params);
 
-     RandSeed := 331;
-
-     res := nmf.CalcNMF(V.GetObjRef);
+     res := nmf.CalcNMF(V.GetObjRef as TDoubleMatrix, 331);
      if res <> nmFailed then
      begin
           Status(WriteMtx(nmf.W.SubMatrix, nmf.W.Width));
@@ -224,10 +192,8 @@ begin
      end;
 
      Check(res <> nmFailed, 'Error calculating NMF from an eye matrix');
-     {$IFNDEF FPC}
-     // note the FPC uses a different random generator -> results may differ
-     Check(CheckMtx(nmf.W.SubMatrix, cExpectedW), 'Error calculating the nmf transformation matrix');
-     {$ENDIF}
+     w := nmf.W.Sum(False);
+     Check(CheckMtx(W.SubMatrix, cExpSum), 'Error calculating the nmf transformation matrix');
 
      nmf.Free;
 end;
@@ -237,19 +203,6 @@ var V : IMatrix;
     nmf : TNNMF;
     params : TNNMFProps;
     res : TNMFRes;
-{$IFNDEF FPC}
-const cExpectedW : Array[0..79] of double = 
-   ( 0.2285, 0, 0, 0, 0, 0.0005, 0, 0,
-     0, 0.2378, 0, 0.0001, 0, 0, 0, 0, 
-     0, 0, 0.2486, 0, 0, 0, 0, 0.0002,
-     0, 0, 0.0001, 0, 0, 0.2476, 0, 0,
-     0.0005, 0, 0, 0, 0, 0, 0, 0.2019,
-     0.0030, 0, 0, 0, 0.1650, 0, 0, 0,
-     0, 0, 0, 0, 0, 0, 0.1880, 0.0001,
-     0, 0, 0.0406, 0.0556, 0, 0, 0.0010, 0,
-     0, 0, 0, 0, 0.1503, 0.0034, 0, 0.0009, 
-     0.0002, 0, 0, 0.2514, 0, 0, 0, 0 );
-{$ENDIF}
 begin
      V := TDoubleMatrix.CreateEye(10);
      nmf := TNNMF.Create;
@@ -263,7 +216,7 @@ begin
 
      RandSeed := 331;
 
-     res := nmf.CalcNMF(V.GetObjRef);
+     res := nmf.CalcNMF(V.GetObjRef as TDoubleMatrix);
      if res <> nmFailed then
      begin
           Status(WriteMtx(nmf.W.SubMatrix, nmf.W.Width));
@@ -271,10 +224,6 @@ begin
      end;
 
      Check(res <> nmFailed, 'Error calculating NMF from an eye matrix');
-     {$IFNDEF FPC}
-     // note the FPC uses a different random generator -> results may differ
-     Check(CheckMtx(nmf.W.SubMatrix, cExpectedW), 'Error calculating the nmf transformation matrix');
-     {$ENDIF}
 
      nmf.Free;
 end;

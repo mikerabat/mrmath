@@ -20,7 +20,7 @@ unit Roots;
 
 interface
 
-uses SysUtils, Types, MatrixConst, Matrix;
+uses SysUtils, Types, MatrixConst, Matrix, DblMatrix;
 
 const cRootTol = 3e-8;
       cPolyRootTol = 2e-6;
@@ -89,7 +89,7 @@ type
     // the resulting matrix "roots" is a width=2, height=n matrix in case there are complex roots.
     // otherwise the second column is stripped only one vector is returned.
     class function PolyRoot( a : TDoubleMatrix; out roots : TDoubleMatrix; method : TPolyRootMethod = rmEigenvalue) : TRootRes; overload;
-    class function PolyRoot( a : IMatrix; out roots : IMatrix; method : TPolyRootMethod = rmEigenvalue) : TRootRes; overload;
+    class function PolyRoot( a : IDoubleMatrix; out roots : IDoubleMatrix; method : TPolyRootMethod = rmEigenvalue) : TRootRes; overload;
   end;
 
 type
@@ -342,8 +342,8 @@ begin
 end;
 
 function PolyRootEig( a : PConstDoubleArr; aLen : integer; root : PConstComplexArr ) : TRootRes;
-var polyMtx : IMatrix;
-    eigVals : IMatrix;
+var polyMtx : IDoubleMatrix;
+    eigVals : IDoubleMatrix;
     i : Integer;
 begin
      polyMtx := TDoubleMatrix.Create(aLen - 1, aLen - 1);
@@ -433,11 +433,11 @@ begin
      end;
 end;
 
-class function TPolyRoot.PolyRoot(a: IMatrix; out roots: IMatrix;
+class function TPolyRoot.PolyRoot(a: IDoubleMatrix; out roots: IDoubleMatrix;
   method: TPolyRootMethod): TRootRes;
 var aroots : TDoubleMatrix;
 begin
-     Result := PolyRoot( a.GetObjRef, aRoots, method);
+     Result := PolyRoot( a.GetObjRef as TDoubleMatrix, aRoots, method);
      roots := aRoots;
 end;
 

@@ -16,7 +16,7 @@ unit RollingMedMean;
 
 interface
 
-uses SysUtils, Types;
+uses SysUtils, Types, MatrixConst;
 
 // ###########################################
 // #### Rolling Mean/Median algorithms
@@ -35,45 +35,63 @@ uses SysUtils, Types;
 {.$DEFINE DEBUG_MEDIAN}
 
 type
-  TRollingMedian = class(TObject)
-  private
+  TCustomRollMedian = class(TObject)
+  protected
     type
       TMedianIntArr = Array[-High(SmallInt)..High(SmallInt)] of Integer;
       PMedianIntArr = ^TMedianIntArr;
 
-  private
+  protected
     fOrder : integer;
     fDelay : integer;
     fSwingIn : integer;
     fOrderD2 : integer;
     fOrderD2M1 : integer;
-
-    fBuf : TDoubleDynArray;       // circular queue of values
     fPos : TIntegerDynArray;     // index into `heap` for each value
     fHeapArrBuf : TIntegerDynArray;
     fHeapArr : PMedianIntArr;      // used as a pointer trick to avoid the constant addition with fOrderD2
     fBufIdx : integer;            //position in circular queue
     fMinCount,
     fMaxCount : integer;          // count of items in the heaps
+  protected
+    function mless(i, j : integer) : boolean; virtual; abstract;
 
-    function mless(i, j : integer) : boolean; {$IFNDEF DEBUG_MEDIAN} inline; {$ENDIF}
     procedure mexchange(i, j : integer); {$IFNDEF DEBUG_MEDIAN} inline; {$ENDIF}
     procedure minSortDown(i : integer); {$IFNDEF DEBUG_MEDIAN} inline; {$ENDIF}
     procedure maxSortDown(i : integer); {$IFNDEF DEBUG_MEDIAN} inline; {$ENDIF}
     function minSortUp(i : integer) : boolean; {$IFNDEF DEBUG_MEDIAN} inline; {$ENDIF}
     function maxSortUp(i : integer) : boolean;  {$IFNDEF DEBUG_MEDIAN} inline; {$ENDIF}
   public
-    property Delay : integer read fDelay;
-    property Order : integer read fOrder;
-    property SwingIn : integer read fSwingIn;
-
     procedure Clear;
 
+    constructor Create(aOrder : SmallInt);
+  end;
+
+  TRollingMedian = class(TCustomRollMedian)
+  private
+    fBuf : TDoubleDynArray;       // circular queue of values
+  protected
+    function mless(i, j : integer) : boolean; override;
+  public
     function FilterVal(const samp : double) : double;
     procedure FilterVals( buf : PDouble; const LineWidth : NativeInt; N : NativeInt );
 
     constructor Create(aOrder : SmallInt);
   end;
+
+type
+  TCplxRollingMedian = class(TCustomRollMedian)
+  private
+    fBuf : TComplexDynArray;       // circular queue of values
+  protected
+    function mless(i, j : integer) : boolean; override;
+  public
+    function FilterVal(const samp : TComplex) : TComplex;
+    procedure FilterVals( buf : PComplex; const LineWidth : NativeInt; N : NativeInt );
+
+    constructor Create(aOrder : SmallInt);
+  end;
+
 
 // ###########################################
 // #### Moving mean and variance class
@@ -112,7 +130,7 @@ type
 
 implementation
 
-uses Math;
+uses Math, CplxSimpleMatrixOperations;
 
 {$IFNDEF DEBUG_MEDIAN}
 {$R-}{$Q-}
@@ -120,7 +138,7 @@ uses Math;
 
 { TRollingMedian }
 
-procedure TRollingMedian.mexchange(i, j: integer);
+procedure TCustomRollMedian.mexchange(i, j: integer);
 var t : integer;
     r : integer;
 begin
@@ -133,13 +151,7 @@ begin
      fPos[t] := j;
 end;
 
-function TRollingMedian.mless(i, j: integer): boolean;
-begin
-     Result := fBuf[fHeapArr^[i]] < fBuf[fHeapArr^[j]];
-end;
-
-
-procedure TRollingMedian.Clear;
+procedure TCustomRollMedian.Clear;
 var counter : integer;
     sign : integer;
 begin
@@ -161,14 +173,13 @@ begin
      end;
 end;
 
-constructor TRollingMedian.Create(aOrder: SmallInt);
+constructor TCustomRollMedian.Create(aOrder: SmallInt);
 begin
      inherited Create;
 
      fOrder := aOrder;
      fOrderD2 := aOrder div 2;
      fOrderD2M1 := (aOrder - 1) div 2;
-     SetLength(fBuf, fOrder);
      SetLength(fPos, fOrder);
      SetLength(fHeapArrBuf, fOrder);
 
@@ -179,6 +190,98 @@ begin
      fDelay := fOrder div 2;
 
      Clear;
+end;
+
+
+procedure TCustomRollMedian.maxSortDown(i: integer);
+var i2 : integer;
+begin
+     i2 := i;
+     i := i*2;
+     while i >= -fMaxCount do
+     begin
+          if (i > -fMaxCount) and mless(i, i - 1)  then
+             dec(i);
+
+          if not mless(i2, i) then
+             break;
+
+          mexchange(i2, i);
+
+          i2 := i;
+          i := i * 2;
+     end;
+end;
+
+function TCustomRollMedian.maxSortUp(i: integer): boolean;
+var i2 : integer;
+begin
+     while (i < 0) do
+     begin
+          i2 := i div 2;
+
+          if not mless(i2, i) then
+             break;
+
+          mexchange(i2, i);
+          i := i2;
+     end;
+
+     Result := i = 0;
+end;
+
+
+procedure TCustomRollMedian.minSortDown(i: integer);
+var i2 : integer;
+begin
+     i2 := i;
+     i := i*2;
+     while i <= fMinCount do
+     begin
+          if (i < fMinCount) and (mless(i + 1, i)) then
+             inc(i);
+
+          if not mless(i, i2) then
+             break;
+
+          mexchange(i, i2);
+
+          i2 := i;
+          i := i * 2;
+     end;
+end;
+
+function TCustomRollMedian.minSortUp(i: integer): boolean;
+var i2 : integer;
+begin
+     while (i > 0) do
+     begin
+          i2 := i div 2;
+          if not mless(i, i2) then
+             break;
+
+          mexchange(i, i2);
+
+          i := i2;
+     end;
+
+     Result := i = 0;
+end;
+
+// ###########################################
+// #### Double rolling median
+// ###########################################
+
+function TRollingMedian.mless(i, j: integer): boolean;
+begin
+     Result := fBuf[fHeapArr^[i]] < fBuf[fHeapArr^[j]];
+end;
+
+constructor TRollingMedian.Create(aOrder: SmallInt);
+begin
+     SetLength(fBuf, aOrder);
+
+     inherited Create(aOrder);
 end;
 
 procedure TRollingMedian.FilterVals( buf : PDouble; const LineWidth : NativeInt; N : NativeInt );
@@ -272,82 +375,6 @@ begin
      if fMinCount < fMaxCount then
         Result := (Result + fBuf[fHeapArr^[-1]])/2;
 end;
-
-procedure TRollingMedian.maxSortDown(i: integer);
-var i2 : integer;
-begin
-     i2 := i;
-     i := i*2;
-     while i >= -fMaxCount do
-     begin
-          if (i > -fMaxCount) and mless(i, i - 1)  then
-             dec(i);
-
-          if not mless(i2, i) then
-             break;
-
-          mexchange(i2, i);
-
-          i2 := i;
-          i := i * 2;
-     end;
-end;
-
-function TRollingMedian.maxSortUp(i: integer): boolean;
-var i2 : integer;
-begin
-     while (i < 0) do
-     begin
-          i2 := i div 2;
-
-          if not mless(i2, i) then
-             break;
-
-          mexchange(i2, i);
-          i := i2;
-     end;
-
-     Result := i = 0;
-end;
-
-
-procedure TRollingMedian.minSortDown(i: integer);
-var i2 : integer;
-begin
-     i2 := i;
-     i := i*2;
-     while i <= fMinCount do
-     begin
-          if (i < fMinCount) and (mless(i + 1, i)) then
-             inc(i);
-
-          if not mless(i, i2) then
-             break;
-
-          mexchange(i, i2);
-
-          i2 := i;
-          i := i * 2;
-     end;
-end;
-
-function TRollingMedian.minSortUp(i: integer): boolean;
-var i2 : integer;
-begin
-     while (i > 0) do
-     begin
-          i2 := i div 2;
-          if not mless(i, i2) then
-             break;
-
-          mexchange(i, i2);
-
-          i := i2;
-     end;
-
-     Result := i = 0;
-end;
-
 
 // ###########################################
 // #### Moving/rolling mean variance
@@ -457,5 +484,122 @@ begin
      aVar := Max(0, (fCnt*fSx2 - sqr(fsx1)))/denom;
 end;
 
+
+{ TCplxRollingMedian }
+
+constructor TCplxRollingMedian.Create(aOrder: SmallInt);
+begin
+     SetLength(fBuf, aOrder);
+
+     inherited Create(aOrder);
+end;
+
+function TCplxRollingMedian.FilterVal(const samp: TComplex): TComplex;
+var p : integer;
+    old : TComplex;
+begin
+     p := fPos[fBufIdx];
+     old := fBuf[fBufIdx];
+     fBuf[fBufIdx] := samp;
+     inc(fBufIdx);
+     if fBufIdx >= fOrder then
+        fBufIdx := 0;
+
+     if p > 0 then
+     begin
+          //new item is in minHeap
+          if fMinCount < fOrderD2M1
+          then
+              inc(fMinCount)
+          else if CCmp(samp, old) = GreaterThanValue then
+          begin
+               minSortDown(p);
+
+               //returns median item (or average of 2 when item count is even)
+               Result := fBuf[fHeapArr^[0]];
+               if fMinCount < fMaxCount then
+               begin
+                    CInc(Result, fBuf[fHeapArr^[-1]]);
+                    RCMul(0.5, Result);
+               end;
+               exit;
+          end;
+
+          if minSortUp(p) then
+          begin
+               if mless(0, -1) then
+               begin
+                    mexchange(0, -1);
+                    maxSortDown(-1);
+               end;
+          end;
+     end
+     else if p < 0 then
+     begin
+          //new item is in maxheap
+          if fMaxCount < fOrderD2
+          then
+              inc(fMaxCount)
+          else
+          begin
+               if CCmp(samp, old) = LessThanValue then
+               begin
+                    maxSortDown(p);
+
+                    //returns median item (or average of 2 when item count is even)
+                    Result := fBuf[fHeapArr^[0]];
+                    if fMinCount < fMaxCount then
+                    begin
+                         CInc(Result, fBuf[fHeapArr^[-1]]);
+                         RCMul(0.5, Result);
+
+                    end;
+                    exit;
+               end;
+          end;
+
+          if maxSortUp(p) and (fMinCount > 0) then
+          begin
+               if mless(1, 0) then
+               begin
+                    mexchange(1, 0);
+                    minSortDown(1);
+               end;
+          end;
+     end
+     else
+     begin
+          // new item is median
+          if (fMaxCount > 0) and maxSortUp(-1) then
+             maxSortDown(-1);
+          if (fMinCount > 0) and minSortUp(1) then
+             minSortDown(1);
+     end;
+
+     //returns median item (or average of 2 when item count is even)
+     Result := fBuf[fHeapArr^[0]];
+     if fMinCount < fMaxCount then
+     begin
+          CInc(Result, fBuf[fHeapArr^[-1]]);
+          RCMul(0.5, Result);
+     end;
+end;
+
+
+procedure TCplxRollingMedian.FilterVals(buf: PComplex;
+  const LineWidth: NativeInt; N: NativeInt);
+var i: Integer;
+begin
+     for i := 0 to N - 1 do
+     begin
+          buf^ := FilterVal( buf^ );
+          inc(PByte(buf), LineWidth);
+     end;
+end;
+
+function TCplxRollingMedian.mless(i, j: integer): boolean;
+begin
+     Result := CCmp(fBuf[fHeapArr^[i]], fBuf[fHeapArr^[j]]) = LessThanValue;
+end;
 
 end.

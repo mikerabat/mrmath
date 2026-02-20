@@ -193,7 +193,6 @@ function MatrixElemDiv(const mt1, mt2 : Array of Double; width : NativeInt; heig
 
 procedure MatrixElemAdd( Dest : PDouble; const LineWidth, Width, Height : NativeInt; const Offset : double );
 procedure MatrixAddAndScale(Dest : PDouble; const LineWidth, Width, Height : NativeInt; const Offset, Scale : double);
-procedure MatrixScale(Dest : PDouble; const LineWidth, Width, Height : NativeInt; const Scale : double); inline;
 procedure MatrixScaleAndAdd(Dest : PDouble; const LineWidth, Width, Height : NativeInt; const Offset, Scale : double);
 procedure MatrixAbs(Dest : PDouble; const LineWidth, Width, Height : NativeInt);
 procedure MatrixSQRT(Dest : PDouble; const LineWidth, Width, Height : NativeInt);
@@ -1562,11 +1561,6 @@ begin
      assert(LineWidth >= width*sizeof(double), 'Line width error');
 
      elemAddFunc(dest, linewidth, width, height, Offset);
-end;
-
-procedure MatrixScale(Dest : PDouble; const LineWidth, Width, Height : NativeInt; const Scale : double);
-begin
-     MatrixScaleAndAdd(Dest, LineWidth, Width, Height, 0, Scale);
 end;
 
 procedure MatrixAddAndScale(Dest : PDouble; const LineWidth, Width, Height : NativeInt; const Offset, Scale : double);

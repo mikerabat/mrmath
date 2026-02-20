@@ -64,7 +64,7 @@ type
 implementation
 
 uses RandomEng, Eigensystems, MatrixConst, MatrixASMStubSwitch, Matrix, Types, MtxTimer,
-  BlockSizeSetup, MtxThreadPool, MathUtilFunc;
+  BlockSizeSetup, MtxThreadPool, MathUtilFunc, DblMatrix;
 
 { TTestEigensystems }
 
@@ -683,22 +683,22 @@ end;
 
 procedure TTestEigensystems.TestEigVec2x2;
 const x : Array[0..3] of double = (4, 2, 1, -1);
-var a : IMatrix;
-    b, c : IMatrix;
+var a : IDoubleMatrix;
+    b, c : IDoubleMatrix;
 begin
      InitMathFunctions(itFPU, false);
      a := TDoubleMatrix.Create(x, 2, 2);
      a.Eig(b, c);
 
      Status('Eigvals:' );
-     Status( WriteMtx( b.GetObjRef, 5 ) );
+     Status( WriteMtx( b.GetObjRef as TDoubleMatrix, 5 ) );
 
      Status('EigVec:');
-     Status( WriteMtx( c.GetObjRef, 5 ));
+     Status( WriteMtx( c.GetObjRef as TDoubleMatrix, 5 ));
 
      c.Normalize(False);
      Status('Normalized:');
-     Status( WriteMtx( c.GetObjRef, 5 ));
+     Status( WriteMtx( c.GetObjRef as TDoubleMatrix, 5 ));
 end;
 
 

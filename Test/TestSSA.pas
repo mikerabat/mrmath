@@ -34,12 +34,12 @@ type
 
 implementation
 
-uses Matrix, ssa, RandomEng, MatrixASMStubSwitch, Dialogs;
+uses Matrix, DblMatrix, ssa, RandomEng, MatrixASMStubSwitch, Dialogs;
 
 { TTestSSA }
 
 procedure TTestSSA.Test1;
-var x, y : IMatrix;
+var x, y : IDoubleMatrix;
     i : integer;
     rnd : TRandomGenerator;
 const T = 22;
@@ -75,8 +75,8 @@ begin
 end;
 
 procedure TTestSSA.TestOVerlap;
-var x : IMatrix;
-    res : IMatrix;
+var x : IDoubleMatrix;
+    res : IDoubleMatrix;
 begin
      x := MatrixFromTxtFile(BaseDataPath + 'ssaTest.txt');
      res := TSingularSpectrumAnalysis.CalcSSAOverlap(x, 24, 60, 2, 14, nil);

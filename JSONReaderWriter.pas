@@ -36,10 +36,12 @@ interface
 //     Each byte in the binary stream is simply encoded as hex value of that byte (00-FF)
 //     meaing that every byte is encoded into 2 characters.
 //     e.g. the byte streams $54$FA$11 is encoded into the string: 0x54FA11
+// 5.) Complex properties are treated as binary but with a prefix of 0CPLXA (Array) or 0CPLXS (Single)
+//     The rest is encoded the same way as binary properties
 
 // todo: perhaps Base64 encoding?
 
-uses SysUtils, Classes, BaseMathPersistence, MathUtilFunc, types;
+uses SysUtils, Classes, BaseMathPersistence, MathUtilFunc, types, MatrixConst;
 
 // #############################################################
 // #### Loading/saving data
@@ -59,10 +61,12 @@ type
 
     procedure WriteObjDescriptor(const Name : String; const Value : String); override;
     procedure WriteDoubleArr(const Name : String; const Value : Array of double); override;
+    procedure WriteCmplxArr(const Name : string; const Value : Array of TComplex); override;
     procedure WriteListBegin(const Name : String; count : integer); override;
     procedure WriteListEnd; override;
     procedure WriteBinaryProperty(const Name : String; const Value; size : integer); override;
     procedure WriteProperty(const Name : String; const Value : double); overload; override;
+    procedure WriteProperty(const Name : string; const Value : TComplex); overload; override;
     procedure WriteProperty(const Name : String; const Value : String); overload; override;
     procedure WriteProperty(const Name : String; const Value : integer); overload; override;
     procedure WriteObject(Obj : TBaseMathPersistence); override;
@@ -84,6 +88,43 @@ uses Math;
 const cJSONHeader : UTF8String = '{"Lib":"mrMath"';
       cJSONVersion : UTF8String = ',"Version":1';
       cJSONFinalize : UTF8String = '}';
+
+// ###########################################
+// #### Special Complex value handling
+// ###########################################
+
+type
+  TJSonComplexValue = class(TBaseMathPersistence)
+  private
+    fValue : TComplex;
+  protected
+    procedure OnLoadDoubleProperty(const Name : String; const Value : double); override;
+    procedure DefineProps; override;
+  public
+    property Value : TComplex read fValue;
+  end;
+
+{ TJSonComplexValue }
+
+procedure TJSonComplexValue.DefineProps;
+begin
+     // nothing to do here -> it is just a helper for here, no writing just reading
+end;
+
+procedure TJSonComplexValue.OnLoadDoubleProperty(const Name: String;
+  const Value: double);
+begin
+     if SameText(Name, 'r')
+     then
+         fValue.real := Value
+     else if SameText(Name, 'i')
+     then
+         fValue.imag := Value
+     else
+         raise Exception.Create('Failed to read a complex number');
+end;
+
+
 { TJsonReaderWriter }
 
 procedure TJsonReaderWriter.AfterConstruction;
@@ -176,6 +217,27 @@ begin
      stream.WriteBuffer(s[1], Length(s));
 end;
 
+procedure TJsonReaderWriter.WriteCmplxArr(const Name: string;
+  const Value: array of TComplex);
+var s : UTF8String;
+    counter: Integer;
+begin
+     s := ',"' + EncodeJSONString(Name) + '":[';
+     Stream.WriteBuffer(s[1], Length(s));
+
+     for counter := 0 to Length(Value) - 1 do
+     begin
+          s := UTF8String( Format('{"r":%g,"i":%g}', [Value[counter].real, Value[counter].imag], fFmt) );
+          if counter <> Length(Value) - 1 then
+             s := s + ',';
+          stream.WriteBuffer(s[1], Length(s));
+     end;
+
+     s := ']';
+     stream.WriteBuffer(s[1], Length(s));
+end;
+
+
 procedure TJsonReaderWriter.WriteProperty(const Name: String;
   const Value: integer);
 var s : utf8String;
@@ -185,13 +247,20 @@ begin
      Stream.WriteBuffer(s[1], Length(s));
 end;
 
+procedure TJsonReaderWriter.WriteProperty(const Name: string;
+  const Value: TComplex);
+var s : UTF8String;
+begin
+     s := ',"' + EncodeJSONString(Name) + '":' + UTF8String( Format('{"r":%g,"i":%g}', [Value.real, Value.imag], fFmt) );
+     Stream.WriteBuffer(s[1], Length(s));
+end;
+
 procedure TJsonReaderWriter.WriteProperty(const Name, Value: String);
 var s : UTF8String;
 begin
      s := ',"' + EncodeJSONString(Name) + '":"' + EncodeJSONString(Value) + '"';
      Stream.WriteBuffer(s[1], Length(s));
 end;
-
 
 procedure TJsonReaderWriter.WriteProperty(const Name: String;
   const Value: double);
@@ -390,7 +459,7 @@ type
                 sValueBegin, sValueEnd, sListBegin, slistValue, slistNextValue, sListEnd,
                 sNumericBegin, sNumericNum, sNumericFrac, sNumericExp,
                 sNumericExpSign, sNumericExpVal);
-  TJSONListType = (jlNone, jlDouble, jlString, jlInt, jlObject, jlDoubleArr, jlIntArr);
+  TJSONListType = (jlNone, jlDouble, jlString, jlInt, jlObject, jlDoubleArr, jlIntArr, jlComplex);
 
 
 function TJsonReaderWriter.InternalLoadFromStream(
@@ -415,11 +484,13 @@ var c : Ansichar;
     listS : TStringDynArray;
     listO : Array of TBaseMathPersistence;
     listCnt : integer;
-
+    listC : TComplexDynArray;
+    listCC : Array of TComplexDynArray;
     aObj : TBaseMathPersistence;
     mathIOClass : TBaseMathPersistenceClass;
     version: Integer;
     counter: Integer;
+  j: Integer;
 
 function DecodeStringToBinary(const s : string) : TByteDynArray;
 var binIdx : integer;
@@ -772,6 +843,10 @@ begin
                             sProp := ReadString;
                             PopState;
                             PushState(sPropertyEnd);
+
+                            // check for complex number
+                            if SameText(sProp, 'r') then
+                               Result := TJSonComplexValue.Create;
                        end
                        else
                            raise EReadError.Create('Decode Error - no property found');
@@ -897,8 +972,14 @@ begin
                                    if sProp = '' then
                                       raise EReadError.Create('Error - no object name given');
 
-                                   if not ReadObject( Result, sProp, aObj ) then
-                                      aObj.Free;
+                                   if aObj is TJSonComplexValue then
+                                   begin
+                                        ReadCmplxProperty(Result, sProp, (aObj as TJSonComplexValue).Value);
+                                        aObj.Free;
+                                   end
+                                   else if not ReadObject( Result, sProp, aObj )
+                                   then
+                                       aObj.Free;
 
                                    sProp := '';
                                    PopState;
@@ -952,6 +1033,9 @@ begin
                                      SetLength(listO, Min(length(listO) + 100, 1 + 2*Length(listO)));
 
                                   listO[listCnt] := InternalLoadFromStream(aStream);
+                                  if listO[listCnt] is TJSonComplexValue then
+                                     listType := jlComplex;
+
                                   inc(listCnt);
                                   PopState;
                                   PushState(slistValue);
@@ -1058,6 +1142,16 @@ begin
                                                          listO[counter].Free;
                                                   ReadEndList(Result);
                                              end;
+                                   jlComplex:begin
+                                                  SetLength(listC, listCnt);
+
+                                                  for counter := 0 to listCnt - 1 do
+                                                  begin
+                                                       listC[counter] := (listO[counter] as TJSonComplexValue).Value;
+                                                       listO[counter].Free;
+                                                  end;
+                                                  ReadCmplxArr(Result, sProp, listC);
+                                             end;
                                    jlDoubleArr: begin
                                                      ReadBeginList(Result, sProp, listCnt);
                                                      for counter := 0 to listCnt - 1 do
@@ -1131,7 +1225,7 @@ begin
                                  end
                                  else if c = '{' then
                                  begin
-                                      if listType <> jlObject then
+                                      if (listType <> jlObject) and (listType <> jlComplex) then
                                          raise EReadError.Create('Error unrecognized object found in list');
 
                                       if listCnt >= Length(listO) then
@@ -1201,7 +1295,6 @@ begin
      if Assigned(Result) then
         ReadFinalize(Result);
 end;
-
 
 initialization
   RegisterMathIOReader(TJsonReaderWriter);

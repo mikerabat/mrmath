@@ -21,7 +21,7 @@ unit BaseMathPersistence;
 
 interface
 
-uses SysUtils, Classes, Types;
+uses SysUtils, Classes, Types, MatrixConst;
 
 // #############################################################
 // #### Loading/saving data
@@ -34,7 +34,7 @@ type
     procedure SaveToStream(stream : TStream; Writer : TCustomMathPersistenceIOClass);
   end;
 
-  TPropType = (ptUnknown, ptDouble, ptInteger, ptString, ptObject, ptBinary);
+  TPropType = (ptUnknown, ptDouble, ptInteger, ptString, ptObject, ptBinary, ptComplex);
 
   TBaseMathPersistence = class(TInterfacedObject, IMathPersistence)
   private
@@ -50,6 +50,7 @@ type
     procedure AddIntProperty(const Name : String; const Value : integer);
     procedure AddBinaryProperty(const Name : String; const Value; size : integer);
     procedure AddDoubleArr(const Name : String; const Value : TDoubleDynArray);
+    procedure AddCplxArr(const Name : string; const Value : TComplexDynArray);
     procedure AddListDoubleArr(const Value : TDoubleDynArray);
     procedure AddIntArr(const Name : String; const Value : TIntegerDynArray);
     procedure AddListIntArr(const Value : TIntegerDynArray);
@@ -58,6 +59,7 @@ type
   protected
     procedure FinishReading; virtual;
     procedure OnLoadDoubleProperty(const Name : String; const Value : double); virtual;
+    procedure OnLoadCmplxProperty(const Name : String; const Value : TComplex); virtual;
     procedure OnLoadStringProperty(const Name : String; const Value : String); virtual;
     procedure OnLoadIntProperty(const Name : String; Value : integer); virtual;
     procedure OnLoadBinaryProperty(const Name : String; const Value; size : integer); virtual;
@@ -66,6 +68,7 @@ type
     procedure OnLoadBeginList(const Name : String; count : integer); virtual;
     procedure OnLoadEndList; virtual;
     procedure OnLoadDoubleArr(const Name : String; const Value : TDoubleDynArray); virtual;
+    procedure OnLoadCmplxArr(const Name : string; const Value : TComplexDynArray); virtual;
     procedure OnLoadIntArr(const Name : String; const Value : TIntegerDynArray); virtual;
     procedure OnLoadListDoubleArr(const Value : TDoubleDynArray); virtual;
     procedure OnLoadListIntArr(const Value : TIntegerDynArray); virtual;
@@ -96,6 +99,7 @@ type
     // ###########################################################
     // #### Reading routines - these call the onLoad xx routines
     procedure ReadDoubleProperty(readObj : TBaseMathPersistence; const Name : String; const Value : double);
+    procedure ReadCmplxProperty(readObj : TBaseMathPersistence; const Name : String; const Value : TComplex);
     procedure ReadStringProperty(readObj : TBaseMathPersistence; const Name : String; const Value : String);
     procedure ReadIntProperty(readObj : TBaseMathPersistence; const Name : String; Value : integer);
     procedure ReadBinaryProperty(readObj : TBaseMathPersistence; const Name : String; const Value; size : integer);
@@ -104,6 +108,7 @@ type
     procedure ReadBeginList(readObj : TBaseMathPersistence; const Name : String; count : integer);
     procedure ReadEndList(readObj : TBaseMathPersistence);
     procedure ReadDoubleArr(readObj : TBaseMathPersistence; const Name : String; const Value : TDoubleDynArray);
+    procedure ReadCmplxArr(readObj : TBaseMathPersistence; const Name : String; const Value : TComplexDynArray);
     procedure ReadIntArr(readObj : TBaseMathPersistence; const Name : String; const Value : TIntegerDynArray);
     procedure ReadListDoubleArr(readObj : TBaseMathPersistence; const Value : TDoubleDynArray);
     procedure ReadListIntArr(readObj : TBaseMathPersistence; const Value : TIntegerDynArray);
@@ -120,8 +125,10 @@ type
     procedure WriteListBegin(const Name : String; count : integer); virtual; abstract;
     procedure WriteListEnd; virtual; abstract;
     procedure WriteProperty(const Name : String; const Value : double); overload; virtual; abstract;
+    procedure WriteProperty(const Name : string; const Value : TComplex); overload; virtual; abstract;
     procedure WriteProperty(const Name : String; const Value : String); overload; virtual; abstract;
     procedure WriteProperty(const Name : String; const Value : integer); overload; virtual; abstract;
+    procedure WriteCmplxArr(const Name : string; const Value : Array of TComplex); virtual; abstract;
     procedure WriteDoubleArr(const Name : String; const Value : Array of double); virtual; abstract;
     procedure WriteListDoubleArr(const Value : Array of double); virtual; abstract;
     procedure WriteIntArr(const Name : String; const Value : Array of Integer); virtual; abstract;
@@ -376,6 +383,20 @@ begin
      readObj.OnLoadBinaryProperty(Name, Value, Size);
 end;
 
+procedure TCustomMathPersistenceIO.ReadCmplxArr(readObj: TBaseMathPersistence;
+  const Name: String; const Value: TComplexDynArray);
+begin
+     assert(assigned(readObj), 'Error: tried write a property on a nil object');
+     readObj.OnLoadCmplxArr(Name, Value);
+end;
+
+procedure TCustomMathPersistenceIO.ReadCmplxProperty(
+  readObj: TBaseMathPersistence; const Name: String; const Value: TComplex);
+begin
+     assert(assigned(readObj), 'Error: tried write a property on a nil object');
+     readObj.OnLoadCmplxProperty(Name, Value);
+end;
+
 function TCustomMathPersistenceIO.ReadObject(readObj: TBaseMathPersistence;
   const Name: String; Obj: TBaseMathPersistence): boolean;
 begin
@@ -442,6 +463,13 @@ procedure TBaseMathPersistence.AddBinaryProperty(const Name: String;
 begin
      assert(Assigned(fWriter), 'No writer assigned');
      fWriter.WriteBinaryProperty(Name, Value, size);
+end;
+
+procedure TBaseMathPersistence.AddCplxArr(const Name: string;
+  const Value: TComplexDynArray);
+begin
+     assert(Assigned(fWriter), 'No writer assigned');
+     fWriter.WriteCmplxArr(Name, Value);
 end;
 
 procedure TBaseMathPersistence.AddDoubleArr(const Name: String;
@@ -537,6 +565,18 @@ end;
 
 procedure TBaseMathPersistence.OnLoadBinaryProperty(const Name: String;
   const Value; size: integer);
+begin
+     // do nothing in the base class
+end;
+
+procedure TBaseMathPersistence.OnLoadCmplxArr(const Name: string;
+  const Value: TComplexDynArray);
+begin
+     // do nothing in the base class
+end;
+
+procedure TBaseMathPersistence.OnLoadCmplxProperty(const Name: String;
+  const Value: TComplex);
 begin
      // do nothing in the base class
 end;
