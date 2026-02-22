@@ -143,6 +143,7 @@ uses
   FMAVecConvolve in '..\FMAVecConvolve.pas',
   FMAVecConvolvex64 in '..\FMAVecConvolvex64.pas',
   Dist in '..\Dist.pas',
+  SpatialTrees in '..\SpatialTrees.pas',
   MatrixASMStubSwitch in '..\MatrixASMStubSwitch.pas',
   GCDDispatch in '..\GCDDispatch.pas',
   linuxthrpool in '..\linuxthrpool.pas',
@@ -186,7 +187,8 @@ uses
   TestSpecialFunc in 'TestSpecialFunc.pas',
   TestTSNE in 'TestTSNE.pas',
   TestCmplx in 'TestCmplx.pas',
-  TestWavelets in 'TestWavelets.pas';
+  TestWavelets in 'TestWavelets.pas',
+  TestSpatialTrees in 'TestSpatialTrees.pas';
 
 var
   runner : ITestRunner;

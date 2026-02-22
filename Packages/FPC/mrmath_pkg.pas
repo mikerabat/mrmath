@@ -163,6 +163,7 @@ uses
   SSA,
   MtxUtilFunc,
   RollingMedMean,
+  SpatialTrees,
   LazarusPackageIntf;
 
 implementation
