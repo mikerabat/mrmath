@@ -520,7 +520,7 @@ end;
 
 function TBasicDebuggerVisualizer.GetSupportedTypeCount(): Integer;
 begin
-  Result := 2;
+  Result := 5;
 end;
 
 function TBasicDebuggerVisualizer.GetVisualizerIdentifier: string;
