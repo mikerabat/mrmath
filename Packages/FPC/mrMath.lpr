@@ -120,6 +120,8 @@ uses
   Eigensystems in '..\..\Eigensystems.pas',
   MathUtilFunc in '..\..\MathUtilFunc.pas',
   Matrix in '..\..\Matrix.pas',
+  DblMatrix in '..\..\DblMatrix.pas',
+  CplxMatrix in '..\..\CplxMatrix.pas',
   MtxThreadPool in '..\..\MtxThreadPool.pas',
   ThreadedMatrix in '..\..\ThreadedMatrix.pas',
   ThreadedMatrixOperations in '..\..\ThreadedMatrixOperations.pas',

@@ -100,7 +100,7 @@ implementation
 {$R *.dfm}
 
 uses
-  TypInfo, Types, Math;
+  TypInfo, Types, Math, DblMatrix, CplxMatrix, MatrixConst;
 
 resourcestring
   sMtxVisualizerName = 'Matrix Visualizer for Delphi';
@@ -134,6 +134,9 @@ begin
      AddType( 'TDoubleMatrix' );
      AddType( 'IMatrix' );
      AddType( 'TThreadedMatrix' );
+     AddType( 'IDoubleMatrix' );
+     AddType( 'ICplxMatrix' );
+     AddType( 'TCplxMatrix' );
 end;
 
 function TmrMathMatrixDebuggerVisualizer.CreateForm( const Expression : String ) : TInterfacedObject;
@@ -187,12 +190,24 @@ begin
              try
                 if Assigned(data) then
                 begin
-                     Context.CurProcess.ReadProcessMemory( fMtxRmtAddr, fprops.Height*fMtxRmtLineWidth, data^);
+                     if ( SameText(TypeName, 'TCplxMatrix') or SameText(TypeName, 'ICplxMatrix') ) then
+                     begin
+                          Context.CurProcess.ReadProcessMemory( fMtxRmtAddr, fprops.Height*fMtxRmtLineWidth, data^);
 
-                     fMtx := TDoubleMatrix.Create( data, fMtxRmtLineWidth, fprops.Width, fprops.Height );
-                     fMtx.SetSubMatrix(fprops.OX, fprops.Oy, fprops.SubWidth, fprops.SubHeight);
-                     fMtx.GetObjRef.Name := Expression;
-                     data := nil;
+                          fMtx := TCplxMatrix.Create( PComplex(data), fMtxRmtLineWidth, fprops.Width, fprops.Height );
+                          fMtx.SetSubMatrix(fprops.OX, fprops.Oy, fprops.SubWidth, fprops.SubHeight);
+                          fMtx.GetObjRef.Name := Expression;
+                          data := nil;
+                     end
+                     else
+                     begin
+                          Context.CurProcess.ReadProcessMemory( fMtxRmtAddr, fprops.Height*fMtxRmtLineWidth, data^);
+
+                          fMtx := TDoubleMatrix.Create( data, fMtxRmtLineWidth, fprops.Width, fprops.Height );
+                          fMtx.SetSubMatrix(fprops.OX, fprops.Oy, fprops.SubWidth, fprops.SubHeight);
+                          fMtx.GetObjRef.Name := Expression;
+                          data := nil;
+                     end;
                 end;
              finally
                     if Assigned(data) then
@@ -215,17 +230,21 @@ begin
      if Value = 0 then
         exit('0');
 
-     // formatting the value (todo: maybe a bit crude what I'm doing here...)
-     if (Abs(Value) > fR1) or (Abs(Value) < fR2)
-     then
-         Result := Format('%.*e', [fPrec, Value], fmtSet)
-     else
-     begin
-          Result := Format('%.*f', [fPrec, Value], fmtSet);
+     try
+        // formatting the value (todo: maybe a bit crude what I'm doing here...)
+        if (Abs(Value) > fR1) or (Abs(Value) < fR2)
+        then
+            Result := Format('%.*e', [fPrec, Value], fmtSet)
+        else
+        begin
+             Result := Format('%.*f', [fPrec, Value], fmtSet);
 
-          // beautify the result in case it is very close to decimal
-          if (RoundTo(Frac(Value), -fPrec) = 0) and (RoundTo(Frac(Value), Min(15, -2*fPrec)) = 0) then
-             Result := Format('%.0f', [Value], fmtSet);
+             // beautify the result in case it is very close to decimal
+             if (RoundTo(Frac(Value), -fPrec) = 0) and (RoundTo(Frac(Value), Min(15, -2*fPrec)) = 0) then
+                Result := Format('%.0f', [Value], fmtSet);
+        end;
+     except
+           Result := 'NaN';
      end;
 end;
 
@@ -312,6 +331,7 @@ procedure TmrMathMtxViewerFrame.grdDataDrawCell(Sender: TObject; ACol,
   ARow: Integer; Rect: TRect; State: TGridDrawState);
 var s : string;
     val : double;
+    valC : TComplex;
     indexOffsetX : integer;
     indexOffsetY : Integer;
 begin
@@ -369,12 +389,28 @@ begin
           dec(aCol);
           dec(aRow);
 
-          val := fMtx[aCol, aRow];
-
           grdData.Canvas.Brush.Style := bsSolid;
           grdData.Canvas.FillRect( Rect );
 
-          s := FormatValue(val);
+          if fMtx.GetObjRef is TCplxMatrix then
+          begin
+               valc := (fMtx.GetObjRef as TCplxMatrix).ItemsC[aCol, aRow];
+
+               if (valc.real = 0) and (valc.imag = 0)
+               then
+                   s := '0'
+               else if valc.real = 0
+               then
+                   s := 'i*' + FormatValue(valc.imag)
+               else
+                   s := FormatValue(valc.Real) + ' + i*' + FormatValue(valc.imag);
+          end
+          else
+          begin
+               val := fMtx[aCol, aRow];
+
+               s := FormatValue(val);
+          end;
 
           if ((aCol < fprops.Ox) or (aCol >= fProps.Ox + fprops.SubWidth) or
              (aRow < fProps.Oy) or (aRow >= fProps.Oy + fprops.SubHeight))
@@ -494,22 +530,23 @@ begin
      fSettings.Left := pt.X - fPlot.Width;
      fSettings.Top := pt.Y - fPlot.Height;
 
-     if (fMtx.Height > 1) and (fMtx.Width > 1) then
+     if (fMtx.Height > 1) and (fMtx.Width > 1) and (fMtx.GetObjRef is TDoubleMatrix) then
      begin
           fMtx.SetSubMatrix(0, 0, fMtx.Width, 1);
-          x := fMtx.SubMatrix;
+          x := (fMtx.GetObjRef as TDoubleMatrix).SubMatrix;
           fMtx.UseFullMatrix;
 
           for cnt := 1 to fMtx.Height - 1 do
           begin
                fMtx.SetSubMatrix(0, cnt, fMtx.Width, 1);
-               y := fMtx.SubMatrix;
+               y := (fMtx.GetObjRef as TDoubleMatrix).SubMatrix;
                fPlot.AddPlot(y);
           end;
      end
      else
      begin
-          fPlot.InitVec( fMtx.SubMatrix );
+          if (fMtx.GetObjRef is TDoubleMatrix) then
+             fPlot.InitVec( (fMtx.GetObjRef as TDoubleMatrix).SubMatrix );
      end;
      fPlot.Show;
 end;

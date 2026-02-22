@@ -29,7 +29,6 @@ type
  private
    procedure OnNMFProgress(Sender : TObject; progress : integer);
  published
-   procedure TestSimplePatternDiv;
    procedure TestSimplePatternEukl;
    procedure TestSimplePatternAltLeastSquare;
    procedure TestNMFImages;
@@ -66,7 +65,7 @@ begin
         nmf.OnProgress := {$IFDEF FPC}@{$ENDIF}OnNMFProgress;
         nmfProps.MaxIter := 400;
         nmfProps.tolUpdate := 0;
-        nmfProps.method := nnmfDivergence;
+        nmfProps.method := nnmfMultUpdate;
         nmfProps.RankOfBasis := 10;
 
         nmf.SetProperties(nmfProps);
@@ -166,38 +165,6 @@ begin
      nmf.Free;
 end;
 
-procedure TTestNMF.TestSimplePatternDiv;
-var V : IDoubleMatrix;
-    nmf : TNNMF;
-    params : TNNMFProps;
-    res : TNMFRes;
-    w : IDoubleMatrix;
-const cExpSum : Array[0..7] of double = (1, 1, 1, 1, 1, 1, 1, 1);
-begin
-     V := TDoubleMatrix.CreateEye(10);
-     nmf := TNNMF.Create;
-     params.MaxIter := 100;
-     params.tolUpdate := 1e-4;
-     params.method := nnmfDivergence;
-     params.RankOfBasis := 8;
-     params.UseLastResIfFail := True;
-     params.DoUpdateWithEPSMtx := True;
-     nmf.SetProperties(params);
-
-     res := nmf.CalcNMF(V.GetObjRef as TDoubleMatrix, 331);
-     if res <> nmFailed then
-     begin
-          Status(WriteMtx(nmf.W.SubMatrix, nmf.W.Width));
-          Status(WriteMtx(nmf.H.SubMatrix, nmf.H.Width));
-     end;
-
-     Check(res <> nmFailed, 'Error calculating NMF from an eye matrix');
-     w := nmf.W.Sum(False);
-     Check(CheckMtx(W.SubMatrix, cExpSum), 'Error calculating the nmf transformation matrix');
-
-     nmf.Free;
-end;
-
 procedure TTestNMF.TestSimplePatternEukl;
 var V : IMatrix;
     nmf : TNNMF;
@@ -208,7 +175,7 @@ begin
      nmf := TNNMF.Create;
      params.MaxIter := 100;
      params.tolUpdate := 1e-4;
-     params.method := nnmfEukledian;
+     params.method := nnmfMultUpdate;
      params.RankOfBasis := 8;
      params.UseLastResIfFail := True;
      params.DoUpdateWithEPSMtx := True;

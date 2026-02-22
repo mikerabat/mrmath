@@ -485,12 +485,10 @@ var c : Ansichar;
     listO : Array of TBaseMathPersistence;
     listCnt : integer;
     listC : TComplexDynArray;
-    listCC : Array of TComplexDynArray;
     aObj : TBaseMathPersistence;
     mathIOClass : TBaseMathPersistenceClass;
     version: Integer;
     counter: Integer;
-  j: Integer;
 
 function DecodeStringToBinary(const s : string) : TByteDynArray;
 var binIdx : integer;

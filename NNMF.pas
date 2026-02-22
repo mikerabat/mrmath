@@ -23,7 +23,7 @@ interface
 uses SysUtils, Classes, Matrix, DblMatrix, MatrixConst, BaseMathPersistence;
 
 type
-  TNNMFPropsMethod = (nnmfDivergence, nnmfEukledian, nnmfAlternateLeastSquare);
+  TNNMFPropsMethod = (nnmfMultUpdate, nnmfAlternateLeastSquare);
   TNNMFProps = record
     MaxIter : integer;
     tolUpdate : double;           // algorithm converges if reconstruction error 
@@ -107,7 +107,7 @@ end;
 constructor TNNMF.Create;
 begin
      fProps.MaxIter := 100;
-     fProps.method := nnmfDivergence;
+     fProps.method := nnmfMultUpdate;
      fProps.RankOfBasis := -1; // use all
      fProps.tolUpdate := 1e-4; // use a tolerance
      fProps.UseLastResIfFail := True;
@@ -144,8 +144,6 @@ var lenOfEigVec : integer;
     lastW, lastH : TDoubleMatrix;
     epsMtx : TDoublematrix;
     progress, lastProgress : integer;
-    epsV : double;
-    epsTemp : double;
 begin
      Result := nmOk;
      Clear;
@@ -168,8 +166,6 @@ begin
      wh := nil;
      hht := nil;
      sumW := nil;
-
-     epsV := eps( v.Max );
 
      // ###########################################
      // #### Randomly initialize matrices
@@ -199,47 +195,7 @@ begin
         // #### Iterative update of NMF matrix
         for iter := 0 to fProps.MaxIter - 1 do
         begin
-             if fProps.method = nnmfDivergence then
-             begin
-                  // implements:
-                  //  H = H.*(W'*(V./(W*H)));
-                  FreeAndNil(wh);
-                  wh := fW.Mult(fH);
-                  if fProps.DoUpdateWithEPSMtx then
-                     wh.AddConstInPlace(epsV);
-                  FreeAndNil(temp1);
-                  temp1 := V.ElementWiseDiv(wh);
-                  FreeAndNil(temp2);
-                  temp2 := fW.MultT1(temp1);
-
-                  fH.ElementWiseMultInPlace(temp2);
-
-                  //  W = W.*((V./(W*H))*H');
-                  wh := fW.Mult(fH);
-                  if fProps.DoUpdateWithEPSMtx then
-                     wh.AddConstInPlace(epsV);
-                  FreeAndNil(temp1);
-                  temp1 := V.ElementWiseDiv(wh);
-                  FreeAndNil(temp2);
-                  temp2 := temp1.MultT2(fH);
-                  if fProps.DoUpdateWithEPSMtx then
-                  begin
-                       epsTemp := eps(temp2.Max);
-                       temp2.AddConstInPlace(epsTemp);
-                  end;
-                  fW.ElementWiseMultInPlace(temp2);
-
-                  //  W = W./(ones(LenOfEigVec,1)*sum(W));
-                  FreeAndNil(sumW);
-                  sumW := fW.Sum(False);
-                  for counter := 0 to fW.Height - 1 do
-                  begin
-                       fW.SetSubMatrix(0, counter, fW.Width, 1);
-                       fW.ElementWiseDivInPlace(sumW);
-                  end;
-                  fW.UseFullMatrix;
-             end
-             else if fProps.method = nnmfEukledian then
+             if fProps.method = nnmfMultUpdate then
              begin
                   // euclidian update
 
@@ -253,8 +209,9 @@ begin
                   temp1 := V.MultT2(fH);
                   if fProps.DoUpdateWithEPSMtx then
                   begin
-                       epsTemp := eps(temp1.Max);
-                       wh.AddConstInPlace(epsTemp);
+                       epsMtx := temp1.ElementwiseFunc({$IFDEF FPC}@{$ENDIF}epsFunc);
+                       wh.AddInPlace(epsMtx);
+                       epsMtx.Free;
                   end;
 
                   temp1.ElementWiseDivInPlace(wh);
@@ -269,8 +226,9 @@ begin
                   temp1 := fW.MultT1(V);
                   if fProps.DoUpdateWithEPSMtx then
                   begin
-                       epsTemp := eps(temp1.Max);
-                       wh.AddConstInPlace(epsTemp);
+                       epsMtx := temp1.ElementwiseFunc({$IFDEF FPC}@{$ENDIF}epsFunc);
+                       wh.AddInPlace(epsMtx);
+                       epsMtx.Free;
                   end;
                   temp1.ElementWiseDivInPlace(wh);
                   fH.ElementWiseMultInPlace(temp1);
@@ -437,7 +395,7 @@ end;
 
 procedure TNNMF.epsFunc(var value : double);
 begin
-     value := 4*eps(value);
+     value := eps(value);
 end;
 
 procedure TNNMF.maxFunc(var value: double);

@@ -1,6 +1,5 @@
 inherited mrMathMtxViewerFrame: TmrMathMtxViewerFrame
   inherited MessageLabel: TLabel
-    Width = 439
     Height = 312
     Visible = True
   end
@@ -15,15 +14,15 @@ inherited mrMathMtxViewerFrame: TmrMathMtxViewerFrame
     object lblCapWidth: TLabel
       Left = 24
       Top = 3
-      Width = 32
-      Height = 15
+      Width = 28
+      Height = 13
       Caption = 'Width'
     end
     object lblCapHeight: TLabel
       Left = 24
       Top = 27
-      Width = 36
-      Height = 15
+      Width = 31
+      Height = 13
       Caption = 'Height'
     end
     object lblWidth: TLabel
@@ -55,8 +54,8 @@ inherited mrMathMtxViewerFrame: TmrMathMtxViewerFrame
     object lblCapSubWidth: TLabel
       Left = 128
       Top = 3
-      Width = 50
-      Height = 15
+      Width = 44
+      Height = 13
       Caption = 'Subwidth'
     end
     object lblSubHeight: TLabel
@@ -88,15 +87,15 @@ inherited mrMathMtxViewerFrame: TmrMathMtxViewerFrame
     object lblCapSubHeight: TLabel
       Left = 128
       Top = 27
-      Width = 54
-      Height = 15
+      Width = 48
+      Height = 13
       Caption = 'Subheight'
     end
     object lblCapLineWidth: TLabel
       Left = 248
       Top = 3
-      Width = 95
-      Height = 15
+      Width = 88
+      Height = 13
       Caption = 'Row width (bytes)'
     end
     object lblLineWidth: TLabel
