@@ -20,7 +20,7 @@ uses Matrix, DblMatrix;
 
 //  EM algorithm for k multidimensional Gaussian mixture estimation
 type
-  TExpectationMaxUpdate = procedure(Sender : TObject; iter : integer; W, M : IDoubleMatrix; V : IDoubleMatrixDynArr; E : IMatrix) of object;
+  TExpectationMaxUpdate = procedure(Sender : TObject; iter : integer; W, M : IDoubleMatrix; V : IDoubleMatrixDynArr; E : IDoubleMatrix) of object;
   TExpectationMax = class(TMatrixClass)
   private
     fNumIter : integer;

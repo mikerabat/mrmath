@@ -26,6 +26,7 @@ interface
 uses
   MatrixConst,
   SimpleMatrixOperations,
+  CplxSimpleMatrixOperations,
 
 // ###########################################
 // #### Assembler only routines
@@ -120,6 +121,8 @@ uses
   Eigensystems,
   MathUtilFunc,
   Matrix,
+  DblMatrix,
+  CplxMatrix,
   MtxThreadPool,
   ThreadedMatrix,
   ThreadedMatrixOperations,

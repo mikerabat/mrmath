@@ -17,7 +17,7 @@ unit ufrmEMTest;
 interface
 
 uses Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-     Dialogs, StdCtrls, ExtCtrls, Types, Matrix;
+     Dialogs, StdCtrls, ExtCtrls, Types, DblMatrix;
 
 type
   TfrmEMTest = class(TForm)
@@ -48,25 +48,25 @@ type
   private
     { Private-Deklarationen }
     fNumCenters : integer;
-    fXY : IMatrix;
+    fXY : IDoubleMatrix;
 
-    fResW : IMatrix;
-    fResV : IMatrixDynArr;
-    fResM : IMatrix;
-    fResE : IMatrix;
+    fResW : IDoubleMatrix;
+    fResV : IDoubleMatrixDynArr;
+    fResM : IDoubleMatrix;
+    fResE : IDoubleMatrix;
 
-    fDispW : IMatrix;
-    fDispV : IMatrixDynArr;
-    fDispM : IMatrix;
-    fDispE : IMatrix;
-    fDispDistMtx : IMatrix;  // distances to the cneters
+    fDispW : IDoubleMatrix;
+    fDispV : IDoubleMatrixDynArr;
+    fDispM : IDoubleMatrix;
+    fDispE : IDoubleMatrix;
+    fDispDistMtx : IDoubleMatrix;  // distances to the cneters
 
     fIdx : Integer;
     fNumIter : Integer;
-    fIterW : IMatrixDynArr;
-    fIterM : IMatrixDynArr;
-    fIterE : IMatrixDynArr;
-    fIterV : Array of IMatrixDynArr;
+    fIterW : IDoubleMatrixDynArr;
+    fIterM : IDoubleMatrixDynArr;
+    fIterE : IDoubleMatrixDynArr;
+    fIterV : Array of IDoubleMatrixDynArr;
 
 
     fDispSigmaRot : Array[0..3] of integer;    // in degree
@@ -86,7 +86,7 @@ type
     procedure ExecEM;
 
     procedure CalcDist;
-    procedure OnEMUpdate( Sender : TObject; iter : integer; W, M : IMatrix; V : IMatrixDynArr; E : IMatrix);
+    procedure OnEMUpdate( Sender : TObject; iter : integer; W, M : IDoubleMatrix; V : IDoubleMatrixDynArr; E : IDoubleMatrix);
   public
     { Public-Deklarationen }
   end;
@@ -115,9 +115,7 @@ const cMeanX : Array[0..3] of double = (-1.5, -0.1, 1.5, 1.2);
 
 procedure TfrmEMTest.CalcDist;
 var i: integer;
-    sigInv : IMatrix;
-    aVec : IMatrix;
-    mDist : IMatrix;
+    mDist : IDoubleMatrix;
 begin
      if Assigned(fDispM) then
      begin
@@ -148,8 +146,8 @@ var cntCnt: Integer;
     rnd : TRandomGenerator;
     sinA, cosA : double;
     x, y : double;
-    evect, evals : IMatrix;
-    M, tmp : IMatrix;
+    evect, evals : IDoubleMatrix;
+    M, tmp : IDoubleMatrix;
     emObj : TExpectationMax;
 begin
      // ###########################################
@@ -457,11 +455,11 @@ begin
      ExecEM;
 end;
 
-procedure TfrmEMTest.OnEMUpdate(Sender: TObject; iter: integer; W, M: IMatrix;
-  V: IMatrixDynArr; E : IMatrix);
+procedure TfrmEMTest.OnEMUpdate(Sender: TObject; iter: integer; W, M: IDoubleMatrix;
+  V: IDoubleMatrixDynArr; E : IDoubleMatrix);
 var counter: Integer;
     cntCnt : integer;
-    evals, evect : IMatrix;
+    evals, evect : IDoubleMatrix;
 begin
      fIterW[fNumIter] := W.Clone;
      fIterM[fNumIter] := M.Clone;

@@ -17,7 +17,7 @@ unit ufrmSplineTest;
 interface
 
 uses Windows, SysUtils, Classes, Graphics, Forms,
-     StdCtrls, Matrix, RandomEng, Controls, ExtCtrls, ComCtrls;
+     StdCtrls, DblMatrix, RandomEng, Controls, ExtCtrls, ComCtrls;
 
 type
   TfrmSplineTest = class(TForm)
@@ -71,10 +71,10 @@ type
     procedure ud1NumBreaksClick(Sender: TObject; Button: TUDBtnType);
   private
     { Private-Deklarationen }
-    fx, fy : IMatrix;
-    fSplineX, fSplineY : IMatrix;
-    fSplineOrdersY : Array of IMatrix;
-    fBreaks : IMatrix;
+    fx, fy : IDoubleMatrix;
+    fSplineX, fSplineY : IDoubleMatrix;
+    fSplineOrdersY : Array of IDoubleMatrix;
+    fBreaks : IDoubleMatrix;
 
     fNoiseLevel : double;
     fRnd : TRandomGenerator;

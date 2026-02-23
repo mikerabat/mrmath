@@ -2,8 +2,7 @@ program TSNEExmpl;
 
 uses
   Forms,
-  ufrmTSNE in 'ufrmTSNE.pas' {frmTSNE},
-  tSNE in '..\..\tSNE.pas';
+  ufrmTSNE in 'ufrmTSNE.pas' {frmTSNE};
 
 {$R *.res}
 

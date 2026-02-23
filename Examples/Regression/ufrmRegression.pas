@@ -11,7 +11,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Matrix, ExtCtrls, NonLinearFit, StdCtrls, ComCtrls, RandomEng;
+  Dialogs, DblMatrix, ExtCtrls, NonLinearFit, StdCtrls, ComCtrls, RandomEng;
 
 type
   TDataSetType = (dsLinear, dsQudratic, dsCubic, dsAtan);
@@ -36,13 +36,13 @@ type
     fXMin, fXMax : double;
     fYMin, fYMax : double;
 
-    fDataX : IMatrix;
-    fDataY : IMatrix;
+    fDataX : IDoubleMatrix;
+    fDataY : IDoubleMatrix;
 
-    fRegressParams : IMatrix;
+    fRegressParams : IDoubleMatrix;
 
-    fRegressX : IMatrix;
-    fRegressY : IMatrix;
+    fRegressX : IDoubleMatrix;
+    fRegressY : IDoubleMatrix;
 
     fDataSetTyp : TDataSetType;
 
@@ -57,7 +57,7 @@ type
     procedure quadFunc(var xToY: double);
     function AddNoise: double;
 
-    procedure AtanOpt(Sender : TObject; a, x : IMatrix; y : IMatrix);
+    procedure AtanOpt(Sender : TObject; a, x : IDoubleMatrix; y : IDoubleMatrix);
 
     procedure Regression;
 
@@ -133,6 +133,7 @@ end;
 
 
 procedure TfrmRegression.CreateDataSet(typ: TDataSetType);
+var seed : integer;
 begin
      fDataSetTyp := typ;
 
@@ -140,7 +141,8 @@ begin
      // from fxmin to fxmax
 
      // random from 0 to 1
-     fDataX := TDoubleMatrix.CreateRand(1, 100, raMersenneTwister, 0);
+     seed := 0;
+     fDataX := TDoubleMatrix.CreateRand(1, 100, raMersenneTwister, seed);
      // scale X so we are between fxmin, fxmax
      fDataX.ScaleAndAddInPlace(fXMin, fXMax - fXMin);
 
@@ -246,7 +248,7 @@ end;
 
 procedure TfrmRegression.Regression;
 var fit : TNonLinFitOptimizer;
-    a0 : IMAtrix;
+    a0 : IDoubleMatrix;
 begin
      a0 := TDoubleMatrix.Create(1, 4, 0);
 
@@ -274,7 +276,7 @@ begin
      EvalParams;
 end;
 
-procedure TfrmRegression.AtanOpt(Sender: TObject; a, x, y: IMatrix);
+procedure TfrmRegression.AtanOpt(Sender: TObject; a, x, y: IDoubleMatrix);
 var i: Integer;
 begin
      for i := 0 to x.Height - 1 do
@@ -283,8 +285,8 @@ end;
 
 procedure TfrmRegression.EvalParams;
 var numElem : Integer;
-    aVec : IMatrix;
-    aX : IMatrix;
+    aVec : IDoubleMatrix;
+    aX : IDoubleMatrix;
     counter : Integer;
 begin
      numElem := pbdata.Width div 2;

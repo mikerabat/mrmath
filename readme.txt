@@ -50,6 +50,12 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+date 23.02.2026
+* Complex class
+* implemets a base class that can switch between dbl an complex
+* new tests
+* Moved units to a src directory
+
 date 07.10.2025
 * Complex LU decomposition (functions only)
 * Complex Determinant

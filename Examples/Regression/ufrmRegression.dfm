@@ -23,10 +23,6 @@ object frmRegression: TfrmRegression
     Height = 443
     Align = alClient
     OnPaint = pbdataPaint
-    ExplicitLeft = 344
-    ExplicitTop = 192
-    ExplicitWidth = 105
-    ExplicitHeight = 105
   end
   object pnlOptions: TPanel
     Left = 0

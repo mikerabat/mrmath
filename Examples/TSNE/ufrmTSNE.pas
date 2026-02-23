@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Matrix, ExtCtrls, ComCtrls, StdCtrls;
+  Dialogs, DblMatrix, ExtCtrls, ComCtrls, StdCtrls;
 
 const WM_Update = WM_APP + 123;
 
@@ -37,8 +37,8 @@ type
     procedure tbIterationsChange(Sender: TObject);
   private
     fMtxCls : TDoubleMatrixClass;
-    fx : IMatrix;
-    fydata : IMatrix;
+    fx : IDoubleMatrix;
+    fydata : IDoubleMatrix;
     fpts : Array of TPoint;
     fMaxIter : integer;
     fStart, fEnd, fFreq : Int64;
@@ -50,7 +50,7 @@ type
 
     procedure FillPts;
     procedure SetupThreaded;
-    procedure OnTSNEProgress(Sender : TObject; iter : integer; cost : double; yMap : IMatrix; var doCancel : boolean);
+    procedure OnTSNEProgress(Sender : TObject; iter : integer; cost : double; yMap : IDoubleMatrix; var doCancel : boolean);
     { Private-Deklarationen }
   public
     { Public-Deklarationen }
@@ -61,7 +61,7 @@ var
 
 implementation
 
-uses RandomEng, PCA, ThreadedMatrix, tSNE, MatrixASMStubSwitch, Types, Math;
+uses Matrix, RandomEng, PCA, ThreadedMatrix, tSNE, MatrixASMStubSwitch, Types, Math;
 
 {$R *.dfm}
 
@@ -73,11 +73,11 @@ type
     fProgress : TTSNEProgress;
     fX : IMatrix;
     fTheta : double;
-    fY : IMatrix;
+    fY : IDoubleMatrix;
   protected
     procedure Execute; override;
   public
-    property Y : IMatrix read fY;
+    property Y : IDoubleMatrix read fY;
 
     constructor Create( perpl : integer; iter : integer; X : IMatrix; theta : double; progress : TTSNEProgress );
   end;
@@ -275,7 +275,7 @@ begin
 //            InitMathFunctions(itsse, False);
 //
 //        inc(ii);
-        fY := tsne.SymTSNE(fx.GetObjRef, fTheta, 2);
+        fY := tsne.SymTSNE(fx.GetObjRef as TDoubleMatrix, fTheta, 2);
 
         // final progress of 100%
         fProgress(Self, fIter, tsne.Cost, fY, doCancel);
@@ -296,7 +296,7 @@ begin
 end;
 
 procedure TfrmTSNE.OnTSNEProgress(Sender: TObject; iter: integer; cost: double;
-  yMap: IMatrix; var doCancel : boolean);
+  yMap: IDoubleMatrix; var doCancel : boolean);
 begin
      fydata := yMap.Clone;
      fCurCost := cost;

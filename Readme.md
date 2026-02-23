@@ -15,9 +15,11 @@ Key highlights
 
 Repository layout (selected)
 - Matrix.pas, SimpleMatrixOperations.pas, ThreadedMatrixOperations.pas — core matrix API and operations.
+- DblMatrix.pas, CplxMatrix.pas - core specialized matrices. 
 - LinAlgLU.pas, LinAlgQR.pas, LinAlgSVD.pas, LinAlgCholesky.pas — linear algebra modules.
 - PCA.pas, KernelPCA.pas, IncrementalPCA.pas, tSNE.pas — dimensionality reduction.
 - ASM*/, AVX*/, FMA* files — optimized implementations for various instruction sets.
+- src/ - contains all the library files - add this directory to the library path.
 - Examples/ — example projects demonstrating usage.
 - Test/ — tests and small test projects.
 - Packages/ — IDE/packaging scaffolding (Delphi packages may be present).
@@ -38,7 +40,7 @@ cd mrmath
 ```
 
 Using with Free Pascal (FPC)
-- Add the mrMath source directory to your project's search path (or place units in your project folder).
+- Add the mrMath\src source directory to your project's search path (or place units in your project folder).
 - You can compile the example projects found in Examples/ with fpc or open them with Lazarus:
   - Using fpc (example):
     ```
