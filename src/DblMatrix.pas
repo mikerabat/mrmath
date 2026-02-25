@@ -155,6 +155,8 @@ type
     function SymEig(out EigVals : IDoubleMatrix) : TEigenvalueConvergence; overload;
     function Eig(out EigVals : IDoubleMatrix; out EigVect : IDoubleMatrix; normEigVecs : TEigenvalueEivecNormalize = enNone) : TEigenvalueConvergence; overload;
     function Eig(out EigVals : IDoubleMatrix)  : TEigenvalueConvergence; overload;
+    function Eig(out EigVals : IMatrix)  : TEigenvalueConvergence; overload;
+    function Eig(out EigVals : IMatrix; out EigVect : IDoubleMatrix; normEigVecs : TEigenvalueEivecNormalize = enNone) : TEigenvalueConvergence; overload;
     function Cholesky(out Chol : IDoubleMatrix) : TCholeskyResult;
 
     // only internaly used -> use the other QR or QRFull methods instead
@@ -370,6 +372,8 @@ type
     // #### Special functions
     function RepeatMatrixI(numX, numY : integer) : IMatrix; override;
 
+    function EigValsMtxToCplxOrDouble( mtx : TDoubleMatrix ) : IMatrix;
+
   public
     // general access
     property Items[x, y : integer] : double read GetItems write SetItems; default;
@@ -557,6 +561,9 @@ type
     function Eig(out EigVals : TDoublematrix)  : TEigenvalueConvergence; overload;
     function Eig(out EigVals : IDoubleMatrix; out EigVect : IDoubleMatrix; normEigVecs : TEigenvalueEivecNormalize = enNone) : TEigenvalueConvergence; overload;
     function Eig(out EigVals : IDoubleMatrix)  : TEigenvalueConvergence; overload;
+    function Eig(out EigVals : IMatrix; out EigVect : IDoubleMatrix; normEigVecs : TEigenvalueEivecNormalize = enNone) : TEigenvalueConvergence; overload;
+    function Eig(out EigVals : IMatrix)  : TEigenvalueConvergence; overload;
+
     function Cholesky(out Chol : TDoubleMatrix) : TCholeskyResult; overload; virtual;
     function Cholesky(out Chol : IDoubleMatrix) : TCholeskyResult; overload;
 
@@ -606,6 +613,7 @@ type
     constructor CreateDyn(const Data : TDoubleDynArray; fromDataIdx : integer; aWidth, aHeight : integer); overload;
     constructor Create(const Mtx : Array of double; W, H : integer); overload;
     constructor CreateRand(aWidth, aHeight : integer; method : TRandomAlgorithm; var seed : LongInt); overload; // uses random engine
+    constructor CreateRand(aWidth, aHeight : integer; const seed : LongInt; method : TRandomAlgorithm); overload; // uses random engine
     constructor CreateRand(aWidth, aHeight : integer); overload; // uses system default random
     constructor CreateLinSpace(aVecLen : integer; const StartVal : double; const EndVal : double);
 
@@ -644,7 +652,7 @@ procedure WriteBinary(const fn : string; mtx : IDoubleMatrix);
 implementation
 
 uses Math, MatrixASMStubSwitch, Eigensystems, LinAlgSVD, LinAlgQR, BlockSizeSetup, LinAlgCholesky,
-     LinAlgLU, MathUtilFunc;
+     LinAlgLU, MathUtilFunc, CplxMatrix;
 
 
 // ###########################################
@@ -993,6 +1001,8 @@ end;
 constructor TDoubleMatrix.Create(data: PDouble; aLineWidth : NativeInt; aWidth,
   aHeight: integer);
 begin
+     CheckAndRaiseError((aWidth*aHeight >= 0) and (aLineWidth >= aWidth*sizeof(double)), 'Dimension error');
+
      inherited Create(PByte(data), aLineWidth, aWidth, aHeight);
 end;
 
@@ -1142,6 +1152,16 @@ begin
      TakeOver(tmp);
 
      tmp.Free;
+end;
+
+constructor TDoubleMatrix.CreateRand(aWidth, aHeight: integer;
+  const seed: Integer; method: TRandomAlgorithm);
+var tmp : integer;
+begin
+     inherited Create;
+
+     SetWidthHeight(aWidth, aHeight);
+     InitRandom(method, tmp);
 end;
 
 constructor TDoubleMatrix.CreateVec( aLen : integer; const initVal : double = 0 );
@@ -1472,12 +1492,56 @@ begin
      MatrixHessenbergPerm(dummy.StartElement, dummy.LineWidth, StartElement, LineWidth, fSubWidth, @perm[0], sizeof(integer));
      Result := MatrixEigHessenbergInPlace(dummy.StartElement, dummy.LineWidth, fSubWidth, pReal, dt.LineWidth, pImag, dt.LineWidth);
      dummy.Free;
-     
+
      if Result = qlOk
      then
          EigVals := dt
      else
          dt.Free;
+end;
+
+function TDoubleMatrix.Eig(out EigVals: IMatrix; out EigVect: IDoubleMatrix;
+  normEigVecs: TEigenvalueEivecNormalize): TEigenvalueConvergence;
+var eTmp, eVecTmp : TDoubleMatrix;
+begin
+     Result := Eig(eTmp, eVecTmp, normEigVecs);
+
+     try
+        EigVals := EigValsMtxToCplxOrDouble(eTmp);
+        EigVect := eVecTmp;
+     finally
+            eTmp.Free;
+     end;
+end;
+
+function TDoubleMatrix.Eig(out EigVals: IMatrix): TEigenvalueConvergence;
+var tmp : TDoubleMatrix;
+begin
+     EigVals := nil;
+     Result :=  Eig(tmp);
+
+     try
+        EigVals := EigValsMtxToCplxOrDouble(tmp);
+     finally
+            tmp.Free;
+     end;
+end;
+
+function TDoubleMatrix.EigValsMtxToCplxOrDouble(mtx: TDoubleMatrix): IMatrix;
+var i : integer;
+begin
+     // check result type
+     for i := 0 to mtx.Height - 1 do
+     begin
+          if not SameValue(mtx[1, i], 0) then
+          begin
+               Result := TCplxMatrix.CreateCpy(1, mtx.Height, PComplex(mtx.StartElement), mtx.LineWidth);
+               break;
+          end;
+     end;
+     // double matrix -> remove the extra column
+     if not Assigned(Result) then
+        Result := TDoubleMatrix.CreateCpy(1, mtx.Height, mtx.StartElement, mtx.LineWidth);
 end;
 
 function TDoubleMatrix.Eig(out EigVals, EigVect: TDoubleMatrix; normEigVecs : TEigenvalueEivecNormalize = enNone): TEigenvalueConvergence;
@@ -3564,7 +3628,6 @@ procedure TMatrixClass.DefineProps;
 begin
      // do nothing here
 end;
-
 
 initialization
    TMatrixClass.DefMatrixClass := TDoubleMatrix;

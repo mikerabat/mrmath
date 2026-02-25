@@ -1,5 +1,6 @@
 inherited mrMathMtxViewerFrame: TmrMathMtxViewerFrame
   inherited MessageLabel: TLabel
+    Width = 439
     Height = 312
     Visible = True
   end
@@ -201,7 +202,14 @@ inherited mrMathMtxViewerFrame: TmrMathMtxViewerFrame
     Height = 312
     Align = alClient
     DefaultColWidth = 48
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Courier New'
+    Font.Pitch = fpFixed
+    Font.Style = []
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing]
+    ParentFont = False
     TabOrder = 1
     OnDblClick = grdDataDblClick
     OnDrawCell = grdDataDrawCell

@@ -559,6 +559,7 @@ type
     constructor CreateFromDbl(const Data : TDoubleDynArray; aWidth, aHeight : integer); overload;
     constructor Create(const Mtx : Array of TComplex; W, H : integer); overload;
     constructor CreateRand(aWidth, aHeight : integer; method : TRandomAlgorithm; var seed : LongInt); overload; // uses random engine
+    constructor CreateRand(aWidth, aHeight : integer; const seed : LongInt; method : TRandomAlgorithm); overload; // uses random engine
     constructor CreateRand(aWidth, aHeight : integer); overload; // uses system default random
     constructor CreateLinSpace(aVecLen : integer; const StartVal : TComplex; const endVal : TComplex);
 
@@ -936,15 +937,8 @@ constructor TCplxMatrix.Create(data: PComplex; aLineWidth: NativeInt; aWidth,
 begin
      CheckAndRaiseError((aWidth*aHeight >= 0) and (aLineWidth >= aWidth*sizeof(TComplex)), 'Dimension error');
 
-     inherited Create;
-
-     if (data <> nil) then
-     begin
-          SetWidthHeight(aWidth, aHeight);
-          CplxGenericMtxCopy( StartElement, LineWidth, data, aLineWidth, aWidth, aHeight);
-     end;
+     inherited Create(PByte(data), aLineWidth, aWidth, aHeight);
 end;
-
 
 constructor TCplxMatrix.Create(const Mtx: array of TComplex; W, H: integer);
 begin
@@ -1094,6 +1088,18 @@ begin
         VecC[vecLen - 1] := EndVal;
 end;
 
+
+constructor TCplxMatrix.CreateRand(aWidth, aHeight: integer;
+  const seed: Integer; method: TRandomAlgorithm);
+var tmp : integer;
+begin
+     inherited Create;
+
+     SetWidthHeight(aWidth, aHeight);
+
+     tmp := seed;
+     InitRandom(method, tmp);
+end;
 
 constructor TCplxMatrix.CreateRand(aWidth, aHeight: integer;
   method: TRandomAlgorithm; var seed: Integer);

@@ -18,7 +18,7 @@ interface
 
 uses Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
      Dialogs, BasicExternalViewerVisualizer, ExtCtrls, StdCtrls, Matrix, Grids,
-     ToolsAPI, Buttons, mrMatrixSettings, mrMatrixPlot;
+     ToolsAPI, Buttons, mrMatrixSettings, mrMatrixPlot, MatrixConst;
 
 type
   TmrMathMtxViewerFrame = class(TBasicVisualizerViewerFrame)
@@ -79,7 +79,8 @@ type
 
     procedure OnSettingsChanged(Sender : TObject);
 
-    function FormatValue(const Value : double) : string;
+    function FormatValue(const Value : double) : string; overload;
+    function FormatValue(const Value : TComplex) : string; overload;
 
     procedure WriteRemoteValue(x, y : integer; value : double);
     procedure ShowData;
@@ -100,7 +101,7 @@ implementation
 {$R *.dfm}
 
 uses
-  TypInfo, Types, Math, DblMatrix, CplxMatrix, MatrixConst;
+  TypInfo, Types, Math, DblMatrix, CplxMatrix;
 
 resourcestring
   sMtxVisualizerName = 'Matrix Visualizer for Delphi';
@@ -161,6 +162,7 @@ end;
 
 procedure TmrMathMtxViewerFrame.EvaluateExpression( Context: TVisualizerDebugContext; const Expression, TypeName, EvalResult: string );
 var data : PDouble;
+    isCmplx : boolean;
 begin
      fName := Expression;
 
@@ -190,7 +192,10 @@ begin
              try
                 if Assigned(data) then
                 begin
-                     if ( SameText(TypeName, 'TCplxMatrix') or SameText(TypeName, 'ICplxMatrix') ) then
+                     isCmplx := False;
+                     if SameText(TypeName, 'IMatrix') then
+                        isCmplx := EvaluateIntegerValue( Context, 'Integer(' + expression + '.GetObjRef is TCplxMatrix)') <> 0;
+                     if isCmplx or ( SameText(TypeName, 'TCplxMatrix') or SameText(TypeName, 'ICplxMatrix') ) then
                      begin
                           Context.CurProcess.ReadProcessMemory( fMtxRmtAddr, fprops.Height*fMtxRmtLineWidth, data^);
 
@@ -198,6 +203,8 @@ begin
                           fMtx.SetSubMatrix(fprops.OX, fprops.Oy, fprops.SubWidth, fprops.SubHeight);
                           fMtx.GetObjRef.Name := Expression;
                           data := nil;
+
+                          btnPlot.Enabled := False;
                      end
                      else
                      begin
@@ -207,6 +214,8 @@ begin
                           fMtx.SetSubMatrix(fprops.OX, fprops.Oy, fprops.SubWidth, fprops.SubHeight);
                           fMtx.GetObjRef.Name := Expression;
                           data := nil;
+
+                          btnPlot.Enabled := True;
                      end;
                 end;
              finally
@@ -222,6 +231,26 @@ begin
            begin
                 MessageLabel.Caption := 'Error evaluating object: ' + E.Message;
            end;
+     end;
+end;
+
+function TmrMathMtxViewerFrame.FormatValue(const Value: TComplex): string;
+var sSign : string;
+begin
+     if value.imag = 0
+     then
+         Result := FormatValue(Value.real)
+     else if Value.real = 0
+     then
+         Result := 'i*' + FormatValue(Value.imag)
+     else
+     begin
+          if value.imag < 0
+          then
+              sSign := '-'
+          else
+              sSign := '+';
+         Result := FormatValue(value.Real) + ' ' + sSign + ' i*' + FormatValue(Abs(value.imag));
      end;
 end;
 
@@ -396,14 +425,7 @@ begin
           begin
                valc := (fMtx.GetObjRef as TCplxMatrix).ItemsC[aCol, aRow];
 
-               if (valc.real = 0) and (valc.imag = 0)
-               then
-                   s := '0'
-               else if valc.real = 0
-               then
-                   s := 'i*' + FormatValue(valc.imag)
-               else
-                   s := FormatValue(valc.Real) + ' + i*' + FormatValue(valc.imag);
+               s := FormatValue(valc);
           end
           else
           begin
@@ -484,24 +506,45 @@ var s : string;
     colCnt : integer;
     cnt : integer;
     actWidth : integer;
+    cMtx : ICplxMatrix;
 begin
      if not Assigned(fMtx) then
         exit;
 
+     grdData.Canvas.Font := grdData.Font;
      grdData.ColWidths[0] := 2*fTextGap + grdData.Canvas.TextWidth(IntToStr(fMaxNumRows));
 
-     // get the maximum width for each column
-     for colCnt := 0 to grdData.ColCount - 2 do
+     if Supports(fMtx, ICplxMatrix, cMtx) then
      begin
-          actWidth := grdData.DefaultColWidth;
-          for cnt := 0 to grdData.RowCount - 2 do
+          // get the maximum width for each column
+          for colCnt := 0 to grdData.ColCount - 2 do
           begin
-               s := FormatValue(fMtx[colCnt, cnt]);
+               actWidth := grdData.DefaultColWidth;
+               for cnt := 0 to grdData.RowCount - 2 do
+               begin
+                    s := FormatValue(cMtx.ItemsC[colCnt, cnt]);
 
-               actWidth := Max(actWidth, 2*fTextGap + grdData.Canvas.TextWidth(s));
+                    actWidth := Max(actWidth, 2*fTextGap + grdData.Canvas.TextWidth(s));
+               end;
+
+               grdData.ColWidths[colCnt + 1] := actWidth;
           end;
+     end
+     else
+     begin
+          // get the maximum width for each column
+          for colCnt := 0 to grdData.ColCount - 2 do
+          begin
+               actWidth := grdData.DefaultColWidth;
+               for cnt := 0 to grdData.RowCount - 2 do
+               begin
+                    s := FormatValue(fMtx[colCnt, cnt]);
 
-          grdData.ColWidths[colCnt + 1] := actWidth;
+                    actWidth := Max(actWidth, 2*fTextGap + grdData.Canvas.TextWidth(s));
+               end;
+
+               grdData.ColWidths[colCnt + 1] := actWidth;
+          end;
      end;
 end;
 
@@ -578,7 +621,7 @@ procedure TmrMathMtxViewerFrame.grdDataSetEditText(Sender: TObject; ACol,
   ARow: Integer; const Value: string);
 var dVal : double;
 begin
-     if not Assigned(fMtx) then
+     if not Assigned(fMtx) or (fMtx.GetObjRef is TCplxMatrix) then
         exit;
 
      // try to update the value

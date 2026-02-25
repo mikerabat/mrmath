@@ -107,6 +107,8 @@ type
     procedure TestAssign;
     procedure TestCast;
     procedure TestLinEQ;
+
+    procedure TestEig;
   end;
 
 
@@ -1296,6 +1298,31 @@ begin
 
      Check( CheckMtxIdx(x.StartElement, z.StartElement, x.LineWidth, z.LineWidth, x.Width, x.Height, idx, 0), 'Cast failed on idx ' + IntToStr(idx));
 end;
+
+procedure TestCombinedMatrix.TestEig;
+const A : Array[0..15] of double = (10, 9, 8, 9, 2, 8, 4, 7, 6, 5, 6, 2, 5, 0, 8, 4);
+      EigVals : Array[0..3] of TComplex = ( (real: 23.2603; imag: 0), (real: 0.9905; imag: 4.5063),
+                                             (real: 0.9905; imag: -4.5063), (real: 2.7587; imag: 0) );
+      B : Array[0..8] of double = (3, 1, 1, 2, -2, -1, 5, -1, 8);
+      EigValsReal : Array[0..2] of double = (2.757, 8.862, -2.619);
+
+var aMtx : IDoubleMatrix;
+    eVal : IMatrix;
+    eVec : IDoubleMatrix;
+begin
+     aMtx := TDoubleMatrix.Create(A, 4, 4 );
+
+     Check(aMtx.Eig(eval, evec) = qlOk, 'Eigenvalue calculation failed');
+     check(eVal.GetObjRef is TCplxMatrix, 'Eigenvalue matrix failed');
+     Check( CplxCheckMtx( (eVal.GetObjRef as TCplxMatrix).SubMatrix, EigVals, 1, 4), 'Eigenvalue calculation failed');
+
+
+     aMtx := TDoubleMatrix.Create(B, 3, 3);
+     Check(aMtx.Eig(eVal) = qlOk, 'Eigenvalue calculation failed');
+     check(eVal.GetObjRef is TDoubleMatrix, 'Eigenvalue matrix failed');
+     Check( CheckMtx( (eVal.GetObjRef as TDoubleMatrix).SubMatrix, EigValsReal, 1, 3, 0.001), 'Eigenvalue calculation failed');
+end;
+
 
 procedure TestCombinedMatrix.TestLinEQ;
 const cX : Array[0..8] of TComplex = ( (real: 8; imag: 4),  (real: 1; imag: 8), (real: 7; imag: 1),

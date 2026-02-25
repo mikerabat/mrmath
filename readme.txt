@@ -50,6 +50,10 @@ Andrea Mauri - pointing out a few issues with FPC and conditional compilation an
 // ###################################################################
 changelog:
 
+date 25.02.2026
+* Eigenvalue calculation now supports the generation of a complex IMatrix Eigenvalue matrix.
+* Fixed a few things in the IDE Plugin
+
 date 23.02.2026
 * Complex class
 * implemets a base class that can switch between dbl an complex
