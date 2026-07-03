@@ -357,7 +357,7 @@ end;
 
 procedure TBinaryReaderWriter.ReadStringData(sectName : String; Len : LongInt; obj: TBaseMathPersistence;
   aStream: TStream);
-var value : String;
+var value : UTF8String;
     sSect : UTF8String;
 begin
      sSect := UTF8String(sectName);
@@ -367,8 +367,8 @@ begin
 
      assert(Len > Length(sSect) + sizeof(TBinarySectionRec), 'Error no data');
      SetLength(value, len - Length(sectName) - sizeof(TBinarySectionRec));
-     aStream.ReadBuffer(value, Length(value));
-     ReadStringProperty(obj, sectName, Value);
+     aStream.ReadBuffer(value[1], Length(value));
+     ReadStringProperty(obj, sectName, String(Value));
 end;
 
 procedure TBinaryReaderWriter.WriteBinaryProperty(const Name: String;
