@@ -25,12 +25,23 @@ type
   ECorrelateException = class(EBaseMatrixException);
 type
   TCorrelation = class(TMatrixClass)
+  private
+    fTempW1, fTempW2, fTempT : TDoubleDynArray; // reusables...
+    fRaiseException: boolean;
+    fVarianceRatioThresFact: double;
   protected
     function InternalCorrelateArr( w1, w2 : PDouble; len : integer) : Double;
-    function InternalCorrelate(w1, w2: IMatrix; const VarianceRatioThreshold: double = 0; canRaiseException : boolean = True): double;
+    function InternalCorrelateArrWeighted( w1, w2, weights : PDouble; len : integer) : Double;
+    function InternalCorrelate(w1, w2: IMatrix): double;
     function InternalWeightedCorrelate( w1, w2 : IMatrix; weights : IMatrix ) : double;
   public
-    function Correlate(x, y : IMatrix; const VarianceRatioThreshold: double = 0; canRaiseException : boolean = True) : double; overload; // correlation coefficient between t, r (must have the same length)
+    property RaiseException : boolean read fRaiseException write fRaiseException;  // raise an exception if two "flat lines" are put into the functions. Otherwise 0 is returned
+
+    // Optional: If signal has a MUCH smaller (eg: factor 3) variance
+    //   than the reference signal -> don't scale it up
+    property VarianceRatioThresFact : double read fVarianceRatioThresFact write fVarianceRatioThresFact;
+
+    function Correlate(x, y : IMatrix) : double; overload; // correlation coefficient between t, r (must have the same length)
     function Correlate(x, y : IMatrix; var prob, z : double) : double; overload; // pearson correlation with Fishers's z and probobality
     function Correlate(x, y : IDoubleMatrix; const VarianceRatioThreshold: double = 0; canRaiseException : boolean = True) : double; overload; // correlation coefficient between t, r (must have the same length)
     function Correlate(x, y : IDoubleMatrix; var prob, z : double) : double; overload; // pearson correlation with Fishers's z and probobality
@@ -38,6 +49,7 @@ type
     function Correlate(x, y : PDouble; len : integer) : double; overload;        // pearson correlation but with pointers
 
     function CorrelateWeighted(x, y, w : IMatrix) : double; overload; // weighted correlation
+    function CorrelateWeighted(x, y, w : PDouble; len : integer) : double; overload; // weighted correlation
     function CorrelateWeighted(x, y, w : IMatrix; var prob, z : double) : double; overload; // weighted correlation
 
     // spearman correlation. X, Y need to be vectors
@@ -76,6 +88,7 @@ type
     fAccDist : TDoubleDynArray;
     fMinLastRow : TDoubleDynArray;
     fW1, fW2 : IDoubleMatrix;
+    fWeights : TDoubleDynArray;
     fW1Arr, fW2Arr : TDoubleDynArray;
     fNumW : integer;
     fMaxSearchWin : integer;
@@ -144,6 +157,7 @@ type
     // same Methods but with dynamic arrays
     function DTW(t, r : TDoubleDynArray; var dist : double; MaxSearchWin : integer = 0) : TDoubleDynArray; overload;
     function DTWCorr(t, r : TDoubleDynArray; MaxSearchWin : integer = 0) : double; overload;
+    function DTWCorrWeighted(t, r, w : TDoubleDynArray; MaxSearchWin : integer = 0) : double; overload;
 
     function FastDTW(x, y : TDoubleDynArray; var dist : double; Radius : integer = 1)  : TDoubleDynArray; overload;
     function FastDTWCorr(t, r : TDoubleDynArray; Radius : integer = 1) : double; overload;
@@ -184,12 +198,12 @@ end;
 
 
 // note: afterwards w1 and w2 are mean normalized and w2 width and height is changed!
-function TCorrelation.Correlate(x, y: IMatrix; const VarianceRatioThreshold: double = 0; canRaiseException : boolean = True): double;
+function TCorrelation.Correlate(x, y: IMatrix): double;
 begin
      TDoubleMatrix.CheckForRealMtx(x);
      TDoubleMatrix.CheckForRealMtx(y);
 
-     Result := Correlate( x as IDoubleMatrix, y as IDoubleMatrix, VarianceRatioThreshold, canRaiseException);
+     Result := Correlate( x as IDoubleMatrix, y as IDoubleMatrix);
 end;
 
 class function TCorrelation.Covariance(x, y: IDoubleMatrix; Unbiased : boolean = True): IDoubleMatrix;
@@ -241,7 +255,7 @@ begin
      Result := ac;
 end;
 
-function TCorrelation.InternalCorrelate(w1, w2: IMatrix; const VarianceRatioThreshold: double = 0; canRaiseException : boolean = true): double;
+function TCorrelation.InternalCorrelate(w1, w2: IMatrix): double;
 var meanVar1 : TMeanVarRec;
     meanVar2 : TMeanVarRec;
 begin
@@ -253,13 +267,13 @@ begin
 
      // Optional: If signal has a MUCH smaller (eg: factor 3) variance
      //   than the reference signal -> don't scale it up
-     if (VarianceRatioThreshold <> 0) and (meanVar2.aVar*VarianceRatioThreshold < meanVar1.aVar) then
+     if (fVarianceRatioThresFact <> 0) and (meanVar2.aVar*fVarianceRatioThresFact < meanVar1.aVar) then
         meanVar2.aVar := meanVar1.aVar;
 
      // For norming the variance may not be zero
      if SameValue(meanVar1.aVar, 0, cDefEpsilon) or SameValue(meanVar2.aVar, 0, cDefEpsilon) then
      begin
-          if canRaiseException
+          if fRaiseException
           then
               raise ECorrelateException.Create('Correlation Error: variance of an input vector is zero')
           else
@@ -277,8 +291,7 @@ begin
      Result := Result/sqrt(meanVar1.aVar*meanVar2.aVar)/(w1.Width - 1);
 end;
 
-function TCorrelation.InternalCorrelateArr(w1, w2: PDouble;
-  len: integer): Double;
+function TCorrelation.InternalCorrelateArr(w1, w2: PDouble; len: integer): Double;
 var meanVar1 : TMeanVarRec;
     meanVar2 : TMeanVarRec;
 begin
@@ -286,12 +299,128 @@ begin
      MatrixMeanVar( @meanVar1, 2*sizeof(double), w1, len*sizeof(double), len, 1, True, True);
      MatrixMeanVar( @meanVar2, 2*sizeof(double), w2, len*sizeof(double), len, 1, True, True);
 
+     // Optional: If signal has a MUCH smaller (eg: factor 3) variance
+     //   than the reference signal -> don't scale it up
+     if (fVarianceRatioThresFact <> 0) and (meanVar2.aVar*fVarianceRatioThresFact < meanVar1.aVar) then
+        meanVar2.aVar := meanVar1.aVar;
+
+     // For norming the variance may not be zero
+     if SameValue(meanVar1.aVar, 0, cDefEpsilon) or SameValue(meanVar2.aVar, 0, cDefEpsilon) then
+     begin
+          if fRaiseException
+          then
+              raise ECorrelateException.Create('Correlation Error: variance of an input vector is zero')
+          else
+          begin
+               Result := 0;
+               exit;
+          end;
+     end;
+
      MatrixAddAndScale( w1, len*sizeof(double), len, 1, -meanVar1.aMean, 1 );
      MatrixAddAndScale( w2, len*sizeof(double), len, 1, -meanVar2.aMean, 1 );
 
      // dot product:
      Result := MatrixVecDotMult( w1, sizeof(double), w2, sizeof(double), len );
      Result := Result/sqrt(meanVar1.aVar*meanVar2.aVar)/(len - 1);
+end;
+
+function TCorrelation.InternalCorrelateArrWeighted(w1, w2, weights: PDouble;
+  len: integer): Double;
+var sumweights : double;
+    wMean1, wMean2 : double;
+    sxx, syy : double;
+    lw : NativeInt;
+begin
+     // from https://stats.stackexchange.com/questions/221246/such-thing-as-a-weighted-correlation
+     // calculated correlation according to
+     // r = S_xy/sqrt(S_xx*S_yy)
+     // where S_xy = sum_i=0_n weights[i]*( x[i] - M(x, w) )*( y[i] - M(y, w))
+     // S_xx = sum_i=0_n weights[i]*( x[i] - M(x, w) )^2
+     // S_yy = sum_i=0_n weights[i]*( y[i] - M(y, w) )^2
+     // M(x, w) = sum_i=0_n w[i]*x[i] / sum w
+     // M(y, w) = sum_i=0_n w[i]*y[i] / sum w
+
+     lw := len*sizeof(double);
+
+     // normalize weighted mean
+     MatrixSum( @sumweights, sizeof(double), weights, lw, len, 1, True );
+     if SameValue(sumweights, 0, eps(1)) then
+     begin
+          if fRaiseException
+          then
+              raise ECorrelateException.Create('Weighting vector sums to zero')
+          else
+          begin
+               Result := 0;
+               exit;
+          end;
+
+     end;
+     if not sameValue(sumweights, 1, eps( 1 ) ) then
+        MatrixScaleAndAdd(weights, lw, len, 1, 0, 1/sumweights );  // sum_w = 1
+
+     if length(fTempW1) < len then
+     begin
+          SetLength(fTempW1, len);
+          SetLength(fTempW2, len);
+          SetLength(fTempT, len);
+     end;
+
+     if sumweights > cDefEpsilon then
+     begin
+          wMean1 := 0;
+          wMean2 := 0;
+          MatrixMtxVecMult( @wMean1, sizeof(double), w1, weights, lw, sizeof(double), len, 1, 1, 0 );
+          MatrixMtxVecMult( @wMean2, sizeof(double), w2, weights, lw, sizeof(double), len, 1, 1, 0 );
+
+          MatrixCopy(@fTempW1[0], lw, w1, lw, len, 1);
+          MatrixCopy(@fTempW2[0], lw, w2, lw, len, 1);
+          MatrixScaleAndAdd(@fTempW1[0], lw, len, 1, -wMean1, 1);
+          MatrixScaleAndAdd(@fTempW2[0], lw, len, 1, -wMean2, 1);
+
+          MatrixElemMult(@fTempT[0], lw, @fTempW1[0], @fTempW2[0], len, 1, lw, lw );
+          Result := 0;
+          MatrixMtxVecMult( @Result, sizeof(double), @fTempT[0], weights, lw, sizeof(double), len, 1, 1, 0);
+
+          // square (sx, sy)
+          MatrixElemMult( @fTempW1[0], lw, @fTempW1[0], @fTempW1[0], len, 1, lw, lw );
+          MatrixElemMult( @fTempW2[0], lw, @fTempW2[0], @fTempW2[0], len, 1, lw, lw );
+
+          sxx := 0;
+          syy := 0;
+          MatrixMtxVecMult( @sxx, sizeof(double), @fTempW1[0], weights, lw, sizeof(double), len, 1, 1, 0);
+          MatrixMtxVecMult( @syy, sizeof(double), @fTempW2[0], weights, lw, sizeof(double), len, 1, 1, 0);
+
+          if (fVarianceRatioThresFact <> 0) and (syy*fVarianceRatioThresFact < sxx) then
+             syy := sxx;
+
+          sxx := sqrt(sxx*syy);
+          if sxx <= eps(Result) then
+          begin
+               if fRaiseException
+               then
+                   raise ECorrelateException.Create('Variances close too machine precission - out of bounds')
+               else
+               begin
+                    Result := 0;
+                    exit;
+               end;
+          end;
+
+          Result := Result/sxx;
+     end
+     else
+     begin
+          if fRaiseException
+          then
+              raise ECorrelateException.Create('Sum of weights <= 0')
+          else
+          begin
+               Result := 0;
+               exit;
+          end;
+     end;
 end;
 
 function TCorrelation.InternalWeightedCorrelate(w1, w2,
@@ -1418,6 +1547,27 @@ begin
      Result := InternalCorrelateArr(@fw1Arr[0], @fw2Arr[0], fNumW);
 end;
 
+function TDynamicTimeWarp.DTWCorrWeighted(t, r, w: TDoubleDynArray;
+  MaxSearchWin: integer): double;
+var dist : double;
+    i : integer;
+begin
+     // ###########################################
+     // #### Create time warping vectors -> stored in fw1, fw2
+     DTW(t, r, dist, MaxSearchWin);
+
+     // stretch the weights according to the input vector 1
+     if Length(fWeights) < Length(fW1Arr) then
+        SetLength(fWeights, Length(fW1Arr));
+
+     for i := 0 to fNumW - 1 do
+         fWeights[i] := w[ fWindow[fNumW - 1 - i].j ];
+
+     // ###########################################
+     // #### Calculate correlation
+     Result := InternalCorrelateArrWeighted(@fw1Arr[0], @fw2Arr[0], @fWeights[0], fNumW);
+end;
+
 function TCorrelation.Correlate(x, y: PDouble; len: integer): double;
 begin
      Result := InternalCorrelateArr(x, y, len);
@@ -1436,7 +1586,7 @@ begin
 
      assert(w1.Width = w2.Width, 'Dimension error');
 
-     Result := InternalCorrelate(w1, w2, VarianceRatioThreshold, canRaiseException);
+     Result := InternalCorrelate(w1, w2);
 end;
 
 function TCorrelation.Correlate(x, y: IDoubleMatrix; var prob,
@@ -1487,6 +1637,10 @@ begin
      prob := betaI( 0.5*df, 0.5, df/(df + sqr(t)) );            // probability
 end;
 
+function TCorrelation.CorrelateWeighted(x, y, w: PDouble; len: integer): double;
+begin
+     Result := InternalCorrelateArrWeighted( x, y, w, len );
+end;
 
 function TCorrelation.CorrelateWeighted(x, y, w: IMatrix): double;
 var w1, w2 : IMatrix;
