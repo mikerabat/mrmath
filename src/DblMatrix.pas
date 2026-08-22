@@ -74,7 +74,7 @@ type
     function Transpose : IDoubleMatrix;
     function ElementWiseMult(Value : IDoubleMatrix) : IDoubleMatrix;
     function ElementWiseDiv(Value : IDoubleMatrix) : IDoubleMatrix;
-    function AddAndScale(const Offset, Scale : double) : IDoubleMatrix;
+    function AddAndScale(const Offset, aScale : double) : IDoubleMatrix;
     function AddConst(const Value : double) : IDoubleMatrix;
     function Scale(const Value : double) : IDoubleMatrix;
     function SQRT : IDoubleMatrix;
@@ -106,7 +106,7 @@ type
     procedure ElementWiseMultInPlace(Value : IDoubleMatrix);
     procedure ElementWiseDivInPlace(Value : IDoubleMatrix);
 
-    procedure AddAndScaleInPlace(const Offset, Scale: double);
+    procedure AddAndScaleInPlace(const aOffset, aScale: double);
 
     // ###################################################
     // #### Base Matrix operations that extend the base class
@@ -128,6 +128,7 @@ type
 
     // ###################################################
     // #### Linear System solver A*x = B -> use A.SolveLinEQ(B) -> x
+    function SolveLinEQ(Value : IDoubleMatrix; numRefinements : integer = 0) : IDoubleMatrix;
     procedure SolveLinEQInPlace(Value: IDoubleMatrix; numRefinements : integer = 0);
 
     function Invert : IDoubleMatrix; overload;
@@ -167,7 +168,9 @@ type
 
     // ###################################################
     // #### Matrix assignment operations
+    {$IFNDEF FPC}
     procedure Assign(const Mtx : Array of double; W, H : integer); overload;
+    {$ENDIF}
     procedure AssignDyn(Value : TDoubleDynArray; W, H : integer);
   end;
 
@@ -194,10 +197,10 @@ type
 
     // matrix persistence functions
     procedure DefineProps; override;
-    function PropTypeOfName(const Name : string) : TPropType; override;
+    function PropTypeOfName(const aName : string) : TPropType; override;
 
     class function ClassIdentifier : String; override;
-    procedure OnLoadDoubleArr(const Name : String; const Value : TDoubleDynArray); override;
+    procedure OnLoadDoubleArr(const aName : String; const Value : TDoubleDynArray); override;
 
     class function GetItemSize : integer; override;
   private
@@ -259,6 +262,16 @@ type
     procedure IDoubleMatrix.ElementWiseDivInPlace = ElementWiseDivInPlaceD;
     procedure IDoubleMatrix.AddAndScaleInPlace = AddAndScaleInPlace;
     procedure IDoubleMatrix.SolveLinEQInPlace = SolveLinEQInPlaceD;
+    function IDoubleMatrix.SolveLinEQ = SolveLinEQD;
+
+
+
+    // #########################################################
+    // #### For FPC we need to reintroduce some functions
+    // FPC is not so versatile with interfaces as Delphi is
+    {$IFDEF FPC}
+    function IDoubleMatrix.Cast = CastI;
+    {$ENDIF}
 
     function MultD(Value : IDoubleMatrix) : IDoubleMatrix;
     procedure MultInPlaceD(Value : IDoubleMatrix);
@@ -306,6 +319,7 @@ type
     function MedianD(RowWise : boolean) : IDoubleMatrix;
     function RollMedianD(RowWise : boolean; order : integer) : IDoubleMatrix;
     procedure SolveLinEQInPlaceD(Value: IDoubleMatrix; numRefinements : integer);
+    function SolveLinEQD(Value : IDoubleMatrix; numRefinements : integer = 0) : IDoubleMatrix;
 
 
     // ###########################################
@@ -397,7 +411,7 @@ type
     procedure SetValue(const initVal : double); overload;
     procedure SetValueSubMtx(const initVal : double; x, y, aWidth, aHeight : NativeInt); overload;  // sets the value in a subsection of the matrix
 
-    procedure SetData(data : PDouble; srcLineWidth, width, height : integer);
+    procedure SetData(data : PDouble; srcLineWidth, aWidth, aHeight : integer);
 
     procedure SwapRow( idx1, idx2 : integer ); override;
     procedure SwapColumn( idx1, idx2 : integer ); override;
@@ -461,7 +475,7 @@ type
     procedure ElementWiseDivInPlace(Value : TDoubleMatrix); overload; virtual;
     function ElementWiseDiv(Value : TDoubleMatrix) : TDoubleMatrix; overload; virtual;
 
-    function AddAndScale(const Offset, Scale : double) : TDoubleMatrix; virtual;
+    function AddAndScale(const aOffset, aScale : double) : TDoubleMatrix; virtual;
 
     function Mean(RowWise : boolean) : TDoubleMatrix;
     procedure MeanInPlace(RowWise : boolean); override;
@@ -717,11 +731,13 @@ begin
 end;
 
 function TDoubleMatrix.AbsI: IMatrix;
+var mtx : TDoubleMatrix;
 begin
      CheckAndRaiseError((fSubWidth > 0) and (fSubHeight > 0), 'Dimension Error');
-     Result := ResultClass.Create;
-     Result.AssignEx(Self, True);
+     mtx := ResultClass.Create;
+     mtx.AssignEx(Self, True);
 
+     Result := mtx;
      MatrixAbs(Result.StartElement, Result.LineWidth, Result.Width, Result.Height);
 end;
 
@@ -758,13 +774,13 @@ end;
 //     Result := Add( Value.GetObjRef as TDoubleMatrix );
 //end;
 
-function TDoubleMatrix.AddAndScale(const Offset, Scale: double): TDoubleMatrix;
+function TDoubleMatrix.AddAndScale(const aOffset, aScale: double): TDoubleMatrix;
 begin
      CheckAndRaiseError((width > 0) and (Height > 0), 'No data assigned');
      Result := ResultClass.Create;
      Result.AssignEx(self, True);
 
-     Result.AddAndScaleInPlace(Offset, Scale);
+     Result.AddAndScaleInPlace(aOffset, aScale);
 end;
 
 function TDoubleMatrix.AddAndScaleD(const Offset, Scale: double): IDoubleMatrix;
@@ -1359,6 +1375,12 @@ begin
            FreeAndNil(Result);
            raise;
      end;
+end;
+
+function TDoubleMatrix.SolveLinEQD(Value: IDoubleMatrix;
+  numRefinements: integer): IDoubleMatrix;
+begin
+     Result := SolveLinEQ( Value.GetObjRef as TDoubleMatrix, numRefinements );
 end;
 
 procedure TDoubleMatrix.SolveLeastSquares(out x : TDoubleMatrix; b : TDoubleMatrix);
@@ -2696,12 +2718,12 @@ begin
      SetColumn(col, Values.GetObjRef as TDoubleMatrix, ValCols);
 end;
 
-procedure TDoubleMatrix.SetData(data: PDouble; srcLineWidth, width,
-  height: integer);
+procedure TDoubleMatrix.SetData(data: PDouble; srcLineWidth, aWidth,
+  aHeight: integer);
 begin
-     ReserveMem(width, height);
+     ReserveMem(aWidth, aHeight);
 
-     MatrixCopy(StartElement, LineWidth, data, srcLineWidth, width, height);
+     MatrixCopy(StartElement, LineWidth, data, srcLineWidth, aWidth, aHeight);
 end;
 
 procedure TDoubleMatrix.SetColumn(col : integer; const Values: array of Double);
@@ -3367,20 +3389,20 @@ begin
      SetSubMatrix(origOffsetX, origOffsetY, origSubWidth, origSubHeight);
 end;
 
-function TDoubleMatrix.PropTypeOfName(const Name: string): TPropType;
+function TDoubleMatrix.PropTypeOfName(const aName: string): TPropType;
 begin
-     if CompareText(Name, 'data') = 0
+     if CompareText(aName, 'data') = 0
      then
          Result := ptDouble
      else
-         Result := inherited PropTypeOfName(Name);
+         Result := inherited PropTypeOfName(aName);
 end;
 
 
-procedure TDoubleMatrix.OnLoadDoubleArr(const Name: String;
+procedure TDoubleMatrix.OnLoadDoubleArr(const aName: String;
   const Value: TDoubleDynArray);
 begin
-     if (CompareText(Name, 'data') = 0) and (Length(Value) > 0) then
+     if (CompareText(aName, 'data') = 0) and (Length(Value) > 0) then
      begin
           CheckAndRaiseError(Length(value) = fWidth*fHeight, 'The loaded array does not fit the expected size.');
           Assign(Value, fWidth, fHeight);

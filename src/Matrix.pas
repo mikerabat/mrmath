@@ -72,12 +72,15 @@ type
 
     // ###########################################
     // #### common matrix functions shared by all matrix classes
+    {$IFNDEF FPC}
     procedure SetRow(row : integer; Values : IMatrix; ValRow : integer = 0); overload;
     procedure SetColumn(col : integer; Values : IMatrix; ValCols : integer = 0); overload;
+    {$ENDIF}
 
     procedure SwapRow( idx1, idx2 : integer );
     procedure SwapColumn( idx1, idx2 : integer );
 
+    {$IFNDEF FPC}
     function SubColMtxIdx( colIdx : TIntegerDynArray ) : IMatrix; overload;
     function SubRowMtxIdx( rowIdx : TIntegerDynArray ) : IMatrix; overload;
     function SubMtxIdx( colIdx : TIntegerDynArray; rowIdx : TIntegerDynArray ) : IMatrix; overload;
@@ -86,18 +89,26 @@ type
     function SubMtx( fromColIdx, ToColIdx, fromRowIdx, ToRowIdx : integer ) : IMatrix; overload;
 
     function Reshape(newWidth, newHeight : integer; RowMajor : boolean = False) : IMatrix;
+   {$ENDIF}
+
     procedure ReshapeInPlace(newWidth, newHeight : integer; ColMajor : boolean = False);
 
+    {$IFNDEF FPC}
     function AsVector( ColMajor : boolean = False ) : IMatrix;
+    {$ENDIF}
 
     // ###################################################
     // #### Simple matrix utility functions
+    {$IFNDEF FPC}
     function Abs : IMatrix;
+    {$ENDIF}
     procedure AbsInPlace;
 
     procedure DiagInPlace(createDiagMtx : boolean);
+    {$IFNDEF FPC}
     function Diag(createDiagMtx : boolean) : IMatrix;
     function DiagFromOffset(K : integer) : IMatrix;  // returns the diagonal on offset k
+    {$ENDIF}
 
     procedure Normalize(RowWise : boolean);
     procedure NormZeroMeanVarOne(RowWise : boolean);
@@ -105,9 +116,12 @@ type
 
     // ###################################################
     // #### Base Matrix operations
+    {$IFNDEF FPC}
     function Transpose : IMatrix;
+    {$ENDIF}
     procedure TransposeInPlace;
 
+    {$IFNDEF FPC}
     procedure AddInplace(Value : IMatrix);
     function Add(Value : IMatrix) : IMatrix;
     procedure AddVecInPlace(Value : IMatrix; rowWise : Boolean);
@@ -132,77 +146,93 @@ type
     function ElementWiseMult(Value : IMatrix) : IMatrix;
     procedure ElementWiseDivInPlace(Value : IMatrix);
     function ElementWiseDiv(Value : IMatrix) : IMatrix;
-
+    {$ENDIF}
     procedure AddAndScaleInPlace(const Offset, Scale : double);
+    {$IFNDEF FPC}
     function AddAndScale(const Offset, Scale : double) : IMatrix;
-
     function Mean(RowWise : boolean) : IMatrix;
+    {$ENDIF}
     procedure MeanInPlace(RowWise : boolean);
+    {$IFNDEF FPC}
     function Variance(RowWise : boolean; unbiased : boolean = True) : IMatrix;
+    {$ENDIF}
     procedure VarianceInPlace(RowWise : boolean; unbiased : boolean = True);
+    {$IFNDEF FPC}
     function Std(RowWise : boolean; unbiased : boolean = True) : IMatrix;
+    {$ENDIF}
     procedure StdInPlace(RowWise : boolean; unbiased : boolean = True);
 
     // calculates mean and variance in one step and stores the mean in the first row, the variance in the second
     // if RowWise is selected. If rowwise is false it's vice versa
+    {$IFNDEF FPC}
     function MeanVariance(RowWise : boolean; unbiased : boolean = True) : IMatrix;
+    {$ENDIF}
     procedure MeanVarianceInPlace(RowWise : boolean; unbiased : boolean = True);
 
+    {$IFNDEF FPC}
     function Median(RowWise : boolean) : IMatrix;
-    procedure MedianInPlace(RowWise : boolean);
     function RollMedian(RowWise : boolean; order : integer) : IMatrix;
+    {$ENDIF}
+    procedure MedianInPlace(RowWise : boolean);
     procedure RollMedianInPlace(RowWise : boolean; order : integer);
 
     procedure SortInPlace(RowWise : boolean);
+    {$IFNDEF FPC}
     function Sort(RowWise : boolean) : IMatrix;
-
     function Diff(RowWise : boolean) : IMatrix;
-    procedure DiffInPlace(RowWise : boolean);
     function Sum(RowWise : boolean) : IMatrix; overload;
+    function CumulativeSum(RowWise : boolean) : IMatrix;
+    function AddConst(const Value : double) : IMatrix;
+    function Scale(const Value : double) : IMatrix;
+    function ScaleAndAdd(const aOffset, aScale : double) : IMatrix;
+    function SQRT : IMatrix;
+    {$ENDIF}
+    procedure DiffInPlace(RowWise : boolean);
     procedure SumInPlace(RowWise : boolean); overload;
     procedure SumInPlace(RowWide : boolean; keepMemory : boolean); overload;
-    function CumulativeSum(RowWise : boolean) : IMatrix;
     procedure CumulativeSumInPlace(RowWise : boolean);
 
-    function AddConst(const Value : double) : IMatrix;
+
     procedure AddConstInPlace(const Value : double);
-    function Scale(const Value : double) : IMatrix;
     procedure ScaleInPlace(const Value : Double);
-    function ScaleAndAdd(const aOffset, aScale : double) : IMatrix;
     procedure ScaleAndAddInPlace(const aOffset, aScale : double);
-    function SQRT : IMatrix;
     procedure SQRTInPlace;
 
 
     // ###################################################
     // #### Matrix assignment operations
+    {$IFNDEF FPC}
     procedure Assign(Value : IMatrix); overload;
     procedure AssignEx(Value : IMatrix; OnlySubElements : boolean); overload;
     procedure AssignSubMatrix(Value : IMatrix; X : integer = 0; Y : integer = 0);
     procedure Append(Value : IMatrix; appendColumns : boolean); overload;
-
+    {$ENDIF}
     procedure InitRandom(method : TRandomAlgorithm; var seed : LongInt);
 
     // ###########################################
     // #### Linear systems
+    {$IFNDEF FPC}
     function SolveLinEQ(Value : IMatrix; numRefinements : integer = 0) : IMatrix;
     procedure SolveLinEQInPlace(Value : IMatrix; numRefinements : integer = 0);
+    {$ENDIF}
 
     // matrix inversion (based on LU decomposition)
     function InvertInPlace : TLinEquResult;
+    {$IFNDEF FPC}
     function Invert : IMatrix; overload;
     function InvertEx( out InvMtx : IMatrix ) : TLinEquResult; overload;
-
 
     // moves data from Value to self and clears original object
     procedure TakeOver(Value : IMatrix);
     function Clone : IMatrix;
+    {$ENDIF}
 
     // ###################################################
     // #### Special functions
     procedure RepeatMatrixInPlace(numX, numY : integer);
+    {$IFNDEF FPC}
     function RepeatMatrix(numX, numY : integer) : IMatrix;
-
+    {$ENDIF}
     property VecLen : integer read GetVecLen;
   end;
   IMatrixDynArr = Array of IMatrix;
@@ -253,11 +283,13 @@ type
     procedure OnLoadStringProperty(const Name : String; const Value : String); overload; override;
 
     class function GetItemSize : integer; virtual; abstract;
-  protected
+  public
     // ###########################################
     // #### Interface mapping - we cannot define a different matrix return value without this trick
     procedure IMatrix.SetRow = SetRowI;
     procedure IMatrix.SetColumn = SetColumnI;
+
+    {$IFNDEF FPC}
     function IMatrix.SubColMtxIdx = SubColMtxIdxI;
     function IMatrix.SubRowMtxIdx = SubRowMtxIdxI;
     function IMatrix.SubMtxIdx = SubMtxIdxI;
@@ -327,8 +359,10 @@ type
     procedure IMatrix.AssignEx = AssignExI;
     procedure IMatrix.AssignSubMatrix = AssignSubMatrixI;
     procedure IMatrix.Append = AppendI;
+    {$ENDIF}
     function IMatrix.Cast = CastI;
 
+    {$IFNDEF FPC}
     // ###########################################
     // #### Linear systems
     function IMatrix.SolveLinEQ = SolveLinEQI;
@@ -345,7 +379,7 @@ type
     // ###################################################
     // #### Special functions
     function IMatrix.RepeatMatrix = RepeatMatrixI;
-
+    {$ENDIF}
   protected
     // ###########################################
     // #### Interface functions - all are abstract and implemented by the derrived classes
@@ -873,8 +907,6 @@ end;
 
 procedure TBaseMatrix.DefineProps;
 begin
-     inherited;
-
      AddStringProperty('Name', fName);
 
      AddIntProperty('Width', fWidth);

@@ -98,17 +98,17 @@ begin
      end;
 end;
 
-procedure InitBCrypt;
-begin
-     if locBCryptHdl = 0 then
-     begin
-          locBCryptHdl := LoadLibrary('BCrypt.dll');
-          if locBCryptHdl = 0 then
-             exit;
+ procedure InitBCrypt;
+ begin
+      if locBCryptHdl = 0 then
+      begin
+           locBCryptHdl := LoadLibrary('BCrypt.dll');
+           if locBCryptHdl = 0 then
+              exit;
 
-          locBCrytGenRandom := TBCryptGenRandom( GetProcAddress(locBCryptHdl, 'BCryptGenRandom') );
-     end;
-end;
+           locBCrytGenRandom := TBCryptGenRandom( GetProcAddress(locBCryptHdl, 'BCryptGenRandom') );
+      end;
+ end;
 
 function CryptAcquireContext( out phProv : THCRYPTROV; pszContainer : PChar; pszProvider : PChar;
                               dwProvType : DWord; dwFlags : DWord) : boolean; stdcall;
@@ -125,7 +125,7 @@ begin
      Result := locCryptReleaseContext(hProv, dwFlags);
 end;
 
-function CryptGenRandom( hProv : THCRYPTROV; dwLen : DWORD; pbBuffer : PByte) : boolean; stdcall; 
+function CryptGenRandom( hProv : THCRYPTROV; dwLen : DWORD; pbBuffer : PByte) : boolean; stdcall;
 begin
      Assert(locADVAPIHdl <> 0, 'Error - call InitRandLib first');
 

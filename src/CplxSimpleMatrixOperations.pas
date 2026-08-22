@@ -602,7 +602,7 @@ begin
      end;
 end;
 
-procedure CplxGenericMtxNormalize(dest : PComplex; destLineWidth : NativeInt; Src : PComplex; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean); overload;
+procedure CplxGenericMtxNormalize(dest : PComplex; destLineWidth : NativeInt; Src : PComplex; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
 var x, y: Integer;
     normVal : TComplex;
     pSrc : PConstComplexArr;
@@ -1302,6 +1302,26 @@ begin
      end;
 end;
 
+function CplxGenericMtxSumSum(Src : PComplex; srcLineWidth : NativeInt; width, height : NativeInt) : TComplex;
+var x, y : NativeInt;
+    pVal2 : PConstComplexArr;
+    lineVal : TComplex;
+begin
+     assert((Width >= 0) and (Height >= 0), 'No data assigned');
+     Result := cCplxZero;
+     for y := 0 to Height - 1 do
+     begin
+          pVal2 := PConstComplexArr(src);
+          lineVal := cCplxZero;
+          for x := 0 to Width - 1 do
+              CInc(lineVal, pVal2^[x]);
+
+          CInc(Result, lineVal);
+
+          inc(PByte(src), srcLineWidth);
+     end;
+end;
+
 
 // ###########################################
 // #### Apply a function on a complex matrix
@@ -1544,6 +1564,8 @@ begin
           inc(PByte(pdest), destLineWidth);
      end;
 end;
+
+{$ENDIF}
 
 procedure CplxGenericMtxMean(dest : PComplex; destLineWidth : NativeInt; Src : PComplex; srcLineWidth : NativeInt; width, height : NativeInt; RowWise : boolean);
 var val, val2 : TComplex;
@@ -1845,27 +1867,6 @@ begin
      end;
 end;
 
-function CplxGenericMtxSumSum(Src : PComplex; srcLineWidth : NativeInt; width, height : NativeInt) : TComplex;
-var x, y : NativeInt;
-    pVal2 : PConstComplexArr;
-    lineVal : TComplex;
-begin
-     assert((Width >= 0) and (Height >= 0), 'No data assigned');
-     Result := cCplxZero;
-     for y := 0 to Height - 1 do
-     begin
-          pVal2 := PConstComplexArr(src);
-          lineVal := cCplxZero;
-          for x := 0 to Width - 1 do
-              CInc(lineVal, pVal2^[x]);
-
-          CInc(Result, lineVal);
-
-          inc(PByte(src), srcLineWidth);
-     end;
-end;
-
-
 
 // ###########################################
 // #### Sorting/median
@@ -1884,19 +1885,19 @@ begin
         exit;
 
      tmpMem := tmp;
-     
+
      pVal1 := PByte(Src);
      if RowWise then
      begin
           if tmp = nil then
              tmpMem := GetMemory(width*sizeof(TComplex));
-          
+
           for y := 0 to Height - 1 do
           begin
                // copy since we destroy the array when calculating the median
                Move(pVal1^, tmpMem^, Width*sizeof(TComplex));
-               
-               if Width and 1 = 1 
+
+               if Width and 1 = 1
                then
                    dest^ := CplxKthLargest(tmpMem, width, width div 2)
                else
@@ -1910,7 +1911,7 @@ begin
      begin
           if tmp = nil then
              tmpMem := GetMemory(height*sizeof(double));
-          
+
           for x := 0 to Width - 1 do
           begin
                pVal := PComplex(pVal1);
@@ -1920,7 +1921,7 @@ begin
                     inc(PByte(pVal), srcLineWidth);
                end;
 
-               if height and 1 = 1 
+               if height and 1 = 1
                then
                    dest^ := CplxKthLargest(tmpMem, height, height div 2)
                else
@@ -2018,7 +2019,5 @@ begin
             rollMed.Free;
      end;
 end;
-
-{$ENDIF}
 
 end.

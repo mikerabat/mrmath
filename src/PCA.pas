@@ -685,7 +685,7 @@ end;
 
 function TMatrixPCA.ProjectToFeatureSpace(
   Example: TDoubleMatrix): TDoubleMatrix;
-var meanMtx : IMatrix;
+var meanMtx : IDoubleMatrix;
 begin
      if not Assigned(fEigVecs) then
         raise EPCAException.Create('PCA object not initialized');
@@ -1258,7 +1258,7 @@ begin
            // copy rows respectively elements
            for i := 0 to numElements - 1 do
            begin
-                A.SetRow(i, fEigVecs, Elements[i]);
+                (A.GetObjRef as TDoubleMatrix).SetRow(i, fEigVecs.GetObjRef as TDoubleMatrix, Elements[i]);
                 X[0, i] := meanNormExample[0, Elements[i]];
            end;
 

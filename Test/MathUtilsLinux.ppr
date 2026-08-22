@@ -14,7 +14,7 @@
 
 program MathUtilsLinux;
 
-{$mode objfpc}{$H+}
+{$mode Delphi}{$H+}
 
 uses
   {$IFDEF LINUX} cthreads, {$ENDIF}

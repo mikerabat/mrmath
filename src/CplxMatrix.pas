@@ -127,6 +127,8 @@ type
 
     // ###################################################
     // #### Linear System solver A*x = B -> use A.SolveLinEQ(B) -> x
+    function SolveLinEQ(Value : ICplxMatrix; numRefinements : integer = 0) : ICplxMatrix;
+    procedure SolveLinEQInPlace(Value : ICplxMatrix; numRefinements : integer = 0);
 
     function Invert : ICplxMatrix; overload;
     function InvertEx( out InvMtx : ICplxMatrix ) : TLinEquResult; overload;
@@ -140,13 +142,18 @@ type
 
     // ###################################################
     // #### Matrix assignment operations
+    {$IFNDEF FPC}
     procedure Assign(const Mtx : Array of TComplex; W, H : integer); overload;
+    {$ENDIF}
     procedure AssignDyn(Value : TComplexDynArray; W, H : integer);
   end;
 
   // #################################################
 // #### Builds base matrix operations
   TCplxMatrixClass = class of TCplxMatrix;
+
+  { TCplxMatrix }
+
   TCplxMatrix = class(TBaseMatrix, ICplxMatrix)
   private
     type
@@ -168,11 +175,10 @@ type
     function GetVecItem(idx: integer): double; override;
     procedure SetVecItem(idx: integer; const Value: double); override;
 
-
     // matrix persistence functions
     procedure DefineProps; override;
-    function PropTypeOfName(const Name : string) : TPropType; override;
-    procedure OnLoadCmplxArr(const Name : String; const Value : TComplexDynArray); override;
+    function PropTypeOfName(const aName : string) : TPropType; override;
+    procedure OnLoadCmplxArr(const aName : String; const Value : TComplexDynArray); override;
 
     class function ClassIdentifier : String; override;
     class function GetItemSize : integer; override;
@@ -236,6 +242,17 @@ type
     procedure ICplxMatrix.ElementWiseDivInPlace = ElementWiseDivInPlaceC;
     function ICplxMatrix.AddAndScale = AddAndScaleD;
     procedure ICplxMatrix.AddAndScaleInPlaceC = AddAndScaleInPlaceC;
+    function ICplxMatrix.SolveLinEQ = SolveLinEQC;
+    procedure ICplxMatrix.SolveLinEQInPlace = SolveLinEQInPlaceC;
+
+    {$IFDEF FPC}
+    function ICplxMatrix.Cast = CastI;
+    function ICplxMatrix.StartElement = StartElementD;
+
+
+    function StartElementD : PDouble;
+    {$ENDIF}
+
 
     function MultC(Value : ICplxMatrix) : ICplxMatrix;
     function TransposeC : ICplxMatrix;
@@ -283,6 +300,9 @@ type
     function SubMtxC( fromColIdx, ToColIdx, fromRowIdx, ToRowIdx : integer ) : ICplxMatrix; overload;
     function MedianC(RowWise : boolean) : ICplxMatrix;
     function RollMedianC(RowWise : boolean; order : integer) : ICplxMatrix;
+    function SolveLinEQC(Value : ICplxMatrix; numRefinements : integer = 0) : ICplxMatrix;
+    procedure SolveLinEQInPlaceC(Value : ICplxMatrix; numRefinements : integer = 0);
+
 
     // ###########################################
     // #### Interface methods - overrides from the base class that use the interface
@@ -384,7 +404,7 @@ type
     procedure SetValue(const initVal : TComplex); overload;
     procedure SetValueSubMtx(const initVal : TComplex; x, y, aWidth, aHeight : NativeInt); overload;  // sets the value in a subsection of the matrix
 
-    procedure SetData(data : PComplex; srcLineWidth, width, height : integer);
+    procedure SetData(data : PComplex; srcLineWidth, aWidth, aHeight : integer);
 
     procedure SwapRow( idx1, idx2 : integer ); override;
     procedure SwapColumn( idx1, idx2 : integer ); override;
@@ -852,7 +872,8 @@ begin
      AssignEx(Value.GetObjRef as TCplxMatrix, OnlySubElements);
 end;
 
-procedure TCplxMatrix.AssignSubMatrix(Value: TCplxMatrix; X, Y: integer);
+procedure TCplxMatrix.AssignSubMatrix(Value: TCplxMatrix; X: integer; Y: integer
+  );
 var pSelf, pValue : PComplex;
 begin
      CheckAndRaiseError((Value.Width <= Width + x) and (Value.Height <= Height + y), 'Dimension error');
@@ -865,7 +886,8 @@ begin
      CplxGenericMtxCopy(pSelf, LineWidth, pValue, Value.LineWidth, Value.Width, Value.Height);
 end;
 
-procedure TCplxMatrix.AssignSubMatrixC(Value: ICplxMatrix; X, Y: integer);
+procedure TCplxMatrix.AssignSubMatrixC(Value: ICplxMatrix; X: integer;
+  Y: integer);
 begin
      AssignSubMatrix(Value.GetObjRef as TCplxMatrix, X, Y);
 end;
@@ -1015,8 +1037,8 @@ begin
      end;
 end;
 
-constructor TCplxMatrix.CreateDyn(const Data: TComplexDynArray; fromDataIdx,
-  aWidth, aHeight: integer);
+constructor TCplxMatrix.CreateDyn(const Data: TComplexDynArray;
+  fromDataIdx: integer; aWidth, aHeight: integer);
 begin
      CheckAndRaiseError((aWidth*aHeight >= 0) and (Length(Data) >= aWidth*aHeight + fromDataIdx), 'Dimension error');
 
@@ -1055,8 +1077,8 @@ begin
 end;
 
 
-constructor TCplxMatrix.CreateLinSpace(aVecLen: integer; const StartVal,
-  endVal: TComplex);
+constructor TCplxMatrix.CreateLinSpace(aVecLen: integer;
+  const StartVal: TComplex; const endVal: TComplex);
 var value : TComplex;
     pVec : PComplex;
     counter: Integer;
@@ -1179,13 +1201,13 @@ begin
      SetSubMatrix(origOffsetX, origOffsetY, origSubWidth, origSubHeight);
 end;
 
-function TCplxMatrix.PropTypeOfName(const Name: string): TPropType;
+function TCplxMatrix.PropTypeOfName(const aName: string): TPropType;
 begin
-     if CompareText(Name, 'data') = 0
+     if CompareText(aName, 'data') = 0
      then
          Result := ptComplex
      else
-         Result := inherited PropTypeOfName(Name);
+         Result := inherited PropTypeOfName(aName);
 end;
 
 function TCplxMatrix.Determinant: TComplex;
@@ -1513,7 +1535,7 @@ begin
          Result := GetItemsC(idx mod fSubWidth, idx div fSubWidth);
 end;
 
-procedure TCplxMatrix.InitRandom(method: TRandomAlgorithm; var seed: Integer);
+procedure TCplxMatrix.InitRandom(method: TRandomAlgorithm; var seed: LongInt);
 begin
      fObj := TRandomGenerator.Create;
      TRandomGenerator(fObj).RandMethod := method;
@@ -1669,7 +1691,8 @@ begin
      end;
 end;
 
-function TCplxMatrix.MeanVariance(RowWise, unbiased: boolean): TCplxMatrix;
+function TCplxMatrix.MeanVariance(RowWise: boolean; unbiased: boolean
+  ): TCplxMatrix;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
 
@@ -1687,17 +1710,19 @@ begin
      end;
 end;
 
-function TCplxMatrix.MeanVarianceC(RowWise, unbiased: boolean): ICplxMatrix;
+function TCplxMatrix.MeanVarianceC(RowWise: boolean; unbiased: boolean
+  ): ICplxMatrix;
 begin
      Result := MeanVariance(RowWise, unbiased);
 end;
 
-function TCplxMatrix.MeanVarianceI(RowWise, unbiased: boolean): IMatrix;
+function TCplxMatrix.MeanVarianceI(RowWise: boolean; unbiased: boolean
+  ): IMatrix;
 begin
      Result := MeanVariance(RowWise, unbiased);
 end;
 
-procedure TCplxMatrix.MeanVarianceInPlace(RowWise, unbiased: boolean);
+procedure TCplxMatrix.MeanVarianceInPlace(RowWise: boolean; unbiased: boolean);
 var dl : TCplxMatrix;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
@@ -1769,6 +1794,13 @@ begin
      value.real := Random;
      value.imag := Random;
 end;
+
+{$IFDEF FPC}
+function TCplxMatrix.StartElementD: PDouble;
+begin
+     Result := PDouble(StartElement);
+end;
+{$ENDIF}
 
 function TCplxMatrix.Mult(Value: TCplxMatrix): TCplxMatrix;
 begin
@@ -1903,10 +1935,10 @@ begin
      Result := ntComplex;
 end;
 
-procedure TCplxMatrix.OnLoadCmplxArr(const Name: String;
+procedure TCplxMatrix.OnLoadCmplxArr(const aName: String;
   const Value: TComplexDynArray);
 begin
-     if (CompareText(Name, 'data') = 0) and (Length(Value) > 0) then
+     if (CompareText(aName, 'data') = 0) and (Length(Value) > 0) then
      begin
           CheckAndRaiseError(Length(value) = fWidth*fHeight, 'The loaded array does not fit the expected size.');
           Assign(Value, fWidth, fHeight);
@@ -2168,8 +2200,8 @@ begin
      SetColumn(col, Values.GetObjRef as TCplxMatrix, ValCols);
 end;
 
-procedure TCplxMatrix.SetData(data: PComplex; srcLineWidth, width,
-  height: integer);
+procedure TCplxMatrix.SetData(data: PComplex; srcLineWidth, aWidth,
+  aHeight: integer);
 begin
      ReserveMem(width, height);
 
@@ -2268,6 +2300,12 @@ begin
      end;
 end;
 
+function TCplxMatrix.SolveLinEQC(Value: ICplxMatrix;
+  numRefinements: integer): ICplxMatrix;
+begin
+     Result := SolveLinEQC( Value.GetObjRef as TCplxMatrix, numRefinements );
+end;
+
 procedure TCplxMatrix.SolveLinEQInPlace(Value: TCplxMatrix;
   numRefinements: integer);
 var dt : TCplxMatrix;
@@ -2289,6 +2327,12 @@ begin
      finally
             dt.Free;
      end;
+end;
+
+procedure TCplxMatrix.SolveLinEQInPlaceC(Value: ICplxMatrix;
+  numRefinements: integer);
+begin
+     SolveLinEQInPlace(Value.GetObjRef as TCplxMatrix, numRefinements);
 end;
 
 function TCplxMatrix.Sort(RowWise: boolean): TCplxMatrix;
@@ -2343,23 +2387,23 @@ begin
      Result := PComplex(inherited StartElement);
 end;
 
-function TCplxMatrix.Std(RowWise, unbiased: boolean): TCplxMatrix;
+function TCplxMatrix.Std(RowWise: boolean; unbiased: boolean): TCplxMatrix;
 begin
      Result := Variance(RowWise, unbiased);
      Result.SQRTInPlace;
 end;
 
-function TCplxMatrix.StdC(RowWise, unbiased: boolean): ICplxMatrix;
+function TCplxMatrix.StdC(RowWise: boolean; unbiased: boolean): ICplxMatrix;
 begin
      Result := Std(RowWise, unbiased);
 end;
 
-function TCplxMatrix.StdI(RowWise, unbiased: boolean): IMatrix;
+function TCplxMatrix.StdI(RowWise: boolean; unbiased: boolean): IMatrix;
 begin
      Result := Std(RowWise, unbiased);
 end;
 
-procedure TCplxMatrix.StdInPlace(RowWise, unbiased: boolean);
+procedure TCplxMatrix.StdInPlace(RowWise: boolean; unbiased: boolean);
 var dl : TCplxMatrix;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
@@ -2499,7 +2543,8 @@ begin
      Result := SubMtx(fromColIdx, ToColIdx, fromRowIdx, ToRowIdx);
 end;
 
-function TCplxMatrix.SubMtxIdx(colIdx, rowIdx: TIntegerDynArray): TCplxMatrix;
+function TCplxMatrix.SubMtxIdx(colIdx: TIntegerDynArray;
+  rowIdx: TIntegerDynArray): TCplxMatrix;
 var i : integer;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'Not allowed on an empty matrix');
@@ -2531,12 +2576,14 @@ begin
 end;
 
 
-function TCplxMatrix.SubMtxIdxC(colIdx, rowIdx: TIntegerDynArray): ICplxMatrix;
+function TCplxMatrix.SubMtxIdxC(colIdx: TIntegerDynArray;
+  rowIdx: TIntegerDynArray): ICplxMatrix;
 begin
      Result := SubMtxIdx(colIdx, rowIdx);
 end;
 
-function TCplxMatrix.SubMtxIdxI(colIdx, rowIdx: TIntegerDynArray): IMatrix;
+function TCplxMatrix.SubMtxIdxI(colIdx: TIntegerDynArray;
+  rowIdx: TIntegerDynArray): IMatrix;
 begin
      Result := SubMtxIdx(colIdx, rowIdx);
 end;
@@ -2687,7 +2734,7 @@ begin
      end;
 end;
 
-procedure TCplxMatrix.SumInPlace(RowWise, keepMemory: boolean);
+procedure TCplxMatrix.SumInPlace(RowWise: boolean; keepMemory: boolean);
 begin
      if not keepMemory
      then
@@ -2832,7 +2879,7 @@ begin
      Result := TransposeNonConj;
 end;
 
-function TCplxMatrix.Variance(RowWise, unbiased: boolean): TCplxMatrix;
+function TCplxMatrix.Variance(RowWise: boolean; unbiased: boolean): TCplxMatrix;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
 
@@ -2851,17 +2898,18 @@ begin
 end;
 
 
-function TCplxMatrix.VarianceC(RowWise, unbiased: boolean): ICplxMatrix;
+function TCplxMatrix.VarianceC(RowWise: boolean; unbiased: boolean
+  ): ICplxMatrix;
 begin
      Result := Variance(RowWise, unbiased);
 end;
 
-function TCplxMatrix.VarianceI(RowWise, unbiased: boolean): IMatrix;
+function TCplxMatrix.VarianceI(RowWise: boolean; unbiased: boolean): IMatrix;
 begin
      Result := Variance(RowWise, unbiased);
 end;
 
-procedure TCplxMatrix.VarianceInPlace(RowWise, unbiased: boolean);
+procedure TCplxMatrix.VarianceInPlace(RowWise: boolean; unbiased: boolean);
 var dl : TCplxMatrix;
 begin
      CheckAndRaiseError((Width > 0) and (Height > 0), 'No data assigned');
