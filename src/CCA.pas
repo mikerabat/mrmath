@@ -383,6 +383,9 @@ begin
      else if SameText(Name, cCCAMeanY)
      then
          fMeanY := obj as TDoubleMatrix
+     else if SameText(Name, cCCAMeanX)
+     then
+         fMeanX := obj as TDoubleMatrix
      else
          Result := inherited OnLoadObject(Name, Obj);
 end;
