@@ -132,6 +132,8 @@ License
 
 Acknowledgements & references
 - This project has evolved with contributions and testing on multiple platforms and compilers. Many optimizations are low-level (assembly and SIMD) and targeted to performance-sensitive workloads.
+- There exists a nice wrapper for the matrix class:  https://github.com/Jens01/NewMatrixTool - this wrapper utilizes extended Delphi _records_ and it's capability to sugar code certain operations
+  by applying operator overlading. Worth a look!! 
 
 Contact
 - Repo: https://github.com/mikerabat/mrmath
